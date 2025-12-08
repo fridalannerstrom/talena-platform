@@ -136,6 +136,128 @@ Later versions may replace this with Talena-branded emails.
 
 ---
 
+# Talena – System Architecture Overview
+
+This document outlines how Talena is structured across GitHub, Azure, and Django. The goal is to create a scalable, maintainable, and production‑ready foundation for the platform.
+
+---
+
+## 1. Environments
+
+Talena uses separate environments for clarity, stability, and security.
+
+| Environment | Purpose |
+|------------|----------|
+| **Local** | Development on your own machine |
+| **Dev** | Internal development & feature testing |
+| **Stage** | Stable testing environment before release |
+| **Prod** | Live production |
+
+Each environment has its own Azure resources (App Service, database, storage, logging).
+
+---
+
+## 2. Azure Structure & Naming Conventions
+
+Talena follows consistent naming for all Azure resources.
+
+**Resource Groups**
+- `rg-talena-dev`
+- `rg-talena-stage`
+- `rg-talena-prod`
+
+**App Services**
+- `app-talena-dev`
+- `app-talena-stage`
+- `app-talena-prod`
+
+**App Service Plans**
+- `plan-talena-dev`
+- `plan-talena-stage`
+- `plan-talena-prod`
+
+**PostgreSQL Databases**
+- `pg-talena-dev`
+- `pg-talena-stage`
+- `pg-talena-prod`
+
+**Blob Storage Accounts**
+- `sttalenadev`
+- `sttalenastage`
+- `sttalenaprod`
+
+All environments keep their own separate configuration, database, and storage.
+
+---
+
+## 3. Repository Structure
+
+```
+talena/
+│
+├── backend/            # Django project
+│   ├── talena/         # settings, urls, wsgi
+│   ├── apps/           # modular Django apps
+│   └── manage.py
+│
+├── infra/              # Infrastructure-as-Code (optional)
+│
+├── docs/               # Documentation
+│   └── ARCHITECTURE.md
+│
+├── .github/
+│   └── workflows/      # CI/CD pipelines
+│
+└── README.md
+```
+
+---
+
+## 4. Django Settings Structure
+
+Talena uses environment-based settings:
+
+```
+backend/
+  talena/
+    settings/
+      base.py
+      dev.py
+      stage.py
+      prod.py
+```
+
+- `base.py`: shared core settings  
+- `dev.py`, `stage.py`, `prod.py`: environment overrides  
+- Active environment controlled via `DJANGO_SETTINGS_MODULE`
+
+---
+
+## 5. Branch Strategy
+
+Talena follows a simple branching model:
+
+- `main` – production-ready code  
+- `develop` – active development branch  
+
+**Feature branches:**
+```
+feature/<feature-name>
+```
+
+**Hotfix branches:**
+```
+hotfix/<bug-name>
+```
+
+Pull requests go into `develop`, which is merged into `main` before release.
+
+---
+
+
+---
+
+
 # 🧪 **What is *not* included in MVP**
 
 To stay focused and deliver fast, the following are **intentionally out of scope**:
