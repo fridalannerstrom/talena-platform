@@ -94,7 +94,7 @@
                                 <div class="dropdown-notifications-item-content-text">Ny testprocess startad</div>
                             </div>
                         </a>
-                        <a class="dropdown-item dropdown-notifications-footer" href="#!">View All Alerts</a>
+                        <a class="dropdown-item dropdown-notifications-footer" href="#!">Se alla notiser</a>
                     </div>
                 </li>
                 <!-- User Dropdown-->
@@ -104,8 +104,8 @@
                         <h6 class="dropdown-header d-flex align-items-center">
                             <img class="dropdown-user-img" src="assets/img/illustrations/profiles/profile-1.png" />
                             <div class="dropdown-user-details">
-                                <div class="dropdown-user-details-name">{{ request.user.get_email }}</div>
-                                <div class="dropdown-user-details-email">{{ request.user.get_username }}</div>
+                                <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
+                                <div class="dropdown-user-details-email">{{ request.user.email }}</div>
                             </div>
                         </h6>
                         <div class="dropdown-divider"></div>
