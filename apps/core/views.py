@@ -19,7 +19,7 @@ def customer_dashboard(request):
     if _is_admin(request.user):
         # Admin ska inte hamna här (valfritt)
         return HttpResponseForbidden("Admins should use the admin dashboard.")
-    return render(request, "core/customer_dashboard.html")
+    return render(request, "core/dashboards/customer_dashboard.html")
 
 @login_required
 def admin_dashboard(request):
@@ -34,4 +34,4 @@ def admin_dashboard(request):
     else:
         form = CreateCustomerUserForm()
 
-    return render(request, "core/admin_dashboard.html", {"form": form})
+    return render(request, "core/dashboards/admin_dashboard.html", {"form": form})

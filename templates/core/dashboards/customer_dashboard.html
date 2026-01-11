@@ -1,0 +1,28 @@
+{% extends "../layouts/base.html" %}
+
+{% block title %}Dashboard | Talena{% endblock %}
+
+{% block content %}
+  <h1>Dashboard</h1>
+
+    <p>
+      Inloggad som: <strong>{{ request.user.get_username }}</strong>
+    </p>
+
+    <hr />
+
+    <h2>Snabbt</h2>
+    <ul>
+      <li><a href="/admin/">Admin</a></li>
+      <li>
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logga ut</button>
+</form>
+</li>
+    </ul>
+
+    <p style="margin-top: 32px; color: #666;">
+      Status: <strong>alive</strong>
+    </p>
+{% endblock %}
