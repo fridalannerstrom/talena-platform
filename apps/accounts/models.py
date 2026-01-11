@@ -2,5 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
-    # du kan lägga till fler fält senare (tenant, role etc)
-    pass
+    class Role(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        CUSTOMER = "customer", "Customer"
+
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.CUSTOMER,
+    )

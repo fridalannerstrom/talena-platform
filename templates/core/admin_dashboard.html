@@ -1,0 +1,16 @@
+<h1>Admin Dashboard</h1>
+
+<h2>Skapa kundkonto</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Skapa kund</button>
+</form>
+
+<hr>
+
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logga ut</button>
+</form>

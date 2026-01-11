@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from apps.core.views import dashboard, health
+from apps.core.views import health
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -29,10 +29,12 @@ urlpatterns = [
         ),
         name="login",
     ),
-    path("dashboard/", dashboard, name="dashboard"),
     path(
         "logout/",
         auth_views.LogoutView.as_view(),
         name="logout",
     ),
+    path("django-admin/", admin.site.urls),
+    path("", include("apps.accounts.urls")),
+    path("", include("apps.core.urls")),
 ]
