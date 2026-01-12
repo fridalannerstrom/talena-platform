@@ -252,7 +252,6 @@ hotfix/<bug-name>
 
 Pull requests go into `develop`, which is merged into `main` before release.
 
----
 
 
 ---
