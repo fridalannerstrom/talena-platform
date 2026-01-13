@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from apps.accounts.forms import CreateCustomerUserForm
+from .services.sova import SovaClient
 
 def home(request):
     return JsonResponse({"app": "Talena", "status": "alive"})
@@ -19,7 +20,21 @@ def customer_dashboard(request):
     if _is_admin(request.user):
         # Admin ska inte hamna här (valfritt)
         return HttpResponseForbidden("Admins should use the admin dashboard.")
-    return render(request, "core/dashboards/customer_dashboard.html")
+    
+    from apps.core.services.sova import SovaClient
+    accounts = []
+    error = None
+
+    try:
+        accounts = SovaClient().get_accounts_with_projects()
+    except Exception as e:
+        error = str(e)
+
+    return render(request, "core/dashboards/customer_dashboard.html", {
+        "accounts": accounts,
+        "error": error,
+        "ping": "DASHBOARD VIEW HIT",
+    })
 
 @login_required
 def admin_dashboard(request):
@@ -35,3 +50,33 @@ def admin_dashboard(request):
         form = CreateCustomerUserForm()
 
     return render(request, "core/dashboards/admin_dashboard.html", {"form": form})
+
+@login_required
+def sova_projects(request):
+    from .services.sova import SovaClient
+    import os
+
+    debug = {}
+    try:
+        client = SovaClient()
+        debug["base_url"] = client.base_url
+        debug["has_user"] = bool(os.getenv("SOVA_USERNAME"))
+        debug["has_pass"] = bool(os.getenv("SOVA_PASSWORD"))
+
+        accounts = client.get_accounts_with_projects()
+        debug["accounts_len"] = len(accounts)
+        for a in accounts:
+            a["projects_len"] = len(a.get("projects", []))
+
+        return render(request, "core/sova_projects.html", {
+            "accounts": accounts,
+            "debug": debug,
+            "error": None
+        })
+    except Exception as e:
+        debug["exception"] = str(e)
+        return render(request, "core/sova_projects.html", {
+            "accounts": [],
+            "debug": debug,
+            "error": str(e)
+        })
