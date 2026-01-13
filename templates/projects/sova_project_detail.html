@@ -1,0 +1,27 @@
+{% extends "../core/layouts/base.html" %}
+{% block content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-3">SOVA Project</h1>
+
+  <div class="mb-3">
+    <a href="{% url 'customer_dashboard' %}">&larr; Back to Dashboard</a>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if project %}
+    <div class="card">
+      <div class="card-body">
+        <p class="mb-1"><strong>Account:</strong> {{ account_code }}</p>
+        <p class="mb-1"><strong>Project name:</strong> {{ project.name }}</p>
+        <p class="mb-1"><strong>Project code:</strong> <code>{{ project.code }}</code></p>
+        <p class="mb-0"><strong>Active:</strong> {{ project.active }}</p>
+      </div>
+    </div>
+
+    {# Här kan du sen lägga knappar: "Order assessment", "Create candidate", osv #}
+  {% endif %}
+</div>
+{% endblock %}

@@ -42,16 +42,14 @@
             </thead>
             <tbody>
               {% for p in account.projects %}
-                <tr>
+                <tr style="cursor:pointer"
+                    onclick="window.location='{% url 'sova_project_detail' account.code p.code %}'">
                   <td>{{ p.id }}</td>
                   <td><code>{{ p.code }}</code></td>
                   <td>{{ p.name }}</td>
                   <td>
-                    {% if p.active %}
-                      <span class="badge bg-success">Active</span>
-                    {% else %}
-                      <span class="badge bg-secondary">Inactive</span>
-                    {% endif %}
+                    {% if p.active %}<span class="badge bg-success">Active</span>{% else %}
+                    <span class="badge bg-secondary">Inactive</span>{% endif %}
                   </td>
                 </tr>
               {% empty %}

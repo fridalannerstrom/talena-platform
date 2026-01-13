@@ -80,3 +80,25 @@ def sova_projects(request):
             "debug": debug,
             "error": str(e)
         })
+
+
+@login_required
+def sova_project_detail(request, account_code, project_code):
+    client = SovaClient()
+    error = None
+    project = None
+
+    try:
+        projects = client.get_projects_for_account(account_code)
+        project = next((p for p in projects if (p.get("code") or "") == project_code), None)
+        if not project:
+            error = f"Project '{project_code}' not found in account '{account_code}'."
+    except Exception as e:
+        error = str(e)
+
+    return render(request, "projects/sova_project_detail.html", {
+        "account_code": account_code,
+        "project_code": project_code,
+        "project": project,
+        "error": error,
+    })
