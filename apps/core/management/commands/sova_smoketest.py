@@ -5,7 +5,7 @@ from requests.auth import HTTPBasicAuth
 from django.core.management.base import BaseCommand
 
 
-def _pretty_json(response, limit=2000):
+def _pretty_json(response, limit=4000):
     try:
         data = response.json()
         return json.dumps(data, indent=2)[:limit]
@@ -13,8 +13,22 @@ def _pretty_json(response, limit=2000):
         return (response.text or "")[:limit]
 
 
+def _mark(status: int) -> str:
+    if status == 200 or status == 201:
+        return "✅"
+    if status == 400:
+        return "🧾"
+    if status == 401:
+        return "🔐"
+    if status == 403:
+        return "🚫"
+    if status == 404:
+        return "🕳️"
+    return "❓"
+
+
 class Command(BaseCommand):
-    help = "Smoke test SOVA API connection (tries multiple base paths/endpoints)"
+    help = "SOVA smoke test: list accounts + projects, and optionally try order-assessment."
 
     def handle(self, *args, **options):
         env_base = os.getenv("SOVA_ENV_BASE", "https://api-test.sovaonline.com").rstrip("/")
@@ -23,123 +37,99 @@ class Command(BaseCommand):
         password = os.environ["SOVA_PASSWORD"]
         auth = HTTPBasicAuth(username, password)
 
-        base_paths = os.getenv(
-            "SOVA_BASE_PATHS",
-            "integrations/cleo-test/v4,integrations/partner_v4"
-        )
-        base_paths = [p.strip().strip("/") for p in base_paths.split(",") if p.strip()]
+        # Use only first base path by default (keeps output clean)
+        base_paths_raw = os.getenv("SOVA_BASE_PATHS", "integrations/cleo-test/v4")
+        base_paths = [p.strip().strip("/") for p in base_paths_raw.split(",") if p.strip()]
 
-        endpoints = os.getenv(
-            "SOVA_SMOKETEST_ENDPOINTS",
-            "accounts/,health,version,openapi.json,swagger.json"
-        )
-        endpoints = [e.strip().lstrip("/") for e in endpoints.split(",") if e.strip()]
-
+        # Order test flags
+        do_order = os.getenv("SOVA_DO_ORDER", "0").strip().lower() in ("1", "true", "yes")
         project_code = os.getenv("SOVA_PROJECT_CODE", "").strip()
-        do_order = os.getenv("SOVA_DO_ORDER", "0").strip() in ("1", "true", "True", "yes", "YES")
 
         self.stdout.write("🔌 SOVA smoke test starting…")
         self.stdout.write(f"Env base: {env_base}")
-        self.stdout.write(f"Base paths to try: {base_paths}")
-        self.stdout.write(f"Endpoints to try: {endpoints}")
-
-        any_success = False
+        self.stdout.write(f"Base paths: {base_paths}")
+        self.stdout.write(f"Order test enabled: {do_order} | Project code: {project_code or '(none)'}")
 
         for base_path in base_paths:
             base_url = f"{env_base}/{base_path}/"
             self.stdout.write("")
-            self.stdout.write(f"🧭 Trying base: {base_url}")
+            self.stdout.write(f"🧭 Base: {base_url}")
 
-            # 1) Run your generic GET endpoints
-            for endpoint in endpoints:
-                url = base_url + endpoint
-                try:
-                    r = requests.get(url, auth=auth, timeout=25)
-                except Exception as e:
-                    self.stderr.write(f"❌ GET {url} -> connection error: {e}")
-                    continue
-
-                status = r.status_code
-                mark = "✅" if status == 200 else ("🔐" if status == 401 else ("🚫" if status == 403 else "❓"))
-                self.stdout.write(f"{mark} GET {url} -> {status}")
-
-                if status == 200:
-                    any_success = True
-                    self.stdout.write(_pretty_json(r))
-                    self.stdout.write("—" * 60)
-
-            # 2) Fetch accounts (we want codes)
+            # 1) Accounts
             accounts_url = base_url + "accounts/"
-            self.stdout.write("")
-            self.stdout.write(f"📇 Fetching accounts: {accounts_url}")
+            self.stdout.write(f"📇 GET {accounts_url}")
 
             try:
                 r_acc = requests.get(accounts_url, auth=auth, timeout=25)
             except Exception as e:
-                self.stderr.write(f"❌ GET {accounts_url} -> connection error: {e}")
+                self.stderr.write(f"❌ GET accounts -> connection error: {e}")
                 continue
 
-            self.stdout.write(f"{'✅' if r_acc.status_code == 200 else '❓'} GET {accounts_url} -> {r_acc.status_code}")
-
+            self.stdout.write(f"{_mark(r_acc.status_code)} {r_acc.status_code}")
             if r_acc.status_code != 200:
                 self.stdout.write(_pretty_json(r_acc))
                 continue
 
-            any_success = True
-            data = r_acc.json() if r_acc.content else {}
-            accounts = (data or {}).get("accounts", []) or []
-
+            accounts = (r_acc.json() or {}).get("accounts", []) or []
             if not accounts:
-                self.stdout.write("ℹ️ accounts/ returned 200 but no accounts in response.")
+                self.stdout.write("ℹ️ No accounts returned.")
                 continue
 
-            # Print a compact list
-            self.stdout.write("✅ Accounts found:")
+            self.stdout.write("✅ Accounts:")
             for a in accounts:
                 self.stdout.write(f"  - id={a.get('id')} code={a.get('code')} name={a.get('name')}")
-
             self.stdout.write("—" * 60)
 
-            # 3) For each account, fetch projects
+            # 2) Projects per account
+            all_active_projects = []  # (account_code, project_code, project_obj)
             for a in accounts:
                 account_code = (a.get("code") or "").strip()
                 if not account_code:
                     continue
 
                 projects_url = base_url + f"accounts/{account_code}/projects/"
-                self.stdout.write("")
-                self.stdout.write(f"📦 Fetching projects for {account_code}: {projects_url}")
+                self.stdout.write(f"📦 GET {projects_url}")
 
                 try:
                     r_proj = requests.get(projects_url, auth=auth, timeout=25)
                 except Exception as e:
-                    self.stderr.write(f"❌ GET {projects_url} -> connection error: {e}")
+                    self.stderr.write(f"❌ GET projects for {account_code} -> connection error: {e}")
                     continue
 
-                status = r_proj.status_code
-                mark = "✅" if status == 200 else ("🔐" if status == 401 else ("🚫" if status == 403 else "❓"))
-                self.stdout.write(f"{mark} GET {projects_url} -> {status}")
-
-                if status == 200:
-                    any_success = True
-                    proj_data = r_proj.json() if r_proj.content else {}
-                    projects = (proj_data or {}).get("projects", []) or []
-                    if not projects:
-                        self.stdout.write("ℹ️ 200 OK but no projects returned for this account.")
-                    else:
-                        self.stdout.write(f"✅ Projects ({len(projects)}):")
-                        for p in projects:
-                            self.stdout.write(
-                                f"  - id={p.get('id')} code={p.get('code')} active={p.get('active')} name={p.get('name')}"
-                            )
-                else:
+                self.stdout.write(f"{_mark(r_proj.status_code)} {r_proj.status_code}")
+                if r_proj.status_code != 200:
                     self.stdout.write(_pretty_json(r_proj))
+                    self.stdout.write("—" * 60)
+                    continue
 
+                projects = (r_proj.json() or {}).get("projects", []) or []
+                if not projects:
+                    self.stdout.write("ℹ️ 200 OK but no projects returned.")
+                    self.stdout.write("—" * 60)
+                    continue
+
+                # Print projects (active first)
+                projects_sorted = sorted(projects, key=lambda p: (not p.get("active", False), (p.get("name") or "")))
+                self.stdout.write(f"✅ Projects for {account_code} ({len(projects_sorted)}):")
+                for p in projects_sorted:
+                    p_code = p.get("code")
+                    active = bool(p.get("active"))
+                    self.stdout.write(f"  - id={p.get('id')} code={p_code} active={active} name={p.get('name')}")
+                    if active and p_code:
+                        all_active_projects.append((account_code, p_code, p))
                 self.stdout.write("—" * 60)
 
-            # Optional: POST order-assessment (unchanged)
-            if do_order and project_code:
-                url = base_url + f"order-assessment/{project_code}"
+            # 3) Optional: order-assessment test
+            if do_order:
+                # If not provided, pick first active project we found
+                if not project_code:
+                    if all_active_projects:
+                        project_code = all_active_projects[0][1]
+                        self.stdout.write(f"🎯 No SOVA_PROJECT_CODE set. Using first active project: {project_code}")
+                    else:
+                        self.stdout.write("⚠️ No active projects found to test ordering.")
+                        continue
+
                 payload = {
                     "request_id": os.getenv("SOVA_REQUEST_ID", "talena-smoke-001"),
                     "first_name": "Test",
@@ -148,17 +138,36 @@ class Command(BaseCommand):
                     "meta_data": {"source": "talena_smoketest"},
                 }
 
+                # Try common patterns. We stop on first non-404.
+                order_paths = [
+                    f"order-assessment/{project_code}/",
+                    f"order-assessment/{project_code}",
+                    f"projects/{project_code}/order-assessment/",
+                    f"projects/{project_code}/order-assessment",
+                    f"order-assessments/{project_code}/",
+                    f"order-assessments/{project_code}",
+                ]
+
                 self.stdout.write("")
-                self.stdout.write(f"🧪 POST order-assessment test: {url}")
+                self.stdout.write(f"🧪 Trying order-assessment variants for project: {project_code}")
 
-                try:
-                    r = requests.post(url, json=payload, auth=auth, timeout=30)
-                except Exception as e:
-                    self.stderr.write(f"❌ POST {url} -> connection error: {e}")
-                else:
-                    self.stdout.write(f"POST {url} -> {r.status_code}")
-                    self.stdout.write(_pretty_json(r))
+                found = False
+                for op in order_paths:
+                    url = base_url + op
+                    self.stdout.write(f"→ POST {url}")
 
-        if not any_success:
-            self.stdout.write("")
-            self.stdout.write("ℹ️ No 200 responses yet. Next step: confirm correct base path + endpoints with SOVA.")
+                    try:
+                        r = requests.post(url, json=payload, auth=auth, timeout=30)
+                    except Exception as e:
+                        self.stderr.write(f"❌ POST {url} -> connection error: {e}")
+                        continue
+
+                    self.stdout.write(f"{_mark(r.status_code)} {r.status_code}")
+                    if r.status_code != 404:
+                        self.stdout.write(_pretty_json(r))
+                        found = True
+                        break
+
+                if not found:
+                    self.stdout.write("ℹ️ All order-assessment variants returned 404 on this base path.")
+                    self.stdout.write("   That usually means SOVA uses a different path/version for ordering in this environment.")
