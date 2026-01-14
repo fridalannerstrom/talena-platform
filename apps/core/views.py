@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from apps.accounts.forms import CreateCustomerUserForm
-from .services.sova import SovaClient
+from .integrations.sova import SovaClient
+from apps.core.integrations.sova import SovaClient
 
 def home(request):
     return JsonResponse({"app": "Talena", "status": "alive"})
@@ -20,8 +21,7 @@ def customer_dashboard(request):
     if _is_admin(request.user):
         # Admin ska inte hamna här (valfritt)
         return HttpResponseForbidden("Admins should use the admin dashboard.")
-    
-    from apps.core.services.sova import SovaClient
+
     accounts = []
     error = None
 
@@ -40,6 +40,14 @@ def customer_dashboard(request):
 def admin_dashboard(request):
     if not _is_admin(request.user):
         return HttpResponseForbidden("No access.")
+    
+    accounts = []
+    error = None
+
+    try:
+        accounts = SovaClient().get_accounts_with_projects()
+    except Exception as e:
+        error = str(e)
 
     if request.method == "POST":
         form = CreateCustomerUserForm(request.POST)
@@ -49,11 +57,17 @@ def admin_dashboard(request):
     else:
         form = CreateCustomerUserForm()
 
-    return render(request, "core/dashboards/admin_dashboard.html", {"form": form})
+    return render(request, "core/dashboards/admin_dashboard.html", {
+        "form": form,
+        "accounts": accounts,
+        "error": error,
+        "ping": "DASHBOARD VIEW HIT",
+    })
+
 
 @login_required
 def sova_projects(request):
-    from .services.sova import SovaClient
+    from .integrations.sova import SovaClient
     import os
 
     debug = {}
@@ -96,7 +110,7 @@ def sova_project_detail(request, account_code, project_code):
     except Exception as e:
         error = str(e)
 
-    return render(request, "projects/sova_project_detail.html", {
+    return render(request, "admin/projects/sova_project_detail.html", {
         "account_code": account_code,
         "project_code": project_code,
         "project": project,

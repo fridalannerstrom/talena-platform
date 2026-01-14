@@ -64,6 +64,11 @@
     </div>
   {% endfor %}
 
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logga ut</button>
+</form>
+
 
 
 {% endblock %}

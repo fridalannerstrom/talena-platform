@@ -1,16 +1,217 @@
-<h1>Admin Dashboard</h1>
+{% extends "../layouts/base.html" %}
+{% block title %}Admin Dashboard | Talena{% endblock %}
 
-<h2>Skapa kundkonto</h2>
+{% block content %}
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Skapa kund</button>
-</form>
+<div class="container-xl px-4 mt-4">
 
-<hr>
+  {# Page header #}
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-1">Admin Dashboard</h1>
+      <div class="small text-muted">
+        Inloggad som: <strong>{{ request.user.get_username }}</strong>
+      </div>
+    </div>
 
-<form method="post" action="{% url 'logout' %}">
-  {% csrf_token %}
-  <button type="submit">Logga ut</button>
-</form>
+    <form method="post" action="{% url 'logout' %}" class="ms-3">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-secondary">
+        Logga ut
+      </button>
+    </form>
+  </div>
+
+  {# Status card (optional) #}
+  <div class="card mb-4">
+    <div class="card-body d-flex align-items-center justify-content-between">
+      <div>
+        <div class="small text-muted mb-1">Status</div>
+        <div class="fw-semibold">alive</div>
+      </div>
+      <span class="badge bg-success-soft text-success">OK</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    {# LEFT: Create customer account #}
+    <div class="col-12 col-lg-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="fw-semibold">Skapa kundkonto</div>
+              <div class="small text-muted">Skapa en ny kundanvändare till Talena.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          {# Form errors summary #}
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <div class="fw-semibold mb-1">Formuläret innehåller fel</div>
+              <div class="small">Kontrollera fälten nedan.</div>
+            </div>
+          {% endif %}
+
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            {# Username #}
+            <div class="mb-3">
+              <label class="small mb-1" for="{{ form.username.id_for_label }}">
+                Username
+              </label>
+              {{ form.username }}
+              {% if form.username.help_text %}
+                <div class="form-text">{{ form.username.help_text|safe }}</div>
+              {% endif %}
+              {% for error in form.username.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            {# Email #}
+            <div class="mb-3">
+              <label class="small mb-1" for="{{ form.email.id_for_label }}">
+                Email address
+              </label>
+              {{ form.email }}
+              {% for error in form.email.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            {# Password #}
+            <div class="mb-3">
+              <label class="small mb-1" for="{{ form.password1.id_for_label }}">
+                Password
+              </label>
+              {{ form.password1 }}
+              {% if form.password1.help_text %}
+                <div class="form-text">{{ form.password1.help_text|safe }}</div>
+              {% endif %}
+              {% for error in form.password1.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            {# Password confirm (if your form has it) #}
+            {% if form.password2 %}
+              <div class="mb-3">
+                <label class="small mb-1" for="{{ form.password2.id_for_label }}">
+                  Confirm password
+                </label>
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                Skapa kund
+              </button>
+              <button type="reset" class="btn btn-light">
+                Rensa
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {# RIGHT: SOVA Projects list #}
+    <div class="col-12 col-lg-7">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div class="fw-semibold">SOVA Projects</div>
+              <div class="small text-muted">Projekt hämtade från SOVA-kontot (används som mallar)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          {% if error %}
+            <div class="alert alert-danger mb-3">
+              Could not load projects: {{ error }}
+            </div>
+          {% endif %}
+
+          {% for account in accounts %}
+            <div class="card mb-4 border">
+              <div class="card-header py-2 d-flex align-items-center justify-content-between">
+                <div>
+                  <a class="fw-semibold text-decoration-none" href="#">
+                    {{ account.name }}
+                  </a>
+                  <span class="text-muted small ms-1">({{ account.code }})</span>
+                </div>
+                <span class="badge bg-primary-soft text-primary">
+                  {{ account.projects|length }} projects
+                </span>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 90px;">ID</th>
+                      <th style="width: 190px;">Code</th>
+                      <th>Name</th>
+                      <th style="width: 120px;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for p in account.projects %}
+                      <tr role="button"
+                          onclick="window.location='{% url 'sova_project_detail' account.code p.code %}'">
+                        <td class="text-muted">{{ p.id }}</td>
+                        <td><span class="font-monospace">{{ p.code }}</span></td>
+                        <td class="fw-semibold">{{ p.name }}</td>
+                        <td>
+                          {% if p.active %}
+                            <span class="badge bg-success-soft text-success">Active</span>
+                          {% else %}
+                            <span class="badge bg-secondary-soft text-secondary">Inactive</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="4" class="text-muted p-3">No projects found for this account.</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-muted">No accounts returned from SOVA.</div>
+          {% endfor %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{# Optional: add bootstrap classes to form fields if your form doesn’t already #}
+<style>
+  /* If your Django form widgets don't have bootstrap classes, this helps visually.
+     Ideally, set widget attrs in the form instead. */
+  input[type="text"], input[type="email"], input[type="password"], select, textarea {
+    width: 100%;
+  }
+</style>
+
+{% endblock %}

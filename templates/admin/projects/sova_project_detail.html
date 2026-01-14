@@ -1,0 +1,111 @@
+{% extends "../../core/layouts/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <!-- Page header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-0">Project details</h1>
+      <p class="text-muted mb-0">
+        SOVA project & Talena metadata
+      </p>
+    </div>
+
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+      ← Back to Dashboard
+    </a>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  {% if project %}
+
+  <div class="row">
+
+    <!-- SOVA PROJECT (READ-ONLY) -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h6 class="m-0 font-weight-bold text-primary">
+            SOVA Project (external)
+          </h6>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+
+            <dt class="col-sm-4 text-muted">Account</dt>
+            <dd class="col-sm-8">{{ account_code }}</dd>
+
+            <dt class="col-sm-4 text-muted">Project name</dt>
+            <dd class="col-sm-8">{{ project.name }}</dd>
+
+            <dt class="col-sm-4 text-muted">Project code</dt>
+            <dd class="col-sm-8">
+              <code>{{ project.code }}</code>
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Status</dt>
+            <dd class="col-sm-8">
+              {% if project.active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+              {% endif %}
+            </dd>
+
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- TALENA METADATA (YOUR DATA) -->
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="m-0 font-weight-bold text-primary">
+            Talena metadata
+          </h6>
+        </div>
+
+        <div class="card-body">
+
+          <!-- These fields are YOURS -->
+          <dl class="row mb-0">
+
+            <dt class="col-sm-4 text-muted">Test types</dt>
+            <dd class="col-sm-8">
+              {{ meta.tests|default:"—" }}
+              <div class="small text-muted">
+                e.g. Personality, Cognitive, Motivation
+              </div>
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Languages</dt>
+            <dd class="col-sm-8">
+              {{ meta.languages|default:"—" }}
+              <div class="small text-muted">
+                e.g. Swedish, English
+              </div>
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Internal notes</dt>
+            <dd class="col-sm-8">
+              {{ meta.notes|default:"No notes added yet." }}
+            </dd>
+
+          </dl>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}

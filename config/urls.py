@@ -35,6 +35,7 @@ urlpatterns = [
         name="logout",
     ),
     path("django-admin/", admin.site.urls),
-    path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
+    path("", include("apps.accounts.urls")),
+    path("", include("apps.projects.urls")),
 ]
