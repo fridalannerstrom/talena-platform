@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm
@@ -10,12 +10,6 @@ def process_list(request):
     # sen kan du filtrera per kund/tenant, men nu: bara per användare
     processes = TestProcess.objects.filter(created_by=request.user)
     return render(request, "customer/processes/process_list.html", {"processes": processes})
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from apps.core.integrations.sova import SovaClient
-from apps.projects.models import ProjectMeta  # <-- justera importväg vid behov
-from .forms import TestProcessCreateForm
 
 
 @login_required
@@ -126,7 +120,102 @@ def process_create(request):
     return render(request, "customer/processes/process_create.html", {
         "form": form,
         "error": error,
-        "template_cards": template_cards,   # <-- NYTT: används av card-UI
+        "template_cards": template_cards,   
         "templates_count": len(template_cards),
         "accounts_count": len(accounts),
     })
+
+
+@login_required
+def process_update(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    client = SovaClient()
+    error = None
+
+    # 1) Hämta accounts + projects från SOVA
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # 2) Hämta meta för intern_name (valfritt men nice)
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    # 3) Bygg choices med SAMMA value-format som i create: "ACC|PROJ"
+    choices = []
+    template_cards = []
+
+    for a in accounts:
+        acc = (a.get("code") or "").strip()
+        for p in (a.get("projects") or []):
+            proj_code = (p.get("code") or "").strip()
+            sova_name = (p.get("name") or proj_code).strip()
+
+            meta = meta_map.get((acc, proj_code))
+            title = (getattr(meta, "intern_name", None) or sova_name)
+
+            value = f"{acc}|{proj_code}"
+            choices.append((value, title))
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+            })
+
+    if request.method == "POST":
+        form = TestProcessCreateForm(request.POST, instance=obj)
+        form.fields["sova_template"].choices = choices
+
+        if form.is_valid():
+            updated = form.save(commit=False)
+
+            value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
+            acc, proj = value.split("|", 1)
+
+            updated.provider = "sova"
+            updated.account_code = acc
+            updated.project_code = proj
+
+            # Snapshot: intern_name om finns, annars sova_name
+            meta = meta_map.get((acc, proj))
+            if meta and getattr(meta, "intern_name", None):
+                updated.project_name_snapshot = meta.intern_name
+            else:
+                match = next((t for t in template_cards if t["value"] == value), None)
+                updated.project_name_snapshot = (match["sova_name"] if match else proj)
+
+            updated.save()
+            return redirect("process_list")  # eller "processes:process_list" om du kör namespace
+
+    else:
+        form = TestProcessCreateForm(instance=obj)
+        form.fields["sova_template"].choices = choices
+
+        # Förifyll med samma format som choices
+        form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
+
+    return render(request, "customer/processes/process_edit.html", {
+        "form": form,
+        "process": obj,
+        "error": error,
+        "choices_count": len(choices),
+        "template_cards": template_cards,
+    })
+
+
+@login_required
+def process_delete(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    if request.method == "POST":
+        obj.delete()
+        return redirect("process_list")
+
+    # om någon råkar gå hit via GET
+    return redirect("process_list")

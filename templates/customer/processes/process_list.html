@@ -19,8 +19,8 @@
             <tr>
               <th>Titel</th>
               <th>Testpaket</th>
-              <th>Status</th>
-              <th class="text-end">Skapad</th>
+              <th>Skapad</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -31,16 +31,23 @@
                   {{ p.project_name_snapshot }}
                   <div class="small text-muted">{{ p.account_code }} / {{ p.project_code }}</div>
                 </td>
-                <td>
-                  {% if p.status == "active" %}
-                    <span class="badge bg-success">Active</span>
-                  {% elif p.status == "closed" %}
-                    <span class="badge bg-secondary">Closed</span>
-                  {% else %}
-                    <span class="badge bg-warning text-dark">Draft</span>
-                  {% endif %}
+                <td class="text-muted">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="text-end">
+                  
+                  <a class="btn btn-sm btn-outline-primary"
+                    href="{% url 'process_update' p.id %}">
+                    Edit
+                  </a>
+                  <form method="post"
+      action="{% url 'process_delete' p.id %}"
+      style="display:inline;"
+      onsubmit="return confirm('Är du säker på att du vill ta bort denna process?');">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-sm btn-danger">
+    Ta bort
+  </button>
+</form>
                 </td>
-                <td class="text-end text-muted">{{ p.created_at|date:"Y-m-d H:i" }}</td>
               </tr>
             {% empty %}
               <tr>
