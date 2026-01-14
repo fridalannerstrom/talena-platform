@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.core.integrations.sova import SovaClient
+from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm
 from .models import TestProcess
 
@@ -9,6 +10,13 @@ def process_list(request):
     # sen kan du filtrera per kund/tenant, men nu: bara per användare
     processes = TestProcess.objects.filter(created_by=request.user)
     return render(request, "customer/processes/process_list.html", {"processes": processes})
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from apps.core.integrations.sova import SovaClient
+from apps.projects.models import ProjectMeta  # <-- justera importväg vid behov
+from .forms import TestProcessCreateForm
+
 
 @login_required
 def process_create(request):
@@ -22,18 +30,68 @@ def process_create(request):
         accounts = []
         error = str(e)
 
-    # 2) Bygg dropdown choices
-    # value: "ACCOUNT_CODE::PROJECT_CODE::PROJECT_NAME"
-    choices = []
-    for a in accounts:
-        acc = a.get("code")
-        for p in a.get("projects", []) or []:
-            proj_code = p.get("code")
-            proj_name = p.get("name") or proj_code
-            label = f"{proj_name}  ({acc} / {proj_code})"
-            value = f"{acc}::{proj_code}::{proj_name}"
-            choices.append((value, label))
+    # 2) Hämta all metadata från DB i en dict för snabb lookup
+    # key = (account_code, project_code)
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
 
+    # 3) Bygg både:
+    #   A) choices -> endast value + "fallback label" (label används inte i kort-UI men behövs för formfältet)
+    #   B) template_cards -> allt UI vill visa
+    choices = []
+    template_cards = []
+
+    for a in accounts:
+        acc = (a.get("code") or "").strip()
+        for p in (a.get("projects") or []):
+            proj_code = (p.get("code") or "").strip()
+            sova_name = (p.get("name") or proj_code).strip()
+            active = bool(p.get("active"))
+
+            value = f"{acc}|{proj_code}"
+
+            meta = meta_map.get((acc, proj_code))
+            title = (getattr(meta, "intern_name", None) or sova_name)
+
+            # tests/languages kan vara listor (JSONField) eller text
+            tests = getattr(meta, "tests", None)
+            languages = getattr(meta, "languages", None)
+
+            # gör om till listor för templaten (om du råkar ha strängar i DB)
+            if isinstance(tests, str) and tests.strip():
+                badges = [t.strip() for t in tests.split(",") if t.strip()]
+            elif isinstance(tests, list):
+                badges = tests
+            else:
+                badges = []
+
+            if isinstance(languages, str) and languages.strip():
+                langs = [l.strip() for l in languages.split(",") if l.strip()]
+            elif isinstance(languages, list):
+                langs = languages
+            else:
+                langs = []
+
+            subtitle = getattr(meta, "use_case", "") or ""
+
+            choices.append((value, title))  # label är irrelevant i card-UI, men måste finnas
+
+            template_cards.append({
+                "value": value,
+                "title": title,                 # <-- intern_name om finns
+                "subtitle": subtitle,           # <-- use_case (valfritt)
+                "badges": badges,               # <-- tests
+                "languages": langs,             # <-- languages
+                "active": active,
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,         # om du vill visa i tooltip/debug
+            })
+
+    # (valfritt) sortera mallarna snyggt efter intern titel
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    # 4) Form init (samma i GET/POST)
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST)
         form.fields["sova_template"].choices = choices
@@ -41,16 +99,24 @@ def process_create(request):
         if form.is_valid():
             obj = form.save(commit=False)
 
-            # plocka ut valda mallens delar
-            value = form.cleaned_data["sova_template"]
-            acc, proj, proj_name = value.split("::", 2)
+            value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
+            acc, proj = value.split("|", 1)
 
+            # Spara kopplingen till SOVA
             obj.provider = "sova"
             obj.account_code = acc
             obj.project_code = proj
-            obj.project_name_snapshot = proj_name
-            obj.created_by = request.user
 
+            # Snapshot (valfritt men bra)
+            meta = meta_map.get((acc, proj))
+            obj.project_name_snapshot = (getattr(meta, "intern_name", None) or "")
+            # om du vill ha fallback:
+            if not obj.project_name_snapshot:
+                # hitta sova_name från template_cards
+                match = next((t for t in template_cards if t["value"] == value), None)
+                obj.project_name_snapshot = (match["sova_name"] if match else proj)
+
+            obj.created_by = request.user
             obj.save()
             return redirect("process_list")
     else:
@@ -60,6 +126,7 @@ def process_create(request):
     return render(request, "customer/processes/process_create.html", {
         "form": form,
         "error": error,
+        "template_cards": template_cards,   # <-- NYTT: används av card-UI
+        "templates_count": len(template_cards),
         "accounts_count": len(accounts),
-        "choices_count": len(choices),
     })

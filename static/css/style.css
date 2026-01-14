@@ -2155,7 +2155,7 @@ progress {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1;
-  color: #EDEBFA;
+  color: #242424;
   background-color: #fff;
   background-clip: padding-box;
   border: 1px solid #EDEBFA;
@@ -2177,7 +2177,7 @@ progress {
   cursor: pointer;
 }
 .form-control:focus, .datatable-input:focus {
-  color: #EDEBFA;
+  color: #1b1b1b;
   background-color: #fff;
   border-color: transparent;
   outline: 0;
