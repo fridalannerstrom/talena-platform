@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.core",
     "apps.projects",
+    "apps.processes",
 ]
 
 MIDDLEWARE = [

@@ -38,4 +38,5 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
     path("", include("apps.projects.urls")),
+    path("", include("apps.processes.urls")),
 ]

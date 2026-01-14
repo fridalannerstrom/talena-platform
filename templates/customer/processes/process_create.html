@@ -1,0 +1,79 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% block content %}
+<div class="container-fluid px-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-1">Create test process</h1>
+      <div class="text-muted">Pick a SOVA project as the template for this process.</div>
+    </div>
+    <a class="btn btn-outline-primary" href="{% url 'process_list' %}">Back</a>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">
+      Could not load SOVA projects: {{ error }}
+    </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <strong>Process details</strong>
+      <span class="text-muted ms-2 small">(SOVA templates: {{ choices_count }})</span>
+    </div>
+    <div class="card-body">
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.name.label }}</label>
+            {{ form.name }}
+            <div class="form-text text-danger">{{ form.name.errors }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.status.label }}</label>
+            {{ form.status }}
+            <div class="form-text text-danger">{{ form.status.errors }}</div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ form.sova_template.label }}</label>
+            {{ form.sova_template }}
+            <div class="form-text">This decides which tests/workflow SOVA will use later.</div>
+            <div class="form-text text-danger">{{ form.sova_template.errors }}</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.job_title.label }}</label>
+            {{ form.job_title }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.job_location.label }}</label>
+            {{ form.job_location }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ form.notes.label }}</label>
+            {{ form.notes }}
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button class="btn btn-primary" type="submit">Create process</button>
+          <a class="btn btn-light" href="{% url 'process_list' %}">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
