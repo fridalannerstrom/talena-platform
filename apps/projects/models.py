@@ -8,6 +8,7 @@ class ProjectMeta(models.Model):
     project_code = models.CharField(max_length=255)
 
     # Din egna info
+    intern_name = models.TextField(blank=True, default="")
     tests = models.TextField(blank=True, default="")      # ["Personlighet", "Kognitivt"]
     languages = models.TextField(blank=True, default="")   # ["sv", "en"]
     notes = models.TextField(blank=True, default="")

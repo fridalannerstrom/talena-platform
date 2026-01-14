@@ -1,4 +1,4 @@
-{% extends "../../core/layouts/base.html" %}
+{% extends "../core/layouts/admin_base.html" %}
 
 {% block content %}
 <div class="container-fluid">
@@ -77,20 +77,19 @@
           <!-- These fields are YOURS -->
           <dl class="row mb-0">
 
+            <dt class="col-sm-4 text-muted">Internt namn</dt>
+            <dd class="col-sm-8">
+              {{ meta.intern_name|default:"—" }}
+            </dd>
+
             <dt class="col-sm-4 text-muted">Test types</dt>
             <dd class="col-sm-8">
               {{ meta.tests|default:"—" }}
-              <div class="small text-muted">
-                e.g. Personality, Cognitive, Motivation
-              </div>
             </dd>
 
             <dt class="col-sm-4 text-muted">Languages</dt>
             <dd class="col-sm-8">
               {{ meta.languages|default:"—" }}
-              <div class="small text-muted">
-                e.g. Swedish, English
-              </div>
             </dd>
 
             <dt class="col-sm-4 text-muted">Internal notes</dt>

@@ -1,0 +1,102 @@
+<div id="layoutSidenav_nav">
+                <nav class="sidenav sidenav-light border">
+                    <div class="sidenav-menu">
+                        <div class="nav accordion" id="accordionSidenav">
+                            <!-- Sidenav Menu Heading (Core)-->
+                            <div class="sidenav-menu-heading"></div>
+                            <!-- Sidenav Accordion (Dashboard)-->
+                            <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                                <div class="nav-link-icon"><i data-feather="grid"></i></div>
+                                Dashboard
+                            </a>
+                            <div class="collapse" id="collapseDashboards" data-bs-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavPages">
+                                    <a class="nav-link" href="dashboard-1.html">
+                                        Default
+                                        <span class="badge bg-primary-soft text-primary ms-auto">Updated</span>
+                                    </a>
+                                </nav>
+                            </div>
+                            <!-- Sidenav Heading (Custom)-->
+                            <div class="sidenav-menu-heading">Länkar</div>
+                            <!-- Sidenav Accordion (Pages)-->
+                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
+                                <div class="nav-link-icon"><i data-feather="grid"></i></div>
+                                Länkar 1
+                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="collapsePages" data-bs-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavPagesMenu">
+                                    <!-- Nested Sidenav Accordion (Pages -> Account)-->
+                                    <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAccount" aria-expanded="false" aria-controls="pagesCollapseAccount">
+                                        Länk 1
+                                        <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                    </a>
+                                    <div class="collapse" id="pagesCollapseAccount" data-bs-parent="#accordionSidenavPagesMenu">
+                                        <nav class="sidenav-menu-nested nav">
+                                            <a class="nav-link">Länk</a>
+                                            <a class="nav-link">Länk</a>
+                                            <a class="nav-link">Länk</a>
+                                        </nav>
+                                    </div>
+                                    <!-- Nested Sidenav Accordion (Pages -> Authentication)-->
+                                    <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAuth" aria-expanded="false" aria-controls="pagesCollapseAuth">
+                                        Länk 2
+                                        <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                    </a>
+                                    <div class="collapse" id="pagesCollapseAuth" data-bs-parent="#accordionSidenavPagesMenu">
+                                        <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavPagesAuth">
+                                            <!-- Nested Sidenav Accordion (Pages -> Authentication -> Basic)-->
+                                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAuthBasic" aria-expanded="false" aria-controls="pagesCollapseAuthBasic">
+                                                Länkar
+                                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                            </a>
+                                            <div class="collapse" id="pagesCollapseAuthBasic" data-bs-parent="#accordionSidenavPagesAuth">
+                                                <nav class="sidenav-menu-nested nav">
+                                                    <a class="nav-link" href="auth-login-basic.html">Länkar</a>
+                                                    <a class="nav-link" href="auth-register-basic.html">Länkar</a>
+                                                    <a class="nav-link" href="auth-password-basic.html">Länkar</a>
+                                                </nav>
+                                            </div>
+                                            <!-- Nested Sidenav Accordion (Pages -> Authentication -> Social)-->
+                                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#pagesCollapseAuthSocial" aria-expanded="false" aria-controls="pagesCollapseAuthSocial">
+                                                Länkar
+                                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                            </a>
+                                            <div class="collapse" id="pagesCollapseAuthSocial" data-bs-parent="#accordionSidenavPagesAuth">
+                                                <nav class="sidenav-menu-nested nav">
+                                                    <a class="nav-link" href="auth-login-social.html">Länkar</a>
+                                                    <a class="nav-link" href="auth-register-social.html">Länkar</a>
+                                                    <a class="nav-link" href="auth-password-social.html">Länkar</a>
+                                                </nav>
+                                            </div>
+                                        </nav>
+                                    </div>
+                              
+                                    <a class="nav-link">Länk</a>
+                                    <a class="nav-link">Länk</a>
+                                </nav>
+                            </div>
+                            <!-- Sidenav Accordion (Flows)-->
+                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseFlows" aria-expanded="false" aria-controls="collapseFlows">
+                                <div class="nav-link-icon"><i data-feather="repeat"></i></div>
+                                Länkar 2
+                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="collapseFlows" data-bs-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav">
+                                    <a class="nav-link" href="multi-tenant-select.html">Länk</a>
+                                    <a class="nav-link" href="wizard.html">Länk</a>
+                                </nav>
+                            </div>
+                    </div>
+                    </div>
+                    <!-- Sidenav Footer-->
+                    <div class="sidenav-footer">
+                        <div class="sidenav-footer-content">
+                            <div class="sidenav-footer-subtitle">Inloggad som:</div>
+                            <div class="sidenav-footer-title">{{ request.user.get_full_name }}</div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
