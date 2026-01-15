@@ -14,7 +14,6 @@ import requests
 
 
 
-
 @login_required
 def process_list(request):
     # sen kan du filtrera per kund/tenant, men nu: bara per användare
@@ -337,41 +336,67 @@ def process_candidate_detail(request, process_id, candidate_id):
     })
 
 
+
+
+@login_required
 def sova_order_assessment_smoke_test(request, pk, candidate_id):
-    process = get_object_or_404(TestProcess, pk=pk)  # temporärt: ta bort created_by om du felsöker
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
     client = SovaClient()
 
+    # ✅ From SOVA UI: account TQ_SWEDEN_ACCOUNT, project code tqs-simple-test
+    project_code = "tqs-simple-test"
+
     request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
 
+    # ✅ Minimal valid payload (snake_case, matches docs)
     payload = {
         "request_id": request_id,
         "candidate_id": str(candidate.id),
         "first_name": candidate.first_name,
         "last_name": candidate.last_name,
         "email": candidate.email,
+        "language": "sv",  # test "sv" first; if needed change to "sv-SE"
         "job_title": "Smoke Test",
         "job_number": f"talena-{process.id}",
+        "meta_data": {
+            "talena_process_id": str(process.id),
+            "talena_candidate_id": str(candidate.id),
+            "talena_user_id": str(request.user.id),
+        },
     }
 
-    print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST ===")
-    print("ORDER BASE URL:", client.order_base_url)
-    print("PROJECT CODE:", process.project_code)
-    print("PAYLOAD:", payload)
-
     try:
-        resp = client.order_assessment(process.project_code, payload)
-        print("RESPONSE:", resp)
+        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST ===")
+        print("ACCOUNT:", "TQ_SWEDEN_ACCOUNT")
+        print("PROJECT CODE:", project_code)
+        print("BASE URL:", client.base_url)
+        print("PAYLOAD:", payload)
+
+        resp = client.order_assessment(project_code, payload)
+
+        print("RESPONSE JSON:", resp)
         print("=== /SOVA ORDER-ASSESSMENT SMOKE TEST ===\n")
 
         assessment_url = resp.get("url")
         if assessment_url:
-            return HttpResponse(f"✅ OK\nTest URL:\n{assessment_url}", content_type="text/plain")
+            return HttpResponse(
+                f"✅ OK\nProject: {project_code}\nRequest: {request_id}\n\nTest URL:\n{assessment_url}",
+                content_type="text/plain"
+            )
 
-        return HttpResponse(f"✅ OK (no url returned)\nResponse:\n{resp}", content_type="text/plain")
+        return HttpResponse(
+            f"✅ OK but no 'url' returned\nProject: {project_code}\nRequest: {request_id}\n\nResponse:\n{resp}",
+            content_type="text/plain"
+        )
 
     except Exception as e:
-        print("FAILED:", str(e))
+        print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST FAILED ===")
+        print("ERROR:", str(e))
+        print("BASE URL:", client.base_url)
+        print("PROJECT CODE:", project_code)
+        print("PAYLOAD:", payload)
         print("=== /FAILED ===\n")
+
         return HttpResponse(f"❌ FAILED: {e}", content_type="text/plain", status=500)

@@ -48,16 +48,19 @@ class SovaClient:
         return accounts
     
     def order_assessment(self, project_code: str, payload: dict) -> dict:
-        url = self.order_base_url + f"order-assessment/{project_code}/"
+        """
+        Orders an assessment in SOVA for a given project_code.
+        Uses the existing integration base_url (cleo-test/v4).
+        """
+        url = self.base_url + f"order-assessment/{project_code}/"
 
         r = requests.post(url, json=payload, auth=self.auth, timeout=25)
 
-        if r.status_code >= 400:
-            print("\n=== SOVA ORDER-ASSESSMENT ERROR ===")
-            print("URL:", url)
-            print("STATUS:", r.status_code)
-            print("TEXT:", r.text)
-            print("=== /SOVA ORDER-ASSESSMENT ERROR ===\n")
+        print("\n=== SOVA ORDER-ASSESSMENT RAW ===")
+        print("URL:", url)
+        print("STATUS:", r.status_code)
+        print("TEXT:", r.text)
+        print("=== /SOVA ORDER-ASSESSMENT RAW ===\n")
 
         r.raise_for_status()
         return r.json() or {}
