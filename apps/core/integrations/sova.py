@@ -1,9 +1,11 @@
 import os
 import requests
 from requests.auth import HTTPBasicAuth
+import json
 
 DEFAULT_ENV_BASE = "https://api-test.sovaonline.com"
 DEFAULT_BASE_PATH = "integrations/cleo-test/v4"
+DEFAULT_ORDER_BASE_PATH = "integrations/cleo-test/v4"
 
 
 class SovaClient:
@@ -13,10 +15,16 @@ class SovaClient:
         self.username = os.environ["SOVA_USERNAME"]
         self.password = os.environ["SOVA_PASSWORD"]
         self.auth = HTTPBasicAuth(self.username, self.password)
+        self.order_base_path = os.getenv("SOVA_ORDER_BASE_PATH", DEFAULT_ORDER_BASE_PATH).strip().strip("/")
+
 
     @property
     def base_url(self) -> str:
         return f"{self.env_base}/{self.base_path}/"
+    
+    @property
+    def order_base_url(self) -> str:
+        return f"{self.env_base}/{self.order_base_path}/"
 
     def get_accounts(self) -> list[dict]:
         r = requests.get(self.base_url + "accounts/", auth=self.auth, timeout=25)
@@ -38,3 +46,18 @@ class SovaClient:
             else:
                 a["projects"] = []
         return accounts
+    
+    def order_assessment(self, project_code: str, payload: dict) -> dict:
+        url = self.order_base_url + f"order-assessment/{project_code}/"
+
+        r = requests.post(url, json=payload, auth=self.auth, timeout=25)
+
+        if r.status_code >= 400:
+            print("\n=== SOVA ORDER-ASSESSMENT ERROR ===")
+            print("URL:", url)
+            print("STATUS:", r.status_code)
+            print("TEXT:", r.text)
+            print("=== /SOVA ORDER-ASSESSMENT ERROR ===\n")
+
+        r.raise_for_status()
+        return r.json() or {}

@@ -6,6 +6,13 @@ from .forms import TestProcessCreateForm, CandidateCreateForm
 from .models import TestProcess, Candidate, TestInvitation
 from django.contrib import messages
 
+from django.http import HttpResponse
+
+import json
+import uuid
+import requests
+
+
 
 
 @login_required
@@ -328,3 +335,43 @@ def process_candidate_detail(request, process_id, candidate_id):
         "dummy_profile": dummy_profile,
         "dummy_abilities": dummy_abilities,
     })
+
+
+def sova_order_assessment_smoke_test(request, pk, candidate_id):
+    process = get_object_or_404(TestProcess, pk=pk)  # temporärt: ta bort created_by om du felsöker
+    candidate = get_object_or_404(Candidate, pk=candidate_id)
+
+    client = SovaClient()
+
+    request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+    payload = {
+        "request_id": request_id,
+        "candidate_id": str(candidate.id),
+        "first_name": candidate.first_name,
+        "last_name": candidate.last_name,
+        "email": candidate.email,
+        "job_title": "Smoke Test",
+        "job_number": f"talena-{process.id}",
+    }
+
+    print("\n=== SOVA ORDER-ASSESSMENT SMOKE TEST ===")
+    print("ORDER BASE URL:", client.order_base_url)
+    print("PROJECT CODE:", process.project_code)
+    print("PAYLOAD:", payload)
+
+    try:
+        resp = client.order_assessment(process.project_code, payload)
+        print("RESPONSE:", resp)
+        print("=== /SOVA ORDER-ASSESSMENT SMOKE TEST ===\n")
+
+        assessment_url = resp.get("url")
+        if assessment_url:
+            return HttpResponse(f"✅ OK\nTest URL:\n{assessment_url}", content_type="text/plain")
+
+        return HttpResponse(f"✅ OK (no url returned)\nResponse:\n{resp}", content_type="text/plain")
+
+    except Exception as e:
+        print("FAILED:", str(e))
+        print("=== /FAILED ===\n")
+        return HttpResponse(f"❌ FAILED: {e}", content_type="text/plain", status=500)
