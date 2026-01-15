@@ -132,7 +132,38 @@
         </div>
       </div>
     </div>
+<h3 class="mt-5">Users</h3>
 
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Joined</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.email }}</td>
+          <td>{{ u.get_full_name }}</td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+          </td>
+          <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No users yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
   </div>
 </div>
 

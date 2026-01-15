@@ -40,6 +40,10 @@ def customer_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
+
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
@@ -52,10 +56,13 @@ def admin_dashboard(request):
 
     # Fix: form måste definieras här
     form = InviteUserForm()
+    users = User.objects.exclude(is_superuser=True).order_by("-date_joined")
+
 
     return render(request, "admin/core/layouts/admin_dashboard.html", {
         "form": form,
         "accounts": accounts,
         "error": error,
+        "users": users,
         "ping": "DASHBOARD VIEW HIT",
     })
