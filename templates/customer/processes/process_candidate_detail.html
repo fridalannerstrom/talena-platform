@@ -1,0 +1,103 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% block content %}
+<div class="container-fluid px-4">
+
+  <div class="d-flex align-items-start justify-content-between mb-4">
+    <div>
+      <div class="text-muted small mb-1">
+        <a href="{% url 'processes:process_detail' process.id %}">← Back to process</a>
+      </div>
+<h1 class="h3 mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h1>
+<div class="text-muted">{{ candidate.email }}</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="#" onclick="alert('Download kommer sen 🙂'); return false;">
+        Download results
+      </a>
+    </div>
+  </div>
+
+      <div class="col-12 mb-4">
+      <div class="card">
+        <div class="card-header fw-semibold">Candidate info</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-3 text-muted">Status</dt>
+            <dd class="col-sm-9">{{ invite.status }}</dd>
+
+            <dt class="col-sm-3 text-muted">Invited</dt>
+            <dd class="col-sm-9">{{ invite.invited_at|default:"-" }}</dd>
+
+            <dt class="col-sm-3 text-muted">Completed</dt>
+            <dd class="col-sm-9">{{ invite.completed_at|default:"-" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header fw-semibold">Personality overview (dummy)</div>
+        <div class="card-body">
+          <canvas id="profileChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header fw-semibold">Abilities (dummy)</div>
+        <div class="card-body">
+          <canvas id="abilitiesChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const profileLabels = {{ dummy_profile.labels|safe }};
+  const profileValues = {{ dummy_profile.values|safe }};
+
+  new Chart(document.getElementById("profileChart"), {
+    type: "radar",
+    data: {
+      labels: profileLabels,
+      datasets: [{
+        label: "Score",
+        data: profileValues,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      scales: {
+        r: { suggestedMin: 0, suggestedMax: 10 }
+      }
+    }
+  });
+
+  const abLabels = {{ dummy_abilities.labels|safe }};
+  const abValues = {{ dummy_abilities.values|safe }};
+
+  new Chart(document.getElementById("abilitiesChart"), {
+    type: "bar",
+    data: {
+      labels: abLabels,
+      datasets: [{
+        label: "Percentile",
+        data: abValues,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { suggestedMin: 0, suggestedMax: 100 }
+      }
+    }
+  });
+</script>
+{% endblock %}

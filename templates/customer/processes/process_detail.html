@@ -44,7 +44,7 @@
             {% for inv in invitations %}
               <tr>
                 <td class="fw-semibold">
-                  {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                  <a href="{% url 'processes:process_candidate_detail' process.id inv.id %}" class="text-decoration-none fw-semibold">{{ inv.candidate.first_name }} {{ inv.candidate.last_name }}</a>
                   <div class="small text-muted">{{ inv.candidate.email }}</div>
                 </td>
                 <td>

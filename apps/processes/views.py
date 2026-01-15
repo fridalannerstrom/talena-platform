@@ -296,3 +296,35 @@ def invite_candidate(request, pk, candidate_id):
 
     messages.success(request, f"Invite triggered for {candidate.email} (stub).")
     return redirect("processes:process_detail", pk=process.pk)
+
+
+@login_required
+def process_candidate_detail(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
+
+    # candidate_id i URL är kandidatens ID (Candidate.pk)
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id
+    )
+
+    candidate = invitation.candidate
+
+    dummy_profile = {
+        "labels": ["Struktur", "Samarbete", "Driv", "Stresstålighet", "Analys"],
+        "values": [7, 6, 8, 5, 7],
+    }
+
+    dummy_abilities = {
+        "labels": ["Verbal", "Numerisk", "Logisk"],
+        "values": [62, 54, 71],
+    }
+
+    return render(request, "customer/processes/process_candidate_detail.html", {
+        "process": process,
+        "invitation": invitation,
+        "candidate": candidate,
+        "dummy_profile": dummy_profile,
+        "dummy_abilities": dummy_abilities,
+    })
