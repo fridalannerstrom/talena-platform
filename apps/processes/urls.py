@@ -5,7 +5,10 @@ app_name = "processes"
 
 urlpatterns = [
     path("processes/", views.process_list, name="process_list"),
-    path("new/", views.process_create, name="process_create"),
+    path("processes/new/", views.process_create, name="process_create"),
     path("processes/<int:pk>/edit/", views.process_update, name="process_update"),
     path("processes/<int:pk>/delete/", views.process_delete, name="process_delete"),
+    path("processes/<int:pk>/", views.process_detail, name="process_detail"),
+    path("processes/<int:pk>/add-candidate/", views.process_add_candidate, name="process_add_candidate"),
+    path("processes/<int:pk>/invite/<int:candidate_id>/", views.invite_candidate, name="invite_candidate"),
 ]

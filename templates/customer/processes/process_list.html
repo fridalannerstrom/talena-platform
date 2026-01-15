@@ -10,7 +10,7 @@
     <a class="btn btn-primary" href="{% url 'processes:process_create' %}">New process</a>
   </div>
 
-  <div class="card shadow-sm">
+  <div class="card">
     <div class="card-header"><strong>Processes</strong></div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -26,7 +26,11 @@
           <tbody>
             {% for p in processes %}
               <tr>
-                <td class="fw-semibold">{{ p.name }}</td>
+                <td class="fw-semibold">
+  <a href="{% url 'processes:process_detail' p.id %}">{{ p.name }}</a>
+    {{ p.name }}
+  </a>
+</td>
                 <td class="text-muted">
                   {{ p.project_name_snapshot }}
                   <div class="small text-muted">{{ p.account_code }} / {{ p.project_code }}</div>

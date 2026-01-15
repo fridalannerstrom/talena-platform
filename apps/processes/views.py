@@ -2,8 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
-from .forms import TestProcessCreateForm
-from .models import TestProcess
+from .forms import TestProcessCreateForm, CandidateCreateForm
+from .models import TestProcess, Candidate, TestInvitation
+from django.contrib import messages
+
+
 
 @login_required
 def process_list(request):
@@ -219,3 +222,77 @@ def process_delete(request, pk):
 
     # om någon råkar gå hit via GET
     return redirect("process_list")
+
+
+@login_required
+def process_detail(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    invitations = (
+        process.invitations
+        .select_related("candidate")
+        .order_by("-created_at")
+    )
+
+    return render(request, "customer/processes/process_detail.html", {
+        "process": process,
+        "invitations": invitations,
+    })
+
+
+@login_required
+def process_add_candidate(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    if request.method == "POST":
+        form = CandidateCreateForm(request.POST)
+        if form.is_valid():
+            # 1) skapa eller hämta kandidat på email (så man slipper dubletter)
+            email = form.cleaned_data["email"]
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    "first_name": form.cleaned_data["first_name"],
+                    "last_name": form.cleaned_data["last_name"],
+                }
+            )
+
+            # 2) skapa inbjudan i processen (kopplingen)
+            invitation, inv_created = TestInvitation.objects.get_or_create(
+                process=process,
+                candidate=candidate,
+            )
+
+            if inv_created:
+                messages.success(request, f"{candidate.email} added to process.")
+            else:
+                messages.info(request, f"{candidate.email} is already in this process.")
+
+            # 3) (senare) här kan du trigga SOVA-invite direkt om du vill
+            # invitation.mark_sent(...)
+            # messages.success(request, "Invite sent via SOVA.")
+
+            return redirect("processes:process_detail", pk=process.pk)
+    else:
+        form = CandidateCreateForm()
+
+    return render(request, "customer/processes/process_add_candidate.html", {
+        "process": process,
+        "form": form,
+    })
+
+@login_required
+def invite_candidate(request, pk, candidate_id):
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    candidate = get_object_or_404(Candidate, pk=candidate_id)
+
+    invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
+
+    # Här kopplar vi in SOVA i steg 3.
+    # Tills vidare: fejka så att du ser flödet funka i UI:
+    invitation.status = "sent"
+    invitation.invited_at = invitation.invited_at or __import__("django.utils.timezone").utils.timezone.now()
+    invitation.save(update_fields=["status", "invited_at"])
+
+    messages.success(request, f"Invite triggered for {candidate.email} (stub).")
+    return redirect("processes:process_detail", pk=process.pk)

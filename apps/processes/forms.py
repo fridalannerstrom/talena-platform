@@ -1,5 +1,5 @@
 from django import forms
-from .models import TestProcess
+from .models import TestProcess, Candidate
 
 class TestProcessCreateForm(forms.ModelForm):
     # vi lägger till ett “template choice”-fält som vi fyller i viewen
@@ -17,3 +17,12 @@ class TestProcessCreateForm(forms.ModelForm):
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 4}),
         }
+
+
+class CandidateCreateForm(forms.ModelForm):
+    class Meta:
+        model = Candidate
+        fields = ["first_name", "last_name", "email"]
+
+    def clean_email(self):
+        return self.cleaned_data["email"].strip().lower()
