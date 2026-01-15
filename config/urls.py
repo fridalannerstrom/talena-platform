@@ -21,19 +21,6 @@ from apps.core.views import health
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("health/", health),
-    path(
-        "",
-        auth_views.LoginView.as_view(
-            template_name="accounts/login.html"
-        ),
-        name="login",
-    ),
-    path(
-        "logout/",
-        auth_views.LogoutView.as_view(),
-        name="logout",
-    ),
     path("django-admin/", admin.site.urls),
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),

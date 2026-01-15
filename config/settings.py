@@ -145,9 +145,9 @@ USE_I18N = True
 USE_TZ = True
 
 AUTH_USER_MODEL = "accounts.User"
-LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "post_login_redirect"
-LOGOUT_REDIRECT_URL = "login"
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "accounts:post_login_redirect"
+LOGOUT_REDIRECT_URL = "accounts:login"
 
 
 if DEBUG:
@@ -158,3 +158,6 @@ else:
     STORAGES = {
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "Talena <no-reply@talena.se>"

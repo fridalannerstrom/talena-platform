@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <form method="post" action="{% url 'logout' %}" class="ms-3">
+    <form method="post" action="{% url 'accounts:logout' %}" class="ms-3">
       {% csrf_token %}
       <button type="submit" class="btn btn-outline-secondary">
         Logga ut
@@ -48,80 +48,11 @@
         </div>
 
         <div class="card-body">
-
-          {# Form errors summary #}
-          {% if form.errors %}
-            <div class="alert alert-danger">
-              <div class="fw-semibold mb-1">Formuläret innehåller fel</div>
-              <div class="small">Kontrollera fälten nedan.</div>
-            </div>
-          {% endif %}
-
-          <form method="post" class="needs-validation" novalidate>
-            {% csrf_token %}
-
-            {# Username #}
-            <div class="mb-3">
-              <label class="small mb-1" for="{{ form.username.id_for_label }}">
-                Username
-              </label>
-              {{ form.username }}
-              {% if form.username.help_text %}
-                <div class="form-text">{{ form.username.help_text|safe }}</div>
-              {% endif %}
-              {% for error in form.username.errors %}
-                <div class="invalid-feedback d-block">{{ error }}</div>
-              {% endfor %}
-            </div>
-
-            {# Email #}
-            <div class="mb-3">
-              <label class="small mb-1" for="{{ form.email.id_for_label }}">
-                Email address
-              </label>
-              {{ form.email }}
-              {% for error in form.email.errors %}
-                <div class="invalid-feedback d-block">{{ error }}</div>
-              {% endfor %}
-            </div>
-
-            {# Password #}
-            <div class="mb-3">
-              <label class="small mb-1" for="{{ form.password1.id_for_label }}">
-                Password
-              </label>
-              {{ form.password1 }}
-              {% if form.password1.help_text %}
-                <div class="form-text">{{ form.password1.help_text|safe }}</div>
-              {% endif %}
-              {% for error in form.password1.errors %}
-                <div class="invalid-feedback d-block">{{ error }}</div>
-              {% endfor %}
-            </div>
-
-            {# Password confirm (if your form has it) #}
-            {% if form.password2 %}
-              <div class="mb-3">
-                <label class="small mb-1" for="{{ form.password2.id_for_label }}">
-                  Confirm password
-                </label>
-                {{ form.password2 }}
-                {% for error in form.password2.errors %}
-                  <div class="invalid-feedback d-block">{{ error }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary">
-                Skapa kund
-              </button>
-              <button type="reset" class="btn btn-light">
-                Rensa
-              </button>
-            </div>
-
-          </form>
+<form method="post" action="{% url 'accounts:invite_user' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Invite user</button>
+</form>
         </div>
       </div>
     </div>
