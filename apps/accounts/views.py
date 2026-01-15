@@ -13,6 +13,10 @@ from apps.core.utils.auth import is_admin
 from .forms import InviteUserForm
 from .services.invites import send_invite_email
 
+from django.shortcuts import render, get_object_or_404
+
+from apps.processes.models import TestProcess 
+
 User = get_user_model()
 
 
@@ -71,3 +75,30 @@ def accept_invite(request, uidb64, token):
         form = SetPasswordForm(user)
 
     return render(request, "accounts/accept_invite.html", {"form": form, "user": user})
+
+
+
+@login_required
+def admin_user_detail(request, pk):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    user_obj = get_object_or_404(User, pk=pk)
+
+    # Processer som användaren skapat (ditt befintliga mönster)
+    processes = (
+        TestProcess.objects
+        .filter(created_by=user_obj)
+        .order_by("-created_at")  # justera om du har annat fält
+    )
+
+    # Pågående vs klara (om du har statusfält)
+    active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
+    pending_invite = not user_obj.is_active
+
+    return render(request, "admin/accounts/user_detail.html", {
+        "u": user_obj,
+        "processes": processes,
+        "active_processes": active_processes,
+        "pending_invite": pending_invite,
+    })

@@ -48,11 +48,11 @@
         </div>
 
         <div class="card-body">
-<form method="post" action="{% url 'accounts:invite_user' %}">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Invite user</button>
-</form>
+          <form method="post" action="{% url 'accounts:invite_user' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Invite user</button>
+          </form>
         </div>
       </div>
     </div>
@@ -72,98 +72,103 @@
         <div class="card-body">
 
           {% if error %}
-            <div class="alert alert-danger mb-3">
-              Could not load projects: {{ error }}
-            </div>
+          <div class="alert alert-danger mb-3">
+            Could not load projects: {{ error }}
+          </div>
           {% endif %}
 
           {% for account in accounts %}
-            <div class="card mb-4 border">
-              <div class="card-header py-2 d-flex align-items-center justify-content-between">
-                <div>
-                  <a class="fw-semibold text-decoration-none" href="#">
-                    {{ account.name }}
-                  </a>
-                  <span class="text-muted small ms-1">({{ account.code }})</span>
-                </div>
-                <span class="badge bg-primary-soft text-primary">
-                  {{ account.projects|length }} projects
-                </span>
+          <div class="card mb-4 border">
+            <div class="card-header py-2 d-flex align-items-center justify-content-between">
+              <div>
+                <a class="fw-semibold text-decoration-none" href="#">
+                  {{ account.name }}
+                </a>
+                <span class="text-muted small ms-1">({{ account.code }})</span>
               </div>
-
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th style="width: 90px;">ID</th>
-                      <th style="width: 190px;">Code</th>
-                      <th>Name</th>
-                      <th style="width: 120px;">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for p in account.projects %}
-                      <tr role="button"
-                          onclick="window.location='{% url 'sova_project_detail' account.code p.code %}'">
-                        <td class="text-muted">{{ p.id }}</td>
-                        <td><span class="font-monospace">{{ p.code }}</span></td>
-                        <td class="fw-semibold">{{ p.name }}</td>
-                        <td>
-                          {% if p.active %}
-                            <span class="badge bg-success-soft text-success">Active</span>
-                          {% else %}
-                            <span class="badge bg-secondary-soft text-secondary">Inactive</span>
-                          {% endif %}
-                        </td>
-                      </tr>
-                    {% empty %}
-                      <tr>
-                        <td colspan="4" class="text-muted p-3">No projects found for this account.</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
+              <span class="badge bg-primary-soft text-primary">
+                {{ account.projects|length }} projects
+              </span>
             </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 90px;">ID</th>
+                    <th style="width: 190px;">Code</th>
+                    <th>Name</th>
+                    <th style="width: 120px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for p in account.projects %}
+                  <tr role="button" onclick="window.location='{% url 'sova_project_detail' account.code p.code %}'">
+                    <td class="text-muted">{{ p.id }}</td>
+                    <td><span class="font-monospace">{{ p.code }}</span></td>
+                    <td class="fw-semibold">{{ p.name }}</td>
+                    <td>
+                      {% if p.active %}
+                      <span class="badge bg-success-soft text-success">Active</span>
+                      {% else %}
+                      <span class="badge bg-secondary-soft text-secondary">Inactive</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-muted p-3">No projects found for this account.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
           {% empty %}
-            <div class="text-muted">No accounts returned from SOVA.</div>
+          <div class="text-muted">No accounts returned from SOVA.</div>
           {% endfor %}
 
         </div>
       </div>
     </div>
-<h3 class="mt-5">Users</h3>
+    <h3 class="mt-5">Users</h3>
 
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Joined</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for u in users %}
-        <tr>
-          <td>{{ u.email }}</td>
-          <td>{{ u.get_full_name }}</td>
-          <td>
-            {% if u.is_active %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <a href="{% url 'accounts:admin_user_detail' u.pk %}">
+                {{ u.email }}
+              </a>
+            </td>
+            <td>{{ u.get_full_name }}</td>
+            <td>
+              {% if u.is_active %}
               <span class="badge bg-success">Active</span>
-            {% else %}
+              {% else %}
               <span class="badge bg-warning text-dark">Pending</span>
-            {% endif %}
-          </td>
-          <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="4">No users yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+              {% endif %}
+            </td>
+            <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4">No users yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -171,7 +176,11 @@
 <style>
   /* If your Django form widgets don't have bootstrap classes, this helps visually.
      Ideally, set widget attrs in the form instead. */
-  input[type="text"], input[type="email"], input[type="password"], select, textarea {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
     width: 100%;
   }
 </style>

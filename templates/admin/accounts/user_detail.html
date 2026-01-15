@@ -1,0 +1,73 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Admin Dashboard | Talena{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">User</h1>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div><strong>Email:</strong> {{ u.email }}</div>
+    <div><strong>Name:</strong> {{ u.get_full_name }}</div>
+    <div><strong>Status:</strong>
+      {% if u.is_active %}
+        <span class="badge bg-success">Active</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">Pending</span>
+      {% endif %}
+    </div>
+    <div><strong>Joined:</strong> {{ u.date_joined|date:"Y-m-d H:i" }}</div>
+    <div><strong>Last login:</strong>
+      {% if u.last_login %}
+        {{ u.last_login|date:"Y-m-d H:i" }}
+      {% else %}
+        Never
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<h3 class="mt-4">Test processes</h3>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Testpaket</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in processes %}
+        <tr>
+          <td>{{ p.name|default:"(No name)" }}</td>
+          <td>
+                  {{ p.project_name_snapshot }}
+                  <div class="small text-muted">{{ p.account_code }} / {{ p.project_code }}</div>
+          </td>
+          <td>
+            {% if p.created_at %}
+              {{ p.created_at|date:"Y-m-d H:i" }}
+            {% else %}
+              <span class="text-muted">n/a</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            {# ändra till rätt url-name för din process-detail #}
+            <a class="btn btn-sm btn-outline-primary" href="">
+              Open
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No processes for this user yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<a class="btn btn-link mt-3" href="{% url 'admin_dashboard' %}">← Back</a>
+
+{% endblock %}

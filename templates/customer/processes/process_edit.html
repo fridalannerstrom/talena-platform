@@ -7,7 +7,7 @@
       <h1 class="h3 mb-1">Create test process</h1>
       <div class="text-muted">Pick a SOVA project as the template for this process.</div>
     </div>
-    <a class="btn btn-outline-primary" href="{% url 'process_list' %}">Back</a>
+    <a class="btn btn-outline-primary" href="{% url 'processes:process_list' %}">Back</a>
   </div>
 
   {% if error %}
@@ -69,7 +69,7 @@
 
         <div class="d-flex gap-2 mt-4">
           <button class="btn btn-primary" type="submit">Uppdatera process</button>
-          <a class="btn btn-light" href="{% url 'process_list' %}">Cancel</a>
+          <a class="btn btn-light" href="{% url 'processes:process_list' %}">Cancel</a>
         </div>
 
       </form>

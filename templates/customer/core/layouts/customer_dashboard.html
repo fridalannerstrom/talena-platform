@@ -15,9 +15,9 @@
       Status: <strong>alive</strong>
     </p>
 
-<a class="nav-link" href="{% url 'process_list' %}">Process List</a>
+<a class="nav-link" href="{% url 'processes:process_list' %}">Process List</a>
 
-<a class="nav-link" href="{% url 'process_create' %}">Process Create</a>
+<a class="nav-link" href="{% url 'processes:process_create' %}">Process Create</a>
 
 <form method="post" action="{% url 'accounts:logout' %}">
   {% csrf_token %}

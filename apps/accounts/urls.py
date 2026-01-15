@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import post_login_redirect
-from .views import accept_invite, invite_user
+from .views import accept_invite, invite_user, admin_user_detail
 
 app_name = "accounts"
 
@@ -11,4 +11,6 @@ urlpatterns = [
     path("go/", post_login_redirect, name="post_login_redirect"),
     path("accounts/users/invite/", invite_user, name="invite_user"),
     path("invite/accept/<uidb64>/<token>/", accept_invite, name="accept_invite"),
+    path("accounts/users/<int:pk>/", admin_user_detail, name="admin_user_detail"),
+
 ]
