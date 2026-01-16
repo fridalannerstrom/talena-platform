@@ -246,6 +246,8 @@ feature/<feature-name>
 ```
 
 **Hotfix branches:**
+
+
 ```
 hotfix/<bug-name>
 ```
