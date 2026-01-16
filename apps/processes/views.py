@@ -121,7 +121,7 @@ def process_create(request):
 
             obj.created_by = request.user
             obj.save()
-            return redirect("process_list")
+            return redirect("processes:process_list")
     else:
         form = TestProcessCreateForm()
         form.fields["sova_template"].choices = choices
@@ -200,7 +200,7 @@ def process_update(request, pk):
                 updated.project_name_snapshot = (match["sova_name"] if match else proj)
 
             updated.save()
-            return redirect("process_list")  # eller "processes:process_list" om du kör namespace
+            return redirect("processes:process_list") 
 
     else:
         form = TestProcessCreateForm(instance=obj)
@@ -224,10 +224,10 @@ def process_delete(request, pk):
 
     if request.method == "POST":
         obj.delete()
-        return redirect("process_list")
+        return redirect("processes:process_list")
 
     # om någon råkar gå hit via GET
-    return redirect("process_list")
+    return redirect("processes:process_list")
 
 
 @login_required
