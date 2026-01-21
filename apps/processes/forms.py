@@ -26,3 +26,8 @@ class CandidateCreateForm(forms.ModelForm):
 
     def clean_email(self):
         return self.cleaned_data["email"].strip().lower()
+    
+
+class SelfRegisterForm(forms.Form):
+    name = forms.CharField(max_length=255)
+    email = forms.EmailField()

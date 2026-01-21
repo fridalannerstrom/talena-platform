@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+import uuid
+from django.urls import reverse
 
 class TestProcess(models.Model):
 
@@ -15,6 +17,13 @@ class TestProcess(models.Model):
     job_location = models.CharField(max_length=255, blank=True, default="")
     notes = models.TextField(blank=True, default="")
 
+    self_registration_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        db_index=True,
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -27,6 +36,9 @@ class TestProcess(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.account_code}:{self.project_code})"
+    
+    def get_self_registration_url(self):
+            return reverse("processes:self_register", kwargs={"token": str(self.self_registration_token)})
     
 class Candidate(models.Model):
     first_name = models.CharField(max_length=80)
@@ -79,3 +91,18 @@ class TestInvitation(models.Model):
         if payload is not None:
             self.sova_payload = payload
         self.save()
+
+
+class SelfRegistration(models.Model):
+    process = models.ForeignKey(TestProcess, on_delete=models.CASCADE, related_name="self_registrations")
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    sova_candidate_id = models.CharField(max_length=100, blank=True, null=True)
+    sova_order_id = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["process", "email"], name="uniq_process_email_registration")
+        ]

@@ -3,8 +3,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm, CandidateCreateForm
-from .models import TestProcess, Candidate, TestInvitation
+from .models import TestProcess, Candidate, TestInvitation, SelfRegistration
 from django.contrib import messages
+from .forms import SelfRegisterForm
 
 from django.http import HttpResponse
 
@@ -400,3 +401,46 @@ def sova_order_assessment_smoke_test(request, pk, candidate_id):
         print("=== /FAILED ===\n")
 
         return HttpResponse(f"❌ FAILED: {e}", content_type="text/plain", status=500)
+
+
+def self_register(request, token):
+    process = get_object_or_404(TestProcess, self_registration_token=token)
+
+    if request.method == "POST":
+        form = SelfRegisterForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"].strip()
+            email = form.cleaned_data["email"].strip().lower()
+
+            with transaction.atomic():
+                reg, created = SelfRegistration.objects.get_or_create(
+                    process=process,
+                    email=email,
+                    defaults={"name": name},
+                )
+
+                # Om den fanns redan: samma UX som "success"
+                if not created:
+                    return render(request, "processes/self_register_success.html", {
+                        "process": process,
+                        "message": "Your test has started. Check your email.",
+                        "already_registered": True,
+                    })
+
+                # Ny registrering: trigga SOVA-flödet
+                # 1) skapa kandidat / order / invite i SOVA (beroende på ert API-flöde)
+                #    Exempel: sova_candidate_id, sova_order_id = sova_create_and_invite(...)
+                #
+                # reg.sova_candidate_id = sova_candidate_id
+                # reg.sova_order_id = sova_order_id
+                # reg.save(update_fields=["sova_candidate_id", "sova_order_id"])
+
+            return render(request, "processes/self_register_success.html", {
+                "process": process,
+                "message": "Your test has started. Check your email.",
+                "already_registered": False,
+            })
+    else:
+        form = SelfRegisterForm()
+
+    return render(request, "processes/self_register_form.html", {"process": process, "form": form})

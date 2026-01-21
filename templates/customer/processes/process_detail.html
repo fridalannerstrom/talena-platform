@@ -27,6 +27,13 @@
     </div>
   </div>
 
+  <p>
+    Self-registration link:
+    <a href="{{ request.scheme }}://{{ request.get_host }}{{ reg_path }}">
+      {{ request.scheme }}://{{ request.get_host }}{{ reg_path }}
+    </a>
+  </p>
+
   <div class="card">
     <div class="card-header"><strong>Invited candidates</strong></div>
     <div class="card-body p-0">
