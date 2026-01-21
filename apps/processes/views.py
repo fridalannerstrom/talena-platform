@@ -5,7 +5,11 @@ from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm, CandidateCreateForm
 from .models import TestProcess, Candidate, TestInvitation, SelfRegistration
 from django.contrib import messages
+from django.db import transaction
 from .forms import SelfRegisterForm
+from django.urls import reverse
+from django.utils import timezone
+from django.db import transaction
 
 from django.http import HttpResponse
 
@@ -230,21 +234,54 @@ def process_delete(request, pk):
     # om någon råkar gå hit via GET
     return redirect("processes:process_list")
 
-
 @login_required
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
 
-    invitations = (
-        process.invitations
-        .select_related("candidate")
+    invitations = process.invitations.select_related("candidate").order_by("-created_at")
+
+    registrations = (
+        process.self_registrations
         .order_by("-created_at")
     )
 
+    participants = []
+
+    # Invited
+    for inv in invitations:
+        participants.append({
+            "source": "invited",
+            "name": f"{inv.candidate.first_name} {inv.candidate.last_name}".strip() or inv.candidate.email,
+            "email": inv.candidate.email,
+            "status": inv.status,
+            "invited_at": inv.invited_at,
+            "completed_at": inv.completed_at,
+            "detail_url": reverse("processes:process_candidate_detail", kwargs={
+                "process_id": process.id,
+                "candidate_id": inv.candidate.id,   # OBS: din URL använder candidate_id (Candidate.pk)
+            }),
+        })
+
+    # Self-registered
+    for reg in registrations:
+        participants.append({
+            "source": "self_registered",
+            "name": reg.name or reg.email,
+            "email": reg.email,
+            "status": "registered",
+            "invited_at": reg.created_at,   # “invited”-kolumnen blir “registered at”
+            "completed_at": None,
+            "detail_url": None,             # du kan lägga till en egen detail-sida senare om du vill
+        })
+
+    # Sortera senast aktivitet först (invited_at/created_at)
+    participants.sort(key=lambda x: x["invited_at"] or timezone.now(), reverse=True)
+
     return render(request, "customer/processes/process_detail.html", {
         "process": process,
-        "invitations": invitations,
+        "participants": participants,
     })
+
 
 
 @login_required
@@ -412,35 +449,39 @@ def self_register(request, token):
             name = form.cleaned_data["name"].strip()
             email = form.cleaned_data["email"].strip().lower()
 
+            # superenkel name-split (räcker för MVP)
+            parts = name.split()
+            first_name = parts[0] if parts else ""
+            last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+
             with transaction.atomic():
-                reg, created = SelfRegistration.objects.get_or_create(
-                    process=process,
+                # 1) Candidate (global dedupe på email enligt din constraint)
+                candidate, _ = Candidate.objects.get_or_create(
                     email=email,
-                    defaults={"name": name},
+                    defaults={"first_name": first_name or name, "last_name": last_name},
                 )
 
-                # Om den fanns redan: samma UX som "success"
-                if not created:
-                    return render(request, "processes/self_register_success.html", {
-                        "process": process,
-                        "message": "Your test has started. Check your email.",
-                        "already_registered": True,
-                    })
+                # 2) Invitation (dedupe per process+candidate enligt din constraint)
+                invitation, created = TestInvitation.objects.get_or_create(
+                    process=process,
+                    candidate=candidate,
+                    defaults={
+                        "status": "created",
+                        "source": "self_registered",
+                        "invited_at": timezone.now(),
+                    }
+                )
 
-                # Ny registrering: trigga SOVA-flödet
-                # 1) skapa kandidat / order / invite i SOVA (beroende på ert API-flöde)
-                #    Exempel: sova_candidate_id, sova_order_id = sova_create_and_invite(...)
-                #
-                # reg.sova_candidate_id = sova_candidate_id
-                # reg.sova_order_id = sova_order_id
-                # reg.save(update_fields=["sova_candidate_id", "sova_order_id"])
+                # Om den redan fanns, uppdatera source om du vill
+                if not created and invitation.source != "self_registered":
+                    invitation.source = "self_registered"
+                    invitation.save(update_fields=["source"])
 
-            return render(request, "processes/self_register_success.html", {
+            return render(request, "customer/processes/self_register_success.html", {
                 "process": process,
                 "message": "Your test has started. Check your email.",
-                "already_registered": False,
             })
     else:
         form = SelfRegisterForm()
 
-    return render(request, "processes/self_register_form.html", {"process": process, "form": form})
+    return render(request, "customer/processes/self_register_form.html", {"process": process, "form": form})

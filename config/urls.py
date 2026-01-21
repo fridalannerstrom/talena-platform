@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from apps.core.views import health
+from apps.processes import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,5 +26,6 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
     path("", include("apps.projects.urls")),
-    path("", include("apps.processes.urls")),
+    path("processes/", include("apps.processes.urls")),
+    path("r/<uuid:token>/", views.self_register, name="self_register"),
 ]

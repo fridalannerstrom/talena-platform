@@ -38,7 +38,7 @@ class TestProcess(models.Model):
         return f"{self.name} ({self.account_code}:{self.project_code})"
     
     def get_self_registration_url(self):
-            return reverse("processes:self_register", kwargs={"token": str(self.self_registration_token)})
+                    return reverse("processes:self_register", kwargs={"token": str(self.self_registration_token)})
     
 class Candidate(models.Model):
     first_name = models.CharField(max_length=80)
@@ -66,8 +66,14 @@ class TestInvitation(models.Model):
         ("failed", "Failed"),
     ]
 
+    SOURCE_CHOICES = [
+        ("invited", "Invited"),
+        ("self_registered", "Self-registered"),
+    ]
+
     process = models.ForeignKey("processes.TestProcess", on_delete=models.CASCADE, related_name="invitations")
     candidate = models.ForeignKey("processes.Candidate", on_delete=models.CASCADE, related_name="invitations")
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="invited")
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="created")
     invited_at = models.DateTimeField(blank=True, null=True)
