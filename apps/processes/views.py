@@ -238,50 +238,16 @@ def process_delete(request, pk):
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
 
-    invitations = process.invitations.select_related("candidate").order_by("-created_at")
-
-    registrations = (
-        process.self_registrations
+    invitations = (
+        process.invitations
+        .select_related("candidate")
         .order_by("-created_at")
     )
 
-    participants = []
-
-    # Invited
-    for inv in invitations:
-        participants.append({
-            "source": "invited",
-            "name": f"{inv.candidate.first_name} {inv.candidate.last_name}".strip() or inv.candidate.email,
-            "email": inv.candidate.email,
-            "status": inv.status,
-            "invited_at": inv.invited_at,
-            "completed_at": inv.completed_at,
-            "detail_url": reverse("processes:process_candidate_detail", kwargs={
-                "process_id": process.id,
-                "candidate_id": inv.candidate.id,   # OBS: din URL använder candidate_id (Candidate.pk)
-            }),
-        })
-
-    # Self-registered
-    for reg in registrations:
-        participants.append({
-            "source": "self_registered",
-            "name": reg.name or reg.email,
-            "email": reg.email,
-            "status": "registered",
-            "invited_at": reg.created_at,   # “invited”-kolumnen blir “registered at”
-            "completed_at": None,
-            "detail_url": None,             # du kan lägga till en egen detail-sida senare om du vill
-        })
-
-    # Sortera senast aktivitet först (invited_at/created_at)
-    participants.sort(key=lambda x: x["invited_at"] or timezone.now(), reverse=True)
-
     return render(request, "customer/processes/process_detail.html", {
         "process": process,
-        "participants": participants,
+        "invitations": invitations,
     })
-
 
 
 @login_required
@@ -305,8 +271,9 @@ def process_add_candidate(request, pk):
             invitation, inv_created = TestInvitation.objects.get_or_create(
                 process=process,
                 candidate=candidate,
+                defaults={"source": "invited", "status": "created"},
             )
-
+            
             if inv_created:
                 messages.success(request, f"{candidate.email} added to process.")
             else:

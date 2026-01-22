@@ -51,49 +51,44 @@
             <th>Candidate</th>
             <th>Source</th>
             <th>Status</th>
-            <th>Invited / Registered</th>
+            <th>Registered</th>
             <th>Completed</th>
           </tr>
         </thead>
         <tbody>
-          {% for p in participants %}
-            <tr>
-              <td class="fw-semibold">
-                {% if p.detail_url %}
-                  <a href="{{ p.detail_url }}" class="text-decoration-none fw-semibold">
-                    {{ p.name }}
-                  </a>
-                {% else %}
-                  {{ p.name }}
-                {% endif %}
-                <div class="small text-muted">{{ p.email }}</div>
-              </td>
+  {% for inv in invitations %}
+    <tr>
+      <td class="fw-semibold">
+        <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+           class="text-decoration-none fw-semibold">
+          {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+        </a>
+        <div class="small text-muted">{{ inv.candidate.email }}</div>
+      </td>
 
-              <td>
-                {% if inv.source == "self_registered" %}
-                  <span class="badge bg-info">Self-registered</span>
-                {% else %}
-                  <span class="badge bg-primary">Invited</span>
-                {% endif %}
-              </td>
+      <td>
+        {% if inv.source == "self_registered" %}
+          <span class="badge bg-info">Self-registered</span>
+        {% else %}
+          <span class="badge bg-primary">Invited</span>
+        {% endif %}
+      </td>
 
-              <td>
-                {% if p.source == "invited" %}
-                  <span class="badge bg-secondary">{{ p.status }}</span>
-                {% else %}
-                  <span class="badge bg-secondary">registered</span>
-                {% endif %}
-              </td>
-
-              <td class="text-muted">{{ p.invited_at|default:"-" }}</td>
-              <td class="text-muted">{{ p.completed_at|default:"-" }}</td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="p-4 text-muted">No candidates yet.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
+      <td>
+        <span class="badge bg-secondary">{{ inv.status_label }}</span>
+      </td>
+      
+      <td class="text-muted">
+        {{ inv.invited_at|default:inv.created_at|date:"M j, Y, H:i" }}
+      </td>
+      <td class="text-muted">{{ inv.completed_at|default:"-" }}</td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="5" class="p-4 text-muted">No candidates yet.</td>
+    </tr>
+  {% endfor %}
+</tbody>
       </table>
     </div>
   </div>
