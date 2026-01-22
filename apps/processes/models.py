@@ -70,16 +70,16 @@ class TestInvitation(models.Model):
         ("invited", "Invited"),
         ("self_registered", "Self-registered"),
     ]
-    
+
 
     def status_label(self):
         return {
-            "created": "Test inte skickat",
-            "sent": "Inbjuden till test",
-            "started": "Test startat",
-            "completed": "Test färdigt",
-            "expired": "Länk utgången",
-            "failed": "Något gick fel",
+            "created": "Ej skickat",
+            "sent": "Inbjuden",
+            "started": "Påbörjat",
+            "completed": "Färdigt",
+            "expired": "Utgånget",
+            "failed": "Fel",
         }.get(self.status, self.status)
 
     process = models.ForeignKey("processes.TestProcess", on_delete=models.CASCADE, related_name="invitations")

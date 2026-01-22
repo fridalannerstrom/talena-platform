@@ -53,6 +53,7 @@
             <th>Status</th>
             <th>Registered</th>
             <th>Completed</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -82,6 +83,17 @@
         {{ inv.invited_at|default:inv.created_at|date:"M j, Y, H:i" }}
       </td>
       <td class="text-muted">{{ inv.completed_at|default:"-" }}</td>
+      <td class="text-end">
+  <form method="post"
+        action="{% url 'processes:remove_candidate_from_process' process.id inv.candidate.id %}"
+        style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-danger"
+            onclick="return confirm('Remove this candidate from the process?');">
+      Remove
+    </button>
+  </form>
+</td>
     </tr>
   {% empty %}
     <tr>

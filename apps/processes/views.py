@@ -10,6 +10,7 @@ from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
+from django.views.decorators.http import require_POST
 
 from django.http import HttpResponse
 
@@ -273,7 +274,7 @@ def process_add_candidate(request, pk):
                 candidate=candidate,
                 defaults={"source": "invited", "status": "created"},
             )
-            
+
             if inv_created:
                 messages.success(request, f"{candidate.email} added to process.")
             else:
@@ -452,3 +453,19 @@ def self_register(request, token):
         form = SelfRegisterForm()
 
     return render(request, "customer/processes/self_register_form.html", {"process": process, "form": form})
+
+
+@login_required
+@require_POST
+def remove_candidate_from_process(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.delete()
+    messages.success(request, "Candidate removed from process.")
+    return redirect("processes:process_detail", pk=process.id)
