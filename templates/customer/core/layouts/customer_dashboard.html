@@ -15,9 +15,14 @@
       Status: <strong>alive</strong>
     </p>
 
-<a class="nav-link" href="{% url 'processes:process_list' %}">Process List</a>
 
-<a class="nav-link" href="{% url 'processes:process_create' %}">Process Create</a>
+    
+
+<a class="btn btn-primary" href="{% url 'processes:process_list' %}">Dina testprocesser</a>
+<br><br>
+<a class="btn btn-primary" href="{% url 'processes:process_create' %}">Skapa testprocess</a>
+
+<br><br>
 
 <form method="post" action="{% url 'accounts:logout' %}">
   {% csrf_token %}

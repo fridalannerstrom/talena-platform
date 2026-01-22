@@ -6,17 +6,22 @@
     <div>
       <h1 class="h3 mb-1">{{ process.name }}</h1>
       <div class="text-muted">
-        {{ process.project_name_snapshot }} · {{ process.account_code }} / {{ process.project_code }}
+        {{ process.project_name_snapshot }} · {{ process.job_title }} / {{ process.job_location }}
       </div>
     </div>
+    <div>
+      <a class="btn btn-outline-primary" href="{% url 'emails:edit_process_invitation_template' process.id %}">
+        Mejlmallar
+      </a>
 
-    <a class="btn btn-outline-primary" href="{% url 'emails:edit_process_invitation_template' process.id %}">
-      Edit invitation email
-    </a>
+      <a class="btn btn-outline-primary" href="{% url 'processes:process_update' process.id %}">
+        Ändra
+      </a>
 
-    <a class="btn btn-primary" href="{% url 'processes:process_add_candidate' process.id %}">
-      Add candidate
-    </a>
+      <a class="btn btn-primary" href="{% url 'processes:process_add_candidate' process.id %}">
+        Lägg till kandidat
+      </a>
+    </div>
   </div>
 
   {% for message in messages %}
@@ -24,76 +29,67 @@
   {% endfor %}
 
   <div class="card mb-4">
-    <div class="card-header"><strong>Process info</strong></div>
+    <div class="card-header"><strong>Information om processen</strong></div>
     <div class="card-body">
-      <div><strong>Test package:</strong> {{ process.project_name_snapshot }}</div>
-      <div class="text-muted small">Account: {{ process.account_code }} · Project: {{ process.project_code }}</div>
+      <div><strong>Testpaket:</strong> {{ process.project_name_snapshot }}</div>
+      <div class="text-muted small mb-3">Account: {{ process.account_code }} · Project: {{ process.project_code }}</div>
+      <div><strong>Tester:</strong></div>
+      <div><strong>Språk:</strong></div>
+
+      <div>
+        {% with reg_path=process.get_self_registration_url %}
+        <p>
+          <strong>Självregistreringslänk:</strong>
+          <a href="{{ request.scheme }}://{{ request.get_host }}{{ reg_path }}">
+            {{ request.scheme }}://{{ request.get_host }}{{ reg_path }}
+          </a>
+        </p>
+        <p><strong>Anteckningar:</strong><br>{{ process.notes }}</p>
+      </div>
+      {% endwith %}
+
     </div>
   </div>
 
-  {% with reg_path=process.get_self_registration_url %}
-  <p>
-    Self-registration link:
-    <a href="{{ request.scheme }}://{{ request.get_host }}{{ reg_path }}">
-      {{ request.scheme }}://{{ request.get_host }}{{ reg_path }}
-    </a>
-  </p>
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Kandidater</strong>
 
-  <small class="text-muted">
-    Debug token: {{ process.self_registration_token }}<br>
-    Debug path: {{ reg_path }}
-  </small>
-  {% endwith %}
-<div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <strong>Candidates</strong>
+      <button type="submit" form="send-tests-form" class="btn btn-success btn-sm">
+        Skicka ut test
+      </button>
+    </div>
 
-    <button type="submit" form="send-tests-form" class="btn btn-success btn-sm">
-      Skicka ut test
-    </button>
-  </div>
+    <div class="card-body p-0">
+      <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
+        {% csrf_token %}
 
-  <div class="card-body p-0">
-    <form
-      id="send-tests-form"
-      method="post"
-      action="{% url 'processes:process_send_tests' process.id %}"
-    >
-      {% csrf_token %}
+        <div class="table-responsive">
+          <table class="table mb-0 align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th style="width:40px;">
+                  <input type="checkbox" id="select-all">
+                </th>
+                <th>Candidate</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Invited / Registered</th>
+                <th>Completed</th>
+                <th></th>
+              </tr>
+            </thead>
 
-      <div class="table-responsive">
-        <table class="table mb-0 align-middle">
-          <thead class="bg-light">
-            <tr>
-              <th style="width:40px;">
-                <input type="checkbox" id="select-all">
-              </th>
-              <th>Candidate</th>
-              <th>Source</th>
-              <th>Status</th>
-              <th>Invited / Registered</th>
-              <th>Completed</th>
-              <th></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for inv in invitations %}
+            <tbody>
+              {% for inv in invitations %}
               <tr>
                 <td>
-                  <input
-                    type="checkbox"
-                    name="invitation_ids"
-                    value="{{ inv.id }}"
-                    class="row-check"
-                  >
+                  <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
                 </td>
 
                 <td class="fw-semibold">
-                  <a
-                    href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                    class="text-decoration-none fw-semibold"
-                  >
+                  <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                    class="text-decoration-none fw-semibold">
                     {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
                   </a>
                   <div class="small text-muted">{{ inv.candidate.email }}</div>
@@ -101,9 +97,9 @@
 
                 <td>
                   {% if inv.source == "self_registered" %}
-                    <span class="badge bg-info">Self-registered</span>
+                  <span class="badge bg-info">Self-registered</span>
                   {% else %}
-                    <span class="badge bg-primary">Invited</span>
+                  <span class="badge bg-primary">Invited</span>
                   {% endif %}
                 </td>
 
@@ -120,33 +116,28 @@
                 <td class="text-muted">
                   {{ inv.completed_at|default:"-" }}
                 </td>
-<td class="text-end">
-  <button
-    type="submit"
-    class="btn btn-sm btn-outline-danger"
-    form="send-tests-form"
-    formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-    formmethod="post"
-    onclick="return confirm('Are you sure you want to remove this candidate?');"
-    title="Remove candidate"
-  >
-    <i class="bi bi-trash"></i>
-  </button>
-</td>
+                <td class="text-end">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" form="send-tests-form"
+                    formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                    formmethod="post" onclick="return confirm('Are you sure you want to remove this candidate?');"
+                    title="Remove candidate">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
               </tr>
-            {% empty %}
+              {% empty %}
               <tr>
                 <td colspan="6" class="p-4 text-muted text-center">
                   No candidates yet.
                 </td>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </form>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
 </div>
 
