@@ -1,0 +1,25 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% block content %}
+<div class="container-fluid px-4">
+  <h1 class="h4 mb-3">Invitation email template</h1>
+  <div class="text-muted mb-3">{{ process.name }}</div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Placeholders</strong></div>
+    <div class="card-body">
+      {% for p in placeholders %}
+        <span class="badge bg-light text-dark me-1">{{ p }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form method="post" class="card">
+    {% csrf_token %}
+    <div class="card-body">
+      {{ form.as_p }}
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

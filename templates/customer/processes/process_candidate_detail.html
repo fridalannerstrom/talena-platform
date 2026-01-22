@@ -32,6 +32,14 @@
             <dt class="col-sm-3 text-muted">Completed</dt>
             <dd class="col-sm-9">{{ invite.completed_at|default:"-" }}</dd>
           </dl>
+          
+          {% if invitation.assessment_url %}
+            <div class="alert alert-info">
+              <strong>Testlänk:</strong>
+              <a href="{{ invitation.assessment_url }}" target="_blank">{{ invitation.assessment_url }}</a>
+            </div>
+          {% endif %}
+
         </div>
       </div>
     </div>

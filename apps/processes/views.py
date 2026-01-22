@@ -9,8 +9,11 @@ from django.db import transaction
 from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
-from django.db import transaction
 from django.views.decorators.http import require_POST
+from django.core.mail import EmailMultiAlternatives
+from apps.emails.models import EmailTemplate, EmailLog
+from apps.emails.utils import render_placeholders
+from django.core.mail import send_mail
 
 from django.http import HttpResponse
 
@@ -18,6 +21,13 @@ import json
 import uuid
 import requests
 
+from django.conf import settings
+
+def render_placeholders(text: str, ctx: dict) -> str:
+    text = text or ""
+    for key, val in ctx.items():
+        text = text.replace("{" + key + "}", str(val or ""))
+    return text
 
 
 @login_required
@@ -469,3 +479,163 @@ def remove_candidate_from_process(request, process_id, candidate_id):
     invitation.delete()
     messages.success(request, "Candidate removed from process.")
     return redirect("processes:process_detail", pk=process.id)
+
+
+@login_required
+def process_send_tests(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    # Endast POST
+    if request.method != "POST":
+        return redirect("processes:process_detail", pk=process.pk)
+
+    invitation_ids = request.POST.getlist("invitation_ids")
+
+    print("✅ HIT process_send_tests")
+    print("process:", process.id)
+    print("invitation_ids:", invitation_ids)
+
+    if not invitation_ids:
+        messages.warning(request, "Välj minst en kandidat.")
+        return redirect("processes:process_detail", pk=process.pk)
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process, id__in=invitation_ids)
+        .select_related("candidate")
+    )
+
+    print("invitations found:", invitations.count())
+
+    client = SovaClient()
+    sent_count = 0
+    skipped_count = 0
+
+    for inv in invitations:
+        candidate = inv.candidate
+
+        # hoppa över om redan skickad/igång/klart
+        if inv.status in ("sent", "started", "completed"):
+            skipped_count += 1
+            print(f"↪️ SKIP {candidate.email} (status={inv.status})")
+            continue
+
+        request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+        payload = {
+            "request_id": request_id,
+            "candidate_id": str(candidate.id),
+            "first_name": candidate.first_name,
+            "last_name": candidate.last_name,
+            "email": candidate.email,
+            "language": "sv",
+            "job_title": process.job_title or process.name,
+            "job_number": f"talena-{process.id}",
+            "meta_data": {
+                "talena_process_id": str(process.id),
+                "talena_candidate_id": str(candidate.id),
+                "talena_user_id": str(request.user.id),
+            },
+        }
+
+        try:
+            resp = client.order_assessment(process.project_code, payload)
+            test_url = resp.get("url")
+
+            # Välj språk (just nu hårdkodat sv, sen kan du koppla till candidate/process)
+            lang = "sv"
+
+            template = (
+                EmailTemplate.objects
+                .filter(
+                    process=process,
+                    template_type="invitation",
+                    language=lang,
+                    is_active=True,
+                )
+                .first()
+            )
+
+            # fallback om ingen mall finns (bra för MVP)
+            subject_tpl = template.subject if template else "{process_name}: Ditt test"
+            body_tpl = template.body if template else (
+                "Hej {first_name}!\n\n"
+                "Klicka på länken för att starta testet:\n"
+                "{assessment_url}\n\n"
+                "Vänliga hälsningar,\n"
+                "Talena"
+            )
+
+            ctx = {
+                "first_name": candidate.first_name,
+                "last_name": candidate.last_name,
+                "email": candidate.email,
+                "process_name": process.name,
+                "job_title": process.job_title,
+                "job_location": process.job_location,
+                "assessment_url": test_url,
+            }
+
+            subject = render_placeholders(subject_tpl, ctx)
+            body = render_placeholders(body_tpl, ctx)
+
+            # Logga i terminal (så du ser exakt vad som skulle skickas)
+            print("\n===== EMAIL PREVIEW =====")
+            print("TO:", candidate.email)
+            print("SUBJECT:", subject)
+            print("BODY:\n", body)
+            print("=========================\n")
+
+            # Skapa EmailLog med snapshot (så du kan visa historik i UI senare)
+            email_log = EmailLog.objects.create(
+                invitation=inv,
+                template_type="invitation",
+                to_email=candidate.email,
+                subject=subject,
+                body_snapshot=body,
+                status="queued",
+            )
+
+            try:
+                msg = EmailMultiAlternatives(
+                    subject=subject,
+                    body=body,
+                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@talena.se",
+                    to=[candidate.email],
+                )
+                msg.send()
+                email_log.mark_sent()
+            except Exception as e:
+                email_log.mark_failed(str(e))
+                raise
+
+            if not test_url:
+                # Viktigt: annars känns det som “inget händer”
+                messages.error(request, f"SOVA returnerade ingen url för {candidate.email}.")
+                print("❌ NO URL from SOVA:", resp)
+                continue
+
+            print(f"✅ [SOVA URL] {candidate.email} => {test_url}")
+
+            inv.status = "sent"
+            inv.invited_at = timezone.now()
+            inv.sova_payload = resp
+            inv.save(update_fields=["status", "invited_at", "sova_payload"])
+
+            sent_count += 1
+
+        except Exception as e:
+            print(f"❌ ERROR sending to {candidate.email}: {e}")
+            messages.error(request, f"Kunde inte skicka till {candidate.email}: {e}")
+
+    if sent_count:
+        messages.success(request, f"Skickade test till {sent_count} kandidat(er).")
+
+    if sent_count == 0:
+        # Om allt blev skip eller fel: ge feedback ändå
+        if skipped_count:
+            messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
+        else:
+            messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
+
+    return redirect("processes:process_detail", pk=process.pk)

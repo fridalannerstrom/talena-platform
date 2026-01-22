@@ -28,4 +28,5 @@ urlpatterns = [
     path("", include("apps.projects.urls")),
     path("processes/", include("apps.processes.urls")),
     path("r/<uuid:token>/", views.self_register, name="self_register"),
+    path("", include("apps.emails.urls")),
 ]

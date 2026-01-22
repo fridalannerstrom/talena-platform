@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.projects",
     "apps.processes",
+    "apps.emails",
 ]
 
 MIDDLEWARE = [
@@ -164,5 +165,6 @@ else:
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
 
+    
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "Talena <no-reply@talena.se>"

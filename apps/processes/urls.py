@@ -21,5 +21,6 @@ urlpatterns = [
     "<int:process_id>/candidate/<int:candidate_id>/remove/",
     views.remove_candidate_from_process,
     name="remove_candidate_from_process",
-),
+    ),
+    path("<int:pk>/send-tests/", views.process_send_tests, name="process_send_tests"),
 ]

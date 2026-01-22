@@ -81,6 +81,9 @@ class TestInvitation(models.Model):
             "expired": "Utgånget",
             "failed": "Fel",
         }.get(self.status, self.status)
+    
+    assessment_url = models.URLField(blank=True, null=True)
+    sova_request_id = models.CharField(max_length=512, blank=True, null=True)
 
     process = models.ForeignKey("processes.TestProcess", on_delete=models.CASCADE, related_name="invitations")
     candidate = models.ForeignKey("processes.Candidate", on_delete=models.CASCADE, related_name="invitations")
