@@ -18,9 +18,9 @@ urlpatterns = [
     # ✅ public route
     path("r/<uuid:token>/", views.self_register, name="self_register"),
     path(
-    "<int:process_id>/candidate/<int:candidate_id>/remove/",
-    views.remove_candidate_from_process,
-    name="remove_candidate_from_process",
+        "<int:process_id>/candidate/<int:candidate_id>/remove/",
+        views.remove_candidate_from_process,
+        name="remove_candidate_from_process",
     ),
     path("<int:pk>/send-tests/", views.process_send_tests, name="process_send_tests"),
 ]

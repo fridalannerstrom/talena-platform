@@ -73,6 +73,7 @@
               <th>Status</th>
               <th>Invited / Registered</th>
               <th>Completed</th>
+              <th></th>
             </tr>
           </thead>
 
@@ -119,6 +120,19 @@
                 <td class="text-muted">
                   {{ inv.completed_at|default:"-" }}
                 </td>
+<td class="text-end">
+  <button
+    type="submit"
+    class="btn btn-sm btn-outline-danger"
+    form="send-tests-form"
+    formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+    formmethod="post"
+    onclick="return confirm('Are you sure you want to remove this candidate?');"
+    title="Remove candidate"
+  >
+    <i class="bi bi-trash"></i>
+  </button>
+</td>
               </tr>
             {% empty %}
               <tr>
