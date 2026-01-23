@@ -7,6 +7,9 @@ from apps.core.utils.auth import is_admin
 from apps.accounts.forms import InviteUserForm
 from django.shortcuts import redirect
 
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 def home(request):
     return JsonResponse({"app": "Talena", "status": "alive"})

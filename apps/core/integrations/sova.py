@@ -2,6 +2,9 @@ import os
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
 
 DEFAULT_ENV_BASE = "https://api-test.sovaonline.com"
 DEFAULT_BASE_PATH = "integrations/cleo-test/v4"
@@ -64,3 +67,4 @@ class SovaClient:
 
         r.raise_for_status()
         return r.json() or {}
+    
