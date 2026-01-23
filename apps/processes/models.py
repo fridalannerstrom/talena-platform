@@ -88,10 +88,16 @@ class TestInvitation(models.Model):
     process = models.ForeignKey("processes.TestProcess", on_delete=models.CASCADE, related_name="invitations")
     candidate = models.ForeignKey("processes.Candidate", on_delete=models.CASCADE, related_name="invitations")
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="invited")
+    request_id = models.CharField(max_length=512, null=True, blank=True) 
+    sova_project_id = models.IntegerField(null=True, blank=True)   
+    overall_score = models.FloatField(null=True, blank=True)
+    project_results = models.JSONField(null=True, blank=True)
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="created")
     invited_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
+    result_payload = models.JSONField(null=True, blank=True)   # hela resultatet (om du vill)
+    score = models.IntegerField(null=True, blank=True)         # demo-score 0–100 (eller vad du vill)
 
     sova_invitation_id = models.CharField(max_length=255, blank=True, null=True)
     sova_payload = models.JSONField(blank=True, null=True)

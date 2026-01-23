@@ -105,9 +105,15 @@
                 </td>
 
                 <td>
-                  <span class="badge bg-secondary">
-                    {{ inv.status_label }}
-                  </span>
+                    {% if inv.status == "completed" %}
+                      <span class="badge bg-success">Färdig</span>
+                    {% elif inv.status == "sent" %}
+                      <span class="badge bg-warning text-dark">Skickad</span>
+                    {% elif inv.status == "created" %}
+                      <span class="badge bg-secondary">Ej skickad</span>
+                    {% else %}
+                      <span class="badge bg-light text-dark">{{ inv.status }}</span>
+                    {% endif %}
                 </td>
 
                 <td class="text-muted">

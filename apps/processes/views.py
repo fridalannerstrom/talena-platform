@@ -43,6 +43,20 @@ def process_list(request):
 @login_required
 def process_create(request):
     client = SovaClient()
+
+    accounts = client.get_accounts_with_projects()
+    sova_project_id = None
+
+    for a in accounts:
+        if (a.get("code") or "").strip() == (process.account_code or "").strip():
+            for p in (a.get("projects") or []):
+                if (p.get("code") or "").strip() == (process.project_code or "").strip():
+                    sova_project_id = p.get("id")
+                    break
+            break
+
+    print("✅ SOVA project_id for process:", sova_project_id)
+
     error = None
 
     # 1) Hämta accounts + projects från SOVA
@@ -530,6 +544,18 @@ def process_send_tests(request, pk):
     sent_count = 0
     skipped_count = 0
 
+    # ✅ NEW: hitta sova_project_id EN gång, innan loopen
+    accounts = client.get_accounts_with_projects()
+    sova_project_id = None
+    for a in accounts:
+        if (a.get("code") or "").strip() == (process.account_code or "").strip():
+            for p in (a.get("projects") or []):
+                if (p.get("code") or "").strip() == (process.project_code or "").strip():
+                    sova_project_id = p.get("id")
+                    break
+            break
+    print("✅ SOVA project_id:", sova_project_id)
+
     for inv in invitations:
         candidate = inv.candidate
 
@@ -554,6 +580,7 @@ def process_send_tests(request, pk):
                 "talena_process_id": str(process.id),
                 "talena_candidate_id": str(candidate.id),
                 "talena_user_id": str(request.user.id),
+                "talena_request_id": request_id,  # ✅ NEW (bra för spårbarhet)
             },
         }
 
@@ -636,10 +663,20 @@ def process_send_tests(request, pk):
 
             print(f"✅ [SOVA URL] {candidate.email} => {test_url}")
 
+            # ✅ NEW: en enda save, men vi behåller ALLT du sparar
             inv.status = "sent"
             inv.invited_at = timezone.now()
             inv.sova_payload = resp
-            inv.save(update_fields=["status", "invited_at", "sova_payload"])
+            inv.request_id = request_id
+
+            if sova_project_id is not None:
+                inv.sova_project_id = sova_project_id
+
+            update_fields = ["status", "invited_at", "sova_payload", "request_id"]
+            if sova_project_id is not None:
+                update_fields.append("sova_project_id")
+
+            inv.save(update_fields=update_fields)
 
             sent_count += 1
 

@@ -44,6 +44,26 @@
       </div>
     </div>
 
+<h4 class="mb-1">{{ process.project_name_snapshot|default:process.project_code }}</h4>
+
+{% if invitation.status == "completed" %}
+  <span class="badge bg-success">Färdig</span>
+
+  <div class="mt-3">
+    <div class="text-muted">Score</div>
+    <div class="display-6">
+      {% if invitation.overall_score != None %}
+        {{ invitation.overall_score }}
+      {% else %}
+        —
+      {% endif %}
+    </div>
+  </div>
+
+{% else %}
+  <span class="badge bg-warning text-dark">{{ invitation.status }}</span>
+{% endif %}
+
   <div class="row g-4">
     <div class="col-lg-6">
       <div class="card">
