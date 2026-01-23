@@ -33,8 +33,9 @@
     <div class="card-body">
       <div><strong>Testpaket:</strong> {{ process.project_name_snapshot }}</div>
       <div class="text-muted small mb-3">Account: {{ process.account_code }} · Project: {{ process.project_code }}</div>
-      <div><strong>Tester:</strong></div>
-      <div><strong>Språk:</strong></div>
+      <div><strong>Tester:</strong> {{ meta.tests|default:"—" }}</div>
+      <div><strong>Språk:</strong> {{ meta.languages|default:"—" }}</div>
+      <br>
 
       <div>
         {% with reg_path=process.get_self_registration_url %}
@@ -71,11 +72,11 @@
                 <th style="width:40px;">
                   <input type="checkbox" id="select-all">
                 </th>
-                <th>Candidate</th>
-                <th>Source</th>
+                <th>Kandidat</th>
+                <th>Källa</th>
                 <th>Status</th>
-                <th>Invited / Registered</th>
-                <th>Completed</th>
+                <th>Registrerad</th>
+                <th></th>
                 <th></th>
               </tr>
             </thead>
@@ -121,7 +122,7 @@
                     formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                     formmethod="post" onclick="return confirm('Are you sure you want to remove this candidate?');"
                     title="Remove candidate">
-                    <i class="bi bi-trash"></i>
+                    Ta bort
                   </button>
                 </td>
               </tr>

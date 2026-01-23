@@ -34,7 +34,10 @@ def render_placeholders(text: str, ctx: dict) -> str:
 def process_list(request):
     # sen kan du filtrera per kund/tenant, men nu: bara per användare
     processes = TestProcess.objects.filter(created_by=request.user)
-    return render(request, "customer/processes/process_list.html", {"processes": processes})
+
+    return render(request, "customer/processes/process_list.html", {
+        "processes": processes,
+        })
 
 
 @login_required
@@ -245,9 +248,20 @@ def process_delete(request, pk):
     # om någon råkar gå hit via GET
     return redirect("processes:process_list")
 
+
 @login_required
 def process_detail(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(
+        TestProcess,
+        pk=pk,
+        created_by=request.user
+    )
+
+    # Hämta metadata för testpaketet som processen använder
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
 
     invitations = (
         process.invitations
@@ -255,10 +269,15 @@ def process_detail(request, pk):
         .order_by("-created_at")
     )
 
-    return render(request, "customer/processes/process_detail.html", {
-        "process": process,
-        "invitations": invitations,
-    })
+    return render(
+        request,
+        "customer/processes/process_detail.html",
+        {
+            "process": process,
+            "invitations": invitations,
+            "meta": meta,
+        }
+    )
 
 
 @login_required
@@ -457,7 +476,7 @@ def self_register(request, token):
 
             return render(request, "customer/processes/self_register_success.html", {
                 "process": process,
-                "message": "Your test has started. Check your email.",
+                "message": "Du kommer få ett mejl när du kan starta testet",
             })
     else:
         form = SelfRegisterForm()

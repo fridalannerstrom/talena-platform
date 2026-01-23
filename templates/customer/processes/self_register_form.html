@@ -1,8 +1,8 @@
 <h1>{{ process.name }}</h1>
-<p>Enter your details to start the test.</p>
+<p>Ange information för att registrera dig till testprocessen.</p>
 
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Start test</button>
+  <button type="submit">Registrera dig</button>
 </form>
