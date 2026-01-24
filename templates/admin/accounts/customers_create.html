@@ -1,0 +1,37 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Skapa ny kund | Talena{% endblock %}
+
+{% block content %}
+<div class="container-xl px-4 mt-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-1">Skapa ny kund</h1>
+      <div class="small text-muted">Skicka en inbjudan via mejl.</div>
+    </div>
+
+    <a class="btn btn-outline-secondary" href="{% url 'accounts:admin_customers_list' %}">
+      Tillbaka till alla kunder
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="fw-semibold">Skapa kundkonto</div>
+      <div class="small text-muted">Användaren blir “Pending” tills de skapat lösenord via länken.</div>
+    </div>
+
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Skicka inbjudan</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+<style>
+  input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; }
+</style>
+{% endblock %}

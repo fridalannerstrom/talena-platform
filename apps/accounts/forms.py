@@ -6,10 +6,12 @@ User = get_user_model()
 class InviteUserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name"]  # justera efter dina fält
+        fields = ["email", "first_name", "last_name"]
 
     def clean_email(self):
-        email = (self.cleaned_data["email"] or "").strip().lower()
+        email = (self.cleaned_data.get("email") or "").strip().lower()
+        if not email:
+            raise forms.ValidationError("Email is required.")
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("En användare med den e-posten finns redan.")
         return email

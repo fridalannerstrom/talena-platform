@@ -1,0 +1,61 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Alla kunder | Talena{% endblock %}
+
+{% block content %}
+<div class="container-xl px-4 mt-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-1">Alla kunder</h1>
+      <div class="small text-muted">Lista över kundkonton och inbjudningar.</div>
+    </div>
+
+    <a class="btn btn-primary" href="{% url 'accounts:admin_customers_create' %}">
+      Skapa ny kund
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="fw-semibold">Kunder</div>
+      <span class="badge bg-light text-dark">{{ customers|length }} st</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Namn</th>
+            <th>E-post</th>
+            <th>Status</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in customers %}
+          <tr>
+            <td>
+              <a href="{% url 'accounts:admin_user_detail' u.pk %}">{{ u.get_full_name|default:"-" }}</a>
+            </td>
+            <td>{{ u.email }}</td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+            <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-muted p-3">Inga kunder ännu.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

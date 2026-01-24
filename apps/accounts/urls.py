@@ -1,16 +1,16 @@
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
-from .views import post_login_redirect
-from .views import accept_invite, invite_user, admin_user_detail
+from . import views
 
 app_name = "accounts"
 
 urlpatterns = [
-    path("login/", LoginView.as_view(template_name="accounts/login.html"), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-    path("go/", post_login_redirect, name="post_login_redirect"),
-    path("accounts/users/invite/", invite_user, name="invite_user"),
-    path("invite/accept/<uidb64>/<token>/", accept_invite, name="accept_invite"),
-    path("accounts/users/<int:pk>/", admin_user_detail, name="admin_user_detail"),
+    # Customer management (admin)
+    path("customers/", views.admin_customers_list, name="admin_customers_list"),
+    path("customers/new/", views.admin_customers_create, name="admin_customers_create"),
 
+    # Customer detail (admin)
+    path("users/<int:pk>/", views.admin_user_detail, name="admin_user_detail"),
+
+    # Invite acceptance (public)
+    path("invite/accept/<uidb64>/<token>/", views.accept_invite, name="accept_invite"),
 ]

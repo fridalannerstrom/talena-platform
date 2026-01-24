@@ -15,9 +15,13 @@ import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
 
-MESSAGE_TAGS = {
-    messages.ERROR: "danger",
-}
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env locally (IMPORTANT: must happen before reading env vars)
+if os.path.exists(BASE_DIR / ".env"):
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+
 
 def env_bool(name: str, default: str = "False") -> bool:
     return os.getenv(name, default).lower() in ("1", "true", "yes", "on")
@@ -26,20 +30,30 @@ SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", "False")
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", "False")
 CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", "False")
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+MESSAGE_TAGS = {
+    messages.ERROR: "danger",
+}
 
+# --- Database --- #
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
-    # Postgres i Azure
-    # Format: postgres://USER:PASSWORD@HOST:5432/DBNAME?sslmode=require
-    import dj_database_url
+    # Use Postgres (Azure)
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME"),
+            "USER": os.environ.get("DB_USER"),
+            "PASSWORD": os.environ.get("DB_PASSWORD"),
+            "HOST": os.environ.get("DB_HOST"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
 else:
-    # Local fallback
+    # No DATABASE_URL: allow sqlite only in DEBUG
+    if not DEBUG:
+        raise RuntimeError("DATABASE_URL missing in production!")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -47,17 +61,13 @@ else:
         }
     }
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/ 
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# Load .env locally
-if os.path.exists(BASE_DIR / ".env"):
-    from dotenv import load_dotenv
-    load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -103,6 +113,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "apps.core.middleware.AuthTraceMiddleware",  
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -125,17 +136,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -162,16 +162,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Europe/Stockholm"
 
 USE_I18N = True
 
 USE_TZ = True
 
 AUTH_USER_MODEL = "accounts.User"
-LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "accounts:post_login_redirect"
-LOGOUT_REDIRECT_URL = "accounts:login"
+LOGIN_URL = "core:login"
+LOGIN_REDIRECT_URL = "core:post_login_redirect"
+LOGOUT_REDIRECT_URL = "core:login"
 
 
 if DEBUG:

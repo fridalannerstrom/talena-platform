@@ -1,15 +1,9 @@
 from django.http import JsonResponse, HttpResponseForbidden
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from apps.core.integrations.sova import SovaClient
 from apps.core.utils.auth import is_admin
-from apps.accounts.forms import InviteUserForm
-from django.shortcuts import redirect
-
-from django.views.decorators.csrf import csrf_exempt
-import json
-
 
 def home(request):
     return JsonResponse({"app": "Talena", "status": "alive"})
@@ -19,53 +13,40 @@ def health(request):
     return JsonResponse({"status": "ok"})
 
 def root_redirect(request):
-    return redirect("accounts:login")
+    return redirect("core:login")
 
+
+@login_required
+def post_login_redirect(request):
+    if is_admin(request.user):
+        return redirect("core:admin_dashboard")
+    return redirect("core:customer_dashboard")
+
+
+def _get_sova_accounts():
+    try:
+        return SovaClient().get_accounts_with_projects(), None
+    except Exception as e:
+        return [], str(e)
 
 @login_required
 def customer_dashboard(request):
     if is_admin(request.user):
         return HttpResponseForbidden("Admins should use the admin dashboard.")
 
-    accounts = []
-    error = None
-    try:
-        accounts = SovaClient().get_accounts_with_projects()
-    except Exception as e:
-        error = str(e)
-
+    accounts, error = _get_sova_accounts()
     return render(request, "customer/core/layouts/customer_dashboard.html", {
         "accounts": accounts,
         "error": error,
-        "ping": "DASHBOARD VIEW HIT",
     })
-
 
 @login_required
 def admin_dashboard(request):
-
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
-    accounts = []
-    error = None
-    try:
-        accounts = SovaClient().get_accounts_with_projects()
-    except Exception as e:
-        error = str(e)
-
-    # Fix: form måste definieras här
-    form = InviteUserForm()
-    users = User.objects.exclude(is_superuser=True).order_by("-date_joined")
-
-
+    accounts, error = _get_sova_accounts()
     return render(request, "admin/core/layouts/admin_dashboard.html", {
-        "form": form,
         "accounts": accounts,
         "error": error,
-        "users": users,
-        "ping": "DASHBOARD VIEW HIT",
     })

@@ -131,11 +131,13 @@
                 </a>
                 <a class="dropdown-item" href="#!">
                     <div class="dropdown-item-icon"><i data-feather="log-out"></i></div>
-                    <form method="post" action="{% url 'accounts:logout' %}" class="ms-3">
+                    <form method="post" action="{% url 'core:logout' %}" class="ms-3">
                         {% csrf_token %}
                         <button type="submit">
                             Logga ut
                         </button>
+                    </form>
+                </div>
                 </a>
             </div>
         </li>

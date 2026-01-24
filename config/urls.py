@@ -16,17 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from apps.core.views import health
-from apps.processes import views
+from apps.processes import views as process_views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    # Django admin (om du behöver den)
     path("django-admin/", admin.site.urls),
-    path("", include("apps.core.urls")),
-    path("", include("apps.accounts.urls")),
+
+    # Core (login/logout, dashboards, health, webhooks etc)
+    path("", include(("apps.core.urls", "core"), namespace="core")),
+
+    # Talena admin (din egen adminyta för kundhantering)
+    path("tq-admin/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
+
+    # Feature-appar
     path("", include("apps.projects.urls")),
     path("processes/", include("apps.processes.urls")),
-    path("r/<uuid:token>/", views.self_register, name="self_register"),
+    path("r/<uuid:token>/", process_views.self_register, name="self_register"),
     path("", include("apps.emails.urls")),
 ]
