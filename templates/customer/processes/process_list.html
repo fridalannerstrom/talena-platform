@@ -19,43 +19,45 @@
             <tr>
               <th>Titel</th>
               <th>Testpaket</th>
+              <th>Antal kandidater</th>
               <th>Skapad</th>
               <th class="text-end"></th>
             </tr>
           </thead>
           <tbody>
             {% for p in processes %}
-              <tr>
-                <td class="fw-semibold">
-  <a href="{% url 'processes:process_detail' p.id %}">{{ p.name }}</a>
-  </a>
-</td>
-                <td class="text-muted">
-                  {{ p.project_name_snapshot }}
-                  <div class="small text-muted">{{ p.account_code }} / {{ p.project_code }}</div>
-                </td>
-                <td class="text-muted">{{ p.created_at|date:"Y-m-d H:i" }}</td>
-                <td class="text-end">
-                  
-                  <a class="btn btn-sm btn-outline-primary"
-                    href="{% url 'processes:process_update' p.id %}">
-                    Ändra
-                  </a>
-                  <form method="post"
-      action="{% url 'processes:process_delete' p.id %}"
-      style="display:inline;"
-      onsubmit="return confirm('Är du säker på att du vill ta bort denna process?');">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-sm btn-danger">
-    Ta bort
-  </button>
-</form>
-                </td>
-              </tr>
+            <tr>
+              <td class="fw-semibold">
+                <a href="{% url 'processes:process_detail' p.id %}">{{ p.name }}</a>
+                </a>
+              </td>
+              <td class="text-muted">
+                {{ p.project_name_snapshot }}
+                <div class="small text-muted">{{ p.account_code }} / {{ p.project_code }}</div>
+              </td>
+              <td class="text-muted">
+                {{ p.candidates_count }}
+              </td>
+              <td class="text-muted">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+
+              <td class="text-end">
+
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'processes:process_update' p.id %}">
+                  Ändra
+                </a>
+                <form method="post" action="{% url 'processes:process_delete' p.id %}" style="display:inline;"
+                  onsubmit="return confirm('Är du säker på att du vill ta bort denna process?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    Ta bort
+                  </button>
+                </form>
+              </td>
+            </tr>
             {% empty %}
-              <tr>
-                <td colspan="4" class="p-4 text-muted">Du har inga processer. </td>
-              </tr>
+            <tr>
+              <td colspan="4" class="p-4 text-muted">Du har inga processer. </td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

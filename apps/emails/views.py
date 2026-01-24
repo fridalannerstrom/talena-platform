@@ -6,6 +6,9 @@ from apps.processes.models import TestProcess
 from .models import EmailTemplate
 from .forms import EmailTemplateForm
 
+from urllib.parse import urlparse
+from django.http import HttpResponseRedirect
+
 
 @login_required
 def edit_process_invitation_template(request, process_id):
