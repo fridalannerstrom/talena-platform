@@ -34,27 +34,14 @@
       <div><strong>Testpaket:</strong> {{ process.project_name_snapshot }}</div>
       <div class="text-muted small mb-3">Account: {{ process.account_code }} · Project: {{ process.project_code }}</div>
       <div><strong>Tester:</strong> {{ meta.tests|default:"—" }}</div>
-      <div><strong>Språk:</strong> {{ meta.languages|default:"—" }}</div>
-      <br>
-<button
-  type="button"
-  class="btn btn-outline-secondary"
-  id="btnSelfReg"
->
-  Självregistrering
-</button>
+      <div><strong>Språk:</strong> {{ meta.languages|default:"—" }}</div><br>
       <div>
-        {% with reg_path=process.get_self_registration_url %}
-        <p>
-          <strong>Självregistreringslänk:</strong>
-          <a href="{{ request.scheme }}://{{ request.get_host }}{{ reg_path }}">
-            {{ request.scheme }}://{{ request.get_host }}{{ reg_path }}
-          </a>
-        </p>
         <p><strong>Anteckningar:</strong><br>{{ process.notes }}</p>
       </div>
-      {% endwith %}
-
+      <br>
+      <button type="button" class="btn btn-outline-secondary" id="btnSelfReg">
+        Självregistrering
+      </button>
     </div>
   </div>
 
@@ -111,15 +98,15 @@
                 </td>
 
                 <td>
-                    {% if inv.status == "completed" %}
-                      <span class="badge bg-success">Färdig</span>
-                    {% elif inv.status == "sent" %}
-                      <span class="badge bg-warning text-dark">Skickad</span>
-                    {% elif inv.status == "created" %}
-                      <span class="badge bg-secondary">Ej skickad</span>
-                    {% else %}
-                      <span class="badge bg-light text-dark">{{ inv.status }}</span>
-                    {% endif %}
+                  {% if inv.status == "completed" %}
+                  <span class="badge bg-success">Färdig</span>
+                  {% elif inv.status == "sent" %}
+                  <span class="badge bg-warning text-dark">Skickad</span>
+                  {% elif inv.status == "created" %}
+                  <span class="badge bg-secondary">Ej skickad</span>
+                  {% else %}
+                  <span class="badge bg-light text-dark">{{ inv.status }}</span>
+                  {% endif %}
                 </td>
 
                 <td class="text-muted">
