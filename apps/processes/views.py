@@ -507,8 +507,10 @@ def self_register(request, token):
                 invitation.invited_at = timezone.now()
                 invitation.sova_payload = resp
                 invitation.request_id = request_id
+                invitation.assessment_url = test_url
 
-                invitation.save(update_fields=["status", "invited_at", "sova_payload", "request_id"])
+                update_fields = ["status", "invited_at", "sova_payload", "request_id", "assessment_url"]
+                invitation.save(update_fields=update_fields)
 
                 # 4) Skicka mejl som fallback (samma logik som i process_send_tests)
                 lang = "sv"
@@ -768,11 +770,18 @@ def process_send_tests(request, pk):
             inv.invited_at = timezone.now()
             inv.sova_payload = resp
             inv.request_id = request_id
+            inv.assessment_url = test_url 
 
             if sova_project_id is not None:
                 inv.sova_project_id = sova_project_id
 
-            update_fields = ["status", "invited_at", "sova_payload", "request_id"]
+            update_fields = [
+                "status",
+                "invited_at",
+                "sova_payload",
+                "request_id",
+                "assessment_url",
+            ]
             if sova_project_id is not None:
                 update_fields.append("sova_project_id")
 

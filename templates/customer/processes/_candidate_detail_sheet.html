@@ -27,22 +27,33 @@
         <dd class="col-sm-9">{{ invitation.completed_at|default:"-" }}</dd>
       </dl>
 
-      {% if invitation.assessment_url %}
-        <div class="alert alert-info mt-3 mb-0 d-flex justify-content-between align-items-center gap-2">
-          <div class="text-break">
-            <strong>Test link:</strong>
-            <a href="{{ invitation.assessment_url }}" target="_blank" rel="noopener">
-              {{ invitation.assessment_url }}
-            </a>
-          </div>
+      
+  {% if invitation.assessment_url %}
+  <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mt-3">
+    <div class="flex-grow-1">
+      <label class="form-label mb-1 fw-semibold">Test link</label>
+      <input
+        type="text"
+        class="form-control"
+        id="assessmentUrlInput"
+        value="{{ invitation.assessment_url }}"
+        readonly
+        onclick="this.select()"
+      >
+    </div>
 
-          <button class="btn btn-sm btn-outline-primary"
-                  type="button"
-                  data-copy="{{ invitation.assessment_url }}">
-            Copy
-          </button>
-        </div>
-      {% endif %}
+    <div class="pt-4">
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        onclick="copyAssessmentUrl(this)"
+      >
+        Copy
+      </button>
+    </div>
+  </div>
+{% endif %}
+
     </div>
   </div>
 
@@ -107,5 +118,32 @@
       }
     }
   </script>
+
+  <script>
+  function copyAssessmentUrl() {
+    const input = document.getElementById("assessmentUrlInput");
+
+    if (!input) return;
+
+    input.select();
+    input.setSelectionRange(0, 99999); // mobile support
+
+    navigator.clipboard.writeText(input.value).then(() => {
+      // Valfri UX-feedback
+      const btn = event.target;
+      const originalText = btn.innerText;
+
+      btn.innerText = "Copied!";
+      btn.classList.remove("btn-outline-primary");
+      btn.classList.add("btn-success");
+
+      setTimeout(() => {
+        btn.innerText = originalText;
+        btn.classList.remove("btn-success");
+        btn.classList.add("btn-outline-primary");
+      }, 1500);
+    });
+  }
+</script>
 
 </div>
