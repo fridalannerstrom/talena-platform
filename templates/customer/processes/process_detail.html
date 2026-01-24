@@ -36,7 +36,13 @@
       <div><strong>Tester:</strong> {{ meta.tests|default:"—" }}</div>
       <div><strong>Språk:</strong> {{ meta.languages|default:"—" }}</div>
       <br>
-
+<button
+  type="button"
+  class="btn btn-outline-secondary"
+  id="btnSelfReg"
+>
+  Självregistrering
+</button>
       <div>
         {% with reg_path=process.get_self_registration_url %}
         <p>
@@ -157,6 +163,41 @@
       checks.forEach(ch => ch.checked = selectAll.checked);
     });
   }
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btnSelfReg");
+    if (!btn) return;
+
+    btn.addEventListener("click", () => {
+      const url = "{{ self_reg_url|escapejs }}";
+
+      openAppModal({
+        title: "Självregistrering",
+        bodyHtml: `
+          <p class="mb-2">
+            Dela länken med kandidater. Kandidater som registrerar sig via länken
+            startar testet automatiskt direkt efter registrering.
+          </p>
+
+          <label class="form-label">Self-registration URL</label>
+          <input type="text" class="form-control" value="${url}" readonly>
+
+          <div class="d-flex align-items-center gap-3 mt-2">
+            <button class="btn btn-primary" type="button"
+              onclick="copyToClipboard('${url}', 'copyStatus')">
+              Copy link
+            </button>
+            <span id="copyStatus" class="small text-muted"></span>
+          </div>
+        `,
+        footerHtml: `
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+        `
+      });
+    });
+  });
 </script>
 
 {% endblock %}

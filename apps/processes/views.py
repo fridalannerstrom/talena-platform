@@ -296,6 +296,7 @@ def process_detail(request, pk):
             "process": process,
             "invitations": invitations,
             "meta": meta,
+            "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
         }
     )
 
