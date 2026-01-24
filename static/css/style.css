@@ -149,6 +149,36 @@
   }
 }
 
+
+/* Custom */
+
+/* Candidate bottom sheet – layout tweaks */
+#candidateSheet {
+  height: 90vh; /* lite högre än 85 */
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+/* Centrera innehållet */
+#candidateSheet .offcanvas-body {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Maxbredd + luft i kanterna */
+#candidateSheet .offcanvas-body > * {
+  width: 100%;
+  max-width: 1000px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+
+
+/* End Custom */
+
 body {
   margin: 0;
   font-family: var(--bs-body-font-family);

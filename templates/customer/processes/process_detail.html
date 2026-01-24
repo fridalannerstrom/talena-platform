@@ -83,7 +83,9 @@
 
                 <td class="fw-semibold">
                   <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                    class="text-decoration-none fw-semibold">
+                    class="text-decoration-none fw-semibold js-open-candidate"
+                    data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                    data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
                     {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
                   </a>
                   <div class="small text-muted">{{ inv.candidate.email }}</div>
@@ -141,6 +143,26 @@
 
 </div>
 
+<!-- Candidate Slide-up (Bottom Sheet) -->
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet" aria-labelledby="Candidate details">
+    <div class="offcanvas-header justify-content-end">
+      <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+
+  <div class="offcanvas-body" id="candidateSheetBody">
+    <div class="text-muted">Loading…</div>
+  </div>
+</div>
+
+<style>
+  #candidateSheet {
+    height: 97vh;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+  }
+</style>
+
 <script>
   const selectAll = document.getElementById("select-all");
   const checks = document.querySelectorAll(".row-check");
@@ -182,6 +204,57 @@
         footerHtml: `
           <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
         `
+      });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const sheetEl = document.getElementById("candidateSheet");
+    const sheetBody = document.getElementById("candidateSheetBody");
+    const sheetTitle = document.getElementById("candidateSheetLabel");
+
+    if (!sheetEl || !sheetBody || !sheetTitle) return;
+
+    // Skapa en bootstrap offcanvas-instans
+    const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
+
+    // Fånga klick på alla kandidatlänkar
+    document.querySelectorAll(".js-open-candidate").forEach(link => {
+      link.addEventListener("click", async (e) => {
+        e.preventDefault(); // ✅ stoppar navigation till ny sida
+
+        const url = link.dataset.sheetUrl || link.getAttribute("href");
+        const name = link.dataset.candidateName || "Candidate";
+
+        sheetTitle.textContent = name;
+        sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+        sheet.show();
+
+        try {
+          const res = await fetch(url, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+
+          if (!res.ok) {
+            sheetBody.innerHTML = `
+              <div class="alert alert-danger mb-0">
+                Could not load candidate details (${res.status}).
+              </div>`;
+            return;
+          }
+
+          const html = await res.text();
+          sheetBody.innerHTML = html;
+
+        } catch (err) {
+          sheetBody.innerHTML = `
+            <div class="alert alert-danger mb-0">
+              Network error while loading candidate details.
+            </div>`;
+          console.error(err);
+        }
       });
     });
   });

@@ -361,40 +361,6 @@ def invite_candidate(request, pk, candidate_id):
 
 
 @login_required
-def process_candidate_detail(request, process_id, candidate_id):
-    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
-
-    # candidate_id i URL är kandidatens ID (Candidate.pk)
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id
-    )
-
-    candidate = invitation.candidate
-
-    dummy_profile = {
-        "labels": ["Struktur", "Samarbete", "Driv", "Stresstålighet", "Analys"],
-        "values": [7, 6, 8, 5, 7],
-    }
-
-    dummy_abilities = {
-        "labels": ["Verbal", "Numerisk", "Logisk"],
-        "values": [62, 54, 71],
-    }
-
-    return render(request, "customer/processes/process_candidate_detail.html", {
-        "process": process,
-        "invitation": invitation,
-        "candidate": candidate,
-        "dummy_profile": dummy_profile,
-        "dummy_abilities": dummy_abilities,
-    })
-
-
-
-
-@login_required
 def sova_order_assessment_smoke_test(request, pk, candidate_id):
     process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
     candidate = get_object_or_404(Candidate, pk=candidate_id)
@@ -829,3 +795,42 @@ def process_send_tests(request, pk):
             messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
 
     return redirect("processes:process_detail", pk=process.pk)
+
+
+@login_required
+def process_candidate_detail(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id
+    )
+
+    candidate = invitation.candidate
+
+    dummy_profile = {
+        "labels": ["Struktur", "Samarbete", "Driv", "Stresstålighet", "Analys"],
+        "values": [7, 6, 8, 5, 7],
+    }
+
+    dummy_abilities = {
+        "labels": ["Verbal", "Numerisk", "Logisk"],
+        "values": [62, 54, 71],
+    }
+
+    ctx = {
+        "process": process,
+        "invitation": invitation,
+        "candidate": candidate,
+        "dummy_profile": dummy_profile,
+        "dummy_abilities": dummy_abilities,
+    }
+
+    # ✅ Om anropet kommer via fetch/AJAX: returnera partial (sheet)
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if is_ajax:
+        return render(request, "customer/processes/_candidate_detail_sheet.html", ctx)
+
+    # ✅ Annars: returnera full page som vanligt
+    return render(request, "customer/processes/process_candidate_detail.html", ctx)
