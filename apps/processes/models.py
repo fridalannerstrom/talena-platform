@@ -40,6 +40,13 @@ class TestProcess(models.Model):
     def get_self_registration_url(self):
                     return reverse("processes:self_register", kwargs={"token": str(self.self_registration_token)})
     
+    def is_template_locked(self) -> bool:
+        """
+        Lås testpaket så fort processen är påbörjad.
+        Just nu: om någon invitation har status sent/started/completed.
+        """
+        return self.invitations.filter(status__in=["sent", "started", "completed"]).exists()
+    
 class Candidate(models.Model):
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80, blank=True)

@@ -172,6 +172,10 @@ def process_create(request):
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
 
+    old_acc = (obj.account_code or "").strip()
+    old_proj = (obj.project_code or "").strip()
+    locked = obj.is_template_locked()
+
     client = SovaClient()
     error = None
 
@@ -220,6 +224,13 @@ def process_update(request, pk):
             value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
             acc, proj = value.split("|", 1)
 
+            if locked and ((acc.strip() != old_acc) or (proj.strip() != old_proj)):
+                messages.error(
+                    request,
+                    "Du kan inte ändra testpaket efter att tester har skickats i processen."
+                )
+                return redirect("processes:process_update", pk=obj.pk)
+
             updated.provider = "sova"
             updated.account_code = acc
             updated.project_code = proj
@@ -248,6 +259,7 @@ def process_update(request, pk):
         "error": error,
         "choices_count": len(choices),
         "template_cards": template_cards,
+        "template_locked": locked,
     })
 
 

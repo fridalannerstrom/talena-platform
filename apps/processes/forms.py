@@ -2,7 +2,6 @@ from django import forms
 from .models import TestProcess, Candidate
 
 class TestProcessCreateForm(forms.ModelForm):
-    # vi lägger till ett “template choice”-fält som vi fyller i viewen
     name = forms.CharField(required=True)
     sova_template = forms.ChoiceField(widget=forms.RadioSelect, required=True)
 
@@ -17,6 +16,16 @@ class TestProcessCreateForm(forms.ModelForm):
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 4}),
         }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        instance = getattr(self, "instance", None)
+        if instance and instance.pk and instance.is_template_locked():
+            self.fields["sova_template"].disabled = True
+            self.fields["sova_template"].help_text = (
+                "Testpaketet kan inte ändras efter att tester har skickats i processen."
+            )
 
 
 class CandidateCreateForm(forms.ModelForm):

@@ -11,9 +11,9 @@
   </div>
 
   {% if error %}
-    <div class="alert alert-danger">
-      Could not load SOVA projects: {{ error }}
-    </div>
+  <div class="alert alert-danger">
+    Could not load SOVA projects: {{ error }}
+  </div>
   {% endif %}
 
   <div class="card shadow-sm">
@@ -27,7 +27,7 @@
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
         {% endif %}
 
         <div class="row g-3">
@@ -38,9 +38,18 @@
           </div>
 
           <div class="col-12">
+
+            {% if template_locked %}
+            <div class="alert alert-warning d-flex align-items-start gap-2">
+              <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
+              <div>
+                <strong>Testpaketet är låst.</strong><br>
+                Du kan inte ändra testpaket efter att du har skickat ut tester i processen.
+              </div>
+            </div>
+            {% endif %}
             <label class="form-label">{{ form.sova_template.label }}</label>
             {{ form.sova_template }}
-            <div class="form-text">This decides which tests/workflow SOVA will use later.</div>
             <div class="form-text text-danger">{{ form.sova_template.errors }}</div>
           </div>
 
@@ -61,11 +70,11 @@
         </div>
 
         {% if form.errors %}
-  <div class="alert alert-danger mt-3">
-    <strong>Form errors</strong>
-    {{ form.errors }}
-  </div>
-{% endif %}
+        <div class="alert alert-danger mt-3">
+          <strong>Form errors</strong>
+          {{ form.errors }}
+        </div>
+        {% endif %}
 
         <div class="d-flex gap-2 mt-4">
           <button class="btn btn-primary" type="submit">Uppdatera process</button>
@@ -78,7 +87,8 @@
 
   {% if form.non_field_errors %}
   <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-{% endif %}
+  {% endif %}
 
 </div>
+
 {% endblock %}
