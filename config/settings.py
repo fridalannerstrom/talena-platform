@@ -86,7 +86,12 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
 
 # Azure health probes sometimes use link-local 169.254.x.x
 if os.environ.get("WEBSITE_INSTANCE_ID"):
-    ALLOWED_HOSTS += ["169.254.129.3", "169.254.129.1", "169.254.129.4"]
+    ALLOWED_HOSTS += [
+        "169.254.129.1",
+        "169.254.129.2",
+        "169.254.129.3",
+        "169.254.129.4",
+    ]
 
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
