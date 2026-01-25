@@ -73,4 +73,5 @@ jobs:
         with:
           app-name: 'talena-app'
           slot-name: 'Production'
+          package: .
           
