@@ -14,6 +14,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
+import dj_database_url
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,9 +24,10 @@ if os.path.exists(BASE_DIR / ".env"):
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / ".env")
 
-
 def env_bool(name: str, default: str = "False") -> bool:
     return os.getenv(name, default).lower() in ("1", "true", "yes", "on")
+
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", "False")
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", "False")
@@ -35,25 +38,23 @@ MESSAGE_TAGS = {
 }
 
 # --- Database --- #
-DATABASE_URL = os.getenv("DATABASE_URL")
+DB_HOST = (os.getenv("DB_HOST") or "").strip()
 
-if DATABASE_URL:
-    # Use Postgres (Azure)
+if DB_HOST:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME"),
-            "USER": os.environ.get("DB_USER"),
-            "PASSWORD": os.environ.get("DB_PASSWORD"),
-            "HOST": os.environ.get("DB_HOST"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": DB_HOST,
+            "PORT": os.getenv("DB_PORT", "5432"),
             "OPTIONS": {"sslmode": "require"},
         }
     }
 else:
-    # No DATABASE_URL: allow sqlite only in DEBUG
     if not DEBUG:
-        raise RuntimeError("DATABASE_URL missing in production!")
+        raise RuntimeError("DB_HOST missing in production!")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
