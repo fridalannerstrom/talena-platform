@@ -55,8 +55,8 @@
             {% endif %}
           </td>
           <td class="text-end">
-            {# ändra till rätt url-name för din process-detail #}
-            <a class="btn btn-sm btn-outline-primary" href="">
+            <a class="btn btn-outline-primary btn-sm"
+              href="{% url 'accounts:admin_process_detail' pk=p.id %}">
               Open
             </a>
           </td>

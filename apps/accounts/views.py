@@ -9,10 +9,11 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 from apps.core.utils.auth import is_admin
-from apps.processes.models import TestProcess
+from apps.processes.models import TestProcess, TestInvitation
 
 from .forms import InviteUserForm
 from .services.invites import send_invite_email
+
 
 User = get_user_model()
 
@@ -105,3 +106,29 @@ def accept_invite(request, uidb64, token):
         form = SetPasswordForm(user)
 
     return render(request, "accounts/accept_invite.html", {"form": form, "user": user})
+
+
+@login_required
+def admin_process_detail(request, pk):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process)
+        .select_related("candidate")
+        .order_by("-created_at")
+    )
+
+    # Snabb statistik (nice för admin-UI)
+    status_counts = {}
+    for inv in invitations:
+        status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
+
+    return render(request, "admin/accounts/process_detail.html", {
+        "process": process,
+        "invitations": invitations,
+        "status_counts": status_counts,
+    })

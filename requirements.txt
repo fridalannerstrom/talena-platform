@@ -5,5 +5,4 @@ packaging==25.0
 sqlparse==0.5.5
 tzdata==2025.3
 whitenoise==6.11.0
-dj-database-url>=2.1
 psycopg2-binary
