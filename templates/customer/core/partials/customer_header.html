@@ -8,12 +8,19 @@
             <a class="navbar-brand pe-3 ps-4 ps-lg-2">Talena (logo)</a>
             <!-- Navbar Search Input-->
             <!-- * * Note: * * Visible only on and above the lg breakpoint-->
-            <form class="form-inline me-auto d-none d-lg-block me-3">
-                <div class="input-group input-group-joined input-group-solid">
-                    <input class="form-control pe-0" type="search" placeholder="Sök" aria-label="Sök" />
-                    <div class="input-group-text"><i data-feather="search"></i></div>
-                </div>
-            </form>
+<form class="me-3 d-none d-lg-block py-1">
+  <div class="position-relative nav-search" style="width: 420px;">
+    <input
+      id="globalSearchInput"
+      class="form-control"
+      type="search"
+      placeholder="Sök"
+      autocomplete="off"
+    >
+    <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
+  </div>
+</form>
+
             <!-- Navbar Items-->
             <ul class="navbar-nav align-items-center ms-auto">
                 <!-- Documentation Dropdown-->

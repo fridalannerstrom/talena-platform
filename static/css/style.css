@@ -175,6 +175,37 @@
   padding-right: 1.5rem;
 }
 
+.nav-search input.form-control {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+  font-size: 0.75rem;
+}
+
+#globalSearchDropdown {
+  padding: 0.25rem 0;
+}
+
+
+#globalSearchDropdown .dropdown-item:hover {
+  background-color: #f6f8fb;
+}
+
+#globalSearchDropdown .badge {
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+.search-tag {
+  font-size: 0.5rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.375rem;
+  background-color: #f1f3f5;
+  color: #5c5c5c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  font-weight: 500;
+}
 
 
 /* End Custom */
@@ -2186,7 +2217,7 @@ progress {
   font-weight: 400;
   line-height: 1;
   color: #242424;
-  background-color: #fff;
+  background-color: #f5f5f5;
   background-clip: padding-box;
   border: 1px solid #EDEBFA;
   -webkit-appearance: none;

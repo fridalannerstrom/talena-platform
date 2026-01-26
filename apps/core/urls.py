@@ -1,5 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
+from . import views
 
 from .views import (
     customer_dashboard,
@@ -24,4 +25,5 @@ urlpatterns = [
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
 
     path("webhooks/sova/", sova_webhook, name="sova_webhook"),
+    path("search/", views.global_search, name="global_search"),
 ]
