@@ -37,6 +37,7 @@ urlpatterns = [
     path("r/<uuid:token>/", process_views.self_register, name="self_register"),
     path("", include("apps.emails.urls")),
     path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
+    path("integrations/", include("apps.core.integrations.urls")),
 ] 
 
 
