@@ -14,6 +14,11 @@ from apps.processes.models import TestProcess, TestInvitation, Candidate
 from .forms import InviteUserForm
 from .services.invites import send_invite_email
 
+from .decorators import admin_required
+from apps.portal.forms import AccountForm
+
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
 
 User = get_user_model()
 
@@ -159,3 +164,32 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
         "dummy_profile": dummy_profile,
         "dummy_abilities": dummy_abilities,
     })
+
+
+
+@login_required
+@admin_required
+def admin_profile(request):
+    user = request.user
+
+    if request.method == "POST":
+        form = AccountForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Admin profile updated.")
+            return redirect("accounts:admin_profile")
+        messages.error(request, "Please correct the errors below.")
+    else:
+        form = AccountForm(instance=user)
+
+    return render(request, "admin/accounts/admin/profile.html", {"form": form})
+
+
+
+class AdminPasswordChangeView(PasswordChangeView):
+    template_name = "admin/accounts/admin/password_change.html"
+    success_url = reverse_lazy("accounts:admin_profile")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Du har bytt lösenord.")
+        return super().form_valid(form)

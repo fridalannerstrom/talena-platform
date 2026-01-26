@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import AdminPasswordChangeView
 
 app_name = "accounts"
 
@@ -22,4 +23,11 @@ urlpatterns = [
 
     # Invite acceptance (public)
     path("invite/accept/<uidb64>/<token>/", views.accept_invite, name="accept_invite"),
+
+    path("profile/", views.admin_profile, name="admin_profile"),
+    path(
+        "profile/password/",
+        AdminPasswordChangeView.as_view(),
+        name="admin_password_change",
+    ),
 ]
