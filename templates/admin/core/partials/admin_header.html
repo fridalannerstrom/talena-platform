@@ -10,18 +10,12 @@
     <a class="navbar-brand pe-3 ps-4 ps-lg-2">Talena (logo)</a>
     <!-- Navbar Search Input-->
     <!-- * * Note: * * Visible only on and above the lg breakpoint-->
-<form class="me-3 d-none d-lg-block py-1">
-  <div class="position-relative nav-search" style="width: 420px;">
-    <input
-      id="globalSearchInput"
-      class="form-control"
-      type="search"
-      placeholder="Sök"
-      autocomplete="off"
-    >
-    <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
-  </div>
-</form>
+    <form class="me-3 d-none d-lg-block py-1">
+        <div class="position-relative nav-search" style="width: 420px;">
+            <input id="globalSearchInput" class="form-control" type="search" placeholder="Sök" autocomplete="off">
+            <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
+        </div>
+    </form>
 
 
     <!-- Navbar Items-->
@@ -121,22 +115,37 @@
         <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">
             <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage"
                 href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
-                aria-expanded="false"><img class="img-fluid"
-                    src="assets/img/illustrations/profiles/profile-1.png" /></a>
+                aria-expanded="false">{% if request.user.is_authenticated and request.user.profile.image %}
+                <img src="{{ request.user.profile.image.url }}" alt="Profile" class="rounded-circle"
+                    style="width:32px;height:32px;object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle bg-light border" style="width:32px;height:32px;"></div>
+                {% endif %}
+            </a>
             <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
                 aria-labelledby="navbarDropdownUserImage">
                 <h6 class="dropdown-header d-flex align-items-center">
-                    <img class="dropdown-user-img" src="assets/img/illustrations/profiles/profile-1.png" />
+                    {% if request.user.is_authenticated and request.user.profile.image %}
+  <img
+    src="{{ request.user.profile.image.url }}"
+    alt="Profile"
+    class="rounded-circle dropdown-user-img"
+    style="width:32px;height:32px;object-fit:cover;"
+  >
+{% else %}
+  <div class="rounded-circle bg-light border"
+       style="width:32px;height:32px;"></div>
+{% endif %}
                     <div class="dropdown-user-details">
                         <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
                         <div class="dropdown-user-details-email">{{ request.user.email }}</div>
                     </div>
                 </h6>
                 <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'accounts:admin_profile' %}">
-                            <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
-                            Account
-                        </a>
+                <a class="dropdown-item" href="{% url 'accounts:admin_profile' %}">
+                    <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
+                    Account
+                </a>
                 <a class="dropdown-item" href="#!">
                     <div class="dropdown-item-icon"><i data-feather="log-out"></i></div>
                     <form method="post" action="{% url 'core:logout' %}" class="ms-3">

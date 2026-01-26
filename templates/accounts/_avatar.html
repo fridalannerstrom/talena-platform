@@ -1,0 +1,11 @@
+{% if request.user.is_authenticated and request.user.profile.image %}
+  <img
+    src="{{ request.user.profile.image.url }}"
+    alt="Profile"
+    class="rounded-circle"
+    style="width:32px;height:32px;object-fit:cover;"
+  >
+{% else %}
+  <div class="rounded-circle bg-light border"
+       style="width:32px;height:32px;"></div>
+{% endif %}

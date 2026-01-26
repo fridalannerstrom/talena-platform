@@ -20,6 +20,7 @@ from apps.processes import views as process_views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     # Django admin (om du behöver den)
     path("django-admin/", admin.site.urls),
@@ -35,5 +36,9 @@ urlpatterns = [
     path("processes/", include("apps.processes.urls")),
     path("r/<uuid:token>/", process_views.self_register, name="self_register"),
     path("", include("apps.emails.urls")),
-    path("portal", include(("apps.portal.urls", "portal"), namespace="portal")),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
+] 
+
+
+if settings.DEBUG and not settings.USE_AZURE_STORAGE:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

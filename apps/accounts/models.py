@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
@@ -29,4 +30,19 @@ def create_or_update_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     else:
         # säkerställ att profil finns
+        Profile.objects.get_or_create(user=instance)
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    image = models.ImageField(upload_to="profile_images/", blank=True, null=True)
+
+    def __str__(self):
+        return f"Profile: {self.user.email}"
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def ensure_profile_exists(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    else:
         Profile.objects.get_or_create(user=instance)

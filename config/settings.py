@@ -14,7 +14,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
-import dj_database_url
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -70,14 +69,41 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+USE_AZURE_STORAGE = os.getenv("USE_AZURE_STORAGE") == "1"
+
+# Staticfiles backend (WhiteNoise i prod, enklare i debug)
+STATICFILES_BACKEND = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    if not DEBUG
+    else "django.contrib.staticfiles.storage.StaticFilesStorage"
+)
+
+if USE_AZURE_STORAGE:
+    # (Du kan lämna detta tomt tills du sätter Blob senare)
+    # Viktigt: STORAGES måste ändå ha default + staticfiles.
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {"BACKEND": STATICFILES_BACKEND},
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {"BACKEND": STATICFILES_BACKEND},
+    }
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-secret-key")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
     "DJANGO_ALLOWED_HOSTS",
@@ -180,16 +206,6 @@ LOGIN_URL = "core:login"
 LOGIN_REDIRECT_URL = "core:post_login_redirect"
 LOGOUT_REDIRECT_URL = "core:login"
 
-
-if DEBUG:
-    STORAGES = {
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
-    }
-else:
-    STORAGES = {
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-    }
-
     
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "Talena <no-reply@talena.se>"
@@ -213,5 +229,3 @@ LOGGING = {
     },
 }
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
