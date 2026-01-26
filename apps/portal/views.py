@@ -54,6 +54,6 @@ def portal_settings(request):
 
     return render(
         request,
-        "portal/settings.html",
+        "customer/portal/settings.html",
         {"account_form": account_form, "image_form": image_form},
     )

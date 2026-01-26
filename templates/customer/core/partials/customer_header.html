@@ -1,130 +1,150 @@
-<nav class="topnav navbar navbar-expand justify-content-between justify-content-sm-start navbar-light bg-white border" id="sidenavAccordion">
-            <!-- Sidenav Toggle Button-->
-            <button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 me-2 ms-lg-2 me-lg-0" id="sidebarToggle"><i data-feather="menu"></i></button>
-            <!-- Navbar Brand-->
-            <!-- * * Tip * * You can use text or an image for your navbar brand.-->
-            <!-- * * * * * * When using an image, we recommend the SVG format.-->
-            <!-- * * * * * * Dimensions: Maximum height: 32px, maximum width: 240px-->
-            <a class="navbar-brand pe-3 ps-4 ps-lg-2">Talena (logo)</a>
-            <!-- Navbar Search Input-->
-            <!-- * * Note: * * Visible only on and above the lg breakpoint-->
-<form class="me-3 d-none d-lg-block py-1">
-  <div class="position-relative nav-search" style="width: 420px;">
-    <input
-      id="globalSearchInput"
-      class="form-control"
-      type="search"
-      placeholder="Sök"
-      autocomplete="off"
-    >
-    <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
-  </div>
-</form>
+<nav class="topnav navbar navbar-expand justify-content-between justify-content-sm-start navbar-light bg-white border"
+    id="sidenavAccordion">
+    <!-- Sidenav Toggle Button-->
+    <button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 me-2 ms-lg-2 me-lg-0" id="sidebarToggle"><i
+            data-feather="menu"></i></button>
+    <!-- Navbar Brand-->
+    <!-- * * Tip * * You can use text or an image for your navbar brand.-->
+    <!-- * * * * * * When using an image, we recommend the SVG format.-->
+    <!-- * * * * * * Dimensions: Maximum height: 32px, maximum width: 240px-->
+    <a class="navbar-brand pe-3 ps-4 ps-lg-2">Talena (logo)</a>
+    <!-- Navbar Search Input-->
+    <!-- * * Note: * * Visible only on and above the lg breakpoint-->
+    <form class="me-3 d-none d-lg-block py-1">
+        <div class="position-relative nav-search" style="width: 420px;">
+            <input id="globalSearchInput" class="form-control" type="search" placeholder="Sök" autocomplete="off">
+            <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
+        </div>
+    </form>
 
-            <!-- Navbar Items-->
-            <ul class="navbar-nav align-items-center ms-auto">
-                <!-- Documentation Dropdown-->
-                <li class="nav-item dropdown no-caret d-none d-md-block me-3">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <div class="fw-500">Support</div>
-                        <i class="fas fa-chevron-right dropdown-arrow"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end py-0 me-sm-n15 me-lg-0 o-hidden animated--fade-in-up" aria-labelledby="navbarDropdownDocs">
-                        <a class="dropdown-item py-3" target="_blank">
-                            <div class="icon-stack bg-primary-soft text-primary me-4"><i data-feather="book"></i></div>
-                            <div>
-                                <div class="small text-gray-500">Dokumentation</div>
-                                Se guider och videor
-                            </div>
-                        </a>
-                        <div class="dropdown-divider m-0"></div>
-                        <a class="dropdown-item py-3" target="_blank">
-                            <div class="icon-stack bg-primary-soft text-primary me-4"><i data-feather="file-text"></i></div>
-                            <div>
-                                <div class="small text-gray-500">Kundsupport</div>
-                                Kontakta supporten
-                            </div>
-                        </a>
+    <!-- Navbar Items-->
+    <ul class="navbar-nav align-items-center ms-auto">
+        <!-- Documentation Dropdown-->
+        <li class="nav-item dropdown no-caret d-none d-md-block me-3">
+            <a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="javascript:void(0);" role="button"
+                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <div class="fw-500">Support</div>
+                <i class="fas fa-chevron-right dropdown-arrow"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end py-0 me-sm-n15 me-lg-0 o-hidden animated--fade-in-up"
+                aria-labelledby="navbarDropdownDocs">
+                <a class="dropdown-item py-3" target="_blank">
+                    <div class="icon-stack bg-primary-soft text-primary me-4"><i data-feather="book"></i></div>
+                    <div>
+                        <div class="small text-gray-500">Dokumentation</div>
+                        Se guider och videor
                     </div>
-                </li>
-                <!-- Navbar Search Dropdown-->
-                <!-- * * Note: * * Visible only below the lg breakpoint-->
-                <li class="nav-item dropdown no-caret me-3 d-lg-none">
-                    <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="searchDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i data-feather="search"></i></a>
-                    <!-- Dropdown - Search-->
-                    <div class="dropdown-menu dropdown-menu-end p-3 shadow animated--fade-in-up" aria-labelledby="searchDropdown">
-                        <form class="form-inline me-auto w-100">
-                            <div class="input-group input-group-joined input-group-solid">
-                                <input class="form-control pe-0" type="text" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2" />
-                                <div class="input-group-text"><i data-feather="search"></i></div>
-                            </div>
-                        </form>
+                </a>
+                <div class="dropdown-divider m-0"></div>
+                <a class="dropdown-item py-3" target="_blank">
+                    <div class="icon-stack bg-primary-soft text-primary me-4"><i data-feather="file-text"></i></div>
+                    <div>
+                        <div class="small text-gray-500">Kundsupport</div>
+                        Kontakta supporten
                     </div>
-                </li>
-                <!-- Alerts Dropdown-->
-                <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
-                    <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i data-feather="bell"></i></a>
-                    <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownAlerts">
-                        <h6 class="dropdown-header dropdown-notifications-header">
-                            <i class="me-2" data-feather="bell"></i>
-                            Notiser
-                        </h6>
-                        <!-- Example Alert 1-->
-                        <a class="dropdown-item dropdown-notifications-item" href="#!">
-                            <div class="dropdown-notifications-item-icon bg-warning"><i data-feather="activity"></i></div>
-                            <div class="dropdown-notifications-item-content">
-                                <div class="dropdown-notifications-item-content-details">December 29, 2021</div>
-                                <div class="dropdown-notifications-item-content-text">Test 1 skickat till 12 kandidater</div>
-                            </div>
-                        </a>
-                        <!-- Example Alert 2-->
-                        <a class="dropdown-item dropdown-notifications-item" href="#!">
-                            <div class="dropdown-notifications-item-icon bg-info"><i data-feather="bar-chart"></i></div>
-                            <div class="dropdown-notifications-item-content">
-                                <div class="dropdown-notifications-item-content-details">December 22, 2021</div>
-                                <div class="dropdown-notifications-item-content-text">Kandidat 2 slutförde sina tester</div>
-                            </div>
-                        </a>
-                        <!-- Example Alert 3-->
-                        <a class="dropdown-item dropdown-notifications-item" href="#!">
-                            <div class="dropdown-notifications-item-icon bg-danger"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="dropdown-notifications-item-content">
-                                <div class="dropdown-notifications-item-content-details">December 8, 2021</div>
-                                <div class="dropdown-notifications-item-content-text">Misslyckat mejlutskick till kandidat 3</div>
-                            </div>
-                        </a>
-                        <!-- Example Alert 4-->
-                        <a class="dropdown-item dropdown-notifications-item" href="#!">
-                            <div class="dropdown-notifications-item-icon bg-success"><i data-feather="user-plus"></i></div>
-                            <div class="dropdown-notifications-item-content">
-                                <div class="dropdown-notifications-item-content-details">December 2, 2021</div>
-                                <div class="dropdown-notifications-item-content-text">Ny testprocess startad</div>
-                            </div>
-                        </a>
-                        <a class="dropdown-item dropdown-notifications-footer" href="#!">Se alla notiser</a>
+                </a>
+            </div>
+        </li>
+        <!-- Navbar Search Dropdown-->
+        <!-- * * Note: * * Visible only below the lg breakpoint-->
+        <li class="nav-item dropdown no-caret me-3 d-lg-none">
+            <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="searchDropdown" href="#" role="button"
+                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i data-feather="search"></i></a>
+            <!-- Dropdown - Search-->
+            <div class="dropdown-menu dropdown-menu-end p-3 shadow animated--fade-in-up"
+                aria-labelledby="searchDropdown">
+                <form class="form-inline me-auto w-100">
+                    <div class="input-group input-group-joined input-group-solid">
+                        <input class="form-control pe-0" type="text" placeholder="Search for..." aria-label="Search"
+                            aria-describedby="basic-addon2" />
+                        <div class="input-group-text"><i data-feather="search"></i></div>
                     </div>
-                </li>
-                <!-- User Dropdown-->
-                <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">
-                    <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage" href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img class="img-fluid" src="assets/img/illustrations/profiles/profile-1.png" /></a>
-                    <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up" aria-labelledby="navbarDropdownUserImage">
-                        <h6 class="dropdown-header d-flex align-items-center">
-                            <img class="dropdown-user-img" src="assets/img/illustrations/profiles/profile-1.png" />
-                            <div class="dropdown-user-details">
-                                <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
-                                <div class="dropdown-user-details-email">{{ request.user.email }}</div>
-                            </div>
-                        </h6>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'portal:settings' %}">
-                            <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
-                            Account
-                        </a>
-                        <a class="dropdown-item" href="#!">
-                            <div class="dropdown-item-icon"><i data-feather="log-out"></i></div>
-                            Logout
-                        </a>
+                </form>
+            </div>
+        </li>
+        <!-- Alerts Dropdown-->
+        <li class="nav-item dropdown no-caret d-none d-sm-block me-3 dropdown-notifications">
+            <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownAlerts"
+                href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false"><i data-feather="bell"></i></a>
+            <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
+                aria-labelledby="navbarDropdownAlerts">
+                <h6 class="dropdown-header dropdown-notifications-header">
+                    <i class="me-2" data-feather="bell"></i>
+                    Notiser
+                </h6>
+                <!-- Example Alert 1-->
+                <a class="dropdown-item dropdown-notifications-item" href="#!">
+                    <div class="dropdown-notifications-item-icon bg-warning"><i data-feather="activity"></i></div>
+                    <div class="dropdown-notifications-item-content">
+                        <div class="dropdown-notifications-item-content-details">December 29, 2021</div>
+                        <div class="dropdown-notifications-item-content-text">Test 1 skickat till 12 kandidater</div>
                     </div>
-                </li>
-            </ul>
-        </nav>
+                </a>
+                <!-- Example Alert 2-->
+                <a class="dropdown-item dropdown-notifications-item" href="#!">
+                    <div class="dropdown-notifications-item-icon bg-info"><i data-feather="bar-chart"></i></div>
+                    <div class="dropdown-notifications-item-content">
+                        <div class="dropdown-notifications-item-content-details">December 22, 2021</div>
+                        <div class="dropdown-notifications-item-content-text">Kandidat 2 slutförde sina tester</div>
+                    </div>
+                </a>
+                <!-- Example Alert 3-->
+                <a class="dropdown-item dropdown-notifications-item" href="#!">
+                    <div class="dropdown-notifications-item-icon bg-danger"><i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="dropdown-notifications-item-content">
+                        <div class="dropdown-notifications-item-content-details">December 8, 2021</div>
+                        <div class="dropdown-notifications-item-content-text">Misslyckat mejlutskick till kandidat 3
+                        </div>
+                    </div>
+                </a>
+                <!-- Example Alert 4-->
+                <a class="dropdown-item dropdown-notifications-item" href="#!">
+                    <div class="dropdown-notifications-item-icon bg-success"><i data-feather="user-plus"></i></div>
+                    <div class="dropdown-notifications-item-content">
+                        <div class="dropdown-notifications-item-content-details">December 2, 2021</div>
+                        <div class="dropdown-notifications-item-content-text">Ny testprocess startad</div>
+                    </div>
+                </a>
+                <a class="dropdown-item dropdown-notifications-footer" href="#!">Se alla notiser</a>
+            </div>
+        </li>
+        <!-- User Dropdown-->
+        <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">
+            <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage"
+                href="javascript:void(0);" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">{% if request.user.is_authenticated and request.user.profile.image %}
+                <img src="{{ request.user.profile.image.url }}" alt="Profile" class="rounded-circle"
+                    style="width:32px;height:32px;object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle bg-light border" style="width:32px;height:32px;"></div>
+                {% endif %}
+            </a>
+            <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
+                aria-labelledby="navbarDropdownUserImage">
+                <h6 class="dropdown-header d-flex align-items-center">
+                    {% if request.user.is_authenticated and request.user.profile.image %}
+                    <img src="{{ request.user.profile.image.url }}" alt="Profile"
+                        class="rounded-circle dropdown-user-img" style="width:32px;height:32px;object-fit:cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-light border" style="width:32px;height:32px;"></div>
+                    {% endif %}
+                    <div class="dropdown-user-details">
+                        <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
+                        <div class="dropdown-user-details-email">{{ request.user.email }}</div>
+                    </div>
+                </h6>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'portal:settings' %}">
+                    <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
+                    Account
+                </a>
+                <a class="dropdown-item" href="#!">
+                    <div class="dropdown-item-icon"><i data-feather="log-out"></i></div>
+                    Logout
+                </a>
+            </div>
+        </li>
+    </ul>
+</nav>
