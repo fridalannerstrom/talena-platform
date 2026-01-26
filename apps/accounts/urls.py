@@ -14,6 +14,12 @@ urlpatterns = [
     # ✅ Admin: Process detail (admin)
     path("processes/<int:pk>/", views.admin_process_detail, name="admin_process_detail"),
 
+    path(
+    "processes/<int:process_pk>/candidates/<int:candidate_pk>/",
+    views.admin_candidate_detail,
+    name="admin_candidate_detail",
+),
+
     # Invite acceptance (public)
     path("invite/accept/<uidb64>/<token>/", views.accept_invite, name="accept_invite"),
 ]

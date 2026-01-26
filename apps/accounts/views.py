@@ -9,7 +9,7 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 from apps.core.utils.auth import is_admin
-from apps.processes.models import TestProcess, TestInvitation
+from apps.processes.models import TestProcess, TestInvitation, Candidate
 
 from .forms import InviteUserForm
 from .services.invites import send_invite_email
@@ -131,4 +131,31 @@ def admin_process_detail(request, pk):
         "process": process,
         "invitations": invitations,
         "status_counts": status_counts,
+    })
+
+
+@login_required
+def admin_candidate_detail(request, process_pk, candidate_pk):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    process = get_object_or_404(TestProcess, pk=process_pk)
+    candidate = get_object_or_404(Candidate, pk=candidate_pk)
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate=candidate,
+    )
+
+    # (valfritt) samma dummy-data som kunden använder
+    dummy_profile = {"labels": '["Drive","Structure","Collaboration","Stability"]', "values": "[6,8,7,5]"}
+    dummy_abilities = {"labels": '["Verbal","Numerical","Logical"]', "values": "[7,6,8]"}
+
+    return render(request, "admin/accounts/candidate_detail.html", {
+        "process": process,
+        "candidate": candidate,
+        "invitation": invitation,
+        "dummy_profile": dummy_profile,
+        "dummy_abilities": dummy_abilities,
     })
