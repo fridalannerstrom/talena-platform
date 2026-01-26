@@ -7,3 +7,4 @@ tzdata==2025.3
 whitenoise==6.11.0
 psycopg2-binary
 pillow
+logger

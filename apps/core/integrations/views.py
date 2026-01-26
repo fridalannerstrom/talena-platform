@@ -7,9 +7,15 @@ from django.conf import settings
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 def sova_ingest(request):
+    logger.warning("WEBHOOK headers: %s", dict(request.headers))
+    logger.warning("Expected secret set? %s", bool(getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", "")))
+    logger.info("✅ sova_ingest HIT")
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
 
