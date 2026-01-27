@@ -108,6 +108,9 @@ class TestInvitation(models.Model):
 
     sova_invitation_id = models.CharField(max_length=255, blank=True, null=True)
     sova_payload = models.JSONField(blank=True, null=True)
+    sova_overall_status = models.CharField(max_length=50, blank=True, default="")
+    sova_current_phase_code = models.CharField(max_length=255, blank=True, default="")
+    sova_current_phase_idx = models.IntegerField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

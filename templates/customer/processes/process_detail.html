@@ -99,16 +99,33 @@
                   {% endif %}
                 </td>
 
-                <td>
-{{ inv.status }} · {{ inv.get_status_display }}
+<td>
+  <!-- Talena status (din interna) -->
   <span
-    class="badge {{ inv.status }}"
+    class="badge"
     data-invitation-id="{{ inv.id }}"
     data-status-badge="1"
   >
-    {{ inv.status }} · {{ inv.status_label }}
+    {{ inv.status_label }}
   </span>
-                </td>
+
+  <!-- SOVA overall status (extern) -->
+  {% if inv.sova_overall_status %}
+    <span class="badge bg-light text-dark ms-1">
+      SOVA: {{ inv.sova_overall_status }}
+    </span>
+  {% else %}
+    <span class="badge bg-light text-muted ms-1">
+      SOVA: —
+    </span>
+  {% endif %}
+
+  <span class="badge bg-light text-dark ms-1"
+      data-sova-badge="1"
+      data-invitation-id="{{ inv.id }}">
+  SOVA: {{ inv.sova_overall_status|default:"—" }}
+</span> 
+</td>
 
                 <td class="text-muted">
                   {{ inv.invited_at|default:inv.created_at|date:"Y-m-d H:i" }}
@@ -312,17 +329,28 @@
       const data = await res.json();
 
       (data.invitations || []).forEach(inv => {
+        // --- Talena status badge ---
         const el = document.querySelector(`[data-status-badge="1"][data-invitation-id="${inv.id}"]`);
-        if (!el) return;
+        if (el) {
+          el.className = badgeClassFor(inv.status);
 
-        el.className = badgeClassFor(inv.status);
-        // Snygg label
-        let label = inv.status;
-        if (inv.status === "completed") label = "Färdig";
-        if (inv.status === "started") label = "Påbörjad";
-        if (inv.status === "sent") label = "Skickad";
-        if (inv.status === "created") label = "Ej skickad";
-        el.textContent = label;
+          let label = inv.status;
+          const st = (inv.status || "").toLowerCase();
+
+          if (st === "completed") label = "Färdig";
+          if (st === "started") label = "Påbörjad";
+          if (st === "sent") label = "Skickad";
+          if (st === "created") label = "Ej skickad";
+
+          el.textContent = label;
+        }
+
+        // --- SOVA overall badge ---
+        const sovaEl = document.querySelector(`[data-sova-badge="1"][data-invitation-id="${inv.id}"]`);
+        if (sovaEl) {
+          const sovaVal = (inv.sova_overall_status || "—");
+          sovaEl.textContent = `SOVA: ${sovaVal}`;
+        }
       });
     } catch (e) {
       // tyst fail
@@ -333,5 +361,6 @@
   setInterval(poll, POLL_MS);
 })();
 </script>
+
 
 {% endblock %}
