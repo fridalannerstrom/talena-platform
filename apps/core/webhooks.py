@@ -7,6 +7,7 @@ from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,8 +26,30 @@ def _norm(s: str) -> str:
 def sova_webhook(request):
     raw = request.body.decode("utf-8", errors="ignore")
     print("🔎 RAW BODY:", raw)
-    print("🔎 HEADERS:", dict(request.headers))
-    logger.warning(f"WEBHOOK body: {raw[:1000]}")
+    logger.warning("WEBHOOK headers(relevant): %s", {
+        "Content-Type": request.headers.get("Content-Type"),
+        "User-Agent": request.headers.get("User-Agent"),
+        "X-Talena-Webhook-Secret": (request.headers.get("X-Talena-Webhook-Secret") or "")[:6] + "...",
+        "X-Request-Id": request.headers.get("X-Request-Id"),
+        "X-Event-Type": request.headers.get("X-Event-Type"),
+    })
+    logger.warning("WEBHOOK method=%s path=%s content_type=%s len=%s",
+                   request.method, request.path,
+                   request.headers.get("Content-Type"),
+                   len(request.body or b""))
+
+    # ✅ EXTRA: logga body i två varianter (RAW + repr) så du ser även \n och specialtecken
+    logger.warning("WEBHOOK RAW FULL (first 2000): %s", raw[:2000])
+    logger.warning("WEBHOOK RAW REPR (first 2000): %r", raw[:2000])
+
+    # ✅ EXTRA: om JSON, logga 'pretty' (men begränsa längd)
+    try:
+        _debug_payload = json.loads(raw)
+        _pretty = json.dumps(_debug_payload, ensure_ascii=False, indent=2)
+        logger.warning("WEBHOOK JSON PRETTY (first 4000): %s", _pretty[:4000])
+        logger.warning("WEBHOOK JSON KEYS: %s", list(_debug_payload.keys()))
+    except Exception as _e:
+        logger.warning("WEBHOOK JSON PRETTY failed: %s", str(_e))
 
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
