@@ -8,6 +8,10 @@ from apps.core.integrations.sova import SovaClient
 
 @csrf_exempt
 def sova_webhook(request):
+    raw = request.body.decode("utf-8", errors="ignore")
+    print("🔎 RAW BODY:", raw)
+    print("🔎 HEADERS:", dict(request.headers))
+    
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
 
