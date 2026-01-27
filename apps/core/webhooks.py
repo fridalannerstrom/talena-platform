@@ -6,7 +6,7 @@ import json
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 import logging
-
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,11 @@ def sova_webhook(request):
     # --- hitta invitation ---
     invitation = None
     if request_id:
-        invitation = TestInvitation.objects.filter(request_id=request_id).first()
+        invitation = (
+            TestInvitation.objects
+            .filter(models.Q(request_id=request_id) | models.Q(sova_request_id=request_id))
+            .first()
+        )
 
     if not invitation and sova_inv_id:
         invitation = TestInvitation.objects.filter(sova_invitation_id=str(sova_inv_id)).first()
@@ -208,4 +212,14 @@ def sova_webhook(request):
         except Exception as e:
             print("❌ Error fetching project candidates:", str(e))
 
-    return JsonResponse({"status": "ok"})
+    return JsonResponse({
+        "status": "ok",
+        "invitation_id": invitation.id,
+        "invitation_status": invitation.status,
+        "saved": {
+            "sova_overall_status": invitation.sova_overall_status,
+            "sova_current_phase_code": invitation.sova_current_phase_code,
+            "sova_current_phase_idx": invitation.sova_current_phase_idx,
+            "overall_score": invitation.overall_score,
+        }
+    })
