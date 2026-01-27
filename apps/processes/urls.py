@@ -23,5 +23,6 @@ urlpatterns = [
         name="remove_candidate_from_process",
     ),
     path("<int:pk>/send-tests/", views.process_send_tests, name="process_send_tests"),
-    path("<int:pk>/statuses/", views.process_invitation_statuses, name="process_invitation_statuses"),
+    path("<int:pk>/invitation-statuses/", views.process_invitation_statuses, name="process_invitation_statuses"),
+
 ]

@@ -846,14 +846,26 @@ def process_candidate_detail(request, process_id, candidate_id):
     return render(request, "customer/processes/process_candidate_detail.html", ctx)
 
 
+
 @login_required
 def process_invitation_statuses(request, pk):
     process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
 
-    invitations = (
+    qs = (
         TestInvitation.objects
         .filter(process=process)
-        .values("id", "status", "completed_at", "overall_score")
+        .select_related("candidate")
+        .order_by("created_at")
     )
 
-    return JsonResponse({"invitations": list(invitations)})
+    data = {
+        "invitations": [
+            {
+                "id": inv.id,
+                "status": inv.status,
+                "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
+            }
+            for inv in qs
+        ]
+    }
+    return JsonResponse(data)
