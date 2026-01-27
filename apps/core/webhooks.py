@@ -7,10 +7,14 @@ from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 
 
-def _norm(s: str | None) -> str:
+def _norm(s: str) -> str:
+    """
+    Normaliserar SOVA-strängar så att:
+    "in progress" == "in-progress" == " In   Progress "
+    """
     s = (s or "").strip().lower()
     s = s.replace("-", " ")
-    s = " ".join(s.split())  # kollapsa flera spaces
+    s = " ".join(s.split())  # kollapsa whitespace
     return s  # ex: "in progress"
 
 
@@ -31,8 +35,9 @@ def sova_webhook(request):
 
     print("🔔 SOVA WEBHOOK RECEIVED (parsed):", payload)
 
-    # ── Identifiers ───────────────────────────
+    # --- identifiers robust ---
     request_id = payload.get("request_id") or payload.get("requestId")
+
     sova_inv_id = (
         payload.get("invitation_id")
         or payload.get("invitationId")
@@ -44,6 +49,10 @@ def sova_webhook(request):
     talena_process_id = meta.get("talena_process_id")
     talena_candidate_id = meta.get("talena_candidate_id")
 
+    # --- statusfält enligt docs ---
+    overall_raw = payload.get("overall_status") or payload.get("overallStatus") or ""
+    overall = _norm(overall_raw)
+
     current_phase_code = (payload.get("current_phase_code") or payload.get("currentPhaseCode") or "").strip()
     current_phase_idx = payload.get("current_phase_idx")
     if current_phase_idx is None:
@@ -51,22 +60,17 @@ def sova_webhook(request):
 
     has_phase_hint = bool(current_phase_code) or (current_phase_idx is not None)
 
-    # ── Statusfält enligt docs ─────────────────
-    overall_raw = payload.get("overall_status") or payload.get("overallStatus") or ""
-    overall = _norm(overall_raw)  # ex: "pass", "in progress", "completed", "invited"
-
-    # fallback (ifall de skickar current_phase_status)
-    phase_status_raw = payload.get("current_phase_status") or payload.get("currentPhaseStatus") or ""
-    phase_status = _norm(phase_status_raw)
+    # (valfritt) andra fält som ibland finns
+    status_raw = payload.get("status") or payload.get("current_phase_status") or payload.get("currentPhaseStatus") or ""
+    status = _norm(status_raw)
 
     print("🧠 Incoming status fields:", {
         "overall_status_raw": overall_raw,
         "overall_status_norm": overall,
-        "current_phase_status_raw": phase_status_raw,
-        "current_phase_status_norm": phase_status,
+        "status_raw": status_raw,
+        "status_norm": status,
         "current_phase_code": current_phase_code,
         "current_phase_idx": current_phase_idx,
-        "has_phase_hint": has_phase_hint,
     })
 
     print("🧩 Parsed identifiers:", {
@@ -76,12 +80,14 @@ def sova_webhook(request):
         "talena_candidate_id": talena_candidate_id,
     })
 
-    # ── Hitta invitation ───────────────────────
+    # --- hitta invitation ---
     invitation = None
     if request_id:
         invitation = TestInvitation.objects.filter(request_id=request_id).first()
+
     if not invitation and sova_inv_id:
         invitation = TestInvitation.objects.filter(sova_invitation_id=str(sova_inv_id)).first()
+
     if not invitation and talena_process_id and talena_candidate_id:
         invitation = TestInvitation.objects.filter(
             process_id=talena_process_id,
@@ -90,41 +96,28 @@ def sova_webhook(request):
 
     if not invitation:
         print("⚠️ No matching invitation found. (This is why status stays 'sent')")
-        return JsonResponse({"status": "ok"})
+        return JsonResponse({"status": "ignored", "reason": "invitation not found"})
 
-    # ── Spara payload + SOVA-fält (för admin/UI) ──
+    # spara payload för debugging (som du vill ha kvar)
     invitation.sova_payload = payload
-    # OBS: dessa fält kräver att du lagt till dem i modellen
-    # sova_overall_status, sova_current_phase_code, sova_current_phase_idx
-    if hasattr(invitation, "sova_overall_status"):
-        invitation.sova_overall_status = overall_raw.strip()
-    if hasattr(invitation, "sova_current_phase_code"):
-        invitation.sova_current_phase_code = current_phase_code
-    if hasattr(invitation, "sova_current_phase_idx"):
-        invitation.sova_current_phase_idx = current_phase_idx
+    invitation.save(update_fields=["sova_payload"])
 
-    update_fields = ["sova_payload"]
-    if hasattr(invitation, "sova_overall_status"):
-        update_fields.append("sova_overall_status")
-    if hasattr(invitation, "sova_current_phase_code"):
-        update_fields.append("sova_current_phase_code")
-    if hasattr(invitation, "sova_current_phase_idx"):
-        update_fields.append("sova_current_phase_idx")
+    # Spara SOVA-fält för UI/admin (råvärden)
+    # (Om du inte har dessa fält i modellen, kommentera bort.)
+    invitation.sova_overall_status = overall_raw.strip()
+    invitation.sova_current_phase_code = current_phase_code
+    invitation.sova_current_phase_idx = current_phase_idx
+    invitation.save(update_fields=["sova_overall_status", "sova_current_phase_code", "sova_current_phase_idx"])
 
-    invitation.save(update_fields=update_fields)
-
-    print("✅ Saved debug/SOVA fields:", {
-        "invitation_id": invitation.id,
-        "talena_status": invitation.status,
-        "sova_overall_status": getattr(invitation, "sova_overall_status", None),
-        "sova_current_phase_code": getattr(invitation, "sova_current_phase_code", None),
-        "sova_current_phase_idx": getattr(invitation, "sova_current_phase_idx", None),
+    print("✅ Saved SOVA fields:", {
+        "sova_overall_status": invitation.sova_overall_status,
+        "sova_current_phase_code": invitation.sova_current_phase_code,
+        "sova_current_phase_idx": invitation.sova_current_phase_idx,
     })
 
-    # ── Mapping: SOVA overall_status -> Talena status ──
+    # --- Talena mapping (framtidssäkert) ---
     OVERALL_COMPLETED = {"completed", "pass", "fail", "refer"}
     OVERALL_STARTED = {"in progress"}
-    OVERALL_TERMINAL_NEG = {"cancelled", "declined data protection", "did not attend"}
 
     normalized = ""
     reason = ""
@@ -132,27 +125,23 @@ def sova_webhook(request):
     if overall in OVERALL_COMPLETED:
         normalized = "completed"
         reason = f"overall={overall}"
-
-    elif overall in OVERALL_STARTED or has_phase_hint or phase_status == "in progress":
+    elif overall in OVERALL_STARTED or has_phase_hint:
         normalized = "started"
-        reason = f"overall={overall} phase_hint={has_phase_hint} phase_status={phase_status}"
-
-    elif overall in OVERALL_TERMINAL_NEG:
-        normalized = "failed"
-        reason = f"overall terminal negative={overall}"
-
+        reason = f"overall={overall} phase_hint={has_phase_hint}"
     else:
         normalized = ""
-        reason = f"no mapping hit: overall={overall}"
+        reason = f"no mapping hit (overall={overall}, status={status})"
 
     print("🧠 Normalized status:", normalized, "| reason:", reason)
 
-    # ── Applicera utan downgrade ────────────────
+    # --- applicera utan att nedgradera ---
     if normalized == "started":
         if invitation.status not in {"started", "completed"}:
             invitation.status = "started"
             invitation.save(update_fields=["status"])
             print("✅ Updated invitation to STARTED:", invitation.id)
+        else:
+            print("ℹ️ Skip STARTED update (already started/completed):", invitation.status)
 
     elif normalized == "completed":
         if invitation.status != "completed":
@@ -160,20 +149,19 @@ def sova_webhook(request):
             invitation.completed_at = timezone.now()
             invitation.save(update_fields=["status", "completed_at"])
             print("✅ Updated invitation to COMPLETED:", invitation.id)
+        else:
+            print("ℹ️ Skip COMPLETED update (already completed).")
 
-    elif normalized == "failed":
-        if invitation.status != "failed":
-            invitation.status = "failed"
-            invitation.save(update_fields=["status"])
-            print("✅ Updated invitation to FAILED:", invitation.id)
+    else:
+        print("ℹ️ Nothing to update for status.")
 
-    # ── Results payload: spara om det finns ─────
+    # --- Results: spara direkt om payload har project_results ---
     if isinstance(payload.get("project_results"), dict):
         invitation.project_results = payload.get("project_results")
         invitation.save(update_fields=["project_results"])
         print("✅ Saved project_results (from webhook payload)")
 
-    # ── Optional score fetch fallback ───────────
+    # Fallback: hämta overall_score efter completed (som du hade)
     if normalized == "completed" and invitation.sova_project_id and invitation.request_id:
         try:
             client = SovaClient()
@@ -181,18 +169,12 @@ def sova_webhook(request):
 
             items = data.get("candidates") if isinstance(data, dict) else data
             items = items or []
-
             match = next((c for c in items if c.get("request_id") == invitation.request_id), None)
 
             if match:
                 invitation.overall_score = match.get("overall_score")
-                if match.get("project_results") and not invitation.project_results:
-                    invitation.project_results = match.get("project_results")
-                    invitation.save(update_fields=["overall_score", "project_results"])
-                    print("✅ Saved overall_score + project_results (from project-candidates)")
-                else:
-                    invitation.save(update_fields=["overall_score"])
-                    print("✅ Saved overall_score:", invitation.overall_score)
+                invitation.save(update_fields=["overall_score"])
+                print("✅ Saved overall_score:", invitation.overall_score)
             else:
                 print("⚠️ No matching request_id in project-candidates:", invitation.request_id)
 

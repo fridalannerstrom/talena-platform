@@ -848,6 +848,7 @@ def process_candidate_detail(request, process_id, candidate_id):
 
 
 
+
 @login_required
 def process_invitation_statuses(request, pk):
     process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
@@ -859,15 +860,14 @@ def process_invitation_statuses(request, pk):
         .order_by("created_at")
     )
 
-    data = {
+    return JsonResponse({
         "invitations": [
             {
                 "id": inv.id,
                 "status": inv.status,
-                "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
                 "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
+                "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
             }
             for inv in qs
         ]
-    }
-    return JsonResponse(data)
+    })
