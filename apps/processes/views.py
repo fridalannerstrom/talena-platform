@@ -14,6 +14,7 @@ from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import render_placeholders
 from django.core.mail import send_mail
+from django.http import JsonResponse
 
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
@@ -843,3 +844,16 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     # ✅ Annars: returnera full page som vanligt
     return render(request, "customer/processes/process_candidate_detail.html", ctx)
+
+
+@login_required
+def process_invitation_statuses(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process)
+        .values("id", "status", "completed_at", "overall_score")
+    )
+
+    return JsonResponse({"invitations": list(invitations)})

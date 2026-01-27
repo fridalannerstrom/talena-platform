@@ -100,15 +100,17 @@
                 </td>
 
                 <td>
-                  {% if inv.status == "completed" %}
-                  <span class="badge bg-success">Färdig</span>
-                  {% elif inv.status == "sent" %}
-                  <span class="badge bg-warning text-dark">Skickad</span>
-                  {% elif inv.status == "created" %}
-                  <span class="badge bg-secondary">Ej skickad</span>
-                  {% else %}
-                  <span class="badge bg-light text-dark">{{ inv.status }}</span>
-                  {% endif %}
+{% if inv.status == "completed" %}
+  <span class="badge bg-success">Färdig</span>
+{% elif inv.status == "started" %}
+  <span class="badge bg-info text-dark">Påbörjad</span>
+{% elif inv.status == "sent" %}
+  <span class="badge bg-warning text-dark">Skickad</span>
+{% elif inv.status == "created" %}
+  <span class="badge bg-secondary">Ej skickad</span>
+{% else %}
+  <span class="badge bg-light text-dark">{{ inv.status }}</span>
+{% endif %}
                 </td>
 
                 <td class="text-muted">
@@ -289,6 +291,50 @@
     input.select();
     document.execCommand("copy");
   }
+</script>
+
+<script>
+(function () {
+  const url = "{% url 'processes:process_invitation_statuses' process.id %}";
+  const POLL_MS = 5000;
+
+  function badgeClassFor(status) {
+    switch ((status || "").toLowerCase()) {
+      case "completed": return "badge bg-success";
+      case "started": return "badge bg-info text-dark";
+      case "sent": return "badge bg-warning text-dark";
+      case "created": return "badge bg-secondary";
+      default: return "badge bg-light text-dark";
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      (data.invitations || []).forEach(inv => {
+        const el = document.querySelector(`[data-status-badge="1"][data-invitation-id="${inv.id}"]`);
+        if (!el) return;
+
+        el.className = badgeClassFor(inv.status);
+        // Snygg label
+        let label = inv.status;
+        if (inv.status === "completed") label = "Färdig";
+        if (inv.status === "started") label = "Påbörjad";
+        if (inv.status === "sent") label = "Skickad";
+        if (inv.status === "created") label = "Ej skickad";
+        el.textContent = label;
+      });
+    } catch (e) {
+      // tyst fail
+    }
+  }
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
 </script>
 
 {% endblock %}
