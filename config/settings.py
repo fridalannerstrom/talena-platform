@@ -70,10 +70,12 @@ else:
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
 USE_AZURE_STORAGE = os.getenv("USE_AZURE_STORAGE") == "1"
 
-# Staticfiles backend (WhiteNoise i prod, enklare i debug)
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+AZURE_ACCOUNT_NAME = "talenamedia"
+AZURE_CONTAINER = "media"
+
 STATICFILES_BACKEND = (
     "whitenoise.storage.CompressedManifestStaticFilesStorage"
     if not DEBUG
@@ -81,23 +83,24 @@ STATICFILES_BACKEND = (
 )
 
 if USE_AZURE_STORAGE:
-    # (Du kan lämna detta tomt tills du sätter Blob senare)
-    # Viktigt: STORAGES måste ändå ha default + staticfiles.
     STORAGES = {
         "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                "connection_string": AZURE_STORAGE_CONNECTION_STRING,
+                "container_name": AZURE_CONTAINER,
+            },
         },
         "staticfiles": {"BACKEND": STATICFILES_BACKEND},
     }
+    MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
 else:
     STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": STATICFILES_BACKEND},
     }
-
-MEDIA_URL = "/media/"
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -230,18 +233,3 @@ LOGGING = {
         },
     },
 }
-
-
-
-# =========================
-# Azure Blob Storage (Media)
-# =========================
-
-AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-
-AZURE_ACCOUNT_NAME = "talenamedia"
-AZURE_CONTAINER = "media"
-
-DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
-
-MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
