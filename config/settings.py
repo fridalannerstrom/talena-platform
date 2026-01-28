@@ -98,7 +98,6 @@ else:
     }
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -133,6 +132,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
     "apps.accounts",
     "apps.core",
     "apps.projects",
@@ -231,3 +231,17 @@ LOGGING = {
     },
 }
 
+
+
+# =========================
+# Azure Blob Storage (Media)
+# =========================
+
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+
+AZURE_ACCOUNT_NAME = "talenamedia"
+AZURE_CONTAINER = "media"
+
+DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+
+MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
