@@ -88,7 +88,7 @@ if USE_AZURE_STORAGE:
             "BACKEND": "storages.backends.azure_storage.AzureStorage",
             "OPTIONS": {
                 "connection_string": AZURE_STORAGE_CONNECTION_STRING,
-                "container_name": AZURE_CONTAINER,
+                "azure_container": AZURE_CONTAINER,
             },
         },
         "staticfiles": {"BACKEND": STATICFILES_BACKEND},
