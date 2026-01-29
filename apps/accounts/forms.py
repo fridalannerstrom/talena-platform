@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Account, UserAccountAccess
+from apps.accounts.models import Account, UserAccountAccess, CompanyMember
 
 User = get_user_model()
 
@@ -77,3 +77,27 @@ class UserAccountAccessForm(forms.ModelForm):
         )
 
 
+
+class CompanyMemberAddForm(forms.Form):
+    users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(is_superuser=False, is_staff=False).order_by("email"),
+        required=True,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "10"}),
+        label="Välj användare",
+    )
+    role = forms.ChoiceField(
+        choices=CompanyMember.ROLE_CHOICES,
+        initial=CompanyMember.ROLE_MEMBER,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Roll",
+    )
+
+
+class CompanyMemberRoleForm(forms.Form):
+    role = forms.ChoiceField(
+        choices=CompanyMember.ROLE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
+        label="",
+    )

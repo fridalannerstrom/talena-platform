@@ -7,6 +7,8 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.db.models import Count
+from django.views.decorators.http import require_POST
 
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
@@ -20,6 +22,9 @@ from .utils.permissions import get_user_accessible_accounts
 
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
+
+from .models import Company, CompanyMember, Account
+from .forms import CompanyMemberAddForm, CompanyMemberRoleForm
 
 User = get_user_model()
 
@@ -394,3 +399,106 @@ def account_user_remove(request, pk, user_id):
         "account": account,
         "user_access": user_access,
     })
+
+
+
+
+@login_required
+@admin_required
+def company_list(request):
+    companies = (
+        Company.objects
+        .annotate(
+            member_count=Count("memberships", distinct=True),
+            account_count=Count("accounts", distinct=True),
+        )
+        .order_by("name")
+    )
+    return render(request, "admin/accounts/companies/company_list.html", {
+        "companies": companies,
+    })
+
+
+@login_required
+@admin_required
+def company_detail(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    # Members
+    memberships = (
+        CompanyMember.objects
+        .filter(company=company)
+        .select_related("user")
+        .order_by("user__email")
+    )
+
+    add_form = CompanyMemberAddForm()
+    if request.method == "POST" and request.POST.get("action") == "add_members":
+        add_form = CompanyMemberAddForm(request.POST)
+        if add_form.is_valid():
+            users = add_form.cleaned_data["users"]
+            role = add_form.cleaned_data["role"]
+
+            created = 0
+            updated = 0
+            for u in users:
+                obj, was_created = CompanyMember.objects.update_or_create(
+                    company=company,
+                    user=u,
+                    defaults={"role": role},
+                )
+                created += 1 if was_created else 0
+                updated += 0 if was_created else 1
+
+            if created:
+                messages.success(request, f"{created} användare lades till.")
+            if updated:
+                messages.info(request, f"{updated} användare fanns redan och fick rollen uppdaterad.")
+
+            return redirect("accounts:company_detail", pk=company.pk)
+        messages.error(request, "Kunde inte lägga till användare. Kontrollera formuläret.")
+
+    # Accounts (enkelt overview: root accounts)
+    root_accounts = (
+        Account.objects
+        .filter(company=company, parent__isnull=True)
+        .prefetch_related("children")
+        .order_by("name")
+    )
+
+    return render(request, "admin/accounts/companies/company_detail.html", {
+        "company": company,
+        "memberships": memberships,
+        "add_form": add_form,
+        "root_accounts": root_accounts,
+    })
+
+
+@login_required
+@admin_required
+@require_POST
+def company_member_remove(request, company_pk, user_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+    membership = get_object_or_404(CompanyMember, company=company, user_id=user_pk)
+    email = membership.user.email
+    membership.delete()
+    messages.success(request, f"{email} togs bort från {company.name}.")
+    return redirect("accounts:company_detail", pk=company.pk)
+
+
+@login_required
+@admin_required
+@require_POST
+def company_member_update_role(request, company_pk, user_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+    membership = get_object_or_404(CompanyMember, company=company, user_id=user_pk)
+
+    form = CompanyMemberRoleForm(request.POST)
+    if form.is_valid():
+        membership.role = form.cleaned_data["role"]
+        membership.save(update_fields=["role"])
+        messages.success(request, "Rollen uppdaterades.")
+    else:
+        messages.error(request, "Kunde inte uppdatera rollen.")
+
+    return redirect("accounts:company_detail", pk=company.pk)

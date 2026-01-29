@@ -22,24 +22,24 @@
                             <!-- Sidenav Accordion (Flows)-->
                             <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseFlows" aria-expanded="false" aria-controls="collapseFlows">
                                 <div class="nav-link-icon"><i data-feather="repeat"></i></div>
-                                Kunder
+                                Användare
                                 <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapseFlows" data-bs-parent="#accordionSidenav">
                                 <nav class="sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{% url 'accounts:admin_customers_list' %}">Alla kunder</a>
-                                    <a class="nav-link" href="{% url 'accounts:admin_customers_create' %}">Skapa ny kund</a>
+                                    <a class="nav-link" href="{% url 'accounts:admin_customers_list' %}">Alla användare</a>
+                                    <a class="nav-link" href="{% url 'accounts:admin_customers_create' %}">Skapa ny användare</a>
                                 </nav>
                             </div>
                             <!-- Sidenav Accordion (Konton)-->
                             <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseKontohantering" aria-expanded="false" aria-controls="collapseKontohantering">
                                 <div class="nav-link-icon"><i data-feather="repeat"></i></div>
-                                Kontohantering
+                                Företag
                                 <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="collapseKontohantering" data-bs-parent="#accordionSidenav">
                                 <nav class="sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{% url 'accounts:account_hierarchy' %}">Alla konton</a>
+                                    <a class="nav-link" href="{% url 'accounts:company_list' %}">Företag</a>
                                     <a class="nav-link" href="{% url 'accounts:admin_customers_create' %}">Skapa ny kund</a>
                                 </nav>
                             </div>

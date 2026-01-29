@@ -49,4 +49,11 @@ urlpatterns = [
     # Hantera users per account
     path("accounts/<int:pk>/users/", views.account_users, name="account_users"),
     path("accounts/<int:pk>/users/<int:user_id>/remove/", views.account_user_remove, name="account_user_remove"),
+
+
+    path("companies/", views.company_list, name="company_list"),
+    path("companies/<int:pk>/", views.company_detail, name="company_detail"),
+    path("companies/<int:company_pk>/members/<int:user_pk>/remove/", views.company_member_remove, name="company_member_remove"),
+    path("companies/<int:company_pk>/members/<int:user_pk>/role/", views.company_member_update_role, name="company_member_update_role"),
+    
 ]
