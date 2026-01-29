@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Account, UserAccountAccess, CompanyMember
+from apps.accounts.models import Account, UserAccountAccess, CompanyMember, Company
 
 User = get_user_model()
 
@@ -25,17 +25,9 @@ class AccountForm(forms.ModelForm):
         model = Account
         fields = ['name', 'account_code', 'parent']
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md',
-                'placeholder': 'T.ex. JM Stockholm'
-            }),
-            'account_code': forms.TextInput(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md',
-                'placeholder': 'T.ex. K00846'
-            }),
-            'parent': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
-            })
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. JM Stockholm"}),
+            "account_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. K00846"}),
+            "parent": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
             'name': 'Kontonamn',
@@ -51,15 +43,9 @@ class UserAccountAccessForm(forms.ModelForm):
         model = UserAccountAccess
         fields = ['user', 'account', 'role']
         widgets = {
-            'user': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
-            }),
-            'account': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
-            }),
-            'role': forms.Select(attrs={
-                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'
-            })
+            "user": forms.Select(attrs={"class": "form-select"}),
+            "account": forms.Select(attrs={"class": "form-select"}),
+            "role": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
             'user': 'Användare',
@@ -101,3 +87,39 @@ class CompanyMemberRoleForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
         label="",
     )
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ["name", "org_number"]
+        labels = {
+            "name": "Företagsnamn",
+            "org_number": "Org.nr",
+        }
+        help_texts = {
+            "org_number": "Valfritt. Ex: 556677-8899",
+        }
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: JM AB",
+                "autocomplete": "organization",
+            }),
+            "org_number": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ex: 556677-8899",
+                "autocomplete": "off",
+            }),
+        }
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if not name:
+            raise forms.ValidationError("Företagsnamn är obligatoriskt.")
+        return name
+
+    def clean_org_number(self):
+        org = (self.cleaned_data.get("org_number") or "").strip()
+        # Låt tomt vara ok
+        return org or None

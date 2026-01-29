@@ -62,5 +62,6 @@ urlpatterns = [
     path("companies/<int:company_id>/accounts/<int:pk>/edit/", views.company_account_edit, name="company_account_edit"),
     path("companies/<int:company_id>/accounts/<int:pk>/delete/", views.company_account_delete, name="company_account_delete"),
     path("companies/<int:company_id>/accounts/<int:pk>/users/", views.company_account_users, name="company_account_users"),
+    path("companies/create/", views.company_create, name="company_create"),
 
 ]

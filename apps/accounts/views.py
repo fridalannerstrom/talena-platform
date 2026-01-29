@@ -24,7 +24,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 from .models import Company, CompanyMember, Account, UserAccountAccess
-from .forms import CompanyMemberAddForm, CompanyMemberRoleForm
+from .forms import CompanyMemberAddForm, CompanyMemberRoleForm, CompanyForm
 
 
 User = get_user_model()
@@ -640,4 +640,22 @@ def company_account_users(request, company_id, pk):
         "user_accesses": user_accesses,
         "form": form,
         "company_scoped": True,
+    })
+
+
+@login_required
+@admin_required
+def company_create(request):
+    if request.method == "POST":
+        form = CompanyForm(request.POST)
+        if form.is_valid():
+            company = form.save()
+            messages.success(request, f"Företag '{company.name}' skapat.")
+            return redirect("accounts:company_detail", pk=company.pk)
+    else:
+        form = CompanyForm()
+
+    return render(request, "admin/accounts/companies/company_form.html", {
+        "form": form,
+        "is_create": True,
     })

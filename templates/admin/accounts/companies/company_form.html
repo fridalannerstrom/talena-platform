@@ -1,0 +1,61 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}{% if is_edit %}Redigera företag{% else %}Skapa företag{% endif %} | Talena{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4">
+
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <a href="{% url 'accounts:company_list' %}" class="text-muted small d-inline-flex align-items-center mb-2">
+        <i class="fa-solid fa-arrow-left me-2"></i> Tillbaka till företag
+      </a>
+      <h1 class="h4 mb-1">{% if is_edit %}Redigera företag{% else %}Skapa företag{% endif %}</h1>
+      <p class="text-muted mb-0">Skapa ett företag och koppla sedan medlemmar och accounts.</p>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+
+        <div class="col-12">
+          <label class="form-label">{{ form.name.label }}</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">{{ form.org_number.label }}</label>
+          {{ form.org_number }}
+          {% if form.org_number.help_text %}<div class="form-text">{{ form.org_number.help_text }}</div>{% endif %}
+          {% if form.org_number.errors %}<div class="text-danger small mt-1">{{ form.org_number.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12 d-flex gap-2 pt-2">
+          <button class="btn btn-primary" type="submit">
+            <i class="fa-solid fa-floppy-disk me-2"></i>
+            {% if is_edit %}Spara{% else %}Skapa företag{% endif %}
+          </button>
+
+          <a class="btn btn-outline-secondary" href="{% url 'accounts:company_list' %}">
+            Avbryt
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

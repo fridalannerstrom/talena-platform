@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from . import views
+from apps.core import webhooks
 
 from .views import (
     customer_dashboard,
