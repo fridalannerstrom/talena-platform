@@ -14,6 +14,8 @@
   <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
   <link href="{% static 'css/style.css' %}" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="" />
+  <link rel="stylesheet" href="{% static 'assets/vendor/fonts/boxicons.css' %}">
+
 
   {# Icons #}
   <script data-search-pseudo-elements defer
@@ -167,6 +169,27 @@
       });
     })();
   </script>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("accountHierarchy");
+    if (!container || !window.bootstrap?.Collapse) return;
+
+    const expandAllBtn = document.getElementById("expandAllBtn");
+    const collapseAllBtn = document.getElementById("collapseAllBtn");
+
+    const getTreeCollapses = () => container.querySelectorAll(".collapse");
+
+    expandAllBtn?.addEventListener("click", () => {
+      getTreeCollapses().forEach(el => bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).show());
+    });
+
+    collapseAllBtn?.addEventListener("click", () => {
+      getTreeCollapses().forEach(el => bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).hide());
+    });
+  });
+</script>
+
 </body>
 
 </html>

@@ -31,6 +31,18 @@
                                     <a class="nav-link" href="{% url 'accounts:admin_customers_create' %}">Skapa ny kund</a>
                                 </nav>
                             </div>
+                            <!-- Sidenav Accordion (Konton)-->
+                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapseKontohantering" aria-expanded="false" aria-controls="collapseKontohantering">
+                                <div class="nav-link-icon"><i data-feather="repeat"></i></div>
+                                Kontohantering
+                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="collapseKontohantering" data-bs-parent="#accordionSidenav">
+                                <nav class="sidenav-menu-nested nav">
+                                    <a class="nav-link" href="{% url 'accounts:account_hierarchy' %}">Alla konton</a>
+                                    <a class="nav-link" href="{% url 'accounts:admin_customers_create' %}">Skapa ny kund</a>
+                                </nav>
+                            </div>
                             <!-- Sidenav Accordion (Pages)-->
                             <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
                                 <div class="nav-link-icon"><i data-feather="grid"></i></div>

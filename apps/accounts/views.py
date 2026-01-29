@@ -226,6 +226,32 @@ def account_hierarchy(request):
 
     # Hämta alla root accounts (de utan parent)
     root_accounts = Account.objects.filter(parent=None).prefetch_related('children')
+
+    # Bygg index
+    by_parent = {}
+    for a in root_accounts:
+        by_parent.setdefault(a.parent_id, []).append(a)
+
+    # Valfritt: sortera snyggt
+    for k in by_parent:
+        by_parent[k].sort(key=lambda x: (x.name or "").lower())
+
+    nodes = []
+
+    def walk(parent_id=None, level=0):
+        for a in by_parent.get(parent_id, []):
+            nodes.append({
+                "id": a.id,
+                "parent_id": a.parent_id,
+                "level": level,
+                "name": a.name,
+                "account_code": a.account_code,
+                "has_children": a.children.exists(),
+                "full_path": getattr(a, "full_path", ""),
+            })
+            walk(a.id, level + 1)
+
+    walk(None, 0)
     
     return render(request, "admin/accounts/hierarchy/hierarchy.html", {
         "root_accounts": root_accounts,

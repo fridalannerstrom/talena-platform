@@ -3,56 +3,214 @@
 
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">Kontohierarki</h1>
-            <p class="text-gray-600 mt-2">Hantera företag och avdelningar</p>
-        </div>
-        <a href="{% url 'accounts:account_create' %}" 
-           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition">
-            <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Skapa huvudkonto
-        </a>
+<div class="card">
+  <div class="card-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="avatar avatar-xs rounded bg-label-primary">
+        <i class="fa-solid fa-diagram-project"></i>
+      </span>
+      <div>
+        <div class="fw-semibold">Kontostruktur</div>
+        <div class="text-muted small">Klicka på pilen för att visa underkonton</div>
+      </div>
     </div>
 
-    <!-- Messages -->
-    {% if messages %}
-        <div class="mb-6">
-            {% for message in messages %}
-                <div class="{% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} border-l-4 p-4 rounded mb-2">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- Hierarchy Tree -->
-    <div class="bg-white shadow-lg rounded-lg p-6">
-        {% if root_accounts %}
-            <div class="space-y-3">
-                {% for account in root_accounts %}
-                    {% include "admin/accounts/hierarchy/_account_tree.html" with account=account level=0 %}
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="text-center py-12 text-gray-500">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                </svg>
-                <h3 class="mt-2 text-lg font-medium text-gray-900">Inga konton ännu</h3>
-                <p class="mt-1 text-sm text-gray-500">Kom igång genom att skapa ditt första huvudkonto.</p>
-                <div class="mt-6">
-                    <a href="{% url 'accounts:account_create' %}" 
-                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                        Skapa huvudkonto
-                    </a>
-                </div>
-            </div>
-        {% endif %}
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" type="button" id="expandAllBtn">
+        <i class="fa-solid fa-square-plus me-1"></i> Expandera
+      </button>
+      <button class="btn btn-sm btn-outline-secondary" type="button" id="collapseAllBtn">
+        <i class="fa-solid fa-square-minus me-1"></i> Komprimera
+      </button>
     </div>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="table-responsive" id="accountTreeTable">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 55%;">Account</th>
+            <th style="width: 15%;">Kod</th>
+            <th style="width: 15%;">Typ</th>
+            <th class="text-end" style="width: 15%;">Åtgärder</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for node in nodes %}
+          <tr class="tree-row"
+              data-id="{{ node.id }}"
+              data-parent="{{ node.parent_id|default:'' }}"
+              data-level="{{ node.level }}"
+              data-has-children="{{ node.has_children|yesno:'1,0' }}">
+            <td>
+              <div class="d-flex align-items-center gap-2"
+                   style="padding-left: calc({{ node.level }} * 1.25rem);">
+
+                {% if node.has_children %}
+                  <button type="button"
+                          class="btn btn-sm btn-icon btn-outline-secondary tree-toggle"
+                          data-target="{{ node.id }}"
+                          aria-label="Toggle">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                {% else %}
+                  <span style="width: 34px;"></span>
+                {% endif %}
+
+                <span class="text-muted">
+                  {% if node.has_children %}
+                    <i class="fa-regular fa-folder"></i>
+                  {% else %}
+                    <i class="fa-regular fa-file-lines"></i>
+                  {% endif %}
+                </span>
+
+                <div class="min-w-0">
+                  <div class="fw-semibold text-truncate" style="max-width: 520px;">
+                    {{ node.name }}
+                  </div>
+                  {% if node.full_path %}
+                    <div class="text-muted small text-truncate" style="max-width: 680px;">
+                      {{ node.full_path }}
+                    </div>
+                  {% endif %}
+                </div>
+
+              </div>
+            </td>
+
+            <td class="text-muted">{{ node.account_code }}</td>
+
+            <td>
+              {% if node.level == 0 %}
+                <span class="badge bg-label-primary">Huvudkonto</span>
+              {% else %}
+                <span class="badge bg-label-secondary">Underkonto</span>
+              {% endif %}
+            </td>
+
+            <td class="text-end">
+              <div class="btn-group" role="group" aria-label="Actions">
+                <a href="{% url 'accounts:account_users' node.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Användare">
+                  <i class="fa-solid fa-users"></i>
+                </a>
+                <a href="{% url 'accounts:account_create_child' node.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Lägg till underkonto">
+                  <i class="fa-solid fa-plus"></i>
+                </a>
+                <a href="{% url 'accounts:account_edit' node.id %}" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Redigera">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{% url 'accounts:account_delete' node.id %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Radera"
+                   onclick="return confirm('Vill du verkligen radera detta konto och alla underkonton?')">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
+<style>
+  /* Små estetiska touch */
+  .tree-row[hidden] { display: none !important; }
+  .tree-toggle i { transition: transform .15s ease; }
+  .tree-toggle[aria-expanded="true"] i { transform: rotate(90deg); }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Tooltips
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+
+  const table = document.getElementById("accountTreeTable");
+  if (!table) return;
+
+  const rows = Array.from(table.querySelectorAll(".tree-row"));
+
+  const byId = new Map(rows.map(r => [r.dataset.id, r]));
+  const childrenOf = new Map();
+  rows.forEach(r => {
+    const p = r.dataset.parent;
+    if (!childrenOf.has(p)) childrenOf.set(p, []);
+    childrenOf.get(p).push(r.dataset.id);
+  });
+
+  // Start: show only roots
+  rows.forEach(r => {
+    const isRoot = !r.dataset.parent;
+    r.hidden = !isRoot;
+  });
+
+  function setExpanded(rowId, expanded) {
+    const row = byId.get(rowId);
+    const toggle = row?.querySelector(".tree-toggle");
+    if (toggle) toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+
+  function hideDescendants(rowId) {
+    const kids = childrenOf.get(rowId) || [];
+    kids.forEach(id => {
+      const r = byId.get(id);
+      if (r) {
+        r.hidden = true;
+        setExpanded(id, false);
+        hideDescendants(id);
+      }
+    });
+  }
+
+  function showChildren(rowId) {
+    const kids = childrenOf.get(rowId) || [];
+    kids.forEach(id => {
+      const r = byId.get(id);
+      if (r) r.hidden = false;
+    });
+  }
+
+  // Toggle click
+  table.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tree-toggle");
+    if (!btn) return;
+
+    const id = btn.dataset.target;
+    const isExpanded = btn.getAttribute("aria-expanded") === "true";
+    const nextExpanded = !isExpanded;
+
+    btn.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
+
+    if (nextExpanded) {
+      showChildren(id);
+    } else {
+      hideDescendants(id);
+    }
+  });
+
+  // Expand/Collapse all (within table only)
+  document.getElementById("expandAllBtn")?.addEventListener("click", () => {
+    // show all rows
+    rows.forEach(r => r.hidden = false);
+    // mark toggles expanded
+    rows.forEach(r => {
+      if (r.dataset.hasChildren === "1") setExpanded(r.dataset.id, true);
+    });
+  });
+
+  document.getElementById("collapseAllBtn")?.addEventListener("click", () => {
+    // hide non-roots
+    rows.forEach(r => {
+      const isRoot = !r.dataset.parent;
+      r.hidden = !isRoot;
+    });
+    // mark toggles collapsed
+    rows.forEach(r => setExpanded(r.dataset.id, false));
+  });
+});
+</script>
+
+
 {% endblock %}
