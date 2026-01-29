@@ -123,3 +123,25 @@ class CompanyForm(forms.ModelForm):
         org = (self.cleaned_data.get("org_number") or "").strip()
         # Låt tomt vara ok
         return org or None
+
+
+class CompanyInviteMemberForm(forms.Form):
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "name@company.com"})
+    )
+    first_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Förnamn"})
+    )
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Efternamn"})
+    )
+    role = forms.ChoiceField(
+        choices=CompanyMember.ROLE_CHOICES,
+        initial=CompanyMember.ROLE_MEMBER,
+        widget=forms.Select(attrs={"class": "form-select"})
+    )
+
+    def clean_email(self):
+        return (self.cleaned_data.get("email") or "").strip().lower()

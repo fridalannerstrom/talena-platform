@@ -24,7 +24,9 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 from .models import Company, CompanyMember, Account, UserAccountAccess
-from .forms import CompanyMemberAddForm, CompanyMemberRoleForm, CompanyForm
+from .forms import CompanyMemberAddForm, CompanyMemberRoleForm, CompanyForm, CompanyInviteMemberForm
+
+from django.db import transaction
 
 
 User = get_user_model()
@@ -425,7 +427,6 @@ def company_list(request):
 def company_detail(request, pk):
     company = get_object_or_404(Company, pk=pk)
 
-    # Members
     memberships = (
         CompanyMember.objects
         .filter(company=company)
@@ -433,33 +434,93 @@ def company_detail(request, pk):
         .order_by("user__email")
     )
 
+    # Befintlig bulk-add (behåll om du vill)
     add_form = CompanyMemberAddForm()
-    if request.method == "POST" and request.POST.get("action") == "add_members":
-        add_form = CompanyMemberAddForm(request.POST)
-        if add_form.is_valid():
-            users = add_form.cleaned_data["users"]
-            role = add_form.cleaned_data["role"]
 
-            created = 0
-            updated = 0
-            for u in users:
-                obj, was_created = CompanyMember.objects.update_or_create(
-                    company=company,
-                    user=u,
-                    defaults={"role": role},
-                )
-                created += 1 if was_created else 0
-                updated += 0 if was_created else 1
+    # Ny: invite + create user
+    invite_form = CompanyInviteMemberForm()
 
-            if created:
-                messages.success(request, f"{created} användare lades till.")
-            if updated:
-                messages.info(request, f"{updated} användare fanns redan och fick rollen uppdaterad.")
+    if request.method == "POST":
+        action = request.POST.get("action")
 
-            return redirect("accounts:company_detail", pk=company.pk)
-        messages.error(request, "Kunde inte lägga till användare. Kontrollera formuläret.")
+        if action == "add_members":
+            add_form = CompanyMemberAddForm(request.POST)
+            if add_form.is_valid():
+                users = add_form.cleaned_data["users"]
+                role = add_form.cleaned_data["role"]
 
-    # Accounts (enkelt overview: root accounts)
+                created = 0
+                updated = 0
+                for u in users:
+                    obj, was_created = CompanyMember.objects.update_or_create(
+                        company=company,
+                        user=u,
+                        defaults={"role": role},
+                    )
+                    created += 1 if was_created else 0
+                    updated += 0 if was_created else 1
+
+                if created:
+                    messages.success(request, f"{created} användare lades till.")
+                if updated:
+                    messages.info(request, f"{updated} användare fanns redan och fick rollen uppdaterad.")
+
+                return redirect("accounts:company_detail", pk=company.pk)
+            messages.error(request, "Kunde inte lägga till användare. Kontrollera formuläret.")
+
+        if action == "invite_member":
+            invite_form = CompanyInviteMemberForm(request.POST)
+            if invite_form.is_valid():
+                email = invite_form.cleaned_data["email"]
+                first_name = invite_form.cleaned_data.get("first_name", "")
+                last_name = invite_form.cleaned_data.get("last_name", "")
+                role = invite_form.cleaned_data["role"]
+
+                with transaction.atomic():
+                    user, created_user = User.objects.get_or_create(
+                        email=email,
+                        defaults={
+                            "username": email,  # om du fortfarande använder username
+                            "first_name": first_name,
+                            "last_name": last_name,
+                            "is_active": False,
+                        }
+                    )
+
+                    # Om user fanns: uppdatera namn om tomt
+                    if not created_user:
+                        changed = False
+                        if first_name and not user.first_name:
+                            user.first_name = first_name
+                            changed = True
+                        if last_name and not user.last_name:
+                            user.last_name = last_name
+                            changed = True
+                        if changed:
+                            user.save(update_fields=["first_name", "last_name"])
+
+                    # Koppla till företag (create or update role)
+                    CompanyMember.objects.update_or_create(
+                        company=company,
+                        user=user,
+                        defaults={"role": role},
+                    )
+
+                    # Skicka invite om användaren inte är aktiv (dvs ej satt lösen)
+                    if not user.is_active:
+                        # om du kör invites via unusable password kan du sätta det här
+                        if user.has_usable_password():
+                            user.set_unusable_password()
+                            mentioning = False
+                        user.save()
+
+                        send_invite_email(request, user)
+
+                messages.success(request, f"Inbjudan skickad till {email}.")
+                return redirect("accounts:company_detail", pk=company.pk)
+
+            messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
+
     root_accounts = (
         Account.objects
         .filter(company=company, parent__isnull=True)
@@ -471,6 +532,7 @@ def company_detail(request, pk):
         "company": company,
         "memberships": memberships,
         "add_form": add_form,
+        "invite_form": invite_form,
         "root_accounts": root_accounts,
     })
 

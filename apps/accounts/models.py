@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 
 
+
 User = settings.AUTH_USER_MODEL
 
 
