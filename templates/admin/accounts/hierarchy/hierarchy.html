@@ -1,0 +1,58 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Skapa nytt account | Talena{% endblock %}
+
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Kontohierarki</h1>
+            <p class="text-gray-600 mt-2">Hantera företag och avdelningar</p>
+        </div>
+        <a href="{% url 'accounts:account_create' %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition">
+            <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Skapa huvudkonto
+        </a>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} border-l-4 p-4 rounded mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Hierarchy Tree -->
+    <div class="bg-white shadow-lg rounded-lg p-6">
+        {% if root_accounts %}
+            <div class="space-y-3">
+                {% for account in root_accounts %}
+                    {% include "admin/accounts/hierarchy/_account_tree.html" with account=account level=0 %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12 text-gray-500">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">Inga konton ännu</h3>
+                <p class="mt-1 text-sm text-gray-500">Kom igång genom att skapa ditt första huvudkonto.</p>
+                <div class="mt-6">
+                    <a href="{% url 'accounts:account_create' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        Skapa huvudkonto
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

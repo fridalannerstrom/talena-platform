@@ -11,17 +11,22 @@ from django.utils.http import urlsafe_base64_decode
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
-from .forms import InviteUserForm
+from .forms import InviteUserForm, AccountForm, UserAccountAccessForm
 from .services.invites import send_invite_email
-
 from .decorators import admin_required
-from apps.portal.forms import AccountForm, ProfileImageForm
+from apps.portal.forms import AccountForm as PortalAccountForm, ProfileImageForm
+from .models import Account, UserAccountAccess
+from .utils.permissions import get_user_accessible_accounts
 
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 User = get_user_model()
 
+
+# ============================================================================
+# BEFINTLIGA VIEWS (dina ursprungliga)
+# ============================================================================
 
 @login_required
 def admin_user_detail(request, pk):
@@ -34,18 +39,25 @@ def admin_user_detail(request, pk):
     processes = (
         TestProcess.objects
         .filter(created_by=user_obj)
-        .order_by("-created_at")  # justera om du har annat fält
+        .order_by("-created_at")
     )
 
     # Pågående vs klara (om du har statusfält)
     active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
     pending_invite = not user_obj.is_active
 
+    # Hämta användarens account-koppling
+    try:
+        user_account = UserAccountAccess.objects.select_related('account').get(user=user_obj)
+    except UserAccountAccess.DoesNotExist:
+        user_account = None
+
     return render(request, "admin/accounts/user_detail.html", {
         "u": user_obj,
         "processes": processes,
         "active_processes": active_processes,
         "pending_invite": pending_invite,
+        "user_account": user_account,
     })
 
 
@@ -57,10 +69,10 @@ def admin_customers_list(request):
     customers = (
         User.objects
         .filter(is_superuser=False, is_staff=False)
+        .select_related('account_access__account')  # Optimering
         .order_by("-date_joined")
     )
     return render(request, "admin/accounts/customers_list.html", {"customers": customers})
-
 
 
 @login_required
@@ -166,35 +178,6 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
     })
 
 
-
-@login_required
-@admin_required
-def admin_profile(request):
-    user = request.user
-
-    if request.method == "POST":
-        form = AccountForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Admin profile updated.")
-            return redirect("accounts:admin_profile")
-        messages.error(request, "Please correct the errors below.")
-    else:
-        form = AccountForm(instance=user)
-
-    return render(request, "admin/accounts/admin/profile.html", {"form": form})
-
-
-
-class AdminPasswordChangeView(PasswordChangeView):
-    template_name = "admin/accounts/admin/password_change.html"
-    success_url = reverse_lazy("accounts:admin_profile")
-
-    def form_valid(self, form):
-        messages.success(self.request, "Du har bytt lösenord.")
-        return super().form_valid(form)
-    
-
 @login_required
 @admin_required
 def admin_profile(request):
@@ -202,7 +185,7 @@ def admin_profile(request):
     profile = user.profile
 
     if request.method == "POST":
-        account_form = AccountForm(request.POST, instance=user)
+        account_form = PortalAccountForm(request.POST, instance=user)
         image_form = ProfileImageForm(request.POST, request.FILES, instance=profile)
 
         if account_form.is_valid() and image_form.is_valid():
@@ -212,7 +195,7 @@ def admin_profile(request):
             return redirect("accounts:admin_profile")
         messages.error(request, "Please correct the errors below.")
     else:
-        account_form = AccountForm(instance=user)
+        account_form = PortalAccountForm(instance=user)
         image_form = ProfileImageForm(instance=profile)
 
     return render(
@@ -220,3 +203,168 @@ def admin_profile(request):
         "admin/accounts/admin/profile.html",
         {"account_form": account_form, "image_form": image_form},
     )
+
+
+class AdminPasswordChangeView(PasswordChangeView):
+    template_name = "admin/accounts/admin/password_change.html"
+    success_url = reverse_lazy("accounts:admin_profile")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Du har bytt lösenord.")
+        return super().form_valid(form)
+
+
+# ============================================================================
+# NYA VIEWS FÖR ACCOUNT HIERARCHY
+# ============================================================================
+
+@login_required
+def account_hierarchy(request):
+    """Visar hierarkisk vy av alla accounts"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    # Hämta alla root accounts (de utan parent)
+    root_accounts = Account.objects.filter(parent=None).prefetch_related('children')
+    
+    return render(request, "admin/accounts/hierarchy/hierarchy.html", {
+        "root_accounts": root_accounts,
+    })
+
+
+@login_required
+def account_create(request, parent_id=None):
+    """Skapa nytt account (med eller utan parent)"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    parent = None
+    if parent_id:
+        parent = get_object_or_404(Account, id=parent_id)
+    
+    if request.method == "POST":
+        form = AccountForm(request.POST)
+        if form.is_valid():
+            account = form.save(commit=False)
+            if parent:
+                account.parent = parent
+            account.save()
+            messages.success(request, f'Account "{account.name}" skapad!')
+            return redirect("accounts:account_hierarchy")
+        messages.error(request, "Kunde inte skapa account. Kontrollera fälten.")
+    else:
+        # Om vi har en parent, pre-fyll parent-fältet
+        initial = {}
+        if parent:
+            initial['parent'] = parent
+        form = AccountForm(initial=initial)
+    
+    return render(request, "admin/accounts/hierarchy/account_form.html", {
+        "form": form,
+        "parent": parent,
+        "is_edit": False,
+    })
+
+
+@login_required
+def account_edit(request, pk):
+    """Redigera ett befintligt account"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    account = get_object_or_404(Account, pk=pk)
+    
+    if request.method == "POST":
+        form = AccountForm(request.POST, instance=account)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Account "{account.name}" uppdaterad!')
+            return redirect("accounts:account_hierarchy")
+        messages.error(request, "Kunde inte uppdatera account.")
+    else:
+        form = AccountForm(instance=account)
+    
+    return render(request, "admin/accounts/hierarchy/account_form.html", {
+        "form": form,
+        "account": account,
+        "is_edit": True,
+    })
+
+
+@login_required
+def account_delete(request, pk):
+    """Ta bort ett account (och alla dess barn!)"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    account = get_object_or_404(Account, pk=pk)
+    
+    if request.method == "POST":
+        account_name = account.name
+        account.delete()
+        messages.success(request, f'Account "{account_name}" borttagen!')
+        return redirect("accounts:account_hierarchy")
+    
+    # Räkna hur många underkonton som kommer försvinna
+    descendants_count = len(account.get_descendants())
+    
+    return render(request, "admin/accounts/hierarchy/account_confirm_delete.html", {
+        "account": account,
+        "descendants_count": descendants_count,
+    })
+
+
+@login_required
+def account_users(request, pk):
+    """Visa och hantera användare för ett specifikt account"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    account = get_object_or_404(Account, pk=pk)
+    
+    # Hämta alla users kopplade till detta account
+    user_accesses = UserAccountAccess.objects.filter(
+        account=account
+    ).select_related('user')
+    
+    # Form för att lägga till ny user
+    if request.method == "POST":
+        form = UserAccountAccessForm(request.POST)
+        if form.is_valid():
+            access = form.save(commit=False)
+            access.account = account
+            access.save()
+            messages.success(request, f'Användare "{access.user.email}" tillagd!')
+            return redirect("accounts:account_users", pk=account.pk)
+        messages.error(request, "Kunde inte lägga till användare.")
+    else:
+        form = UserAccountAccessForm()
+        # Pre-fyll account-fältet
+        form.initial['account'] = account
+    
+    return render(request, "admin/accounts/hierarchy/account_users.html", {
+        "account": account,
+        "user_accesses": user_accesses,
+        "form": form,
+    })
+
+
+@login_required
+def account_user_remove(request, pk, user_id):
+    """Ta bort en användare från ett account"""
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    account = get_object_or_404(Account, pk=pk)
+    user_access = get_object_or_404(UserAccountAccess, account=account, user_id=user_id)
+    
+    if request.method == "POST":
+        user_email = user_access.user.email
+        user_access.delete()
+        messages.success(request, f'Användare "{user_email}" borttagen från account!')
+        return redirect("accounts:account_users", pk=account.pk)
+    
+    return render(request, "admin/accounts/hierarchy/account_user_confirm_remove.html", {
+        "account": account,
+        "user_access": user_access,
+    })

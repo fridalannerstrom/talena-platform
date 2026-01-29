@@ -1,0 +1,101 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Skapa nytt account | Talena{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'accounts:account_hierarchy' %}" class="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-block">
+            ← Tillbaka till hierarki
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800">
+            {% if is_edit %}
+                Redigera Account: {{ account.name }}
+            {% else %}
+                Skapa nytt Account
+            {% endif %}
+        </h1>
+        
+        {% if parent %}
+            <p class="text-gray-600 mt-2">
+                Skapar underkonto under: <strong>{{ parent.name }}</strong> ({{ parent.account_code }})
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-100 border-green-400 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-red-400 text-red-700{% else %}bg-blue-100 border-blue-400 text-blue-700{% endif %} border-l-4 p-4 rounded mb-2">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Form -->
+    <div class="bg-white shadow-lg rounded-lg p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.name.label }}
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">T.ex. "JM Stockholm" eller "JM Koncernen"</p>
+            </div>
+
+            <!-- Account Code -->
+            <div>
+                <label for="{{ form.account_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.account_code.label }}
+                </label>
+                {{ form.account_code }}
+                {% if form.account_code.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.account_code.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">Unik kod, t.ex. "K00846"</p>
+            </div>
+
+            <!-- Parent Account -->
+            <div>
+                <label for="{{ form.parent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    {{ form.parent.label }}
+                </label>
+                {{ form.parent }}
+                {% if form.parent.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.parent.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if parent %}
+                        Förvalt till: {{ parent.name }}
+                    {% else %}
+                        Lämna tomt för att skapa ett huvudkonto
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Submit buttons -->
+            <div class="flex gap-3 pt-4">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition">
+                    {% if is_edit %}
+                        Uppdatera Account
+                    {% else %}
+                        Skapa Account
+                    {% endif %}
+                </button>
+                <a href="{% url 'accounts:account_hierarchy' %}" 
+                   class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition">
+                    Avbryt
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

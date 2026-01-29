@@ -21,6 +21,8 @@ from django.http import HttpResponseRedirect
 from django.db.models import Count
 
 from django.http import HttpResponse
+from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
+from django.http import HttpResponseForbidden
 
 import json
 import uuid
@@ -36,10 +38,14 @@ def render_placeholders(text: str, ctx: dict) -> str:
 
 
 @login_required
+@login_required
 def process_list(request):
+    # Hämta alla processer användaren har tillgång till (inte bara sina egna)
+    all_processes = TestProcess.objects.all()
+    processes = filter_by_user_accounts(all_processes, request.user, 'account')
+    
     processes = (
-        TestProcess.objects
-        .filter(created_by=request.user)
+        processes
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at") 
     )
@@ -148,6 +154,13 @@ def process_create(request):
                 obj.project_name_snapshot = (match["sova_name"] if match else proj)
 
             obj.created_by = request.user
+
+            # ✅ Sätt account från användarens account
+            from apps.accounts.utils.permissions import get_user_account
+            user_account = get_user_account(request.user)
+            if user_account:
+                obj.account = user_account
+
             obj.save()
             return redirect("processes:process_list")
     else:
@@ -165,7 +178,11 @@ def process_create(request):
 
 @login_required
 def process_update(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    obj = get_object_or_404(TestProcess, pk=pk)
+    
+    # Säkerhetskontroll: har användaren tillgång till detta account?
+    if not user_can_access_account(request.user, obj.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     old_acc = (obj.account_code or "").strip()
     old_proj = (obj.project_code or "").strip()
@@ -259,8 +276,13 @@ def process_update(request, pk):
 
 
 @login_required
+@login_required
 def process_delete(request, pk):
-    obj = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    obj = get_object_or_404(TestProcess, pk=pk)
+    
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, obj.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     if request.method == "POST":
         obj.delete()
@@ -272,11 +294,11 @@ def process_delete(request, pk):
 
 @login_required
 def process_detail(request, pk):
-    process = get_object_or_404(
-        TestProcess,
-        pk=pk,
-        created_by=request.user
-    )
+    process = get_object_or_404(TestProcess, pk=pk)
+    
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     # Hämta metadata för testpaketet som processen använder
     meta = ProjectMeta.objects.filter(
@@ -304,7 +326,11 @@ def process_detail(request, pk):
 
 @login_required
 def process_add_candidate(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(TestProcess, pk=pk)
+    
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     if request.method == "POST":
         form = CandidateCreateForm(request.POST)
@@ -346,7 +372,11 @@ def process_add_candidate(request, pk):
 
 @login_required
 def invite_candidate(request, pk, candidate_id):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
     invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
@@ -363,7 +393,11 @@ def invite_candidate(request, pk, candidate_id):
 
 @login_required
 def sova_order_assessment_smoke_test(request, pk, candidate_id):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
     client = SovaClient()
@@ -619,7 +653,11 @@ def remove_candidate_from_process(request, process_id, candidate_id):
 
 @login_required
 def process_send_tests(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     # Endast POST
     if request.method != "POST":
@@ -851,7 +889,11 @@ def process_candidate_detail(request, process_id, candidate_id):
 
 @login_required
 def process_invitation_statuses(request, pk):
-    process = get_object_or_404(TestProcess, pk=pk, created_by=request.user)
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Säkerhetskontroll
+    if not user_can_access_account(request.user, process.account):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     qs = (
         TestInvitation.objects

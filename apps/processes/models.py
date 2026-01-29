@@ -3,11 +3,21 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.urls import reverse
+from apps.accounts.models import Account
 
 class TestProcess(models.Model):
 
     name = models.CharField(max_length=255)
     provider = models.CharField(max_length=50, default="sova")
+
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name='test_processes',
+        verbose_name='Account',
+        null=True,  # Tillåt null för befintliga processer
+        blank=True
+    )
 
     account_code = models.CharField(max_length=255)
     project_code = models.CharField(max_length=255)

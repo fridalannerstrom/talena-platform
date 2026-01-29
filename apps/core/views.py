@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from apps.processes.models import Candidate, TestProcess, TestInvitation
+from apps.accounts.utils.permissions import filter_by_user_accounts
 
 User = get_user_model()
 
@@ -59,9 +60,20 @@ def customer_dashboard(request):
         return HttpResponseForbidden("Admins should use the admin dashboard.")
 
     accounts, error = _get_sova_accounts()
+    
+    # Hämta processer som användaren har tillgång till
+    from apps.processes.models import TestProcess
+    all_processes = TestProcess.objects.all()
+    accessible_processes = filter_by_user_accounts(all_processes, request.user, 'account')
+    
+    # Statistik för dashboard
+    total_processes = accessible_processes.count()
+    
     return render(request, "customer/core/layouts/customer_dashboard.html", {
         "accounts": accounts,
         "error": error,
+        "total_processes": total_processes,
+        "recent_processes": accessible_processes.order_by('-created_at')[:5],
     })
 
 @login_required
@@ -111,7 +123,8 @@ def global_search(request):
         tokens_to_q(tokens, ["name", "project_name_snapshot", "project_code", "job_title"])
     )
     if not admin:
-        proc_qs = proc_qs.filter(created_by=request.user)
+        # Filtrera baserat på account-access istället för created_by
+        proc_qs = filter_by_user_accounts(proc_qs, request.user, 'account')
 
     proc_qs = proc_qs.order_by("-created_at")[:limit_each]
 
@@ -133,14 +146,18 @@ def global_search(request):
     )
 
     if not admin:
-        cand_qs = cand_qs.filter(invitations__process__created_by=request.user)
+        # Filtrera baserat på account-access
+        from apps.accounts.utils.permissions import get_user_accessible_accounts
+        accessible_accounts = get_user_accessible_accounts(request.user)
+        cand_qs = cand_qs.filter(invitations__process__account__in=accessible_accounts)
 
     cand_qs = cand_qs.distinct().order_by("first_name", "last_name")[:limit_each]
 
     for c in cand_qs:
         inv_qs = TestInvitation.objects.filter(candidate=c).select_related("process")
         if not admin:
-            inv_qs = inv_qs.filter(process__created_by=request.user)
+            # Filtrera invitations baserat på account
+            inv_qs = inv_qs.filter(process__account__in=accessible_accounts)
 
         latest_inv = inv_qs.order_by("-created_at").first()
 
