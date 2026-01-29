@@ -55,5 +55,12 @@ urlpatterns = [
     path("companies/<int:pk>/", views.company_detail, name="company_detail"),
     path("companies/<int:company_pk>/members/<int:user_pk>/remove/", views.company_member_remove, name="company_member_remove"),
     path("companies/<int:company_pk>/members/<int:user_pk>/role/", views.company_member_update_role, name="company_member_update_role"),
-    
+    path("companies/<int:company_id>/hierarchy/", views.company_account_hierarchy, name="company_account_hierarchy"),
+
+    path("companies/<int:company_id>/accounts/create/", views.company_account_create, name="company_account_create"),
+    path("companies/<int:company_id>/accounts/<int:parent_id>/create/", views.company_account_create, name="company_account_create_child"),
+    path("companies/<int:company_id>/accounts/<int:pk>/edit/", views.company_account_edit, name="company_account_edit"),
+    path("companies/<int:company_id>/accounts/<int:pk>/delete/", views.company_account_delete, name="company_account_delete"),
+    path("companies/<int:company_id>/accounts/<int:pk>/users/", views.company_account_users, name="company_account_users"),
+
 ]

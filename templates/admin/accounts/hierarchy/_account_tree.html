@@ -71,25 +71,25 @@
     <!-- RIGHT (fixed column, never indented) -->
     <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-auto"
          style="min-width: 190px; justify-content: flex-end;">
-      <a href="{% url 'accounts:account_users' account.pk %}"
+      <a href="{% url 'accounts:company_account_users' company.pk account.pk %}"
          class="btn btn-icon btn-sm btn-outline-success"
          data-bs-toggle="tooltip" title="Användare">
         <i class="fa-solid fa-users"></i>
       </a>
 
-      <a href="{% url 'accounts:account_create_child' account.pk %}"
+      <a href="{% url 'accounts:company_account_create_child' company.pk account.pk %}"
          class="btn btn-icon btn-sm btn-primary"
          data-bs-toggle="tooltip" title="Lägg till underkonto">
         <i class="fa-solid fa-plus"></i>
       </a>
 
-      <a href="{% url 'accounts:account_edit' account.pk %}"
+      <a href="{% url 'accounts:company_account_edit' company.pk account.pk %}"
          class="btn btn-icon btn-sm btn-outline-warning"
          data-bs-toggle="tooltip" title="Redigera">
         <i class="fa-solid fa-pen"></i>
       </a>
 
-      <a href="{% url 'accounts:account_delete' account.pk %}"
+      <a href="{% url 'accounts:company_account_delete' company.pk account.pk %}"
          class="btn btn-icon btn-sm btn-outline-danger"
          data-bs-toggle="tooltip" title="Radera"
          onclick="return confirm('Vill du verkligen radera detta konto och alla underkonton?')">

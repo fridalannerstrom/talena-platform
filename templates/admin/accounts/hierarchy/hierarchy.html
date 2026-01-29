@@ -92,9 +92,13 @@
 
             <td class="text-end">
               <div class="btn-group" role="group" aria-label="Actions">
-                <a href="{% url 'accounts:account_users' node.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Användare">
-                  <i class="fa-solid fa-users"></i>
+                <a href="{% url 'accounts:company_account_create' company.pk %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-2"></i> Skapa huvudkonto
                 </a>
+
+                <div class="text-muted small mb-2">
+  <i class="fa-solid fa-building me-2"></i>{{ company.name }}
+</div>
                 <a href="{% url 'accounts:account_create_child' node.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Lägg till underkonto">
                   <i class="fa-solid fa-plus"></i>
                 </a>

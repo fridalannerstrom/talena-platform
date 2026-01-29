@@ -23,8 +23,9 @@ from .utils.permissions import get_user_accessible_accounts
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
-from .models import Company, CompanyMember, Account
+from .models import Company, CompanyMember, Account, UserAccountAccess
 from .forms import CompanyMemberAddForm, CompanyMemberRoleForm
+
 
 User = get_user_model()
 
@@ -502,3 +503,141 @@ def company_member_update_role(request, company_pk, user_pk):
         messages.error(request, "Kunde inte uppdatera rollen.")
 
     return redirect("accounts:company_detail", pk=company.pk)
+
+
+@login_required
+@admin_required
+def company_account_hierarchy(request, company_id):
+    company = get_object_or_404(Company, pk=company_id)
+
+    root_accounts = (
+        Account.objects
+        .filter(company=company, parent__isnull=True)
+        .prefetch_related("children")
+        .order_by("name")
+    )
+
+    return render(request, "admin/accounts/hierarchy/hierarchy.html", {
+        "company": company,
+        "root_accounts": root_accounts,
+        "company_scoped": True,
+    })
+
+
+@login_required
+@admin_required
+def company_account_create(request, company_id, parent_id=None):
+    company = get_object_or_404(Company, pk=company_id)
+
+    parent = None
+    if parent_id:
+        parent = get_object_or_404(Account, pk=parent_id, company=company)
+
+    if request.method == "POST":
+        form = AccountForm(request.POST)
+        if form.is_valid():
+            account = form.save(commit=False)
+            account.company = company
+            if parent:
+                account.parent = parent
+            account.save()
+            messages.success(request, f'Account "{account.name}" skapad i {company.name}!')
+            return redirect("accounts:company_account_hierarchy", company_id=company.pk)
+        messages.error(request, "Kunde inte skapa account. Kontrollera fälten.")
+    else:
+        initial = {}
+        if parent:
+            initial["parent"] = parent
+        form = AccountForm(initial=initial)
+
+    return render(request, "admin/accounts/hierarchy/account_form.html", {
+        "form": form,
+        "company": company,
+        "parent": parent,
+        "is_edit": False,
+        "company_scoped": True,
+    })
+
+
+@login_required
+@admin_required
+def company_account_edit(request, company_id, pk):
+    company = get_object_or_404(Company, pk=company_id)
+    account = get_object_or_404(Account, pk=pk, company=company)
+
+    if request.method == "POST":
+        form = AccountForm(request.POST, instance=account)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.company = company  # säkerställ
+            obj.save()
+            messages.success(request, f'Account "{obj.name}" uppdaterad!')
+            return redirect("accounts:company_account_hierarchy", company_id=company.pk)
+        messages.error(request, "Kunde inte uppdatera account.")
+    else:
+        form = AccountForm(instance=account)
+
+    return render(request, "admin/accounts/hierarchy/account_form.html", {
+        "form": form,
+        "company": company,
+        "account": account,
+        "is_edit": True,
+        "company_scoped": True,
+    })
+
+
+@login_required
+@admin_required
+def company_account_delete(request, company_id, pk):
+    company = get_object_or_404(Company, pk=company_id)
+    account = get_object_or_404(Account, pk=pk, company=company)
+
+    if request.method == "POST":
+        name = account.name
+        account.delete()
+        messages.success(request, f'Account "{name}" borttagen!')
+        return redirect("accounts:company_account_hierarchy", company_id=company.pk)
+
+    descendants_count = len(account.get_descendants())
+
+    return render(request, "admin/accounts/hierarchy/account_confirm_delete.html", {
+        "company": company,
+        "account": account,
+        "descendants_count": descendants_count,
+        "company_scoped": True,
+    })
+
+
+@login_required
+@admin_required
+def company_account_users(request, company_id, pk):
+    company = get_object_or_404(Company, pk=company_id)
+    account = get_object_or_404(Account, pk=pk, company=company)
+
+    user_accesses = (
+        UserAccountAccess.objects
+        .filter(account=account)
+        .select_related("user")
+        .order_by("user__email")
+    )
+
+    if request.method == "POST":
+        form = UserAccountAccessForm(request.POST)
+        if form.is_valid():
+            access = form.save(commit=False)
+            access.account = account
+            access.save()
+            messages.success(request, f'Användare "{access.user.email}" tillagd!')
+            return redirect("accounts:company_account_users", company_id=company.pk, pk=account.pk)
+        messages.error(request, "Kunde inte lägga till användare.")
+    else:
+        form = UserAccountAccessForm()
+        form.initial["account"] = account
+
+    return render(request, "admin/accounts/hierarchy/account_users.html", {
+        "company": company,
+        "account": account,
+        "user_accesses": user_accesses,
+        "form": form,
+        "company_scoped": True,
+    })
