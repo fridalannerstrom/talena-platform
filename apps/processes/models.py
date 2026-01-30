@@ -3,25 +3,18 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.urls import reverse
-from apps.accounts.models import Account
+from apps.accounts.models import Account, Company
+
 
 class TestProcess(models.Model):
 
     name = models.CharField(max_length=255)
     provider = models.CharField(max_length=50, default="sova")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="processes", null=True, blank=True)
 
-    account = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-        related_name='test_processes',
-        verbose_name='Account',
-        null=True,  # Tillåt null för befintliga processer
-        blank=True
-    )
-
-    account_code = models.CharField(max_length=255)
     project_code = models.CharField(max_length=255)
     project_name_snapshot = models.CharField(max_length=255, blank=True, default="")
+    account_code = models.CharField(max_length=255)
 
     job_title = models.CharField(max_length=255, blank=True, default="")
     job_location = models.CharField(max_length=255, blank=True, default="")

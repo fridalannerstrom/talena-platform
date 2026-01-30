@@ -46,103 +46,66 @@ def _get_active_company_for_user(user):
 
 
 def user_can_access_process(user, process) -> bool:
-    # 1) Skaparen får alltid access
-    if process.created_by_id == user.id:
-        return True
-
-    # 2) Annars: kräver account + access
-    if process.account_id and user_can_access_account(user, process.account):
-        return True
-
-    return False
-
+    company_id = (
+        CompanyMember.objects
+        .filter(user=user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    return bool(company_id and process.company_id == company_id)
 
 @login_required
 def process_list(request):
-    accessible_account_ids = (
-        UserAccountAccess.objects
+    company_id = (
+        CompanyMember.objects
         .filter(user=request.user)
-        .values_list("account_id", flat=True)
+        .values_list("company_id", flat=True)
+        .first()
     )
 
     processes = (
         TestProcess.objects
-        .filter(
-            Q(created_by=request.user) | Q(account_id__in=accessible_account_ids)
-        )
-        .distinct()
+        .filter(company_id=company_id)
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
     )
 
-    return render(request, "customer/processes/process_list.html", {
-        "processes": processes,
-    })
+    return render(request, "customer/processes/process_list.html", {"processes": processes})
 
 @login_required
 def process_create(request):
     client = SovaClient()
     error = None
 
-    # 1) Hämta accounts + projects från SOVA
     try:
         accounts = client.get_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
 
-    # 2) Hämta all metadata från DB i en dict för snabb lookup
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices + template_cards + en map för project_id
     choices = []
     template_cards = []
-    project_id_map = {}  # key: "ACC|PROJ" -> value: project_id
+    project_id_map = {}
 
     for a in accounts:
         acc = (a.get("code") or "").strip()
         for p in (a.get("projects") or []):
             proj_code = (p.get("code") or "").strip()
             sova_name = (p.get("name") or proj_code).strip()
-            active = bool(p.get("active"))
 
             value = f"{acc}|{proj_code}"
-
-            # ✅ Spara project_id per value
             project_id_map[value] = p.get("id")
 
             meta = meta_map.get((acc, proj_code))
             title = (getattr(meta, "intern_name", None) or sova_name)
 
-            tests = getattr(meta, "tests", None)
-            languages = getattr(meta, "languages", None)
-
-            if isinstance(tests, str) and tests.strip():
-                badges = [t.strip() for t in tests.split(",") if t.strip()]
-            elif isinstance(tests, list):
-                badges = tests
-            else:
-                badges = []
-
-            if isinstance(languages, str) and languages.strip():
-                langs = [l.strip() for l in languages.split(",") if l.strip()]
-            elif isinstance(languages, list):
-                langs = languages
-            else:
-                langs = []
-
-            subtitle = getattr(meta, "use_case", "") or ""
-
             choices.append((value, title))
-
             template_cards.append({
                 "value": value,
                 "title": title,
-                "subtitle": subtitle,
-                "badges": badges,
-                "languages": langs,
-                "active": active,
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,
@@ -151,7 +114,6 @@ def process_create(request):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
-    # 4) Form init (GET/POST)
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST)
         form.fields["sova_template"].choices = choices
@@ -159,18 +121,34 @@ def process_create(request):
         if form.is_valid():
             obj = form.save(commit=False)
 
-            value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
+            value = form.cleaned_data["sova_template"]
             acc, proj = value.split("|", 1)
 
+            # ✅ sätt company (kundens “konto”)
+            company_id = (
+                CompanyMember.objects
+                .filter(user=request.user)
+                .values_list("company_id", flat=True)
+                .first()
+            )
+            if not company_id:
+                form.add_error(None, "Du är inte kopplad till något företag.")
+                return render(request, "customer/processes/process_create.html", {
+                    "form": form,
+                    "error": error,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
+
+            obj.company_id = company_id
+
+            # ✅ endast SOVA-referenser
             obj.provider = "sova"
             obj.account_code = acc
             obj.project_code = proj
-
-            # ✅ Spara project_id på processen (kräver fält i modellen)
             obj.sova_project_id = project_id_map.get(value)
-            print("✅ SOVA project_id for new process:", obj.sova_project_id)
 
-            # Snapshot
             meta = meta_map.get((acc, proj))
             obj.project_name_snapshot = (getattr(meta, "intern_name", None) or "")
             if not obj.project_name_snapshot:
@@ -178,41 +156,12 @@ def process_create(request):
                 obj.project_name_snapshot = (match["sova_name"] if match else proj)
 
             obj.created_by = request.user
-
-            # ✅ Sätt account baserat på valt SOVA account_code + userns company
-            company = (
-                CompanyMember.objects
-                .filter(user=request.user)
-                .values_list("company", flat=True)
-                .first()
-            )
-
-            account_obj = None
-            if company:
-                account_obj = (
-                    Account.objects
-                    .filter(company_id=company, account_code=acc)
-                    .first()
-                )
-
-            if not account_obj:
-                messages.error(
-                    request,
-                    f"Hittar inget Account i ditt företag med account_code='{acc}'. "
-                    "Skapa accountet först eller koppla användaren till rätt account."
-                )
-                return redirect("processes:process_create")
-
-            obj.account = account_obj
-
-            # ✅ Se till att användaren har access till accountet (så listor/filter funkar)
-            UserAccountAccess.objects.get_or_create(
-                user=request.user,
-                account=account_obj,
-            )
-
             obj.save()
+
+            messages.success(request, "Testprocess skapad.")
             return redirect("processes:process_list")
+
+        messages.error(request, "Kunde inte skapa processen. Kontrollera fälten.")
     else:
         form = TestProcessCreateForm()
         form.fields["sova_template"].choices = choices
@@ -226,12 +175,13 @@ def process_create(request):
     })
 
 
+
 @login_required
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
-    
-    # Säkerhetskontroll: har användaren tillgång till detta account?
-    if not user_can_access_account(request.user, obj.account):
+
+    # ✅ Säkerhetskontroll (skapare OR account-access)
+    if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     old_acc = (obj.account_code or "").strip()
@@ -248,11 +198,11 @@ def process_update(request, pk):
         accounts = []
         error = str(e)
 
-    # 2) Hämta meta för intern_name (valfritt men nice)
+    # 2) Hämta meta för intern_name
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices med SAMMA value-format som i create: "ACC|PROJ"
+    # 3) Bygg choices med value-format: "ACC|PROJ"
     choices = []
     template_cards = []
 
@@ -306,13 +256,11 @@ def process_update(request, pk):
                 updated.project_name_snapshot = (match["sova_name"] if match else proj)
 
             updated.save()
-            return redirect("processes:process_list") 
+            return redirect("processes:process_list")
 
     else:
         form = TestProcessCreateForm(instance=obj)
         form.fields["sova_template"].choices = choices
-
-        # Förifyll med samma format som choices
         form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
 
     return render(request, "customer/processes/process_edit.html", {
@@ -376,16 +324,16 @@ def process_detail(request, pk):
 @login_required
 def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
-    
-    # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+
+    # ✅ Säkerhetskontroll (skapare OR account-access)
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     if request.method == "POST":
         form = CandidateCreateForm(request.POST)
         if form.is_valid():
-            # 1) skapa eller hämta kandidat på email (så man slipper dubletter)
-            email = form.cleaned_data["email"]
+            email = form.cleaned_data["email"].strip().lower()
+
             candidate, created = Candidate.objects.get_or_create(
                 email=email,
                 defaults={
@@ -394,7 +342,6 @@ def process_add_candidate(request, pk):
                 }
             )
 
-            # 2) skapa inbjudan i processen (kopplingen)
             invitation, inv_created = TestInvitation.objects.get_or_create(
                 process=process,
                 candidate=candidate,
@@ -406,10 +353,6 @@ def process_add_candidate(request, pk):
             else:
                 messages.info(request, f"{candidate.email} is already in this process.")
 
-            # 3) (senare) här kan du trigga SOVA-invite direkt om du vill
-            # invitation.mark_sent(...)
-            # messages.success(request, "Invite sent via SOVA.")
-
             return redirect("processes:process_detail", pk=process.pk)
     else:
         form = CandidateCreateForm()
@@ -418,6 +361,7 @@ def process_add_candidate(request, pk):
         "process": process,
         "form": form,
     })
+
 
 @login_required
 def invite_candidate(request, pk, candidate_id):
