@@ -33,7 +33,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
 from django.contrib.auth.tokens import default_token_generator
-
+from .models import UserInvite
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -46,40 +47,77 @@ def build_invite_link(request, user):
     path = reverse("accounts:accept_invite", kwargs={"uidb64": uidb64, "token": token})
     return request.build_absolute_uri(path)
 
+def build_invite_uuid_link(request, invite):
+    path = reverse("accounts:accept_invite_uuid", kwargs={"invite_id": invite.id})
+    return request.build_absolute_uri(path)
+
+
+
 @login_required
 def admin_user_detail(request, pk):
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
     user_obj = get_object_or_404(User, pk=pk)
+    pending_invite = not user_obj.is_active
 
-    # Processer som användaren skapat (ditt befintliga mönster)
+    invite_link = None
+    open_invite_modal = False
+
+    # Hitta company för usern (om du tillåter bara 1 företag per user)
+    company = Company.objects.filter(memberships__user=user_obj).first()
+
+    if request.method == "POST" and request.POST.get("action") == "generate_invite_link":
+        if not pending_invite:
+            messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
+        elif not company:
+            messages.error(request, "Användaren är inte kopplad till något företag. Koppla användaren först.")
+        else:
+            # Revoka tidigare aktiva invites
+            UserInvite.objects.filter(
+                user=user_obj,
+                company=company,
+                accepted_at__isnull=True,
+                revoked_at__isnull=True,
+            ).update(revoked_at=timezone.now())
+
+            invite = UserInvite.objects.create(
+                user=user_obj,
+                company=company,
+                created_by=request.user,
+            )
+
+            # Bygg ny länk (UUID)
+            invite_link = request.build_absolute_uri(
+                reverse("accounts:accept_invite_uuid", kwargs={"invite_id": invite.id})
+            )
+            open_invite_modal = True
+            messages.success(request, "Ny invite-länk genererad.")
+
+    # Processer som användaren skapat
     processes = (
         TestProcess.objects
         .filter(created_by=user_obj)
         .order_by("-created_at")
     )
-
-    # Pågående vs klara (om du har statusfält)
     active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
-    pending_invite = not user_obj.is_active
-    invite_link = build_invite_link(request, user_obj) if pending_invite else None
 
-    # Hämta användarens account-koppling
+    # Hämta user_account
     try:
-        user_account = UserAccountAccess.objects.select_related('account').get(user=user_obj)
+        user_account = UserAccountAccess.objects.select_related("account").get(user=user_obj)
     except UserAccountAccess.DoesNotExist:
         user_account = None
 
     return render(request, "admin/accounts/user_detail.html", {
         "u": user_obj,
+        "company": company,  # valfritt att visa i UI
         "processes": processes,
         "active_processes": active_processes,
         "pending_invite": pending_invite,
         "user_account": user_account,
-        "invite_link": invite_link,
+        "invite_link": invite_link,                # ✅ bara efter POST
+        "open_invite_modal": open_invite_modal,    # ✅ öppna modal efter POST
     })
-
 
 @login_required
 def admin_customers_list(request):
@@ -769,3 +807,36 @@ def build_invite_link(request, user):
     token = default_token_generator.make_token(user)
     path = reverse("accounts:accept_invite", kwargs={"uidb64": uidb64, "token": token})
     return request.build_absolute_uri(path)
+
+
+
+def accept_invite_uuid(request, invite_id):
+    invite = get_object_or_404(UserInvite, id=invite_id)
+
+    # Ogiltig om revoked eller redan accepterad
+    if invite.revoked_at is not None or invite.accepted_at is not None:
+        return render(request, "accounts/invite_invalid.html", status=400)
+
+    user = invite.user
+
+    # Om användaren redan är aktiv: låt den logga in istället
+    if user.is_active:
+        messages.info(request, "Kontot är redan aktiverat. Logga in.")
+        return redirect("login")
+
+    if request.method == "POST":
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+
+            invite.accepted_at = timezone.now()
+            invite.save(update_fields=["accepted_at"])
+
+            login(request, user)
+            return redirect("core:post_login_redirect")
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, "accounts/accept_invite.html", {"form": form, "user": user})

@@ -32,6 +32,7 @@ urlpatterns = [
         AdminPasswordChangeView.as_view(),
         name="admin_password_change",
     ),
+    path("invite/<uuid:invite_id>/", views.accept_invite_uuid, name="accept_invite_uuid"),
     
     # =========================================================================
     # ACCOUNT HIERARCHY (NYTT!)

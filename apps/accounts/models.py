@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+import uuid
 
 
 
@@ -193,3 +194,21 @@ class UserAccountAccess(models.Model):
 
     def __str__(self):
         return f"{self.user.email} → {self.account.name}"
+
+
+class UserInvite(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="invites")
+    company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, related_name="invites")
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_invites"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+
+    def is_active(self):
+        return self.revoked_at is None and self.accepted_at is None

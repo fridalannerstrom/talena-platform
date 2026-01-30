@@ -24,21 +24,13 @@
         Never
       {% endif %}
     </div>
-    {% if pending_invite and invite_link %}
-  <div class="mt-3">
-    <div class="fw-semibold">Invite link</div>
-    <div class="d-flex gap-2 align-items-center mt-2" style="max-width: 680px;">
-      <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
-      <button type="button" class="btn btn-outline-primary"
-              onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
-        Copy
-      </button>
-    </div>
-    <div class="form-text mt-2">
-      Skicka länken manuellt. När användaren öppnar den får den välja lösenord och blir aktiv.
-    </div>
-  </div>
+{% if pending_invite %}
+  <button type="button" class="btn btn-outline-primary btn-sm"
+          data-bs-toggle="modal" data-bs-target="#inviteLinkModal">
+    Generera ny länk
+  </button>
 {% endif %}
+
   </div>
 </div>
 
@@ -84,5 +76,67 @@
 </div>
 
 <a class="btn btn-link mt-3" href="{% url 'core:admin_dashboard' %}">← Back</a>
+
+<div class="modal fade" id="inviteLinkModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Invite link</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        {% if invite_link %}
+          <div class="alert alert-success">
+            <div class="fw-semibold">Link generated for {{ u.email }}</div>
+            <div class="d-flex gap-2 align-items-center mt-2">
+              <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
+              <button type="button" class="btn btn-outline-primary"
+                      onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
+                Copy
+              </button>
+            </div>
+            <div class="form-text mt-2">
+              Stäng modalen när du kopierat. Länken syns inte igen förrän du genererar en ny.
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">
+            Klicka på knappen nedan för att generera en ny invite-länk.
+          </p>
+        {% endif %}
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+
+        {% if pending_invite %}
+          <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_invite_link">
+            <button type="submit" class="btn btn-primary">
+              Generera ny länk
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% if open_invite_modal %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("inviteLinkModal");
+    if (!el) return;
+    const modal = new bootstrap.Modal(el);
+    modal.show();
+  });
+</script>
+{% endif %}
 
 {% endblock %}
