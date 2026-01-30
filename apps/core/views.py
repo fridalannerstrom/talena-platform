@@ -13,6 +13,8 @@ from django.views.decorators.http import require_GET
 from apps.processes.models import Candidate, TestProcess, TestInvitation
 from apps.accounts.utils.permissions import filter_by_user_accounts
 
+from apps.accounts.models import CompanyMember
+
 User = get_user_model()
 
 
@@ -56,24 +58,35 @@ def _get_sova_accounts():
 
 @login_required
 def customer_dashboard(request):
-    if is_admin(request.user):
+    # (om du har detta logik kvar)
+    if request.user.is_staff or request.user.is_superuser:
         return HttpResponseForbidden("Admins should use the admin dashboard.")
 
-    accounts, error = _get_sova_accounts()
-    
-    # Hämta processer som användaren har tillgång till
-    from apps.processes.models import TestProcess
-    all_processes = TestProcess.objects.all()
-    accessible_processes = filter_by_user_accounts(all_processes, request.user, 'account')
-    
-    # Statistik för dashboard
+    # 1) Hämta SOVA-accounts (din befintliga funktion)
+    accounts, error = _get_sova_accounts()  # behåll som du har
+
+    # 2) Hämta userns company
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+
+    # 3) Processer som tillhör company (och ev. fallback på created_by)
+    if company_id:
+        accessible_processes = TestProcess.objects.filter(company_id=company_id)
+    else:
+        # om användaren inte är kopplad till company än
+        accessible_processes = TestProcess.objects.filter(created_by=request.user)
+
     total_processes = accessible_processes.count()
-    
+
     return render(request, "customer/core/layouts/customer_dashboard.html", {
-        "accounts": accounts,
-        "error": error,
+        "accounts": accounts,            # från SOVA API
+        "error": error,                 # från SOVA API
         "total_processes": total_processes,
-        "recent_processes": accessible_processes.order_by('-created_at')[:5],
+        "processes": accessible_processes[:5],  # valfritt: visa senaste 5
     })
 
 @login_required
