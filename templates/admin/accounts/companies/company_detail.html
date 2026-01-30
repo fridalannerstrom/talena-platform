@@ -37,13 +37,15 @@
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button" role="tab">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button"
+                        role="tab">
                         <i class="fa-solid fa-chart-simple me-2"></i> Overview
                     </button>
                 </li>
 
                 <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-accounts" type="button" role="tab">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-accounts" type="button"
+                        role="tab">
                         <i class="fa-solid fa-sitemap me-2"></i> Accounts
                     </button>
                 </li>
@@ -108,74 +110,80 @@
                     </div>
 
                     <!-- Customers table -->
-<div class="card mt-3">
-  <div class="card-header d-flex align-items-center justify-content-between">
-    <div class="fw-semibold">Users</div>
-    <span class="badge bg-light text-dark">{{ memberships|length }}</span>
-  </div>
+                    <div class="card mt-3">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <div class="fw-semibold">Users</div>
+                            <span class="badge bg-light text-dark">{{ memberships|length }}</span>
+                        </div>
 
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Joined</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for m in memberships %}
-          <tr>
-            <td>
-              {% if m.user.first_name or m.user.last_name %}
-                {{ m.user.first_name }} {{ m.user.last_name }}
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-            <td>{{ m.user.email }}</td>
-            <td>
-              {% if m.user.is_active %}
-                <span class="badge bg-success">Active</span>
-              {% else %}
-                <span class="badge bg-warning text-dark">Not accepted</span>
-              {% endif %}
-            </td>
-            <td class="text-muted">
-              {% if m.created_at %}
-                {{ m.created_at|date:"Y-m-d H:i" }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="4" class="text-muted">No users yet.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in memberships %}
+                                    <tr>
+                                        <td>
+                                            {% if m.user.first_name or m.user.last_name %}
+                                            <a href="{% url 'accounts:admin_user_detail' m.user.pk %}">
+                                                {{ m.user.get_full_name|default:"-" }}
+                                            </a>
+                                            {% else %}
+                                            <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ m.user.email }}</td>
+                                        <td>
+                                            {% if m.user.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                            {% else %}
+                                            <span class="badge bg-warning text-dark">Not accepted</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">
+                                            {% if m.created_at %}
+                                            {{ m.created_at|date:"Y-m-d H:i" }}
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-muted">No users yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
 
                 </div>
 
                 <!-- Accounts -->
                 <div class="tab-pane fade" id="tab-accounts" role="tabpanel">
-                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+                    <div
+                        class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
                         <div>
                             <h5 class="mb-1">Accounts för {{ company.name }}</h5>
-                            <div class="text-muted small">Här visar vi root accounts. Nästa steg: hierarki filtrerad per company.</div>
+                            <div class="text-muted small">Här visar vi root accounts. Nästa steg: hierarki filtrerad per
+                                company.</div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a href="{% url 'accounts:company_account_create' company.pk %}" class="btn btn-sm btn-primary">
+                            <a href="{% url 'accounts:company_account_create' company.pk %}"
+                                class="btn btn-sm btn-primary">
                                 <i class="fa-solid fa-plus me-2"></i> Skapa account
                             </a>
 
-                            <a href="{% url 'accounts:company_account_hierarchy' company.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{% url 'accounts:company_account_hierarchy' company.pk %}"
+                                class="btn btn-sm btn-outline-secondary">
                                 <i class="fa-solid fa-sitemap me-2"></i> Öppna hierarki
                             </a>
                         </div>
@@ -218,77 +226,79 @@
 
 <!-- Invite modal -->
 <div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="invite_member">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="invite_member">
 
-        <div class="modal-header">
-          <h5 class="modal-title">Lägg till användare</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Lägg till användare</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {% if invite_link %}
+                    <div class="alert alert-success">
+                        <div class="fw-semibold">Invite link{% if invite_email %} för {{ invite_email }}{% endif %}
+                        </div>
+                        <div class="d-flex gap-2 align-items-center mt-2">
+                            <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
+                            <button type="button" class="btn btn-outline-primary"
+                                onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
+                                Copy
+                            </button>
+                        </div>
+                        <div class="form-text mt-2">
+                            Skicka länken i valfritt mejl. När personen öppnar länken får den välja lösenord och loggas
+                            in.
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ invite_form.email }}
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col">
+                            <label class="form-label">Förnamn</label>
+                            {{ invite_form.first_name }}
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Efternamn</label>
+                            {{ invite_form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="form-text mt-2">
+                        Systemet skickar inget mail. Du får en länk att kopiera.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+
+                    <button class="btn btn-primary">
+                        Skapa invite link
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div class="modal-body">
-
-          {% if invite_link %}
-            <div class="alert alert-success">
-              <div class="fw-semibold">Invite link{% if invite_email %} för {{ invite_email }}{% endif %}</div>
-              <div class="d-flex gap-2 align-items-center mt-2">
-                <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
-                <button type="button" class="btn btn-outline-primary"
-                        onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
-                  Copy
-                </button>
-              </div>
-              <div class="form-text mt-2">
-                Skicka länken i valfritt mejl. När personen öppnar länken får den välja lösenord och loggas in.
-              </div>
-            </div>
-            <hr>
-          {% endif %}
-
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            {{ invite_form.email }}
-          </div>
-
-          <div class="row g-2">
-            <div class="col">
-              <label class="form-label">Förnamn</label>
-              {{ invite_form.first_name }}
-            </div>
-            <div class="col">
-              <label class="form-label">Efternamn</label>
-              {{ invite_form.last_name }}
-            </div>
-          </div>
-
-          <div class="form-text mt-2">
-            Systemet skickar inget mail. Du får en länk att kopiera.
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
-
-          <button class="btn btn-primary">
-            Skapa invite link
-          </button>
-        </div>
-      </form>
     </div>
-  </div>
 </div>
 {% if open_invite_modal %}
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const el = document.getElementById("inviteUserModal");
-    if (!el) return;
-    const modal = new bootstrap.Modal(el);
-    modal.show();
-  });
+    document.addEventListener("DOMContentLoaded", function () {
+        const el = document.getElementById("inviteUserModal");
+        if (!el) return;
+        const modal = new bootstrap.Modal(el);
+        modal.show();
+    });
 </script>
 {% endif %}
 {% endblock %}

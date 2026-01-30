@@ -32,13 +32,19 @@ from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
+from django.contrib.auth.tokens import default_token_generator
+
+
 
 User = get_user_model()
 
 
-# ============================================================================
-# BEFINTLIGA VIEWS (dina ursprungliga)
-# ============================================================================
+
+def build_invite_link(request, user):
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    path = reverse("accounts:accept_invite", kwargs={"uidb64": uidb64, "token": token})
+    return request.build_absolute_uri(path)
 
 @login_required
 def admin_user_detail(request, pk):
@@ -57,6 +63,7 @@ def admin_user_detail(request, pk):
     # Pågående vs klara (om du har statusfält)
     active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
     pending_invite = not user_obj.is_active
+    invite_link = build_invite_link(request, user_obj) if pending_invite else None
 
     # Hämta användarens account-koppling
     try:
@@ -70,6 +77,7 @@ def admin_user_detail(request, pk):
         "active_processes": active_processes,
         "pending_invite": pending_invite,
         "user_account": user_account,
+        "invite_link": invite_link,
     })
 
 
