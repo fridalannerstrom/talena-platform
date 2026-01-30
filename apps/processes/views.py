@@ -368,10 +368,10 @@ def invite_candidate(request, pk, candidate_id):
     process = get_object_or_404(TestProcess, pk=pk)
 
     # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
+    
     candidate = get_object_or_404(Candidate, pk=candidate_id)
-
     invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
 
     # Här kopplar vi in SOVA i steg 3.
@@ -389,7 +389,7 @@ def sova_order_assessment_smoke_test(request, pk, candidate_id):
     process = get_object_or_404(TestProcess, pk=pk)
 
     # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
@@ -649,7 +649,7 @@ def process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     # Endast POST
@@ -885,7 +885,7 @@ def process_invitation_statuses(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     qs = (

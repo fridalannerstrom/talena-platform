@@ -1,7 +1,24 @@
 """
 Behörighetslogik för Account-hierarkin
 """
-from apps.accounts.models import Account, UserAccountAccess
+from apps.accounts.models import Account, UserAccountAccess, CompanyMember
+
+
+def user_can_access_process(user, process) -> bool:
+    # Admins får allt
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+
+    # Skaparen får alltid se sin process (bra fallback vid gamla data)
+    if getattr(process, "created_by_id", None) == getattr(user, "id", None):
+        return True
+
+    # Process utan company -> neka (eller ändra om du vill)
+    if not getattr(process, "company_id", None):
+        return False
+
+    # Användaren måste vara medlem i samma company
+    return CompanyMember.objects.filter(user=user, company_id=process.company_id).exists()
 
 
 def get_user_accessible_accounts(user):

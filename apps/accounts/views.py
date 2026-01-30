@@ -40,7 +40,6 @@ from django.utils import timezone
 User = get_user_model()
 
 
-
 def build_invite_link(request, user):
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
