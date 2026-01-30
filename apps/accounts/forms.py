@@ -38,30 +38,38 @@ class AccountForm(forms.ModelForm):
 
 class UserAccountAccessForm(forms.ModelForm):
     """Form för att koppla en User till ett Account"""
-    
+
     class Meta:
         model = UserAccountAccess
-        fields = ['user', 'account', 'role']
+        fields = ["user", "account"]
         widgets = {
             "user": forms.Select(attrs={"class": "form-select"}),
             "account": forms.Select(attrs={"class": "form-select"}),
-            "role": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
-            'user': 'Användare',
-            'account': 'Account',
-            'role': 'Roll'
+            "user": "Användare",
+            "account": "Account",
         }
-    
+
     def __init__(self, *args, **kwargs):
+        company = kwargs.pop("company", None)  # valfritt: filtrera på företag
         super().__init__(*args, **kwargs)
-        # Visa bara customers (inte admins) i user-dropdown
-        self.fields['user'].queryset = User.objects.filter(
-            role=User.Role.CUSTOMER
-        ).exclude(
-            account_access__isnull=False  # Visa bara users som inte redan har ett account
+
+        # Visa bara "vanliga" users (inte staff/superuser)
+        self.fields["user"].queryset = (
+            User.objects
+            .filter(is_superuser=False, is_staff=False)
+            .order_by("email")
         )
 
+        # Om vi vet vilket företag vi är i: visa bara accounts i det företaget
+        if company is not None:
+            self.fields["user"].queryset = (
+                User.objects
+                .filter(company_memberships__company=company)
+                .order_by("email")
+                .distinct()
+            )
 
 
 class CompanyMemberAddForm(forms.Form):
@@ -70,22 +78,6 @@ class CompanyMemberAddForm(forms.Form):
         required=True,
         widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "10"}),
         label="Välj användare",
-    )
-    role = forms.ChoiceField(
-        choices=CompanyMember.ROLE_CHOICES,
-        initial=CompanyMember.ROLE_MEMBER,
-        required=True,
-        widget=forms.Select(attrs={"class": "form-select"}),
-        label="Roll",
-    )
-
-
-class CompanyMemberRoleForm(forms.Form):
-    role = forms.ChoiceField(
-        choices=CompanyMember.ROLE_CHOICES,
-        required=True,
-        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
-        label="",
     )
 
 

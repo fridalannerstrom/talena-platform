@@ -9,18 +9,15 @@ from django.core.exceptions import ValidationError
 
 User = settings.AUTH_USER_MODEL
 
+def clean(self):
+    if not CompanyMember.objects.filter(user=self.user, company=self.account.company).exists():
+        raise ValidationError("User måste vara medlem i företaget innan account-access kan ges.")
+
 
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         CUSTOMER = "customer", "Customer"
-
-    role = models.CharField(
-        max_length=20,
-        choices=Role.choices,
-        default=Role.CUSTOMER,
-    )
-
 
 class Company(models.Model):
     name = models.CharField(max_length=255, verbose_name="Företagsnamn")
@@ -174,51 +171,25 @@ class Account(models.Model):
 
 class UserAccountAccess(models.Model):
     """
-    Kopplar en User till ett Account.
-    En user kan bara tillhöra ETT account (enligt ditt krav B).
-    Users får automatiskt access till sitt account + alla child-accounts.
+    Kopplar en user till ett account (många-till-många via denna tabell).
+    En user kan ha access till flera accounts.
     """
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='account_access'
+        related_name="account_accesses",
     )
     account = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
-        related_name='user_accesses'
+        related_name="user_accesses",
     )
-    
-    # Valfritt: Lägg till roller per account om du vill ha finare behörigheter senare
-    ROLE_CHOICES = [
-        ('viewer', 'Viewer'),
-        ('editor', 'Editor'),
-        ('manager', 'Manager'),
-    ]
-    role = models.CharField(
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default='viewer',
-        verbose_name="Roll"
-    )
-    
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
-        verbose_name = 'User Account Access'
-        verbose_name_plural = 'User Account Accesses'
-    
+        constraints = [
+            models.UniqueConstraint(fields=["user", "account"], name="uniq_user_account"),
+        ]
+
     def __str__(self):
-        return f"{self.user.email} → {self.account.name} ({self.role})"
-    
-    def get_accessible_accounts(self):
-        """
-        Returnerar set av alla accounts som användaren har tillgång till:
-        - Sitt eget account
-        - Alla child-accounts nedåt
-        """
-        accounts = {self.account}
-        accounts.update(self.account.get_descendants())
-        return accounts
-
-
+        return f"{self.user.email} → {self.account.name}"

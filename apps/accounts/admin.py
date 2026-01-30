@@ -7,14 +7,9 @@ User = get_user_model()
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     # Visa fler kolumner i listan
-    list_display = ("username", "email", "role", "is_staff", "is_superuser", "is_active")
-    list_filter = ("role", "is_staff", "is_superuser", "is_active")
+    list_display = ("username", "email", "is_staff", "is_superuser", "is_active")
+    list_filter = ("is_staff", "is_superuser", "is_active")
     search_fields = ("username", "email")
-
-    # Lägg role i edit-formen i admin
-    fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Talena", {"fields": ("role",)}),
-    )
 
 # apps/accounts/admin.py
 from django.contrib import admin
@@ -35,8 +30,8 @@ class ProfileInline(admin.StackedInline):
 
 class CustomUserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
-    list_display = ['email', 'username', 'first_name', 'last_name', 'role', 'is_staff', 'account_info']
-    list_filter = ['role', 'is_staff', 'is_active']
+    list_display = ['email', 'username', 'first_name', 'last_name', 'is_staff', 'account_info']
+    list_filter = ['is_staff', 'is_active']
     
     def account_info(self, obj):
         try:
@@ -97,15 +92,15 @@ class AccountAdmin(admin.ModelAdmin):
 
 @admin.register(UserAccountAccess)
 class UserAccountAccessAdmin(admin.ModelAdmin):
-    list_display = ['user', 'account', 'role', 'created_at']
-    list_filter = ['role', 'account', 'created_at']
+    list_display = ['user', 'account', 'created_at']
+    list_filter = ['account', 'created_at']
     search_fields = ['user__email', 'user__first_name', 'user__last_name', 'account__name']
     autocomplete_fields = ['user', 'account']
     readonly_fields = ['created_at']
     
     fieldsets = (
         (None, {
-            'fields': ('user', 'account', 'role')
+            'fields': ('user', 'account',)
         }),
         ('Metadata', {
             'fields': ('created_at',),

@@ -24,7 +24,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 from .models import Company, CompanyMember, Account, UserAccountAccess
-from .forms import CompanyMemberAddForm, CompanyMemberRoleForm, CompanyForm, CompanyInviteMemberForm
+from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm
 
 from django.db import transaction
 
@@ -528,12 +528,25 @@ def company_detail(request, pk):
         .order_by("name")
     )
 
+    customers = (
+        User.objects
+        .filter(
+            is_staff=False,
+            is_superuser=False,
+            account_accesses__account__company=company,
+        )
+        .prefetch_related("account_accesses__account")
+        .distinct()
+        .order_by("email")
+    )
+
     return render(request, "admin/accounts/companies/company_detail.html", {
         "company": company,
         "memberships": memberships,
         "add_form": add_form,
         "invite_form": invite_form,
         "root_accounts": root_accounts,
+        "customers": customers,
     })
 
 
