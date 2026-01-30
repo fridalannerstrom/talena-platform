@@ -18,11 +18,13 @@ from django.http import JsonResponse
 
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
 from django.http import HttpResponseForbidden
+
+from apps.accounts.models import Account, UserAccountAccess, CompanyMember
 
 import json
 import uuid
@@ -37,17 +39,40 @@ def render_placeholders(text: str, ctx: dict) -> str:
     return text
 
 
-@login_required
+def _get_active_company_for_user(user):
+    # om du bara har 1 company per user just nu: ta första
+    m = CompanyMember.objects.select_related("company").filter(user=user).first()
+    return m.company if m else None
+
+
+def user_can_access_process(user, process) -> bool:
+    # 1) Skaparen får alltid access
+    if process.created_by_id == user.id:
+        return True
+
+    # 2) Annars: kräver account + access
+    if process.account_id and user_can_access_account(user, process.account):
+        return True
+
+    return False
+
+
 @login_required
 def process_list(request):
-    # Hämta alla processer användaren har tillgång till (inte bara sina egna)
-    all_processes = TestProcess.objects.all()
-    processes = filter_by_user_accounts(all_processes, request.user, 'account')
-    
+    accessible_account_ids = (
+        UserAccountAccess.objects
+        .filter(user=request.user)
+        .values_list("account_id", flat=True)
+    )
+
     processes = (
-        processes
+        TestProcess.objects
+        .filter(
+            Q(created_by=request.user) | Q(account_id__in=accessible_account_ids)
+        )
+        .distinct()
         .annotate(candidates_count=Count("invitations", distinct=True))
-        .order_by("-created_at") 
+        .order_by("-created_at")
     )
 
     return render(request, "customer/processes/process_list.html", {
@@ -121,7 +146,7 @@ def process_create(request):
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,
-                "sova_project_id": p.get("id"),  # (valfritt, om du vill visa/debugga i UI)
+                "sova_project_id": p.get("id"),
             })
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
@@ -143,7 +168,6 @@ def process_create(request):
 
             # ✅ Spara project_id på processen (kräver fält i modellen)
             obj.sova_project_id = project_id_map.get(value)
-
             print("✅ SOVA project_id for new process:", obj.sova_project_id)
 
             # Snapshot
@@ -155,11 +179,37 @@ def process_create(request):
 
             obj.created_by = request.user
 
-            # ✅ Sätt account från användarens account
-            from apps.accounts.utils.permissions import get_user_account
-            user_account = get_user_account(request.user)
-            if user_account:
-                obj.account = user_account
+            # ✅ Sätt account baserat på valt SOVA account_code + userns company
+            company = (
+                CompanyMember.objects
+                .filter(user=request.user)
+                .values_list("company", flat=True)
+                .first()
+            )
+
+            account_obj = None
+            if company:
+                account_obj = (
+                    Account.objects
+                    .filter(company_id=company, account_code=acc)
+                    .first()
+                )
+
+            if not account_obj:
+                messages.error(
+                    request,
+                    f"Hittar inget Account i ditt företag med account_code='{acc}'. "
+                    "Skapa accountet först eller koppla användaren till rätt account."
+                )
+                return redirect("processes:process_create")
+
+            obj.account = account_obj
+
+            # ✅ Se till att användaren har access till accountet (så listor/filter funkar)
+            UserAccountAccess.objects.get_or_create(
+                user=request.user,
+                account=account_obj,
+            )
 
             obj.save()
             return redirect("processes:process_list")
@@ -295,12 +345,10 @@ def process_delete(request, pk):
 @login_required
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
-    
-    # Säkerhetskontroll
-    if not user_can_access_account(request.user, process.account):
+
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
-    # Hämta metadata för testpaketet som processen använder
     meta = ProjectMeta.objects.filter(
         account_code=process.account_code,
         project_code=process.project_code,
@@ -322,6 +370,7 @@ def process_detail(request, pk):
             "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
         }
     )
+
 
 
 @login_required
