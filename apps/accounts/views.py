@@ -28,6 +28,10 @@ from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm
 
 from django.db import transaction
 
+from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+
 
 User = get_user_model()
 
@@ -77,7 +81,7 @@ def admin_customers_list(request):
     customers = (
         User.objects
         .filter(is_superuser=False, is_staff=False)
-        .select_related('account_access__account')  # Optimering
+        .prefetch_related("account_accesses__account")
         .order_by("-date_joined")
     )
     return render(request, "admin/accounts/customers_list.html", {"customers": customers})
@@ -440,6 +444,25 @@ def company_detail(request, pk):
     # Ny: invite + create user
     invite_form = CompanyInviteMemberForm()
 
+    root_accounts = (
+        Account.objects
+        .filter(company=company, parent__isnull=True)
+        .prefetch_related("children")
+        .order_by("name")
+    )
+
+    customers = (
+        User.objects
+        .filter(
+            is_staff=False,
+            is_superuser=False,
+            account_accesses__account__company=company,
+        )
+        .prefetch_related("account_accesses__account")
+        .distinct()
+        .order_by("email")
+    )
+
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -474,7 +497,6 @@ def company_detail(request, pk):
                 email = invite_form.cleaned_data["email"]
                 first_name = invite_form.cleaned_data.get("first_name", "")
                 last_name = invite_form.cleaned_data.get("last_name", "")
-                role = invite_form.cleaned_data["role"]
 
                 with transaction.atomic():
                     user, created_user = User.objects.get_or_create(
@@ -500,11 +522,7 @@ def company_detail(request, pk):
                             user.save(update_fields=["first_name", "last_name"])
 
                     # Koppla till företag (create or update role)
-                    CompanyMember.objects.update_or_create(
-                        company=company,
-                        user=user,
-                        defaults={"role": role},
-                    )
+                    CompanyMember.objects.get_or_create(company=company, user=user)
 
                     # Skicka invite om användaren inte är aktiv (dvs ej satt lösen)
                     if not user.is_active:
@@ -514,31 +532,34 @@ def company_detail(request, pk):
                             mentioning = False
                         user.save()
 
-                        send_invite_email(request, user)
+                        # Skapa accept-länk oavsett om user var ny eller redan fanns (men ej aktiv)
+                        invite_link = None
+                        open_invite_modal = False
+
+                        if not user.is_active:
+                            if user.has_usable_password():
+                                user.set_unusable_password()
+                            user.save()
+                            invite_link = build_invite_link(request, user)
+                            open_invite_modal = True
+
+                        messages.success(request, f"Inbjudan skapad för {email}.")
+                        return render(request, "admin/accounts/companies/company_detail.html", {
+                            "company": company,
+                            "memberships": memberships,
+                            "add_form": add_form,
+                            "invite_form": CompanyInviteMemberForm(),  # tom igen
+                            "root_accounts": root_accounts,
+                            "customers": customers,
+                            "invite_link": invite_link,
+                            "invite_email": email,
+                            "open_invite_modal": open_invite_modal,
+                        })
 
                 messages.success(request, f"Inbjudan skickad till {email}.")
                 return redirect("accounts:company_detail", pk=company.pk)
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
-
-    root_accounts = (
-        Account.objects
-        .filter(company=company, parent__isnull=True)
-        .prefetch_related("children")
-        .order_by("name")
-    )
-
-    customers = (
-        User.objects
-        .filter(
-            is_staff=False,
-            is_superuser=False,
-            account_accesses__account__company=company,
-        )
-        .prefetch_related("account_accesses__account")
-        .distinct()
-        .order_by("email")
-    )
 
     return render(request, "admin/accounts/companies/company_detail.html", {
         "company": company,
@@ -734,3 +755,9 @@ def company_create(request):
         "form": form,
         "is_create": True,
     })
+
+def build_invite_link(request, user):
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    path = reverse("accounts:accept_invite", kwargs={"uidb64": uidb64, "token": token})
+    return request.build_absolute_uri(path)

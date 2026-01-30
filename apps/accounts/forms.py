@@ -79,6 +79,22 @@ class CompanyMemberAddForm(forms.Form):
         widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "10"}),
         label="Välj användare",
     )
+    role = forms.ChoiceField(
+        choices=CompanyMember.ROLE_CHOICES,
+        initial=CompanyMember.ROLE_MEMBER,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Roll",
+    )
+
+
+class CompanyMemberRoleForm(forms.Form):
+    role = forms.ChoiceField(
+        choices=CompanyMember.ROLE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
+        label="",
+    )
 
 
 class CompanyForm(forms.ModelForm):
@@ -128,11 +144,6 @@ class CompanyInviteMemberForm(forms.Form):
     last_name = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Efternamn"})
-    )
-    role = forms.ChoiceField(
-        choices=CompanyMember.ROLE_CHOICES,
-        initial=CompanyMember.ROLE_MEMBER,
-        widget=forms.Select(attrs={"class": "form-select"})
     )
 
     def clean_email(self):
