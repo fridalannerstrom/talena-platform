@@ -10,11 +10,11 @@
       <p class="text-muted mb-0">Hantera kundföretag och deras medlemmar</p>
     </div>
 
-<div class="d-flex gap-2">
-  <a href="{% url 'accounts:company_create' %}" class="btn btn-primary">
-    <i class="fa-solid fa-plus me-2"></i> Skapa företag
-  </a>
-</div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'accounts:company_create' %}" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-2"></i> Skapa företag
+      </a>
+    </div>
   </div>
 
   {% if messages %}
@@ -47,16 +47,18 @@
               <th>Företag</th>
               <th>Org.nr</th>
               <th>Medlemmar</th>
-              <th>Accounts</th>
+              <th>Enheter</th>
             </tr>
           </thead>
           <tbody>
             {% for c in companies %}
               <tr>
-                <td class="fw-semibold"><a href="{% url 'accounts:company_detail' c.pk %}">{{ c.name }}</a></td>
+                <td class="fw-semibold">
+                  <a href="{% url 'accounts:company_detail' c.pk %}">{{ c.name }}</a>
+                </td>
                 <td class="text-muted">{{ c.org_number|default:"-" }}</td>
                 <td class="text-muted">{{ c.member_count }}</td>
-                <td class="text-muted">{{ c.account_count }}</td>
+                <td class="text-muted">{{ c.orgunit_count }}</td>
               </tr>
             {% empty %}
               <tr>

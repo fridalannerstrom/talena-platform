@@ -57,4 +57,9 @@ urlpatterns = [
         views.company_member_update_role,
         name="company_member_update_role",
     ),
+    path(
+        "companies/<int:company_pk>/orgunits/move/",
+        views.orgunit_move,
+        name="orgunit_move",
+    ),
 ]

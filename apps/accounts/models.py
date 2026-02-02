@@ -1,24 +1,25 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
 import uuid
 
 
-
-User = settings.AUTH_USER_MODEL
-
-def clean(self):
-    if not CompanyMember.objects.filter(user=self.user, company=self.account.company).exists():
-        raise ValidationError("User måste vara medlem i företaget innan account-access kan ges.")
-
+# ============================================================================
+# USER
+# ============================================================================
 
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         CUSTOMER = "customer", "Customer"
+
+
+# ============================================================================
+# COMPANY + MEMBERS
+# ============================================================================
 
 class Company(models.Model):
     name = models.CharField(max_length=255, verbose_name="Företagsnamn")
@@ -54,7 +55,7 @@ class CompanyMember(models.Model):
         verbose_name="Företag",
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="company_memberships",
         verbose_name="Användare",
@@ -70,6 +71,7 @@ class CompanyMember(models.Model):
 
     def __str__(self):
         return f"{self.company} ↔ {self.user} ({self.role})"
+
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -91,25 +93,24 @@ def ensure_profile_exists(sender, instance, created, **kwargs):
         Profile.objects.get_or_create(user=instance)
 
 
-
 # ============================================================================
-# ACCOUNT HIERARCHY (NY FUNKTIONALITET)
+# ORG UNIT HIERARCHY (ersätter Account)
 # ============================================================================
 
-class Account(models.Model):
+class OrgUnit(models.Model):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        related_name="accounts",
+        related_name="org_units",
         verbose_name="Företag",
     )
 
-    name = models.CharField(max_length=200, verbose_name="Kontonamn")
+    name = models.CharField(max_length=200, verbose_name="Enhetsnamn")
 
-    account_code = models.CharField(
+    unit_code = models.CharField(
         max_length=50,
-        verbose_name="Kontokod",
-        help_text="T.ex. K00979"
+        verbose_name="Enhetskod",
+        help_text="T.ex. CAPITOL, D12, D01"
     )
 
     parent = models.ForeignKey(
@@ -118,7 +119,7 @@ class Account(models.Model):
         null=True,
         blank=True,
         related_name="children",
-        verbose_name="Överliggande konto",
+        verbose_name="Överliggande enhet",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -126,24 +127,23 @@ class Account(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "Account"
-        verbose_name_plural = "Accounts"
+        verbose_name = "Org unit"
+        verbose_name_plural = "Org units"
         constraints = [
             models.UniqueConstraint(
-                fields=["company", "account_code"],
-                name="uniq_account_code_per_company",
+                fields=["company", "unit_code"],
+                name="uniq_unit_code_per_company",
             ),
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.account_code})"
+        return f"{self.name} ({self.unit_code})"
 
     def clean(self):
         # hindra att man kopplar parent från annat företag
         if self.parent and self.company_id and self.parent.company_id != self.company_id:
-            raise ValidationError({"parent": "Överliggande konto måste tillhöra samma företag."})
+            raise ValidationError({"parent": "Överliggande enhet måste tillhöra samma företag."})
 
-    # --- dina befintliga metoder ---
     def get_descendants(self):
         descendants = set()
         for child in self.children.all():
@@ -168,20 +168,20 @@ class Account(models.Model):
         ancestors = list(reversed(self.get_ancestors()))
         path = [a.name for a in ancestors] + [self.name]
         return " > ".join(path)
-    
 
-class UserAccountAccess(models.Model):
+
+class UserOrgUnitAccess(models.Model):
     """
-    Kopplar en user till ett account (många-till-många via denna tabell).
-    En user kan ha access till flera accounts.
+    Kopplar en user till en OrgUnit (många-till-många via denna tabell).
+    En user kan ha access till flera enheter.
     """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="account_accesses",
+        related_name="orgunit_accesses",
     )
-    account = models.ForeignKey(
-        Account,
+    org_unit = models.ForeignKey(
+        OrgUnit,
         on_delete=models.CASCADE,
         related_name="user_accesses",
     )
@@ -189,12 +189,21 @@ class UserAccountAccess(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["user", "account"], name="uniq_user_account"),
+            models.UniqueConstraint(fields=["user", "org_unit"], name="uniq_user_orgunit"),
         ]
 
     def __str__(self):
-        return f"{self.user.email} → {self.account.name}"
+        return f"{self.user.email} → {self.org_unit.name}"
 
+    def clean(self):
+        # kräver att user är medlem i samma företag som org_unit
+        if not CompanyMember.objects.filter(user=self.user, company=self.org_unit.company).exists():
+            raise ValidationError("User måste vara medlem i företaget innan orgunit-access kan ges.")
+
+
+# ============================================================================
+# INVITES
+# ============================================================================
 
 class UserInvite(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -203,7 +212,11 @@ class UserInvite(models.Model):
     company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, related_name="invites")
 
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_invites"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_invites"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

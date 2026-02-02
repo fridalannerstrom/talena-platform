@@ -2,6 +2,7 @@
 {% block title %}{{ company.name }} | Talena{% endblock %}
 
 {% block content %}
+{% load org_extras %}
 <div class="container-fluid px-2 px-md-4">
 
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
@@ -37,15 +38,17 @@
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button"
-                        role="tab">
+                    <button class="nav-link {% if active_tab != 'accounts' %}active{% endif %}" data-bs-toggle="tab"
+                        data-bs-target="#tab-overview" type="button" role="tab">
+
                         <i class="fa-solid fa-chart-simple me-2"></i> Overview
                     </button>
                 </li>
 
                 <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-accounts" type="button"
-                        role="tab">
+                    <button class="nav-link {% if active_tab == 'accounts' %}active{% endif %}" data-bs-toggle="tab"
+                        data-bs-target="#tab-accounts" type="button" role="tab">
+
                         <i class="fa-solid fa-sitemap me-2"></i> Accounts
                     </button>
                 </li>
@@ -60,7 +63,9 @@
             <div class="tab-content">
 
                 <!-- Overview -->
-                <div class="tab-pane fade show active" id="tab-overview" role="tabpanel">
+                <div class="tab-pane fade {% if active_tab != 'accounts' %}show active{% endif %}" id="tab-overview"
+                    role="tabpanel">
+
 
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -87,7 +92,7 @@
                                         </span>
                                         <span class="fw-semibold">Root accounts</span>
                                     </div>
-                                    <div class="display-6 mb-0">{{ root_accounts|length }}</div>
+                                    <div class="display-6 mb-0">{{ root_units|length }}</div>
                                     <div class="text-muted small">Huvudkonton (parent = null)</div>
                                 </div>
                             </div>
@@ -168,137 +173,388 @@
                 </div>
 
                 <!-- Accounts -->
-                <div class="tab-pane fade" id="tab-accounts" role="tabpanel">
+                <div class="tab-pane fade {% if active_tab == 'accounts' %}show active{% endif %}" id="tab-accounts"
+                    role="tabpanel">
                     <div
                         class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
                         <div>
-                            <h5 class="mb-1">Accounts för {{ company.name }}</h5>
-                            <div class="text-muted small">Här visar vi root accounts. Nästa steg: hierarki filtrerad per
-                                company.</div>
+                            <h5 class="mb-1">Enheter för {{ company.name }}</h5>
+                            <div class="text-muted small">Klicka på en enhet till vänster för att se vilka användare som
+                                har access.</div>
                         </div>
+
                         <div class="d-flex gap-2">
-                            <a href=""
-                                class="btn btn-sm btn-primary">
-                                <i class="fa-solid fa-plus me-2"></i> Skapa account
-                            </a>
-
-                            <a href=""
-                                class="btn btn-sm btn-outline-secondary">
-                                <i class="fa-solid fa-sitemap me-2"></i> Öppna hierarki
-                            </a>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#createOrgUnitModal">
+                                <i class="fa-solid fa-plus me-2"></i> Skapa enhet
+                            </button>
                         </div>
                     </div>
 
-                    {% if root_accounts %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Root account</th>
-                                    <th>Kod</th>
-                                    <th>Underkonton</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for a in root_accounts %}
-                                <tr>
-                                    <td class="fw-semibold">{{ a.name }}</td>
-                                    <td class="text-muted">{{ a.account_code }}</td>
-                                    <td>
-                                        <span class="badge bg-label-secondary">{{ a.children.count }}</span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-muted">Inga accounts ännu för detta företag.</div>
-                    {% endif %}
-                </div>
+                    <div class="row g-3">
 
+                        <!-- LEFT: Tree -->
+                        <div class="col-lg-5">
+                            <div class="card">
+                                <div class="card-header d-flex align-items-center justify-content-between">
+                                    <span class="fw-semibold">Orgstruktur</span>
+                                    <span class="badge bg-label-secondary">{{ root_units|length }}</span>
+                                </div>
+
+                                <div class="card-body">
+
+                                    <div class="root-dropzone alert alert-light border d-flex align-items-center gap-2 mb-3"
+                                        data-drop-parent-id="" style="cursor: copy;">
+                                        <i class="fa-solid fa-layer-group text-muted"></i>
+                                        <span class="text-muted">Släpp här för att flytta till toppnivå (root)</span>
+                                    </div>
+
+                                    <ul class="org-tree list-unstyled m-0">
+                                        {% for unit in root_units %}
+                                        {% include "admin/accounts/companies/_orgunit_node.html" with unit=unit %}
+                                        {% empty %}
+                                        <li class="text-muted">Inga enheter ännu.</li>
+                                        {% endfor %}
+                                    </ul>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: Detail -->
+                        <div class="col-lg-7">
+                            <div class="card border shadow-none h-100">
+                                <div class="card-header d-flex align-items-center justify-content-between">
+                                    <div class="fw-semibold">Vald enhet</div>
+                                    {% if selected_unit %}
+                                    <span class="badge bg-label-primary">{{ selected_unit.unit_code }}</span>
+                                    {% else %}
+                                    <span class="badge bg-label-secondary">Ingen vald</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card-body">
+                                    {% if selected_unit %}
+                                    <div class="mb-3">
+                                        <div class="h5 mb-1">{{ selected_unit.name }}</div>
+                                        <div class="text-muted small">{{ selected_unit.full_path }}</div>
+                                    </div>
+
+                                    <div class="card border shadow-none">
+                                        <div class="card-header d-flex align-items-center justify-content-between">
+                                            <div class="fw-semibold">Användare med access</div>
+                                            <span class="badge bg-light text-dark">{{ selected_unit_members|length
+                                                }}</span>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle mb-0">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Namn</th>
+                                                        <th>Email</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for access in selected_unit_members %}
+                                                    <tr>
+                                                        <td>
+                                                            {% if access.user.first_name or access.user.last_name %}
+                                                            {{ access.user.get_full_name }}
+                                                            {% else %}
+                                                            <span class="text-muted">—</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>{{ access.user.email }}</td>
+                                                        <td>
+                                                            {% if access.user.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                            {% else %}
+                                                            <span class="badge bg-warning text-dark">Not accepted</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    {% empty %}
+                                                    <tr>
+                                                        <td colspan="3" class="text-muted">Inga användare har access
+                                                            till denna enhet ännu.</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {% else %}
+                                    <div class="text-muted">Välj en enhet till vänster för att se detaljer och
+                                        användare.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- Create OrgUnit modal -->
+    <div class="modal fade" id="createOrgUnitModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_orgunit">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Skapa enhet</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Enhetsnamn</label>
+                            {{ orgunit_form.name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Enhetskod</label>
+                            {{ orgunit_form.unit_code }}
+                            <div class="form-text">Valfri kod, t.ex. “CAP” eller “D12”.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Överliggande enhet</label>
+                            {{ orgunit_form.parent }}
+                            <div class="form-text">Lämna tomt för att skapa en root-enhet.</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+                        <button class="btn btn-primary">
+                            Skapa
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-</div>
 
+    <!-- Invite modal -->
+    <div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="invite_member">
 
-<!-- Invite modal -->
-<div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="invite_member">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lägg till användare</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Lägg till användare</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+                    <div class="modal-body">
 
-                <div class="modal-body">
-
-                    {% if invite_link %}
-                    <div class="alert alert-success">
-                        <div class="fw-semibold">Invite link{% if invite_email %} för {{ invite_email }}{% endif %}
+                        {% if invite_link %}
+                        <div class="alert alert-success">
+                            <div class="fw-semibold">
+                                Invite link{% if invite_email %} för {{ invite_email }}{% endif %}
+                            </div>
+                            <div class="d-flex gap-2 align-items-center mt-2">
+                                <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
+                                <button type="button" class="btn btn-outline-primary"
+                                    onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
+                                    Copy
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">
+                                Skicka länken i valfritt mejl. När personen öppnar länken får den välja lösenord och
+                                loggas
+                                in.
+                            </div>
                         </div>
-                        <div class="d-flex gap-2 align-items-center mt-2">
-                            <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
-                            <button type="button" class="btn btn-outline-primary"
-                                onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
-                                Copy
-                            </button>
+                        <hr>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            {{ invite_form.email }}
                         </div>
+
+                        <div class="row g-2">
+                            <div class="col">
+                                <label class="form-label">Förnamn</label>
+                                {{ invite_form.first_name }}
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Efternamn</label>
+                                {{ invite_form.last_name }}
+                            </div>
+                        </div>
+
                         <div class="form-text mt-2">
-                            Skicka länken i valfritt mejl. När personen öppnar länken får den välja lösenord och loggas
-                            in.
+                            Systemet skickar inget mail. Du får en länk att kopiera.
                         </div>
-                    </div>
-                    <hr>
-                    {% endif %}
 
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        {{ invite_form.email }}
                     </div>
 
-                    <div class="row g-2">
-                        <div class="col">
-                            <label class="form-label">Förnamn</label>
-                            {{ invite_form.first_name }}
-                        </div>
-                        <div class="col">
-                            <label class="form-label">Efternamn</label>
-                            {{ invite_form.last_name }}
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+
+                        <button class="btn btn-primary">
+                            Skapa invite link
+                        </button>
                     </div>
-
-                    <div class="form-text mt-2">
-                        Systemet skickar inget mail. Du får en länk att kopiera.
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
-
-                    <button class="btn btn-primary">
-                        Skapa invite link
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-{% if open_invite_modal %}
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const el = document.getElementById("inviteUserModal");
-        if (!el) return;
-        const modal = new bootstrap.Modal(el);
-        modal.show();
-    });
-</script>
-{% endif %}
-{% endblock %}
+    {% if open_invite_modal %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const el = document.getElementById("inviteUserModal");
+            if (!el) return;
+            const modal = new bootstrap.Modal(el);
+            modal.show();
+        });
+    </script>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script>
+        (function () {
+            // --- CSRF helper ---
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(";").shift();
+            }
+
+            const csrftoken = getCookie("csrftoken");
+
+            let draggedUnitId = null;
+
+            // Markera dragstart
+            document.addEventListener("dragstart", (e) => {
+                const node = e.target.closest(".org-node");
+                if (!node) return;
+
+                draggedUnitId = node.dataset.unitId;
+                e.dataTransfer.setData("text/plain", draggedUnitId);
+                e.dataTransfer.effectAllowed = "move";
+
+                node.classList.add("is-dragging");
+            });
+
+            document.addEventListener("dragend", (e) => {
+                const node = e.target.closest(".org-node");
+                if (node) node.classList.remove("is-dragging");
+                draggedUnitId = null;
+                document.querySelectorAll(".drop-hover").forEach(el => el.classList.remove("drop-hover"));
+            });
+
+            // Alla drop-targets (inkl root-dropzone) ska acceptera drop
+            function bindDropTarget(el) {
+                el.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    el.classList.add("drop-hover");
+                });
+
+                el.addEventListener("dragleave", () => {
+                    el.classList.remove("drop-hover");
+                });
+
+                el.addEventListener("drop", async (e) => {
+                    e.preventDefault();
+                    el.classList.remove("drop-hover");
+
+                    const unitId = draggedUnitId || e.dataTransfer.getData("text/plain");
+                    if (!unitId) return;
+
+                    // parent id från target (tom sträng => root/null)
+                    const parentIdRaw = el.dataset.dropParentId;
+                    const newParentId = parentIdRaw ? parseInt(parentIdRaw, 10) : null;
+
+                    // block: släpp på sig själv
+                    if (newParentId && parseInt(unitId, 10) === newParentId) {
+                        toast("Du kan inte lägga en enhet under sig själv.");
+                        return;
+                    }
+
+                    try {
+                        const url = "{% url 'accounts:orgunit_move' company.pk %}";
+
+                        const resp = await fetch(url, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRFToken": csrftoken,
+                            },
+                            body: JSON.stringify({
+                                unit_id: parseInt(unitId, 10),
+                                new_parent_id: newParentId,
+                            }),
+                        });
+
+                        const data = await resp.json();
+
+                        if (!resp.ok || !data.ok) {
+                            toast(data.error || "Kunde inte flytta enheten.");
+                            return;
+                        }
+
+                        // ✅ enklast: reloada så att children_map och root_units blir korrekt direkt
+                        // (du kan göra det “live” sen, men detta är stabilt för MVP)
+                        window.location.reload();
+
+                    } catch (err) {
+                        console.error(err);
+                        toast("Något gick fel vid flytt.");
+                    }
+                });
+            }
+
+            // Bind alla targets
+            document.querySelectorAll(".drop-target, .root-dropzone").forEach(bindDropTarget);
+
+            // Mini-toast (enkel)
+            function toast(msg) {
+                const el = document.createElement("div");
+                el.className = "alert alert-warning position-fixed";
+                el.style.right = "16px";
+                el.style.bottom = "16px";
+                el.style.zIndex = "9999";
+                el.textContent = msg;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 2500);
+            }
+        })();
+    </script>
+
+    <style>
+        .drop-hover {
+            outline: 2px dashed rgba(105, 108, 255, 0.5);
+            outline-offset: 2px;
+        }
+
+        .org-row:hover {
+            background: rgba(105, 108, 255, 0.06);
+        }
+
+        .is-dragging {
+            opacity: 0.5;
+        }
+    </style>
+
+    {% endblock %}

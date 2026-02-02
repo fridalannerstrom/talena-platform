@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 import uuid
 from django.urls import reverse
-from apps.accounts.models import Account, Company
+from apps.accounts.models import OrgUnit, Company
 
 
 class TestProcess(models.Model):

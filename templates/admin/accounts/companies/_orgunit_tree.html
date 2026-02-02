@@ -1,0 +1,41 @@
+{% load accounts_extras %}
+
+<ul class="list-unstyled mb-0">
+  {% for node in nodes %}
+    {% with kids=children_map|get_item:node.id %}
+    <li class="mb-2">
+
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          {% if kids %}
+            <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#unit-{{ node.id }}">
+              <i class="fa-solid fa-caret-down"></i>
+            </button>
+          {% else %}
+            <span class="text-muted" style="width:32px; display:inline-block;"></span>
+          {% endif %}
+
+          <a class="{% if selected_unit and selected_unit.id == node.id %}fw-semibold{% endif %}"
+             href="{% url 'accounts:company_detail' company.pk %}?tab=accounts&org_unit={{ node.id }}">
+            {{ node.name }}
+            <span class="text-muted small">({{ node.unit_code }})</span>
+          </a>
+        </div>
+
+        {% if kids %}
+          <span class="badge bg-label-secondary">{{ kids|length }}</span>
+        {% endif %}
+      </div>
+
+      {% if kids %}
+        <div class="collapse show ms-4 mt-2" id="unit-{{ node.id }}">
+          {% include "admin/accounts/companies/_orgunit_tree.html" with nodes=kids children_map=children_map selected_unit=selected_unit company=company %}
+        </div>
+      {% endif %}
+    </li>
+    {% endwith %}
+  {% endfor %}
+</ul>

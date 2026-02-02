@@ -1,8 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from apps.accounts.models import Account, UserAccountAccess, CompanyMember, Company
+
+from apps.accounts.models import OrgUnit, UserOrgUnitAccess, CompanyMember, Company
 
 User = get_user_model()
+
 
 class InviteUserForm(forms.ModelForm):
     class Meta:
@@ -18,37 +20,45 @@ class InviteUserForm(forms.ModelForm):
         return email
 
 
-class AccountForm(forms.ModelForm):
-    """Form för att skapa/redigera Account"""
-    
+class OrgUnitForm(forms.ModelForm):
+    """Form för att skapa/redigera OrgUnit."""
+
     class Meta:
-        model = Account
-        fields = ['name', 'account_code', 'parent']
+        model = OrgUnit
+        fields = ["name", "unit_code", "parent"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. JM Stockholm"}),
-            "account_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. K00846"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. District 12"}),
+            "unit_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "T.ex. D12"}),
             "parent": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
-            'name': 'Kontonamn',
-            'account_code': 'Kontokod',
-            'parent': 'Överliggande konto (valfritt)'
+            "name": "Enhetsnamn",
+            "unit_code": "Enhetskod",
+            "parent": "Överliggande enhet (valfritt)",
         }
 
+    def __init__(self, *args, **kwargs):
+        company = kwargs.pop("company", None)
+        super().__init__(*args, **kwargs)
+        if company is not None:
+            self.fields["parent"].queryset = (
+                OrgUnit.objects.filter(company=company).order_by("name")
+            )
 
-class UserAccountAccessForm(forms.ModelForm):
-    """Form för att koppla en User till ett Account"""
+
+class UserOrgUnitAccessForm(forms.ModelForm):
+    """Form för att koppla en User till en OrgUnit."""
 
     class Meta:
-        model = UserAccountAccess
-        fields = ["user", "account"]
+        model = UserOrgUnitAccess
+        fields = ["user", "org_unit"]
         widgets = {
             "user": forms.Select(attrs={"class": "form-select"}),
-            "account": forms.Select(attrs={"class": "form-select"}),
+            "org_unit": forms.Select(attrs={"class": "form-select"}),
         }
         labels = {
             "user": "Användare",
-            "account": "Account",
+            "org_unit": "Enhet",
         }
 
     def __init__(self, *args, **kwargs):
@@ -62,13 +72,20 @@ class UserAccountAccessForm(forms.ModelForm):
             .order_by("email")
         )
 
-        # Om vi vet vilket företag vi är i: visa bara accounts i det företaget
+        # Om vi vet vilket företag vi är i: visa bara users i det företaget
         if company is not None:
             self.fields["user"].queryset = (
                 User.objects
                 .filter(company_memberships__company=company)
                 .order_by("email")
                 .distinct()
+            )
+
+            # Och visa bara org units i det företaget
+            self.fields["org_unit"].queryset = (
+                OrgUnit.objects
+                .filter(company=company)
+                .order_by("name")
             )
 
 
@@ -111,12 +128,12 @@ class CompanyForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Ex: JM AB",
+                "placeholder": "Ex: Panem",
                 "autocomplete": "organization",
             }),
             "org_number": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "Ex: 556677-8899",
+                "placeholder": "Ex: 12345",
                 "autocomplete": "off",
             }),
         }
@@ -129,7 +146,6 @@ class CompanyForm(forms.ModelForm):
 
     def clean_org_number(self):
         org = (self.cleaned_data.get("org_number") or "").strip()
-        # Låt tomt vara ok
         return org or None
 
 

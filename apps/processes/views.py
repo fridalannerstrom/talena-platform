@@ -24,7 +24,7 @@ from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
 from django.http import HttpResponseForbidden
 
-from apps.accounts.models import Account, UserAccountAccess, CompanyMember
+from apps.accounts.models import CompanyMember
 
 import json
 import uuid
@@ -274,19 +274,14 @@ def process_update(request, pk):
 
 
 @login_required
-@login_required
 def process_delete(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
-    
-    # Säkerhetskontroll
-    if not user_can_access_account(request.user, obj.account):
+
+    if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
-    if request.method == "POST":
-        obj.delete()
-        return redirect("processes:process_list")
-
-    # om någon råkar gå hit via GET
+    obj.delete()
+    messages.success(request, "Processen raderades.")
     return redirect("processes:process_list")
 
 

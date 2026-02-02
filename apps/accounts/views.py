@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
-from .forms import InviteUserForm, AccountForm, UserAccountAccessForm
+from .forms import InviteUserForm, OrgUnitForm, UserOrgUnitAccessForm
 from .services.invites import send_invite_email
 from .decorators import admin_required
 from apps.portal.forms import AccountForm as PortalAccountForm, ProfileImageForm
@@ -22,7 +22,7 @@ from .utils.permissions import get_user_accessible_accounts
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
-from .models import Company, CompanyMember, Account, UserAccountAccess
+from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
 from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm
 
 from django.db import transaction
@@ -33,6 +33,11 @@ from django.utils.encoding import force_bytes
 
 from .models import UserInvite
 from django.utils import timezone
+
+import json
+from django.http import JsonResponse
+
+
 
 
 User = get_user_model()
@@ -277,7 +282,7 @@ def company_list(request):
         Company.objects
         .annotate(
             member_count=Count("memberships", distinct=True),
-            account_count=Count("accounts", distinct=True),
+            orgunit_count=Count("org_units", distinct=True),
         )
         .order_by("name")
     )
@@ -291,6 +296,44 @@ def company_list(request):
 def company_detail(request, pk):
     company = get_object_or_404(Company, pk=pk)
 
+    # Forms (default)
+    add_form = CompanyMemberAddForm()
+    invite_form = CompanyInviteMemberForm()
+    orgunit_form = OrgUnitForm(company=company)
+
+    # Selected unit (för högersidan)
+    selected_unit_id = request.GET.get("org_unit")
+    selected_unit = None
+    selected_unit_members = []
+
+    if selected_unit_id:
+        try:
+            selected_unit = OrgUnit.objects.get(pk=selected_unit_id, company=company)
+            selected_unit_members = (
+                UserOrgUnitAccess.objects
+                .filter(org_unit=selected_unit)
+                .select_related("user")
+                .order_by("user__email")
+            )
+        except OrgUnit.DoesNotExist:
+            selected_unit = None
+            selected_unit_members = []
+
+    # Org tree (vänstersidan) – byggs ALLTID (GET och POST)
+    all_units = (
+        OrgUnit.objects
+        .filter(company=company)
+        .select_related("parent")
+        .order_by("name")
+    )
+
+    children_map = {}
+    for u in all_units:
+        children_map.setdefault(u.parent_id, []).append(u)
+
+    root_units = children_map.get(None, [])
+
+    # Memberships (overview-tabellen)
     memberships = (
         CompanyMember.objects
         .filter(company=company)
@@ -298,35 +341,35 @@ def company_detail(request, pk):
         .order_by("user__email")
     )
 
-    # Befintlig bulk-add (behåll om du vill)
-    add_form = CompanyMemberAddForm()
-
-    # Ny: invite + create user
-    invite_form = CompanyInviteMemberForm()
-
-    root_accounts = (
-        Account.objects
-        .filter(company=company, parent__isnull=True)
-        .prefetch_related("children")
-        .order_by("name")
-    )
-
+    # (valfritt) Customers – byt till company membership istället för account_accesses
     customers = (
         User.objects
         .filter(
             is_staff=False,
             is_superuser=False,
-            account_accesses__account__company=company,
+            company_memberships__company=company,
         )
-        .prefetch_related("account_accesses__account")
         .distinct()
         .order_by("email")
     )
 
+    # POST actions
     if request.method == "POST":
         action = request.POST.get("action")
 
-        if action == "add_members":
+        if action == "create_orgunit":
+            orgunit_form = OrgUnitForm(request.POST, company=company)
+            if orgunit_form.is_valid():
+                unit = orgunit_form.save(commit=False)
+                unit.company = company
+                unit.save()
+                messages.success(request, f"Enhet '{unit.name}' skapad.")
+                return redirect(
+                    f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts&org_unit={unit.pk}"
+                )
+            messages.error(request, "Kunde inte skapa enhet. Kontrollera fälten.")
+
+        elif action == "add_members":
             add_form = CompanyMemberAddForm(request.POST)
             if add_form.is_valid():
                 users = add_form.cleaned_data["users"]
@@ -349,9 +392,10 @@ def company_detail(request, pk):
                     messages.info(request, f"{updated} användare fanns redan och fick rollen uppdaterad.")
 
                 return redirect("accounts:company_detail", pk=company.pk)
+
             messages.error(request, "Kunde inte lägga till användare. Kontrollera formuläret.")
 
-        if action == "invite_member":
+        elif action == "invite_member":
             invite_form = CompanyInviteMemberForm(request.POST)
             if invite_form.is_valid():
                 email = invite_form.cleaned_data["email"]
@@ -369,7 +413,6 @@ def company_detail(request, pk):
                         }
                     )
 
-                    # Om user fanns: uppdatera namn om tomt
                     if not created_user:
                         changed = False
                         if first_name and not user.first_name:
@@ -381,53 +424,59 @@ def company_detail(request, pk):
                         if changed:
                             user.save(update_fields=["first_name", "last_name"])
 
-                    # Koppla till företag (create or update role)
+                    # Koppla till företag
                     CompanyMember.objects.get_or_create(company=company, user=user)
 
-                    # Skicka invite om användaren inte är aktiv (dvs ej satt lösen)
+                    invite_link = None
+                    open_invite_modal = False
+
                     if not user.is_active:
-                        # om du kör invites via unusable password kan du sätta det här
                         if user.has_usable_password():
                             user.set_unusable_password()
-                            mentioning = False
                         user.save()
 
-                        # Skapa accept-länk oavsett om user var ny eller redan fanns (men ej aktiv)
-                        invite_link = None
-                        open_invite_modal = False
+                        invite_link = build_invite_link(request, user)
+                        open_invite_modal = True
 
-                        if not user.is_active:
-                            if user.has_usable_password():
-                                user.set_unusable_password()
-                            user.save()
-                            invite_link = build_invite_link(request, user)
-                            open_invite_modal = True
+                messages.success(request, f"Inbjudan skapad för {email}.")
 
-                        messages.success(request, f"Inbjudan skapad för {email}.")
-                        return render(request, "admin/accounts/companies/company_detail.html", {
-                            "company": company,
-                            "memberships": memberships,
-                            "add_form": add_form,
-                            "invite_form": CompanyInviteMemberForm(),  # tom igen
-                            "root_accounts": root_accounts,
-                            "customers": customers,
-                            "invite_link": invite_link,
-                            "invite_email": email,
-                            "open_invite_modal": open_invite_modal,
-                        })
+                # Rendera samma sida men med invite_link så modalen kan visa länken
+                return render(request, "admin/accounts/companies/company_detail.html", {
+                    "company": company,
+                    "memberships": memberships,
+                    "add_form": add_form,
+                    "invite_form": CompanyInviteMemberForm(),
+                    "customers": customers,
 
-                messages.success(request, f"Inbjudan skickad till {email}.")
-                return redirect("accounts:company_detail", pk=company.pk)
+                    "orgunit_form": orgunit_form,
+                    "root_units": root_units,
+                    "children_map": children_map,
+                    "selected_unit": selected_unit,
+                    "selected_unit_members": selected_unit_members,
+
+                    "invite_link": invite_link,
+                    "invite_email": email,
+                    "open_invite_modal": open_invite_modal,
+                    "active_tab": request.GET.get("tab", "overview"),
+                })
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
 
+    # Default render (GET eller POST med valideringsfel)
     return render(request, "admin/accounts/companies/company_detail.html", {
         "company": company,
         "memberships": memberships,
         "add_form": add_form,
         "invite_form": invite_form,
-        "root_accounts": root_accounts,
         "customers": customers,
+
+        "orgunit_form": orgunit_form,
+        "root_units": root_units,
+        "children_map": children_map,
+        "selected_unit": selected_unit,
+        "selected_unit_members": selected_unit_members,
+
+        "active_tab": request.GET.get("tab", "overview"),
     })
 
 
@@ -511,3 +560,49 @@ def accept_invite_uuid(request, invite_id):
         form = SetPasswordForm(user)
 
     return render(request, "accounts/accept_invite.html", {"form": form, "user": user})
+
+
+@login_required
+@admin_required
+@require_POST
+def orgunit_move(request, company_pk):
+    """
+    Tar emot JSON:
+      { "unit_id": 123, "new_parent_id": 456 }   -> flytta under annan
+      { "unit_id": 123, "new_parent_id": null }  -> gör root
+    """
+    company = get_object_or_404(Company, pk=company_pk)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON."}, status=400)
+
+    unit_id = payload.get("unit_id")
+    new_parent_id = payload.get("new_parent_id", None)
+
+    if not unit_id:
+        return JsonResponse({"ok": False, "error": "unit_id is required."}, status=400)
+
+    unit = get_object_or_404(OrgUnit, pk=unit_id, company=company)
+
+    new_parent = None
+    if new_parent_id:
+        new_parent = get_object_or_404(OrgUnit, pk=new_parent_id, company=company)
+
+        # skydd: förhindra loop (lägga under sig själv eller sin egen subtree)
+        cur = new_parent
+        while cur:
+            if cur.pk == unit.pk:
+                return JsonResponse({"ok": False, "error": "Cannot move unit under itself/descendant."}, status=400)
+            cur = cur.parent
+
+    with transaction.atomic():
+        unit.parent = new_parent
+        unit.save(update_fields=["parent"])
+
+    return JsonResponse({
+        "ok": True,
+        "unit_id": unit.pk,
+        "new_parent_id": new_parent.pk if new_parent else None,
+    })
