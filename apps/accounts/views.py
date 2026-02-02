@@ -23,7 +23,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 
 from .models import Company, CompanyMember, OrgUnit, UserOrgUnitAccess
-from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm
+from .forms import CompanyMemberAddForm, CompanyForm, CompanyInviteMemberForm, OrgUnitAccessAddForm
 
 from django.db import transaction
 
@@ -319,6 +319,8 @@ def company_detail(request, pk):
             selected_unit = None
             selected_unit_members = []
 
+    unit_access_form = OrgUnitAccessAddForm(company=company, org_unit=selected_unit) if selected_unit else None
+
     # Org tree (vänstersidan) – byggs ALLTID (GET och POST)
     all_units = (
         OrgUnit.objects
@@ -458,9 +460,31 @@ def company_detail(request, pk):
                     "invite_email": email,
                     "open_invite_modal": open_invite_modal,
                     "active_tab": request.GET.get("tab", "overview"),
+                    "unit_access_form": unit_access_form,
                 })
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
+
+        elif action == "add_unit_access":
+            org_unit_id = request.POST.get("org_unit_id")
+            if not org_unit_id:
+                messages.error(request, "Ingen enhet vald.")
+                return redirect("accounts:company_detail", pk=company.pk)
+
+            unit = get_object_or_404(OrgUnit, pk=org_unit_id, company=company)
+
+            unit_access_form = OrgUnitAccessAddForm(request.POST, company=company, org_unit=unit)
+            if unit_access_form.is_valid():
+                users = unit_access_form.cleaned_data["users"]
+                created = 0
+                for u in users:
+                    _, was_created = UserOrgUnitAccess.objects.get_or_create(user=u, org_unit=unit)
+                    created += 1 if was_created else 0
+
+                messages.success(request, f"{created} användare fick access till {unit.name}.")
+                return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts&org_unit={unit.pk}")
+
+            messages.error(request, "Kunde inte lägga till access. Kontrollera formuläret.")
 
     # Default render (GET eller POST med valideringsfel)
     return render(request, "admin/accounts/companies/company_detail.html", {
@@ -475,6 +499,7 @@ def company_detail(request, pk):
         "children_map": children_map,
         "selected_unit": selected_unit,
         "selected_unit_members": selected_unit_members,
+        "unit_access_form": unit_access_form,
 
         "active_tab": request.GET.get("tab", "overview"),
     })

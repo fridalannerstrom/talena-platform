@@ -209,13 +209,13 @@
                                         <span class="text-muted">Släpp här för att flytta till toppnivå (root)</span>
                                     </div>
 
-                                    <ul class="org-tree list-unstyled m-0">
-                                        {% for unit in root_units %}
-                                        {% include "admin/accounts/companies/_orgunit_node.html" with unit=unit %}
-                                        {% empty %}
-                                        <li class="text-muted">Inga enheter ännu.</li>
-                                        {% endfor %}
-                                    </ul>
+<ul class="org-tree list-unstyled m-0">
+  {% for unit in root_units %}
+    {% include "admin/accounts/companies/_orgunit_node.html" with unit=unit selected_unit=selected_unit children_map=children_map %}
+  {% empty %}
+    <li class="text-muted">Inga enheter ännu.</li>
+  {% endfor %}
+</ul>
 
                                 </div>
                             </div>
@@ -285,6 +285,22 @@
                                             </table>
                                         </div>
                                     </div>
+
+                                    <div class="card-header d-flex align-items-center justify-content-between">
+  <div class="fw-semibold">Vald enhet</div>
+
+  <div class="d-flex align-items-center gap-2">
+    {% if selected_unit %}
+      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addUnitUsersModal">
+        <i class="fa-solid fa-user-plus me-2"></i> Lägg till användare
+      </button>
+      <span class="badge bg-label-primary">{{ selected_unit.unit_code }}</span>
+    {% else %}
+      <span class="badge bg-label-secondary">Ingen vald</span>
+    {% endif %}
+  </div>
+</div>
+
 
                                     {% else %}
                                     <div class="text-muted">Välj en enhet till vänster för att se detaljer och
@@ -419,6 +435,7 @@
             </div>
         </div>
     </div>
+
     {% if open_invite_modal %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -429,6 +446,41 @@
         });
     </script>
     {% endif %}
+
+
+
+    {% if selected_unit %}
+<div class="modal fade" id="addUnitUsersModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_unit_access">
+        <input type="hidden" name="org_unit_id" value="{{ selected_unit.id }}">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Lägg till användare i {{ selected_unit.name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <label class="form-label">Välj användare (endast de som inte redan har access visas)</label>
+          {{ unit_access_form.users }}
+          <div class="form-text mt-2">
+            De valda användarna får automatiskt en koppling (UserOrgUnitAccess) till den här enheten.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+          <button class="btn btn-primary">Lägg till</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
@@ -578,6 +630,24 @@
         .is-dragging {
             opacity: 0.5;
         }
+
+          .org-row { cursor: grab; }
+  .org-row:active { cursor: grabbing; }
+
+  .drop-hover {
+    outline: 2px dashed rgba(105, 108, 255, 0.5);
+    outline-offset: 2px;
+    background: rgba(105, 108, 255, 0.06);
+  }
+
+  .is-dragging { opacity: 0.5; }
+  
+    .org-link { text-decoration: none; }
+  .org-link.active { color: #696cff; }
+  .org-active {
+    background: rgba(105, 108, 255, 0.10);
+    border: 1px solid rgba(105, 108, 255, 0.25);
+  }
     </style>
 
     {% endblock %}

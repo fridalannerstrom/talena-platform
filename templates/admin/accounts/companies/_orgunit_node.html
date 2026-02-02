@@ -2,25 +2,32 @@
 
 <li class="mb-1">
 
-  <div class="org-node d-flex align-items-center gap-2 org-row rounded px-2 py-2"
+  {# Rad / klickyta #}
+  <div class="org-node org-row d-flex align-items-center gap-2 px-2 py-2 rounded
+              {% if selected_unit and unit.id == selected_unit.id %}org-active{% endif %}"
        draggable="true"
-       data-unit-id="{{ unit.id }}"
-       data-drop-parent-id="{{ unit.id }}">
+       data-unit-id="{{ unit.id }}">
 
     <i class="fa-solid fa-grip-vertical text-muted"></i>
 
-    <a href="?tab=accounts&org_unit={{ unit.id }}"
-       class="org-link fw-semibold text-decoration-none">
-      {{ unit.name }}
+    <a class="org-link {% if selected_unit and unit.id == selected_unit.id %}active{% endif %}"
+       href="?tab=accounts&org_unit={{ unit.id }}">
+      <span class="fw-semibold">{{ unit.name }}</span>
       <span class="text-muted">({{ unit.unit_code }})</span>
     </a>
+
+    {# Drop-target på själva raden (släpp på Capitol-texten) #}
+    <span class="drop-target ms-auto"
+          data-drop-parent-id="{{ unit.id }}"
+          style="min-width: 24px; min-height: 24px;"></span>
   </div>
 
+  {# Barn #}
   {% with kids=children_map|get_item:unit.id %}
     {% if kids %}
       <ul class="list-unstyled ms-4 mt-1">
         {% for child in kids %}
-          {% include "admin/accounts/companies/_orgunit_node.html" with unit=child %}
+          {% include "admin/accounts/companies/_orgunit_node.html" with unit=child selected_unit=selected_unit children_map=children_map %}
         {% endfor %}
       </ul>
     {% endif %}

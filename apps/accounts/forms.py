@@ -164,3 +164,28 @@ class CompanyInviteMemberForm(forms.Form):
 
     def clean_email(self):
         return (self.cleaned_data.get("email") or "").strip().lower()
+
+
+class OrgUnitAccessAddForm(forms.Form):
+    users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "8"})
+    )
+
+    def __init__(self, *args, company=None, org_unit=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not company or not org_unit:
+            self.fields["users"].queryset = User.objects.none()
+            return
+
+        already_ids = UserOrgUnitAccess.objects.filter(org_unit=org_unit).values_list("user_id", flat=True)
+
+        self.fields["users"].queryset = (
+            User.objects
+            .filter(company_memberships__company=company)
+            .exclude(id__in=already_ids)
+            .order_by("email")
+            .distinct()
+        )
