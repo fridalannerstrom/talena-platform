@@ -526,7 +526,7 @@
             }
 
             // Bind alla targets
-            document.querySelectorAll(".drop-target, .root-dropzone").forEach(bindDropTarget);
+            document.querySelectorAll(".org-node, .root-dropzone").forEach(bindDropTarget);
 
             // Mini-toast (enkel)
             function toast(msg) {
@@ -538,6 +538,29 @@
                 el.textContent = msg;
                 document.body.appendChild(el);
                 setTimeout(() => el.remove(), 2500);
+
+            let isDragging = false;
+
+            document.addEventListener("dragstart", (e) => {
+            const node = e.target.closest(".org-node");
+            if (!node) return;
+            isDragging = true;
+            });
+
+            document.addEventListener("dragend", () => {
+            setTimeout(() => { isDragging = false; }, 0);
+            });
+
+            // Stoppa klick på länken om vi precis drag-dropped
+            document.addEventListener("click", (e) => {
+            const link = e.target.closest(".org-link");
+            if (!link) return;
+            if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            }, true);
+
             }
         })();
     </script>

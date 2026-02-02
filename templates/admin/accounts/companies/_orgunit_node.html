@@ -1,38 +1,29 @@
 {% load org_extras %}
 
-<li class="org-node"
-    data-unit-id="{{ unit.id }}"
-    draggable="true">
+<li class="mb-1">
 
-  <div class="org-row d-flex align-items-center justify-content-between gap-2 py-1 px-2 rounded">
-    <div class="d-flex align-items-center gap-2">
-      <span class="drag-handle text-muted" title="Dra för att flytta" style="cursor: grab;">
-        <i class="fa-solid fa-grip-vertical"></i>
-      </span>
+  <div class="org-node d-flex align-items-center gap-2 org-row rounded px-2 py-2"
+       draggable="true"
+       data-unit-id="{{ unit.id }}"
+       data-drop-parent-id="{{ unit.id }}">
 
-      {# Klick för att välja enhet (högerpanel) #}
-      <a href="?tab=accounts&org_unit={{ unit.id }}"
-         class="org-link {% if selected_unit and selected_unit.id == unit.id %}fw-semibold{% endif %}">
-        {{ unit.name }}
-        <span class="text-muted">({{ unit.unit_code }})</span>
-      </a>
-    </div>
+    <i class="fa-solid fa-grip-vertical text-muted"></i>
 
-    {# Drop target: släpp här för att göra unit till child till denna #}
-    <span class="drop-target badge bg-label-secondary"
-          data-drop-parent-id="{{ unit.id }}"
-          title="Släpp här för att lägga under {{ unit.name }}">
-      Släpp här
-    </span>
+    <a href="?tab=accounts&org_unit={{ unit.id }}"
+       class="org-link fw-semibold text-decoration-none">
+      {{ unit.name }}
+      <span class="text-muted">({{ unit.unit_code }})</span>
+    </a>
   </div>
 
   {% with kids=children_map|get_item:unit.id %}
     {% if kids %}
-      <ul class="org-children ms-4 mt-1">
+      <ul class="list-unstyled ms-4 mt-1">
         {% for child in kids %}
           {% include "admin/accounts/companies/_orgunit_node.html" with unit=child %}
         {% endfor %}
       </ul>
     {% endif %}
   {% endwith %}
+
 </li>
