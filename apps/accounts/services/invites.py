@@ -4,20 +4,27 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
-def send_invite_email(request, user):
-    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+def send_invite_email(to_email, invite_link, company_name="", invited_by=""):
+    subject = f"Du är inbjuden till Talena{f' ({company_name})' if company_name else ''}"
+    text = f"""Hej!
 
-    path = reverse("accounts:accept_invite", kwargs={"uidb64": uidb64, "token": token})
-    invite_url = request.build_absolute_uri(path)
+Du har blivit inbjuden till Talena{f' för {company_name}' if company_name else ''}.
+Klicka på länken för att välja lösenord och aktivera ditt konto:
 
-    subject = "Set your password for Talena"
-    message = (
-        f"Hi {user.first_name or ''},\n\n"
-        f"You’ve been invited to Talena.\n"
-        f"Set your password here:\n{invite_url}\n\n"
-        f"If you didn’t expect this email, you can ignore it."
+{invite_link}
+
+{f'Inbjudan skickades av: {invited_by}' if invited_by else ''}
+
+/Talena
+"""
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=text,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+        to=[to_email],
     )
-
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    msg.send()

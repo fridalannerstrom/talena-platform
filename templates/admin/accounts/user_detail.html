@@ -27,7 +27,7 @@
 {% if pending_invite %}
   <button type="button" class="btn btn-outline-primary btn-sm"
           data-bs-toggle="modal" data-bs-target="#inviteLinkModal">
-    Generera ny länk
+    Skicka ny inbjudan
   </button>
 {% endif %}
 
@@ -116,7 +116,7 @@
         {% if pending_invite %}
           <form method="post" class="m-0">
             {% csrf_token %}
-            <input type="hidden" name="action" value="generate_invite_link">
+            <input type="hidden" name="action" value="resend_invite">
             <button type="submit" class="btn btn-primary">
               Generera ny länk
             </button>

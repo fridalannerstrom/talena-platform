@@ -1,0 +1,10 @@
+Hej!
+
+Du har blivit inbjuden till Talena för {{ company_name }}.
+Skapa ditt lösenord via länken nedan:
+
+{{ invite_link }}
+
+Inbjuden av: {{ invited_by }}
+
+/ Talena

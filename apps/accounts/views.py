@@ -69,32 +69,37 @@ def admin_user_detail(request, pk):
     # Hitta company för usern (om du tillåter bara 1 företag per user)
     company = Company.objects.filter(memberships__user=user_obj).first()
 
-    if request.method == "POST" and request.POST.get("action") == "generate_invite_link":
+    if request.method == "POST" and request.POST.get("action") == "resend_invite":
         if not pending_invite:
             messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
         elif not company:
             messages.error(request, "Användaren är inte kopplad till något företag. Koppla användaren först.")
         else:
-            # Revoka tidigare aktiva invites
-            UserInvite.objects.filter(
-                user=user_obj,
-                company=company,
-                accepted_at__isnull=True,
-                revoked_at__isnull=True,
-            ).update(revoked_at=timezone.now())
+            with transaction.atomic():
+                UserInvite.objects.filter(
+                    user=user_obj,
+                    company=company,
+                    accepted_at__isnull=True,
+                    revoked_at__isnull=True,
+                ).update(revoked_at=timezone.now())
 
-            invite = UserInvite.objects.create(
-                user=user_obj,
-                company=company,
-                created_by=request.user,
-            )
+                invite = UserInvite.objects.create(
+                    user=user_obj,
+                    company=company,
+                    created_by=request.user,
+                )
 
-            # Bygg ny länk (UUID)
-            invite_link = request.build_absolute_uri(
-                reverse("accounts:accept_invite_uuid", kwargs={"invite_id": invite.id})
-            )
-            open_invite_modal = True
-            messages.success(request, "Ny invite-länk genererad.")
+                invite_link = build_invite_uuid_link(request, invite)
+
+                send_invite_email(
+                    to_email=user_obj.email,
+                    invite_link=invite_link,
+                    company_name=company.name,
+                    invited_by=request.user.get_full_name() or request.user.email,
+                )
+
+            messages.success(request, "Ny inbjudan skickad via email.")
+            return redirect("accounts:admin_user_detail", pk=user_obj.pk)
 
     # Processer som användaren skapat
     processes = (
@@ -104,11 +109,12 @@ def admin_user_detail(request, pk):
     )
     active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
 
-    # Hämta user_account
-    try:
-        user_account = UserAccountAccess.objects.select_related("account").get(user=user_obj)
-    except UserAccountAccess.DoesNotExist:
-        user_account = None
+    orgunit_accesses = (
+        UserOrgUnitAccess.objects
+        .filter(user=user_obj)
+        .select_related("org_unit", "org_unit__company")
+        .order_by("org_unit__company__name", "org_unit__name")
+    )
 
     return render(request, "admin/accounts/user_detail.html", {
         "u": user_obj,
@@ -116,9 +122,9 @@ def admin_user_detail(request, pk):
         "processes": processes,
         "active_processes": active_processes,
         "pending_invite": pending_invite,
-        "user_account": user_account,
         "invite_link": invite_link,                # ✅ bara efter POST
         "open_invite_modal": open_invite_modal,    # ✅ öppna modal efter POST
+        "orgunit_accesses": orgunit_accesses,
     })
 
 @login_required
@@ -408,7 +414,7 @@ def company_detail(request, pk):
                     user, created_user = User.objects.get_or_create(
                         email=email,
                         defaults={
-                            "username": email,  # om du fortfarande använder username
+                            "username": email,
                             "first_name": first_name,
                             "last_name": last_name,
                             "is_active": False,
@@ -426,44 +432,48 @@ def company_detail(request, pk):
                         if changed:
                             user.save(update_fields=["first_name", "last_name"])
 
-                    # Koppla till företag
                     CompanyMember.objects.get_or_create(company=company, user=user)
 
-                    invite_link = None
-                    open_invite_modal = False
+                    # Om redan aktiv, skicka inget
+                    if user.is_active:
+                        messages.info(request, f"{email} har redan ett aktivt konto. Ingen inbjudan skickades.")
+                        return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts")
 
-                    if not user.is_active:
-                        if user.has_usable_password():
-                            user.set_unusable_password()
-                        user.save()
+                    # Se till att användaren är pending
+                    if user.has_usable_password():
+                        user.set_unusable_password()
+                    user.is_active = False
+                    user.save(update_fields=["is_active", "password"])
 
-                        invite_link = build_invite_link(request, user)
-                        open_invite_modal = True
+                    # Revoka gamla invites
+                    UserInvite.objects.filter(
+                        user=user,
+                        company=company,
+                        accepted_at__isnull=True,
+                        revoked_at__isnull=True,
+                    ).update(revoked_at=timezone.now())
 
-                messages.success(request, f"Inbjudan skapad för {email}.")
+                    # Skapa ny invite
+                    invite = UserInvite.objects.create(
+                        user=user,
+                        company=company,
+                        created_by=request.user,
+                    )
 
-                # Rendera samma sida men med invite_link så modalen kan visa länken
-                return render(request, "admin/accounts/companies/company_detail.html", {
-                    "company": company,
-                    "memberships": memberships,
-                    "add_form": add_form,
-                    "invite_form": CompanyInviteMemberForm(),
-                    "customers": customers,
+                    # Bygg länk + skicka mejl
+                    invite_link = build_invite_uuid_link(request, invite)
+                    send_invite_email(
+                        to_email=user.email,
+                        invite_link=invite_link,
+                        company_name=company.name,
+                        invited_by=request.user.get_full_name() or request.user.email,
+                    )
 
-                    "orgunit_form": orgunit_form,
-                    "root_units": root_units,
-                    "children_map": children_map,
-                    "selected_unit": selected_unit,
-                    "selected_unit_members": selected_unit_members,
-
-                    "invite_link": invite_link,
-                    "invite_email": email,
-                    "open_invite_modal": open_invite_modal,
-                    "active_tab": request.GET.get("tab", "overview"),
-                    "unit_access_form": unit_access_form,
-                })
+                messages.success(request, f"Inbjudan skickades till {email}.")
+                return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts")
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
+
 
         elif action == "add_unit_access":
             org_unit_id = request.POST.get("org_unit_id")
