@@ -381,26 +381,6 @@
 
                     <div class="modal-body">
 
-                        {% if invite_link %}
-                        <div class="alert alert-success">
-                            <div class="fw-semibold">
-                                Invite link{% if invite_email %} för {{ invite_email }}{% endif %}
-                            </div>
-                            <div class="d-flex gap-2 align-items-center mt-2">
-                                <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
-                                <button type="button" class="btn btn-outline-primary"
-                                    onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
-                                    Copy
-                                </button>
-                            </div>
-                            <div class="form-text mt-2">
-                                Skicka länken i valfritt mejl. När personen öppnar länken får den välja lösenord och
-                                loggas
-                                in.
-                            </div>
-                        </div>
-                        <hr>
-                        {% endif %}
 
                         <div class="mb-3">
                             <label class="form-label">Email</label>
@@ -582,14 +562,16 @@
 
             // Mini-toast (enkel)
             function toast(msg) {
-                const el = document.createElement("div");
-                el.className = "alert alert-warning position-fixed";
-                el.style.right = "16px";
-                el.style.bottom = "16px";
-                el.style.zIndex = "9999";
-                el.textContent = msg;
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 2500);
+            const el = document.createElement("div");
+            el.className = "alert alert-warning position-fixed";
+            el.style.right = "16px";
+            el.style.bottom = "16px";
+            el.style.zIndex = "9999";
+            el.textContent = msg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 2500);
+            }
+
 
             let isDragging = false;
 
@@ -603,7 +585,6 @@
             setTimeout(() => { isDragging = false; }, 0);
             });
 
-            // Stoppa klick på länken om vi precis drag-dropped
             document.addEventListener("click", (e) => {
             const link = e.target.closest(".org-link");
             if (!link) return;
@@ -612,8 +593,7 @@
                 e.stopPropagation();
             }
             }, true);
-
-            }
+                        
         })();
     </script>
 

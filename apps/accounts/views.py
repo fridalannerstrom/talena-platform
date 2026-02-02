@@ -66,16 +66,22 @@ def admin_user_detail(request, pk):
     invite_link = None
     open_invite_modal = False
 
-    # Hitta company för usern (om du tillåter bara 1 företag per user)
     company = Company.objects.filter(memberships__user=user_obj).first()
 
-    if request.method == "POST" and request.POST.get("action") == "resend_invite":
-        if not pending_invite:
-            messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
-        elif not company:
-            messages.error(request, "Användaren är inte kopplad till något företag. Koppla användaren först.")
-        else:
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action in ("resend_invite_email", "generate_invite_link"):
+            if not pending_invite:
+                messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
+                return redirect("accounts:admin_user_detail", pk=user_obj.pk)
+
+            if not company:
+                messages.error(request, "Användaren är inte kopplad till något företag.")
+                return redirect("accounts:admin_user_detail", pk=user_obj.pk)
+
             with transaction.atomic():
+                # Revoka tidigare invites
                 UserInvite.objects.filter(
                     user=user_obj,
                     company=company,
@@ -83,6 +89,7 @@ def admin_user_detail(request, pk):
                     revoked_at__isnull=True,
                 ).update(revoked_at=timezone.now())
 
+                # Skapa ny invite (UUID)
                 invite = UserInvite.objects.create(
                     user=user_obj,
                     company=company,
@@ -91,15 +98,22 @@ def admin_user_detail(request, pk):
 
                 invite_link = build_invite_uuid_link(request, invite)
 
-                send_invite_email(
-                    to_email=user_obj.email,
-                    invite_link=invite_link,
-                    company_name=company.name,
-                    invited_by=request.user.get_full_name() or request.user.email,
-                )
+                # Se till att kontot verkligen är "pending"
+                if user_obj.has_usable_password():
+                    user_obj.set_unusable_password()
+                if user_obj.is_active:
+                    user_obj.is_active = False
+                user_obj.save(update_fields=["password", "is_active"])
 
-            messages.success(request, "Ny inbjudan skickad via email.")
-            return redirect("accounts:admin_user_detail", pk=user_obj.pk)
+            if action == "resend_invite_email":
+                # ✅ skicka mail direkt
+                send_invite_email(request, user_obj, invite_link=invite_link, company=company)
+                messages.success(request, f"Inbjudan skickad till {user_obj.email}.")
+                return redirect("accounts:admin_user_detail", pk=user_obj.pk)
+
+            # action == "generate_invite_link" (valfritt)
+            open_invite_modal = True
+            messages.success(request, "Ny invite-länk genererad.")
 
     # Processer som användaren skapat
     processes = (

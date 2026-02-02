@@ -8,23 +8,25 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-def send_invite_email(to_email, invite_link, company_name="", invited_by=""):
-    subject = f"Du är inbjuden till Talena{f' ({company_name})' if company_name else ''}"
-    text = f"""Hej!
 
-Du har blivit inbjuden till Talena{f' för {company_name}' if company_name else ''}.
-Klicka på länken för att välja lösenord och aktivera ditt konto:
+def send_invite_email(request, user, invite_link, company=None):
+    subject = "Du är inbjuden till Talena"
 
-{invite_link}
+    context = {
+        "user": user,
+        "company": company,
+        "invite_link": invite_link,
+    }
 
-{f'Inbjudan skickades av: {invited_by}' if invited_by else ''}
+    # Om du vill köra template:
+    text_body = render_to_string("emails/invite.txt", context)
+    html_body = render_to_string("emails/invite.html", context)
 
-/Talena
-"""
     msg = EmailMultiAlternatives(
         subject=subject,
-        body=text,
+        body=text_body,
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
-        to=[to_email],
+        to=[user.email],
     )
+    msg.attach_alternative(html_body, "text/html")
     msg.send()

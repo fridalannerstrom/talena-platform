@@ -25,10 +25,22 @@
       {% endif %}
     </div>
 {% if pending_invite %}
-  <button type="button" class="btn btn-outline-primary btn-sm"
-          data-bs-toggle="modal" data-bs-target="#inviteLinkModal">
-    Skicka ny inbjudan
-  </button>
+  <form method="post" class="d-inline">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="resend_invite_email">
+    <button type="submit" class="btn btn-outline-primary btn-sm">
+      Skicka ny inbjudan
+    </button>
+  </form>
+
+  {# valfritt: en liten sekundär knapp för “visa länk manuellt” #}
+  <form method="post" class="d-inline ms-2">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="generate_invite_link">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">
+      Generera länk (manuellt)
+    </button>
+  </form>
 {% endif %}
 
   </div>
