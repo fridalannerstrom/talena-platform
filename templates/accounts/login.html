@@ -1,7 +1,75 @@
-<h1>Login</h1>
+{% load static %}
+<!doctype html>
+<html lang="sv">
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Logga in</button>
-</form>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Logga in | Talena</title>
+
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+
+<body>
+  <main class="auth-shell">
+    <!-- LEFT -->
+    <section class="auth-left">
+      <header class="brand">
+        <img src="{% static 'images/talena-logo.svg' %}" alt="Talena" class="brand-logo" />
+      </header>
+
+      <div class="auth-card">
+        <h1 class="auth-title">Logga in på Talena</h1>
+        <p class="auth-subtitle">Välkommen hit! Logga in för att fortsätta ditt arbete i Talena.</p>
+
+        <form method="post" class="auth-form" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert">
+            {{ form.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <div class="field">
+            <label class="label" for="{{ form.username.id_for_label }}">E-post:</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <div class="field-error">{{ form.username.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label class="label" for="{{ form.password.id_for_label }}">Lösenord:</label>
+            {{ form.password }}
+            {% if form.password.errors %}
+            <div class="field-error">{{ form.password.errors }}</div>
+            {% endif %}
+          </div>
+
+          <button class="btn" type="submit">Logga in</button>
+
+          <p class="auth-foot">
+            Har du inget konto på Talena?
+            <a class="link" href="">Kom igång här</a>
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="auth-right" aria-hidden="true"></aside>
+  </main>
+
+  <!-- Liten form-widget fix: lägger på klasser + placeholders om du inte vill ändra forms.py än -->
+  <script>
+    (function () {
+      const u = document.getElementById("id_username");
+      const p = document.getElementById("id_password");
+      if (u) { u.classList.add("input"); u.placeholder = ""; }
+      if (p) { p.classList.add("input"); p.placeholder = ""; }
+    })();
+  </script>
+</body>
+
+</html>
