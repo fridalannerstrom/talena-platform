@@ -22,7 +22,7 @@
 
       <a class="btn btn-outline-secondary"
          href="{% url 'processes:process_update' process.id %}">
-        Ändra
+        Inställningar
       </a>
 
       <a class="btn btn-primary"
@@ -86,14 +86,14 @@
       <div class="card process-sidebar">
         <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
           <div>
-            <div class="fw-semibold">Kandidater</div>
+            <div class="subheading">Kandidater</div>
             <div class="text-muted small">
               Markera kandidater och skicka ut test.
             </div>
           </div>
 
-          <button type="submit" form="send-tests-form" class="btn btn-success btn-sm">
-            Skicka ut test
+          <button type="submit" form="send-tests-form" class="link-button">
+            <i data-feather="send"></i> Skicka ut test
           </button>
         </div>
 
@@ -164,12 +164,12 @@
 
                     <td class="text-end pe-3">
                       <button type="submit"
-                              class="btn btn-sm btn-outline-danger"
+                              class="button-icon"
                               form="send-tests-form"
                               formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                               formmethod="post"
                               onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
-                        Ta bort
+                        <i data-feather="trash-2"></i>
                       </button>
                     </td>
                   </tr>
