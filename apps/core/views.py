@@ -15,6 +15,18 @@ from apps.accounts.utils.permissions import filter_by_user_accounts
 
 from apps.accounts.models import CompanyMember
 
+from apps.accounts.utils.permissions import get_user_accessible_orgunits
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+
+from apps.core.utils.auth import is_admin
+from apps.accounts.models import Company, OrgUnit
+from apps.accounts.utils.permissions import get_user_accessible_orgunits
+from apps.processes.models import TestProcess, Candidate, TestInvitation
+
 User = get_user_model()
 
 
@@ -102,42 +114,115 @@ def admin_dashboard(request):
 
 
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+
+from apps.core.utils.auth import is_admin
+from apps.accounts.models import Company, OrgUnit
+from apps.accounts.utils.permissions import get_user_accessible_orgunits
+from apps.processes.models import TestProcess, Candidate, TestInvitation
+
+# tokens_to_q(...) antar jag att du redan har i samma fil
+# och att den returnerar ett Q-objekt
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+from apps.core.utils.auth import is_admin
+from apps.accounts.models import Company, OrgUnit
+from apps.accounts.utils.permissions import get_user_accessible_orgunits
+from apps.processes.models import TestProcess, Candidate, TestInvitation
+
+User = get_user_model()
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+from apps.core.utils.auth import is_admin
+from apps.accounts.models import Company, OrgUnit
+from apps.processes.models import TestProcess, Candidate, TestInvitation
+
+User = get_user_model()
+
 @login_required
 @require_GET
 def global_search(request):
     q = (request.GET.get("q") or "").strip()
     if len(q) < 2:
         return JsonResponse({"results": []})
-    
-    tokens = [t for t in q.split() if t]
 
+    tokens = [t for t in q.split() if t]
     limit_each = 5
     results = []
     admin = is_admin(request.user)
 
-    # --- Customers (admins only) ---
+    # -----------------------------
+    # ADMIN: Customers
+    # -----------------------------
     if admin:
         users_qs = (
             User.objects
             .filter(tokens_to_q(tokens, ["email", "first_name", "last_name"]))
             .order_by("first_name", "last_name")[:limit_each]
         )
-
         for u in users_qs:
             display = (f"{u.first_name} {u.last_name}").strip() or u.email
             results.append({
                 "type": "customer",
-                "label": f"{display}",
+                "label": display,
                 "url": reverse("accounts:admin_user_detail", kwargs={"pk": u.id}),
             })
 
-    # --- Processes (scoped) ---
+    # -----------------------------
+    # ADMIN: Companies
+    # -----------------------------
+    if admin:
+        companies_qs = (
+            Company.objects
+            .filter(tokens_to_q(tokens, ["name", "org_number"]))
+            .order_by("name")[:limit_each]
+        )
+        for co in companies_qs:
+            results.append({
+                "type": "company",
+                "label": co.name,
+                "url": reverse("accounts:company_detail", kwargs={"pk": co.id}),
+            })
+
+    # -----------------------------
+    # ADMIN: OrgUnits
+    # -----------------------------
+    if admin:
+        org_qs = (
+            OrgUnit.objects
+            .select_related("company", "parent")
+            .filter(tokens_to_q(tokens, ["name", "unit_code", "company__name"]))
+            .order_by("company__name", "name")[:limit_each]
+        )
+        for ou in org_qs:
+            url = f"{reverse('accounts:company_detail', kwargs={'pk': ou.company_id})}?tab=accounts&org_unit={ou.id}"
+            results.append({
+                "type": "org_unit",
+                "label": f"{ou.name} ({ou.unit_code}) – {ou.company.name}",
+                "url": url,
+            })
+
+    # -----------------------------
+    # PROCESSES (ADMIN = alla, CUSTOMER = created_by=user)
+    # -----------------------------
     proc_qs = TestProcess.objects.filter(
-        tokens_to_q(tokens, ["name", "project_name_snapshot", "project_code", "job_title"])
+        tokens_to_q(tokens, ["name", "project_name_snapshot", "project_code", "account_code", "job_title"])
     )
     if not admin:
-        # Filtrera baserat på account-access istället för created_by
-        proc_qs = filter_by_user_accounts(proc_qs, request.user, 'account')
+        proc_qs = proc_qs.filter(created_by=request.user)
 
     proc_qs = proc_qs.order_by("-created_at")[:limit_each]
 
@@ -147,34 +232,28 @@ def global_search(request):
             if admin
             else reverse("processes:process_detail", kwargs={"pk": p.id})
         )
-        results.append({
-            "type": "process",
-            "label": f"{p.name}",
-            "url": url,
-        })
+        results.append({"type": "process", "label": p.name, "url": url})
 
-    # --- Candidates (scoped) ---
+    # -----------------------------
+    # CANDIDATES (ADMIN = alla, CUSTOMER = candidates i user’s processer)
+    # -----------------------------
     cand_qs = Candidate.objects.filter(
         tokens_to_q(tokens, ["first_name", "last_name", "email"])
     )
 
     if not admin:
-        # Filtrera baserat på account-access
-        from apps.accounts.utils.permissions import get_user_accessible_accounts
-        accessible_accounts = get_user_accessible_accounts(request.user)
-        cand_qs = cand_qs.filter(invitations__process__account__in=accessible_accounts)
+        cand_qs = cand_qs.filter(invitations__process__created_by=request.user)
 
     cand_qs = cand_qs.distinct().order_by("first_name", "last_name")[:limit_each]
 
     for c in cand_qs:
-        inv_qs = TestInvitation.objects.filter(candidate=c).select_related("process")
-        if not admin:
-            # Filtrera invitations baserat på account
-            inv_qs = inv_qs.filter(process__account__in=accessible_accounts)
-
-        latest_inv = inv_qs.order_by("-created_at").first()
-
         full_name = f"{c.first_name} {c.last_name}".strip() or c.email
+
+        inv_qs = TestInvitation.objects.filter(candidate=c).select_related("process").order_by("-created_at")
+        if not admin:
+            inv_qs = inv_qs.filter(process__created_by=request.user)
+
+        latest_inv = inv_qs.first()
 
         if latest_inv:
             p = latest_inv.process
@@ -186,14 +265,12 @@ def global_search(request):
         else:
             url = "#"
 
-        results.append({
-            "type": "candidate",
-            "label": f"{full_name}",
-            "url": url,
-        })
+        results.append({"type": "candidate", "label": full_name, "url": url})
 
-    # Sortera lite trevligt
-    order = {"customer": 0, "candidate": 1, "process": 2}
+    # -----------------------------
+    # Sort + limit
+    # -----------------------------
+    order = {"customer": 0, "company": 1, "org_unit": 2, "process": 3, "candidate": 4}
     results.sort(key=lambda r: order.get(r["type"], 99))
     results = results[:12]
 
