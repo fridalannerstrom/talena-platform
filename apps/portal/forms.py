@@ -1,19 +1,37 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.forms.widgets import ClearableFileInput
 from apps.accounts.models import Profile
 
 User = get_user_model()
+
 
 class AccountForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "email")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Bootstrap / SB Admin Pro styling
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "form-control"
+            })
+
 
 class ProfileImageForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ("image",)
+        widgets = {
+            # Viktigt: custom widget så vi kan styla bort "Currently / Clear"
+            "image": ClearableFileInput(attrs={
+                "class": "form-control form-control-sm",
+                "accept": "image/jpeg,image/png,image/webp"
+            })
+        }
 
     def clean_image(self):
         img = self.cleaned_data.get("image")
@@ -24,7 +42,7 @@ class ProfileImageForm(forms.ModelForm):
         if img.size > 2 * 1024 * 1024:
             raise forms.ValidationError("Max file size is 2MB.")
 
-        # tillåt bara jpg/png/webp (enkel kontroll)
+        # tillåt bara jpg/png/webp
         allowed = {"image/jpeg", "image/png", "image/webp"}
         if hasattr(img, "content_type") and img.content_type not in allowed:
             raise forms.ValidationError("Only JPG, PNG or WEBP files are allowed.")

@@ -1,71 +1,183 @@
 {% extends "../core/layouts/customer_base.html" %}
 {% block content %}
+{% load static %}
+
 <div class="container-fluid px-2 px-md-3">
-  <div class="d-flex align-items-start justify-content-between mb-3">
+  <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
-      <h2 class="h4 mb-1">Settings</h2>
-      <div class="text-muted">Manage your profile</div>
+      <h2 class="h4 mb-1">Kontoinställningar</h2>
+      <div class="text-muted">Hantera din profil och säkerhet</div>
     </div>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:password_change' %}">
-      Change password
-    </a>
   </div>
 
   {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} mb-3">{{ message }}</div>
+  {% endfor %}
   {% endif %}
 
-  <div class="card">
-    <div class="card-body">
-<form method="post" enctype="multipart/form-data" class="row g-3">
-  {% csrf_token %}
+  <div class="row g-4">
 
-  <div class="col-12">
-    <div class="d-flex align-items-center gap-3 mb-2">
+    <!-- LEFT: Profile settings -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-body p-4">
+<h6 class="mb-3">Din profil</h6>
+
+<!-- AVATAR FORM (separat, INTE inuti andra forms) -->
+<div class="d-flex flex-column align-items-center text-center mb-4">
+
+  <form id="avatarForm" method="post" enctype="multipart/form-data" class="avatar-form">
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="avatar">
+
+    <label class="avatar-click" for="id_avatar_image" title="Ändra profilbild">
       {% if request.user.profile.image %}
-        <img src="{{ request.user.profile.image.url }}" alt="Profile" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">
+        <img id="avatarPreview" src="{{ request.user.profile.image.url }}" alt="Profilbild" class="avatar-img">
       {% else %}
-        <div class="rounded-circle bg-light border" style="width:64px;height:64px;"></div>
+        <img id="avatarPreview" src="{% static 'images/avatar-default.png' %}" alt="Standardprofilbild" class="avatar-img">
       {% endif %}
 
-      <div>
-        <label class="form-label mb-1">Profile image</label>
-        {{ image_form.image }}
-        {% for err in image_form.image.errors %}
-          <div class="text-danger small mt-1">{{ err }}</div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+      <span class="avatar-camera" aria-hidden="true">
+        <i class="fa-solid fa-camera"></i>
+      </span>
+    </label>
 
-  <div class="col-md-6">
-    <label class="form-label">First name</label>
+    <input
+      id="id_avatar_image"
+      type="file"
+      name="image"
+      accept="image/jpeg,image/png,image/webp"
+      class="d-none"
+    >
+
+    {% for err in image_form.image.errors %}
+      <div class="text-danger small mt-2">{{ err }}</div>
+    {% endfor %}
+  </form>
+
+  {% if request.user.profile.image %}
+    <form method="post" class="mt-2">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="remove_avatar">
+      <button type="submit" class="btn btn-link btn-sm text-danger p-0">
+        Ta bort profilbild
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+<!-- PROFILE FORM (separat) -->
+<form method="post" class="row g-3" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" name="form_type" value="profile">
+
+  <div class="col-12 col-md-6">
+    <label class="form-label small text-muted">Förnamn</label>
     {{ account_form.first_name }}
     {% for err in account_form.first_name.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
   </div>
 
-  <div class="col-md-6">
-    <label class="form-label">Last name</label>
+  <div class="col-12 col-md-6">
+    <label class="form-label small text-muted">Efternamn</label>
     {{ account_form.last_name }}
     {% for err in account_form.last_name.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
   </div>
 
-  <div class="col-md-6">
-    <label class="form-label">Email</label>
-    {{ account_form.email }}
-    {% for err in account_form.email.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+  <div class="col-12">
+    <label class="form-label small text-muted">E-post</label>
+    <div class="input-group">
+      {{ account_form.email }}
+    </div>
+    {% for err in account_form.email.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
   </div>
 
-  <div class="col-12">
-    <button class="btn btn-primary" type="submit">Save</button>
+  <div class="col-12 pt-2">
+    <button class="btn btn-primary" type="submit">Spara</button>
   </div>
 </form>
 
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: Password settings -->
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-body p-4">
+      <h6 class="mb-1">Lösenord</h6>
+      <div class="text-muted small mb-3">Uppdatera ditt lösenord för att hålla ditt konto säkert.</div>
+
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="password">
+
+        <div class="col-12">
+          <label class="form-label small text-muted" for="{{ password_form.old_password.id_for_label }}">
+            Current password
+          </label>
+          {{ password_form.old_password }}
+          {% for err in password_form.old_password.errors %}
+          <div class="text-danger small mt-1">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small text-muted" for="{{ password_form.new_password1.id_for_label }}">
+            New password
+          </label>
+          {{ password_form.new_password1 }}
+          {% for err in password_form.new_password1.errors %}
+          <div class="text-danger small mt-1">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small text-muted" for="{{ password_form.new_password2.id_for_label }}">
+            Confirm new password
+          </label>
+          {{ password_form.new_password2 }}
+          {% for err in password_form.new_password2.errors %}
+          <div class="text-danger small mt-1">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="col-12 pt-2">
+          <button class="btn btn-primary" type="submit">Update password</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
 <script>
-  document.querySelectorAll("input[type='text'], input[type='email'], input[type='file']").forEach(el => {
-    el.classList.add("form-control");
-  });
+  // Lägg Bootstrap-klass på password-fälten också (PasswordChangeForm är inte din ModelForm)
+  document.querySelectorAll("input[type='password']").forEach(el => el.classList.add("form-control"));
 </script>
+
+<script>
+  (function () {
+    const input = document.getElementById("id_avatar_image");
+    const form = document.getElementById("avatarForm");
+    const preview = document.getElementById("avatarPreview");
+    if (!input || !form || !preview) return;
+
+    input.addEventListener("change", function () {
+      const file = input.files && input.files[0];
+      if (!file) return;
+
+      // 1) Visa bilden direkt (preview) så det känns instant
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+
+      // 2) Autospara direkt (POST)
+      form.submit();
+    });
+  })();
+</script>
+
 {% endblock %}
