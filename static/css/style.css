@@ -151,6 +151,58 @@
 
 
 /* Custom */
+.button-icon {
+  border: 0;
+  background: transparent;
+  color: #535353;
+  cursor: pointer;
+
+  transition: color 0.2s ease;
+}
+
+.button-icon:hover {
+  color: #ff6f61;
+}
+
+.table tbody tr td {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.process-sidebar .card-header {
+  padding: 12px 16px;
+}
+
+.process-sidebar .card-body {
+  padding: 14px 16px;
+}
+
+.process-sidebar .text-muted.small {
+  line-height: 1.25;
+}
+
+.process-sidebar .kv {
+  margin-bottom: 12px;
+}
+
+.process-sidebar .kv-label {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.process-sidebar .kv-value {
+  font-weight: 600;
+}
+
+.card-body .process-detail {
+  border: 0px;
+}
+
 
 .avatar-form { width: 100%; display: grid; place-items: center; }
 
@@ -2240,6 +2292,7 @@ progress {
   border-bottom-width: 1px;
   box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg);
 }
+
 .table > tbody, .datatable-table > tbody {
   vertical-align: inherit;
 }
@@ -11164,7 +11217,7 @@ textarea.form-control-lg {
 
 .bg-primary {
   --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+  background-color: grey;
 }
 
 .bg-secondary {
