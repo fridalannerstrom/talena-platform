@@ -119,8 +119,10 @@
                 <img src="{{ request.user.profile.image.url }}" alt="Profile" class="rounded-circle"
                     style="width:32px;height:32px;object-fit:cover;">
                 {% else %}
-                <div class="rounded-circle bg-light border" style="width:32px;height:32px;"></div>
+                <img id="avatarPreview" src="{% static 'images/avatar-default.png' %}" alt="Standardprofilbild" class="avatar-img" style="width:32px;height:32px;object-fit:cover;">
                 {% endif %}
+
+
             </a>
             <div class="dropdown-menu dropdown-menu-end border-0 shadow animated--fade-in-up"
                 aria-labelledby="navbarDropdownUserImage">
@@ -129,9 +131,9 @@
                     <img src="{{ request.user.profile.image.url }}" alt="Profile"
                         class="rounded-circle dropdown-user-img" style="width:32px;height:32px;object-fit:cover;">
                     {% else %}
-                    <div class="rounded-circle bg-light border" style="width:32px;height:32px;"></div>
+                    <img id="avatarPreview" src="{% static 'images/avatar-default.png' %}" alt="Standardprofilbild" class="avatar-img" style="width:32px;height:32px;object-fit:cover;">
                     {% endif %}
-                    <div class="dropdown-user-details">
+                    <div class="dropdown-user-details p-2">
                         <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
                         <div class="dropdown-user-details-email">{{ request.user.email }}</div>
                     </div>

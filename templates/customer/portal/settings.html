@@ -114,7 +114,7 @@
 
         <div class="col-12">
           <label class="form-label small text-muted" for="{{ password_form.old_password.id_for_label }}">
-            Current password
+            Nuvarande lösenord
           </label>
           {{ password_form.old_password }}
           {% for err in password_form.old_password.errors %}
@@ -124,7 +124,7 @@
 
         <div class="col-md-6">
           <label class="form-label small text-muted" for="{{ password_form.new_password1.id_for_label }}">
-            New password
+            Nytt lösenord
           </label>
           {{ password_form.new_password1 }}
           {% for err in password_form.new_password1.errors %}
@@ -134,7 +134,7 @@
 
         <div class="col-md-6">
           <label class="form-label small text-muted" for="{{ password_form.new_password2.id_for_label }}">
-            Confirm new password
+            Bekräfta nytt lösenord
           </label>
           {{ password_form.new_password2 }}
           {% for err in password_form.new_password2.errors %}
@@ -143,7 +143,7 @@
         </div>
 
         <div class="col-12 pt-2">
-          <button class="btn btn-primary" type="submit">Update password</button>
+          <button class="btn btn-primary" type="submit">Uppdatera lösenord</button>
         </div>
       </form>
 
