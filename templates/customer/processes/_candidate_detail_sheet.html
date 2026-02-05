@@ -82,6 +82,12 @@
             —
           {% endif %}
         </div>
+                              <!-- SOVA overall status (EN badge, inte dubbelt) -->
+{% if inv.sova_overall_status %}
+  <span class="badge bg-light text-dark">SOVA: {{ inv.sova_overall_status }}</span>
+{% else %}
+  <span class="badge bg-light text-muted">SOVA: —</span>
+{% endif %}
       </div>
     {% endif %}
   </div>

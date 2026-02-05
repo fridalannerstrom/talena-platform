@@ -152,20 +152,47 @@
 
 /* Custom */
 
+.link-button:disabled,
+.link-button[aria-disabled="true"] {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none; /* så den inte går att klicka */
+}
+
 .subheading {
   color: black;
     font-family: "Libre Baskerville", serif;
     font-weight: 300;
+    font-size: 1rem;
 }
 
 .link-button {
-  background-color: #ffffff;
+  background-color: #000000;
   border-radius: 100px;
   padding: 4px 13px;
   font-size: 0.8rem;
-  border: 1px solid black;
+  color: white;
 }
 
+.candidate-row a {
+  color: black;
+}
+
+.candidate-row a:hover {
+  color: black;
+}
+
+.link-button:hover {
+  background-color: #414141;
+}
+
+.process_list {
+  color: black;
+}
+
+.process_list:hover {
+  color: black;
+}
 
 .link-button svg {
   width: 13px;
@@ -386,6 +413,76 @@
 }
 
 
+.template-select {
+  display: grid;
+  gap: 12px;
+}
+
+.template-option {
+  display: block;
+  margin: 0;
+  cursor: pointer;
+}
+
+.template-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .10s ease;
+}
+
+.template-option:hover .template-card {
+  border-color: rgba(0,0,0,.18);
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+.template-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.04);
+  flex: 0 0 auto;
+}
+
+.template-title {
+  display: block;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.template-subtitle {
+  display: block;
+  font-size: .92rem;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* Selected */
+.template-radio:checked + .template-card {
+  border-color: #CCBBFB; /* bootstrap primary */
+  box-shadow: 0 0 0 4px #71659248;
+}
+
+/* Disabled */
+.template-radio:disabled + .template-card {
+  opacity: .65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
 /* Candidate bottom sheet – layout tweaks */
 #candidateSheet {
   height: 90vh; /* lite högre än 85 */
@@ -541,6 +638,46 @@
   box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.10);
 }
 
+/* Radio-wrapper (snygg box) */
+.template-picker {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  padding: 10px;
+  max-height: 240px;
+  overflow: auto;
+  background: #fff;
+}
+
+/* Django RadioSelect renderar oftast <ul><li><label><input> ... */
+.template-picker ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.template-picker li {
+  margin: 0;
+}
+
+/* Gör varje rad klickbar och luftig */
+.template-picker label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.template-picker label:hover {
+  background: rgba(0,0,0,.03);
+}
+
+/* Lite bättre radio-position */
+.template-picker input[type="radio"] {
+  margin-top: 0;
+}
 
 
 /* End Custom */
@@ -11053,10 +11190,6 @@ textarea.form-control-lg {
   color: rgba(var(--bs-light-rgb), var(--bs-text-opacity)) !important;
 }
 
-.text-dark {
-  --bs-text-opacity: 1;
-  color: rgba(var(--bs-dark-rgb), var(--bs-text-opacity)) !important;
-}
 
 .text-black {
   --bs-text-opacity: 1;
@@ -11242,27 +11375,34 @@ textarea.form-control-lg {
 
 .bg-primary {
   --bs-bg-opacity: 1;
-  background-color: grey;
+  background-color: #ECF3FF;
+  color: #5688CB;
+  border: 1px solid #79A6E2;
 }
 
 .bg-secondary {
   --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
+  background-color: #FEFBE4 !important;
+  border: 1px solid #E9D4A0;
+  color: #AA811E;
 }
 
 .bg-success {
-  --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-success-rgb), var(--bs-bg-opacity)) !important;
+  background-color: #E3F9E3 !important;
+  border: 1px solid #93CE93;
+  color: #67A767;
 }
 
 .bg-info {
-  --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-info-rgb), var(--bs-bg-opacity)) !important;
+  color: #5E8DCC;
+  background-color: #ECF3FF !important;
+  border: 1px solid #79A6E2;
 }
 
 .bg-warning {
-  --bs-bg-opacity: 1;
-  background-color: rgba(var(--bs-warning-rgb), var(--bs-bg-opacity)) !important;
+  color: #7A559C;
+  background-color: #F2E3FF !important;
+  border: 1px solid #9B79B9;
 }
 
 .bg-danger {

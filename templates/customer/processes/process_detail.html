@@ -25,10 +25,12 @@
         Inställningar
       </a>
 
-      <a class="btn btn-primary"
-         href="{% url 'processes:process_add_candidate' process.id %}">
-        Lägg till kandidat
-      </a>
+<button type="button"
+        class="btn btn-primary"
+        id="btnAddCandidate"
+        data-url="{% url 'processes:process_add_candidate' process.id %}">
+  Lägg till kandidat
+</button>
     </div>
   </div>
 
@@ -44,7 +46,7 @@
     <div class="col-12 col-lg-4 col-xl-3">
       <div class="card h-100">
         <div class="card-header bg-white py-3">
-          <div class="fw-semibold">Information</div>
+          <div class="subheading mb-1">Information</div>
           <div class="text-muted small">Grunduppgifter om testprocessen</div>
         </div>
 
@@ -86,15 +88,23 @@
       <div class="card process-sidebar">
         <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
           <div>
-            <div class="subheading">Kandidater</div>
+            <div class="subheading mb-1">Kandidater</div>
             <div class="text-muted small">
               Markera kandidater och skicka ut test.
             </div>
           </div>
 
-          <button type="submit" form="send-tests-form" class="link-button">
-            <i data-feather="send"></i> Skicka ut test
-          </button>
+<button
+  id="send-tests-btn"
+  type="submit"
+  form="send-tests-form"
+  class="link-button"
+  disabled
+  aria-disabled="true"
+  title="Markera minst en kandidat för att skicka ut test"
+>
+  <i data-feather="send"></i> Skicka ut test
+</button>
         </div>
 
         <div class="card-body p-0">
@@ -148,13 +158,6 @@
                             data-status-badge="1">
                         {{ inv.status_label }}
                       </span>
-
-                      <!-- SOVA overall status (EN badge, inte dubbelt) -->
-                      <span class="badge bg-light text-dark ms-1"
-                            data-sova-badge="1"
-                            data-invitation-id="{{ inv.id }}">
-                        SOVA: {{ inv.sova_overall_status|default:"—" }}
-                      </span>
                     </td>
 
                     <td class="text-muted">
@@ -203,6 +206,24 @@
   </div>
 </div>
 
+<div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex flex-column">
+          <div class="subheading mb-1">Lägg till kandidat</div>
+          <div class="text-muted small">Bjud in en kandidat till denna testprocess.</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" id="addCandidateModalBody">
+        <div class="text-muted">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   /* matchar din process_list-känsla */
   #candidateSheet {
@@ -218,16 +239,6 @@
   }
 </style>
 
-<script>
-  // Checkbox "select all"
-  const selectAll = document.getElementById("select-all");
-  const checks = document.querySelectorAll(".row-check");
-  if (selectAll) {
-    selectAll.addEventListener("change", () => {
-      checks.forEach(ch => ch.checked = selectAll.checked);
-    });
-  }
-</script>
 
 <!-- Self registration modal (din befintliga) -->
 <script>
@@ -352,5 +363,104 @@
   setInterval(poll, POLL_MS);
 })();
 </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("send-tests-btn");
+    const selectAll = document.getElementById("select-all");
+    const checks = Array.from(document.querySelectorAll(".row-check"));
+
+    if (!btn) return;
+
+    function updateSendButton() {
+      const anyChecked = checks.some(ch => ch.checked);
+      btn.disabled = !anyChecked;
+      btn.setAttribute("aria-disabled", String(!anyChecked));
+    }
+
+    // Init
+    updateSendButton();
+
+    // Row checks
+    checks.forEach(ch => ch.addEventListener("change", updateSendButton));
+
+    // Select all
+    if (selectAll) {
+      selectAll.addEventListener("change", () => {
+        checks.forEach(ch => ch.checked = selectAll.checked);
+        updateSendButton();
+      });
+    }
+  });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnAddCandidate");
+  const modalEl = document.getElementById("addCandidateModal");
+  const bodyEl = document.getElementById("addCandidateModalBody");
+
+  // Debug (ta bort sen)
+  console.log("AddCandidate:", { btn: !!btn, modalEl: !!modalEl, bodyEl: !!bodyEl, bootstrap: !!window.bootstrap });
+
+  if (!btn || !modalEl || !bodyEl) return;
+
+  if (!window.bootstrap) {
+    console.error("Bootstrap saknas. Laddar du bootstrap.bundle.min.js?");
+    return;
+  }
+
+  const modal = new bootstrap.Modal(modalEl);
+
+  async function loadForm() {
+    const url = btn.dataset.url;
+    bodyEl.innerHTML = `<div class="text-muted">Loading…</div>`;
+    modal.show();
+
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      bodyEl.innerHTML = await res.text();
+      if (window.feather) feather.replace();
+    } catch (e) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Kunde inte ladda formuläret.</div>`;
+      console.error(e);
+    }
+  }
+
+  btn.addEventListener("click", loadForm);
+
+  modalEl.addEventListener("submit", async (e) => {
+    const form = e.target.closest("#addCandidateForm");
+    if (!form) return;
+
+    e.preventDefault();
+
+    const url = form.getAttribute("action");
+    const fd = new FormData(form);
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        body: fd,
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        modal.hide();
+        window.location.href = data.redirect_url || window.location.href;
+        return;
+      }
+
+      bodyEl.innerHTML = await res.text();
+      if (window.feather) feather.replace();
+    } catch (err) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Nätverksfel. Försök igen.</div>`;
+      console.error(err);
+    }
+  });
+});
+</script>
+
 
 {% endblock %}

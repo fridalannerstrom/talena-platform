@@ -33,7 +33,7 @@
     data-href="{% url 'processes:process_detail' p.id %}">
               <td class="ps-4">
                 <div class="d-flex flex-column">
-                  <a class="fw-semibold text-decoration-none" href="{% url 'processes:process_detail' p.id %}">
+                  <a class="fw-semibold text-decoration-none process_list" href="{% url 'processes:process_detail' p.id %}">
                     {{ p.name }}
                   </a>
                 </div>
@@ -44,7 +44,7 @@
               </td>
 
               <td class="text-center">
-                <span class="badge bg-light text-dark border">
+                <span class="badge bg-success">
                   {{ p.candidates_count }}
                 </span>
               </td>

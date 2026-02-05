@@ -158,7 +158,6 @@ def process_create(request):
             obj.created_by = request.user
             obj.save()
 
-            messages.success(request, "Testprocess skapad.")
             return redirect("processes:process_list")
 
         messages.error(request, "Kunde inte skapa processen. Kontrollera fälten.")
@@ -316,13 +315,18 @@ def process_detail(request, pk):
 
 
 
+from django.http import JsonResponse
+from django.urls import reverse
+
 @login_required
 def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
-    # ✅ Säkerhetskontroll (skapare OR account-access)
+    # ✅ Säkerhetskontroll
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
+
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
     if request.method == "POST":
         form = CandidateCreateForm(request.POST)
@@ -344,18 +348,47 @@ def process_add_candidate(request, pk):
             )
 
             if inv_created:
-                messages.success(request, f"{candidate.email} added to process.")
+                msg = f"{candidate.email} har lagts till i processen."
+                messages.success(request, msg)
             else:
-                messages.info(request, f"{candidate.email} is already in this process.")
+                msg = f"{candidate.email} är redan i processen."
+                messages.info(request, msg)
+
+            # ✅ Modal/AJAX: return JSON istället för redirect
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "message": msg,
+                    "redirect_url": reverse("processes:process_detail", kwargs={"pk": process.pk})
+                })
 
             return redirect("processes:process_detail", pk=process.pk)
+
+        # ❌ Ogiltigt form
+        if is_ajax:
+            # returnera form-HTML med errors så modalen kan visa dem
+            return render(
+                request,
+                "customer/processes/_add_candidate_form.html",
+                {"process": process, "form": form},
+                status=400
+            )
+
     else:
         form = CandidateCreateForm()
+
+    # ✅ GET: om AJAX -> partial, annars full page
+    if is_ajax:
+        return render(request, "customer/processes/_add_candidate_form.html", {
+            "process": process,
+            "form": form,
+        })
 
     return render(request, "customer/processes/process_add_candidate.html", {
         "process": process,
         "form": form,
     })
+
 
 
 @login_required
@@ -858,6 +891,7 @@ def process_candidate_detail(request, process_id, candidate_id):
     ctx = {
         "process": process,
         "invitation": invitation,
+        "inv": invitation,
         "candidate": candidate,
         "dummy_profile": dummy_profile,
         "dummy_abilities": dummy_abilities,
