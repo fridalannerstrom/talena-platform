@@ -3,31 +3,66 @@
 {% block title %}Dashboard | Talena{% endblock %}
 
 {% block content %}
-  <h1>Dashboard</h1>
 
-    <p>
-      Inloggad som: <strong>{{ request.user.get_username }}</strong>
-    </p>
+<div class="dashboard-header">
+  <h1 id="greeting">
+    Hej, {{ request.user.first_name|default:request.user.get_username }}!
+  </h1>
 
-    <hr />
+  <p class="dashboard-date" id="today-date"></p>
+</div>
 
-    <p style="margin-top: 32px; color: #666;">
-      Status: <strong>alive</strong>
-    </p>
+<section class="quick-access">
+  <h3>Vad vill du göra?</h3>
 
+  <div class="quick-access-grid">
 
-    
+    <a href="{% url 'processes:process_create' %}" class="quick-card">
+      <div class="quick-card-icon"><i data-feather="plus"></i></div>
+      <div class="quick-card-title">Skapa ny testprocess</div>
+      <div class="quick-card-desc">Skicka ut tester till kandidater</div>
+    </a>
 
-<a class="btn btn-primary" href="{% url 'processes:process_list' %}">Dina testprocesser</a>
-<br><br>
-<a class="btn btn-primary" href="{% url 'processes:process_create' %}">Skapa testprocess</a>
+    <a href="{% url 'processes:process_list' %}" class="quick-card">
+      <div class="quick-card-icon"><i data-feather="list"></i></div>
+      <div class="quick-card-title">Dina testprocesser</div>
+      <div class="quick-card-desc">Se status och resultat</div>
+    </a>
 
-<br><br>
+    <a href="" class="quick-card">
+      <div class="quick-card-icon"><i data-feather="settings"></i></div>
+      <div class="quick-card-title">Kontoinställningar</div>
+      <div class="quick-card-desc">Användare, företag, behörigheter</div>
+    </a>
 
-<form method="post" action="{% url 'core:logout' %}">
-  {% csrf_token %}
-  <button type="submit">Logga ut</button>
-</form>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const now = new Date();
+    const hour = now.getHours();
+
+    let greeting = "Hej";
+    if (hour < 10) greeting = "God morgon";
+    else if (hour < 17) greeting = "God eftermiddag";
+    else greeting = "God kväll";
+
+    const greetingEl = document.getElementById("greeting");
+    if (greetingEl) {
+      greetingEl.innerText = greeting + ", " + greetingEl.innerText.split(",")[1];
+    }
+
+    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const dateStr = now.toLocaleDateString('sv-SE', options);
+
+    const dateEl = document.getElementById("today-date");
+    if (dateEl) {
+      dateEl.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    }
+  })();
+</script>
+
 
 
 

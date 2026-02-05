@@ -152,6 +152,102 @@
 
 /* Custom */
 
+/* =========================
+   Dashboard header
+========================= */
+
+.dashboard-header {
+  margin-bottom: 32px;
+  padding-top: 30px;
+}
+
+.dashboard-header h1 {
+  font-size: 1.6rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.dashboard-date {
+  color: #FF6F61;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* =========================
+   Quick access
+========================= */
+
+.quick-access h3 {
+  font-size: 1rem;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 992px) {
+  .quick-access-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .quick-access-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.quick-card {
+  display: block;
+  padding: 30px;
+  border-radius: 12px;
+  background: #CFEAFC;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.15s ease;
+  color: black;
+}
+
+.quick-card:first-child {
+  background: #E9E1FF;
+}
+
+.quick-card:last-child {
+  background: #E2FAD4;
+}
+
+.quick-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  border-color: #ddd;
+}
+
+.quick-card-icon {
+  margin-bottom: 12px;
+}
+
+.quick-card-icon .feather {
+  width: 25px;
+  height: 25px;
+}
+
+
+.quick-card-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+.quick-card-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+
 /* Candidate bottom sheet – layout tweaks */
 #candidateSheet {
   height: 90vh; /* lite högre än 85 */
