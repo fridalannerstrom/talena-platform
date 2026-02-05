@@ -215,14 +215,25 @@
   background: #E9E1FF;
 }
 
+.quick-card:first-child:hover {
+  background: #cfc3f0;
+}
+
+
 .quick-card:last-child {
   background: #E2FAD4;
 }
 
+.quick-card:last-child:hover {
+  background: #c6e0b7;
+}
+
+
 .quick-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-  border-color: #ddd;
+  box-shadow: 0 0px 24px rgba(0, 0, 0, 0.082);
+  text-decoration: none;
+    background: #bcd6e7;
+    color: black;
 }
 
 .quick-card-icon {
