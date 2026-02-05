@@ -6,7 +6,7 @@
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
       <h1 class="h4 mb-1">Skapa testprocess</h1>
-      <div class="text-muted">Välj ett SOVA-projekt som mall för processen.</div>
+      <div class="text-muted">Skapa din testprocess för att börja skicka tester.</div>
     </div>
 
     <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">
@@ -44,7 +44,7 @@
 
             <!-- SOVA template -->
             <div class="mb-3">
-  <label class="form-label">SOVA-mall</label>
+  <label class="form-label">Testmall</label>
 
   <div class="template-select" role="radiogroup">
     {% for card in template_cards %}
@@ -84,7 +84,7 @@
 
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label">Jobbtitel</label>
+                <label class="form-label">Roll</label>
                 {{ form.job_title }}
               </div>
               <div class="col-12 col-md-6">
