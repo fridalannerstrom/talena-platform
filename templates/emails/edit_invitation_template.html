@@ -1,25 +1,210 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% block content %}
-<div class="container-fluid px-4">
-  <h1 class="h4 mb-3">Invitation email template</h1>
-  <div class="text-muted mb-3">{{ process.name }}</div>
+<div class="container-fluid px-2 px-md-3 email-template-page">
 
-  <div class="card mb-3">
-    <div class="card-header"><strong>Placeholders</strong></div>
-    <div class="card-body">
-      {% for p in placeholders %}
-        <span class="badge bg-light text-dark me-1">{{ p }}</span>
-      {% endfor %}
+  <!-- Header -->
+  <div class="d-flex align-items-start justify-content-between mb-4">
+    <div>
+      <h1 class="h4 mb-1">Mejlmall för inbjudan</h1>
+      <div class="text-muted">{{ process.name }}</div>
+    </div>
+
+    <div class="d-inline-flex align-items-center gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
+        Tillbaka
+      </a>
     </div>
   </div>
 
-  <form method="post" class="card">
-    {% csrf_token %}
-    <div class="card-body">
-      {{ form.as_p }}
-      <button class="btn btn-primary" type="submit">Save</button>
-      <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">Back</a>
+  <div class="row g-4">
+
+    <!-- LEFT: Placeholders -->
+    <div class="col-12 col-lg-4 col-xl-3">
+      <div class="card h-100">
+        <div class="card-header bg-white py-3">
+          <div class="subheading mb-1">Plats­hållare</div>
+          <div class="text-muted small">Klicka för att kopiera och klistra in i ämne eller meddelande.</div>
+        </div>
+
+        <div class="card-body">
+          <div class="placeholder-grid">
+            {% for p in placeholders %}
+              <button
+                type="button"
+                class="placeholder-pill"
+                data-copy="{{ p|escape }}"
+                aria-label="Kopiera {{ p }}"
+                title="Kopiera {{ p }}"
+              >
+                {{ p }}
+              </button>
+            {% endfor %}
+          </div>
+
+          <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
+        </div>
+      </div>
     </div>
-  </form>
+
+    <!-- RIGHT: Form -->
+    <div class="col-12 col-lg-8 col-xl-9">
+      <form method="post" class="card">
+        {% csrf_token %}
+
+        <div class="card-header bg-white py-3">
+          <div class="subheading mb-1">Mall</div>
+          <div class="text-muted small">
+            Tips: använd t.ex. <code>{first_name}</code>, <code>{process_name}</code>, <code>{assessment_url}</code>.
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- Subject -->
+          <div class="mb-3">
+            <label class="form-label">Ämnesrad</label>
+            {{ form.subject }}
+            {% if form.subject.errors %}
+              <div class="text-danger small mt-1">{{ form.subject.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Body -->
+          <div class="mb-3">
+            <label class="form-label">Meddelande</label>
+            {{ form.body }}
+            {% if form.body.errors %}
+              <div class="text-danger small mt-1">{{ form.body.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="row g-3 align-items-end">
+            <!-- Language -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Språk</label>
+              {{ form.language }}
+              {% if form.language.errors %}
+                <div class="text-danger small mt-1">{{ form.language.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Active -->
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mt-2">
+                {{ form.is_active }}
+                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                  Använd denna mall för utskick
+                </label>
+              </div>
+              <div class="form-text">
+                Endast aktiva mallar används när testinbjudningar skickas.
+              </div>
+
+              {% if form.is_active.errors %}
+                <div class="text-danger small mt-1">{{ form.is_active.errors|striptags }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 mt-4">
+            <button class="btn btn-primary" type="submit">Spara</button>
+            <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
+              Tillbaka
+            </a>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+  </div>
 </div>
+
+<style>
+  /* Scoped bara till denna sida */
+  .email-template-page .placeholder-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .email-template-page .placeholder-pill{
+    border: 1px solid rgba(0,0,0,.10);
+    background: #f8f9fa;
+    color: #111;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: .92rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, transform .08s ease;
+    user-select: none;
+  }
+  .email-template-page .placeholder-pill:hover{
+    background:#fff;
+    border-color: rgba(0,0,0,.18);
+    transform: translateY(-1px);
+  }
+  .email-template-page .placeholder-pill:active{
+    transform: translateY(0);
+  }
+  .email-template-page .placeholder-pill.is-copied{
+    border-color: rgba(25,135,84,.35);
+    background: rgba(25,135,84,.06);
+  }
+
+  /* Gör textarea snygg utan att påverka andra sidor */
+  .email-template-page textarea{
+    min-height: 220px;
+    resize: vertical;
+  }
+</style>
+
+<script>
+  // Copy placeholder on click (svensk feedback + liten "copied"-markering)
+  document.addEventListener("DOMContentLoaded", () => {
+    const status = document.getElementById("phCopyStatus");
+
+    function setStatus(text) {
+      if (!status) return;
+      status.textContent = text;
+    }
+
+    async function copyText(val) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(val);
+      }
+      const tmp = document.createElement("textarea");
+      tmp.value = val;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand("copy");
+      tmp.remove();
+    }
+
+    document.querySelectorAll(".placeholder-pill").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const val = btn.dataset.copy || btn.innerText;
+
+        try {
+          await copyText(val);
+
+          // visuell feedback på pillen
+          btn.classList.add("is-copied");
+          setStatus(`Kopierad: ${val}`);
+
+          setTimeout(() => btn.classList.remove("is-copied"), 900);
+          btn.blur();
+        } catch (e) {
+          setStatus("Kunde inte kopiera. Markera och kopiera manuellt.");
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock %}

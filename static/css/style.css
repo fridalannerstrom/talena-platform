@@ -152,6 +152,106 @@
 
 /* Custom */
 
+
+      .tq-section-title {
+        font-weight: 700;
+        font-size: .95rem;
+        color: rgba(33,37,41,.85);
+        margin: 1rem 0 .5rem;
+      }
+
+      .tq-trait-row {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) 260px minmax(260px, 1fr);
+        gap: 1rem;
+        align-items: center;
+        padding: .9rem 1rem;
+        border: 1px solid var(--tq-border);
+        border-radius: var(--tq-radius);
+        background: var(--tq-bg);
+        margin-bottom: .65rem;
+      }
+
+      /* “kortkänsla” men inte klumpig */
+      .tq-left, .tq-right {
+        font-size: .9rem;
+        line-height: 1.35;
+        color: rgba(33,37,41,.85);
+      }
+      .tq-left { color: rgba(33,37,41,.82); }
+      .tq-right { color: rgba(33,37,41,.78); }
+
+      .tq-center {
+        text-align: center;
+      }
+
+      .tq-trait-name {
+        font-weight: 700;
+        font-size: .9rem;
+        margin-bottom: .35rem;
+        color: rgba(33,37,41,.88);
+      }
+
+      /* Skalan (10 “prickar”/rutor) */
+      .tq-scale {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: .35rem;
+        padding: .55rem .35rem;
+        border-radius: 999px;
+        background: var(--tq-panel);
+        border: 1px solid var(--tq-border);
+      }
+
+      .tq-scale span {
+        height: 12px;
+        border-radius: 4px;
+        background: var(--tq-dot);
+        border: 1px solid rgba(0,0,0,.06);
+      }
+
+      .test-marker {
+        background-color: #A38FD9 !important;
+      }
+
+      /* valfritt: fyll upp till score diskret, så låga värden inte ser “tomma” ut */
+      .tq-scale span.is-on {
+        background: var(--tq-dot-on);
+        border-color: rgba(0,0,0,.08);
+      }
+
+      /* Markör, som “svart liten stapel” i referensen */
+      .tq-marker {
+        position: absolute;
+        top: 6px;
+        height: calc(100% - 12px);
+        width: 4px;
+        border-radius: 3px;
+        background: var(--tq-marker);
+        box-shadow: 0 0 0 2px rgba(255,255,255,.9);
+        transform: translateX(-50%);
+        pointer-events: none;
+      }
+
+
+      .tq-score {
+        margin-top: .4rem;
+        font-size: .8rem;
+        color: var(--tq-muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Responsivt: stacka snyggt */
+      @media (max-width: 992px) {
+        .tq-trait-row {
+          grid-template-columns: 1fr;
+          gap: .75rem;
+        }
+        .tq-center { text-align: left; }
+        .tq-scale { max-width: 420px; }
+      }
+
 .link-button:disabled,
 .link-button[aria-disabled="true"] {
   opacity: .45;
@@ -4166,15 +4266,15 @@ textarea.form-control-lg {
 }
 
 .btn-outline-primary {
-  --bs-btn-color: #0061f2;
-  --bs-btn-border-color: #0061f2;
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #0061f2;
-  --bs-btn-hover-border-color: #0061f2;
+  --bs-btn-color: #000000;
+  --bs-btn-border-color: #000000;
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: #EDEBFA;
+  --bs-btn-hover-border-color: #000000;
   --bs-btn-focus-shadow-rgb: 0, 97, 242;
   --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: #0061f2;
-  --bs-btn-active-border-color: #0061f2;
+  --bs-btn-active-bg: #EDEBFA;
+  --bs-btn-active-border-color: #000000;
   --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   --bs-btn-disabled-color: #0061f2;
   --bs-btn-disabled-bg: transparent;
@@ -4189,8 +4289,8 @@ textarea.form-control-lg {
   --bs-btn-hover-bg: #EDEBFA;
   --bs-btn-hover-border-color: #000000;
   --bs-btn-focus-shadow-rgb: 105, 0, 199;
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: #6900c7;
+  --bs-btn-active-color: #000000;
+  --bs-btn-active-bg: #EDEBFA;
   --bs-btn-active-border-color: #000000;
   --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   --bs-btn-disabled-color: #6900c7;

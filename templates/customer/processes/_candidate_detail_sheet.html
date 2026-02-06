@@ -1,156 +1,421 @@
 <div class="container-fluid px-2 px-md-3">
 
-  <div class="d-flex align-items-start justify-content-between mb-3">
-    <div>
-      <h2 class="h4 mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h2>
-      <div class="text-muted">{{ candidate.email }}</div>
-    </div>
+  <!-- HERO -->
+  <div class="card candidate-hero mb-3">
+    <div class="card-body py-3 py-md-4">
 
-    <div class="d-flex gap-2">
-<a href="{% url 'processes:process_candidate_detail' process.id candidate.id %}">Gå till kandidatsida</a>
-      <button class="btn btn-outline-secondary btn-sm" type="button" disabled title="Coming soon">
-        Download results
-      </button>
-    </div>
-  </div>
+      <div class="d-flex flex-column flex-lg-row align-items-start justify-content-between gap-3">
 
-  <div class="card mb-3">
-    <div class="card-header fw-semibold">Candidate info</div>
-    <div class="card-body">
-      <dl class="row mb-0">
-        <dt class="col-sm-3 text-muted">Status</dt>
-        <dd class="col-sm-9">{{ invitation.status }}</dd>
+        <!-- LEFT -->
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h2 class="h5 mb-0">
+              {{ candidate.first_name }} {{ candidate.last_name }}
+            </h2>
 
-        <dt class="col-sm-3 text-muted">Invited</dt>
-        <dd class="col-sm-9">{{ invitation.invited_at|default:"-" }}</dd>
+            <!-- Talena status -->
+            {% if invitation.status == "completed" %}
+              <span class="badge bg-success">Färdig</span>
+            {% elif invitation.status == "started" %}
+              <span class="badge bg-info text-dark">Påbörjad</span>
+            {% elif invitation.status == "sent" %}
+              <span class="badge bg-warning text-dark">Skickad</span>
+            {% elif invitation.status == "created" %}
+              <span class="badge bg-secondary">Ej skickad</span>
+            {% else %}
+              <span class="badge bg-light text-dark">{{ invitation.status }}</span>
+            {% endif %}
 
-        <dt class="col-sm-3 text-muted">Completed</dt>
-        <dd class="col-sm-9">{{ invitation.completed_at|default:"-" }}</dd>
-      </dl>
+            <!-- SOVA overall status -->
+            {% if invitation.sova_overall_status %}
+              <span class="badge bg-success">SOVA: {{ invitation.sova_overall_status }}</span>
+            {% else %}
+              <span class="badge bg-success">SOVA: —</span>
+            {% endif %}
+          </div>
 
-      
-  {% if invitation.assessment_url %}
-  <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mt-3">
-    <div class="flex-grow-1">
-      <label class="form-label mb-1 fw-semibold">Test link</label>
-      <input
-        type="text"
-        class="form-control"
-        id="assessmentUrlInput"
-        value="{{ invitation.assessment_url }}"
-        readonly
-        onclick="this.select()"
-      >
-    </div>
+          <div class="text-muted small">{{ candidate.email }}</div>
 
-    <div class="pt-4">
-      <button
-        type="button"
-        class="btn btn-outline-primary"
-        onclick="copyAssessmentUrl(this)"
-      >
-        Copy
-      </button>
-    </div>
-  </div>
-{% endif %}
+          <!-- Meta -->
+          <div class="candidate-meta mt-3">
+            <div class="meta-item">
+              <div class="meta-label">Inbjuden</div>
+              <div class="meta-value">
+                {% if invitation.invited_at %}
+                  {{ invitation.invited_at|date:"Y-m-d H:i" }}
+                {% else %}—{% endif %}
+              </div>
+            </div>
 
-    </div>
-  </div>
+            <div class="meta-item">
+              <div class="meta-label">Slutförd</div>
+              <div class="meta-value">
+                {% if invitation.completed_at %}
+                  {{ invitation.completed_at|date:"Y-m-d H:i" }}
+                {% else %}—{% endif %}
+              </div>
+            </div>
 
-  <div class="mb-3">
-    <div class="d-flex align-items-center justify-content-between">
-      <div>
-        <div class="fw-semibold">{{ process.project_name_snapshot|default:process.project_code }}</div>
-        <div class="text-muted small">Process</div>
+            <div class="meta-item">
+              <div class="meta-label">Process</div>
+              <div class="meta-value">
+                {{ process.project_name_snapshot|default:process.project_code }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT actions -->
+        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+          <a class="btn btn-outline-secondary"
+             href="{% url 'processes:process_candidate_detail' process.id candidate.id %}">
+            Gå till kandidatsida
+          </a>
+
+          <button class="btn btn-primary" type="button">
+            Ladda ner resultat
+          </button>
+        </div>
+
       </div>
 
-      {% if invitation.status == "completed" %}
-        <span class="badge bg-success">Completed</span>
-      {% else %}
-        <span class="badge bg-warning text-dark">{{ invitation.status }}</span>
+      {% if invitation.assessment_url %}
+        <hr class="my-3">
+
+        <div class="d-flex flex-column flex-md-row align-items-stretch gap-3">
+          <div class="flex-grow-1">
+            <label class="form-label mb-1 small text-muted">Testlänk</label>
+
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                id="assessmentUrlInput"
+                value="{{ invitation.assessment_url }}"
+                readonly
+                onclick="this.select()"
+              >
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                onclick="copyAssessmentUrl(this)">
+                Kopiera
+              </button>
+            </div>
+
+            <div class="text-muted small mt-2">
+              Klicka för att markera länken, eller tryck “Kopiera”.
+            </div>
+          </div>
+        </div>
       {% endif %}
-    </div>
 
-    {% if invitation.status == "completed" %}
-      <div class="mt-3">
-        <div class="text-muted">Score</div>
-        <div class="display-6">
-          {% if invitation.overall_score != None %}
-            {{ invitation.overall_score }}
-          {% else %}
-            —
-          {% endif %}
-        </div>
-                              <!-- SOVA overall status (EN badge, inte dubbelt) -->
-{% if inv.sova_overall_status %}
-  <span class="badge bg-light text-dark">SOVA: {{ inv.sova_overall_status }}</span>
-{% else %}
-  <span class="badge bg-light text-muted">SOVA: —</span>
-{% endif %}
-      </div>
-    {% endif %}
-  </div>
-
-  <div class="row g-3">
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header fw-semibold">Personality overview (dummy)</div>
-        <div class="card-body">
-          <canvas data-chart="profile" height="140"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header fw-semibold">Abilities (dummy)</div>
-        <div class="card-body">
-          <canvas data-chart="abilities" height="140"></canvas>
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- Lägg chartdata som JSON i DOM så JS kan initiera efter fetch -->
-  <script type="application/json" id="candidate-sheet-chart-data">
-    {
-      "profile": {
-        "labels": {{ dummy_profile.labels|safe }},
-        "values": {{ dummy_profile.values|safe }}
-      },
-      "abilities": {
-        "labels": {{ dummy_abilities.labels|safe }},
-        "values": {{ dummy_abilities.values|safe }}
+  <!-- RESULTS / EMPTY STATE -->
+  {% if invitation.status != "completed" %}
+
+    <div class="card mb-3">
+      <div class="card-body empty-results">
+        <div class="d-flex align-items-start gap-3">
+          <div class="empty-icon">!</div>
+          <div>
+            <div class="fw-semibold mb-1">Hoppsan, här finns inga resultat ännu</div>
+            <div class="text-muted small">
+              Resultaten visas här när kandidaten har slutfört testet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+
+<div class="card mb-3">
+  <div class="card-header bg-white py-3">
+    <div class="subheading mb-1">Karaktärsdragsprofil</div>
+    <div class="text-muted small">Dummydata baserat på exempelprofil (1–10).</div>
+  </div>
+
+  <div class="card-body">
+
+
+    <div class="tq-profile">
+
+      <div class="tq-section-title">Leda och arbeta med andra</div>
+
+      <!-- Samverkande 8/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Föredrar att arbeta självständigt och säger ifrån vid meningsskiljaktigheter</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Samverkande</div>
+          <div class="tq-scale" data-score="8" aria-label="Samverkande 8 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Tillmötesgående och gillar att samarbeta med andra. Är lyhörd gentemot andras behov</div>
+      </div>
+
+      <!-- Empati 7/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Kan ta tid på sig att vänja sig vid andra och ha förståelse för andras perspektiv</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Empati</div>
+          <div class="tq-scale" data-score="7" aria-label="Empati 7 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span class="test-marker"></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Empatiserar lätt med andra. Gillar att lyssna och skapa goda relationer</div>
+      </div>
+
+      <!-- Stödjande 6/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Har tydliga förväntningar på andra och låter dem utvecklas självständigt</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Stödjande</div>
+          <div class="tq-scale" data-score="6" aria-label="Stödjande 6 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Stöttande och hjälper andra att utvecklas och växa</div>
+      </div>
+
+      <!-- Nätverkande 2/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Kommunicerar med en betrodd grupp. Kan känna sig obekväm med att skapa nya kontakter</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Nätverkande</div>
+          <div class="tq-scale" data-score="2" aria-label="Nätverkande 2 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span class="test-marker"></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Kommunicerar med en stor grupp människor. Tar gärna kontakt med andra</div>
+      </div>
+
+      <!-- Driftighet 4/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Föredrar att jobba i jämnt tempo och har ett försiktigt tillvägagångssätt</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Driftighet</div>
+          <div class="tq-scale" data-score="4" aria-label="Driftighet 4 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Driven och söker nya utmaningar. Fattar beslut snabbt</div>
+      </div>
+
+      <!-- Inflytelserik 1/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Föredrar att följa instruktioner och undviker att tvinga över sina egna åsikter på andra</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Inflytelserik</div>
+          <div class="tq-scale" data-score="1" aria-label="Inflytelserik 1 av 10">
+            <span></span><span></span><span class="test-marker"></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Föredrar att ta ledningen och gillar att påverka andra</div>
+      </div>
+
+      <div class="tq-section-title">Organisering och tankemönster</div>
+
+      <!-- Måldriven 6/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Undviker både konkurrens och att sätta upp mål. Föredrar att ta saker som de kommer</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Måldriven</div>
+          <div class="tq-scale" data-score="6" aria-label="Måldriven 6 av 10">
+            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Motiveras av utmanande mål. Har god självdisciplin och är tävlingsinriktad</div>
+      </div>
+
+      <!-- Strukturerad och disciplinerad 6/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Har ett spontant tillvägagångssätt. Är mindre fokuserad på detaljer och tolererar små misstag</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Strukturerad och disciplinerad</div>
+          <div class="tq-scale" data-score="6" aria-label="Strukturerad och disciplinerad 6 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Planerar och strukturerar uppgifter, engagerad att leverera och säkerställa noggrannhet</div>
+      </div>
+
+      <!-- Analytisk 10/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Använder ett instinktivt tillvägagångssätt vid problemlösning. Är mindre intresserad av data och analys</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Analytisk</div>
+          <div class="tq-scale" data-score="10" aria-label="Analytisk 10 av 10">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span class="test-marker"></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Använder ett analytiskt tillvägagångssätt för att utvärdera situationer. Använder data för att lösa problem</div>
+      </div>
+
+      <!-- Konceptuell 9/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Gillar ett praktiskt tillvägagångssätt som fokuserar på operativa detaljer. Undviker sannolikt komplexa problem</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Konceptuell</div>
+          <div class="tq-scale" data-score="9" aria-label="Konceptuell 9 av 10">
+            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Gillar att jobba med komplexa situationer. Undersöker olika perspektiv och tekniker</div>
+      </div>
+
+      <!-- Kreativitet 1/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Använder hellre beprövade tillvägagångssätt än att experimentera med nya tekniker</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Kreativitet</div>
+          <div class="tq-scale" data-score="1" aria-label="Kreativitet 1 av 10">
+            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Har ett kreativt tillvägagångssätt. Gillar att vara innovativ och hitta nya lösningar på problem</div>
+      </div>
+
+      <!-- Anpassningsbarhet 10/10 -->
+      <div class="tq-trait-row">
+        <div class="tq-left">Behöver tid för att anpassa sig till nya omständigheter. Har bestämda åsikter och föredrar en förutsägbar rutin</div>
+
+        <div class="tq-center">
+          <div class="tq-trait-name">Anpassningsbarhet</div>
+          <div class="tq-scale" data-score="10" aria-label="Anpassningsbarhet 10 av 10">
+            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="tq-right">Anpassar sig lätt till nya situationer. Har ett flexibelt tillvägagångssätt och gillar variation</div>
+      </div>
+
+    </div>
+
+    <script>
+      (function initTraitScales() {
+        document.querySelectorAll(".tq-scale[data-score]").forEach(scale => {
+          const score = Math.max(1, Math.min(10, parseInt(scale.dataset.score || "1", 10)));
+
+          // 1) Fyll rutor upp till score (diskret)
+          const blocks = scale.querySelectorAll("span");
+          blocks.forEach((b, idx) => {
+            if (idx < score) b.classList.add("is-on");
+          });
+
+          // 2) Placera markör i mitten av "score-rutan"
+          const marker = scale.querySelector(".tq-marker");
+          if (marker) {
+            // score 1 => 5%, score 10 => 95%
+            const leftPct = ((score - 0.5) / 10) * 100;
+            marker.style.left = leftPct + "%";
+          }
+        });
+      })();
+    </script>
+
+  </div>
+</div>
+
+    <!-- Chartdata JSON -->
+    <script type="application/json" id="candidate-sheet-chart-data">
+      {
+        "profile": {
+          "labels": {{ dummy_profile.labels|safe }},
+          "values": {{ dummy_profile.values|safe }}
+        },
+        "abilities": {
+          "labels": {{ dummy_abilities.labels|safe }},
+          "values": {{ dummy_abilities.values|safe }}
+        }
+      }
+    </script>
+
+  {% endif %}
+
+  <!-- JS -->
+  <script>
+    function copyAssessmentUrl(buttonEl) {
+      const input = document.getElementById("assessmentUrlInput");
+      if (!input) return;
+
+      input.select();
+      input.setSelectionRange(0, 99999);
+
+      const originalText = buttonEl.innerText;
+
+      // Clipboard API (modern browsers)
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(input.value).then(() => {
+          buttonEl.innerText = "Kopierad!";
+          buttonEl.classList.remove("btn-outline-primary");
+          buttonEl.classList.add("btn-success");
+
+          setTimeout(() => {
+            buttonEl.innerText = originalText;
+            buttonEl.classList.remove("btn-success");
+            buttonEl.classList.add("btn-outline-primary");
+          }, 1400);
+        }).catch(() => fallbackCopy(input, buttonEl, originalText));
+      } else {
+        fallbackCopy(input, buttonEl, originalText);
+      }
+    }
+
+    function fallbackCopy(input, buttonEl, originalText) {
+      try {
+        document.execCommand("copy");
+        buttonEl.innerText = "Kopierad!";
+        buttonEl.classList.remove("btn-outline-primary");
+        buttonEl.classList.add("btn-success");
+
+        setTimeout(() => {
+          buttonEl.innerText = originalText;
+          buttonEl.classList.remove("btn-success");
+          buttonEl.classList.add("btn-outline-primary");
+        }, 1400);
+      } catch (e) {
+        buttonEl.innerText = "Kunde ej kopiera";
+        setTimeout(() => buttonEl.innerText = originalText, 1400);
       }
     }
   </script>
-
-  <script>
-  function copyAssessmentUrl() {
-    const input = document.getElementById("assessmentUrlInput");
-
-    if (!input) return;
-
-    input.select();
-    input.setSelectionRange(0, 99999); // mobile support
-
-    navigator.clipboard.writeText(input.value).then(() => {
-      // Valfri UX-feedback
-      const btn = event.target;
-      const originalText = btn.innerText;
-
-      btn.innerText = "Copied!";
-      btn.classList.remove("btn-outline-primary");
-      btn.classList.add("btn-success");
-
-      setTimeout(() => {
-        btn.innerText = originalText;
-        btn.classList.remove("btn-success");
-        btn.classList.add("btn-outline-primary");
-      }, 1500);
-    });
-  }
-</script>
 
 </div>
