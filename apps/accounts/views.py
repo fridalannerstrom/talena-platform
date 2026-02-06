@@ -149,7 +149,7 @@ def admin_customers_list(request):
     customers = (
         User.objects
         .filter(is_superuser=False, is_staff=False)
-        .prefetch_related("account_accesses__account")
+        .prefetch_related("company_memberships__company")
         .order_by("-date_joined")
     )
     return render(request, "admin/accounts/customers_list.html", {"customers": customers})
@@ -477,10 +477,10 @@ def company_detail(request, pk):
                     # Bygg länk + skicka mejl
                     invite_link = build_invite_uuid_link(request, invite)
                     send_invite_email(
-                        to_email=user.email,
+                        request,
+                        user,
                         invite_link=invite_link,
-                        company_name=company.name,
-                        invited_by=request.user.get_full_name() or request.user.email,
+                        company=company,
                     )
 
                 messages.success(request, f"Inbjudan skickades till {email}.")
