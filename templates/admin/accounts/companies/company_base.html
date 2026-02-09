@@ -1,0 +1,12 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-4">
+
+  {% include "admin/accounts/companies/_company_header.html" with company=company active=active_tab show_invite_button=show_invite_button %}
+
+
+  {% block company_content %}{% endblock %}
+
+</div>
+{% endblock %}

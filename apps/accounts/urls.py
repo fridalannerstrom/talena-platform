@@ -62,4 +62,10 @@ urlpatterns = [
         views.orgunit_move,
         name="orgunit_move",
     ),
+    path("companies/<int:pk>/account-structure/", views.company_account_structure, name="company_account_structure"),
+    path("companies/<int:pk>/user-access/", views.company_user_access, name="company_user_access"),
+
+    # AJAX endpoints för user access (sparar direkt)
+    path("companies/<int:company_pk>/user-access/set/", views.company_user_access_set, name="company_user_access_set"),
+    path("companies/<int:company_pk>/user-access/state/", views.company_user_access_state, name="company_user_access_state"),
 ]

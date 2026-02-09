@@ -152,6 +152,109 @@
 
 /* Custom */
 
+.company-hero {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.089);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.company-hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.company-hero__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 260px;
+}
+
+.company-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(105,108,255,.95), rgba(105,108,255,.55));
+  user-select: none;
+  font-size: 1rem;
+  font-family: "Libre Baskerville", serif;
+}
+
+.company-hero__title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.company-hero__sub {
+  font-size: .7rem;
+}
+
+.company-hero__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* “Tabs” som är länkar */
+.company-nav {
+  margin-top: 14px;
+  padding: 7px;
+  background: rgba(0,0,0,.02);
+  border: 1px solid rgba(0,0,0,.05);
+  border-radius: 10px;
+
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow-x: auto;
+}
+
+.company-nav__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 7px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: .75rem;
+  color: rgba(0,0,0,.70);
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  white-space: nowrap;
+  transition: transform .06s ease, box-shadow .06s ease, border-color .06s ease;
+}
+
+.company-nav__item:hover {
+  box-shadow: 0 8px 18px rgba(0,0,0,.06);
+  border-color: rgba(105,108,255,.25);
+  color: rgba(0,0,0,.85);
+  text-decoration: none;
+}
+
+.company-nav__item.is-active {
+  background: rgba(105,108,255,.10);
+  border-color: rgba(105,108,255,.35);
+  color: rgba(105,108,255,.95);
+}
+
+.company-nav__item.disabled {
+  opacity: .55;
+  pointer-events: none;
+}
+
+
 
       .tq-section-title {
         font-weight: 700;

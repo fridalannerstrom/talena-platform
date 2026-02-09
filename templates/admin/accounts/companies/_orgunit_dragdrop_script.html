@@ -1,0 +1,108 @@
+<script>
+(function () {
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+  const csrftoken = getCookie("csrftoken");
+  let draggedUnitId = null;
+  let isDragging = false;
+
+  document.addEventListener("dragstart", (e) => {
+    const node = e.target.closest(".org-node");
+    if (!node) return;
+    isDragging = true;
+    draggedUnitId = node.dataset.unitId;
+    e.dataTransfer.setData("text/plain", draggedUnitId);
+    e.dataTransfer.effectAllowed = "move";
+    node.classList.add("is-dragging");
+  });
+
+  document.addEventListener("dragend", (e) => {
+    const node = e.target.closest(".org-node");
+    if (node) node.classList.remove("is-dragging");
+    draggedUnitId = null;
+    setTimeout(() => { isDragging = false; }, 0);
+    document.querySelectorAll(".drop-hover").forEach(el => el.classList.remove("drop-hover"));
+  });
+
+  function toast(msg) {
+    const el = document.createElement("div");
+    el.className = "alert alert-warning position-fixed";
+    el.style.right = "16px";
+    el.style.bottom = "16px";
+    el.style.zIndex = "9999";
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  function bindDropTarget(el) {
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      el.classList.add("drop-hover");
+    });
+
+    el.addEventListener("dragleave", () => el.classList.remove("drop-hover"));
+
+    el.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      el.classList.remove("drop-hover");
+
+      const unitId = draggedUnitId || e.dataTransfer.getData("text/plain");
+      if (!unitId) return;
+
+      const parentIdRaw = el.dataset.dropParentId;
+      const newParentId = parentIdRaw ? parseInt(parentIdRaw, 10) : null;
+
+      if (newParentId && parseInt(unitId, 10) === newParentId) {
+        toast("Du kan inte lägga en enhet under sig själv.");
+        return;
+      }
+
+      try {
+        const url = "{% url 'accounts:orgunit_move' company.pk %}";
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken,
+          },
+          body: JSON.stringify({
+            unit_id: parseInt(unitId, 10),
+            new_parent_id: newParentId,
+          }),
+        });
+
+        const data = await resp.json();
+        if (!resp.ok || !data.ok) {
+          toast(data.error || "Kunde inte flytta enheten.");
+          return;
+        }
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        toast("Något gick fel vid flytt.");
+      }
+    });
+  }
+
+  document.querySelectorAll(".org-node, .root-dropzone").forEach(bindDropTarget);
+
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest(".org-link");
+    if (!link) return;
+    if (isDragging) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+})();
+</script>
+
+<style>
+  .org-row { cursor: grab; }
+  .org-row:active { cursor: grabbing; }
+  .org-link { text-decoration: none; }
+  .drop-hover { outline: 2px dashed rgba(105, 108, 255, 0.5); outline-offset: 2px; background: rgba(105, 108, 255, 0.06); }
+  .is-dragging { opacity: 0.5; }
+</style>

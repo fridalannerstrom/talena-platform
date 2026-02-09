@@ -308,6 +308,8 @@ def company_list(request):
     )
     return render(request, "admin/accounts/companies/company_list.html", {
         "companies": companies,
+        "active_tab": "overview",
+        "show_invite_button": True,
     })
 
 
@@ -655,3 +657,154 @@ def orgunit_move(request, company_pk):
         "unit_id": unit.pk,
         "new_parent_id": new_parent.pk if new_parent else None,
     })
+
+@login_required
+@admin_required
+def company_account_structure(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    orgunit_form = OrgUnitForm(company=company)
+
+    # Tree
+    all_units = (
+        OrgUnit.objects
+        .filter(company=company)
+        .select_related("parent")
+        .order_by("name")
+    )
+    children_map = {}
+    for u in all_units:
+        children_map.setdefault(u.parent_id, []).append(u)
+    root_units = children_map.get(None, [])
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create_orgunit":
+            orgunit_form = OrgUnitForm(request.POST, company=company)
+            if orgunit_form.is_valid():
+                unit = orgunit_form.save(commit=False)
+                unit.company = company
+                unit.save()
+                messages.success(request, f"Enhet '{unit.name}' skapad.")
+                return redirect("accounts:company_account_structure", pk=company.pk)
+            messages.error(request, "Kunde inte skapa enhet. Kontrollera fälten.")
+
+    return render(request, "admin/accounts/companies/company_account_structure.html", {
+        "company": company,
+        "orgunit_form": orgunit_form,
+        "root_units": root_units,
+        "children_map": children_map,
+    })
+
+
+@login_required
+@admin_required
+def company_user_access(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    # alla users i bolaget
+    users = (
+        User.objects
+        .filter(company_memberships__company=company)
+        .distinct()
+        .order_by("email")
+    )
+
+    # vilken user är vald?
+    selected_user_id = request.GET.get("user")
+    selected_user = None
+
+    if selected_user_id:
+        selected_user = get_object_or_404(User, pk=selected_user_id)
+
+        # säkerhet: måste vara medlem i företaget
+        if not CompanyMember.objects.filter(company=company, user=selected_user).exists():
+            return HttpResponseForbidden("No access.")
+
+    # accounts/orgunits för checkbox-lista
+    all_units = (
+        OrgUnit.objects
+        .filter(company=company)
+        .select_related("parent")
+        .order_by("name")
+    )
+    children_map = {}
+    for u in all_units:
+        children_map.setdefault(u.parent_id, []).append(u)
+    root_units = children_map.get(None, [])
+
+    # prechecked för vald user
+    checked_ids = set()
+    if selected_user:
+        checked_ids = set(
+            UserOrgUnitAccess.objects
+            .filter(user=selected_user, org_unit__company=company)
+            .values_list("org_unit_id", flat=True)
+        )
+
+    return render(request, "admin/accounts/companies/company_user_access.html", {
+        "company": company,
+        "users": users,
+        "selected_user": selected_user,
+        "root_units": root_units,
+        "children_map": children_map,
+        "checked_ids": checked_ids,
+    })
+
+
+@login_required
+@admin_required
+def company_user_access_state(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+    user_id = request.GET.get("user_id")
+    if not user_id:
+        return JsonResponse({"ok": False, "error": "user_id required"}, status=400)
+
+    user = get_object_or_404(User, pk=user_id)
+
+    if not CompanyMember.objects.filter(company=company, user=user).exists():
+        return JsonResponse({"ok": False, "error": "User not in company"}, status=403)
+
+    checked_ids = list(
+        UserOrgUnitAccess.objects
+        .filter(user=user, org_unit__company=company)
+        .values_list("org_unit_id", flat=True)
+    )
+    return JsonResponse({"ok": True, "checked_ids": checked_ids})
+
+
+@login_required
+@admin_required
+@require_POST
+def company_user_access_set(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    user_id = payload.get("user_id")
+    unit_ids = payload.get("unit_ids", [])
+    grant = payload.get("grant")  # true/false
+
+    if not user_id or not isinstance(unit_ids, list):
+        return JsonResponse({"ok": False, "error": "user_id and unit_ids required"}, status=400)
+
+    user = get_object_or_404(User, pk=user_id)
+
+    if not CompanyMember.objects.filter(company=company, user=user).exists():
+        return JsonResponse({"ok": False, "error": "User not in company"}, status=403)
+
+    units = OrgUnit.objects.filter(company=company, id__in=unit_ids)
+
+    with transaction.atomic():
+        if grant:
+            created = 0
+            for unit in units:
+                _, was_created = UserOrgUnitAccess.objects.get_or_create(user=user, org_unit=unit)
+                created += 1 if was_created else 0
+            return JsonResponse({"ok": True, "action": "granted", "created": created})
+        else:
+            deleted, _ = UserOrgUnitAccess.objects.filter(user=user, org_unit__in=units).delete()
+            return JsonResponse({"ok": True, "action": "removed", "deleted": deleted})

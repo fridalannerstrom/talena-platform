@@ -1,0 +1,53 @@
+{# templates/admin/accounts/companies/_company_header.html #}
+
+<div class="company-hero mb-4">
+  <div class="company-hero__top">
+    <div class="company-hero__left">
+      <div class="company-avatar" aria-hidden="true">
+        {{ company.name|default:"?"|slice:":1"|upper }}
+      </div>
+
+      <div class="company-hero__meta">
+        <h1 class="company-hero__title mb-1">{{ company.name }}</h1>
+        <div class="company-hero__sub text-muted">
+          Org.nr: <span class="fw-semibold">{{ company.org_number|default:"-" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="company-hero__right">
+      {% if show_invite_button %}
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+        <i class="fa-solid fa-user-plus me-2"></i> Lägg till användare
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="company-nav">
+    <a class="company-nav__item {% if active == 'overview' %}is-active{% endif %}"
+       href="{% url 'accounts:company_detail' company.pk %}">
+      Överblick
+    </a>
+
+    <a class="company-nav__item {% if active == 'users' %}is-active{% endif %}"
+       href="">
+      Användare
+    </a>
+
+    <a class="company-nav__item {% if active == 'structure' %}is-active{% endif %}"
+       href="{% url 'accounts:company_account_structure' company.pk %}">
+      Kontostruktur
+    </a>
+
+    <a class="company-nav__item {% if active == 'access' %}is-active{% endif %}"
+       href="{% url 'accounts:company_user_access' company.pk %}">
+      Behörigheter
+    </a>
+
+    <a class="company-nav__item {% if active == 'stats' %}is-active{% endif %}"
+       href="">
+      Statistik
+    </a>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<li class="mb-2">
+  <div class="d-flex align-items-center gap-2">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      data-unit-checkbox
+      data-unit-id="{{ unit.id }}"
+      {% if unit.id in checked_ids %}checked{% endif %}
+    >
+    <div class="flex-grow-1">
+      <div class="fw-semibold">{{ unit.name }}</div>
+      <div class="text-muted small">{{ unit.unit_code|default:"-" }}</div>
+    </div>
+  </div>
+
+  {% with kids=children_map|get_item:unit.id %}
+    {% if kids %}
+      <ul class="list-unstyled ms-4 mt-2">
+        {% for child in kids %}
+          {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child children_map=children_map checked_ids=checked_ids %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</li>

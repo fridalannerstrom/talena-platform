@@ -4,6 +4,9 @@
 {% block content %}
 {% load org_extras %}
 <div class="container-fluid px-2 px-md-4">
+{% include "admin/accounts/companies/_company_header.html" with company=company active="overview" show_invite_button=True %}
+
+
 
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
         <div>
