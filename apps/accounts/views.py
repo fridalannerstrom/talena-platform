@@ -39,8 +39,6 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 
 
-
-
 User = get_user_model()
 
 
@@ -257,42 +255,6 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
         "dummy_profile": dummy_profile,
         "dummy_abilities": dummy_abilities,
     })
-
-
-@login_required
-@admin_required
-def admin_profile(request):
-    user = request.user
-    profile = user.profile
-
-    if request.method == "POST":
-        account_form = PortalAccountForm(request.POST, instance=user)
-        image_form = ProfileImageForm(request.POST, request.FILES, instance=profile)
-
-        if account_form.is_valid() and image_form.is_valid():
-            account_form.save()
-            image_form.save()
-            messages.success(request, "Admin profile updated.")
-            return redirect("accounts:admin_profile")
-        messages.error(request, "Please correct the errors below.")
-    else:
-        account_form = PortalAccountForm(instance=user)
-        image_form = ProfileImageForm(instance=profile)
-
-    return render(
-        request,
-        "admin/accounts/admin/profile.html",
-        {"account_form": account_form, "image_form": image_form},
-    )
-
-
-class AdminPasswordChangeView(PasswordChangeView):
-    template_name = "admin/accounts/admin/password_change.html"
-    success_url = reverse_lazy("accounts:admin_profile")
-
-    def form_valid(self, form):
-        messages.success(self.request, "Du har bytt lösenord.")
-        return super().form_valid(form)
 
 
 

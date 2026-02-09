@@ -138,12 +138,14 @@
        style="width:32px;height:32px;"></div>
 {% endif %}
                     <div class="dropdown-user-details">
-                        <div class="dropdown-user-details-name">{{ request.user.get_full_name }}</div>
+                        <div class="dropdown-user-details-name">
+  {{ request.user.first_name }} {{ request.user.last_name }}
+</div>
                         <div class="dropdown-user-details-email">{{ request.user.email }}</div>
                     </div>
                 </h6>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{% url 'accounts:admin_profile' %}">
+                <a class="dropdown-item" href="{% url 'portal:settings' %}">
                     <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
                     Account
                 </a>

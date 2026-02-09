@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
+from apps.core.utils.auth import is_admin as is_admin_user
 
 from .forms import AccountForm, ProfileImageForm
 
@@ -12,7 +13,10 @@ def portal_settings(request):
     user = request.user
     profile = user.profile
 
-    # Initiera alltid formulären (så render aldrig kraschar)
+    is_admin = is_admin_user(user) 
+
+    template_name = "admin/portal/settings.html" if is_admin else "customer/portal/settings.html"
+
     account_form = AccountForm(instance=user)
     image_form = ProfileImageForm(instance=profile)
     password_form = PasswordChangeForm(user=user)
@@ -60,10 +64,11 @@ def portal_settings(request):
 
     return render(
         request,
-        "customer/portal/settings.html",
+        template_name,
         {
             "account_form": account_form,
             "image_form": image_form,
             "password_form": password_form,
+            "is_admin": is_admin,  # kan vara bra i templates/partials
         },
     )

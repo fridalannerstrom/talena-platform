@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 
 from .models import Profile, OrgUnit, UserOrgUnitAccess
+from django.utils.html import format_html
 
 User = get_user_model()
 
@@ -64,10 +65,6 @@ class CustomUserAdmin(BaseUserAdmin):
         return qs.prefetch_related(f"{ACCESSOR}__org_unit")
 
     def orgunit_info(self, obj):
-        """
-        Visar första orgunit-kopplingen (om flera).
-        Fungerar både för FK (manager) och O2O (direktobjekt).
-        """
         rel = getattr(obj, ACCESSOR, None)
 
         # OneToOne: rel är ett objekt (eller None)
@@ -80,7 +77,8 @@ class CustomUserAdmin(BaseUserAdmin):
         if access and getattr(access, "org_unit", None):
             return format_html('<span style="color:#059669;">{}</span>', access.org_unit.name)
 
-        return format_html('<span style="color:#dc2626;">Ingen enhet</span>')
+        # ✅ Viktigt: format_html måste få minst ett arg/kwarg
+        return format_html('<span style="color:#dc2626;">{}</span>', "Ingen enhet")
 
     orgunit_info.short_description = "Org unit"
 
