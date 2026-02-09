@@ -319,46 +319,34 @@ def company_list(request):
 def company_detail(request, pk):
     company = get_object_or_404(Company, pk=pk)
 
-    # Forms (default)
-    add_form = CompanyMemberAddForm()
-    invite_form = CompanyInviteMemberForm()
-    orgunit_form = OrgUnitForm(company=company)
+    # ------------------------------------------------------------
+    # KPI:er (samma logik som stats, men för overview)
+    # ------------------------------------------------------------
+    users_count = CompanyMember.objects.filter(company=company).count()
 
-    # Selected unit (för högersidan)
-    selected_unit_id = request.GET.get("org_unit")
-    selected_unit = None
-    selected_unit_members = []
+    orgunits_qs = OrgUnit.objects.filter(company=company)
+    accounts_total = orgunits_qs.count()
+    accounts_root = orgunits_qs.filter(parent__isnull=True).count()
+    accounts_sub = accounts_total - accounts_root
 
-    if selected_unit_id:
-        try:
-            selected_unit = OrgUnit.objects.get(pk=selected_unit_id, company=company)
-            selected_unit_members = (
-                UserOrgUnitAccess.objects
-                .filter(org_unit=selected_unit)
-                .select_related("user")
-                .order_by("user__email")
-            )
-        except OrgUnit.DoesNotExist:
-            selected_unit = None
-            selected_unit_members = []
+    processes_qs = TestProcess.objects.filter(company=company)
+    processes_count = processes_qs.count()
 
-    unit_access_form = OrgUnitAccessAddForm(company=company, org_unit=selected_unit) if selected_unit else None
+    invitations_qs = TestInvitation.objects.filter(process__company=company)
+    invitations_count = invitations_qs.count()
 
-    # Org tree (vänstersidan) – byggs ALLTID (GET och POST)
-    all_units = (
-        OrgUnit.objects
-        .filter(company=company)
-        .select_related("parent")
-        .order_by("name")
+    candidates_count = invitations_qs.values("candidate_id").distinct().count()
+
+    invitation_status = (
+        invitations_qs
+        .values("status")
+        .annotate(count=Count("id"))
+        .order_by("-count")
     )
 
-    children_map = {}
-    for u in all_units:
-        children_map.setdefault(u.parent_id, []).append(u)
-
-    root_units = children_map.get(None, [])
-
-    # Memberships (overview-tabellen)
+    # ------------------------------------------------------------
+    # Listor för overview (liten “preview”)
+    # ------------------------------------------------------------
     memberships = (
         CompanyMember.objects
         .filter(company=company)
@@ -366,61 +354,18 @@ def company_detail(request, pk):
         .order_by("user__email")
     )
 
-    # (valfritt) Customers – byt till company membership istället för account_accesses
-    customers = (
-        User.objects
-        .filter(
-            is_staff=False,
-            is_superuser=False,
-            company_memberships__company=company,
-        )
-        .distinct()
-        .order_by("email")
-    )
+    recent_memberships = memberships[:6]  # lagom för en overview-preview
 
-    # POST actions
+    # Modaler / actions (om du vill kunna bjuda in härifrån)
+    invite_form = CompanyInviteMemberForm()
+
+    # ------------------------------------------------------------
+    # POST (endast invite här, resten finns på egna sidor)
+    # ------------------------------------------------------------
     if request.method == "POST":
         action = request.POST.get("action")
 
-        if action == "create_orgunit":
-            orgunit_form = OrgUnitForm(request.POST, company=company)
-            if orgunit_form.is_valid():
-                unit = orgunit_form.save(commit=False)
-                unit.company = company
-                unit.save()
-                messages.success(request, f"Enhet '{unit.name}' skapad.")
-                return redirect(
-                    f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts&org_unit={unit.pk}"
-                )
-            messages.error(request, "Kunde inte skapa enhet. Kontrollera fälten.")
-
-        elif action == "add_members":
-            add_form = CompanyMemberAddForm(request.POST)
-            if add_form.is_valid():
-                users = add_form.cleaned_data["users"]
-                role = add_form.cleaned_data["role"]
-
-                created = 0
-                updated = 0
-                for u in users:
-                    obj, was_created = CompanyMember.objects.update_or_create(
-                        company=company,
-                        user=u,
-                        defaults={"role": role},
-                    )
-                    created += 1 if was_created else 0
-                    updated += 0 if was_created else 1
-
-                if created:
-                    messages.success(request, f"{created} användare lades till.")
-                if updated:
-                    messages.info(request, f"{updated} användare fanns redan och fick rollen uppdaterad.")
-
-                return redirect("accounts:company_detail", pk=company.pk)
-
-            messages.error(request, "Kunde inte lägga till användare. Kontrollera formuläret.")
-
-        elif action == "invite_member":
+        if action == "invite_member":
             invite_form = CompanyInviteMemberForm(request.POST)
             if invite_form.is_valid():
                 email = invite_form.cleaned_data["email"]
@@ -454,7 +399,7 @@ def company_detail(request, pk):
                     # Om redan aktiv, skicka inget
                     if user.is_active:
                         messages.info(request, f"{email} har redan ett aktivt konto. Ingen inbjudan skickades.")
-                        return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts")
+                        return redirect("accounts:company_detail", pk=company.pk)
 
                     # Se till att användaren är pending
                     if user.has_usable_password():
@@ -477,7 +422,6 @@ def company_detail(request, pk):
                         created_by=request.user,
                     )
 
-                    # Bygg länk + skicka mejl
                     invite_link = build_invite_uuid_link(request, invite)
                     send_invite_email(
                         request,
@@ -487,49 +431,45 @@ def company_detail(request, pk):
                     )
 
                 messages.success(request, f"Inbjudan skickades till {email}.")
-                return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts")
+                return redirect("accounts:company_detail", pk=company.pk)
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
 
+    # Kandidater (unika via invitations i företaget)
+    candidate_rows = (
+        TestInvitation.objects
+        .filter(process__company=company)
+        .select_related("candidate", "process")
+        .order_by("candidate__name")
+    )
 
-        elif action == "add_unit_access":
-            org_unit_id = request.POST.get("org_unit_id")
-            if not org_unit_id:
-                messages.error(request, "Ingen enhet vald.")
-                return redirect("accounts:company_detail", pk=company.pk)
-
-            unit = get_object_or_404(OrgUnit, pk=org_unit_id, company=company)
-
-            unit_access_form = OrgUnitAccessAddForm(request.POST, company=company, org_unit=unit)
-            if unit_access_form.is_valid():
-                users = unit_access_form.cleaned_data["users"]
-                created = 0
-                for u in users:
-                    _, was_created = UserOrgUnitAccess.objects.get_or_create(user=u, org_unit=unit)
-                    created += 1 if was_created else 0
-
-                messages.success(request, f"{created} användare fick access till {unit.name}.")
-                return redirect(f"{reverse('accounts:company_detail', kwargs={'pk': company.pk})}?tab=accounts&org_unit={unit.pk}")
-
-            messages.error(request, "Kunde inte lägga till access. Kontrollera formuläret.")
-
-    # Default render (GET eller POST med valideringsfel)
+    # ------------------------------------------------------------
+    # Render
+    # ------------------------------------------------------------
     return render(request, "admin/accounts/companies/company_detail.html", {
         "company": company,
+        "active_tab": "overview",
+        "show_invite_button": True,
+
+        # KPI
+        "users_count": users_count,
+        "accounts_total": accounts_total,
+        "accounts_root": accounts_root,
+        "accounts_sub": accounts_sub,
+        "processes_count": processes_count,
+        "candidates_count": candidates_count,
+        "invitations_count": invitations_count,
+        "invitation_status": invitation_status,
+        "candidate_rows": candidate_rows,
+
+        # Preview-data
         "memberships": memberships,
-        "add_form": add_form,
+        "recent_memberships": recent_memberships,
+
+        # Modal/form
         "invite_form": invite_form,
-        "customers": customers,
-
-        "orgunit_form": orgunit_form,
-        "root_units": root_units,
-        "children_map": children_map,
-        "selected_unit": selected_unit,
-        "selected_unit_members": selected_unit_members,
-        "unit_access_form": unit_access_form,
-
-        "active_tab": request.GET.get("tab", "overview"),
     })
+
 
 
 @login_required
