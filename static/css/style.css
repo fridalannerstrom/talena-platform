@@ -36,7 +36,7 @@
   --bs-gray-700: #4a515b;
   --bs-gray-800: #363d47;
   --bs-gray-900: #212832;
-  --bs-primary: #0061f2;
+  --bs-primary: #292929;
   --bs-secondary: #6900c7;
   --bs-success: #00ac69;
   --bs-info: #00cfd5;
@@ -52,7 +52,7 @@
   --bs-green: #00ac69;
   --bs-teal: #00ba94;
   --bs-cyan: #00cfd5;
-  --bs-blue: #0061f2;
+  --bs-blue: #292929;
   --bs-indigo: #5800e8;
   --bs-purple: #6900c7;
   --bs-pink: #e30059;
@@ -131,8 +131,8 @@
   --bs-border-radius-xl: 1rem;
   --bs-border-radius-2xl: 2rem;
   --bs-border-radius-pill: 50rem;
-  --bs-link-color: #ff6f61;
-  --bs-link-hover-color: #ff6f61;
+  --bs-link-color: #3a3a3a;
+  --bs-link-hover-color: #6e6e6e;
   --bs-code-color: #e30059;
   --bs-highlight-bg: #fdeccc;
 }
@@ -151,6 +151,28 @@
 
 
 /* Custom */
+
+.user-initials {
+  width: 27px;
+  height: 27px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: .6rem;
+  letter-spacing: .3px;
+
+  color: #ffffff;
+  background: #FF6F61;
+  border: 1px solid #FFD8D4;
+  flex: 0 0 auto;
+}
+
+
+
+.min-w-0 { min-width: 0; }
+
 
 .company-hero {
   background: #fff;
@@ -1041,7 +1063,7 @@ a {
 }
 a:hover {
   color: var(--bs-link-hover-color);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 a:not([href]):not([class]), a:not([href]):not([class]):hover {
@@ -6030,7 +6052,7 @@ textarea.form-control-lg {
   --bs-card-cap-padding-y: 1rem;
   --bs-card-cap-padding-x: 1.35rem;
   --bs-card-cap-bg: rgba(33, 40, 50, 0.03);
-  --bs-card-cap-color: ;
+  --bs-card-cap-color: #000000;
   --bs-card-height: ;
   --bs-card-color: ;
   --bs-card-bg: #fff;
@@ -9351,7 +9373,7 @@ textarea.form-control-lg {
 }
 
 .link-primary {
-  color: #0061f2 !important;
+  color: #000000 !important;
 }
 .link-primary:hover, .link-primary:focus {
   color: #004ec2 !important;
@@ -17835,7 +17857,7 @@ body {
   font-weight: 500;
 }
 .card:not([class*=bg-]) .card-header {
-  color: #0061f2;
+  color: #313131;
 }
 
 .card.bg-dark .card-header,

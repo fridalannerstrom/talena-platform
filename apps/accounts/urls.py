@@ -68,4 +68,6 @@ urlpatterns = [
     # AJAX endpoints för user access (sparar direkt)
     path("companies/<int:company_pk>/user-access/set/", views.company_user_access_set, name="company_user_access_set"),
     path("companies/<int:company_pk>/user-access/state/", views.company_user_access_state, name="company_user_access_state"),
+
+    path("companies/<int:pk>/users/", views.company_users, name="company_users"),
 ]

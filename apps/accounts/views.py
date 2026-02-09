@@ -808,3 +808,24 @@ def company_user_access_set(request, company_pk):
         else:
             deleted, _ = UserOrgUnitAccess.objects.filter(user=user, org_unit__in=units).delete()
             return JsonResponse({"ok": True, "action": "removed", "deleted": deleted})
+
+
+
+@login_required
+@admin_required
+def company_users(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    memberships = (
+        CompanyMember.objects
+        .filter(company=company)
+        .select_related("user")
+        .order_by("user__email")
+    )
+
+    return render(request, "admin/accounts/companies/company_users.html", {
+        "company": company,
+        "memberships": memberships,
+        "active_tab": "users",
+        "show_invite_button": True,  # så knappen syns uppe i headern
+    })
