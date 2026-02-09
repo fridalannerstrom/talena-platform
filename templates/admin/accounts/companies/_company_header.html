@@ -46,7 +46,7 @@
     </a>
 
     <a class="company-nav__item {% if active == 'stats' %}is-active{% endif %}"
-       href="">
+       href="{% url 'accounts:company_stats' company.pk %}">
       Statistik
     </a>
   </div>

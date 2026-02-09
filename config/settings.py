@@ -142,6 +142,7 @@ INSTALLED_APPS = [
     "apps.processes",
     "apps.emails",
     "apps.portal",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [

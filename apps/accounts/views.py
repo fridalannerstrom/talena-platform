@@ -36,6 +36,7 @@ from django.utils import timezone
 
 import json
 from django.http import JsonResponse
+from django.db.models import Count, Q
 
 
 
@@ -863,4 +864,67 @@ def company_users(request, pk):
         "memberships": memberships,
         "active_tab": "users",
         "show_invite_button": True,  # så knappen syns uppe i headern
+    })
+
+
+@login_required
+@admin_required
+def company_stats(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    # --- Users / Accounts ---
+    users_count = CompanyMember.objects.filter(company=company).count()
+
+    orgunits_qs = OrgUnit.objects.filter(company=company)
+    accounts_total = orgunits_qs.count()
+    accounts_root = orgunits_qs.filter(parent__isnull=True).count()
+    accounts_sub = accounts_total - accounts_root
+
+    # Users per account (OrgUnit)
+    users_per_unit = (
+        UserOrgUnitAccess.objects
+        .filter(org_unit__company=company)
+        .values("org_unit_id", "org_unit__name", "org_unit__unit_code")
+        .annotate(user_count=Count("user", distinct=True))
+        .order_by("-user_count", "org_unit__name")
+    )
+
+    # --- Process / candidates / invitations ---
+    # Välj EN av varianterna nedan beroende på din datamodell.
+
+    # VARIANT A: Om TestProcess har FK -> company
+    processes_qs = TestProcess.objects.filter(company=company)
+    processes_count = processes_qs.count()
+
+    # Invitations
+    invitations_qs = TestInvitation.objects.filter(process__company=company)
+    invitations_count = invitations_qs.count()
+
+    # Candidates (distinct candidates invited in this company)
+    candidates_count = invitations_qs.values("candidate_id").distinct().count()
+
+    # (Valfritt) status breakdown, snyggt för “Skickade tester”
+    invitation_status = (
+        invitations_qs
+        .values("status")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+
+    return render(request, "admin/accounts/companies/company_stats.html", {
+        "company": company,
+        "active_tab": "stats",
+        "show_invite_button": True,
+
+        "users_count": users_count,
+        "accounts_total": accounts_total,
+        "accounts_root": accounts_root,
+        "accounts_sub": accounts_sub,
+
+        "processes_count": processes_count,
+        "candidates_count": candidates_count,
+        "invitations_count": invitations_count,
+        "invitation_status": invitation_status,
+
+        "users_per_unit": users_per_unit,
     })

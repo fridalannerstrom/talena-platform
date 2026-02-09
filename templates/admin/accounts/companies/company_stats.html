@@ -1,0 +1,186 @@
+{# templates/admin/accounts/companies/company_stats.html #}
+{% extends "admin/accounts/companies/company_base.html" %}
+{% load humanize %}
+
+{% block title %}{{ company.name }} | Statistik{% endblock %}
+
+{% block company_content %}
+
+  <div class="row g-3">
+
+    {# --- KPI CARDS --- #}
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body py-3">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div>
+              <div class="fw-semibold">Statistik</div>
+              <div class="text-muted small">Snabb översikt över användning i {{ company.name }}.</div>
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6 col-lg-2">
+              <div class="stat-chip">
+                <div class="stat-chip__label">Användare</div>
+                <div class="stat-chip__value">{{ users_count }}</div>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-chip">
+                <div class="stat-chip__label">Konton</div>
+                <div class="stat-chip__value">{{ accounts_total }}</div>
+                <div class="stat-chip__sub text-muted small">{{ accounts_sub }} underkonton</div>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-chip">
+                <div class="stat-chip__label">Testprocesser</div>
+                <div class="stat-chip__value">{{ processes_count }}</div>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+              <div class="stat-chip">
+                <div class="stat-chip__label">Kandidater</div>
+                <div class="stat-chip__value">{{ candidates_count }}</div>
+                <div class="stat-chip__sub text-muted small">unika kandidater (baserat på inbjudningar)</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-3">
+              <div class="stat-chip">
+                <div class="stat-chip__label">Skickade tester</div>
+                <div class="stat-chip__value">{{ invitations_count }}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {# --- Users per account --- #}
+    <div class="col-12 col-lg-7">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="fw-semibold"><i class="fa-solid fa-sitemap me-2"></i> Användare per konto</div>
+          <span class="badge bg-light text-dark">{{ users_per_unit|length }}</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Konto</th>
+                <th class="text-muted small">Kod</th>
+                <th class="text-end">Användare</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in users_per_unit %}
+                <tr>
+                  <td class="fw-semibold">{{ row.org_unit__name }}</td>
+                  <td class="text-muted">{{ row.org_unit__unit_code|default:"—" }}</td>
+                  <td class="text-end">
+                    <span class="badge bg-label-secondary">{{ row.user_count }}</span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-muted p-3">Ingen account-access är satt ännu.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card-footer bg-transparent border-0 pt-0">
+          <div class="text-muted small">
+            Tips: Gå till <span class="fw-semibold">Behörigheter</span> för att koppla användare till konton.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# --- Invitation status breakdown --- #}
+    <div class="col-12 col-lg-5">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="fw-semibold"><i class="fa-solid fa-paper-plane me-2"></i> Skickade tester per status</div>
+        </div>
+
+        <div class="card-body">
+          {% if invitation_status %}
+            <div class="d-flex flex-column gap-2">
+              {% for s in invitation_status %}
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2">
+                    {# enkel status-badge. Anpassa gärna efter dina riktiga statuses #}
+                    {% if s.status == "completed" %}
+                      <span class="badge bg-success">Klar</span>
+                    {% elif s.status == "invited" %}
+                      <span class="badge bg-info text-dark">Inbjuden</span>
+                    {% elif s.status == "started" %}
+                      <span class="badge bg-warning text-dark">Påbörjad</span>
+                    {% elif s.status == "expired" %}
+                      <span class="badge bg-secondary">Utgången</span>
+                    {% else %}
+                      <span class="badge bg-light text-dark">{{ s.status|default:"Okänd" }}</span>
+                    {% endif %}
+
+                    <span class="fw-semibold text-truncate" style="max-width: 240px;">
+                      {{ s.status|capfirst }}
+                    </span>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">st</span>
+                    <span class="fw-semibold">{{ s.count }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted">Inga inbjudningar finns ännu.</div>
+          {% endif %}
+        </div>
+
+        <div class="card-footer bg-transparent border-0 pt-0">
+          <div class="text-muted small">
+            Detta bygger på antal <span class="fw-semibold">TestInvitation</span> kopplade till företagets processer.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <style>
+    /* Liten, tight “KPI-chip” design */
+    .stat-chip{
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 12px;
+      padding: 12px 12px 10px;
+      height: 100%;
+      background: #fff;
+    }
+    .stat-chip__label{
+      font-size: 12px;
+      color: rgba(0,0,0,.55);
+      margin-bottom: 2px;
+    }
+    .stat-chip__value{
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .stat-chip__sub{
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+  </style>
+
+{% endblock %}

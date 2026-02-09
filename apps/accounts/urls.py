@@ -70,4 +70,5 @@ urlpatterns = [
     path("companies/<int:company_pk>/user-access/state/", views.company_user_access_state, name="company_user_access_state"),
 
     path("companies/<int:pk>/users/", views.company_users, name="company_users"),
+    path("companies/<int:pk>/stats/", views.company_stats, name="company_stats"),
 ]
