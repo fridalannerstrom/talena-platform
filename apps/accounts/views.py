@@ -443,6 +443,12 @@ def company_detail(request, pk):
         .order_by("candidate__name")
     )
 
+    invitations_created = (
+        invitations_qs
+        .filter(status="created")
+        .count()
+    )
+
     # ------------------------------------------------------------
     # Render
     # ------------------------------------------------------------
@@ -461,6 +467,7 @@ def company_detail(request, pk):
         "invitations_count": invitations_count,
         "invitation_status": invitation_status,
         "candidate_rows": candidate_rows,
+        "invitations_created": invitations_created,
 
         # Preview-data
         "memberships": memberships,
@@ -851,6 +858,12 @@ def company_stats(request, pk):
         .order_by("-count")
     )
 
+    invitations_created = (
+        invitations_qs
+        .filter(status="created")
+        .count()
+    )
+
     return render(request, "admin/accounts/companies/company_stats.html", {
         "company": company,
         "active_tab": "stats",
@@ -865,6 +878,7 @@ def company_stats(request, pk):
         "candidates_count": candidates_count,
         "invitations_count": invitations_count,
         "invitation_status": invitation_status,
+        "invitations_created": invitations_created,
 
         "users_per_unit": users_per_unit,
     })

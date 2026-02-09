@@ -28,12 +28,12 @@
     </div>
   </div>
 
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Skickade tester</div>
-      <div class="h3 mb-1">{{ invitations_count|default:"0" }}</div>
-    </div>
+<div class="card h-100">
+  <div class="card-body">
+    <div class="text-muted small">Totalt skickade tester</div>
+    <div class="h3 mb-1">{{ invitations_created|default:"0" }}</div>
   </div>
+</div>
 
 <div class="card h-100">
   <div class="card-body">
@@ -52,10 +52,6 @@
     <div class="card h-100">
       <div class="card-header d-flex align-items-center justify-content-between">
         <div class="fw-semibold">Senaste användare</div>
-        <a class="btn btn-sm btn-outline-secondary"
-           href="{% url 'accounts:company_users' company.pk %}">
-          Visa alla
-        </a>
       </div>
 
       <div class="card-body">
@@ -121,10 +117,6 @@
     <div class="card h-100">
       <div class="card-header d-flex align-items-center justify-content-between">
         <div class="fw-semibold">Skickade tester</div>
-        <a class="btn btn-sm btn-outline-secondary"
-           href="{% url 'accounts:company_stats' company.pk %}">
-          Full statistik
-        </a>
       </div>
 
       <div class="card-body">
@@ -134,14 +126,20 @@
 
         {% if invitation_status %}
           <div class="d-grid gap-2">
-            {% for row in invitation_status %}
-              <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
-                <div class="fw-semibold">
-                  {{ row.status|default:"Okänd" }}
-                </div>
-                <span class="badge bg-light text-dark">{{ row.count }}</span>
-              </div>
-            {% endfor %}
+{% for row in invitation_status %}
+  <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+    <div class="fw-semibold">
+      {% with s=row.status %}
+        {% if s == "created" %}Totalt skickade tester
+        {% elif s == "sent" %}Ej påbörjade tester
+        {% elif s == "completed" %}Slutförda tester
+        {% else %}{{ s|default:"Okänd" }}
+        {% endif %}
+      {% endwith %}
+    </div>
+    <span class="fw-semibold">{{ row.count }}</span>
+  </div>
+{% endfor %}
           </div>
         {% else %}
           <div class="text-muted">Ingen data ännu.</div>
@@ -149,7 +147,7 @@
       </div>
 
       <div class="card-footer bg-transparent">
-        <a class="btn btn-outline-secondary w-100"
+        <a class="btn btn-primary w-100"
            href="{% url 'accounts:company_stats' company.pk %}">
           Gå till statistik & detaljer
         </a>
