@@ -1,6 +1,9 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% block title %}Companies | Talena{% endblock %}
 
+{% load accounts_extras %}
+
+
 {% block content %}
 <div class="container-fluid px-2 px-md-4">
 
@@ -18,60 +21,181 @@
   </div>
 
   {% if messages %}
-    <div class="mb-3">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
 
-  <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <span class="avatar avatar-xs rounded bg-label-primary">
-          <i class="fa-solid fa-building"></i>
-        </span>
-        <span class="fw-semibold">Company list</span>
-      </div>
-      <span class="badge bg-label-secondary">{{ companies|length }} st</span>
-    </div>
+  <!-- Controls -->
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <form method="get" class="row g-2 align-items-center">
+        <div class="col-12 col-md-6 col-lg-7">
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" name="q" class="form-control" placeholder="Sök företag eller org.nr…"
+              value="{{ q|default:'' }}">
+          </div>
+        </div>
 
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover mb-0 align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Företag</th>
-              <th>Org.nr</th>
-              <th>Medlemmar</th>
-              <th>Enheter</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for c in companies %}
-              <tr>
-                <td class="fw-semibold">
-                  <a href="{% url 'accounts:company_detail' c.pk %}">{{ c.name }}</a>
-                </td>
-                <td class="text-muted">{{ c.org_number|default:"-" }}</td>
-                <td class="text-muted">{{ c.member_count }}</td>
-                <td class="text-muted">{{ c.orgunit_count }}</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="4" class="text-center text-muted py-5">
-                  Inga företag ännu.
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+        <div class="col-12 col-md-4 col-lg-3">
+          <select name="sort" class="form-select">
+            <option value="name" {% if sort == "name" %}selected{% endif %}>Sortera: A–Ö</option>
+            <option value="-name" {% if sort == "-name" %}selected{% endif %}>Sortera: Ö–A</option>
+            <option value="members" {% if sort == "members" %}selected{% endif %}>Flest användare</option>
+            <option value="units" {% if sort == "units" %}selected{% endif %}>Flest konton</option>
+            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Nyast</option>
+            <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Äldst</option>
+          </select>
+        </div>
 
+        <div class="col-12 col-md-2 col-lg-2 d-grid">
+          <button class="btn btn-outline-primary" type="submit">
+            Filtrera
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="row g-3">
+    {% for c in companies %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card company-card h-100">
+        <div class="card-body p-4">
+
+          <!-- Top row -->
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <div class="company-avatar" aria-hidden="true">
+                {{ c.name|default:"?"|slice:":1"|upper }}
+              </div>
+
+              <div class="min-w-0">
+                <div class="fw-semibold text-truncate">
+                  <a class="stretched-link text-decoration-none" href="{% url 'accounts:company_detail' c.pk %}">
+                    {{ c.name }}
+                  </a>
+                </div>
+                <div class="text-muted small">
+                  Org.nr: <span class="fw-semibold">{{ c.org_number|default:"-" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="dropdown">
+              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-ellipsis"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:company_detail' c.pk %}">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Öppna
+                  </a>
+                </li>
+
+                {# Om du har edit-route, byt urlname här #}
+                {% if False %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'accounts:company_update' c.pk %}">
+                    <i class="fa-solid fa-pen me-2"></i>Redigera
+                  </a>
+                </li>
+                {% endif %}
+
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+
+                {# Om du har delete-route, byt urlname här #}
+                {% if False %}
+                <li>
+                  <a class="dropdown-item text-danger" href="{% url 'accounts:company_delete' c.pk %}">
+                    <i class="fa-solid fa-trash me-2"></i>Ta bort
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+
+          <!-- Mini stats -->
+          <div class="company-card__stats mt-3">
+            <div class="stat">
+              <div class="label">Användare</div>
+              <div class="value">{{ c.member_count }}</div>
+            </div>
+            <div class="stat">
+              <div class="label">Konton</div>
+              <div class="value">{{ c.orgunit_count }}</div>
+            </div>
+            <div class="stat">
+  <div class="label">Senast aktiv</div>
+  <div class="value">
+    <span class="text-muted small">{{ c.last_activity|last_active_compact }}</span>
   </div>
 </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body text-center py-5 text-muted">
+          Inga företag matchar din sökning.
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<style>
+  /* Company cards (matchar din "company-hero"-känsla) */
+  .company-card {
+    border: 1px solid rgba(0, 0, 0, 0.096);
+    background-color: #fff;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .company-card:hover {
+    background-color: #fcfcfc;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+  }
+
+  .company-card__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: 7px;
+    background: rgba(0, 0, 0, .02);
+  }
+
+  .company-card__stats .label {
+    font-size: 0.7rem;
+    color: rgba(0, 0, 0, .55);
+    line-height: 1.2;
+  }
+
+  .company-card__stats .value {
+    font-weight: 700;
+    margin-top: 2px;
+  }
+</style>
 {% endblock %}

@@ -36,11 +36,15 @@ from django.utils import timezone
 
 import json
 from django.http import JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max
+
+from django.db.models.functions import Coalesce
+
+from django import template
+from django.utils import timezone
 
 
 User = get_user_model()
-
 
 def build_invite_link(request, user):
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
@@ -51,7 +55,6 @@ def build_invite_link(request, user):
 def build_invite_uuid_link(request, invite):
     path = reverse("accounts:accept_invite_uuid", kwargs={"invite_id": invite.id})
     return request.build_absolute_uri(path)
-
 
 
 @login_required
@@ -258,22 +261,48 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
 
 
 
+from django.db.models import Count, Q
+
 @login_required
 @admin_required
 def company_list(request):
-    companies = (
+    q = (request.GET.get("q") or "").strip()
+    sort = request.GET.get("sort") or "name"
+
+    qs = (
         Company.objects
         .annotate(
             member_count=Count("memberships", distinct=True),
             orgunit_count=Count("org_units", distinct=True),
+            last_activity=Max("memberships__user__last_login"),
+            pending_invites=Count("memberships", filter=Q(memberships__user__is_active=False), distinct=True),
         )
-        .order_by("name")
     )
+
+    if q:
+        qs = qs.filter(
+            Q(name__icontains=q) |
+            Q(org_number__icontains=q)
+        )
+
+    sort_map = {
+        "name": "name",
+        "-name": "-name",
+        "members": "-member_count",
+        "units": "-orgunit_count",
+        "newest": "-created_at",  # om du har created_at
+        "oldest": "created_at",
+        "pending": "-pending_invites",
+        "activity": "-last_activity",
+    }
+    qs = qs.order_by(sort_map.get(sort, "name"))
+
     return render(request, "admin/accounts/companies/company_list.html", {
-        "companies": companies,
-        "active_tab": "overview",
-        "show_invite_button": True,
+        "companies": qs,
+        "q": q,
+        "sort": sort,
     })
+
 
 
 @login_required
@@ -851,3 +880,4 @@ def company_stats(request, pk):
 
         "users_per_unit": users_per_unit,
     })
+
