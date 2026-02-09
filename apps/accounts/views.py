@@ -786,28 +786,63 @@ def company_user_access_set(request, company_pk):
 
     user_id = payload.get("user_id")
     unit_ids = payload.get("unit_ids", [])
-    grant = payload.get("grant")  # true/false
+    mode = payload.get("mode")  # expected: "replace" (new UI)
+    grant = payload.get("grant")  # legacy true/false (optional)
 
     if not user_id or not isinstance(unit_ids, list):
         return JsonResponse({"ok": False, "error": "user_id and unit_ids required"}, status=400)
 
     user = get_object_or_404(User, pk=user_id)
 
+    # Safety: user must belong to this company
     if not CompanyMember.objects.filter(company=company, user=user).exists():
         return JsonResponse({"ok": False, "error": "User not in company"}, status=403)
 
-    units = OrgUnit.objects.filter(company=company, id__in=unit_ids)
+    # Only units in this company
+    units = list(OrgUnit.objects.filter(company=company, id__in=unit_ids))
+
+    # Validate: ensure all provided unit_ids exist for this company
+    requested_ids = {int(x) for x in unit_ids if str(x).isdigit()}
+    found_ids = {u.id for u in units}
+    missing = sorted(list(requested_ids - found_ids))
+    if missing:
+        return JsonResponse({"ok": False, "error": f"Invalid unit_ids for company: {missing}"}, status=400)
 
     with transaction.atomic():
-        if grant:
+        # ✅ New behavior: replace all access with provided list
+        if mode == "replace":
+            # Delete all accesses for this user within the company
+            UserOrgUnitAccess.objects.filter(
+                user=user,
+                org_unit__company=company
+            ).delete()
+
+            # Re-create access rows for selected units
+            # (bulk_create is faster and fine here)
+            objs = [UserOrgUnitAccess(user=user, org_unit=u) for u in units]
+            if objs:
+                UserOrgUnitAccess.objects.bulk_create(objs)
+
+            return JsonResponse({
+                "ok": True,
+                "action": "replaced",
+                "count": len(objs),
+            })
+
+        # --- Legacy behavior (optional fallback) ---
+        if grant is True:
             created = 0
             for unit in units:
                 _, was_created = UserOrgUnitAccess.objects.get_or_create(user=user, org_unit=unit)
                 created += 1 if was_created else 0
             return JsonResponse({"ok": True, "action": "granted", "created": created})
-        else:
+
+        if grant is False:
             deleted, _ = UserOrgUnitAccess.objects.filter(user=user, org_unit__in=units).delete()
             return JsonResponse({"ok": True, "action": "removed", "deleted": deleted})
+
+        return JsonResponse({"ok": False, "error": "Provide mode='replace' or grant=true/false"}, status=400)
+
 
 
 

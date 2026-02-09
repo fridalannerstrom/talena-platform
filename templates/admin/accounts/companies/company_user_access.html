@@ -1,25 +1,10 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% load org_extras %}
-{% block title %}User access | {{ company.name }}{% endblock %}
+{% block title %}{{ company.name }} | Talena{% endblock %}
 
 {% block content %}
+{% load org_extras %}
 <div class="container-fluid px-2 px-md-4">
-
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <div>
-      <a href="{% url 'accounts:company_list' %}" class="text-muted small d-inline-flex align-items-center mb-2">
-        <i class="fa-solid fa-arrow-left me-2"></i> Tillbaka
-      </a>
-      <h1 class="h4 mb-1">{{ company.name }}</h1>
-      <div class="text-muted small">Här hanterar du endast användares access till accounts/sub-accounts.</div>
-    </div>
-
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary" href="{% url 'accounts:company_account_structure' company.pk %}">
-        <i class="fa-solid fa-sitemap me-2"></i> Manage account structure
-      </a>
-    </div>
-  </div>
+{% include "admin/accounts/companies/_company_header.html" with company=company active="access" show_invite_button=True %}
 
   <div class="row g-3">
     <!-- LEFT: users list -->
@@ -70,17 +55,42 @@
           {% if not selected_user %}
             <div class="text-muted">Välj en användare till vänster för att hantera access.</div>
           {% else %}
-            <div class="text-muted small mb-3">
-              Klicka i/ur accounts. Ändringar sparas direkt.
-            </div>
 
-            <ul class="list-unstyled m-0">
-              {% for unit in root_units %}
-                {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit children_map=children_map checked_ids=checked_ids %}
-              {% empty %}
-                <li class="text-muted">Inga accounts ännu. Skapa struktur först.</li>
-              {% endfor %}
-            </ul>
+           <div class="text-muted small mb-3">
+  Klicka i/ur accounts, sen klicka <strong>Spara</strong> när du är klar.
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <button type="button" class="btn btn-sm btn-outline-secondary" id="btnSelectAll">
+    Markera alla
+  </button>
+  <button type="button" class="btn btn-sm btn-outline-secondary" id="btnDeselectAll">
+    Avmarkera alla
+  </button>
+
+</div>
+
+<div id="accessTree">
+  <ul class="list-unstyled m-0">
+    {% for unit in root_units %}
+      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit children_map=children_map checked_ids=checked_ids %}
+    {% empty %}
+      <li class="text-muted">Inga accounts ännu. Skapa struktur först.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+      <span class="ms-auto small text-muted align-self-center" id="dirtyHint" style="display:none;">
+    Du har osparade ändringar
+  </span>
+  <button type="button" class="btn btn-outline-secondary" id="btnReset">
+    Återställ
+  </button>
+  <button type="button" class="btn btn-primary" id="btnSave" disabled>
+    Spara ändringar
+  </button>
+</div>
           {% endif %}
         </div>
       </div>
@@ -100,6 +110,15 @@
   const csrftoken = getCookie("csrftoken");
   const selectedUserId = {{ selected_user.pk }};
 
+  const tree = document.getElementById("accessTree");
+  const btnSave = document.getElementById("btnSave");
+  const btnReset = document.getElementById("btnReset");
+  const btnSelectAll = document.getElementById("btnSelectAll");
+  const btnDeselectAll = document.getElementById("btnDeselectAll");
+  const dirtyHint = document.getElementById("dirtyHint");
+
+  const checkboxes = () => Array.from(tree.querySelectorAll("[data-unit-checkbox]"));
+
   function toast(msg, type="warning") {
     const el = document.createElement("div");
     el.className = "alert alert-" + type + " position-fixed";
@@ -108,10 +127,65 @@
     el.style.zIndex = "9999";
     el.textContent = msg;
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
+    setTimeout(() => el.remove(), 2200);
   }
 
-  async function save(unitId, grant) {
+  // --- State: original selection (for reset + dirty) ---
+  const original = new Set(
+    checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
+  );
+
+  function currentSelectionSet() {
+    return new Set(
+      checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
+    );
+  }
+
+  function setsEqual(a, b) {
+    if (a.size !== b.size) return false;
+    for (const v of a) if (!b.has(v)) return false;
+    return true;
+  }
+
+  function updateDirtyUI() {
+    const cur = currentSelectionSet();
+    const isDirty = !setsEqual(original, cur);
+
+    btnSave.disabled = !isDirty;
+    if (dirtyHint) dirtyHint.style.display = isDirty ? "inline" : "none";
+  }
+
+  // Mark dirty when user changes anything
+  tree.addEventListener("change", (e) => {
+    if (!e.target.matches("[data-unit-checkbox]")) return;
+    updateDirtyUI();
+  });
+
+  // Select all / deselect all
+  btnSelectAll?.addEventListener("click", () => {
+    checkboxes().forEach(cb => { cb.checked = true; });
+    updateDirtyUI();
+  });
+
+  btnDeselectAll?.addEventListener("click", () => {
+    checkboxes().forEach(cb => { cb.checked = false; });
+    updateDirtyUI();
+  });
+
+  // Reset to original
+  btnReset?.addEventListener("click", () => {
+    const orig = new Set(original);
+    checkboxes().forEach(cb => {
+      const id = parseInt(cb.dataset.unitId, 10);
+      cb.checked = orig.has(id);
+    });
+    updateDirtyUI();
+    toast("Återställt", "secondary");
+  });
+
+  async function saveAll() {
+    const unitIds = Array.from(currentSelectionSet());
+
     const resp = await fetch("{% url 'accounts:company_user_access_set' company.pk %}", {
       method: "POST",
       headers: {
@@ -120,34 +194,50 @@
       },
       body: JSON.stringify({
         user_id: selectedUserId,
-        unit_ids: [unitId],
-        grant: grant
+        unit_ids: unitIds,
+        mode: "replace"   // 👈 vi ersätter hela access-listan
       })
     });
+
     const data = await resp.json();
     if (!resp.ok || !data.ok) throw new Error(data.error || "Save failed");
     return data;
   }
 
-  document.querySelectorAll("[data-unit-checkbox]").forEach(cb => {
-    cb.addEventListener("change", async (e) => {
-      const unitId = parseInt(cb.dataset.unitId, 10);
-      const grant = cb.checked;
+  btnSave?.addEventListener("click", async () => {
+    btnSave.disabled = true;
 
-      cb.disabled = true;
-      try {
-        await save(unitId, grant);
-        toast(grant ? "Access granted" : "Access removed", "success");
-      } catch (err) {
-        console.error(err);
-        cb.checked = !grant; // revert
-        toast("Kunde inte spara ändringen");
-      } finally {
-        cb.disabled = false;
-      }
-    });
+    // disable all controls during save
+    checkboxes().forEach(cb => cb.disabled = true);
+    btnSelectAll.disabled = true;
+    btnDeselectAll.disabled = true;
+    btnReset.disabled = true;
+
+    try {
+      await saveAll();
+
+      // update original set => now clean
+      original.clear();
+      currentSelectionSet().forEach(id => original.add(id));
+
+      updateDirtyUI();
+      toast("Sparat!", "success");
+    } catch (err) {
+      console.error(err);
+      toast("Kunde inte spara ändringen");
+      updateDirtyUI(); // re-enable save if still dirty
+    } finally {
+      checkboxes().forEach(cb => cb.disabled = false);
+      btnSelectAll.disabled = false;
+      btnDeselectAll.disabled = false;
+      btnReset.disabled = false;
+    }
   });
+
+  // initial state
+  updateDirtyUI();
 })();
 </script>
 {% endif %}
+
 {% endblock %}
