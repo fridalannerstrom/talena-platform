@@ -1,0 +1,63 @@
+<div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="invite_member">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Lägg till användare</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="text-muted small mb-3">
+            En inbjudan skickas via mejl. Användaren får skapa lösenord och aktivera sitt konto.
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">E-post</label>
+            {{ invite_form.email }}
+            {% for err in invite_form.email.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Förnamn</label>
+              {{ invite_form.first_name }}
+              {% for err in invite_form.first_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Efternamn</label>
+              {{ invite_form.last_name }}
+              {% for err in invite_form.last_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            </div>
+          </div>
+
+          {% if invite_form.non_field_errors %}
+            <div class="alert alert-danger mt-3 mb-0">
+              {{ invite_form.non_field_errors }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Avbryt</button>
+          <button class="btn btn-primary">
+            <i class="fa-solid fa-paper-plane me-2"></i> Skicka inbjudan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if invite_form.errors or open_invite_modal %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("inviteUserModal");
+    if (!el || typeof bootstrap === "undefined") return;
+    new bootstrap.Modal(el).show();
+  });
+</script>
+{% endif %}

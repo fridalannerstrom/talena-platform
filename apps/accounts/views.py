@@ -129,7 +129,7 @@ def admin_user_detail(request, pk):
         .order_by("org_unit__company__name", "org_unit__name")
     )
 
-    return render(request, "admin/accounts/user_detail.html", {
+    return render(request, "admin/accounts/candidates/user_detail.html", {
         "u": user_obj,
         "company": company,  # valfritt att visa i UI
         "processes": processes,
@@ -298,6 +298,8 @@ def company_detail(request, pk):
     invitations_count = invitations_qs.count()
 
     candidates_count = invitations_qs.values("candidate_id").distinct().count()
+
+    invite_form = CompanyInviteMemberForm() 
 
     invitation_status = (
         invitations_qs
@@ -768,11 +770,14 @@ def company_users(request, pk):
         .order_by("user__email")
     )
 
+    invite_form = CompanyInviteMemberForm()  # ✅ behövs för modalen
+
     return render(request, "admin/accounts/companies/company_users.html", {
         "company": company,
         "memberships": memberships,
         "active_tab": "users",
         "show_invite_button": True,  # så knappen syns uppe i headern
+        "invite_form": invite_form,  # ✅
     })
 
 
@@ -808,6 +813,7 @@ def company_stats(request, pk):
     # Invitations
     invitations_qs = TestInvitation.objects.filter(process__company=company)
     invitations_count = invitations_qs.count()
+    invite_form = CompanyInviteMemberForm()
 
     # Candidates (distinct candidates invited in this company)
     candidates_count = invitations_qs.values("candidate_id").distinct().count()
@@ -841,6 +847,7 @@ def company_stats(request, pk):
         "invitations_count": invitations_count,
         "invitation_status": invitation_status,
         "invitations_created": invitations_created,
+        "invite_form": invite_form,
 
         "users_per_unit": users_per_unit,
     })
