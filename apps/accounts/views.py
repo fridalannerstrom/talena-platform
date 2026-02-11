@@ -57,6 +57,8 @@ def build_invite_uuid_link(request, invite):
     return request.build_absolute_uri(path)
 
 
+from django.db.models import Count, Q
+
 @login_required
 def admin_user_detail(request, pk):
     if not is_admin(request.user):
@@ -70,9 +72,9 @@ def admin_user_detail(request, pk):
 
     company = Company.objects.filter(memberships__user=user_obj).first()
 
+    # --- POST actions (din befintliga kod) ---
     if request.method == "POST":
         action = request.POST.get("action")
-
         if action in ("resend_invite_email", "generate_invite_link"):
             if not pending_invite:
                 messages.info(request, "Användaren är redan aktiv. Ingen invite behövs.")
@@ -83,7 +85,6 @@ def admin_user_detail(request, pk):
                 return redirect("accounts:admin_user_detail", pk=user_obj.pk)
 
             with transaction.atomic():
-                # Revoka tidigare invites
                 UserInvite.objects.filter(
                     user=user_obj,
                     company=company,
@@ -91,7 +92,6 @@ def admin_user_detail(request, pk):
                     revoked_at__isnull=True,
                 ).update(revoked_at=timezone.now())
 
-                # Skapa ny invite (UUID)
                 invite = UserInvite.objects.create(
                     user=user_obj,
                     company=company,
@@ -100,7 +100,6 @@ def admin_user_detail(request, pk):
 
                 invite_link = build_invite_uuid_link(request, invite)
 
-                # Se till att kontot verkligen är "pending"
                 if user_obj.has_usable_password():
                     user_obj.set_unusable_password()
                 if user_obj.is_active:
@@ -108,22 +107,30 @@ def admin_user_detail(request, pk):
                 user_obj.save(update_fields=["password", "is_active"])
 
             if action == "resend_invite_email":
-                # ✅ skicka mail direkt
                 send_invite_email(request, user_obj, invite_link=invite_link, company=company)
                 messages.success(request, f"Inbjudan skickad till {user_obj.email}.")
                 return redirect("accounts:admin_user_detail", pk=user_obj.pk)
 
-            # action == "generate_invite_link" (valfritt)
             open_invite_modal = True
             messages.success(request, "Ny invite-länk genererad.")
 
-    # Processer som användaren skapat
+    # --- DATA: processer + KPI ---
     processes = (
         TestProcess.objects
         .filter(created_by=user_obj)
+        .annotate(invitations_count=Count("invitations", distinct=True))  # <-- ändra related_name om behövs
         .order_by("-created_at")
     )
-    active_processes = processes.filter(is_completed=False) if hasattr(TestProcess, "is_completed") else processes
+
+    processes_count = processes.count()
+
+    invitations_qs = TestInvitation.objects.filter(process__created_by=user_obj)
+    invitations_created = invitations_qs.count()
+    invitations_completed = invitations_qs.filter(status="completed").count()
+
+    active_processes = processes
+    if hasattr(TestProcess, "is_completed"):
+        active_processes = processes.filter(is_completed=False)
 
     orgunit_accesses = (
         UserOrgUnitAccess.objects
@@ -132,16 +139,36 @@ def admin_user_detail(request, pk):
         .order_by("org_unit__company__name", "org_unit__name")
     )
 
-    return render(request, "admin/accounts/candidates/user_detail.html", {
-        "u": user_obj,
-        "company": company,  # valfritt att visa i UI
+    memberships = (
+        CompanyMember.objects
+        .filter(user=user_obj)
+        .select_related("company")
+        .order_by("company__name")
+    )
+
+    return render(request, "admin/accounts/customer/customer_detail.html", {
+        # ✅ använd samma namn som templaten använder
+        "user_obj": user_obj,
+        "u": user_obj,  # valfritt bakåtkompatibelt om du råkar använda u någonstans
+
+        "company": company,
+        "memberships": memberships,
+
         "processes": processes,
         "active_processes": active_processes,
+
+        # KPI
+        "processes_count": processes_count,
+        "invitations_created": invitations_created,
+        "invitations_completed": invitations_completed,
+
         "pending_invite": pending_invite,
-        "invite_link": invite_link,                # ✅ bara efter POST
-        "open_invite_modal": open_invite_modal,    # ✅ öppna modal efter POST
+        "invite_link": invite_link,
+        "open_invite_modal": open_invite_modal,
+
         "orgunit_accesses": orgunit_accesses,
     })
+
 
 @login_required
 def admin_customers_list(request):
@@ -154,7 +181,7 @@ def admin_customers_list(request):
         .prefetch_related("company_memberships__company")
         .order_by("-date_joined")
     )
-    return render(request, "admin/accounts/customers_list.html", {"customers": customers})
+    return render(request, "admin/accounts/customer/customers_list.html", {"customers": customers})
 
 
 @login_required
@@ -178,7 +205,7 @@ def admin_customers_create(request):
     else:
         form = InviteUserForm()
 
-    return render(request, "admin/accounts/customers_create.html", {"form": form})
+    return render(request, "admin/accounts/customer/customers_create.html", {"form": form})
 
 
 def accept_invite(request, uidb64, token):
@@ -226,7 +253,7 @@ def admin_process_detail(request, pk):
     for inv in invitations:
         status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
 
-    return render(request, "admin/accounts/process_detail.html", {
+    return render(request, "admin/accounts/customer/process_detail.html", {
         "process": process,
         "invitations": invitations,
         "status_counts": status_counts,
@@ -251,7 +278,7 @@ def admin_candidate_detail(request, process_pk, candidate_pk):
     dummy_profile = {"labels": '["Drive","Structure","Collaboration","Stability"]', "values": "[6,8,7,5]"}
     dummy_abilities = {"labels": '["Verbal","Numerical","Logical"]', "values": "[7,6,8]"}
 
-    return render(request, "admin/accounts/candidate_detail.html", {
+    return render(request, "admin/accounts/customer/candidate_detail.html", {
         "process": process,
         "candidate": candidate,
         "invitation": invitation,

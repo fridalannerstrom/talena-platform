@@ -1,0 +1,329 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Kund | Talena{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+  <div class="min-w-0">
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'accounts:company_list' %}{% endif %}"
+   class="text-muted small text-decoration-none">
+  ← Tillbaka
+</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-3 min-w-0 customer-page">
+      <div class="user-initials">
+        {% if user_obj.first_name and user_obj.last_name %}
+          {{ user_obj.first_name|slice:":1"|upper }}{{ user_obj.last_name|slice:":1"|upper }}
+        {% elif user_obj.first_name %}
+          {{ user_obj.first_name|slice:":1"|upper }}
+        {% else %}
+          {{ user_obj.email|slice:":1"|upper }}
+        {% endif %}
+      </div>
+
+      <div class="min-w-0">
+        <h2 class="mb-1">
+          {{ user_obj.get_full_name|default:user_obj.email }}
+        </h2>
+        <div class="text-muted small text-truncate">{{ user_obj.email }}</div>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+
+      {# ✅ Invite actions (only for pending users) #}
+      {% if pending_invite %}
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="resend_invite_email">
+          <button type="submit" class="btn btn-outline-secondary">
+            Skicka inbjudan igen
+          </button>
+        </form>
+
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="generate_invite_link">
+          <button type="submit" class="btn btn-outline-secondary">
+            Generera länk
+          </button>
+        </form>
+      {% endif %}
+
+      {# Optional: edit button (keep your link later) #}
+      <a href="" class="btn btn-primary">Redigera</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="row g-3">
+
+  {# KPI GRID #}
+  <div class="kpi-grid">
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Skapade testprocesser</div>
+        <div class="h3 mb-1">{{ processes_count|default:"0" }}</div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Totalt skickade tester</div>
+        <div class="h3 mb-1">{{ invitations_created|default:"0" }}</div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Slutförda tester</div>
+        <div class="h3 mb-1">{{ invitations_completed|default:"0" }}</div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Senast inloggad</div>
+        <div class="fw-semibold">
+          {% if user_obj.last_login %}
+            {{ user_obj.last_login|date:"Y-m-d H:i" }}
+          {% else %}
+            <span class="text-muted">Aldrig</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Skapade konto</div>
+        <div class="fw-semibold">
+          {% if user_obj.date_joined %}
+            {{ user_obj.date_joined|date:"Y-m-d H:i" }}
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  {# LEFT: User info / memberships #}
+  <div class="col-12 col-xl-5">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Användarinformation</div>
+      </div>
+
+      <div class="card-body">
+        <div class="d-grid gap-2">
+
+          <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+            <div class="text-muted">E-post</div>
+            <div class="fw-semibold">{{ user_obj.email }}</div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+            <div class="text-muted">Namn</div>
+            <div class="fw-semibold">
+              {{ user_obj.get_full_name|default:"-" }}
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+            <div class="text-muted">Status</div>
+            <div>
+              {% if user_obj.is_active %}
+                <span class="badge bg-success">Aktiv</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Inbjudan skickad</span>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if memberships %}
+            <div class="mt-2 text-muted small">Tillhör företag</div>
+            <div class="d-grid gap-2">
+              {% for m in memberships %}
+                <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+                  <div class="min-w-0">
+                    <div class="fw-semibold text-truncate">{{ m.company.name }}</div>
+                    <div class="text-muted small text-truncate">
+                      {% if m.company.org_number %}Org.nr: {{ m.company.org_number }}{% endif %}
+                    </div>
+                  </div>
+                  <a class="btn btn-sm btn-outline-primary"
+                     href="{% url 'accounts:company_detail' m.company.pk %}">
+                    Öppna
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {# RIGHT: Processes table #}
+  <div class="col-12 col-xl-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Testprocesser skapade av användaren</div>
+      </div>
+
+      <div class="card-body p-0">
+        {% if processes %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3">Namn</th>
+                  <th>Roll</th>
+                  <th>Plats</th>
+                  <th>Skapad</th>
+                  <th class="text-end pe-3">Skickade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in processes %}
+                  <tr>
+                    <td class="ps-3">
+                      <div class="fw-semibold">{{ p.name|default:"(Namnlös process)" }}</div>
+                      <div class="text-muted small">{{ p.testpackage_name|default:"" }}</div>
+                    </td>
+                    <td>{{ p.role|default:"-" }}</td>
+                    <td>{{ p.location|default:"-" }}</td>
+                    <td class="text-muted small">
+                      {% if p.created_at %}{{ p.created_at|date:"Y-m-d" }}{% else %}-{% endif %}
+                    </td>
+                    <td class="text-end pe-3 fw-semibold">
+                      {{ p.invitations_count|default:"0" }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4">
+            <div class="text-muted">Inga testprocesser för den här användaren ännu.</div>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+
+{# ✅ INVITE LINK MODAL (same behavior as your old template) #}
+<div class="modal fade" id="inviteLinkModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Invite link</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        {% if invite_link %}
+          <div class="alert alert-success mb-0">
+            <div class="fw-semibold">Länk genererad för {{ user_obj.email }}</div>
+
+            <div class="d-flex gap-2 align-items-center mt-2">
+              <input class="form-control" id="inviteLinkInput" value="{{ invite_link }}" readonly>
+              <button type="button" class="btn btn-outline-primary"
+                      onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value)">
+                Copy
+              </button>
+            </div>
+
+            <div class="form-text mt-2">
+              Stäng modalen när du kopierat. Länken syns inte igen förrän du genererar en ny.
+            </div>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">
+            Klicka på knappen nedan för att generera en ny invite-länk.
+          </p>
+        {% endif %}
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
+
+        {% if pending_invite %}
+          <form method="post" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_invite_link">
+            <button type="submit" class="btn btn-primary">
+              Generera ny länk
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+{% if open_invite_modal %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const el = document.getElementById("inviteLinkModal");
+    if (!el) return;
+    const modal = new bootstrap.Modal(el);
+    modal.show();
+  });
+</script>
+{% endif %}
+
+{# ✅ Toast notifications (bottom-right) #}
+{% if messages %}
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    {% for message in messages %}
+      <div class="toast align-items-center border-0 show
+  {% if 'success' in message.tags %} text-bg-success
+  {% elif 'error' in message.tags %} text-bg-danger
+  {% elif 'warning' in message.tags %} text-bg-warning
+  {% else %} text-bg-dark
+  {% endif %}">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".toast").forEach(function (el) {
+        const t = bootstrap.Toast.getOrCreateInstance(el, { delay: 3500 });
+        t.show();
+      });
+    });
+  </script>
+{% endif %}
+
+{% endblock %}
