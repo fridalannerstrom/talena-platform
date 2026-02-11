@@ -182,6 +182,10 @@
     <div class="card h-100">
       <div class="card-header d-flex align-items-center justify-content-between">
         <div class="fw-semibold">Testprocesser skapade av användaren</div>
+        <a class="btn btn-sm btn-primary"
+   href="{% url 'accounts:admin_process_create_for_user' user_pk=user_obj.pk %}?next={{ request.GET.next|default:request.get_full_path|urlencode }}">
+  Skapa testprocess
+</a>
       </div>
 
       <div class="card-body p-0">

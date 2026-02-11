@@ -60,4 +60,9 @@ urlpatterns = [
 
     path("companies/<int:pk>/users/", views.company_users, name="company_users"),
     path("companies/<int:pk>/stats/", views.company_stats, name="company_stats"),
+    path(
+    "users/<int:user_pk>/processes/new/",
+    views.admin_process_create_for_user,
+    name="admin_process_create_for_user",
+),
 ]

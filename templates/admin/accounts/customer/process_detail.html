@@ -45,7 +45,7 @@
     <div class="card h-100">
         <div class="card-body">
             <div class="text-muted small">Totalt skickade tester (fixa)</div>
-            <div class="h3 mb-1">{{ status_counts.sent|default:0 }}</div>
+            <div class="h3 mb-1">{{ invitations|length }}</div>
         </div>
     </div>
 
@@ -66,7 +66,11 @@
     <div class="card h-100">
         <div class="card-body">
             <div class="text-muted small">Ej påbörjade tester</div>
-            <div class="h3 mb-1">{{ status_counts.created|default:0 }}</div>
+            <div class="h3 mb-1">
+                {% with c=status_counts.created|default:0 s=status_counts.sent|default:0 %}
+                {{ c|add:s }}
+                {% endwith %}
+            </div>
         </div>
     </div>
 
@@ -91,64 +95,88 @@
 
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">Namn</th>
-                        <th>E-post</th>
+                        <th style="width: 34%;">Namn</th>
                         <th>Status</th>
                         <th>Källa</th>
-                        <th>Inbjuden</th>
-                        <th>Slutförd</th>
-                        <th class="text-end pe-3">Åtgärder</th>
+                        <th style="width: 170px;">Inbjuden</th>
+                        <th style="width: 170px;">Slutförd</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for inv in invitations %}
                     <tr>
-                        <td class="ps-3">
-                            <a class="text-decoration-none fw-semibold"
-                                href="{% url 'accounts:admin_candidate_detail' process_pk=process.id candidate_pk=inv.candidate.id %}?next={{ request.get_full_path|urlencode }}">
-                                {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
-                            </a>
-                        </td>
-
-                        <td class="text-muted">{{ inv.candidate.email }}</td>
-
                         <td>
-                            <span class="badge bg-light text-dark">{{ inv.status_label }}</span>
+                            <div class="d-flex align-items-center gap-3 process-detail-table">
+<div class="user-initials">
+  {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" em=inv.candidate.email|default:"" %}
+    {% if fn and ln %}
+      {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+    {% elif fn %}
+      {{ fn|slice:":1"|upper }}
+    {% elif ln %}
+      {{ ln|slice:":1"|upper }}
+    {% else %}
+      {{ em|slice:":1"|upper }}
+    {% endif %}
+  {% endwith %}
+</div>
+
+                                <div class="min-w-0">
+                                    <div class="fw-semibold text-truncate">
+                                        <a class="user-link"
+                                            href="{% url 'accounts:admin_candidate_detail' process_pk=process.id candidate_pk=inv.candidate.id %}?next={{ request.get_full_path|urlencode }}">
+                                            {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
+                                </div>
+                            </div>
                         </td>
 
-                        <td class="text-muted">{{ inv.get_source_display }}</td>
+<td>
+  <span class="
+    badge
+    {% if inv.status == 'completed' %}
+      bg-success
+    {% elif inv.status == 'started' %}
+      bg-info text-dark
+    {% elif inv.status == 'sent' %}
+      bg-warning text-dark
+    {% elif inv.status == 'created' %}
+      bg-secondary
+    {% else %}
+      bg-light text-dark
+    {% endif %}
+  ">
+    {{ inv.status_label }}
+  </span>
+</td>
 
-                        <td class="text-muted">{{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}</td>
-                        <td class="text-muted">{{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
+                        <td class="text-muted">
+                            {{ inv.get_source_display|default:"—" }}
+                        </td>
 
-                        <td class="text-end pe-3">
-                            {% if inv.assessment_url %}
-                            <a class="btn btn-outline-primary btn-sm" href="{{ inv.assessment_url }}" target="_blank">
-                                Öppna länk
-                            </a>
-                            {% else %}
-                            <button class="btn btn-outline-secondary btn-sm" disabled>Ingen länk</button>
-                            {% endif %}
+                        <td class="text-muted">
+                            {{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}
+                        </td>
 
-                            <button class="btn btn-outline-secondary btn-sm" type="button" disabled
-                                title="Kommer snart">
-                                Starta om
-                            </button>
+                        <td class="text-muted">
+                            {{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-muted p-3">Inga kandidater ännu.</td>
+                        <td colspan="6" class="text-muted p-3">Inga kandidater ännu.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
-
             </table>
         </div>
+
     </div>
 </div>
 

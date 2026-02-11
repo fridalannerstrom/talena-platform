@@ -42,6 +42,7 @@ from django.db.models.functions import Coalesce
 
 from django import template
 from django.utils import timezone
+from apps.processes.forms import TestProcessCreateForm
 
 
 User = get_user_model()
@@ -253,10 +254,13 @@ def admin_process_detail(request, pk):
     for inv in invitations:
         status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
 
+    total_sent = invitations.count()
+
     return render(request, "admin/accounts/customer/process_detail.html", {
         "process": process,
         "invitations": invitations,
         "status_counts": status_counts,
+        "total_sent": total_sent, 
     })
 
 
@@ -908,3 +912,48 @@ def company_stats(request, pk):
         "users_per_unit": users_per_unit,
     })
 
+
+
+@login_required
+def admin_process_create_for_user(request, user_pk):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    user_obj = get_object_or_404(User, pk=user_pk)
+
+    # så "Tillbaka" alltid går rätt (och inte förstör historiken)
+    next_url = request.GET.get("next") or reverse("accounts:admin_user_detail", kwargs={"pk": user_obj.pk})
+
+    # samma data du använder i kund-create (cards)
+    template_cards = [
+        # Exempel - byt till dina riktiga
+        {"value": "tqs-simple-test", "title": "TQ Simple", "subtitle": "Snabbt testflöde", "icon": "layers"},
+        {"value": "tqs-extended", "title": "TQ Extended", "subtitle": "Mer djup", "icon": "clipboard"},
+    ]
+
+    if request.method == "POST":
+        form = TestProcessCreateForm(request.POST)
+        if form.is_valid():
+            process = form.save(commit=False)
+
+            # 👇 viktigaste skillnaden
+            process.created_by = user_obj
+
+            # Om din modell har company kopplad, sätt den också:
+            # process.company = Company.objects.filter(memberships__user=user_obj).first()
+
+            process.save()
+
+            messages.success(request, "Testprocess skapad.")
+            return redirect(f"{reverse('accounts:admin_user_detail', kwargs={'pk': user_obj.pk})}?next={next_url}")
+
+        messages.error(request, "Kunde inte skapa testprocess. Kontrollera fälten.")
+    else:
+        form = TestProcessCreateForm()
+
+    return render(request, "admin/accounts/customer/process_create.html", {
+        "user_obj": user_obj,
+        "form": form,
+        "template_cards": template_cards,
+        "next_url": next_url,
+    })

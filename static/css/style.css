@@ -201,6 +201,23 @@
     font-family: "Libre Baskerville", serif;
 }
 
+.process-detail-table .user-initials {
+  width: 35px;
+  height: 35px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: .7rem;
+  letter-spacing: .3px;
+
+  color: #747D10;
+  background: #F2F6BC;
+  border: 1px solid #E5EBA8;
+  flex: 0 0 auto;
+}
+
 
 .min-w-0 { min-width: 0; }
 
