@@ -201,7 +201,12 @@
                 {% for p in processes %}
                   <tr>
                     <td class="ps-3">
-                      <div class="fw-semibold">{{ p.name|default:"(Namnlös process)" }}</div>
+                      <div class="fw-semibold">
+  <a class="text-decoration-none"
+     href="{% url 'accounts:admin_process_detail' pk=p.id %}?next={{ request.get_full_path|urlencode }}">
+    {{ p.name|default:"(Namnlös process)" }}
+  </a>
+</div>
                       <div class="text-muted small">{{ p.testpackage_name|default:"" }}</div>
                     </td>
                     <td>{{ p.role|default:"-" }}</td>
