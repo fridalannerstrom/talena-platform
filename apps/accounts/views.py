@@ -1041,7 +1041,6 @@ def admin_process_update(request, pk):
 
     obj = get_object_or_404(TestProcess, pk=pk)
 
-    # 🔙 stabil "next" för bra back-flow
     next_url = request.GET.get("next") or reverse(
         "accounts:admin_process_detail", kwargs={"pk": obj.pk}
     )
@@ -1064,7 +1063,7 @@ def admin_process_update(request, pk):
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices + cards (med subtitle/icon om du vill)
+    # 3) Bygg choices + cards
     choices = []
     template_cards = []
 
@@ -1092,9 +1091,15 @@ def admin_process_update(request, pk):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
+    # 🔥 NYTT: Sätt current_value INNAN du skapar formen
+    current_value = f"{old_acc}|{old_proj}" if old_acc and old_proj else None
+
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST, instance=obj)
         form.fields["sova_template"].choices = choices
+        # 🔥 NYTT: Sätt initial även för POST (ifall validering misslyckas)
+        if current_value:
+            form.fields["sova_template"].initial = current_value
 
         if form.is_valid():
             updated = form.save(commit=False)
@@ -1122,8 +1127,6 @@ def admin_process_update(request, pk):
 
             updated.save()
             messages.success(request, "Process uppdaterad.")
-
-            # tillbaka dit du kom ifrån (process detail eller user)
             return redirect(next_url)
 
         messages.error(request, "Kunde inte spara. Kontrollera fälten.")
@@ -1131,7 +1134,9 @@ def admin_process_update(request, pk):
     else:
         form = TestProcessCreateForm(instance=obj)
         form.fields["sova_template"].choices = choices
-        form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
+        # 🔥 VIKTIGT: Sätt initial EFTER choices är satta
+        if current_value:
+            form.fields["sova_template"].initial = current_value
 
     return render(request, "admin/accounts/customer/process_edit.html", {
         "form": form,
