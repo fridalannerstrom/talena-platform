@@ -131,6 +131,14 @@ class TestInvitation(models.Model):
             self.sova_payload = payload
         self.save()
 
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="sent_invitations",
+    )
+
 
 class SelfRegistration(models.Model):
     process = models.ForeignKey(TestProcess, on_delete=models.CASCADE, related_name="self_registrations")

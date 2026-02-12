@@ -45,6 +45,7 @@ from django.db.models.functions import Coalesce
 from django import template
 from django.utils import timezone
 from apps.processes.forms import TestProcessCreateForm
+import uuid
 
 
 User = get_user_model()
@@ -1303,8 +1304,17 @@ def admin_process_add_candidate(request, pk):
             invitation, inv_created = TestInvitation.objects.get_or_create(
                 process=process,
                 candidate=candidate,
-                defaults={"source": "invited", "status": "created"},
+                defaults={
+                    "source": "invited",
+                    "status": "created",
+                    "invited_by": request.user,
+                },
             )
+
+            if not inv_created and invitation.source == "invited" and invitation.invited_by_id is None:
+                invitation.invited_by = request.user
+                invitation.save(update_fields=["invited_by"])
+
 
             if inv_created:
                 msg = f"{candidate.email} har lagts till i processen."

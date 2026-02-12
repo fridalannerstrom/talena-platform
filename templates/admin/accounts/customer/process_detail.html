@@ -44,18 +44,6 @@
 </button>
 
 
-
-  <button
-    id="send-tests-btn"
-    type="submit"
-    form="send-tests-form"
-    class="btn btn-outline-primary"
-    disabled
-    aria-disabled="true"
-    title="Markera minst en kandidat för att skicka ut test">
-    Skicka ut test
-  </button>
-
   <a class="btn btn-primary"
    href="{% url 'accounts:admin_process_update' pk=process.pk %}?next={{ request.get_full_path|urlencode }}">
   Redigera
@@ -115,8 +103,17 @@
 {# Main table #}
 <div class="card">
   <div class="card-header d-flex align-items-center justify-content-between">
-    <div class="fw-semibold">Kandidater i processen</div>
-    <div class="text-muted small">Totalt: {{ invitations|length }}</div>
+    <div class="fw-semibold">Kandidater i processen<br><div class="text-muted small">Totalt: {{ invitations|length }}</div></div>
+    <div>  <button
+    id="send-tests-btn"
+    type="submit"
+    form="send-tests-form"
+    class="link-button"
+    disabled
+    aria-disabled="true"
+    title="Markera minst en kandidat för att skicka ut test">
+    Skicka ut test
+  </button></div>
   </div>
 
   <div class="card-body p-0">
@@ -182,7 +179,13 @@
                 </span>
               </td>
 
-              <td class="text-muted">{{ inv.get_source_display|default:"—" }}</td>
+              <td class="text-muted">
+  {% if inv.source == "invited" and inv.invited_by %}
+    Invited by {{ inv.invited_by.get_full_name|default:inv.invited_by.email }}
+  {% else %}
+    {{ inv.get_source_display|default:"—" }}
+  {% endif %}
+</td>
               <td class="text-muted">{{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}</td>
               <td class="text-muted">{{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
 
