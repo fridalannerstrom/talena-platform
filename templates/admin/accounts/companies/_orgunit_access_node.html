@@ -24,3 +24,24 @@
     {% endif %}
   {% endwith %}
 </li>
+
+<script>
+document.addEventListener("change", function (e) {
+  const checkbox = e.target.closest("[data-unit-checkbox]");
+  if (!checkbox) return;
+
+  const li = checkbox.closest("li");
+  if (!li) return;
+
+  const isChecked = checkbox.checked;
+
+  // Hitta alla child-checkboxar inom denna gren
+  const childCheckboxes = li.querySelectorAll(
+    "ul input[data-unit-checkbox]"
+  );
+
+  childCheckboxes.forEach(cb => {
+    cb.checked = isChecked;
+  });
+});
+</script>
