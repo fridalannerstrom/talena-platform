@@ -42,6 +42,18 @@
               {% endif %}
             </div>
 
+            
+<div class="mb-3">
+  <label class="form-label">Labels</label>
+  {{ form.labels_text }}
+  {% if form.labels_text.help_text %}
+    <div class="form-text">{{ form.labels_text.help_text }}</div>
+  {% endif %}
+  {% if form.labels_text.errors %}
+    <div class="text-danger small mt-1">{{ form.labels_text.errors|striptags }}</div>
+  {% endif %}
+</div>
+
             <!-- SOVA template -->
             <div class="mb-3">
   <label class="form-label">Testmall</label>
@@ -81,22 +93,6 @@
     <div class="text-danger small mt-2">{{ form.sova_template.errors|striptags }}</div>
   {% endif %}
 </div>
-
-            <div class="row g-3">
-              <div class="col-12 col-md-6">
-                <label class="form-label">Roll</label>
-                {{ form.job_title }}
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label">Plats</label>
-                {{ form.job_location }}
-              </div>
-            </div>
-
-            <div class="mt-3">
-              <label class="form-label">Anteckningar</label>
-              {{ form.notes }}
-            </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">Skapa process</button>

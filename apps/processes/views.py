@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm, CandidateCreateForm
-from .models import TestProcess, Candidate, TestInvitation, SelfRegistration
+from .models import TestProcess, Candidate, TestInvitation, SelfRegistration, ProcessLabel
 from django.contrib import messages
 from django.db import transaction
 from .forms import SelfRegisterForm
@@ -69,6 +69,7 @@ def process_list(request):
         .filter(company_id=company_id)
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
+        .prefetch_related("labels")
     )
 
     return render(request, "customer/processes/process_list.html", {"processes": processes})
@@ -159,6 +160,20 @@ def process_create(request):
 
             obj.created_by = request.user
             obj.save()
+
+            # ✅ LABELS: skapa/återanvänd labels per company och koppla
+            label_names = form.cleaned_data.get("labels_text", [])
+            if label_names:
+                label_objs = []
+                for name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company_id=company_id,
+                        name=name,
+                    )
+                    label_objs.append(lab)
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
 
             return redirect("processes:process_list")
 

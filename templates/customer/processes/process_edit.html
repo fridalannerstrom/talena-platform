@@ -53,6 +53,18 @@
               {% endif %}
             </div>
 
+            <!-- Labels -->
+            <div class="mb-3">
+              <label class="form-label">Labels</label>
+              {{ form.labels_text }}
+              {% if form.labels_text.help_text %}
+                <div class="form-text">{{ form.labels_text.help_text }}</div>
+              {% endif %}
+              {% if form.labels_text.errors %}
+                <div class="text-danger small mt-1">{{ form.labels_text.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
             <!-- SOVA template -->
             <div class="mb-3">
               <label class="form-label">Testmall</label>
@@ -103,31 +115,6 @@
               {% endif %}
             </div>
 
-            <div class="row g-3">
-              <div class="col-12 col-md-6">
-                <label class="form-label">Roll</label>
-                {{ form.job_title }}
-                {% if form.job_title.errors %}
-                  <div class="text-danger small mt-1">{{ form.job_title.errors|striptags }}</div>
-                {% endif %}
-              </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label">Plats</label>
-                {{ form.job_location }}
-                {% if form.job_location.errors %}
-                  <div class="text-danger small mt-1">{{ form.job_location.errors|striptags }}</div>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="mt-3">
-              <label class="form-label">Anteckningar</label>
-              {{ form.notes }}
-              {% if form.notes.errors %}
-                <div class="text-danger small mt-1">{{ form.notes.errors|striptags }}</div>
-              {% endif %}
-            </div>
-
             <div class="d-flex align-items-center gap-2 mt-4">
               <button class="btn btn-primary" type="submit">Spara ändringar</button>
               <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">Avbryt</a>
@@ -148,9 +135,8 @@
 
         <div class="card-body small text-muted">
           <ul class="mb-0 ps-3">
+            <li>Använd labels för att strukturera processer (t.ex. “Admin”, “Prioritet”, “Interim”).</li>
             <li>Håll namnet tydligt så du hittar processen snabbt.</li>
-            <li>Roll och plats gör listor och rapporter mer lättlästa.</li>
-            <li>Anteckningar kan vara kravprofil eller intern info.</li>
             <li>Om testmallen är låst beror det på att tester redan skickats.</li>
           </ul>
         </div>

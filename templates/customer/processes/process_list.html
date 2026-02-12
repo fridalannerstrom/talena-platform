@@ -13,50 +13,76 @@
     </a>
   </div>
 
-<div class="card">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4">Titel</th>
-              <th>Testpaket</th>
-              <th class="text-center">Kandidater</th>
-              <th>Skapad</th>
-              <th class="text-end pe-4"></th>
-            </tr>
-          </thead>
+  <!-- Controls -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-6 col-lg-5">
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i data-feather="search" style="width:16px;height:16px;"></i>
+            </span>
+            <input id="processSearch" type="text" class="form-control"
+                   placeholder="Sök på titel eller testpaket...">
+          </div>
+        </div>
 
-          <tbody>
-            {% for p in processes %}
-            <tr class="clickable-row"
-    data-href="{% url 'processes:process_detail' p.id %}">
-              <td class="ps-4">
-                <div class="d-flex flex-column">
-                  <a class="fw-semibold text-decoration-none process_list" href="{% url 'processes:process_detail' p.id %}">
-                    {{ p.name }}
-                  </a>
+        <div class="col-12 col-md-6 col-lg-4">
+          <select id="packageFilter" class="form-select">
+            <option value="">Alla testpaket</option>
+            {# Vi bygger options via JS för att slippa backend-ändringar #}
+          </select>
+        </div>
+
+        <div class="col-12 col-lg-3">
+          <select id="sortBy" class="form-select">
+            <option value="created_desc">Sortera: Nyast först</option>
+            <option value="created_asc">Sortera: Äldst först</option>
+            <option value="candidates_desc">Sortera: Flest kandidater</option>
+            <option value="candidates_asc">Sortera: Färst kandidater</option>
+            <option value="title_asc">Sortera: Titel A–Ö</option>
+            <option value="title_desc">Sortera: Titel Ö–A</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if processes %}
+    <div id="processGrid" class="process-grid">
+      {% for p in processes %}
+        <div class="process-card card"
+            role="button"
+            tabindex="0"
+            data-href="{% url 'processes:process_detail' p.id %}"
+            data-title="{{ p.name|default:''|lower }}"
+            data-package="{{ p.project_name_snapshot|default:'' }}"
+            data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
+            data-labels-lower="{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}"
+            data-candidates="{{ p.candidates_count|default:0 }}"
+            data-created="{{ p.created_at|date:'Y-m-d' }}">
+          <div class="card-body">
+
+            <!-- Top row -->
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="min-w-0">
+                <div class="process-title text-truncate">
+                  {{ p.name }}
                 </div>
-              </td>
+                <div class="text-muted small text-truncate">
+                  {{ p.project_name_snapshot }}
+                </div>
+              </div>
 
-              <td>
-                <div class="fw-medium">{{ p.project_name_snapshot }}</div>
-              </td>
-
-              <td class="text-center">
-                <span class="badge bg-success">
+              <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
                   {{ p.candidates_count }}
                 </span>
-              </td>
 
-              <td class="text-muted">
-                {{ p.created_at|date:"Y-m-d" }}
-              </td>
-
-              <td class="text-end pe-4">
-                <div class="d-inline-flex gap-2 align-items-center">
+                <div class="card-actions d-inline-flex gap-2 align-items-center">
                   <a class="button-icon"
-                     href="{% url 'processes:process_update' p.id %}">
+                     href="{% url 'processes:process_update' p.id %}"
+                     aria-label="Redigera">
                     <i data-feather="edit"></i>
                   </a>
 
@@ -65,47 +91,208 @@
                         class="d-inline"
                         onsubmit="return confirm('Är du säker på att du vill ta bort denna process?');">
                     {% csrf_token %}
-                    <button type="submit" class="button-icon">
+                    <button type="submit" class="button-icon" aria-label="Ta bort">
                       <i data-feather="trash-2"></i>
                     </button>
                   </form>
                 </div>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="5" class="p-5 text-center">
-                <div class="text-muted mb-2">Du har inga testprocesser ännu.</div>
-                <a class="btn btn-dark rounded-pill px-4" href="{% url 'processes:process_create' %}">
-                  Skapa din första testprocess
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+              </div>
+            </div>
+
+            <hr class="my-3">
+
+            {% if p.labels.all %}
+  <div class="mt-2 d-flex flex-wrap gap-1">
+    {% for lab in p.labels.all %}
+      <span class="badge rounded-pill bg-light text-dark border">{{ lab.name }}</span>
+    {% endfor %}
+  </div>
+{% endif %}
+
+            <!-- Meta row -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="small text-muted">
+                <span class="me-2">
+                  <i data-feather="users" class="icon-16"></i>
+                  <span class="ms-1">Kandidater:</span>
+                  <span class="fw-semibold text-body">{{ p.candidates_count }}</span>
+                </span>
+              </div>
+
+              <div class="small text-muted">
+                <i data-feather="calendar" class="icon-16"></i>
+                <span class="ms-1">Skapad:</span>
+                <span class="fw-semibold text-body">{{ p.created_at|date:"Y-m-d" }}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body p-5 text-center">
+        <div class="text-muted mb-2">Du har inga testprocesser ännu.</div>
+        <a class="btn btn-dark rounded-pill px-4" href="{% url 'processes:process_create' %}">
+          Skapa din första testprocess
+        </a>
       </div>
     </div>
+  {% endif %}
+
 </div>
-</div>
+
+<style>
+  .process-grid{
+    display:grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (min-width: 768px){
+    .process-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1200px){
+    .process-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  .process-card{
+    cursor:pointer;
+    border: 1px solid rgba(0,0,0,.06);
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .process-card:hover{
+    border-color: rgba(0,0,0,.14);
+    background-color: rgba(0,0,0,.02);
+    transform: translateY(-1px);
+  }
+  .process-card:focus{
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+  }
+
+  .process-title{
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .button-icon{
+    border: 0;
+    background: transparent;
+    padding: 6px;
+    border-radius: 10px;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .button-icon:hover{
+    background: rgba(0,0,0,.06);
+  }
+
+  .icon-16{
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+  }
+
+  /* Bootstrap 5.3 “subtle”-badge fallback om ni inte har 5.3 */
+  .bg-success-subtle{ background: rgba(25,135,84,.12) !important; }
+  .text-success-emphasis{ color: #146c43 !important; }
+</style>
 
 <script>
-  document.querySelectorAll(".clickable-row").forEach(row => {
-    row.addEventListener("click", function (e) {
-      // Om man klickar på knappar eller ikoner → ignorera
-      if (
-        e.target.closest("a") ||
-        e.target.closest("button")
-      ) {
-        return;
-      }
+  (function () {
+    const grid = document.getElementById("processGrid");
+    if (!grid) return;
 
-      const href = this.dataset.href;
-      if (href) {
-        window.location.href = href;
-      }
+    const cards = Array.from(grid.querySelectorAll(".process-card"));
+    const searchInput = document.getElementById("processSearch");
+    const filterSelect = document.getElementById("packageFilter");
+    const sortSelect = document.getElementById("sortBy");
+
+    // Populate filter options from existing cards (unique package names)
+    const packages = new Map();
+    cards.forEach(c => {
+      const label = (c.dataset.package || "").trim();
+      if (label) packages.set(label.toLowerCase(), label);
     });
-  });
+    Array.from(packages.values())
+      .sort((a,b) => a.localeCompare(b))
+      .forEach(label => {
+        const opt = document.createElement("option");
+        opt.value = label.toLowerCase();
+        opt.textContent = label;
+        filterSelect.appendChild(opt);
+      });
+
+    function matches(card, q, packageValue) {
+      const title = card.dataset.title || "";
+      const pkg = card.dataset.packageLower || "";
+      const filterOk = !packageValue || pkg === packageValue;
+      const labels = card.dataset.labelsLower || "";
+      const queryOk = !q || title.includes(q) || pkg.includes(q) || labels.includes(q);
+      return queryOk && filterOk;
+    }
+
+    function sortCards(list, mode) {
+      const copy = [...list];
+      const by = {
+        created_desc: (a,b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
+        created_asc:  (a,b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
+        candidates_desc: (a,b) => (parseInt(b.dataset.candidates||"0",10) - parseInt(a.dataset.candidates||"0",10)),
+        candidates_asc:  (a,b) => (parseInt(a.dataset.candidates||"0",10) - parseInt(b.dataset.candidates||"0",10)),
+        title_asc: (a,b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
+        title_desc:(a,b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
+      }[mode] || ((a,b) => 0);
+
+      copy.sort(by);
+      return copy;
+    }
+
+    function render() {
+      const q = (searchInput.value || "").trim().toLowerCase();
+      const pkgVal = (filterSelect.value || "").trim().toLowerCase();
+      const mode = sortSelect.value;
+
+      const visible = cards.filter(c => matches(c, q, pkgVal));
+      const sorted = sortCards(visible, mode);
+
+      // Hide all, then append sorted visible in order
+      cards.forEach(c => c.style.display = "none");
+      sorted.forEach(c => {
+        c.style.display = "";
+        grid.appendChild(c);
+      });
+    }
+
+    // Card click -> detail (ignore clicks on actions)
+    cards.forEach(card => {
+      const go = () => {
+        const href = card.dataset.href;
+        if (href) window.location.href = href;
+      };
+
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("a") || e.target.closest("button") || e.target.closest("form")) return;
+        go();
+      });
+
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.target.closest("a") || e.target.closest("button") || e.target.closest("form")) return;
+          e.preventDefault();
+          go();
+        }
+      });
+    });
+
+    searchInput.addEventListener("input", render);
+    filterSelect.addEventListener("change", render);
+    sortSelect.addEventListener("change", render);
+
+    render();
+  })();
 </script>
 {% endblock %}
-

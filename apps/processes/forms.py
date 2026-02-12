@@ -3,21 +3,42 @@ from .models import TestProcess, Candidate
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
+
     sova_template = forms.ChoiceField(
         widget=forms.RadioSelect,
         required=True
     )
 
-    job_title = forms.CharField(required=False)
-    job_location = forms.CharField(required=False)
-    notes = forms.CharField(widget=forms.Textarea, required=False)
+    labels_text = forms.CharField(
+        required=False,
+        help_text="Skriv en eller flera labels, separera med kommatecken. Ex: Admin, Interim, Prioritet",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Ex: Admin, Interim, Prioritet",
+        })
+    )
 
     class Meta:
         model = TestProcess
-        fields = ["name", "sova_template", "job_title", "job_location", "notes"]
-        widgets = {
-            "notes": forms.Textarea(attrs={"rows": 4}),
-        }
+        fields = ["name", "sova_template", "labels_text"]
+
+    def clean_labels_text(self):
+        raw = (self.cleaned_data.get("labels_text") or "").strip()
+        if not raw:
+            return []
+        
+        # Split by comma, normalize + dedupe
+        parts = [p.strip() for p in raw.split(",")]
+        parts = [p for p in parts if p]
+        normalized = []
+        seen = set()
+        for p in parts:
+            key = p.lower()
+            if key not in seen:
+                seen.add(key)
+                normalized.append(p[:50])  # max length safety
+        return normalized
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,22 +47,6 @@ class TestProcessCreateForm(forms.ModelForm):
         self.fields["name"].widget.attrs.update({
             "class": "form-control",
             "placeholder": "T.ex. Säljare – Stockholm",
-        })
-
-        self.fields["job_title"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "T.ex. Säljare",
-        })
-
-        self.fields["job_location"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "T.ex. Stockholm",
-        })
-
-        self.fields["notes"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "Valfritt: kravprofil, interna anteckningar…",
-            "rows": 5,
         })
 
         # RadioSelect får inte form-control, men vi kan lägga klass på ul:

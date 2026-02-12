@@ -43,6 +43,13 @@ class TestProcess(models.Model):
         related_name="test_processes_created_as_admin",
     )
 
+    labels = models.ManyToManyField(
+        "processes.ProcessLabel",
+        blank=True,
+        related_name="processes",
+    )
+
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -165,3 +172,15 @@ class SelfRegistration(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["process", "email"], name="uniq_process_email_registration")
         ]
+
+
+class ProcessLabel(models.Model):
+    company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, related_name="process_labels")
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ("company", "name")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
