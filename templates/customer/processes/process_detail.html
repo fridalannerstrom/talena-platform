@@ -2,36 +2,41 @@
 {% block content %}
 <div class="container-fluid px-2 px-md-3">
 
-  {# Back link (admin-känsla) #}
-  <a href="{% url 'processes:process_list' %}"
-     class="text-muted small text-decoration-none">
-    ← Tillbaka
-  </a>
+<a href="{% url 'processes:process_list' %}"
+   class="text-muted small text-decoration-none">
+  ← Tillbaka
+</a>
 
-  {# Top bar card (admin style) #}
-  <div class="card mb-3 mt-2">
-    <div class="card-body d-flex align-items-center justify-content-between gap-3">
+<div class="card mb-3 mt-2">
+  <div class="card-body">
+
+    {# Row 1: Title + actions #}
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
       <div class="min-w-0">
         <h2 class="mb-1 mt-2 mb-2 text-truncate">{{ process.name }}</h2>
 
         <div class="text-muted small">
-          {{ process.project_name_snapshot|default:"—" }}
-          {% if process.job_title or process.job_location %}
-            · {{ process.job_title }}{% if process.job_location %} / {{ process.job_location }}{% endif %}
-          {% endif %}
-        </div>
+          Skapad av:
+          <span class="fw-semibold">
+            {% with u=process.created_by %}
+              {% if u.first_name or u.last_name %}
+                {{ u.first_name }} {{ u.last_name }}
+              {% else %}
+                {{ u.email }}
+              {% endif %}
+            {% endwith %}
+          </span>
 
-        {# Meta rad (valfri men nice) #}
-        <div class="text-muted small mt-1">
-          {% if process.account_code %}Account: {{ process.account_code }}{% endif %}
-          {% if process.project_code %} · Project: {{ process.project_code }}{% endif %}
+          {% if process.created_at %}
+            <span class="mx-1">·</span>{{ process.created_at|date:"Y-m-d H:i" }}
+          {% endif %}
         </div>
       </div>
 
       <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
         <a class="btn btn-outline-secondary"
            href="{% url 'emails:edit_process_invitation_template' process.id %}">
-          Mejmallar
+          Mejlmallar
         </a>
 
         <a class="btn btn-outline-secondary"
@@ -47,239 +52,227 @@
         </button>
       </div>
     </div>
-  </div>
 
-  {# KPI grid (admin style). Om du inte vill ha detta, säg till så tar vi bort. #}
-  <div class="kpi-grid mb-3">
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Totalt skickade tester</div>
-        <div class="h3 mb-1">{{ invitations|length }}</div>
-      </div>
-    </div>
+    {# Row 2: Key facts as chips #}
+    <div class="process-header-chips mt-3">
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Påbörjade</div>
-        <div class="h3 mb-1">{{ status_counts.started|default:0 }}</div>
-      </div>
-    </div>
-
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Slutförda</div>
-        <div class="h3 mb-1">{{ status_counts.completed|default:0 }}</div>
-      </div>
-    </div>
-
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Ej påbörjade</div>
-        <div class="h3 mb-1">
-          {% with c=status_counts.created|default:0 s=status_counts.sent|default:0 %}
-            {{ c|add:s }}
-          {% endwith %}
+      <div class="chip">
+        <div class="chip-label">Testmall</div>
+        <div class="chip-value">
+          {{ process.project_name_snapshot|default:"—" }}
         </div>
       </div>
-    </div>
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Utgångna</div>
-        <div class="h3 mb-1">{{ status_counts.expired|default:0 }}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-
-    {# LEFT: Process info (behåller din struktur men mer admin-lik spacing) #}
-    <div class="col-12 col-lg-4 col-xl-3">
-      <div class="card h-100">
-        <div class="card-header bg-white py-3">
-          <div class="subheading mb-1">Information</div>
-          <div class="text-muted small">Grunduppgifter om testprocessen</div>
+      <div class="chip">
+        <div class="chip-label">Tester</div>
+        <div class="chip-value">
+          {{ meta.tests|default:"—" }}
         </div>
+      </div>
 
-        <div class="card-body process-detail">
-          <div class="mb-3">
-            <div class="text-muted small mb-1">Testpaket</div>
-            <div class="fw-semibold">{{ process.project_name_snapshot|default:"—" }}</div>
-            <div class="text-muted small">
-              {% if process.account_code %}Account: {{ process.account_code }}{% endif %}
-              {% if process.project_code %} · Project: {{ process.project_code }}{% endif %}
+      {# Labels: show as pills, keep row compact #}
+      <div class="chip chip-labels">
+        <div class="chip-label">Labels</div>
+
+        <div class="chip-value">
+          {% if process.labels %}
+            <div class="d-flex flex-wrap gap-2">
+{% for label in process.labels.all %}
+  <span class="badge bg-light text-dark border">{{ label }}</span>
+{% endfor %}
             </div>
-          </div>
-
-          <div class="mb-3">
-            <div class="text-muted small mb-1">Tester</div>
-            <div>{{ meta.tests|default:"—" }}</div>
-          </div>
-
-          <div class="mb-3">
-            <div class="text-muted small mb-1">Språk</div>
-            <div>{{ meta.languages|default:"—" }}</div>
-          </div>
-
-          <div class="mb-4">
-            <div class="text-muted small mb-1">Anteckningar</div>
-            {% if process.notes %}
-              <div class="text-muted">{{ process.notes }}</div>
-            {% else %}
-              <div class="text-muted">—</div>
-            {% endif %}
-          </div>
-
-          <button type="button" class="btn btn-outline-secondary" id="btnSelfReg">
-            Självregistrering
-          </button>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
         </div>
       </div>
-    </div>
 
-    {# RIGHT: Candidates (admin table style) #}
-    <div class="col-12 col-lg-8 col-xl-9">
-      <div class="card process-sidebar">
-        <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
-          <div class="min-w-0">
-            <div class="fw-semibold">
-              Kandidater
-              <div class="text-muted small">Totalt: {{ invitations|length }}</div>
-            </div>
-          </div>
-
-          <button
-            id="send-tests-btn"
-            type="submit"
-            form="send-tests-form"
-            class="link-button"
-            disabled
-            aria-disabled="true"
-            title="Markera minst en kandidat för att skicka ut test"
-          >
-            <i data-feather="send"></i> Skicka ut test
-          </button>
-        </div>
-
-        <div class="card-body p-0">
-          <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
-            {% csrf_token %}
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0 process-table">
-                <thead class="table-light">
-                  <tr>
-                    <th style="width:44px;" class="ps-3">
-                      <input type="checkbox" id="select-all">
-                    </th>
-                    <th style="width:40%;">Kandidat</th>
-                    <th>Källa</th>
-                    <th>Status</th>
-                    <th style="width: 160px;">Registrerad</th>
-                    <th class="text-end pe-3" style="width:70px;"></th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {% for inv in invitations %}
-                  <tr class="candidate-row">
-                    <td class="ps-3">
-                      <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
-                    </td>
-
-                    <td>
-                      <div class="d-flex align-items-center gap-3">
-                        <div class="user-initials">
-                          {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
-                            {% if fn or ln %}
-                              {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-                            {% else %}
-                              ?
-                            {% endif %}
-                          {% endwith %}
-                        </div>
-
-                        <div class="min-w-0">
-                          <div class="fw-semibold text-truncate">
-                            <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                               class="user-link js-open-candidate"
-                               data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                               data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
-                              {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
-                            </a>
-                          </div>
-                          <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td class="text-muted">
-                      {% if inv.source == "self_registered" %}
-                        <span class="badge bg-info text-dark">Självregistrerad</span>
-                      {% else %}
-                        <span class="badge bg-primary">Inbjuden</span>
-                      {% endif %}
-                    </td>
-
-                    <td>
-                      <span class="badge"
-                            data-invitation-id="{{ inv.id }}"
-                            data-status-badge="1">
-                        {{ inv.status_label }}
-                      </span>
-                    </td>
-
-                    <td class="text-muted">
-                      {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
-                      <div class="small text-muted">{{ inv.invited_at|default:inv.created_at|date:"H:i" }}</div>
-                    </td>
-
-                    <td class="text-end pe-3">
-                      <button type="submit"
-                              class="button-icon"
-                              form="send-tests-form"
-                              formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-                              formmethod="post"
-                              onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
-                        <i data-feather="trash-2"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                    <td colspan="6" class="p-5 text-center text-muted">
-                      Inga kandidater ännu. Klicka på <strong>Lägg till kandidat</strong> för att komma igång.
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-
-          </form>
-        </div>
-      </div>
     </div>
 
   </div>
 </div>
 
-{# Offcanvas + Modal behålls exakt som du har dem #}
+  {# KPI grid (som du har nu) #}
+ <div class="kpi-grid mb-3">
 
-<!-- Candidate Slide-up (Bottom Sheet) -->
-<div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet" aria-labelledby="Candidate details">
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Totalt skickade tester</div>
+      <div class="h3 mb-1">{{ kpis.total_sent|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Påbörjade</div>
+      <div class="h3 mb-1">{{ kpis.started|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Slutförda</div>
+      <div class="h3 mb-1">{{ kpis.completed|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Ej påbörjade</div>
+      <div class="h3 mb-1">{{ kpis.not_started|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Utgångna</div>
+      <div class="h3 mb-1">{{ kpis.expired|default:0 }}</div>
+    </div>
+  </div>
+
+</div>
+
+  {# Candidates table full width #}
+  <div class="card process-sidebar">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+      <div class="min-w-0">
+        <div class="fw-semibold">
+          Kandidater
+          <div class="text-muted small">Totalt: {{ invitations|length }}</div>
+        </div>
+      </div>
+
+      <button
+        id="send-tests-btn"
+        type="submit"
+        form="send-tests-form"
+        class="link-button"
+        disabled
+        aria-disabled="true"
+        title="Markera minst en kandidat för att skicka ut test"
+      >
+        <i data-feather="send"></i> Skicka ut test
+      </button>
+    </div>
+
+    <div class="card-body p-0">
+      <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
+        {% csrf_token %}
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 process-table">
+            <thead class="table-light">
+              <tr>
+                <th style="width:44px;" class="ps-3">
+                  <input type="checkbox" id="select-all">
+                </th>
+                <th style="width:40%;">Kandidat</th>
+                <th>Källa</th>
+                <th>Status</th>
+                <th style="width: 160px;">Registrerad</th>
+                <th class="text-end pe-3" style="width:70px;"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for inv in invitations %}
+              <tr class="candidate-row">
+                <td class="ps-3">
+                  <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
+                </td>
+
+                <td>
+                <div class="d-flex align-items-center gap-3 process-detail-table">
+                  <div class="user-initials">
+                      {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
+                        {% if fn or ln %}
+                          {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                        {% else %}
+                          ?
+                        {% endif %}
+                      {% endwith %}
+                    </div>
+
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">
+                        <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                           class="user-link js-open-candidate"
+                           data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                           data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+                          {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                        </a>
+                      </div>
+                      <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="text-muted">
+                  {% if inv.source == "self_registered" %}
+                    <span class="badge bg-info text-dark">Självregistrerad</span>
+                  {% else %}
+                    <span class="badge bg-primary">Inbjuden</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="badge"
+                        data-invitation-id="{{ inv.id }}"
+                        data-status-badge="1">
+                    {{ inv.status_label }}
+                  </span>
+                </td>
+
+                <td class="text-muted">
+                  {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
+                  <div class="small text-muted">{{ inv.invited_at|default:inv.created_at|date:"H:i" }}</div>
+                </td>
+
+                <td class="text-end pe-3">
+                  <button type="submit"
+                          class="button-icon"
+                          form="send-tests-form"
+                          formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                          formmethod="post"
+                          onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
+                    <i data-feather="trash-2"></i>
+                  </button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="p-5 text-center text-muted">
+                  Inga kandidater ännu. Klicka på <strong>Lägg till kandidat</strong> för att komma igång.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+
+
+
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
   <div class="offcanvas-header justify-content-end">
     <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
   <div class="offcanvas-body" id="candidateSheetBody">
     <div class="text-muted">Loading…</div>
   </div>
 </div>
 
+<!-- Add candidate modal -->
 <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
+
       <div class="modal-header">
         <div class="d-flex flex-column">
           <div class="subheading mb-1">Lägg till kandidat</div>
@@ -291,63 +284,40 @@
       <div class="modal-body" id="addCandidateModalBody">
         <div class="text-muted">Loading…</div>
       </div>
+
     </div>
   </div>
 </div>
 
+
 <style>
-  /* Offcanvas höjd + rundning */
-  #candidateSheet {
+  /* Offcanvas */
+  #candidateSheet{
     height: 97vh;
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
   }
 
-  /* Luftiga rader (som admin) */
-  .process-table tbody tr td {
-    padding-top: 16px;
-    padding-bottom: 16px;
-  }
-
-  /* Initial-bubbla (admin look) */
-  .user-initials{
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight: 700;
-    font-size: .85rem;
-    background: rgba(0,0,0,.06);
-    color: rgba(0,0,0,.75);
-    flex: 0 0 auto;
-  }
-
-  /* Länk som känns som admin */
-  .user-link{
-    color: inherit;
-    text-decoration: none;
-  }
-  .user-link:hover{
-    text-decoration: underline;
-  }
-
-  /* KPI grid, samma som admin (om du saknar detta i customer CSS) */
+  /* KPI grid */
   .kpi-grid{
     display:grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 12px;
   }
-  @media (max-width: 1200px){
-    .kpi-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  }
-  @media (max-width: 768px){
-    .kpi-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-</style>
+  @media (max-width: 1200px){ .kpi-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 768px){ .kpi-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-{# --- dina scripts nedan: oförändrade --- #}
+  /* Table spacing */
+  .process-table tbody tr td{
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+
+  .user-link{ color: inherit; text-decoration: none; }
+  .user-link:hover{ text-decoration: underline; }
+
+</style>
 
 <!-- Self registration modal (din befintliga) -->
 <script>
@@ -553,3 +523,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 {% endblock %}
+

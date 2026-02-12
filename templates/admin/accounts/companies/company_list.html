@@ -20,17 +20,6 @@
     </div>
   </div>
 
-  {% if messages %}
-  <div class="mb-3">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
   <!-- Controls -->
   <div class="card mb-3">
     <div class="card-body py-3">
@@ -197,5 +186,10 @@
     font-weight: 700;
     margin-top: 2px;
   }
+
+
+  
+
+
 </style>
 {% endblock %}

@@ -346,16 +346,41 @@ def process_detail(request, pk):
         .order_by("-created_at")
     )
 
-    return render(
-        request,
-        "customer/processes/process_detail.html",
-        {
-            "process": process,
-            "invitations": invitations,
-            "meta": meta,
-            "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
-        }
+    # Counts by status
+    status_counts = dict(
+        invitations.values("status")
+        .annotate(c=Count("id"))
+        .values_list("status", "c")
     )
+
+    sent_count = status_counts.get("sent", 0)
+    started_count = status_counts.get("started", 0)
+    completed_count = status_counts.get("completed", 0)
+    expired_count = status_counts.get("expired", 0)
+
+    # "Totalt skickade" = sent + started + completed (inte created)
+    total_sent = sent_count + started_count + completed_count
+
+    # "Ej påbörjade" (bland skickade) = sent
+    not_started = sent_count
+
+    context = {
+        "process": process,
+        "invitations": invitations,
+        "meta": meta,
+        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
+        "status_counts": status_counts,
+        "kpis": {
+            "total_sent": total_sent,
+            "started": started_count,
+            "completed": completed_count,
+            "not_started": not_started,
+            "expired": expired_count,
+            "total_candidates": invitations.count(),
+        },
+    }
+
+    return render(request, "customer/processes/process_detail.html", context)
 
 
 
