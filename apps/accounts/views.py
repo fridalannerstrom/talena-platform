@@ -263,6 +263,7 @@ def admin_process_detail(request, pk):
         "invitations": invitations,
         "status_counts": status_counts,
         "total_sent": total_sent, 
+        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
     })
 
 
@@ -1145,4 +1146,125 @@ def admin_process_update(request, pk):
         "template_cards": template_cards,
         "template_locked": locked,
         "next_url": next_url,
+    })
+
+@admin_required
+@require_POST
+def admin_remove_candidate_from_process(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id)
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+    invitation.delete()
+    messages.success(request, "Kandidaten togs bort från processen.")
+    return redirect("accounts:admin_process_detail", pk=process.id)
+
+@admin_required
+def admin_process_send_tests(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    if request.method != "POST":
+        return redirect("accounts:admin_process_detail", pk=process.pk)
+
+    invitation_ids = request.POST.getlist("invitation_ids")
+    if not invitation_ids:
+        messages.warning(request, "Välj minst en kandidat.")
+        return redirect("accounts:admin_process_detail", pk=process.pk)
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process, id__in=invitation_ids)
+        .select_related("candidate")
+    )
+
+    client = SovaClient()
+    sent_count = 0
+    skipped_count = 0
+
+    # (valfritt) samma sova_project_id lookup som du redan gör
+
+    for inv in invitations:
+        candidate = inv.candidate
+        if inv.status in ("sent", "started", "completed"):
+            skipped_count += 1
+            continue
+
+        request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+        payload = {
+            "request_id": request_id,
+            "candidate_id": str(candidate.id),
+            "first_name": candidate.first_name,
+            "last_name": candidate.last_name,
+            "email": candidate.email,
+            "language": "sv",
+            "job_title": process.job_title or process.name,
+            "job_number": f"talena-{process.id}",
+            "meta_data": {
+                "talena_process_id": str(process.id),
+                "talena_candidate_id": str(candidate.id),
+                "talena_user_id": str(request.user.id),
+                "talena_request_id": request_id,
+                "talena_context": "admin",
+            },
+        }
+
+        try:
+            resp = client.order_assessment(process.project_code, payload)
+            test_url = resp.get("url")
+
+            # samma email template lookup + send + EmailLog som du redan har
+
+            if not test_url:
+                messages.error(request, f"SOVA returnerade ingen url för {candidate.email}.")
+                continue
+
+            inv.status = "sent"
+            inv.invited_at = timezone.now()
+            inv.sova_payload = resp
+            inv.request_id = request_id
+            inv.assessment_url = test_url
+            inv.save(update_fields=["status", "invited_at", "sova_payload", "request_id", "assessment_url"])
+
+            sent_count += 1
+
+        except Exception as e:
+            messages.error(request, f"Kunde inte skicka till {candidate.email}: {e}")
+
+    if sent_count:
+        messages.success(request, f"Skickade test till {sent_count} kandidat(er).")
+    elif skipped_count:
+        messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
+    else:
+        messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
+
+    return redirect("accounts:admin_process_detail", pk=process.pk)
+
+
+from django.http import JsonResponse
+
+@admin_required
+def admin_process_invitation_statuses(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    qs = (
+        TestInvitation.objects
+        .filter(process=process)
+        .select_related("candidate")
+        .order_by("created_at")
+    )
+
+    return JsonResponse({
+        "invitations": [
+            {
+                "id": inv.id,
+                "status": inv.status,
+                "completed_at": inv.completed_at.isoformat() if inv.completed_at else None,
+                "sova_overall_status": getattr(inv, "sova_overall_status", "") or "",
+            }
+            for inv in qs
+        ]
     })

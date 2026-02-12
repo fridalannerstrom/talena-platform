@@ -493,31 +493,27 @@ def self_register(request, token):
     if request.method == "POST":
         form = SelfRegisterForm(request.POST)
         if form.is_valid():
-            name = form.cleaned_data["name"].strip()
+            first_name = form.cleaned_data["first_name"].strip()
+            last_name = form.cleaned_data["last_name"].strip()
             email = form.cleaned_data["email"].strip().lower()
-
-            parts = name.split()
-            first_name = parts[0] if parts else ""
-            last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
 
             client = SovaClient()
 
             with transaction.atomic():
-                # 1) Candidate (dedupe on email)
                 candidate, _ = Candidate.objects.get_or_create(
                     email=email,
-                    defaults={"first_name": first_name or name, "last_name": last_name},
+                    defaults={
+                        "first_name": first_name,
+                        "last_name": last_name,
+                    },
                 )
 
-                # 2) Invitation (dedupe per process+candidate)
                 invitation, created = TestInvitation.objects.get_or_create(
                     process=process,
                     candidate=candidate,
                     defaults={
                         "status": "created",
                         "source": "self_registered",
-                        # Tips: sätt INTE invited_at här om du vill ha den som "sent timestamp".
-                        # Men jag låter din struktur vara och sätter sent längre ner.
                         "invited_at": timezone.now(),
                     }
                 )
@@ -653,7 +649,10 @@ def self_register(request, token):
     else:
         form = SelfRegisterForm()
 
-    return render(request, "customer/processes/self_register_form.html", {"process": process, "form": form})
+    return render(request, "customer/processes/self_register_form.html", {
+        "process": process,
+        "form": form
+    })
 
 
 

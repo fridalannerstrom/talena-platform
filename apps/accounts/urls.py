@@ -65,8 +65,10 @@ urlpatterns = [
     views.admin_process_create_for_user,
     name="admin_process_create_for_user",
     ),
-    path(
-    "processes/<int:pk>/edit/", views.admin_process_update, name="admin_process_update",
-    ),
+    path("processes/<int:pk>/edit/", views.admin_process_update, name="admin_process_update"),
+    path("processes/<int:pk>/", views.admin_process_detail, name="admin_process_detail"),
+    path("processes/<int:pk>/send-tests/", views.admin_process_send_tests, name="admin_process_send_tests"),
+    path("processes/<int:process_id>/remove/<int:candidate_id>/", views.admin_remove_candidate_from_process, name="admin_remove_candidate_from_process"),
+    path("processes/<int:pk>/statuses/", views.admin_process_invitation_statuses, name="admin_process_invitation_statuses"),
 
 ]

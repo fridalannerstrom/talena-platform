@@ -84,5 +84,17 @@ class CandidateCreateForm(forms.Form):
     )
 
 class SelfRegisterForm(forms.Form):
-    name = forms.CharField(max_length=255)
-    email = forms.EmailField()
+    first_name = forms.CharField(
+        max_length=150,
+        label="Förnamn",
+        widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "given-name"})
+    )
+    last_name = forms.CharField(
+        max_length=150,
+        label="Efternamn",
+        widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "family-name"})
+    )
+    email = forms.EmailField(
+        label="E-post",
+        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "email"})
+    )

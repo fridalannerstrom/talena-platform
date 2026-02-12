@@ -3,6 +3,24 @@
 
 <form method="post">
   {% csrf_token %}
-  {{ form.as_p }}
+
+  <p>
+    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label><br>
+    {{ form.first_name }}
+    {{ form.first_name.errors }}
+  </p>
+
+  <p>
+    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label><br>
+    {{ form.last_name }}
+    {{ form.last_name.errors }}
+  </p>
+
+  <p>
+    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label><br>
+    {{ form.email }}
+    {{ form.email.errors }}
+  </p>
+
   <button type="submit">Registrera dig</button>
 </form>

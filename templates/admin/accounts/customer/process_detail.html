@@ -31,7 +31,32 @@
         <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
 
 
-<a class="btn btn-primary"
+  <button type="button"
+          class="btn btn-outline-secondary"
+          id="btnSelfReg">
+    Självregistrering
+  </button>
+
+    <button type="button"
+          class="btn btn-primary"
+          id="btnAddCandidate"
+          data-url="">
+    Lägg till kandidat
+  </button>
+
+
+  <button
+    id="send-tests-btn"
+    type="submit"
+    form="send-tests-form"
+    class="btn btn-outline-primary"
+    disabled
+    aria-disabled="true"
+    title="Markera minst en kandidat för att skicka ut test">
+    Skicka ut test
+  </button>
+
+  <a class="btn btn-primary"
    href="{% url 'accounts:admin_process_update' pk=process.pk %}?next={{ request.get_full_path|urlencode }}">
   Redigera
 </a>
@@ -89,98 +114,305 @@
 
 {# Main table #}
 <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-        <div class="fw-semibold">Kandidater i processen</div>
-        <div class="text-muted small">
-            Totalt: {{ invitations|length }}
-        </div>
-    </div>
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div class="fw-semibold">Kandidater i processen</div>
+    <div class="text-muted small">Totalt: {{ invitations|length }}</div>
+  </div>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 34%;">Namn</th>
-                        <th>Status</th>
-                        <th>Källa</th>
-                        <th style="width: 170px;">Inbjuden</th>
-                        <th style="width: 170px;">Slutförd</th>
-                    </tr>
-                </thead>
+  <div class="card-body p-0">
+    <form id="send-tests-form"
+          method="post"
+          action="{% url 'accounts:admin_process_send_tests' process.id %}">
+      {% csrf_token %}
 
-                <tbody>
-                    {% for inv in invitations %}
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center gap-3 process-detail-table">
-<div class="user-initials">
-  {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" em=inv.candidate.email|default:"" %}
-    {% if fn and ln %}
-      {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-    {% elif fn %}
-      {{ fn|slice:":1"|upper }}
-    {% elif ln %}
-      {{ ln|slice:":1"|upper }}
-    {% else %}
-      {{ em|slice:":1"|upper }}
-    {% endif %}
-  {% endwith %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width:44px;" class="ps-3">
+                <input type="checkbox" id="select-all">
+              </th>
+              <th style="width: 34%;">Namn</th>
+              <th>Status</th>
+              <th>Källa</th>
+              <th style="width: 170px;">Inbjuden</th>
+              <th style="width: 170px;">Slutförd</th>
+              <th class="text-end pe-3" style="width:70px;"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for inv in invitations %}
+            <tr>
+              <td class="ps-3">
+                <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center gap-3 process-detail-table">
+                  <div class="user-initials">…</div>
+
+                  <div class="min-w-0">
+                    <div class="fw-semibold text-truncate">
+                      <a class="user-link js-open-candidate"
+                         href="{% url 'accounts:admin_candidate_detail' process.id inv.candidate.id %}"
+                         data-sheet-url="{% url 'accounts:admin_candidate_detail' process.id inv.candidate.id %}"
+                         data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+                        {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                      </a>
+                    </div>
+                    <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <span class="badge"
+                      data-status-badge="1"
+                      data-invitation-id="{{ inv.id }}">
+                  {{ inv.status_label }}
+                </span>
+              </td>
+
+              <td class="text-muted">{{ inv.get_source_display|default:"—" }}</td>
+              <td class="text-muted">{{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}</td>
+              <td class="text-muted">{{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
+
+              <td class="text-end pe-3">
+                <button type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        form="send-tests-form"
+                        formaction="{% url 'accounts:admin_remove_candidate_from_process' process.id inv.candidate_id %}"
+                        formmethod="post"
+                        onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
+                  Ta bort
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-muted p-3">Inga kandidater ännu.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+  </div>
 </div>
 
-                                <div class="min-w-0">
-                                    <div class="fw-semibold text-truncate">
-                                        <a class="user-link"
-                                            href="{% url 'accounts:admin_candidate_detail' process_pk=process.id candidate_pk=inv.candidate.id %}?next={{ request.get_full_path|urlencode }}">
-                                            {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
-                                        </a>
-                                    </div>
-                                    <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
-                                </div>
-                            </div>
-                        </td>
 
-<td>
-  <span class="
-    badge
-    {% if inv.status == 'completed' %}
-      bg-success
-    {% elif inv.status == 'started' %}
-      bg-info text-dark
-    {% elif inv.status == 'sent' %}
-      bg-warning text-dark
-    {% elif inv.status == 'created' %}
-      bg-secondary
-    {% else %}
-      bg-light text-dark
-    {% endif %}
-  ">
-    {{ inv.status_label }}
-  </span>
-</td>
-
-                        <td class="text-muted">
-                            {{ inv.get_source_display|default:"—" }}
-                        </td>
-
-                        <td class="text-muted">
-                            {{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}
-                        </td>
-
-                        <td class="text-muted">
-                            {{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-muted p-3">Inga kandidater ännu.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex flex-column">
+          <div class="subheading mb-1">Lägg till kandidat</div>
+          <div class="text-muted small">Bjud in en kandidat till denna testprocess.</div>
         </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
 
+      <div class="modal-body" id="addCandidateModalBody">
+        <div class="text-muted">Loading…</div>
+      </div>
     </div>
+  </div>
 </div>
+
+
+<div class="modal fade" id="selfRegModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex flex-column">
+          <div class="subheading mb-1">Självregistrering</div>
+          <div class="text-muted small">Dela länken med kandidater.</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-2 text-muted">
+          Kandidater som registrerar sig via länken startar testet automatiskt direkt efter registrering.
+        </p>
+
+        <label class="form-label">Self-registration URL</label>
+        <input id="selfRegInput" type="text" class="form-control" value="{{ self_reg_url }}" readonly>
+
+        <div class="d-flex align-items-center gap-3 mt-2">
+          <button id="btnCopySelfReg" class="btn btn-primary" type="button">
+            Copy link
+          </button>
+          <span id="selfRegCopyStatus" class="small text-muted"></span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Candidate sheet fetch (din befintliga, oförändrad) -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const sheetEl = document.getElementById("candidateSheet");
+    const sheetBody = document.getElementById("candidateSheetBody");
+    const sheetTitle = document.getElementById("candidateSheetLabel");
+    if (!sheetEl || !sheetBody || !sheetTitle) return;
+
+    const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
+
+    document.querySelectorAll(".js-open-candidate").forEach(link => {
+      link.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const url = link.dataset.sheetUrl || link.getAttribute("href");
+        const name = link.dataset.candidateName || "Candidate";
+
+        sheetTitle.textContent = name;
+        sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+        sheet.show();
+
+        try {
+          const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+          if (!res.ok) {
+            sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Could not load candidate details (${res.status}).</div>`;
+            return;
+          }
+          sheetBody.innerHTML = await res.text();
+        } catch (err) {
+          sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
+          console.error(err);
+        }
+      });
+    });
+  });
+</script>
+
+<!-- Poll statuses (din befintliga, men städad från dubletter) -->
+<script>
+(function () {
+  const url = "{% url 'accounts:admin_process_invitation_statuses' process.id %}";
+  const POLL_MS = 5000;
+
+  function badgeClassFor(status) {
+    switch ((status || "").toLowerCase()) {
+      case "completed": return "badge bg-success";
+      case "started": return "badge bg-info text-dark";
+      case "sent": return "badge bg-warning text-dark";
+      case "created": return "badge bg-secondary";
+      default: return "badge bg-light text-dark";
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      (data.invitations || []).forEach(inv => {
+        const el = document.querySelector(`[data-status-badge="1"][data-invitation-id="${inv.id}"]`);
+        if (el) {
+          el.className = badgeClassFor(inv.status);
+
+          let label = inv.status;
+          const st = (inv.status || "").toLowerCase();
+          if (st === "completed") label = "Färdig";
+          if (st === "started") label = "Påbörjad";
+          if (st === "sent") label = "Skickad";
+          if (st === "created") label = "Ej skickad";
+
+          el.textContent = label;
+        }
+
+        const sovaEl = document.querySelector(`[data-sova-badge="1"][data-invitation-id="${inv.id}"]`);
+        if (sovaEl) {
+          const sovaVal = (inv.sova_overall_status || "—");
+          sovaEl.textContent = `SOVA: ${sovaVal}`;
+        }
+      });
+    } catch (e) {}
+  }
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("send-tests-btn");
+    const selectAll = document.getElementById("select-all");
+    const checks = Array.from(document.querySelectorAll(".row-check"));
+
+    if (!btn) return;
+
+    function updateSendButton() {
+      const anyChecked = checks.some(ch => ch.checked);
+      btn.disabled = !anyChecked;
+      btn.setAttribute("aria-disabled", String(!anyChecked));
+    }
+
+    // Init
+    updateSendButton();
+
+    // Row checks
+    checks.forEach(ch => ch.addEventListener("change", updateSendButton));
+
+    // Select all
+    if (selectAll) {
+      selectAll.addEventListener("change", () => {
+        checks.forEach(ch => ch.checked = selectAll.checked);
+        updateSendButton();
+      });
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btnSelfReg");
+    const modalEl = document.getElementById("selfRegModal");
+    const inputEl = document.getElementById("selfRegInput");
+    const copyBtn = document.getElementById("btnCopySelfReg");
+    const statusEl = document.getElementById("selfRegCopyStatus");
+
+    if (!btn || !modalEl || !inputEl || !copyBtn || !statusEl) return;
+    if (!window.bootstrap) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+
+    btn.addEventListener("click", () => {
+      // säkerställ att input är uppdaterad (om du renderar om sidan etc)
+      const url = inputEl.value || "";
+      if (!url) {
+        alert("Self-registration URL saknas för denna process.");
+        return;
+      }
+      statusEl.textContent = "";
+      modal.show();
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      const url = inputEl.value || "";
+      try {
+        await navigator.clipboard.writeText(url);
+        statusEl.textContent = "Kopierad ✅";
+        setTimeout(() => statusEl.textContent = "", 2000);
+      } catch (e) {
+        // fallback om clipboard blockas
+        inputEl.focus();
+        inputEl.select();
+        statusEl.textContent = "Markera och kopiera manuellt (Ctrl/Cmd+C).";
+      }
+    });
+  });
+</script>
+
 
 {% endblock %}
