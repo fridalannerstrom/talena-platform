@@ -27,6 +27,13 @@ class TestProcess(models.Model):
         db_index=True,
     )
 
+    org_unit = models.ForeignKey(
+        OrgUnit,
+        on_delete=models.PROTECT,
+        null=True, blank=True,  # TEMP så du slipper backfill nu direkt
+        related_name="processes",
+    )
+
     # Denna kan fortsätta vara "kunden" om du vill
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

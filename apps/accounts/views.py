@@ -11,6 +11,8 @@ from django.db.models import Count
 from django.views.decorators.http import require_POST
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
+from .utils.org_access import get_accessible_orgunit_ids
+
 
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
@@ -754,6 +756,32 @@ def company_user_access_state(request, company_pk):
         .values_list("org_unit_id", flat=True)
     )
     return JsonResponse({"ok": True, "checked_ids": checked_ids})
+
+
+
+@login_required
+@admin_required
+@require_POST
+def set_active_org_unit(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    unit_id = payload.get("unit_id")
+    if not unit_id:
+        return JsonResponse({"ok": False, "error": "unit_id required"}, status=400)
+
+    unit = get_object_or_404(OrgUnit, pk=unit_id, company=company)
+
+    accessible_ids = get_accessible_orgunit_ids(request.user, company)
+    if unit.id not in accessible_ids:
+        return JsonResponse({"ok": False, "error": "No access to this org unit"}, status=403)
+
+    request.session["active_org_unit_id"] = unit.id
+    return JsonResponse({"ok": True, "active_org_unit_id": unit.id, "active_org_unit_name": unit.name})
 
 
 @login_required

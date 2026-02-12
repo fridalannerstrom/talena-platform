@@ -15,6 +15,7 @@ from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import render_placeholders
 from django.core.mail import send_mail
 from django.http import JsonResponse
+from apps.accounts.utils.org_access import get_accessible_orgunit_ids
 
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
@@ -24,7 +25,6 @@ from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
 from django.http import HttpResponseForbidden
 
-from apps.accounts.models import CompanyMember
 from apps.processes.services.send_tests import send_assessments_and_emails
 
 import json
@@ -32,6 +32,9 @@ import uuid
 import requests
 
 from django.conf import settings
+
+from apps.accounts.models import Company, CompanyMember
+
 
 
 def render_placeholders(text: str, ctx: dict) -> str:
@@ -57,6 +60,15 @@ def user_can_access_process(user, process) -> bool:
     return bool(company_id and process.company_id == company_id)
 
 
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
+
+from apps.accounts.models import Company, CompanyMember
+from apps.accounts.utils.org_access import get_accessible_orgunit_ids
+from .models import TestProcess
+# + dina imports för ProjectMeta
+
 @login_required
 def process_list(request):
     company_id = (
@@ -65,16 +77,18 @@ def process_list(request):
         .values_list("company_id", flat=True)
         .first()
     )
+    company = get_object_or_404(Company, pk=company_id)
+
+    accessible_ids = get_accessible_orgunit_ids(request.user, company)
 
     processes = (
         TestProcess.objects
-        .filter(company_id=company_id)
+        .filter(company=company, org_unit_id__in=accessible_ids)   # ✅ här är nyckeln
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
         .prefetch_related("labels")
     )
 
-    # ---- ProjectMeta lookup (tests) ----
     keys = {
         (p.account_code, p.project_code)
         for p in processes
@@ -82,19 +96,13 @@ def process_list(request):
     }
 
     meta_by_key = {}
-
     if keys:
         q = Q()
         for acc, proj in keys:
             q |= Q(account_code=acc, project_code=proj)
 
         metas = ProjectMeta.objects.filter(q)
-
-        # Template-vänlig nyckel
-        meta_by_key = {
-            f"{m.account_code}::{m.project_code}": m
-            for m in metas
-        }
+        meta_by_key = {f"{m.account_code}::{m.project_code}": m for m in metas}
 
     return render(
         request,
@@ -104,6 +112,7 @@ def process_list(request):
             "meta_by_key": meta_by_key,
         }
     )
+
 
 
 @login_required
@@ -176,6 +185,30 @@ def process_create(request):
                 })
 
             obj.company_id = company_id
+
+            
+            # ✅ sätt org_unit från session (active org unit)
+            active_unit_id = request.session.get("active_org_unit_id")
+
+            company = Company.objects.get(pk=company_id)
+            accessible_ids = get_accessible_orgunit_ids(request.user, company)
+
+            if not active_unit_id or int(active_unit_id) not in accessible_ids:
+                # fallback: välj en direkt/åtkomlig unit automatiskt
+                fallback_id = next(iter(accessible_ids), None)
+                if not fallback_id:
+                    form.add_error(None, "Du har ingen enhet (OrgUnit) tilldelad, kan inte skapa process.")
+                    return render(request, "customer/processes/process_create.html", {
+                        "form": form,
+                        "error": error,
+                        "template_cards": template_cards,
+                        "templates_count": len(template_cards),
+                        "accounts_count": len(accounts),
+                    })
+                active_unit_id = fallback_id
+                request.session["active_org_unit_id"] = active_unit_id
+
+            obj.org_unit_id = int(active_unit_id)
 
             # ✅ endast SOVA-referenser
             obj.provider = "sova"
@@ -359,10 +392,29 @@ def process_delete(request, pk):
     return redirect("processes:process_list")
 
 
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+
+from apps.accounts.models import Company, CompanyMember
+from apps.accounts.utils.org_access import get_accessible_orgunit_ids
+from .models import TestProcess
+# + dina övriga imports (ProjectMeta, user_can_access_process, osv)
+
 @login_required
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    # ✅ Bestäm company (utgå från process.company, säkrast)
+    company = process.company
+
+    # ✅ OrgUnit access-koll
+    accessible_ids = get_accessible_orgunit_ids(request.user, company)
+    if process.org_unit_id not in accessible_ids:
+        return HttpResponseForbidden("No access.")
+
+    # (behåll om du har extra regelverk, men ofta blir detta redundant när orgunit styr allt)
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
@@ -377,7 +429,6 @@ def process_detail(request, pk):
         .order_by("-created_at")
     )
 
-    # Counts by status
     status_counts = dict(
         invitations.values("status")
         .annotate(c=Count("id"))
@@ -389,10 +440,7 @@ def process_detail(request, pk):
     completed_count = status_counts.get("completed", 0)
     expired_count = status_counts.get("expired", 0)
 
-    # "Totalt skickade" = sent + started + completed (inte created)
     total_sent = sent_count + started_count + completed_count
-
-    # "Ej påbörjade" (bland skickade) = sent
     not_started = sent_count
 
     context = {
@@ -412,6 +460,7 @@ def process_detail(request, pk):
     }
 
     return render(request, "customer/processes/process_detail.html", context)
+
 
 
 

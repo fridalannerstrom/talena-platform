@@ -2,13 +2,14 @@
 
 <li class="mb-2">
   <div class="d-flex align-items-center gap-2">
-    <input
-      class="form-check-input"
-      type="checkbox"
-      data-unit-checkbox
-      data-unit-id="{{ unit.id }}"
-      {% if unit.id in checked_ids %}checked{% endif %}
-    >
+<input
+  class="form-check-input"
+  type="checkbox"
+  data-unit-checkbox
+  data-unit-id="{{ unit.id }}"
+  data-company-id="{{ company.id }}"
+  {% if unit.id in checked_ids %}checked{% endif %}
+>
     <div class="flex-grow-1">
       <div class="fw-semibold">{{ unit.name }}</div>
     </div>
@@ -18,7 +19,7 @@
     {% if kids %}
       <ul class="list-unstyled ms-4 mt-2">
         {% for child in kids %}
-          {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child children_map=children_map checked_ids=checked_ids %}
+          {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids %}
         {% endfor %}
       </ul>
     {% endif %}
@@ -44,4 +45,45 @@ document.addEventListener("change", function (e) {
     cb.checked = isChecked;
   });
 });
+</script>
+
+
+<script>
+(function () {
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  async function setActiveOrgUnit(companyId, unitId) {
+    const url = `/accounts/companies/${companyId}/orgunits/set-active/`; // justera om din prefix skiljer
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({ unit_id: unitId }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) {
+      console.warn("Could not set active org unit:", data.error);
+      return;
+    }
+    // valfritt: visa en liten status nånstans
+    // console.log("Active org unit set:", data.active_org_unit_name);
+  }
+
+  document.addEventListener("change", (e) => {
+    const cb = e.target.closest("[data-unit-checkbox]");
+    if (!cb) return;
+
+    // sätt active unit till den man precis interagerade med (oavsett checked/unchecked)
+    const unitId = cb.dataset.unitId;
+    const companyId = cb.dataset.companyId;
+    if (companyId && unitId) setActiveOrgUnit(companyId, unitId);
+  });
+})();
 </script>

@@ -74,6 +74,11 @@ urlpatterns = [
     "processes/<int:pk>/add-candidate/",
     views.admin_process_add_candidate,
     name="admin_process_add_candidate"
-),
-path("processes/<int:pk>/delete/", views.admin_process_delete, name="admin_process_delete"),
+    ),
+    path("processes/<int:pk>/delete/", views.admin_process_delete, name="admin_process_delete"),
+    path(
+    "companies/<int:company_pk>/orgunits/set-active/",
+    views.set_active_org_unit,
+    name="set_active_org_unit",
+    ),
 ]

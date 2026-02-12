@@ -4,7 +4,7 @@
 {% block content %}
 {% load org_extras %}
 <div class="container-fluid px-2 px-md-4">
-{% include "admin/accounts/companies/_company_header.html" with company=company active="access" show_invite_button=True %}
+{% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids %}
 
   <div class="row g-3">
     <!-- LEFT: users list -->
@@ -238,6 +238,35 @@
   updateDirtyUI();
 })();
 </script>
+
+<script>
+(function () {
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  async function setActive(companyId, unitId) {
+    const url = `/accounts/companies/${companyId}/orgunits/set-active/`;
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+      body: JSON.stringify({ unit_id: unitId })
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.ok) console.warn("set_active_org_unit failed:", data.error);
+  }
+
+  document.addEventListener("change", (e) => {
+    const cb = e.target.closest("[data-unit-checkbox]");
+    if (!cb) return;
+    setActive(cb.dataset.companyId, cb.dataset.unitId);
+  });
+})();
+</script>
+
 {% endif %}
 
 {% endblock %}
