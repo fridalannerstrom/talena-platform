@@ -33,6 +33,7 @@ import requests
 
 from django.conf import settings
 
+
 def render_placeholders(text: str, ctx: dict) -> str:
     text = text or ""
     for key, val in ctx.items():
@@ -55,6 +56,7 @@ def user_can_access_process(user, process) -> bool:
     )
     return bool(company_id and process.company_id == company_id)
 
+
 @login_required
 def process_list(request):
     company_id = (
@@ -72,7 +74,36 @@ def process_list(request):
         .prefetch_related("labels")
     )
 
-    return render(request, "customer/processes/process_list.html", {"processes": processes})
+    # ---- ProjectMeta lookup (tests) ----
+    keys = {
+        (p.account_code, p.project_code)
+        for p in processes
+        if p.account_code and p.project_code
+    }
+
+    meta_by_key = {}
+
+    if keys:
+        q = Q()
+        for acc, proj in keys:
+            q |= Q(account_code=acc, project_code=proj)
+
+        metas = ProjectMeta.objects.filter(q)
+
+        # Template-vänlig nyckel
+        meta_by_key = {
+            f"{m.account_code}::{m.project_code}": m
+            for m in metas
+        }
+
+    return render(
+        request,
+        "customer/processes/process_list.html",
+        {
+            "processes": processes,
+            "meta_by_key": meta_by_key,
+        }
+    )
 
 
 @login_required

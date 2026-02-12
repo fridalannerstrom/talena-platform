@@ -1,5 +1,6 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% block content %}
+{% load dict_extras %}
 <div class="container-fluid px-2 px-md-3">
 
   <!-- Header -->
@@ -22,8 +23,7 @@
             <span class="input-group-text bg-white">
               <i data-feather="search" style="width:16px;height:16px;"></i>
             </span>
-            <input id="processSearch" type="text" class="form-control"
-                   placeholder="Sök på titel eller testpaket...">
+            <input id="processSearch" type="text" class="form-control" placeholder="Sök på titel eller testpaket...">
           </div>
         </div>
 
@@ -49,134 +49,256 @@
   </div>
 
   {% if processes %}
-    <div id="processGrid" class="process-grid">
-      {% for p in processes %}
-        <div class="process-card card"
-            role="button"
-            tabindex="0"
-            data-href="{% url 'processes:process_detail' p.id %}"
-            data-title="{{ p.name|default:''|lower }}"
-            data-package="{{ p.project_name_snapshot|default:'' }}"
-            data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
-            data-labels-lower="{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}"
-            data-candidates="{{ p.candidates_count|default:0 }}"
-            data-created="{{ p.created_at|date:'Y-m-d' }}">
-          <div class="card-body">
+  <div id="processGrid" class="process-grid">
+    {% for p in processes %}
+    <div class="process-card card" role="button" tabindex="0" data-href="{% url 'processes:process_detail' p.id %}"
+      data-title="{{ p.name|default:''|lower }}" data-package="{{ p.project_name_snapshot|default:'' }}"
+      data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
+      data-labels-lower="{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}"
+      data-candidates="{{ p.candidates_count|default:0 }}" data-created="{{ p.created_at|date:'Y-m-d' }}">
 
-            <!-- Top row -->
-            <div class="d-flex justify-content-between align-items-start gap-3">
-              <div class="min-w-0">
-                <div class="process-title text-truncate">
-                  {{ p.name }}
-                </div>
-                <div class="text-muted small text-truncate">
-                  {{ p.project_name_snapshot }}
-                </div>
-              </div>
+      <div class="card-body process-card-body">
 
-              <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
-                  {{ p.candidates_count }}
-                </span>
+  <!-- Top: user labels + actions -->
+  <div class="d-flex align-items-start justify-content-between gap-3">
 
-                <div class="card-actions d-inline-flex gap-2 align-items-center">
-                  <a class="button-icon"
-                     href="{% url 'processes:process_update' p.id %}"
-                     aria-label="Redigera">
-                    <i data-feather="edit"></i>
-                  </a>
-
-                  <form method="post"
-                        action="{% url 'processes:process_delete' p.id %}"
-                        class="d-inline"
-                        onsubmit="return confirm('Är du säker på att du vill ta bort denna process?');">
-                    {% csrf_token %}
-                    <button type="submit" class="button-icon" aria-label="Ta bort">
-                      <i data-feather="trash-2"></i>
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <hr class="my-3">
-
-            {% if p.labels.all %}
-  <div class="mt-2 d-flex flex-wrap gap-1">
+    <!-- User-defined labels -->
+<div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+  {% if p.labels.exists %}
     {% for lab in p.labels.all %}
-      <span class="badge rounded-pill bg-light text-dark border">{{ lab.name }}</span>
+      <span class="process-label">{{ lab.name }}</span>
+    {% endfor %}
+  {% else %}
+    <span class="process-label process-label-muted">Ej kategoriserad</span>
+  {% endif %}
+</div>
+
+    <!-- Actions -->
+    <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0">
+      <a class="icon-btn"
+         href="{% url 'processes:process_update' p.id %}"
+         aria-label="Redigera"
+         onclick="event.stopPropagation();">
+        <i data-feather="edit"></i>
+      </a>
+
+      <form method="post"
+            action="{% url 'processes:process_delete' p.id %}"
+            class="d-inline"
+            onsubmit="event.stopPropagation(); return confirm('Är du säker på att du vill ta bort denna process?');">
+        {% csrf_token %}
+        <button type="submit" class="icon-btn" aria-label="Ta bort">
+          <i data-feather="trash-2"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div class="mt-3">
+    <div class="process-title mb-2">
+      {{ p.name }}
+    </div>
+
+    <div class="text-muted small">
+      {{ p.project_name_snapshot }}
+      <br>
+
+      {% with key=p.account_code|add:"::"|add:p.project_code %}
+        {% with m=meta_by_key|get_item:key %}
+          {% if m and m.tests %}
+            Innehåller tester:
+            {% for t in m.tests|split_tests %}
+              {{ t }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="card-divider"></div>
+
+  <!-- Footer meta -->
+  <div class="card-footer-meta">
+    <div class="meta-item">
+      <i data-feather="users" class="icon-16"></i>
+      <span>Kandidater: <strong>{{ p.candidates_count|default:0 }}</strong></span>
+    </div>
+
+    <div class="meta-item">
+      <i data-feather="calendar" class="icon-16"></i>
+      <span>Skapad: <strong>{{ p.created_at|date:"Y-m-d" }}</strong></span>
+    </div>
+  </div>
+
+</div>
+
+    </div>
     {% endfor %}
   </div>
-{% endif %}
-
-            <!-- Meta row -->
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div class="small text-muted">
-                <span class="me-2">
-                  <i data-feather="users" class="icon-16"></i>
-                  <span class="ms-1">Kandidater:</span>
-                  <span class="fw-semibold text-body">{{ p.candidates_count }}</span>
-                </span>
-              </div>
-
-              <div class="small text-muted">
-                <i data-feather="calendar" class="icon-16"></i>
-                <span class="ms-1">Skapad:</span>
-                <span class="fw-semibold text-body">{{ p.created_at|date:"Y-m-d" }}</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      {% endfor %}
-    </div>
   {% else %}
-    <div class="card">
-      <div class="card-body p-5 text-center">
-        <div class="text-muted mb-2">Du har inga testprocesser ännu.</div>
-        <a class="btn btn-dark rounded-pill px-4" href="{% url 'processes:process_create' %}">
-          Skapa din första testprocess
-        </a>
-      </div>
+  <div class="card">
+    <div class="card-body p-5 text-center">
+      <div class="text-muted mb-2">Du har inga testprocesser ännu.</div>
+      <a class="btn btn-dark rounded-pill px-4" href="{% url 'processes:process_create' %}">
+        Skapa din första testprocess
+      </a>
     </div>
+  </div>
   {% endif %}
 
 </div>
 
 <style>
-  .process-grid{
-    display:grid;
+  .process-grid {
+    display: grid;
     grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 14px;
-  }
-  @media (min-width: 768px){
-    .process-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (min-width: 1200px){
-    .process-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    gap: 16px;
   }
 
-  .process-card{
-    cursor:pointer;
-    border: 1px solid rgba(0,0,0,.06);
-    transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+  @media (min-width: 768px) {
+    .process-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
-  .process-card:hover{
-    border-color: rgba(0,0,0,.14);
-    background-color: rgba(0,0,0,.02);
-    transform: translateY(-1px);
+
+  @media (min-width: 1200px) {
+    .process-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
-  .process-card:focus{
+
+  .process-card {
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.11);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .process-card:hover {
+    border-color: rgba(0, 0, 0, .12);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .06);
+  }
+
+  .process-card:focus {
     outline: 0;
-    box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+    box-shadow: 0 0 0 .22rem rgba(13, 110, 253, .15), 0 10px 24px rgba(0, 0, 0, .06);
   }
 
-  .process-title{
+  .process-card-body {
+    padding: 18px 18px 16px 18px;
+  }
+
+  .process-title {
+    font-weight: 500;
+    font-size: 1.1rem;
+    line-height: 1.25;
+    font-family: "Libre Baskerville", serif;
+    color: #000;
+  }
+
+
+  .pill-outline {
+    background: rgba(0, 0, 0, .02);
+    border: 1px solid rgba(0, 0, 0, .08);
+    color: rgba(0, 0, 0, .65);
+  }
+
+  .process-card-body .tag {
+    font-size: .7rem;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid #B9B3D6;
+    background: #EDEBFA;
+    color: rgba(0, 0, 0, .70);
+    font-weight: 400;
+  }
+
+  .count-bubble {
+    min-width: 30px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    font-weight: 700;
+    background: rgba(25, 135, 84, .12);
+    color: #146c43;
+    border: 1px solid rgba(25, 135, 84, .16);
+  }
+
+  .icon-btn {
+    border: 0;
+    background: rgba(255, 255, 255, .55);
+    padding: 7px;
+    border-radius: 12px;
+    color: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background .12s ease;
+  }
+
+  .icon-btn:hover {
+    background: rgba(0, 0, 0, .06);
+  }
+
+  .icon-16 {
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+  }
+
+  .card-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.11);
+    margin: 20px -17px 17px;
+  }
+
+  .card-footer-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0px;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
+  }
+
+  .card-footer-meta span {
+
+    font-size: 0.7rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    color: rgba(0, 0, 0, .55);
+  }
+
+  .meta-strong {
+    color: rgba(0, 0, 0, .78);
     font-weight: 650;
-    line-height: 1.2;
   }
 
-  .button-icon{
+  .process-label {
+    font-size: 0.6rem;
+    border-radius: 100px;
+    padding: 2px 8px;
+    color: #000000;
+    font-weight: 400;
+    font-family: poppins, sans-serif;
+    background-color: #CCBBFB;
+  }
+
+  .button-icon {
     border: 0;
     background: transparent;
     padding: 6px;
@@ -187,19 +309,32 @@
     justify-content: center;
     text-decoration: none;
   }
-  .button-icon:hover{
-    background: rgba(0,0,0,.06);
+
+  .button-icon:hover {
+    background: rgba(0, 0, 0, .06);
   }
 
-  .icon-16{
+  .icon-16 {
     width: 16px;
     height: 16px;
     vertical-align: -3px;
   }
 
   /* Bootstrap 5.3 “subtle”-badge fallback om ni inte har 5.3 */
-  .bg-success-subtle{ background: rgba(25,135,84,.12) !important; }
-  .text-success-emphasis{ color: #146c43 !important; }
+  .bg-success-subtle {
+    background: rgba(25, 135, 84, .12) !important;
+  }
+
+  .text-success-emphasis {
+    color: #146c43 !important;
+  }
+
+
+  .process-label-muted {
+  background: rgba(0,0,0,.04);
+  color: rgba(0,0,0,.45);
+  border: 1px dashed rgba(0,0,0,.15);
+}
 </style>
 
 <script>
@@ -219,7 +354,7 @@
       if (label) packages.set(label.toLowerCase(), label);
     });
     Array.from(packages.values())
-      .sort((a,b) => a.localeCompare(b))
+      .sort((a, b) => a.localeCompare(b))
       .forEach(label => {
         const opt = document.createElement("option");
         opt.value = label.toLowerCase();
@@ -239,13 +374,13 @@
     function sortCards(list, mode) {
       const copy = [...list];
       const by = {
-        created_desc: (a,b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
-        created_asc:  (a,b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
-        candidates_desc: (a,b) => (parseInt(b.dataset.candidates||"0",10) - parseInt(a.dataset.candidates||"0",10)),
-        candidates_asc:  (a,b) => (parseInt(a.dataset.candidates||"0",10) - parseInt(b.dataset.candidates||"0",10)),
-        title_asc: (a,b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
-        title_desc:(a,b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
-      }[mode] || ((a,b) => 0);
+        created_desc: (a, b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
+        created_asc: (a, b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
+        candidates_desc: (a, b) => (parseInt(b.dataset.candidates || "0", 10) - parseInt(a.dataset.candidates || "0", 10)),
+        candidates_asc: (a, b) => (parseInt(a.dataset.candidates || "0", 10) - parseInt(b.dataset.candidates || "0", 10)),
+        title_asc: (a, b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
+        title_desc: (a, b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
+      }[mode] || ((a, b) => 0);
 
       copy.sort(by);
       return copy;
