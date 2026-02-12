@@ -150,7 +150,15 @@
 
               <td>
                 <div class="d-flex align-items-center gap-3 process-detail-table">
-                  <div class="user-initials">…</div>
+                  <div class="user-initials">
+  {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
+    {% if fn or ln %}
+      {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+    {% else %}
+      ?
+    {% endif %}
+  {% endwith %}
+</div>
 
                   <div class="min-w-0">
                     <div class="fw-semibold text-truncate">
