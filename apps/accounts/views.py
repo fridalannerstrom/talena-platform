@@ -48,7 +48,7 @@ from apps.processes.forms import TestProcessCreateForm
 import uuid
 
 from apps.processes.forms import CandidateCreateForm
-
+from apps.processes.models import ProcessLabel
 from apps.processes.services.send_tests import send_assessments_and_emails
 
 
@@ -247,7 +247,10 @@ def admin_process_detail(request, pk):
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
-    process = get_object_or_404(TestProcess, pk=pk)
+    process = get_object_or_404(
+        TestProcess.objects.prefetch_related("labels"),
+        pk=pk
+    )
 
     invitations = (
         TestInvitation.objects
@@ -256,7 +259,7 @@ def admin_process_detail(request, pk):
         .order_by("-created_at")
     )
 
-    # Snabb statistik (nice för admin-UI)
+    # Snabb statistik
     status_counts = {}
     for inv in invitations:
         status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
@@ -267,7 +270,7 @@ def admin_process_detail(request, pk):
         "process": process,
         "invitations": invitations,
         "status_counts": status_counts,
-        "total_sent": total_sent, 
+        "total_sent": total_sent,
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
     })
 
@@ -979,6 +982,14 @@ def admin_process_create_for_user(request, user_pk):
         form.fields["sova_template"].choices = choices
 
         if form.is_valid():
+
+            raw_labels = form.cleaned_data.get("labels_text", "")
+
+            if isinstance(raw_labels, (list, tuple)):
+                labels_text = ", ".join([str(x).strip() for x in raw_labels if str(x).strip()])
+            else:
+                labels_text = str(raw_labels or "").strip()
+
             obj = form.save(commit=False)
 
             value = form.cleaned_data["sova_template"]
@@ -1020,6 +1031,21 @@ def admin_process_create_for_user(request, user_pk):
             obj.created_by = user_obj
             obj.created_by_admin = request.user
             obj.save()
+            
+            # Skapa/assigna labels (ManyToMany)
+            if labels_text:
+                parts = [p.strip() for p in labels_text.replace("\n", ",").split(",")]
+                parts = [p for p in parts if p]
+
+                label_objs = []
+                for name in parts:
+                    lab, _ = ProcessLabel.objects.get_or_create(company_id=company_id, name=name)
+                    label_objs.append(lab)
+
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
 
             messages.success(request, "Testprocess skapad.")
             return redirect(f"{reverse('accounts:admin_user_detail', kwargs={'pk': user_obj.pk})}?next={next_url}")
@@ -1045,7 +1071,7 @@ def admin_process_update(request, pk):
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
-    obj = get_object_or_404(TestProcess, pk=pk)
+    obj = get_object_or_404(TestProcess.objects.prefetch_related("labels"), pk=pk)
 
     next_url = request.GET.get("next") or reverse(
         "accounts:admin_process_detail", kwargs={"pk": obj.pk}
@@ -1058,18 +1084,15 @@ def admin_process_update(request, pk):
     client = SovaClient()
     error = None
 
-    # 1) Hämta accounts + projects från SOVA
     try:
         accounts = client.get_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
 
-    # 2) Hämta meta för intern_name
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices + cards
     choices = []
     template_cards = []
 
@@ -1097,13 +1120,32 @@ def admin_process_update(request, pk):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
-    # 🔥 NYTT: Sätt current_value INNAN du skapar formen
     current_value = f"{old_acc}|{old_proj}" if old_acc and old_proj else None
+
+    # ✅ Förifyll labels_text från M2M
+    existing_labels_text = ", ".join(obj.labels.values_list("name", flat=True))
+
+    def normalize_labels(raw):
+        # raw kan vara str eller lista
+        if isinstance(raw, (list, tuple)):
+            labels_text = ", ".join([str(x).strip() for x in raw if str(x).strip()])
+        else:
+            labels_text = str(raw or "").strip()
+
+        # splitta på komma / radbrytning, ta bort tomma, unika (case-insensitive)
+        parts = []
+        seen = set()
+        for chunk in labels_text.replace("\n", ",").split(","):
+            name = chunk.strip()
+            key = name.lower()
+            if name and key not in seen:
+                seen.add(key)
+                parts.append(name)
+        return parts
 
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST, instance=obj)
         form.fields["sova_template"].choices = choices
-        # 🔥 NYTT: Sätt initial även för POST (ifall validering misslyckas)
         if current_value:
             form.fields["sova_template"].initial = current_value
 
@@ -1132,6 +1174,20 @@ def admin_process_update(request, pk):
                 updated.project_name_snapshot = (match["sova_name"] if match else proj)
 
             updated.save()
+
+            # ✅ Spara labels (ManyToMany) efter save
+            company_id = updated.company_id
+            parts = normalize_labels(form.cleaned_data.get("labels_text", ""))
+
+            if parts:
+                label_objs = []
+                for name in parts:
+                    lab, _ = ProcessLabel.objects.get_or_create(company_id=company_id, name=name)
+                    label_objs.append(lab)
+                updated.labels.set(label_objs)
+            else:
+                updated.labels.clear()
+
             messages.success(request, "Process uppdaterad.")
             return redirect(next_url)
 
@@ -1140,9 +1196,12 @@ def admin_process_update(request, pk):
     else:
         form = TestProcessCreateForm(instance=obj)
         form.fields["sova_template"].choices = choices
-        # 🔥 VIKTIGT: Sätt initial EFTER choices är satta
         if current_value:
             form.fields["sova_template"].initial = current_value
+
+        # ✅ Viktigt: initial på labels_text i GET
+        if "labels_text" in form.fields:
+            form.fields["labels_text"].initial = existing_labels_text
 
     return render(request, "admin/accounts/customer/process_edit.html", {
         "form": form,
@@ -1152,6 +1211,7 @@ def admin_process_update(request, pk):
         "template_locked": locked,
         "next_url": next_url,
     })
+
 
 @admin_required
 @require_POST
