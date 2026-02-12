@@ -1,0 +1,167 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% block title %}Redigera testprocess | Talena{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3">
+
+  <!-- Header -->
+  <div class="d-flex align-items-start justify-content-between mb-4">
+    <div>
+      <h1 class="h4 mb-1">Redigera testprocess</h1>
+      <div class="text-muted">
+        Uppdatera information om processen. Testmall kan vara låst efter utskick.
+      </div>
+    </div>
+
+    <a class="btn btn-outline-secondary"
+       href="{% if next_url %}{{ next_url }}{% else %}{% url 'accounts:admin_process_detail' pk=process.pk %}{% endif %}">
+      Tillbaka
+    </a>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-danger">
+      Kunde inte ladda SOVA-mallar: {{ error }}
+    </div>
+  {% endif %}
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      Kontrollera fälten nedan.
+    </div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- LEFT: Form -->
+    <div class="col-12 col-lg-8">
+      <div class="card">
+        <div class="card-header bg-white py-3">
+          <div class="subheading mb-1">Processdetaljer</div>
+          <div class="text-muted small">Grunduppgifter för testprocessen.</div>
+        </div>
+
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label class="form-label">Namn</label>
+              {{ form.name }}
+              {% if form.name.errors %}
+                <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Testmall</label>
+
+              {% if template_locked %}
+                <div class="alert alert-warning d-flex align-items-start gap-2">
+                  <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
+                  <div>
+                    <strong>Testmallen är låst.</strong><br>
+                    Du kan inte ändra testmall efter att tester har skickats i processen.
+                  </div>
+                </div>
+              {% endif %}
+
+              <div class="template-select" role="radiogroup">
+                {% for card in template_cards %}
+                  {% with val=card.value %}
+                  <label class="template-option">
+                    <input
+                      class="template-radio"
+                      type="radio"
+                      name="{{ form.sova_template.html_name }}"
+                      value="{{ val }}"
+                      {% if form.sova_template.value == val %}checked{% endif %}
+                      {% if form.sova_template.field.disabled %}disabled{% endif %}
+                    />
+
+                    <span class="template-card">
+                      <span class="template-icon">
+                        <i data-feather="{{ card.icon|default:'layers' }}"></i>
+                      </span>
+
+                      <span class="template-text">
+                        <span class="template-title">{{ card.title }}</span>
+                        {% if card.subtitle %}
+                          <span class="template-subtitle text-muted">{{ card.subtitle }}</span>
+                        {% endif %}
+                      </span>
+                    </span>
+                  </label>
+                  {% endwith %}
+                {% endfor %}
+              </div>
+
+              {% if form.sova_template.errors %}
+                <div class="text-danger small mt-2">{{ form.sova_template.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label">Roll</label>
+                {{ form.job_title }}
+                {% if form.job_title.errors %}
+                  <div class="text-danger small mt-1">{{ form.job_title.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Plats</label>
+                {{ form.job_location }}
+                {% if form.job_location.errors %}
+                  <div class="text-danger small mt-1">{{ form.job_location.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Anteckningar</label>
+              {{ form.notes }}
+              {% if form.notes.errors %}
+                <div class="text-danger small mt-1">{{ form.notes.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-4">
+              <button class="btn btn-primary" type="submit">Spara ändringar</button>
+              <a class="btn btn-outline-secondary"
+                 href="{% if next_url %}{{ next_url }}{% else %}{% url 'accounts:admin_process_detail' pk=process.pk %}{% endif %}">
+                Avbryt
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Tips -->
+    <div class="col-12 col-lg-4">
+      <div class="card">
+        <div class="card-header bg-white py-3">
+          <div class="subheading mb-1">Tips</div>
+          <div class="text-muted small">För en tydlig process.</div>
+        </div>
+
+        <div class="card-body small text-muted">
+          <ul class="mb-0 ps-3">
+            <li>Håll namnet tydligt så du hittar processen snabbt.</li>
+            <li>Roll och plats gör listor och rapporter mer lättlästa.</li>
+            <li>Anteckningar kan vara kravprofil eller intern info.</li>
+            <li>Om testmallen är låst beror det på att tester redan skickats.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -31,8 +31,11 @@
         <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
 
 
-            {# Optional: edit button (keep your link later) #}
-            <a href="" class="btn btn-primary">Redigera</a>
+<a class="btn btn-primary"
+   href="{% url 'accounts:admin_process_update' pk=process.pk %}?next={{ request.get_full_path|urlencode }}">
+  Redigera
+</a>
+
         </div>
     </div>
 </div>

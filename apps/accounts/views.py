@@ -9,6 +9,8 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.db.models import Count
 from django.views.decorators.http import require_POST
+from apps.core.integrations.sova import SovaClient
+from apps.projects.models import ProjectMeta
 
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
@@ -921,28 +923,97 @@ def admin_process_create_for_user(request, user_pk):
 
     user_obj = get_object_or_404(User, pk=user_pk)
 
-    # så "Tillbaka" alltid går rätt (och inte förstör historiken)
-    next_url = request.GET.get("next") or reverse("accounts:admin_user_detail", kwargs={"pk": user_obj.pk})
+    next_url = request.GET.get("next") or reverse(
+        "accounts:admin_user_detail",
+        kwargs={"pk": user_obj.pk}
+    )
 
-    # samma data du använder i kund-create (cards)
-    template_cards = [
-        # Exempel - byt till dina riktiga
-        {"value": "tqs-simple-test", "title": "TQ Simple", "subtitle": "Snabbt testflöde", "icon": "layers"},
-        {"value": "tqs-extended", "title": "TQ Extended", "subtitle": "Mer djup", "icon": "clipboard"},
-    ]
+    client = SovaClient()
+    error = None
+
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    choices = []
+    template_cards = []
+    project_id_map = {}
+
+    for a in accounts:
+        acc = (a.get("code") or "").strip()
+        for p in (a.get("projects") or []):
+            proj_code = (p.get("code") or "").strip()
+            sova_name = (p.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = p.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+            title = (getattr(meta, "intern_name", None) or sova_name)
+
+            choices.append((value, title))
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": p.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST)
+        form.fields["sova_template"].choices = choices
+
         if form.is_valid():
-            process = form.save(commit=False)
+            obj = form.save(commit=False)
 
-            # 👇 viktigaste skillnaden
-            process.created_by = user_obj
+            value = form.cleaned_data["sova_template"]
+            acc, proj = value.split("|", 1)
 
-            # Om din modell har company kopplad, sätt den också:
-            # process.company = Company.objects.filter(memberships__user=user_obj).first()
+            # ✅ company kopplad till KUNDEN (user_obj), inte admin
+            company_id = (
+                CompanyMember.objects
+                .filter(user=user_obj)
+                .values_list("company_id", flat=True)
+                .first()
+            )
+            if not company_id:
+                form.add_error(None, "Kunden är inte kopplad till något företag.")
+                return render(request, "admin/accounts/customer/process_create.html", {
+                    "user_obj": user_obj,
+                    "form": form,
+                    "error": error,
+                    "template_cards": template_cards,
+                    "next_url": next_url,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
 
-            process.save()
+            obj.company_id = company_id
+
+            # ✅ samma SOVA-fält som kund
+            obj.provider = "sova"
+            obj.account_code = acc
+            obj.project_code = proj
+            obj.sova_project_id = project_id_map.get(value)
+
+            meta = meta_map.get((acc, proj))
+            obj.project_name_snapshot = (getattr(meta, "intern_name", None) or "")
+            if not obj.project_name_snapshot:
+                match = next((t for t in template_cards if t["value"] == value), None)
+                obj.project_name_snapshot = (match["sova_name"] if match else proj)
+
+            # ✅ viktigaste skillnaden: created_by = kunden
+            obj.created_by = user_obj
+            obj.save()
 
             messages.success(request, "Testprocess skapad.")
             return redirect(f"{reverse('accounts:admin_user_detail', kwargs={'pk': user_obj.pk})}?next={next_url}")
@@ -950,10 +1021,123 @@ def admin_process_create_for_user(request, user_pk):
         messages.error(request, "Kunde inte skapa testprocess. Kontrollera fälten.")
     else:
         form = TestProcessCreateForm()
+        form.fields["sova_template"].choices = choices
 
     return render(request, "admin/accounts/customer/process_create.html", {
         "user_obj": user_obj,
         "form": form,
+        "error": error,
         "template_cards": template_cards,
+        "next_url": next_url,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+    })
+
+
+@login_required
+def admin_process_update(request, pk):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    # 🔙 stabil "next" för bra back-flow
+    next_url = request.GET.get("next") or reverse(
+        "accounts:admin_process_detail", kwargs={"pk": obj.pk}
+    )
+
+    old_acc = (obj.account_code or "").strip()
+    old_proj = (obj.project_code or "").strip()
+    locked = obj.is_template_locked()
+
+    client = SovaClient()
+    error = None
+
+    # 1) Hämta accounts + projects från SOVA
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # 2) Hämta meta för intern_name
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    # 3) Bygg choices + cards (med subtitle/icon om du vill)
+    choices = []
+    template_cards = []
+
+    for a in accounts:
+        acc = (a.get("code") or "").strip()
+        for p in (a.get("projects") or []):
+            proj_code = (p.get("code") or "").strip()
+            sova_name = (p.get("name") or proj_code).strip()
+
+            meta = meta_map.get((acc, proj_code))
+            title = (getattr(meta, "intern_name", None) or sova_name)
+
+            value = f"{acc}|{proj_code}"
+            choices.append((value, title))
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "subtitle": f"{acc} · {proj_code}",
+                "icon": "layers",
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    if request.method == "POST":
+        form = TestProcessCreateForm(request.POST, instance=obj)
+        form.fields["sova_template"].choices = choices
+
+        if form.is_valid():
+            updated = form.save(commit=False)
+
+            value = form.cleaned_data["sova_template"]
+            acc, proj = value.split("|", 1)
+
+            if locked and ((acc.strip() != old_acc) or (proj.strip() != old_proj)):
+                messages.error(
+                    request,
+                    "Du kan inte ändra testpaket efter att tester har skickats i processen."
+                )
+                return redirect(f"{reverse('accounts:admin_process_update', kwargs={'pk': obj.pk})}?next={next_url}")
+
+            updated.provider = "sova"
+            updated.account_code = acc
+            updated.project_code = proj
+
+            meta = meta_map.get((acc, proj))
+            if meta and getattr(meta, "intern_name", None):
+                updated.project_name_snapshot = meta.intern_name
+            else:
+                match = next((t for t in template_cards if t["value"] == value), None)
+                updated.project_name_snapshot = (match["sova_name"] if match else proj)
+
+            updated.save()
+            messages.success(request, "Process uppdaterad.")
+
+            # tillbaka dit du kom ifrån (process detail eller user)
+            return redirect(next_url)
+
+        messages.error(request, "Kunde inte spara. Kontrollera fälten.")
+
+    else:
+        form = TestProcessCreateForm(instance=obj)
+        form.fields["sova_template"].choices = choices
+        form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
+
+    return render(request, "admin/accounts/customer/process_edit.html", {
+        "form": form,
+        "process": obj,
+        "error": error,
+        "template_cards": template_cards,
+        "template_locked": locked,
         "next_url": next_url,
     })

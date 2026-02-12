@@ -72,6 +72,7 @@ def process_list(request):
 
     return render(request, "customer/processes/process_list.html", {"processes": processes})
 
+
 @login_required
 def process_create(request):
     client = SovaClient()

@@ -64,5 +64,9 @@ urlpatterns = [
     "users/<int:user_pk>/processes/new/",
     views.admin_process_create_for_user,
     name="admin_process_create_for_user",
-),
+    ),
+    path(
+    "processes/<int:pk>/edit/", views.admin_process_update, name="admin_process_update",
+    ),
+
 ]
