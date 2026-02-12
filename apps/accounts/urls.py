@@ -70,5 +70,10 @@ urlpatterns = [
     path("processes/<int:pk>/send-tests/", views.admin_process_send_tests, name="admin_process_send_tests"),
     path("processes/<int:process_id>/remove/<int:candidate_id>/", views.admin_remove_candidate_from_process, name="admin_remove_candidate_from_process"),
     path("processes/<int:pk>/statuses/", views.admin_process_invitation_statuses, name="admin_process_invitation_statuses"),
+    path(
+    "processes/<int:pk>/add-candidate/",
+    views.admin_process_add_candidate,
+    name="admin_process_add_candidate"
+),
 
 ]

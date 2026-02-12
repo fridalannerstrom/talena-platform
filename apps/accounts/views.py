@@ -1268,3 +1268,80 @@ def admin_process_invitation_statuses(request, pk):
             for inv in qs
         ]
     })
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+
+from apps.processes.models import TestProcess, TestInvitation, Candidate
+from apps.processes.forms import CandidateCreateForm  # justera importen om den ligger annanstans
+from .decorators import admin_required
+
+
+@login_required
+@admin_required
+def admin_process_add_candidate(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+    if request.method == "POST":
+        form = CandidateCreateForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data["email"].strip().lower()
+
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    "first_name": form.cleaned_data["first_name"],
+                    "last_name": form.cleaned_data["last_name"],
+                }
+            )
+
+            invitation, inv_created = TestInvitation.objects.get_or_create(
+                process=process,
+                candidate=candidate,
+                defaults={"source": "invited", "status": "created"},
+            )
+
+            if inv_created:
+                msg = f"{candidate.email} har lagts till i processen."
+                messages.success(request, msg)
+            else:
+                msg = f"{candidate.email} är redan i processen."
+                messages.info(request, msg)
+
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "message": msg,
+                    "redirect_url": reverse("accounts:admin_process_detail", kwargs={"pk": process.pk})
+                })
+
+            return redirect("accounts:admin_process_detail", pk=process.pk)
+
+        # Ogiltigt form
+        if is_ajax:
+            return render(
+                request,
+                "admin/accounts/customer/_add_candidate_form.html",
+                {"process": process, "form": form},
+                status=400
+            )
+
+    else:
+        form = CandidateCreateForm()
+
+    # GET: om AJAX -> partial, annars hel sida (valfritt)
+    if is_ajax:
+        return render(request, "admin/accounts/customer/_add_candidate_form.html", {
+            "process": process,
+            "form": form,
+        })
+
+    return render(request, "admin/accounts/customer/process_add_candidate.html", {
+        "process": process,
+        "form": form,
+    })

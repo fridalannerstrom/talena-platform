@@ -36,13 +36,13 @@
           id="btnSelfReg">
     Självregistrering
   </button>
+<button type="button"
+        class="btn btn-primary"
+        id="btnAddCandidate"
+        data-url="{% url 'accounts:admin_process_add_candidate' process.id %}">
+  Lägg till kandidat
+</button>
 
-    <button type="button"
-          class="btn btn-primary"
-          id="btnAddCandidate"
-          data-url="">
-    Lägg till kandidat
-  </button>
 
 
   <button
@@ -422,5 +422,71 @@
   });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnAddCandidate");
+  const modalEl = document.getElementById("addCandidateModal");
+  const bodyEl = document.getElementById("addCandidateModalBody");
+
+  if (!btn || !modalEl || !bodyEl) return;
+  if (!window.bootstrap) {
+    console.error("Bootstrap saknas (bootstrap.bundle.min.js).");
+    return;
+  }
+
+  const modal = new bootstrap.Modal(modalEl);
+
+  async function loadForm() {
+    const url = btn.dataset.url;
+    if (!url) {
+      alert("Saknar data-url på 'Lägg till kandidat'-knappen.");
+      return;
+    }
+
+    bodyEl.innerHTML = `<div class="text-muted">Loading…</div>`;
+    modal.show();
+
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      bodyEl.innerHTML = await res.text();
+      if (window.feather) feather.replace();
+    } catch (e) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Kunde inte ladda formuläret.</div>`;
+      console.error(e);
+    }
+  }
+
+  btn.addEventListener("click", loadForm);
+
+  // Fånga submit i modalen (om din view returnerar JSON redirect_url vid OK)
+  modalEl.addEventListener("submit", async (e) => {
+    const form = e.target.closest("#addCandidateForm");
+    if (!form) return;
+
+    e.preventDefault();
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        modal.hide();
+        window.location.href = data.redirect_url || window.location.href;
+        return;
+      }
+
+      bodyEl.innerHTML = await res.text(); // form med errors
+      if (window.feather) feather.replace();
+    } catch (err) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Nätverksfel. Försök igen.</div>`;
+      console.error(err);
+    }
+  });
+});
+</script>
 
 {% endblock %}

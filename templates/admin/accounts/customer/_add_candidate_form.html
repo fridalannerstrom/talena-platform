@@ -1,0 +1,12 @@
+<form id="addCandidateForm"
+      method="post"
+      action="{% url 'accounts:admin_process_add_candidate' process.id %}">
+  {% csrf_token %}
+
+  {{ form.as_p }}
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Spara</button>
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Avbryt</button>
+  </div>
+</form>
