@@ -191,12 +191,10 @@ def process_create(request):
     })
 
 
-
-@login_required
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
-    # ✅ Säkerhetskontroll (skapare OR account-access)
+    # ✅ Säkerhetskontroll
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
@@ -218,7 +216,7 @@ def process_update(request, pk):
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices med value-format: "ACC|PROJ"
+    # 3) Bygg choices + template_cards
     choices = []
     template_cards = []
 
@@ -242,6 +240,8 @@ def process_update(request, pk):
                 "sova_name": sova_name,
             })
 
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
     if request.method == "POST":
         form = TestProcessCreateForm(request.POST, instance=obj)
         form.fields["sova_template"].choices = choices
@@ -251,13 +251,24 @@ def process_update(request, pk):
 
             value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
             acc, proj = value.split("|", 1)
+            acc = acc.strip()
+            proj = proj.strip()
 
-            if locked and ((acc.strip() != old_acc) or (proj.strip() != old_proj)):
-                messages.error(
-                    request,
+            # 🔒 template lock check
+            if locked and ((acc != old_acc) or (proj != old_proj)):
+                form.add_error(
+                    None,
                     "Du kan inte ändra testpaket efter att tester har skickats i processen."
                 )
-                return redirect("processes:process_update", pk=obj.pk)
+                # Rendera tillbaka så användaren inte tappar ändringar
+                return render(request, "customer/processes/process_edit.html", {
+                    "form": form,
+                    "process": obj,
+                    "error": error,
+                    "choices_count": len(choices),
+                    "template_cards": template_cards,
+                    "template_locked": locked,
+                })
 
             updated.provider = "sova"
             updated.account_code = acc
@@ -272,7 +283,23 @@ def process_update(request, pk):
                 updated.project_name_snapshot = (match["sova_name"] if match else proj)
 
             updated.save()
+
+            # ✅ Spara labels (M2M) här, efter save()
+            label_names = form.cleaned_data.get("labels_text", [])
+            label_objs = []
+            for name in label_names:
+                lab, _ = ProcessLabel.objects.get_or_create(
+                    company_id=updated.company_id,
+                    name=name,
+                )
+                label_objs.append(lab)
+
+            updated.labels.set(label_objs)
+
+            messages.success(request, "Processen uppdaterades.")
             return redirect("processes:process_list")
+
+        messages.error(request, "Kunde inte spara. Kontrollera fälten.")
 
     else:
         form = TestProcessCreateForm(instance=obj)

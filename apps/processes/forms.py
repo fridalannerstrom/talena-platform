@@ -54,6 +54,11 @@ class TestProcessCreateForm(forms.ModelForm):
             "class": "template-picker-list"
         })
 
+        instance = getattr(self, "instance", None)
+        if instance and instance.pk:
+            existing = instance.labels.values_list("name", flat=True)
+            self.fields["labels_text"].initial = ", ".join(existing)
+
         # --- Din befintliga lock-logik ---
         instance = getattr(self, "instance", None)
         if instance and instance.pk and instance.is_template_locked():
