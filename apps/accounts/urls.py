@@ -75,5 +75,5 @@ urlpatterns = [
     views.admin_process_add_candidate,
     name="admin_process_add_candidate"
 ),
-
+path("processes/<int:pk>/delete/", views.admin_process_delete, name="admin_process_delete"),
 ]

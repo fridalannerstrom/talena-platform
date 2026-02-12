@@ -47,6 +47,10 @@ from django.utils import timezone
 from apps.processes.forms import TestProcessCreateForm
 import uuid
 
+from apps.processes.forms import CandidateCreateForm
+
+from apps.processes.services.send_tests import send_assessments_and_emails
+
 
 User = get_user_model()
 
@@ -1013,8 +1017,8 @@ def admin_process_create_for_user(request, user_pk):
                 match = next((t for t in template_cards if t["value"] == value), None)
                 obj.project_name_snapshot = (match["sova_name"] if match else proj)
 
-            # ✅ viktigaste skillnaden: created_by = kunden
             obj.created_by = user_obj
+            obj.created_by_admin = request.user
             obj.save()
 
             messages.success(request, "Testprocess skapad.")
@@ -1163,6 +1167,7 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
     messages.success(request, "Kandidaten togs bort från processen.")
     return redirect("accounts:admin_process_detail", pk=process.id)
 
+
 @admin_required
 def admin_process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
@@ -1181,71 +1186,29 @@ def admin_process_send_tests(request, pk):
         .select_related("candidate")
     )
 
-    client = SovaClient()
-    sent_count = 0
-    skipped_count = 0
+    result = send_assessments_and_emails(
+        process=process,
+        invitations=invitations,
+        actor_user=request.user,
+        context="admin",
+    )
 
-    # (valfritt) samma sova_project_id lookup som du redan gör
+    if result["sent_count"]:
+        messages.success(request, f"Skickade test till {result['sent_count']} kandidat(er).")
 
-    for inv in invitations:
-        candidate = inv.candidate
-        if inv.status in ("sent", "started", "completed"):
-            skipped_count += 1
-            continue
+    if result["errors"]:
+        for err in result["errors"]:
+            messages.error(request, f"Kunde inte skicka till {err['email']}: {err['error']}")
 
-        request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
-
-        payload = {
-            "request_id": request_id,
-            "candidate_id": str(candidate.id),
-            "first_name": candidate.first_name,
-            "last_name": candidate.last_name,
-            "email": candidate.email,
-            "language": "sv",
-            "job_title": process.job_title or process.name,
-            "job_number": f"talena-{process.id}",
-            "meta_data": {
-                "talena_process_id": str(process.id),
-                "talena_candidate_id": str(candidate.id),
-                "talena_user_id": str(request.user.id),
-                "talena_request_id": request_id,
-                "talena_context": "admin",
-            },
-        }
-
-        try:
-            resp = client.order_assessment(process.project_code, payload)
-            test_url = resp.get("url")
-
-            # samma email template lookup + send + EmailLog som du redan har
-
-            if not test_url:
-                messages.error(request, f"SOVA returnerade ingen url för {candidate.email}.")
-                continue
-
-            inv.status = "sent"
-            inv.invited_at = timezone.now()
-            inv.sova_payload = resp
-            inv.request_id = request_id
-            inv.assessment_url = test_url
-            inv.save(update_fields=["status", "invited_at", "sova_payload", "request_id", "assessment_url"])
-
-            sent_count += 1
-
-        except Exception as e:
-            messages.error(request, f"Kunde inte skicka till {candidate.email}: {e}")
-
-    if sent_count:
-        messages.success(request, f"Skickade test till {sent_count} kandidat(er).")
-    elif skipped_count:
-        messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
-    else:
-        messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
+    if result["sent_count"] == 0:
+        if result["skipped_count"]:
+            messages.info(request, "Inget skickades (alla markerade var redan skickade/igång/klara).")
+        else:
+            messages.warning(request, "Inget skickades. Kolla felmeddelanden ovan.")
 
     return redirect("accounts:admin_process_detail", pk=process.pk)
 
 
-from django.http import JsonResponse
 
 @admin_required
 def admin_process_invitation_statuses(request, pk):
@@ -1270,15 +1233,6 @@ def admin_process_invitation_statuses(request, pk):
         ]
     })
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-
-from apps.processes.models import TestProcess, TestInvitation, Candidate
-from apps.processes.forms import CandidateCreateForm  # justera importen om den ligger annanstans
-from .decorators import admin_required
 
 
 @login_required
@@ -1355,3 +1309,25 @@ def admin_process_add_candidate(request, pk):
         "process": process,
         "form": form,
     })
+
+
+
+@admin_required
+@require_POST
+def admin_process_delete(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    # Extra safety: bara admins
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    # För att kunna gå tillbaka snyggt
+    next_url = request.POST.get("next") or request.GET.get("next") or reverse(
+        "accounts:admin_user_detail",
+        kwargs={"pk": process.created_by_id},
+    )
+
+    process_name = process.name
+    process.delete()
+    messages.success(request, f"Processen '{process_name}' raderades.")
+    return redirect(next_url)

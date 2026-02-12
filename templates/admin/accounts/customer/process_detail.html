@@ -14,13 +14,21 @@
         <div class="d-flex align-items-center gap-3 min-w-0 customer-page">
             <div class="min-w-0">
                 <h2 class="mb-1 mt-2 mb-2">{{ process.name }}</h2>
-                <div class="text-muted small mb-1">
-                    Skapad av
-                    <a class="text-decoration-none"
-                        href="{% url 'accounts:admin_user_detail' pk=process.created_by.id %}?next={{ request.get_full_path|urlencode }}">
-                        {{ process.created_by.email }}
-                    </a>
-                    {% if process.created_at %} · {{ process.created_at|date:"Y-m-d H:i" }}{% endif %}
+                <div class="text-muted small">
+                  Tillhör
+{% with u=process.created_by %}
+  {% if u.first_name or u.last_name %}
+    {{ u.first_name }} {{ u.last_name }}
+  {% else %}
+    {{ u.email }}
+  {% endif %}
+{% endwith %}
+                  {% if process.created_by_admin %}
+                    · Skapad av {{ process.created_by_admin.get_full_name|default:process.created_by_admin.email }}
+                  {% endif %}
+                  {% if process.created_at %}
+                    · {{ process.created_at|date:"Y-m-d H:i" }}
+                  {% endif %}
                 </div>
                 <div class="text-muted small">
                     Testmall: {{ process.project_code|default:"-" }}
@@ -43,11 +51,22 @@
   Lägg till kandidat
 </button>
 
-
   <a class="btn btn-primary"
    href="{% url 'accounts:admin_process_update' pk=process.pk %}?next={{ request.get_full_path|urlencode }}">
   Redigera
 </a>
+
+<form method="post"
+      action="{% url 'accounts:admin_process_delete' process.pk %}"
+      class="d-inline">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+  <button type="submit"
+          class="btn btn-outline-danger rounded-pill "
+          onclick="return confirm('Är du säker på att du vill radera processen? Detta går inte att ångra.');">
+    Radera
+  </button>
+</form>
 
         </div>
     </div>
@@ -60,7 +79,7 @@
 
     <div class="card h-100">
         <div class="card-body">
-            <div class="text-muted small">Totalt skickade tester (fixa)</div>
+            <div class="text-muted small">Totalt skickade tester</div>
             <div class="h3 mb-1">{{ invitations|length }}</div>
         </div>
     </div>

@@ -27,11 +27,22 @@ class TestProcess(models.Model):
         db_index=True,
     )
 
+    # Denna kan fortsätta vara "kunden" om du vill
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="test_processes",
     )
+
+    # ✅ NY: admin som skapade processen (valfritt)
+    created_by_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="test_processes_created_as_admin",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -49,7 +60,8 @@ class TestProcess(models.Model):
         Just nu: om någon invitation har status sent/started/completed.
         """
         return self.invitations.filter(status__in=["sent", "started", "completed"]).exists()
-    
+
+
 class Candidate(models.Model):
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80, blank=True)
