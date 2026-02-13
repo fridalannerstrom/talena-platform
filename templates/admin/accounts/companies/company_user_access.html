@@ -4,7 +4,6 @@
 {% block content %}
 {% load org_extras %}
 <div class="container-fluid px-2 px-md-4">
-{% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids %}
 
   <div class="row g-3">
     <!-- LEFT: users list -->
@@ -45,6 +44,32 @@
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="fw-semibold"><i class="fa-solid fa-user-shield me-2"></i> Account access</div>
           {% if selected_user %}
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+      <div class="fw-semibold">Primär enhet</div>
+
+      <select class="form-select" style="max-width: 420px;"
+              id="primaryOrgUnitSelect"
+              data-company-id="{{ company.id }}"
+              data-user-id="{{ selected_user.id }}">
+        <option value="">Välj primär enhet…</option>
+
+        {# MVP: visa alla units i företaget. Sen kan vi filtrera till bara ikryssade #}
+        {% for u in all_units %}
+          <option value="{{ u.id }}" {% if u.id == selected_primary_id %}selected{% endif %}>
+            {{ u.full_path }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <div class="text-muted small">
+        Nya processer hamnar automatiskt i användarens primära enhet.
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+          {% if selected_user %}
             <span class="badge bg-label-primary">{{ selected_user.email }}</span>
           {% else %}
             <span class="badge bg-label-secondary">Välj en user</span>
@@ -73,7 +98,7 @@
 <div id="accessTree">
   <ul class="list-unstyled m-0">
     {% for unit in root_units %}
-      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit children_map=children_map checked_ids=checked_ids %}
+      {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=unit company=company children_map=children_map checked_ids=checked_ids %}
     {% empty %}
       <li class="text-muted">Inga accounts ännu. Skapa struktur först.</li>
     {% endfor %}
@@ -185,6 +210,8 @@
 
   async function saveAll() {
     const unitIds = Array.from(currentSelectionSet());
+    const primarySelect = document.getElementById("primaryOrgUnitSelect");
+    const primaryOrgUnitId = primarySelect ? primarySelect.value : null;
 
     const resp = await fetch("{% url 'accounts:company_user_access_set' company.pk %}", {
       method: "POST",
@@ -195,8 +222,14 @@
       body: JSON.stringify({
         user_id: selectedUserId,
         unit_ids: unitIds,
+        primary_org_unit_id: primaryOrgUnitId,
         mode: "replace"   // 👈 vi ersätter hela access-listan
-      })
+      },
+    
+      primarySelect?.addEventListener("change", () => {
+        btnSave.disabled = false;
+        if (dirtyHint) dirtyHint.style.display = "inline";
+      },
     });
 
     const data = await resp.json();
@@ -236,8 +269,30 @@
 
   // initial state
   updateDirtyUI();
-})();
+  })();
 </script>
+
+<script>
+document.addEventListener("change", function (e) {
+  const checkbox = e.target.closest("[data-unit-checkbox]");
+  if (!checkbox) return;
+
+  const li = checkbox.closest("li");
+  if (!li) return;
+
+  const isChecked = checkbox.checked;
+
+  // Hitta alla child-checkboxar inom denna gren
+  const childCheckboxes = li.querySelectorAll(
+    "ul input[data-unit-checkbox]"
+  );
+
+  childCheckboxes.forEach(cb => {
+    cb.checked = isChecked;
+  });
+});
+</script>
+
 
 <script>
 (function () {
@@ -248,24 +303,37 @@
   }
   const csrftoken = getCookie("csrftoken");
 
-  async function setActive(companyId, unitId) {
-    const url = `/accounts/companies/${companyId}/orgunits/set-active/`;
+  async function setActiveOrgUnit(companyId, unitId) {
+    const url = `/accounts/companies/${companyId}/orgunits/set-active/`; // justera om din prefix skiljer
     const resp = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
-      body: JSON.stringify({ unit_id: unitId })
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+      body: JSON.stringify({ unit_id: unitId }),
     });
     const data = await resp.json();
-    if (!resp.ok || !data.ok) console.warn("set_active_org_unit failed:", data.error);
+    if (!resp.ok || !data.ok) {
+      console.warn("Could not set active org unit:", data.error);
+      return;
+    }
+    // valfritt: visa en liten status nånstans
+    // console.log("Active org unit set:", data.active_org_unit_name);
   }
 
   document.addEventListener("change", (e) => {
     const cb = e.target.closest("[data-unit-checkbox]");
     if (!cb) return;
-    setActive(cb.dataset.companyId, cb.dataset.unitId);
+
+    // sätt active unit till den man precis interagerade med (oavsett checked/unchecked)
+    const unitId = cb.dataset.unitId;
+    const companyId = cb.dataset.companyId;
+    if (companyId && unitId) setActiveOrgUnit(companyId, unitId);
   });
 })();
 </script>
+
 
 {% endif %}
 

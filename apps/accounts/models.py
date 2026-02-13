@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
-
+from django.core.exceptions import ValidationError
 
 # ============================================================================
 # USER
@@ -60,6 +60,16 @@ class CompanyMember(models.Model):
         related_name="company_memberships",
         verbose_name="Användare",
     )
+
+    primary_org_unit = models.ForeignKey(
+        "OrgUnit",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="primary_members",
+        verbose_name="Primär enhet",
+    )
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_MEMBER, verbose_name="Roll")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -71,6 +81,12 @@ class CompanyMember(models.Model):
 
     def __str__(self):
         return f"{self.company} ↔ {self.user} ({self.role})"
+    
+    def clean(self):
+        if self.primary_org_unit and self.primary_org_unit.company_id != self.company_id:
+            raise ValidationError({"primary_org_unit": "Primär enhet måste tillhöra samma företag."})
+    
+    
 
 
 class Profile(models.Model):

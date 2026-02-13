@@ -223,6 +223,26 @@ def process_create(request):
                 obj.project_name_snapshot = (match["sova_name"] if match else proj)
 
             obj.created_by = request.user
+
+            membership = (
+                CompanyMember.objects
+                .filter(user=request.user, company_id=company_id)
+                .select_related("primary_org_unit")
+                .first()
+            )
+
+            if not membership or not membership.primary_org_unit_id:
+                form.add_error(None, "Du saknar primär enhet (OrgUnit). Kontakta admin.")
+                return render(request, "customer/processes/process_create.html", {
+                    "form": form,
+                    "error": error,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
+
+            obj.org_unit_id = membership.primary_org_unit_id
+
             obj.save()
 
             # ✅ LABELS: skapa/återanvänd labels per company och koppla

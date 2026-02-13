@@ -1,4 +1,5 @@
 from apps.accounts.models import OrgUnit, UserOrgUnitAccess
+from apps.accounts.models import CompanyMember
 
 def _build_children_map(company):
     units = OrgUnit.objects.filter(company=company).only("id", "parent_id")
@@ -31,6 +32,16 @@ def get_accessible_orgunit_ids(user, company):
         .filter(user=user, org_unit__company=company)
         .values_list("org_unit_id", flat=True)
     )
+
+    primary_id = (
+        CompanyMember.objects
+        .filter(user=user, company=company)
+        .values_list("primary_org_unit_id", flat=True)
+        .first()
+    )
+
+    if primary_id:
+        direct_ids.add(primary_id)
 
     all_ids = set(direct_ids)
     for rid in direct_ids:

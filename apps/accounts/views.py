@@ -14,6 +14,7 @@ from apps.projects.models import ProjectMeta
 from .utils.org_access import get_accessible_orgunit_ids
 
 
+
 from apps.core.utils.auth import is_admin
 from apps.processes.models import TestProcess, TestInvitation, Candidate
 
@@ -698,6 +699,8 @@ def company_user_access(request, pk):
     # vilken user är vald?
     selected_user_id = request.GET.get("user")
     selected_user = None
+    selected_membership = None
+    selected_primary_id = None
 
     if selected_user_id:
         selected_user = get_object_or_404(User, pk=selected_user_id)
@@ -705,6 +708,15 @@ def company_user_access(request, pk):
         # säkerhet: måste vara medlem i företaget
         if not CompanyMember.objects.filter(company=company, user=selected_user).exists():
             return HttpResponseForbidden("No access.")
+
+
+    if selected_user:
+        selected_membership = (
+            CompanyMember.objects
+            .filter(company=company, user=selected_user)
+            .first()
+        )
+        selected_primary_id = selected_membership.primary_org_unit_id if selected_membership else None
 
     # accounts/orgunits för checkbox-lista
     all_units = (
@@ -734,6 +746,9 @@ def company_user_access(request, pk):
         "root_units": root_units,
         "children_map": children_map,
         "checked_ids": checked_ids,
+        "selected_membership": selected_membership,
+        "selected_primary_id": selected_primary_id,
+        "all_units": all_units, 
     })
 
 
