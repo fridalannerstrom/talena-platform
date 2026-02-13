@@ -815,6 +815,8 @@ def company_user_access_set(request, company_pk):
     mode = payload.get("mode")  # expected: "replace" (new UI)
     grant = payload.get("grant")  # legacy true/false (optional)
 
+    primary_org_unit_id = payload.get("primary_org_unit_id")
+
     if not user_id or not isinstance(unit_ids, list):
         return JsonResponse({"ok": False, "error": "user_id and unit_ids required"}, status=400)
 
@@ -833,6 +835,23 @@ def company_user_access_set(request, company_pk):
     missing = sorted(list(requested_ids - found_ids))
     if missing:
         return JsonResponse({"ok": False, "error": f"Invalid unit_ids for company: {missing}"}, status=400)
+    
+    # ✅ Parse + validate primary
+    primary_unit = None
+    if primary_org_unit_id not in (None, "", "null"):
+        try:
+            primary_org_unit_id = int(primary_org_unit_id)
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "error": "Invalid primary_org_unit_id"}, status=400)
+
+        primary_unit = OrgUnit.objects.filter(company=company, id=primary_org_unit_id).first()
+        if not primary_unit:
+            return JsonResponse({"ok": False, "error": "Primary org unit not in company"}, status=400)
+
+        # primär måste vara en av de valda
+        if primary_unit.id not in requested_ids:
+            return JsonResponse({"ok": False, "error": "Primary org unit must be selected for the user"}, status=400)
+
 
     with transaction.atomic():
         # ✅ New behavior: replace all access with provided list
@@ -848,6 +867,11 @@ def company_user_access_set(request, company_pk):
             objs = [UserOrgUnitAccess(user=user, org_unit=u) for u in units]
             if objs:
                 UserOrgUnitAccess.objects.bulk_create(objs)
+
+            # ✅ Save primary_org_unit on membership
+            membership = CompanyMember.objects.get(company=company, user=user)
+            membership.primary_org_unit = primary_unit
+            membership.save(update_fields=["primary_org_unit"])
 
             return JsonResponse({
                 "ok": True,
@@ -1025,9 +1049,8 @@ def admin_process_create_for_user(request, user_pk):
         form.fields["sova_template"].choices = choices
 
         if form.is_valid():
-
+            # --- labels text normalize ---
             raw_labels = form.cleaned_data.get("labels_text", "")
-
             if isinstance(raw_labels, (list, tuple)):
                 labels_text = ", ".join([str(x).strip() for x in raw_labels if str(x).strip()])
             else:
@@ -1038,7 +1061,7 @@ def admin_process_create_for_user(request, user_pk):
             value = form.cleaned_data["sova_template"]
             acc, proj = value.split("|", 1)
 
-            # ✅ company kopplad till KUNDEN (user_obj), inte admin
+            # ✅ Company kopplad till kunden (user_obj)
             company_id = (
                 CompanyMember.objects
                 .filter(user=user_obj)
@@ -1057,9 +1080,22 @@ def admin_process_create_for_user(request, user_pk):
                     "accounts_count": len(accounts),
                 })
 
-            obj.company_id = company_id
+            # ✅ Membership + primary org unit
+            membership = (
+                CompanyMember.objects
+                .filter(company_id=company_id, user=user_obj)
+                .select_related("primary_org_unit")
+                .first()
+            )
 
-            # ✅ samma SOVA-fält som kund
+            if not membership or not membership.primary_org_unit_id:
+                messages.error(request, "Användaren saknar primär enhet (OrgUnit).")
+                return redirect(next_url)
+
+            # ✅ Set required fields
+            obj.company_id = company_id
+            obj.org_unit_id = membership.primary_org_unit_id
+
             obj.provider = "sova"
             obj.account_code = acc
             obj.project_code = proj
@@ -1072,10 +1108,10 @@ def admin_process_create_for_user(request, user_pk):
                 obj.project_name_snapshot = (match["sova_name"] if match else proj)
 
             obj.created_by = user_obj
-            obj.created_by_admin = request.user
+            obj.created_by_admin = request.user  # om fältet finns
             obj.save()
-            
-            # Skapa/assigna labels (ManyToMany)
+
+            # ✅ Labels
             if labels_text:
                 parts = [p.strip() for p in labels_text.replace("\n", ",").split(",")]
                 parts = [p for p in parts if p]
@@ -1089,9 +1125,8 @@ def admin_process_create_for_user(request, user_pk):
             else:
                 obj.labels.clear()
 
-
             messages.success(request, "Testprocess skapad.")
-            return redirect(f"{reverse('accounts:admin_user_detail', kwargs={'pk': user_obj.pk})}?next={next_url}")
+            return redirect(next_url)
 
         messages.error(request, "Kunde inte skapa testprocess. Kontrollera fälten.")
     else:
@@ -1107,7 +1142,6 @@ def admin_process_create_for_user(request, user_pk):
         "templates_count": len(template_cards),
         "accounts_count": len(accounts),
     })
-
 
 @login_required
 def admin_process_update(request, pk):

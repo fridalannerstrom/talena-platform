@@ -1,16 +1,21 @@
-{% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}{{ company.name }} | Talena{% endblock %}
+{% extends "admin/accounts/companies/company_base.html" %}
+{% block title %}Companies | Talena{% endblock %}
 
-{% block content %}
+{% load accounts_extras %}
+
+
+{% block company_content %}
 {% load org_extras %}
-<div class="container-fluid px-2 px-md-4">
+
+
+<div class="card border-0">
 
   <div class="row g-3">
     <!-- LEFT: users list -->
     <div class="col-lg-4">
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between">
-          <div class="fw-semibold"><i class="fa-solid fa-users me-2"></i> Users</div>
+          <div class="fw-semibold"><i class="fa-solid fa-users me-2"></i> Users!!</div>
           <span class="badge bg-light text-dark">{{ users|length }}</span>
         </div>
         <div class="list-group list-group-flush">
@@ -125,152 +130,7 @@
 </div>
 
 {% if selected_user %}
-<script>
-(function () {
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  }
-  const csrftoken = getCookie("csrftoken");
-  const selectedUserId = {{ selected_user.pk }};
 
-  const tree = document.getElementById("accessTree");
-  const btnSave = document.getElementById("btnSave");
-  const btnReset = document.getElementById("btnReset");
-  const btnSelectAll = document.getElementById("btnSelectAll");
-  const btnDeselectAll = document.getElementById("btnDeselectAll");
-  const dirtyHint = document.getElementById("dirtyHint");
-
-  const checkboxes = () => Array.from(tree.querySelectorAll("[data-unit-checkbox]"));
-
-  function toast(msg, type="warning") {
-    const el = document.createElement("div");
-    el.className = "alert alert-" + type + " position-fixed";
-    el.style.right = "16px";
-    el.style.bottom = "16px";
-    el.style.zIndex = "9999";
-    el.textContent = msg;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2200);
-  }
-
-  // --- State: original selection (for reset + dirty) ---
-  const original = new Set(
-    checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
-  );
-
-  function currentSelectionSet() {
-    return new Set(
-      checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
-    );
-  }
-
-  function setsEqual(a, b) {
-    if (a.size !== b.size) return false;
-    for (const v of a) if (!b.has(v)) return false;
-    return true;
-  }
-
-  function updateDirtyUI() {
-    const cur = currentSelectionSet();
-    const isDirty = !setsEqual(original, cur);
-
-    btnSave.disabled = !isDirty;
-    if (dirtyHint) dirtyHint.style.display = isDirty ? "inline" : "none";
-  }
-
-  // Mark dirty when user changes anything
-  tree.addEventListener("change", (e) => {
-    if (!e.target.matches("[data-unit-checkbox]")) return;
-    updateDirtyUI();
-  });
-
-  // Select all / deselect all
-  btnSelectAll?.addEventListener("click", () => {
-    checkboxes().forEach(cb => { cb.checked = true; });
-    updateDirtyUI();
-  });
-
-  btnDeselectAll?.addEventListener("click", () => {
-    checkboxes().forEach(cb => { cb.checked = false; });
-    updateDirtyUI();
-  });
-
-  // Reset to original
-  btnReset?.addEventListener("click", () => {
-    const orig = new Set(original);
-    checkboxes().forEach(cb => {
-      const id = parseInt(cb.dataset.unitId, 10);
-      cb.checked = orig.has(id);
-    });
-    updateDirtyUI();
-    toast("Återställt", "secondary");
-  });
-
-  async function saveAll() {
-    const unitIds = Array.from(currentSelectionSet());
-    const primarySelect = document.getElementById("primaryOrgUnitSelect");
-    const primaryOrgUnitId = primarySelect ? primarySelect.value : null;
-
-    const resp = await fetch("{% url 'accounts:company_user_access_set' company.pk %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken,
-      },
-      body: JSON.stringify({
-        user_id: selectedUserId,
-        unit_ids: unitIds,
-        primary_org_unit_id: primaryOrgUnitId,
-        mode: "replace"   // 👈 vi ersätter hela access-listan
-      },
-    
-      primarySelect?.addEventListener("change", () => {
-        btnSave.disabled = false;
-        if (dirtyHint) dirtyHint.style.display = "inline";
-      },
-    });
-
-    const data = await resp.json();
-    if (!resp.ok || !data.ok) throw new Error(data.error || "Save failed");
-    return data;
-  }
-
-  btnSave?.addEventListener("click", async () => {
-    btnSave.disabled = true;
-
-    // disable all controls during save
-    checkboxes().forEach(cb => cb.disabled = true);
-    btnSelectAll.disabled = true;
-    btnDeselectAll.disabled = true;
-    btnReset.disabled = true;
-
-    try {
-      await saveAll();
-
-      // update original set => now clean
-      original.clear();
-      currentSelectionSet().forEach(id => original.add(id));
-
-      updateDirtyUI();
-      toast("Sparat!", "success");
-    } catch (err) {
-      console.error(err);
-      toast("Kunde inte spara ändringen");
-      updateDirtyUI(); // re-enable save if still dirty
-    } finally {
-      checkboxes().forEach(cb => cb.disabled = false);
-      btnSelectAll.disabled = false;
-      btnDeselectAll.disabled = false;
-      btnReset.disabled = false;
-    }
-  });
-
-  // initial state
-  updateDirtyUI();
-  })();
-</script>
 
 <script>
 document.addEventListener("change", function (e) {
@@ -293,7 +153,6 @@ document.addEventListener("change", function (e) {
 });
 </script>
 
-
 <script>
 (function () {
   function getCookie(name) {
@@ -301,36 +160,149 @@ document.addEventListener("change", function (e) {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   }
-  const csrftoken = getCookie("csrftoken");
 
-  async function setActiveOrgUnit(companyId, unitId) {
-    const url = `/accounts/companies/${companyId}/orgunits/set-active/`; // justera om din prefix skiljer
-    const resp = await fetch(url, {
+  const csrftoken = getCookie("csrftoken");
+  const selectedUserId = {{ selected_user.pk }};
+
+  const tree = document.getElementById("accessTree");
+  const btnSave = document.getElementById("btnSave");
+  const btnReset = document.getElementById("btnReset");
+  const btnSelectAll = document.getElementById("btnSelectAll");
+  const btnDeselectAll = document.getElementById("btnDeselectAll");
+  const dirtyHint = document.getElementById("dirtyHint");
+  const primarySelect = document.getElementById("primaryOrgUnitSelect");
+
+  if (!tree) return;
+
+  const checkboxes = () => Array.from(tree.querySelectorAll("[data-unit-checkbox]"));
+
+  function toast(msg, type="warning") {
+    const el = document.createElement("div");
+    el.className = "alert alert-" + type + " position-fixed";
+    el.style.right = "16px";
+    el.style.bottom = "16px";
+    el.style.zIndex = "9999";
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
+
+  // --- State: original selection (for reset + dirty) ---
+  const original = new Set(
+    checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
+  );
+  const originalPrimary = primarySelect ? (primarySelect.value || "") : "";
+
+  function currentSelectionSet() {
+    return new Set(
+      checkboxes().filter(cb => cb.checked).map(cb => parseInt(cb.dataset.unitId, 10))
+    );
+  }
+
+  function setsEqual(a, b) {
+    if (a.size !== b.size) return false;
+    for (const v of a) if (!b.has(v)) return false;
+    return true;
+  }
+
+  function updateDirtyUI() {
+    const cur = currentSelectionSet();
+    const isDirtyUnits = !setsEqual(original, cur);
+    const isDirtyPrimary = primarySelect ? (primarySelect.value || "") !== originalPrimary : false;
+    const isDirty = isDirtyUnits || isDirtyPrimary;
+
+    btnSave.disabled = !isDirty;
+    if (dirtyHint) dirtyHint.style.display = isDirty ? "inline" : "none";
+  }
+
+  // Mark dirty when user changes anything
+  tree.addEventListener("change", (e) => {
+    if (!e.target.matches("[data-unit-checkbox]")) return;
+    updateDirtyUI();
+  });
+
+  primarySelect?.addEventListener("change", updateDirtyUI);
+
+  // Select all / deselect all
+  btnSelectAll?.addEventListener("click", () => {
+    checkboxes().forEach(cb => { cb.checked = true; });
+    updateDirtyUI();
+  });
+
+  btnDeselectAll?.addEventListener("click", () => {
+    checkboxes().forEach(cb => { cb.checked = false; });
+    updateDirtyUI();
+  });
+
+  // Reset to original
+  btnReset?.addEventListener("click", () => {
+    const orig = new Set(original);
+    checkboxes().forEach(cb => {
+      const id = parseInt(cb.dataset.unitId, 10);
+      cb.checked = orig.has(id);
+    });
+    if (primarySelect) primarySelect.value = originalPrimary;
+    updateDirtyUI();
+    toast("Återställt", "secondary");
+  });
+
+  async function saveAll() {
+    const unitIds = Array.from(currentSelectionSet());
+    const primaryOrgUnitId = primarySelect ? (primarySelect.value || null) : null;
+
+    const resp = await fetch("{% url 'accounts:company_user_access_set' company.pk %}", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrftoken,
       },
-      body: JSON.stringify({ unit_id: unitId }),
+      body: JSON.stringify({
+        user_id: selectedUserId,
+        unit_ids: unitIds,
+        primary_org_unit_id: primaryOrgUnitId,
+        mode: "replace"
+      }),
     });
+
     const data = await resp.json();
-    if (!resp.ok || !data.ok) {
-      console.warn("Could not set active org unit:", data.error);
-      return;
-    }
-    // valfritt: visa en liten status nånstans
-    // console.log("Active org unit set:", data.active_org_unit_name);
+    if (!resp.ok || !data.ok) throw new Error(data.error || "Save failed");
+    return data;
   }
 
-  document.addEventListener("change", (e) => {
-    const cb = e.target.closest("[data-unit-checkbox]");
-    if (!cb) return;
+  btnSave?.addEventListener("click", async () => {
+    btnSave.disabled = true;
 
-    // sätt active unit till den man precis interagerade med (oavsett checked/unchecked)
-    const unitId = cb.dataset.unitId;
-    const companyId = cb.dataset.companyId;
-    if (companyId && unitId) setActiveOrgUnit(companyId, unitId);
+    checkboxes().forEach(cb => cb.disabled = true);
+    btnSelectAll.disabled = true;
+    btnDeselectAll.disabled = true;
+    btnReset.disabled = true;
+    if (primarySelect) primarySelect.disabled = true;
+
+    try {
+      await saveAll();
+
+      // update original set => now clean
+      original.clear();
+      currentSelectionSet().forEach(id => original.add(id));
+
+      // update original primary
+      // (enkelt sätt: reload. Men vi kan också uppdatera variabeln genom att bara uppdatera UI dirty)
+      toast("Sparat!", "success");
+      window.location.reload(); // enklast och robust för MVP
+    } catch (err) {
+      console.error(err);
+      toast("Kunde inte spara ändringen");
+      updateDirtyUI();
+    } finally {
+      checkboxes().forEach(cb => cb.disabled = false);
+      btnSelectAll.disabled = false;
+      btnDeselectAll.disabled = false;
+      btnReset.disabled = false;
+      if (primarySelect) primarySelect.disabled = false;
+    }
   });
+
+  updateDirtyUI();
 })();
 </script>
 
