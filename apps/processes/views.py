@@ -23,6 +23,7 @@ from django.db.models import Count, Q
 
 from django.http import HttpResponse
 from apps.accounts.utils.permissions import filter_by_user_accounts, user_can_access_account
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions, user_can_view_process, user_can_edit_process, get_company_for_user
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
@@ -79,16 +80,25 @@ def process_list(request):
     )
     company = get_object_or_404(Company, pk=company_id)
 
-    accessible_ids = get_accessible_orgunit_ids(request.user, company)
+    perms = get_effective_orgunit_permissions(request.user, company)
+
+    own_ids = [uid for uid, p in perms.items() if p == "own"]
+    other_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
+
+    process_q = Q(company=company) & (
+        Q(org_unit_id__in=other_ids) |
+        Q(org_unit_id__in=own_ids, created_by=request.user)
+    )
 
     processes = (
         TestProcess.objects
-        .filter(company=company, org_unit_id__in=accessible_ids)   # ✅ här är nyckeln
+        .filter(process_q)
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
         .prefetch_related("labels")
     )
 
+    # ---- ProjectMeta lookup (tests) ----
     keys = {
         (p.account_code, p.project_code)
         for p in processes
@@ -108,8 +118,10 @@ def process_list(request):
         request,
         "customer/processes/process_list.html",
         {
+            "company": company,
             "processes": processes,
             "meta_by_key": meta_by_key,
+            "perms": perms,
         }
     )
 
@@ -278,6 +290,13 @@ def process_create(request):
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("Du har inte behörighet att redigera denna process.")
+
     # ✅ Säkerhetskontroll
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
@@ -404,6 +423,13 @@ def process_update(request, pk):
 def process_delete(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("Du har inte behörighet att radera denna process.")
+
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
@@ -412,30 +438,24 @@ def process_delete(request, pk):
     return redirect("processes:process_list")
 
 
-from django.http import HttpResponseForbidden
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Count
-
-from apps.accounts.models import Company, CompanyMember
-from apps.accounts.utils.org_access import get_accessible_orgunit_ids
-from .models import TestProcess
-# + dina övriga imports (ProjectMeta, user_can_access_process, osv)
-
 @login_required
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
-    # ✅ Bestäm company (utgå från process.company, säkrast)
-    company = process.company
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    company = get_object_or_404(Company, pk=company_id)
 
-    # ✅ OrgUnit access-koll
-    accessible_ids = get_accessible_orgunit_ids(request.user, company)
-    if process.org_unit_id not in accessible_ids:
+    # ✅ måste tillhöra samma company
+    if process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
-    # (behåll om du har extra regelverk, men ofta blir detta redundant när orgunit styr allt)
-    if not user_can_access_process(request.user, process):
+    # ✅ nya, riktiga regeln (inkl own-only)
+    if not user_can_view_process(request.user, company, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     meta = ProjectMeta.objects.filter(
@@ -460,6 +480,8 @@ def process_detail(request, pk):
     completed_count = status_counts.get("completed", 0)
     expired_count = status_counts.get("expired", 0)
 
+    can_edit = user_can_edit_process(request.user, company, process)
+
     total_sent = sent_count + started_count + completed_count
     not_started = sent_count
 
@@ -469,6 +491,7 @@ def process_detail(request, pk):
         "meta": meta,
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
         "status_counts": status_counts,
+        "can_edit": can_edit,
         "kpis": {
             "total_sent": total_sent,
             "started": started_count,
@@ -491,9 +514,16 @@ from django.urls import reverse
 def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    company = get_company_for_user(request.user)
+    if not company or process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att ändra i denna process.")
+
     # ✅ Säkerhetskontroll
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+    if not company or not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i denna process.")
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
 
@@ -844,6 +874,16 @@ def remove_candidate_from_process(request, process_id, candidate_id):
 @login_required
 def process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
+
+    company = get_company_for_user(request.user)
+    if not company or process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("Du har inte behörighet att skicka tester i denna process.")
+
+    if request.method != "POST":
+        return redirect("processes:process_detail", pk=process.pk)
 
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")

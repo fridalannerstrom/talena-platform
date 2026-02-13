@@ -187,11 +187,6 @@ class OrgUnit(models.Model):
 
 
 class UserOrgUnitAccess(models.Model):
-    """
-    Kopplar en user till en OrgUnit (många-till-många via denna tabell).
-    En user kan ha access till flera enheter.
-    """
-
     PERM_VIEWER = "viewer"
     PERM_EDITOR = "editor"
     PERM_OWN = "own"
@@ -199,9 +194,9 @@ class UserOrgUnitAccess(models.Model):
     PERM_CHOICES = (
         (PERM_VIEWER, "Viewer"),
         (PERM_EDITOR, "Editor"),
-        (PERM_OWN, "Edit own only"),
+        (PERM_OWN, "Own only"),
     )
-    
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -213,10 +208,10 @@ class UserOrgUnitAccess(models.Model):
         related_name="user_accesses",
     )
 
-    permission_level = models.CharField(
-        max_length=20,
+    permission = models.CharField(
+        max_length=10,
         choices=PERM_CHOICES,
-        default=PERM_EDITOR,   # MVP: defaulta till Editor
+        default=PERM_VIEWER,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

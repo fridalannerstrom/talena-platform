@@ -33,24 +33,56 @@
         </div>
       </div>
 
-      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
-        <a class="btn btn-outline-secondary"
-           href="{% url 'emails:edit_process_invitation_template' process.id %}">
-          Mejlmallar
-        </a>
+<div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
 
-        <a class="btn btn-outline-secondary"
-           href="{% url 'processes:process_update' process.id %}">
-          Inställningar
-        </a>
+  {% if can_edit %}
+    <a class="btn btn-outline-secondary"
+       href="{% url 'emails:edit_process_invitation_template' process.id %}">
+      Mejlmallar
+    </a>
 
-        <button type="button"
-                class="btn btn-primary"
-                id="btnAddCandidate"
-                data-url="{% url 'processes:process_add_candidate' process.id %}">
-          Lägg till kandidat
-        </button>
-      </div>
+    <a class="btn btn-outline-secondary"
+       href="{% url 'processes:process_update' process.id %}">
+      Inställningar
+    </a>
+
+    <button type="button"
+            class="btn btn-primary"
+            id="btnAddCandidate"
+            data-url="{% url 'processes:process_add_candidate' process.id %}">
+      Lägg till kandidat
+    </button>
+  {% else %}
+
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+      <a class="btn btn-outline-secondary disabled"
+         href="#"
+         aria-disabled="true"
+         tabindex="-1">
+        Mejlmallar
+      </a>
+    </span>
+
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+      <a class="btn btn-outline-secondary disabled"
+         href="#"
+         aria-disabled="true"
+         tabindex="-1">
+        Inställningar
+      </a>
+    </span>
+
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+      <button type="button"
+              class="btn btn-primary"
+              disabled
+              aria-disabled="true">
+        Lägg till kandidat
+      </button>
+    </span>
+
+  {% endif %}
+</div>
     </div>
 
     {# Row 2: Key facts as chips #}
@@ -141,18 +173,17 @@
           <div class="text-muted small">Totalt: {{ invitations|length }}</div>
         </div>
       </div>
-
-      <button
-        id="send-tests-btn"
-        type="submit"
-        form="send-tests-form"
-        class="link-button"
-        disabled
-        aria-disabled="true"
-        title="Markera minst en kandidat för att skicka ut test"
-      >
-        <i data-feather="send"></i> Skicka ut test
-      </button>
+<button
+  id="send-tests-btn"
+  type="submit"
+  form="send-tests-form"
+  class="link-button"
+  {% if not can_edit %}disabled aria-disabled="true"{% else %}disabled aria-disabled="true"{% endif %}
+  data-bs-toggle="tooltip"
+  title="{% if not can_edit %}Du har inte behörighet.{% else %}Markera minst en kandidat för att skicka ut test{% endif %}"
+>
+  <i data-feather="send"></i> Skicka ut test
+</button>
     </div>
 
     <div class="card-body p-0">
@@ -229,14 +260,25 @@
                 </td>
 
                 <td class="text-end pe-3">
-                  <button type="submit"
-                          class="button-icon"
-                          form="send-tests-form"
-                          formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-                          formmethod="post"
-                          onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
-                    <i data-feather="trash-2"></i>
-                  </button>
+{% if can_edit %}
+  <button type="submit"
+          class="button-icon"
+          form="send-tests-form"
+          formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+          formmethod="post"
+          onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
+    <i data-feather="trash-2"></i>
+  </button>
+{% else %}
+  <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+    <button type="button"
+            class="button-icon"
+            disabled
+            aria-disabled="true">
+      <i data-feather="trash-2"></i>
+    </button>
+  </span>
+{% endif %}
                 </td>
               </tr>
               {% empty %}
@@ -390,6 +432,15 @@
       });
     });
   });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (!window.bootstrap) return;
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+    new bootstrap.Tooltip(el);
+  });
+});
 </script>
 
 <!-- Poll statuses (din befintliga) -->

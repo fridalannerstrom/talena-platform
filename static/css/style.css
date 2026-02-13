@@ -37,7 +37,7 @@
   --bs-gray-800: #363d47;
   --bs-gray-900: #212832;
   --bs-primary: #292929;
-  --bs-secondary: #6900c7;
+  --bs-secondary: #5e5e5e;
   --bs-success: #00ac69;
   --bs-info: #00cfd5;
   --bs-warning: #f4a100;
@@ -53,8 +53,8 @@
   --bs-teal: #00ba94;
   --bs-cyan: #00cfd5;
   --bs-blue: #292929;
-  --bs-indigo: #5800e8;
-  --bs-purple: #6900c7;
+  --bs-indigo: #6b6b6b;
+  --bs-purple: #4d4d4d;
   --bs-pink: #e30059;
   --bs-red-soft: #f1e0e3;
   --bs-orange-soft: #f3e7e3;
@@ -606,6 +606,23 @@
         .tq-center { text-align: left; }
         .tq-scale { max-width: 420px; }
       }
+
+.btn-sm {
+  font-size: 0.7rem !important;
+}
+
+.role-orgunit .btn {
+  border-color: rgb(161, 161, 161);
+  color: rgb(73, 73, 73);
+}
+
+.role-orgunit .btn-check:checked + .btn, :not(.btn-check) + .btn:active, .btn:first-child:active, .btn.active, .btn.show  {
+  border-color: #492B9C !important;
+  color: rgb(255, 255, 255);
+  background-color: #492B9C;
+}
+
+
 
 .link-button:disabled,
 .link-button[aria-disabled="true"] {
@@ -6284,7 +6301,7 @@ textarea.form-control-lg {
   --bs-card-cap-bg: rgba(33, 40, 50, 0.03);
   --bs-card-cap-color: #000000;
   --bs-card-height: ;
-  --bs-card-color: ;
+  --bs-card-color: #333;
   --bs-card-bg: #fff;
   --bs-card-img-overlay-padding: 1rem;
   --bs-card-group-margin: 0.75rem;
@@ -11612,7 +11629,7 @@ textarea.form-control-lg {
 /* rtl:end:remove */
 .text-primary {
   --bs-text-opacity: 1;
-  color: rgba(var(--bs-primary-rgb), var(--bs-text-opacity)) !important;
+  color: #333 !important;
 }
 
 .text-secondary {

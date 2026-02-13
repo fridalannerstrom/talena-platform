@@ -70,6 +70,7 @@ def build_invite_uuid_link(request, invite):
 
 from django.db.models import Count, Q
 
+
 @login_required
 def admin_user_detail(request, pk):
     if not is_admin(request.user):
@@ -709,11 +710,10 @@ def company_user_access(request, pk):
         if not CompanyMember.objects.filter(company=company, user=selected_user).exists():
             return HttpResponseForbidden("No access.")
 
-
-    if selected_user:
         selected_membership = (
             CompanyMember.objects
             .filter(company=company, user=selected_user)
+            .select_related("primary_org_unit")
             .first()
         )
         selected_primary_id = selected_membership.primary_org_unit_id if selected_membership else None
@@ -739,6 +739,15 @@ def company_user_access(request, pk):
             .values_list("org_unit_id", flat=True)
         )
 
+    # ✅ permission map (måste ligga EFTER att selected_user är satt)
+    perm_map = {}
+    if selected_user:
+        perm_map = dict(
+            UserOrgUnitAccess.objects
+            .filter(user=selected_user, org_unit__company=company)
+            .values_list("org_unit_id", "permission")  # byt till permission_level om ditt fältnamn heter så
+        )
+
     return render(request, "admin/accounts/companies/company_user_access.html", {
         "company": company,
         "users": users,
@@ -748,7 +757,8 @@ def company_user_access(request, pk):
         "checked_ids": checked_ids,
         "selected_membership": selected_membership,
         "selected_primary_id": selected_primary_id,
-        "all_units": all_units, 
+        "perm_map": perm_map,
+        "all_units": all_units,
     })
 
 
@@ -811,88 +821,80 @@ def company_user_access_set(request, company_pk):
         return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
 
     user_id = payload.get("user_id")
-    unit_ids = payload.get("unit_ids", [])
-    mode = payload.get("mode")  # expected: "replace" (new UI)
-    grant = payload.get("grant")  # legacy true/false (optional)
+    mode = payload.get("mode")
+    access = payload.get("access", [])  # <-- NEW
+    primary_org_unit_id = payload.get("primary_org_unit_id")  # <-- NEW
 
-    primary_org_unit_id = payload.get("primary_org_unit_id")
-
-    if not user_id or not isinstance(unit_ids, list):
-        return JsonResponse({"ok": False, "error": "user_id and unit_ids required"}, status=400)
+    if not user_id or mode != "replace" or not isinstance(access, list):
+        return JsonResponse({"ok": False, "error": "user_id + mode='replace' + access[] required"}, status=400)
 
     user = get_object_or_404(User, pk=user_id)
 
-    # Safety: user must belong to this company
     if not CompanyMember.objects.filter(company=company, user=user).exists():
         return JsonResponse({"ok": False, "error": "User not in company"}, status=403)
 
-    # Only units in this company
-    units = list(OrgUnit.objects.filter(company=company, id__in=unit_ids))
+    # Validate access rows
+    requested_ids = []
+    perm_by_id = {}
 
-    # Validate: ensure all provided unit_ids exist for this company
-    requested_ids = {int(x) for x in unit_ids if str(x).isdigit()}
+    allowed_perms = {"viewer", "editor", "own"}
+
+    for row in access:
+        try:
+            oid = int(row.get("org_unit_id"))
+        except Exception:
+            return JsonResponse({"ok": False, "error": "Invalid org_unit_id in access"}, status=400)
+
+        perm = (row.get("permission") or "").strip()
+        if perm not in allowed_perms:
+            return JsonResponse({"ok": False, "error": f"Invalid permission '{perm}'"}, status=400)
+
+        requested_ids.append(oid)
+        perm_by_id[oid] = perm
+
+    # Ensure units exist in this company
+    units = list(OrgUnit.objects.filter(company=company, id__in=requested_ids))
     found_ids = {u.id for u in units}
-    missing = sorted(list(requested_ids - found_ids))
+    missing = sorted(list(set(requested_ids) - found_ids))
     if missing:
         return JsonResponse({"ok": False, "error": f"Invalid unit_ids for company: {missing}"}, status=400)
-    
-    # ✅ Parse + validate primary
+
+    # Validate primary (optional)
     primary_unit = None
-    if primary_org_unit_id not in (None, "", "null"):
+    if primary_org_unit_id:
         try:
             primary_org_unit_id = int(primary_org_unit_id)
-        except (TypeError, ValueError):
+        except Exception:
             return JsonResponse({"ok": False, "error": "Invalid primary_org_unit_id"}, status=400)
 
         primary_unit = OrgUnit.objects.filter(company=company, id=primary_org_unit_id).first()
         if not primary_unit:
             return JsonResponse({"ok": False, "error": "Primary org unit not in company"}, status=400)
 
-        # primär måste vara en av de valda
-        if primary_unit.id not in requested_ids:
+        # rekommenderat: primary måste vara vald i access
+        if primary_unit.id not in set(requested_ids):
             return JsonResponse({"ok": False, "error": "Primary org unit must be selected for the user"}, status=400)
 
-
     with transaction.atomic():
-        # ✅ New behavior: replace all access with provided list
-        if mode == "replace":
-            # Delete all accesses for this user within the company
-            UserOrgUnitAccess.objects.filter(
+        # Replace access rows
+        UserOrgUnitAccess.objects.filter(user=user, org_unit__company=company).delete()
+
+        objs = []
+        for u in units:
+            objs.append(UserOrgUnitAccess(
                 user=user,
-                org_unit__company=company
-            ).delete()
+                org_unit=u,
+                permission=perm_by_id[u.id],
+            ))
+        if objs:
+            UserOrgUnitAccess.objects.bulk_create(objs)
 
-            # Re-create access rows for selected units
-            # (bulk_create is faster and fine here)
-            objs = [UserOrgUnitAccess(user=user, org_unit=u) for u in units]
-            if objs:
-                UserOrgUnitAccess.objects.bulk_create(objs)
+        # Save primary on CompanyMember
+        membership = CompanyMember.objects.get(company=company, user=user)
+        membership.primary_org_unit = primary_unit
+        membership.save(update_fields=["primary_org_unit"])
 
-            # ✅ Save primary_org_unit on membership
-            membership = CompanyMember.objects.get(company=company, user=user)
-            membership.primary_org_unit = primary_unit
-            membership.save(update_fields=["primary_org_unit"])
-
-            return JsonResponse({
-                "ok": True,
-                "action": "replaced",
-                "count": len(objs),
-            })
-
-        # --- Legacy behavior (optional fallback) ---
-        if grant is True:
-            created = 0
-            for unit in units:
-                _, was_created = UserOrgUnitAccess.objects.get_or_create(user=user, org_unit=unit)
-                created += 1 if was_created else 0
-            return JsonResponse({"ok": True, "action": "granted", "created": created})
-
-        if grant is False:
-            deleted, _ = UserOrgUnitAccess.objects.filter(user=user, org_unit__in=units).delete()
-            return JsonResponse({"ok": True, "action": "removed", "deleted": deleted})
-
-        return JsonResponse({"ok": False, "error": "Provide mode='replace' or grant=true/false"}, status=400)
-
+    return JsonResponse({"ok": True, "action": "replaced", "count": len(objs)})
 
 
 

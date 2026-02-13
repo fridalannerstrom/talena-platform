@@ -1,28 +1,49 @@
 {% load org_extras %}
 
-<li class="mb-2">
-  <div class="d-flex align-items-center gap-2">
-<input
-  class="form-check-input"
-  type="checkbox"
-  data-unit-checkbox
-  data-unit-id="{{ unit.id }}"
-  data-company-id="{{ company.id }}"
-  {% if unit.id in checked_ids %}checked{% endif %}
->
-    <div class="flex-grow-1">
+<li data-orgunit-row="{{ unit.id }}">
+  <div class="d-flex align-items-center justify-content-between gap-3 border-bottom py-2 px-2 mb-0">
+    <div class="d-flex align-items-center gap-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        data-unit-checkbox
+        data-unit-id="{{ unit.id }}"
+        data-company-id="{{ company.id }}"
+        {% if unit.id in checked_ids %}checked{% endif %}
+      >
       <div class="fw-semibold">{{ unit.name }}</div>
+    </div>
+
+    <div role="group" aria-label="Permission" class="role-orgunit">
+      {% with p=perm_map|get_item:unit.id|default:"viewer" %}
+        <input type="radio" class="btn-check"
+               name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_viewer"
+               value="viewer" data-perm-radio data-unit-id="{{ unit.id }}"
+               {% if p == "viewer" %}checked{% endif %}>
+        <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_viewer">Viewer</label>
+
+        <input type="radio" class="btn-check"
+               name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_editor"
+               value="editor" data-perm-radio data-unit-id="{{ unit.id }}"
+               {% if p == "editor" %}checked{% endif %}>
+        <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_editor">Editor</label>
+
+        <input type="radio" class="btn-check"
+               name="perm_{{ unit.id }}" id="perm_{{ unit.id }}_own"
+               value="own" data-perm-radio data-unit-id="{{ unit.id }}"
+               {% if p == "own" %}checked{% endif %}>
+        <label class="btn btn-outline-secondary btn-sm" for="perm_{{ unit.id }}_own">Own</label>
+      {% endwith %}
     </div>
   </div>
 
   {% with kids=children_map|get_item:unit.id %}
     {% if kids %}
-      <ul class="list-unstyled ms-4 mt-2">
-      {% for child in kids %}
-        {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids %}
-      {% endfor %}
+      <ul class="list-unstyled ms-4">
+{% for child in kids %}
+  {% include "admin/accounts/companies/_orgunit_access_node.html" with unit=child company=company children_map=children_map checked_ids=checked_ids %}
+{% endfor %}
       </ul>
     {% endif %}
   {% endwith %}
 </li>
-
