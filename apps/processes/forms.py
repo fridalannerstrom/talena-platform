@@ -11,7 +11,7 @@ class TestProcessCreateForm(forms.ModelForm):
 
     labels_text = forms.CharField(
         required=False,
-        help_text="Skriv en eller flera labels, separera med kommatecken. Ex: Admin, Interim, Prioritet",
+        help_text="Skriv en eller flera taggar som beskriver testprocessen. Separera taggarna med kommatecken.",
         widget=forms.TextInput(attrs={
             "class": "form-control",
             "placeholder": "Ex: Admin, Interim, Prioritet",

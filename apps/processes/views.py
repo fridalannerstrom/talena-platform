@@ -271,7 +271,7 @@ def process_create(request):
             else:
                 obj.labels.clear()
 
-            return redirect("processes:process_list")
+            return redirect("processes:process_detail", pk=obj.pk)
 
         messages.error(request, "Kunde inte skapa processen. Kontrollera fälten.")
     else:

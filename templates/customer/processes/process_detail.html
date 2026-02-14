@@ -13,9 +13,23 @@
     {# Row 1: Title + actions #}
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
       <div class="min-w-0">
+              <div class="chip chip-labels">
+
+        <div class="chip-value mb-3">
+          {% if process.labels %}
+            <div class="d-flex flex-wrap gap-2">
+{% for label in process.labels.all %}
+  <span class="process-label">{{ label }}</span>
+{% endfor %}
+            </div>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </div>
+      </div>
         <h2 class="mb-1 mt-2 mb-2 text-truncate">{{ process.name }}</h2>
 
-        <div class="text-muted small">
+        <div class="small text-dark">
           Skapad av:
           <span class="fw-semibold">
             {% with u=process.created_by %}
@@ -88,34 +102,17 @@
     {# Row 2: Key facts as chips #}
     <div class="process-header-chips mt-3">
 
-      <div class="chip">
-        <div class="chip-label">Testmall</div>
+      <div class="chip mb-3 text-dark">
+        <div class="chip-label"><strong>Testmall</strong></div>
         <div class="chip-value">
           {{ process.project_name_snapshot|default:"—" }}
         </div>
       </div>
 
-      <div class="chip">
-        <div class="chip-label">Tester</div>
+      <div class="chip text-dark">
+        <div class="chip-label"><strong>Tester</strong></div>
         <div class="chip-value">
           {{ meta.tests|default:"—" }}
-        </div>
-      </div>
-
-      {# Labels: show as pills, keep row compact #}
-      <div class="chip chip-labels">
-        <div class="chip-label">Labels</div>
-
-        <div class="chip-value">
-          {% if process.labels %}
-            <div class="d-flex flex-wrap gap-2">
-{% for label in process.labels.all %}
-  <span class="badge bg-light text-dark border">{{ label }}</span>
-{% endfor %}
-            </div>
-          {% else %}
-            <span class="text-muted">—</span>
-          {% endif %}
         </div>
       </div>
 
