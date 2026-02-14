@@ -508,6 +508,20 @@
   border: 1px dashed rgba(0,0,0,.15);
 }
 
+.process-list-header input {
+  font-size: 0.8rem;
+}
+
+.process-list-header .form-select {
+  font-size: 0.8rem;
+  padding: 15.5px;
+}
+
+.process-list-header .form-control {
+  padding: 0px 15px !important;
+  border-color: #C5CCD6;
+}
+
       .tq-section-title {
         font-weight: 700;
         font-size: .95rem;
