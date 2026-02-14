@@ -1,6 +1,7 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% block content %}
 {% load dict_extras %}
+{% load static %}
 <div class="container-fluid px-2 px-md-3">
 
   <!-- Header -->
@@ -139,9 +140,9 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="card">
+  <div class="card empty-state">
     <div class="card-body p-5 text-center">
-      <div class="text-muted mb-3">Du har inga testprocesser ännu.</div>
+      <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"></a><br> <div class="text-muted mb-3">Du har inga testprocesser ännu.</div>
       <a class="btn btn-primary" href="{% url 'processes:process_create' %}">
         Skapa din första testprocess
       </a>

@@ -501,6 +501,10 @@
     color: #146c43 !important;
   }
 
+  .empty-state img {
+    width: 80px;
+    margin-bottom: 20px;
+  }
 
   .process-label-muted {
   background: rgba(0,0,0,.04);
