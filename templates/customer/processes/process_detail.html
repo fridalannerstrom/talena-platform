@@ -1,5 +1,7 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% block content %}
+{% load static %}
+
 <div class="container-fluid px-2 px-md-3">
 
 <a href="{% url 'processes:process_list' %}"
@@ -13,20 +15,20 @@
     {# Row 1: Title + actions #}
     <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
       <div class="min-w-0">
-              <div class="chip chip-labels">
-
-        <div class="chip-value mb-3">
-          {% if process.labels %}
-            <div class="d-flex flex-wrap gap-2">
-{% for label in process.labels.all %}
-  <span class="process-label">{{ label }}</span>
-{% endfor %}
-            </div>
-          {% else %}
-            <span class="text-muted">—</span>
-          {% endif %}
+        <div class="chip chip-labels">
+          <div class="chip-value mb-3">
+            {% if process.labels %}
+              <div class="d-flex flex-wrap gap-2">
+                {% for label in process.labels.all %}
+                  <span class="process-label">{{ label }}</span>
+                {% endfor %}
+              </div>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </div>
         </div>
-      </div>
+
         <h2 class="mb-1 mt-2 mb-2 text-truncate">{{ process.name }}</h2>
 
         <div class="small text-dark">
@@ -47,61 +49,74 @@
         </div>
       </div>
 
-<div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
+      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
 
-  {% if can_edit %}
-    <a class="btn btn-outline-secondary"
-       href="{% url 'emails:edit_process_invitation_template' process.id %}">
-      Mejlmallar
-    </a>
+        {% if can_edit %}
+          <a class="btn btn-outline-secondary"
+             href="{% url 'emails:edit_process_invitation_template' process.id %}">
+            Mejlmallar
+          </a>
 
-    <a class="btn btn-outline-secondary"
-       href="{% url 'processes:process_update' process.id %}">
-      Inställningar
-    </a>
+          <a class="btn btn-outline-secondary"
+             href="{% url 'processes:process_update' process.id %}">
+            Inställningar
+          </a>
 
-    <button type="button"
-            class="btn btn-primary"
-            id="btnAddCandidate"
-            data-url="{% url 'processes:process_add_candidate' process.id %}">
-      Lägg till kandidat
-    </button>
-  {% else %}
+          <button type="button"
+                  class="btn btn-outline-secondary js-selfreg">
+            Självregistrering
+          </button>
 
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-      <a class="btn btn-outline-secondary disabled"
-         href="#"
-         aria-disabled="true"
-         tabindex="-1">
-        Mejlmallar
-      </a>
-    </span>
+          <button type="button"
+                  class="btn btn-primary js-add-candidate"
+                  data-url="{% url 'processes:process_add_candidate' process.id %}">
+            Lägg till kandidat
+          </button>
 
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-      <a class="btn btn-outline-secondary disabled"
-         href="#"
-         aria-disabled="true"
-         tabindex="-1">
-        Inställningar
-      </a>
-    </span>
+        {% else %}
 
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-      <button type="button"
-              class="btn btn-primary"
-              disabled
-              aria-disabled="true">
-        Lägg till kandidat
-      </button>
-    </span>
+          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+            <a class="btn btn-outline-secondary disabled"
+               href="#"
+               aria-disabled="true"
+               tabindex="-1">
+              Mejlmallar
+            </a>
+          </span>
 
-  {% endif %}
-</div>
+          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+            <a class="btn btn-outline-secondary disabled"
+               href="#"
+               aria-disabled="true"
+               tabindex="-1">
+              Inställningar
+            </a>
+          </span>
+
+          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    disabled
+                    aria-disabled="true">
+              Självregistrering
+            </button>
+          </span>
+
+          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+            <button type="button"
+                    class="btn btn-primary"
+                    disabled
+                    aria-disabled="true">
+              Lägg till kandidat
+            </button>
+          </span>
+
+        {% endif %}
+      </div>
     </div>
 
     {# Row 2: Key facts as chips #}
     <div class="process-header-chips mt-3">
-
       <div class="chip mb-3 text-dark">
         <div class="chip-label"><strong>Testmall</strong></div>
         <div class="chip-value">
@@ -115,15 +130,13 @@
           {{ meta.tests|default:"—" }}
         </div>
       </div>
-
     </div>
 
   </div>
 </div>
 
-  {# KPI grid (som du har nu) #}
- <div class="kpi-grid mb-3">
-
+{# KPI grid #}
+<div class="kpi-grid mb-3">
   <div class="card h-100">
     <div class="card-body">
       <div class="text-muted small">Totalt skickade tester</div>
@@ -158,60 +171,64 @@
       <div class="h3 mb-1">{{ kpis.expired|default:0 }}</div>
     </div>
   </div>
-
 </div>
 
-  {# Candidates table full width #}
-  <div class="card process-sidebar">
-    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
-      <div class="min-w-0">
-        <div class="fw-semibold">
-          Kandidater
-          <div class="text-muted small">Totalt: {{ invitations|length }}</div>
-        </div>
+{# Candidates table #}
+<div class="card process-sidebar">
+  <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+    <div class="min-w-0">
+      <div class="fw-semibold">
+        Kandidater
+        <div class="text-muted small">Totalt: {{ invitations|length }}</div>
       </div>
-<button
-  id="send-tests-btn"
-  type="submit"
-  form="send-tests-form"
-  class="link-button"
-  {% if not can_edit %}disabled aria-disabled="true"{% else %}disabled aria-disabled="true"{% endif %}
-  data-bs-toggle="tooltip"
-  title="{% if not can_edit %}Du har inte behörighet.{% else %}Markera minst en kandidat för att skicka ut test{% endif %}"
->
-  <i data-feather="send"></i> Skicka ut test
-</button>
     </div>
 
-    <div class="card-body p-0">
-      <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
-        {% csrf_token %}
+    <button
+      id="send-tests-btn"
+      type="submit"
+      form="send-tests-form"
+      class="link-button"
+      {% if not can_edit %}disabled aria-disabled="true"{% else %}disabled aria-disabled="true"{% endif %}
+      data-bs-toggle="tooltip"
+      title="{% if not can_edit %}Du har inte behörighet.{% else %}Markera minst en kandidat för att skicka ut test{% endif %}"
+    >
+      <i data-feather="send"></i> Skicka ut test
+    </button>
+  </div>
 
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 process-table">
-            <thead class="table-light">
-              <tr>
-                <th style="width:44px;" class="ps-3">
-                  <input type="checkbox" id="select-all">
-                </th>
-                <th style="width:40%;">Kandidat</th>
-                <th>Källa</th>
-                <th>Status</th>
-                <th style="width: 160px;">Registrerad</th>
-                <th class="text-end pe-3" style="width:70px;"></th>
-              </tr>
-            </thead>
+  <div class="card-body p-0">
+    <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
+      {% csrf_token %}
 
-            <tbody>
-              {% for inv in invitations %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 process-table">
+          <thead class="table-light">
+            <tr>
+              <th style="width:44px;" class="ps-3">
+                <input type="checkbox" id="select-all" {% if not can_edit %}disabled{% endif %}>
+              </th>
+              <th style="width:40%;">Kandidat</th>
+              <th>Källa</th>
+              <th>Status</th>
+              <th style="width: 160px;">Registrerad</th>
+              <th class="text-end pe-3" style="width:70px;"></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for inv in invitations %}
               <tr class="candidate-row">
                 <td class="ps-3">
-                  <input type="checkbox" name="invitation_ids" value="{{ inv.id }}" class="row-check">
+                  <input type="checkbox"
+                         name="invitation_ids"
+                         value="{{ inv.id }}"
+                         class="row-check"
+                         {% if not can_edit %}disabled{% endif %}>
                 </td>
 
                 <td>
-                <div class="d-flex align-items-center gap-3 process-detail-table">
-                  <div class="user-initials">
+                  <div class="d-flex align-items-center gap-3 process-detail-table">
+                    <div class="user-initials">
                       {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
                         {% if fn or ln %}
                           {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
@@ -257,45 +274,66 @@
                 </td>
 
                 <td class="text-end pe-3">
-{% if can_edit %}
-  <button type="submit"
-          class="button-icon"
-          form="send-tests-form"
-          formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-          formmethod="post"
-          onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
-    <i data-feather="trash-2"></i>
-  </button>
-{% else %}
-  <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-    <button type="button"
-            class="button-icon"
-            disabled
-            aria-disabled="true">
-      <i data-feather="trash-2"></i>
-    </button>
-  </span>
-{% endif %}
+                  {% if can_edit %}
+                    <button type="submit"
+                            class="button-icon"
+                            form="send-tests-form"
+                            formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                            formmethod="post"
+                            onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
+                      <i data-feather="trash-2"></i>
+                    </button>
+                  {% else %}
+                    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
+                      <button type="button"
+                              class="button-icon"
+                              disabled
+                              aria-disabled="true">
+                        <i data-feather="trash-2"></i>
+                      </button>
+                    </span>
+                  {% endif %}
                 </td>
               </tr>
-              {% empty %}
+
+            {% empty %}
               <tr>
-                <td colspan="6" class="p-5 text-center text-muted">
-                  Inga kandidater ännu. Klicka på <strong>Lägg till kandidat</strong> för att komma igång.
+                <td colspan="6" class="p-5 text-center text-muted empty-state">
+                  <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
+
+                  {% if can_edit %}
+                    <div class="text-muted mb-3">Du har inga kandidater ännu.</div>
+
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                      <button type="button"
+                              class="btn btn-primary js-add-candidate"
+                              data-url="{% url 'processes:process_add_candidate' process.id %}">
+                        Lägg till kandidat
+                      </button>
+
+                      <button type="button"
+                              class="btn btn-primary js-selfreg">
+                        Självregistreringslänk
+                      </button>
+                    </div>
+                  {% else %}
+                    <div class="text-muted mb-2">Inga kandidater ännu.</div>
+                    <div class="small text-muted">
+                      Du har endast läsbehörighet i denna process. Kontakta en administratör om du behöver lägga till kandidater eller skicka ut test.
+                    </div>
+                  {% endif %}
                 </td>
               </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-      </form>
-    </div>
+    </form>
   </div>
-
 </div>
 
-
+</div> {# /container-fluid #}
 
 <div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
   <div class="offcanvas-header justify-content-end">
@@ -311,7 +349,6 @@
 <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-
       <div class="modal-header">
         <div class="d-flex flex-column">
           <div class="subheading mb-1">Lägg till kandidat</div>
@@ -323,11 +360,9 @@
       <div class="modal-body" id="addCandidateModalBody">
         <div class="text-muted">Loading…</div>
       </div>
-
     </div>
   </div>
 </div>
-
 
 <style>
   /* Offcanvas */
@@ -352,49 +387,56 @@
     padding-bottom: 16px;
   }
 
-
   .user-link{ color: inherit; text-decoration: none; }
   .user-link:hover{ text-decoration: underline; }
 
+  .empty-state img{
+    max-width: 220px;
+    height: auto;
+    margin-bottom: 12px;
+    opacity: .95;
+  }
 </style>
 
-<!-- Self registration modal (din befintliga) -->
+<!-- ✅ Self registration modal (fixad: binder till alla .js-selfreg) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("btnSelfReg");
-    if (!btn) return;
+    const buttons = document.querySelectorAll(".js-selfreg");
+    if (!buttons.length) return;
 
-    btn.addEventListener("click", () => {
-      const url = "{{ self_reg_url|escapejs }}";
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const url = "{{ self_reg_url|escapejs }}";
 
-      openAppModal({
-        title: "Självregistrering",
-        bodyHtml: `
-          <p class="mb-2">
-            Dela länken med kandidater. Kandidater som registrerar sig via länken
-            startar testet automatiskt direkt efter registrering.
-          </p>
+        openAppModal({
+          title: "Självregistrering",
+          bodyHtml: `
+            <p class="mb-2">
+              Dela länken med kandidater. Kandidater som registrerar sig via länken
+              startar testet automatiskt direkt efter registrering.
+            </p>
 
-          <label class="form-label">Self-registration URL</label>
-          <input type="text" class="form-control" value="${url}" readonly>
+            <label class="form-label">Självregistreringslänk</label>
+            <input type="text" class="form-control" value="${url}" readonly>
 
-          <div class="d-flex align-items-center gap-3 mt-2">
-            <button class="btn btn-primary" type="button"
-              onclick="copyToClipboard('${url}', 'copyStatus')">
-              Copy link
-            </button>
-            <span id="copyStatus" class="small text-muted"></span>
-          </div>
-        `,
-        footerHtml: `
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-        `
+            <div class="d-flex align-items-center gap-3 mt-2">
+              <button class="btn btn-primary" type="button"
+                onclick="copyToClipboard('${url}', 'copyStatus')">
+                Kopiera länk
+              </button>
+              <span id="copyStatus" class="small text-muted"></span>
+            </div>
+          `,
+          footerHtml: `
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Stäng</button>
+          `
+        });
       });
     });
   });
 </script>
 
-<!-- Candidate sheet fetch (din befintliga, oförändrad) -->
+<!-- Candidate sheet fetch (oförändrad) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const sheetEl = document.getElementById("candidateSheet");
@@ -437,6 +479,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
     new bootstrap.Tooltip(el);
   });
+  if (window.feather) feather.replace();
 });
 </script>
 
@@ -485,8 +528,10 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
+<!-- ✅ Send-tests knapp enable/disable (respekterar can_edit) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const canEdit = {{ can_edit|yesno:"true,false" }};
     const btn = document.getElementById("send-tests-btn");
     const selectAll = document.getElementById("select-all");
     const checks = Array.from(document.querySelectorAll(".row-check"));
@@ -494,6 +539,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!btn) return;
 
     function updateSendButton() {
+      if (!canEdit) {
+        btn.disabled = true;
+        btn.setAttribute("aria-disabled", "true");
+        return;
+      }
       const anyChecked = checks.some(ch => ch.checked);
       btn.disabled = !anyChecked;
       btn.setAttribute("aria-disabled", String(!anyChecked));
@@ -512,19 +562,19 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 </script>
 
+<!-- ✅ Add candidate modal (fixad: binder till alla .js-add-candidate) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("btnAddCandidate");
+  const buttons = document.querySelectorAll(".js-add-candidate");
   const modalEl = document.getElementById("addCandidateModal");
   const bodyEl = document.getElementById("addCandidateModalBody");
 
-  if (!btn || !modalEl || !bodyEl) return;
+  if (!buttons.length || !modalEl || !bodyEl) return;
   if (!window.bootstrap) return;
 
   const modal = new bootstrap.Modal(modalEl);
 
-  async function loadForm() {
-    const url = btn.dataset.url;
+  async function loadForm(url) {
     bodyEl.innerHTML = `<div class="text-muted">Loading…</div>`;
     modal.show();
 
@@ -538,7 +588,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  btn.addEventListener("click", loadForm);
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => loadForm(btn.dataset.url));
+  });
 
   modalEl.addEventListener("submit", async (e) => {
     const form = e.target.closest("#addCandidateForm");
@@ -571,4 +623,3 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 {% endblock %}
-
