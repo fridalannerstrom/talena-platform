@@ -1050,12 +1050,51 @@
   box-shadow: none;
 }
 
+/* ===== NAV BUTTONS OUTSIDE ===== */
+
+.sheet-nav {
+  position: fixed;           /* viktigt! */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid #e6e8ee;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1080;             /* högre än offcanvas */
+  box-shadow: 0 10px 25px rgba(0,0,0,.15);
+}
+
+/* Placera dem UTANFÖR sheetet */
+.sheet-nav-prev {
+  left: 32px;   /* justera om du vill mer ut */
+}
+
+.sheet-nav-next {
+  right: 32px;
+}
+
+/* Dölj om bara 1 kandidat */
+.sheet-nav.is-hidden {
+  display: none;
+}
+
+.sheet-nav:disabled {
+  display: none;
+}
+
+
 
 /* Candidate bottom sheet – layout tweaks */
 #candidateSheet {
   height: 96vh; /* lite högre än 85 */
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  width: 90vw;
+  margin: auto;
 }
 
 /* Centrera innehållet */

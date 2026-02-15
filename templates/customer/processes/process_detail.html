@@ -305,17 +305,40 @@
   </div>
 </div>
 
-</div> {# /container-fluid #}
+</div>
 
 <div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
-  <div class="offcanvas-header justify-content-end">
-    <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body" id="candidateSheetBody">
-    <div class="text-muted">Loading…</div>
+
+  <!-- LEFT ARROW (utanför content) -->
+  <button type="button"
+          class="sheet-nav sheet-nav-prev"
+          id="candidatePrevBtn"
+          aria-label="Föregående kandidat">
+    <i data-feather="chevron-left"></i>
+  </button>
+
+  <!-- RIGHT ARROW -->
+  <button type="button"
+          class="sheet-nav sheet-nav-next"
+          id="candidateNextBtn"
+          aria-label="Nästa kandidat">
+    <i data-feather="chevron-right"></i>
+  </button>
+
+  <div class="candidate-sheet-inner">
+
+    <div class="offcanvas-header justify-content-end">
+      <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" id="candidateSheetBody">
+      <div class="text-muted">Loading…</div>
+    </div>
+
   </div>
 </div>
+
 
 <!-- Add candidate modal -->
 <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
@@ -380,36 +403,111 @@
     const sheetEl = document.getElementById("candidateSheet");
     const sheetBody = document.getElementById("candidateSheetBody");
     const sheetTitle = document.getElementById("candidateSheetLabel");
+    const prevBtn = document.getElementById("candidatePrevBtn");
+    const nextBtn = document.getElementById("candidateNextBtn");
+
     if (!sheetEl || !sheetBody || !sheetTitle) return;
 
     const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
 
-    document.querySelectorAll(".js-open-candidate").forEach(link => {
-      link.addEventListener("click", async (e) => {
-        e.preventDefault();
+    // Samla alla kandidatlänkar i den ordning de syns i tabellen
+    const links = Array.from(document.querySelectorAll(".js-open-candidate"));
+    if (!links.length) return;
 
-        const url = link.dataset.sheetUrl || link.getAttribute("href");
-        const name = link.dataset.candidateName || "Candidate";
+    let currentIndex = -1;
 
-        sheetTitle.textContent = name;
-        sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
-        sheet.show();
+    async function loadCandidateByIndex(idx) {
+      if (idx < 0 || idx >= links.length) return;
+      currentIndex = idx;
 
-        try {
-          const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
-          if (!res.ok) {
-            sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Could not load candidate details (${res.status}).</div>`;
-            return;
-          }
-          sheetBody.innerHTML = await res.text();
-        } catch (err) {
-          sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
-          console.error(err);
+      const link = links[currentIndex];
+      const url = link.dataset.sheetUrl || link.getAttribute("href");
+      const name = link.dataset.candidateName || "Candidate";
+
+      sheetTitle.textContent = name;
+      sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+
+      // show sheet (om den inte redan är öppen)
+      sheet.show();
+
+      // uppdatera knappar
+      updateNav();
+
+      try {
+        const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+        if (!res.ok) {
+          sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Could not load candidate details (${res.status}).</div>`;
+          return;
         }
+        sheetBody.innerHTML = await res.text();
+
+        // re-init icons + tooltips efter att HTML bytts
+        if (window.feather) feather.replace();
+        if (window.bootstrap) {
+          sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        }
+      } catch (err) {
+        sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
+        console.error(err);
+      }
+    }
+
+    function updateNav() {
+      if (!prevBtn || !nextBtn) return;
+
+      // Om bara 1 kandidat: göm pilar
+      if (links.length <= 1) {
+        prevBtn.classList.add("is-hidden");
+        nextBtn.classList.add("is-hidden");
+        return;
+      }
+
+      prevBtn.classList.remove("is-hidden");
+      nextBtn.classList.remove("is-hidden");
+
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= links.length - 1;
+    }
+
+    // Klick på kandidat öppnar sheet + laddar rätt index
+    links.forEach((link, idx) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        loadCandidateByIndex(idx);
       });
+    });
+
+    // Pilar
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex - 1));
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex + 1));
+    }
+
+    // Keyboard: vänster/höger när sheet är öppen
+    document.addEventListener("keydown", (e) => {
+      const isOpen = sheetEl.classList.contains("show");
+      if (!isOpen) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        loadCandidateByIndex(currentIndex - 1);
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        loadCandidateByIndex(currentIndex + 1);
+      }
+    });
+
+    // När sheet stängs: reset index (valfritt)
+    sheetEl.addEventListener("hidden.bs.offcanvas", () => {
+      currentIndex = -1;
+      updateNav();
     });
   });
 </script>
+
 
 <!-- Tooltips + Feather -->
 <script>
