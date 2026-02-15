@@ -68,14 +68,15 @@ def _get_sova_accounts():
     except Exception as e:
         return [], str(e)
 
+
 @login_required
 def customer_dashboard(request):
-    # (om du har detta logik kvar)
+    # Admins ska inte hit
     if request.user.is_staff or request.user.is_superuser:
         return HttpResponseForbidden("Admins should use the admin dashboard.")
 
     # 1) Hämta SOVA-accounts (din befintliga funktion)
-    accounts, error = _get_sova_accounts()  # behåll som du har
+    accounts, error = _get_sova_accounts()
 
     # 2) Hämta userns company
     company_id = (
@@ -85,21 +86,38 @@ def customer_dashboard(request):
         .first()
     )
 
-    # 3) Processer som tillhör company (och ev. fallback på created_by)
+    # 3) Processer som tillhör company (fallback på created_by)
     if company_id:
         accessible_processes = TestProcess.objects.filter(company_id=company_id)
     else:
-        # om användaren inte är kopplad till company än
         accessible_processes = TestProcess.objects.filter(created_by=request.user)
 
+    accessible_processes = accessible_processes.order_by("-created_at")
+
+    # --- Översikt / Stats ---
     total_processes = accessible_processes.count()
 
+    # ✅ All statistik kring "tester" ska räknas på TestInvitation
+    invitations_qs = TestInvitation.objects.filter(process__in=accessible_processes)
+
+    stats = {
+        "processes": total_processes,
+        "sent": invitations_qs.filter(status__in=["sent", "started", "completed"]).count(),
+        "started": invitations_qs.filter(status="started").count(),
+        "completed": invitations_qs.filter(status="completed").count(),
+        # bonus om du vill:
+        # "not_sent": invitations_qs.filter(status="created").count(),
+        # "expired": invitations_qs.filter(status="expired").count(),
+    }
+
     return render(request, "customer/core/layouts/customer_dashboard.html", {
-        "accounts": accounts,            # från SOVA API
-        "error": error,                 # från SOVA API
+        "accounts": accounts,
+        "error": error,
         "total_processes": total_processes,
-        "processes": accessible_processes[:5],  # valfritt: visa senaste 5
+        "processes": accessible_processes[:5],   # senaste 5
+        "stats": stats,
     })
+
 
 @login_required
 def admin_dashboard(request):

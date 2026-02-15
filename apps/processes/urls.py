@@ -24,5 +24,6 @@ urlpatterns = [
     ),
     path("<int:pk>/send-tests/", views.process_send_tests, name="process_send_tests"),
     path("<int:pk>/invitation-statuses/", views.process_invitation_statuses, name="process_invitation_statuses"),
-
+    path("<int:pk>/archive/", views.process_archive, name="process_archive"),
+path("<int:pk>/unarchive/", views.process_unarchive, name="process_unarchive"),
 ]

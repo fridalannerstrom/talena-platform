@@ -20,6 +20,9 @@ class TestProcess(models.Model):
     job_location = models.CharField(max_length=255, blank=True, default="")
     notes = models.TextField(blank=True, default="")
 
+    is_archived = models.BooleanField(default=False, db_index=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+
     self_registration_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -74,6 +77,20 @@ class TestProcess(models.Model):
         Just nu: om någon invitation har status sent/started/completed.
         """
         return self.invitations.filter(status__in=["sent", "started", "completed"]).exists()
+    
+    def can_delete(self) -> bool:
+        # delete OK endast om inget har skickats/påbörjats/avslutats
+        return not self.invitations.filter(status__in=["sent", "started", "completed"]).exists()
+
+    def archive(self):
+        self.is_archived = True
+        self.archived_at = timezone.now()
+        self.save(update_fields=["is_archived", "archived_at"])
+
+    def unarchive(self):
+        self.is_archived = False
+        self.archived_at = None
+        self.save(update_fields=["is_archived", "archived_at"])
 
 
 class Candidate(models.Model):

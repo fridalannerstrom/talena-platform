@@ -69,28 +69,28 @@
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Testprocesser</div>
-                <div class="fs-2 fw-semibold">3</div>
+                <div class="fs-2 fw-semibold">{{ stats.processes }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Skickade tester</div>
-                <div class="fs-2 fw-semibold">5</div>
+                <div class="fs-2 fw-semibold">{{ stats.sent }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Påbörjade tester</div>
-                <div class="fs-2 fw-semibold">2</div>
+                <div class="fs-2 fw-semibold">{{ stats.started }}</div>
               </div>
             </div>
             
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Färdiga tester</div>
-                <div class="fs-2 fw-semibold">2</div>
+                <div class="fs-2 fw-semibold">{{ stats.completed }}</div>
               </div>
             </div>
           </div>

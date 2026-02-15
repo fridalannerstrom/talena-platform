@@ -35,6 +35,7 @@ import requests
 from django.conf import settings
 
 from apps.accounts.models import Company, CompanyMember
+from apps.projects.models import ProjectMeta
 
 
 
@@ -61,14 +62,6 @@ def user_can_access_process(user, process) -> bool:
     return bool(company_id and process.company_id == company_id)
 
 
-from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
-
-from apps.accounts.models import Company, CompanyMember
-from apps.accounts.utils.org_access import get_accessible_orgunit_ids
-from .models import TestProcess
-# + dina imports för ProjectMeta
 
 @login_required
 def process_list(request):
@@ -90,9 +83,13 @@ def process_list(request):
         Q(org_unit_id__in=own_ids, created_by=request.user)
     )
 
+    # ✅ Tab: Aktiva / Arkiverade
+    show_archived = request.GET.get("archived") == "1"
+
     processes = (
         TestProcess.objects
         .filter(process_q)
+        .filter(is_archived=show_archived)  # ✅ här filtrerar vi!
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
         .prefetch_related("labels")
@@ -122,8 +119,10 @@ def process_list(request):
             "processes": processes,
             "meta_by_key": meta_by_key,
             "perms": perms,
+            "show_archived": show_archived,  # ✅ behövs för tabbarna i templaten
         }
     )
+
 
 
 
@@ -423,6 +422,10 @@ def process_update(request, pk):
 def process_delete(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
+    # ✅ kräver POST (viktigt)
+    if request.method != "POST":
+        return HttpResponseForbidden("POST required.")
+
     company = get_company_for_user(request.user)
     if not company or obj.company_id != company.id:
         return HttpResponseForbidden("No access.")
@@ -433,8 +436,14 @@ def process_delete(request, pk):
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
-    obj.delete()
-    messages.success(request, "Processen raderades.")
+    # ✅ B + C: delete om möjligt, annars arkivera
+    if obj.can_delete():
+        obj.delete()
+        messages.success(request, "Processen raderades.")
+    else:
+        obj.archive()
+        messages.info(request, "Processen kunde inte raderas eftersom tester har skickats. Den arkiverades istället.")
+
     return redirect("processes:process_list")
 
 
@@ -994,3 +1003,47 @@ def process_invitation_statuses(request, pk):
             for inv in qs
         ]
     })
+
+
+@login_required
+def process_archive(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    if request.method != "POST":
+        return HttpResponseForbidden("POST required.")
+
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("Du har inte behörighet att arkivera denna process.")
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+
+    obj.archive()
+    messages.success(request, "Processen arkiverades.")
+    return redirect("processes:process_list")
+
+
+@login_required
+def process_unarchive(request, pk):
+    obj = get_object_or_404(TestProcess, pk=pk)
+
+    if request.method != "POST":
+        return HttpResponseForbidden("POST required.")
+
+    company = get_company_for_user(request.user)
+    if not company or obj.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, obj):
+        return HttpResponseForbidden("Du har inte behörighet att återställa denna process.")
+
+    if not user_can_access_process(request.user, obj):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+
+    obj.unarchive()
+    messages.success(request, "Processen återställdes.")
+    return redirect("processes:process_list")

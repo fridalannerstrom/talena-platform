@@ -702,6 +702,52 @@
   transition: color 0.2s ease;
 }
 
+
+  /* Segmented tabs */
+  .seg-tabs{
+    display:inline-flex;
+    background:#f6f7f9;
+    border:1px solid #e6e8ec;
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+  }
+  .seg-tab{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:.45rem .85rem;
+    border-radius:999px;
+    text-decoration:none;
+    color:#111;
+    font-weight:400;
+    font-size:.9rem;
+    border:1px solid transparent;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .seg-tab:hover{ background:#fff; border-color:#e6e8ec; }
+  .seg-tab.is-active{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+  }
+
+  /* Icon buttons (if you don't already have) */
+  .icon-btn{
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    border:1px solid #eef1f4;
+    background:#fff;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .icon-btn:hover{ border-color:#d8dee6; }
+  .icon-btn i{ width:16px; height:16px; }
+
 .button-icon:hover {
   color: #ff6f61;
 }
@@ -710,6 +756,7 @@
   padding-top: 16px;
   padding-bottom: 16px;
 }
+
 
 .clickable-row {
   cursor: pointer;
