@@ -732,6 +732,22 @@
     border-color:#cccccc;
   }
 
+.access-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid #e7e9ee;
+  background:#fff;
+  font-weight:400;
+  font-size:.8rem;
+  user-select:none;
+  cursor:help;
+}
+
+.icon-16{ width:16px; height:16px; }
+
   /* Icon buttons (if you don't already have) */
   .icon-btn{
     width:34px;

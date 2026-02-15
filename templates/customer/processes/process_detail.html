@@ -49,41 +49,38 @@
         </div>
       </div>
 
-<div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
+      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
+        {% if can_edit %}
+          <a class="btn btn-outline-secondary"
+             href="{% url 'emails:edit_process_invitation_template' process.id %}">
+            Mejlmallar
+          </a>
 
-  {% if can_edit %}
-    <a class="btn btn-outline-secondary"
-       href="{% url 'emails:edit_process_invitation_template' process.id %}">
-      Mejlmallar
-    </a>
+          <a class="btn btn-outline-secondary"
+             href="{% url 'processes:process_update' process.id %}">
+            Inställningar
+          </a>
 
-    <a class="btn btn-outline-secondary"
-       href="{% url 'processes:process_update' process.id %}">
-      Inställningar
-    </a>
+          <button type="button"
+                  class="btn btn-outline-secondary js-selfreg">
+            Självregistrering
+          </button>
 
-    <button type="button"
-            class="btn btn-outline-secondary js-selfreg">
-      Självregistrering
-    </button>
-
-    <button type="button"
-            class="btn btn-primary js-add-candidate"
-            data-url="{% url 'processes:process_add_candidate' process.id %}">
-      Lägg till kandidat
-    </button>
-
-  {% else %}
-    <span class="access-pill"
-          data-bs-toggle="tooltip"
-          data-bs-placement="left"
-          title="Du har läsbehörighet i denna testprocess. Du kan se kandidater och status, men kan inte lägga till kandidater, skicka ut test eller ändra inställningar.">
-      <i data-feather="eye" class="icon-16"></i>
-      Läsbehörighet
-    </span>
-  {% endif %}
-
-</div>
+          <button type="button"
+                  class="btn btn-primary js-add-candidate"
+                  data-url="{% url 'processes:process_add_candidate' process.id %}">
+            Lägg till kandidat
+          </button>
+        {% else %}
+          <span class="access-pill"
+                data-bs-toggle="tooltip"
+                data-bs-placement="left"
+                title="Du har läsbehörighet i denna testprocess. Du kan se kandidater och status, men kan inte lägga till kandidater, skicka ut test eller ändra inställningar.">
+            <i data-feather="eye" class="icon-16"></i>
+            Läsbehörighet
+          </span>
+        {% endif %}
+      </div>
     </div>
 
     {# Row 2: Key facts as chips #}
@@ -154,17 +151,21 @@
       </div>
     </div>
 
-    <button
-      id="send-tests-btn"
-      type="submit"
-      form="send-tests-form"
-      class="link-button"
-      {% if not can_edit %}disabled aria-disabled="true"{% else %}disabled aria-disabled="true"{% endif %}
-      data-bs-toggle="tooltip"
-      title="{% if not can_edit %}Du har inte behörighet.{% else %}Markera minst en kandidat för att skicka ut test{% endif %}"
-    >
-      <i data-feather="send"></i> Skicka ut test
-    </button>
+    {% if can_edit %}
+      <button
+        id="send-tests-btn"
+        type="submit"
+        form="send-tests-form"
+        class="link-button"
+        disabled
+        aria-disabled="true"
+        data-bs-toggle="tooltip"
+        title="Markera minst en kandidat för att skicka ut test"
+      >
+        <i data-feather="send"></i> Skicka ut test
+      </button>
+    {% else %}
+    {% endif %}
   </div>
 
   <div class="card-body p-0">
@@ -175,27 +176,35 @@
         <table class="table table-hover align-middle mb-0 process-table">
           <thead class="table-light">
             <tr>
-              <th style="width:44px;" class="ps-3">
-                <input type="checkbox" id="select-all" {% if not can_edit %}disabled{% endif %}>
-              </th>
+              {% if can_edit %}
+                <th style="width:44px;" class="ps-3">
+                  <input type="checkbox" id="select-all">
+                </th>
+              {% endif %}
+
               <th style="width:40%;">Kandidat</th>
               <th>Källa</th>
               <th>Status</th>
               <th style="width: 160px;">Registrerad</th>
-              <th class="text-end pe-3" style="width:70px;"></th>
+
+              {% if can_edit %}
+                <th class="text-end pe-3" style="width:70px;"></th>
+              {% endif %}
             </tr>
           </thead>
 
           <tbody>
             {% for inv in invitations %}
               <tr class="candidate-row">
-                <td class="ps-3">
-                  <input type="checkbox"
-                         name="invitation_ids"
-                         value="{{ inv.id }}"
-                         class="row-check"
-                         {% if not can_edit %}disabled{% endif %}>
-                </td>
+
+                {% if can_edit %}
+                  <td class="ps-3">
+                    <input type="checkbox"
+                           name="invitation_ids"
+                           value="{{ inv.id }}"
+                           class="row-check">
+                  </td>
+                {% endif %}
 
                 <td>
                   <div class="d-flex align-items-center gap-3 process-detail-table">
@@ -244,8 +253,8 @@
                   <div class="small text-muted">{{ inv.invited_at|default:inv.created_at|date:"H:i" }}</div>
                 </td>
 
-                <td class="text-end pe-3">
-                  {% if can_edit %}
+                {% if can_edit %}
+                  <td class="text-end pe-3">
                     <button type="submit"
                             class="button-icon"
                             form="send-tests-form"
@@ -254,22 +263,14 @@
                             onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
                       <i data-feather="trash-2"></i>
                     </button>
-                  {% else %}
-                    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-                      <button type="button"
-                              class="button-icon"
-                              disabled
-                              aria-disabled="true">
-                        <i data-feather="trash-2"></i>
-                      </button>
-                    </span>
-                  {% endif %}
-                </td>
+                  </td>
+                {% endif %}
+
               </tr>
 
             {% empty %}
               <tr>
-                <td colspan="6" class="p-5 text-center text-muted empty-state">
+                <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
                   <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
 
                   {% if can_edit %}
@@ -290,7 +291,7 @@
                   {% else %}
                     <div class="text-muted mb-2">Inga kandidater ännu.</div>
                     <div class="small text-muted">
-                      Du har endast läsbehörighet i denna process. Kontakta en administratör om du behöver lägga till kandidater eller skicka ut test.
+                      Du har endast läsbehörighet i denna process.
                     </div>
                   {% endif %}
                 </td>
@@ -335,41 +336,7 @@
   </div>
 </div>
 
-<style>
-  /* Offcanvas */
-  #candidateSheet{
-    height: 97vh;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-  }
-
-  /* KPI grid */
-  .kpi-grid{
-    display:grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-  }
-  @media (max-width: 1200px){ .kpi-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (max-width: 768px){ .kpi-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-  /* Table spacing */
-  .process-table tbody tr td{
-    padding-top: 16px;
-    padding-bottom: 16px;
-  }
-
-  .user-link{ color: inherit; text-decoration: none; }
-  .user-link:hover{ text-decoration: underline; }
-
-  .empty-state img{
-    max-width: 220px;
-    height: auto;
-    margin-bottom: 12px;
-    opacity: .95;
-  }
-</style>
-
-<!-- ✅ Self registration modal (fixad: binder till alla .js-selfreg) -->
+<!-- ✅ Self registration modal (bind till alla .js-selfreg) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll(".js-selfreg");
@@ -407,7 +374,7 @@
   });
 </script>
 
-<!-- Candidate sheet fetch (oförändrad) -->
+<!-- Candidate sheet fetch -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const sheetEl = document.getElementById("candidateSheet");
@@ -444,6 +411,7 @@
   });
 </script>
 
+<!-- Tooltips + Feather -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   if (!window.bootstrap) return;
@@ -499,10 +467,12 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
-<!-- ✅ Send-tests knapp enable/disable (respekterar can_edit) -->
+<!-- ✅ Send-tests knapp enable/disable (kör bara om can_edit) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const canEdit = {{ can_edit|yesno:"true,false" }};
+    if (!canEdit) return;
+
     const btn = document.getElementById("send-tests-btn");
     const selectAll = document.getElementById("select-all");
     const checks = Array.from(document.querySelectorAll(".row-check"));
@@ -510,11 +480,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!btn) return;
 
     function updateSendButton() {
-      if (!canEdit) {
-        btn.disabled = true;
-        btn.setAttribute("aria-disabled", "true");
-        return;
-      }
       const anyChecked = checks.some(ch => ch.checked);
       btn.disabled = !anyChecked;
       btn.setAttribute("aria-disabled", String(!anyChecked));
@@ -533,7 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 </script>
 
-<!-- ✅ Add candidate modal (fixad: binder till alla .js-add-candidate) -->
+<!-- ✅ Add candidate modal (bind till alla .js-add-candidate) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = document.querySelectorAll(".js-add-candidate");
