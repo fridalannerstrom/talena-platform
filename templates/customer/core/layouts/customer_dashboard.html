@@ -1,18 +1,27 @@
 {% extends "customer/core/layouts/customer_base.html" %}
-
-{% block title %}Dashboard | Talena{% endblock %}
-
 {% block content %}
+{% load static %}
 
-<div class="dashboard-header">
-  <h1 id="greeting">
-    Hej, {{ request.user.first_name|default:request.user.get_username }}!
-  </h1>
+<div class="container-fluid px-2 px-md-3 dashboard">
+  <div class="d-flex align-items-center gap-3 mb-3">
 
-  <p class="dashboard-date" id="today-date"></p>
-</div>
+    <!-- Liten bild -->
+    <div class="dashboard-avatar">
+      <img src="{% static 'images/talena-welcome.png' %}" alt="Greeting icon">
+    </div>
 
-<section class="quick-access">
+    <!-- Text -->
+    <div>
+      <h1 id="greeting" class="mb-1">
+        Hej, {{ request.user.first_name|default:request.user.get_username }}!
+      </h1>
+
+      <p class="dashboard-date mb-0" id="today-date"></p>
+    </div>
+
+  </div>
+
+<section class="quick-access mt-3 py-3">
   <h3>Vad vill du göra?</h3>
 
   <div class="quick-access-grid">
@@ -25,7 +34,7 @@
 
     <a href="{% url 'processes:process_list' %}" class="quick-card">
       <div class="quick-card-icon"><i data-feather="list"></i></div>
-      <div class="quick-card-title">Dina testprocesser</div>
+      <div class="quick-card-title">Se dina testprocesser</div>
       <div class="quick-card-desc">Se status och resultat</div>
     </a>
 
@@ -38,6 +47,96 @@
   </div>
 </section>
 
+
+
+  <!-- Main content -->
+  <div class="row g-4 mt-1">
+
+    <!-- Left: Stats + Recent activity -->
+
+    <div class="col-12 col-xl-8">
+         <!-- Stats -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+              <h3 class="mb-1">Översikt</h3>
+              <div class="text-muted small">Snabb status på dina senaste tester</div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-3">
+              <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted small">Testprocesser</div>
+                <div class="fs-2 fw-semibold">3</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-3">
+              <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted small">Skickade tester</div>
+                <div class="fs-2 fw-semibold">5</div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-3">
+              <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted small">Påbörjade tester</div>
+                <div class="fs-2 fw-semibold">2</div>
+              </div>
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <div class="border rounded-3 p-3 h-100">
+                <div class="text-muted small">Färdiga tester</div>
+                <div class="fs-2 fw-semibold">2</div>
+              </div>
+            </div>
+          </div>
+          </div>
+          </div>
+          </div>
+
+   <!-- Right: To-do + Activity feed -->
+    <div class="col-12 col-xl-4">
+           <!-- Activity feed -->
+      <div class="card">
+        <div class="card-body">
+          <h4 class="mb-1">Senaste aktivitet</h4>
+          <div class="text-muted small mb-3">Händelser från dina processer</div>
+
+          <div class="d-flex flex-column gap-3">
+            <div class="d-flex gap-3">
+              <div class="rounded-circle border" style="width:10px;height:10px;margin-top:6px;"></div>
+              <div>
+                <div class="fw-semibold">1 kandidat lades till</div>
+                <div class="text-muted small">Process: Säljare • 12:03</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3">
+              <div class="rounded-circle border" style="width:10px;height:10px;margin-top:6px;"></div>
+              <div>
+                <div class="fw-semibold">2 tester slutförda</div>
+                <div class="text-muted small">Process: Administratör • Igår</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3">
+              <div class="rounded-circle border" style="width:10px;height:10px;margin-top:6px;"></div>
+              <div>
+                <div class="fw-semibold">1 testprocess skapad</div>
+                <div class="text-muted small">Process: Projektledare • 2026-02-10</div>
+              </div>
+            </div>
+
+          </div>
+
+</div>
+
+</div>
+
 <script>
   (function () {
     const now = new Date();
@@ -45,6 +144,7 @@
 
     let greeting = "Hej";
     if (hour < 10) greeting = "God morgon";
+    else if (hour < 13) greeting = "Välkommen";
     else if (hour < 17) greeting = "God eftermiddag";
     else greeting = "God kväll";
 
@@ -62,8 +162,6 @@
     }
   })();
 </script>
-
-
 
 
 {% endblock %}

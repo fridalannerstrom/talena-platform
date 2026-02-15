@@ -506,6 +506,10 @@
     margin-bottom: 20px;
   }
 
+  .dashboard-avatar img {
+    width: 70px;
+  }
+
   .process-label-muted {
   background: rgba(0,0,0,.04);
   color: rgba(0,0,0,.45);
@@ -821,7 +825,7 @@
    Quick access
 ========================= */
 
-.quick-access h3 {
+.dashboard h3 {
   font-size: 1rem;
   margin-bottom: 16px;
   font-weight: 500;
@@ -847,7 +851,7 @@
 .quick-card {
   display: block;
   padding: 30px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #CFEAFC;
   text-decoration: none;
   color: inherit;
@@ -894,11 +898,11 @@
   font-weight: 600;
   margin-bottom: 4px;
   margin-top: 20px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .quick-card-desc {
-  font-size: 13px;
+  font-size: 0.7rem;
   color: #666;
 }
 
@@ -6312,7 +6316,7 @@ textarea.form-control-lg {
   --bs-card-title-spacer-y: 0.5rem;
   --bs-card-border-width: 1px;
   --bs-card-border-color: rgba(33, 40, 50, 0.125);
-  --bs-card-border-radius: 0.35rem;
+  --bs-card-border-radius: 10px;
   --bs-card-inner-border-radius: 0.35rem;
   --bs-card-cap-padding-y: 1rem;
   --bs-card-cap-padding-x: 1.35rem;
