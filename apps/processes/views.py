@@ -945,10 +945,16 @@ def process_send_tests(request, pk):
 
 @login_required
 def process_candidate_detail(request, process_id, candidate_id):
-    process = get_object_or_404(TestProcess, pk=process_id, created_by=request.user)
+    # ✅ 1) Hämta processen utan owner-filter
+    process = get_object_or_404(TestProcess, pk=process_id)
 
+    # ✅ 2) Access: viewer/editor/own ska få se
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+
+    # ✅ 3) Kandidaten måste vara kopplad till processen
     invitation = get_object_or_404(
-        TestInvitation,
+        TestInvitation.objects.select_related("candidate"),
         process=process,
         candidate_id=candidate_id
     )
@@ -981,9 +987,6 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     # ✅ Annars: returnera full page som vanligt
     return render(request, "customer/processes/process_candidate_detail.html", ctx)
-
-
-
 
 
 @login_required
