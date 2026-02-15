@@ -29,6 +29,8 @@ from apps.processes.models import TestProcess, Candidate, TestInvitation
 from django.shortcuts import get_object_or_404, render
 from apps.accounts.utils.org_access import get_effective_orgunit_permissions
 from django.db.models import Q, Count
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 User = get_user_model()
 
@@ -110,6 +112,12 @@ def customer_dashboard(request):
         .order_by("-created_at")
     )
 
+    activity_events = (
+        ActivityEvent.objects
+        .filter(company=company, process__in=accessible_processes)
+        .select_related("actor", "process", "candidate")[:30]
+    )
+
     # 🧼 Om du har soft-delete, slå på EN av dessa (beroende på din modell):
     # accessible_processes = accessible_processes.filter(is_deleted=False)
     # accessible_processes = accessible_processes.filter(deleted_at__isnull=True)
@@ -136,6 +144,7 @@ def customer_dashboard(request):
             "total_processes": total_processes,
             "processes": accessible_processes[:5],  # senaste 5 (som användaren faktiskt ser i listan)
             "stats": stats,
+            "activity_events": activity_events,
         }
     )
 

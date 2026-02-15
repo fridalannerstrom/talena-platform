@@ -21,6 +21,7 @@ def _norm(s: str) -> str:
 
 @csrf_exempt
 def sova_ingest(request):
+    print("🚨🚨🚨 INGEST HIT 🚨🚨🚨", request.path)
     print("="*80)
     print("🚨 sova_ingest CALLED!")
     print("="*80)

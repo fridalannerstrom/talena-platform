@@ -5,6 +5,8 @@ import json
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 import logging
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ def _norm(s: str) -> str:
 
 @csrf_exempt
 def sova_webhook(request):
+    print("🔥🔥🔥 CORE WEBHOOK HIT 🔥🔥🔥", request.path)
     raw = request.body.decode("utf-8", errors="ignore")
     print("🔎 RAW BODY:", raw)
     
@@ -162,12 +165,32 @@ def sova_webhook(request):
         reason = f"no mapping hit (overall={overall}, status={status})"
     
     print("🧠 Normalized status:", normalized, "| reason:", reason)
+
+    old_status = invitation.status
     
     # --- applicera utan att nedgradera ---
     if normalized == "started":
         if invitation.status not in {"started", "completed"}:
             invitation.status = "started"
-            invitation.save(update_fields=["status"])
+            # ✅ om du har started_at i modellen, sätt det också
+            if hasattr(invitation, "started_at") and not invitation.started_at:
+                invitation.started_at = timezone.now()
+                invitation.save(update_fields=["status", "started_at"])
+            else:
+                invitation.save(update_fields=["status"])
+
+            # ✅ Activity log (system-event)
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={"old_status": old_status, "new_status": "started", "reason": reason},
+            )
+
             print("✅ Updated invitation to STARTED:", invitation.id)
         else:
             print("ℹ️ Skip STARTED update (already started/completed):", invitation.status)
@@ -177,6 +200,19 @@ def sova_webhook(request):
             invitation.status = "completed"
             invitation.completed_at = timezone.now()
             invitation.save(update_fields=["status", "completed_at"])
+
+            # ✅ Activity log (system-event)
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={"old_status": old_status, "new_status": "completed", "reason": reason},
+            )
+
             print("✅ Updated invitation to COMPLETED:", invitation.id)
         else:
             print("ℹ️ Skip COMPLETED update (already completed).")

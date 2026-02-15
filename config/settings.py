@@ -142,6 +142,7 @@ INSTALLED_APPS = [
     "apps.processes",
     "apps.emails",
     "apps.portal",
+    "apps.activity",
     "django.contrib.humanize",
 ]
 

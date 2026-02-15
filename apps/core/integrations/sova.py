@@ -68,15 +68,15 @@ class SovaClient:
         r.raise_for_status()
         return r.json() or {}
     
-def get_project_candidates(self, project_id: int) -> dict:
-    url = self.base_url + f"project-candidates/{project_id}/"
-    r = requests.get(url, auth=self.auth, timeout=25)
+    def get_project_candidates(self, project_id: int) -> dict:
+        url = self.base_url + f"project-candidates/{project_id}/"
+        r = requests.get(url, auth=self.auth, timeout=25)
 
-    print("\n=== SOVA PROJECT-CANDIDATES RAW ===")
-    print("URL:", url)
-    print("STATUS:", r.status_code)
-    print("TEXT:", r.text[:1000])
-    print("=== /SOVA PROJECT-CANDIDATES RAW ===\n")
+        print("\n=== SOVA PROJECT-CANDIDATES RAW ===")
+        print("URL:", url)
+        print("STATUS:", r.status_code)
+        print("TEXT:", r.text[:1000])
+        print("=== /SOVA PROJECT-CANDIDATES RAW ===\n")
 
-    r.raise_for_status()
-    return r.json() or {}
+        r.raise_for_status()
+        return r.json() or {}

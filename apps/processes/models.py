@@ -4,6 +4,8 @@ from django.utils import timezone
 import uuid
 from django.urls import reverse
 from apps.accounts.models import OrgUnit, Company
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 
 class TestProcess(models.Model):
@@ -124,7 +126,6 @@ class TestInvitation(models.Model):
         ("self_registered", "Self-registered"),
     ]
 
-
     def status_label(self):
         return {
             "created": "Ej skickat",
@@ -148,6 +149,7 @@ class TestInvitation(models.Model):
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="created")
     invited_at = models.DateTimeField(blank=True, null=True)
+    started_at = models.DateTimeField(blank=True, null=True)
     completed_at = models.DateTimeField(blank=True, null=True)
     result_payload = models.JSONField(null=True, blank=True)   # hela resultatet (om du vill)
     score = models.IntegerField(null=True, blank=True)         # demo-score 0–100 (eller vad du vill)

@@ -6,6 +6,8 @@ from django.core.mail import EmailMultiAlternatives
 
 from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import render_placeholders  # justera import om din ligger annorlunda
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 
 def send_assessments_and_emails(*, process, invitations, actor_user, context="customer"):
@@ -147,6 +149,16 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             inv.assessment_url = test_url
 
             update_fields = ["status", "invited_at", "sova_payload", "request_id", "assessment_url"]
+
+            log_event(
+                company=process.company,
+                verb=ActivityEvent.Verb.INVITE_SENT,
+                actor=actor_user,
+                process=process,
+                candidate=inv.candidate,
+                invitation=inv,
+                meta={"context": context},
+            )
 
             # om du har fältet på modellen
             if hasattr(inv, "sova_project_id") and sova_project_id is not None:

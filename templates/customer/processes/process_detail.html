@@ -8,6 +8,28 @@
    class="text-muted small text-decoration-none">
   ← Tillbaka
 </a>
+<div class="card mt-3">
+  <div class="card-body">
+    <div class="fw-semibold mb-2">Senaste aktivitet</div>
+
+    {% if activity_events %}
+      <div class="d-grid gap-2">
+        {% for e in activity_events %}
+          <div class="border rounded p-2">
+            <div class="small">
+              <div class="fw-semibold">{{ e.message }}</div>
+            </div>
+            <div class="text-muted small">
+              {{ e.created_at|date:"Y-m-d H:i" }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted small">Ingen aktivitet ännu.</div>
+    {% endif %}
+  </div>
+</div>
 
 <div class="card mb-3 mt-2">
   <div class="card-body">

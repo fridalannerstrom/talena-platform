@@ -37,6 +37,8 @@ from django.conf import settings
 from apps.accounts.models import Company, CompanyMember
 from apps.projects.models import ProjectMeta
 
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 
 def render_placeholders(text: str, ctx: dict) -> str:
@@ -265,6 +267,14 @@ def process_create(request):
 
             obj.save()
 
+            log_event(
+                company=company, 
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={"process_name": obj.name},
+            )
+
             # ✅ LABELS: skapa/återanvänd labels per company och koppla
             label_names = form.cleaned_data.get("labels_text", [])
             if label_names:
@@ -445,11 +455,23 @@ def process_delete(request, pk):
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
-    # ✅ B + C: delete om möjligt, annars arkivera
+        # ✅ B + C: delete om möjligt, annars arkivera
     if obj.can_delete():
+        log_event(
+            company=company,
+            verb=ActivityEvent.Verb.PROCESS_DELETED,
+            actor=request.user,
+            process=obj,
+        )
         obj.delete()
-        messages.success(request, "Processen raderades.")
     else:
+        log_event(
+            company=company,
+            verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+            actor=request.user,
+            process=obj,
+            meta={"reason": "could_not_delete"},
+        )
         obj.archive()
         messages.info(request, "Processen kunde inte raderas eftersom tester har skickats. Den arkiverades istället.")
 
@@ -503,6 +525,13 @@ def process_detail(request, pk):
     total_sent = sent_count + started_count + completed_count
     not_started = sent_count
 
+    activity_events = (
+        ActivityEvent.objects
+        .filter(company=company, process=process)
+        .select_related("actor", "candidate", "invitation")
+        [:50]
+    )
+
     context = {
         "process": process,
         "invitations": invitations,
@@ -510,6 +539,7 @@ def process_detail(request, pk):
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
         "status_counts": status_counts,
         "can_edit": can_edit,
+        "activity_events": activity_events,
         "kpis": {
             "total_sent": total_sent,
             "started": started_count,
@@ -563,6 +593,17 @@ def process_add_candidate(request, pk):
                 candidate=candidate,
                 defaults={"source": "invited", "status": "created"},
             )
+
+            if inv_created:
+                log_event(
+                    company=company,  # du har company i funktionen
+                    verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                    actor=request.user,
+                    process=process,
+                    candidate=candidate,
+                    invitation=invitation,
+                    meta={"source": "invited"},
+                )
 
             if inv_created:
                 msg = f"{candidate.email} har lagts till i processen."
@@ -734,6 +775,18 @@ def self_register(request, token):
                     }
                 )
 
+                if created:
+                    log_event(
+                        company=process.company,
+                        verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                        actor=None,
+                        actor_name="Self-registration",
+                        process=process,
+                        candidate=candidate,
+                        invitation=invitation,
+                        meta={"source": "self_registered"},
+                    )
+
                 if not created and invitation.source != "self_registered":
                     invitation.source = "self_registered"
                     invitation.save(update_fields=["source"])
@@ -780,6 +833,17 @@ def self_register(request, token):
 
                 update_fields = ["status", "invited_at", "sova_payload", "request_id", "assessment_url"]
                 invitation.save(update_fields=update_fields)
+
+                log_event(
+                    company=process.company,
+                    verb=ActivityEvent.Verb.INVITE_SENT,
+                    actor=None,
+                    actor_name="Self-registration",
+                    process=process,
+                    candidate=candidate,
+                    invitation=invitation,
+                    meta={"context": "self_register"},
+                )
 
                 # 4) Skicka mejl som fallback (samma logik som i process_send_tests)
                 lang = "sv"
@@ -883,6 +947,16 @@ def remove_candidate_from_process(request, process_id, candidate_id):
         candidate_id=candidate_id,
     )
 
+    log_event(
+        company=process.company,
+        verb=ActivityEvent.Verb.CANDIDATE_REMOVED,
+        actor=request.user,
+        process=process,
+        candidate=invitation.candidate,
+        invitation=invitation,
+    )
+
+
     invitation.delete()
     messages.success(request, "Candidate removed from process.")
     return redirect("processes:process_detail", pk=process.id)
@@ -961,6 +1035,12 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     candidate = invitation.candidate
 
+    activity_events = (
+        ActivityEvent.objects
+        .filter(company=process.company, process=process, candidate=candidate)
+        .select_related("actor", "candidate", "invitation")[:50]
+    )
+
     dummy_profile = {
         "labels": ["Struktur", "Samarbete", "Driv", "Stresstålighet", "Analys"],
         "values": [7, 6, 8, 5, 7],
@@ -978,6 +1058,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "candidate": candidate,
         "dummy_profile": dummy_profile,
         "dummy_abilities": dummy_abilities,
+        "activity_events": activity_events,
     }
 
     # ✅ Om anropet kommer via fetch/AJAX: returnera partial (sheet)
@@ -1035,6 +1116,14 @@ def process_archive(request, pk):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
     obj.archive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+        actor=request.user,
+        process=obj,
+    )
+
     messages.success(request, "Processen arkiverades.")
     return redirect("processes:process_list")
 
