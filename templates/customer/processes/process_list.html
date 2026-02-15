@@ -75,6 +75,9 @@
           </div>
         {% endif %}
       </div>
+
+
+
   {% if processes %}
     <div id="processGrid" class="process-grid">
       {% for p in processes %}
@@ -107,8 +110,10 @@
 
               <!-- Actions -->
 {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-  {% if can_edit %}
-    <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0">
+
+  <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0
+              {% if not can_edit %}is-placeholder{% endif %}">
+    {% if can_edit %}
 
       {% if not show_archived %}
         <a class="icon-btn"
@@ -150,8 +155,18 @@
         </form>
       {% endif %}
 
-    </div>
-  {% endif %}
+    {% else %}
+      {# placeholders som tar plats men syns inte #}
+      {% if not show_archived %}
+        <span class="icon-btn"></span>
+        <span class="icon-btn"></span>
+        <span class="icon-btn"></span>
+      {% else %}
+        <span class="icon-btn"></span>
+      {% endif %}
+    {% endif %}
+  </div>
+
 {% endwith %}
             </div>
 

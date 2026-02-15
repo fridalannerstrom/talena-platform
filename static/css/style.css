@@ -732,6 +732,17 @@
     border-color:#cccccc;
   }
 
+/* Behåll höjden även när actions inte är tillåtna */
+.card-actions.is-placeholder {
+  visibility: hidden; /* tar plats men syns inte */
+  pointer-events: none;
+}
+
+/* Om du vill vara extra tydlig att placeholders matchar storleken */
+.card-actions .icon-btn {
+  display: inline-flex;
+}
+
 .access-pill{
   display:inline-flex;
   align-items:center;
