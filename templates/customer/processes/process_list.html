@@ -106,53 +106,53 @@
               </div>
 
               <!-- Actions -->
-              <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0">
+{% with can_edit=can_edit_by_process_id|get_item:p.id %}
+  {% if can_edit %}
+    <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0">
 
-                {% if not show_archived %}
-                  <!-- Edit (active only) -->
-                  <a class="icon-btn"
-                     href="{% url 'processes:process_update' p.id %}"
-                     aria-label="Redigera"
-                     onclick="event.stopPropagation();">
-                    <i data-feather="edit"></i>
-                  </a>
+      {% if not show_archived %}
+        <a class="icon-btn"
+           href="{% url 'processes:process_update' p.id %}"
+           aria-label="Redigera"
+           onclick="event.stopPropagation();">
+          <i data-feather="edit"></i>
+        </a>
 
-                  <!-- Archive -->
-                  <form method="post"
-                        action="{% url 'processes:process_archive' p.id %}"
-                        class="d-inline"
-                        onsubmit="event.stopPropagation(); return confirm('Arkivera processen?');">
-                    {% csrf_token %}
-                    <button type="submit" class="icon-btn" aria-label="Arkivera">
-                      <i data-feather="archive"></i>
-                    </button>
-                  </form>
+        <form method="post"
+              action="{% url 'processes:process_archive' p.id %}"
+              class="d-inline"
+              onsubmit="event.stopPropagation(); return confirm('Arkivera processen?');">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" aria-label="Arkivera">
+            <i data-feather="archive"></i>
+          </button>
+        </form>
 
-                  <!-- Delete (smart: view deletes only if can_delete, else archives anyway) -->
-                  <form method="post"
-                        action="{% url 'processes:process_delete' p.id %}"
-                        class="d-inline"
-                        onsubmit="event.stopPropagation(); return confirm('Ta bort processen? Om tester har skickats arkiveras den istället.');">
-                    {% csrf_token %}
-                    <button type="submit" class="icon-btn" aria-label="Ta bort">
-                      <i data-feather="trash-2"></i>
-                    </button>
-                  </form>
+        <form method="post"
+              action="{% url 'processes:process_delete' p.id %}"
+              class="d-inline"
+              onsubmit="event.stopPropagation(); return confirm('Ta bort processen? Om tester har skickats arkiveras den istället.');">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" aria-label="Ta bort">
+            <i data-feather="trash-2"></i>
+          </button>
+        </form>
 
-                {% else %}
-                  <!-- Unarchive (archive tab only) -->
-                  <form method="post"
-                        action="{% url 'processes:process_unarchive' p.id %}"
-                        class="d-inline"
-                        onsubmit="event.stopPropagation(); return confirm('Återställ processen till aktiva?');">
-                    {% csrf_token %}
-                    <button type="submit" class="icon-btn" aria-label="Återställ">
-                      <i data-feather="rotate-ccw"></i>
-                    </button>
-                  </form>
-                {% endif %}
+      {% else %}
+        <form method="post"
+              action="{% url 'processes:process_unarchive' p.id %}"
+              class="d-inline"
+              onsubmit="event.stopPropagation(); return confirm('Återställ processen till aktiva?');">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" aria-label="Återställ">
+            <i data-feather="rotate-ccw"></i>
+          </button>
+        </form>
+      {% endif %}
 
-              </div>
+    </div>
+  {% endif %}
+{% endwith %}
             </div>
 
             <!-- Title -->

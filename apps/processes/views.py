@@ -63,6 +63,7 @@ def user_can_access_process(user, process) -> bool:
 
 
 
+
 @login_required
 def process_list(request):
     company_id = (
@@ -89,11 +90,18 @@ def process_list(request):
     processes = (
         TestProcess.objects
         .filter(process_q)
-        .filter(is_archived=show_archived)  # ✅ här filtrerar vi!
+        .filter(is_archived=show_archived)
         .annotate(candidates_count=Count("invitations", distinct=True))
         .order_by("-created_at")
         .prefetch_related("labels")
     )
+
+    # ✅ Bygg edit-permissions EFTER att processes finns
+    can_edit_by_process_id = {}
+    for p in processes:
+        perm = perms.get(p.org_unit_id)
+        can_edit = (perm == "editor") or (perm == "own" and p.created_by_id == request.user.id)
+        can_edit_by_process_id[p.id] = can_edit
 
     # ---- ProjectMeta lookup (tests) ----
     keys = {
@@ -119,7 +127,8 @@ def process_list(request):
             "processes": processes,
             "meta_by_key": meta_by_key,
             "perms": perms,
-            "show_archived": show_archived,  # ✅ behövs för tabbarna i templaten
+            "show_archived": show_archived,
+            "can_edit_by_process_id": can_edit_by_process_id,
         }
     )
 

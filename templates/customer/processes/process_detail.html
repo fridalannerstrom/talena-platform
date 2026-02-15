@@ -49,70 +49,41 @@
         </div>
       </div>
 
-      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
+<div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
 
-        {% if can_edit %}
-          <a class="btn btn-outline-secondary"
-             href="{% url 'emails:edit_process_invitation_template' process.id %}">
-            Mejlmallar
-          </a>
+  {% if can_edit %}
+    <a class="btn btn-outline-secondary"
+       href="{% url 'emails:edit_process_invitation_template' process.id %}">
+      Mejlmallar
+    </a>
 
-          <a class="btn btn-outline-secondary"
-             href="{% url 'processes:process_update' process.id %}">
-            Inställningar
-          </a>
+    <a class="btn btn-outline-secondary"
+       href="{% url 'processes:process_update' process.id %}">
+      Inställningar
+    </a>
 
-          <button type="button"
-                  class="btn btn-outline-secondary js-selfreg">
-            Självregistrering
-          </button>
+    <button type="button"
+            class="btn btn-outline-secondary js-selfreg">
+      Självregistrering
+    </button>
 
-          <button type="button"
-                  class="btn btn-primary js-add-candidate"
-                  data-url="{% url 'processes:process_add_candidate' process.id %}">
-            Lägg till kandidat
-          </button>
+    <button type="button"
+            class="btn btn-primary js-add-candidate"
+            data-url="{% url 'processes:process_add_candidate' process.id %}">
+      Lägg till kandidat
+    </button>
 
-        {% else %}
+  {% else %}
+    <span class="access-pill"
+          data-bs-toggle="tooltip"
+          data-bs-placement="left"
+          title="Du har läsbehörighet i denna testprocess. Du kan se kandidater och status, men kan inte lägga till kandidater, skicka ut test eller ändra inställningar.">
+      <i data-feather="eye" class="icon-16"></i>
+      Läsbehörighet
+    </span>
+  {% endif %}
 
-          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-            <a class="btn btn-outline-secondary disabled"
-               href="#"
-               aria-disabled="true"
-               tabindex="-1">
-              Mejlmallar
-            </a>
-          </span>
-
-          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-            <a class="btn btn-outline-secondary disabled"
-               href="#"
-               aria-disabled="true"
-               tabindex="-1">
-              Inställningar
-            </a>
-          </span>
-
-          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-            <button type="button"
-                    class="btn btn-outline-secondary"
-                    disabled
-                    aria-disabled="true">
-              Självregistrering
-            </button>
-          </span>
-
-          <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Du har inte behörighet.">
-            <button type="button"
-                    class="btn btn-primary"
-                    disabled
-                    aria-disabled="true">
-              Lägg till kandidat
-            </button>
-          </span>
-
-        {% endif %}
-      </div>
+</div>
     </div>
 
     {# Row 2: Key facts as chips #}

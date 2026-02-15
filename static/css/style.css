@@ -708,28 +708,28 @@
     display:inline-flex;
     background:#f6f7f9;
     border:1px solid #e6e8ec;
-    border-radius:999px;
-    padding:4px;
+    border-radius:10px;
+    padding:3px;
     gap:4px;
   }
   .seg-tab{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    padding:.45rem .85rem;
-    border-radius:999px;
+    padding:.35rem .55rem;
+    border-radius:8px;
     text-decoration:none;
     color:#111;
     font-weight:400;
-    font-size:.9rem;
+    font-size:.7rem;
     border:1px solid transparent;
     transition: background .12s ease, border-color .12s ease;
   }
   .seg-tab:hover{ background:#fff; border-color:#e6e8ec; }
   .seg-tab.is-active{
-    background:#111;
-    color:#fff;
-    border-color:#111;
+    background:#ffffff;
+    color:#000000;
+    border-color:#cccccc;
   }
 
   /* Icon buttons (if you don't already have) */
