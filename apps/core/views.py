@@ -26,6 +26,9 @@ from apps.core.utils.auth import is_admin
 from apps.accounts.models import Company, OrgUnit
 from apps.accounts.utils.permissions import get_user_accessible_orgunits
 from apps.processes.models import TestProcess, Candidate, TestInvitation
+from django.shortcuts import get_object_or_404, render
+from apps.accounts.utils.org_access import get_effective_orgunit_permissions
+from django.db.models import Q, Count
 
 User = get_user_model()
 
@@ -85,14 +88,31 @@ def customer_dashboard(request):
         .values_list("company_id", flat=True)
         .first()
     )
+    company = get_object_or_404(Company, pk=company_id)
 
-    # 3) Processer som tillhör company (fallback på created_by)
-    if company_id:
-        accessible_processes = TestProcess.objects.filter(company_id=company_id)
-    else:
-        accessible_processes = TestProcess.objects.filter(created_by=request.user)
+    # 3) Bygg EXAKT samma accesslogik som process_list()
+    perms = get_effective_orgunit_permissions(request.user, company)
 
-    accessible_processes = accessible_processes.order_by("-created_at")
+    own_ids = [uid for uid, p in perms.items() if p == "own"]
+    other_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
+
+    process_q = Q(company=company) & (
+        Q(org_unit_id__in=other_ids) |
+        Q(org_unit_id__in=own_ids, created_by=request.user)
+    )
+
+    accessible_processes = (
+        TestProcess.objects
+        .filter(process_q)
+        .filter(is_archived=False)
+        .annotate(candidates_count=Count("invitations", distinct=True))
+        .prefetch_related("org_unit", "labels")
+        .order_by("-created_at")
+    )
+
+    # 🧼 Om du har soft-delete, slå på EN av dessa (beroende på din modell):
+    # accessible_processes = accessible_processes.filter(is_deleted=False)
+    # accessible_processes = accessible_processes.filter(deleted_at__isnull=True)
 
     # --- Översikt / Stats ---
     total_processes = accessible_processes.count()
@@ -105,19 +125,19 @@ def customer_dashboard(request):
         "sent": invitations_qs.filter(status__in=["sent", "started", "completed"]).count(),
         "started": invitations_qs.filter(status="started").count(),
         "completed": invitations_qs.filter(status="completed").count(),
-        # bonus om du vill:
-        # "not_sent": invitations_qs.filter(status="created").count(),
-        # "expired": invitations_qs.filter(status="expired").count(),
     }
 
-    return render(request, "customer/core/layouts/customer_dashboard.html", {
-        "accounts": accounts,
-        "error": error,
-        "total_processes": total_processes,
-        "processes": accessible_processes[:5],   # senaste 5
-        "stats": stats,
-    })
-
+    return render(
+        request,
+        "customer/core/layouts/customer_dashboard.html",
+        {
+            "accounts": accounts,
+            "error": error,
+            "total_processes": total_processes,
+            "processes": accessible_processes[:5],  # senaste 5 (som användaren faktiskt ser i listan)
+            "stats": stats,
+        }
+    )
 
 @login_required
 def admin_dashboard(request):

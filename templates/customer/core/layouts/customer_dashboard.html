@@ -50,14 +50,12 @@
 
 
   <!-- Main content -->
-  <div class="row g-4 mt-1">
+  <div class="row g-5 mt-1">
 
     <!-- Left: Stats + Recent activity -->
 
     <div class="col-12 col-xl-8">
          <!-- Stats -->
-      <div class="card mb-4">
-        <div class="card-body">
           <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
               <h3 class="mb-1">Översikt</h3>
@@ -65,38 +63,99 @@
             </div>
           </div>
 
-          <div class="row g-3">
+          <div class="row g-3 mb-3">
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Testprocesser</div>
-                <div class="fs-2 fw-semibold">{{ stats.processes }}</div>
+                <div class="h3 mt-1">{{ stats.processes }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Skickade tester</div>
-                <div class="fs-2 fw-semibold">{{ stats.sent }}</div>
+                <div class="h3 mt-1">{{ stats.sent }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Påbörjade tester</div>
-                <div class="fs-2 fw-semibold">{{ stats.started }}</div>
+                <div class="h3 mt-1">{{ stats.started }}</div>
               </div>
             </div>
             
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100">
                 <div class="text-muted small">Färdiga tester</div>
-                <div class="fs-2 fw-semibold">{{ stats.completed }}</div>
+                <div class="h3 mt-1">{{ stats.completed }}</div>
               </div>
             </div>
           </div>
+
+      <!-- Tesprocesses -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
+      <div>
+        <h3 class="mb-1 mt-3">Senaste testprocesser</h3>
+        <div class="text-muted small">Snabb åtkomst till det du jobbar med just nu</div>
+      </div>
+
+      <a href="{% url 'processes:process_list' %}"
+         class="btn btn-outline-primary btn-sm rounded-pill mt-3">
+        Visa alla
+      </a>
+    </div>
+{% if processes %}
+  <div class="process-rows">
+    {% for p in processes %}
+      <a href="{% url 'processes:process_detail' p.id %}"
+         class="process-row process-row-link">
+
+        {# COL 2: Name + tests #}
+        <div class="process-col-main min-w-0">
+          <div class="process-name text-truncate">
+            {{ p.name }}
           </div>
+          <div class="process-sub text-muted small text-truncate">
+            Innehåller tester: {{ p.tests_display|default:"Personlighet, Motivation" }}
           </div>
-          </div>
+        </div>
+
+                {# COL 1: Label/Org unit #}
+        <div class="process-col-label">
+          <span class="process-label">
+            {% if p.org_unit %}{{ p.org_unit.name }}{% else %}Enhet{% endif %}
+          </span>
+        </div>
+
+
+
+        {# COL 3: Candidates #}
+        <div class="process-col-meta text-muted small">
+          <i class="fa-solid fa-user-group me-1"></i>
+          <span class="fw-semibold text-dark">{{ p.candidates_count|default:"0" }}</span>
+        </div>
+
+        {# COL 4: Date #}
+        <div class="process-col-date text-muted small">
+          <i class="fa-solid fa-calendar-days me-1"></i>
+          {{ p.created_at|date:"Y-m-d" }}
+        </div>
+
+      </a>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="p-3 border rounded bg-light">
+    <div class="text-muted">Inga aktiva testprocesser ännu.</div>
+    <a class="btn btn-primary btn-sm mt-2" href="{% url 'processes:process_create' %}">
+      Skapa testprocess
+    </a>
+  </div>
+{% endif %}
+
+</div>
 
    <!-- Right: To-do + Activity feed -->
     <div class="col-12 col-xl-4">
@@ -134,8 +193,73 @@
           </div>
 
 </div>
-
 </div>
+</div>
+
+<style>.process-rows{
+  display: grid;
+  gap: .55rem;
+}
+
+/* Gör hela raden till en snygg "row" men som länk */
+.process-row-link{
+  display: grid;
+  grid-template-columns: 1fr auto 110px 140px;
+  gap: .9rem;
+  align-items: center;
+
+  padding: .75rem .9rem;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  background: #fff;
+
+  text-decoration: none;
+  color: #000;
+}
+
+.process-row-link:hover{
+  background: rgba(0,0,0,.015);
+  border-color: rgba(0,0,0,.16);
+}
+
+.process-row-link:focus{
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+}
+
+.process-chip{
+  font-weight: 500;
+  padding: .28rem .6rem;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-name{
+  font-weight: 600;
+}
+
+.process-sub{
+  margin-top: .15rem;
+}
+
+/* Responsive: rad blir två rader */
+@media (max-width: 992px){
+  .process-row-link{
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "main meta"
+      "label date";
+    align-items: start;
+  }
+
+  .process-col-main{ grid-area: main; }
+  .process-col-meta{ grid-area: meta; justify-self: end; }
+  .process-col-label{ grid-area: label; }
+  .process-col-date{ grid-area: date; justify-self: end; }
+}
+</style>
 
 <script>
   (function () {
