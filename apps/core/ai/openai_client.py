@@ -14,4 +14,4 @@ def get_chat_model() -> str:
 
 
 def get_embed_model() -> str:
-    return os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-small")
+    return os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-large")

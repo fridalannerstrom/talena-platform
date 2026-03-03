@@ -25,7 +25,7 @@ def chat_api(request):
         return JsonResponse({"error": "Message is required"}, status=400)
 
     try:
-        answer = ask_ai(message)
+        answer = ask_ai(message, scope="base")
     except Exception as e:
         # För dev: returnera feltext så du ser vad som händer
         return JsonResponse({"error": str(e)}, status=500)

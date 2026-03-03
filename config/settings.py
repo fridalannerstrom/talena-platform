@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     "apps.portal",
     "apps.activity",
     "apps.ai_chat",
+    "apps.knowledge",
     "django.contrib.humanize",
 ]
 

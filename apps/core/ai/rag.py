@@ -12,8 +12,8 @@ def embed_text(text: str) -> List[float]:
     return res.data[0].embedding
 
 
-def retrieve_context(query: str, top_k: int = 5) -> str:
-    index = get_pinecone_index()
+def retrieve_context(query: str, top_k: int = 5, kind: str = "base") -> str:
+    index = get_pinecone_index(kind=kind)
     vector = embed_text(query)
 
     res = index.query(
