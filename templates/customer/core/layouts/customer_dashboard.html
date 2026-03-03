@@ -5,11 +5,6 @@
 <div class="container-fluid px-2 px-md-3 dashboard">
   <div class="d-flex align-items-center gap-3 mb-3">
 
-    <!-- Liten bild -->
-    <div class="dashboard-avatar">
-      <img src="{% static 'images/talena-welcome.png' %}" alt="Greeting icon">
-    </div>
-
     <!-- Text -->
     <div>
       <h1 id="greeting" class="mb-1">
@@ -32,13 +27,13 @@
       <div class="quick-card-desc">Skicka ut tester till kandidater</div>
     </a>
 
-    <a href="{% url 'processes:process_list' %}" class="quick-card">
+    <a href="{% url 'processes:process_list' %}" class="quick-card testprocess-card">
       <div class="quick-card-icon"><i data-feather="list"></i></div>
       <div class="quick-card-title">Se dina testprocesser</div>
       <div class="quick-card-desc">Se status och resultat</div>
     </a>
 
-    <a href="{% url 'portal:settings' %}" class="quick-card">
+    <a href="{% url 'portal:settings' %}" class="quick-card settings-card">
       <div class="quick-card-icon"><i data-feather="settings"></i></div>
       <div class="quick-card-title">Kontoinställningar</div>
       <div class="quick-card-desc">Lösenord, profilbild, kontaktinformation</div>
@@ -65,28 +60,28 @@
 
           <div class="row g-3 mb-3">
             <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100">
+              <div class="border rounded-3 p-3 h-100 bg-white">
                 <div class="text-muted small">Testprocesser</div>
                 <div class="h3 mt-1">{{ stats.processes }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100">
+              <div class="border rounded-3 p-3 h-100 bg-white">
                 <div class="text-muted small">Skickade tester</div>
                 <div class="h3 mt-1">{{ stats.sent }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100">
+              <div class="border rounded-3 p-3 h-100 bg-white">
                 <div class="text-muted small">Påbörjade tester</div>
                 <div class="h3 mt-1">{{ stats.started }}</div>
               </div>
             </div>
             
             <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100">
+              <div class="border rounded-3 p-3 h-100 bg-white">
                 <div class="text-muted small">Färdiga tester</div>
                 <div class="h3 mt-1">{{ stats.completed }}</div>
               </div>

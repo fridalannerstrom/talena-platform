@@ -152,6 +152,10 @@
 
 /* Custom */
 
+body {
+  background-color: #F5F7FB !important;
+}
+
 .kpi-grid {
   display: grid;
   gap: 1rem;
@@ -922,39 +926,42 @@
     grid-template-columns: 1fr;
   }
 }
+
 .quick-card {
   display: block;
   padding: 30px;
   border-radius: 10px;
-  background: #CFEAFC;
+  background: #ffffff;
   text-decoration: none;
   color: inherit;
   transition: all 0.15s ease;
   color: black;
+  border: 1px solid rgba(0,0,0,.10);
 }
 
-.quick-card:first-child {
-  background: #E9E1FF;
+.quick-card svg {
+background-color: #EBEBF7;
+color: #6E62E3;
+width: 20px;
+padding: 10px;
+border-radius: 10px;
 }
 
-.quick-card:first-child:hover {
-  background: #cfc3f0;
+.testprocess-card svg {
+background-color: #F6EBF8 !important;
+color: #DA7BCB;
 }
 
-
-.quick-card:last-child {
-  background: #E2FAD4;
+.settings-card svg {
+background-color: #E9F6F6 !important;
+color: #6CACCB;
 }
 
-.quick-card:last-child:hover {
-  background: #c6e0b7;
-}
 
 
 .quick-card:hover {
   box-shadow: 0 0px 24px rgba(0, 0, 0, 0.082);
   text-decoration: none;
-    background: #bcd6e7;
     color: black;
 }
 
@@ -963,8 +970,8 @@
 }
 
 .quick-card-icon .feather {
-  width: 25px;
-  height: 25px;
+  width: 35px;
+  height: 35px;
 }
 
 
