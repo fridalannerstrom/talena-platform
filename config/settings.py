@@ -143,6 +143,7 @@ INSTALLED_APPS = [
     "apps.emails",
     "apps.portal",
     "apps.activity",
+    "apps.ai_chat",
     "django.contrib.humanize",
 ]
 

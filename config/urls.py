@@ -38,6 +38,7 @@ urlpatterns = [
     path("", include("apps.emails.urls")),
     path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
     path("integrations/", include("apps.core.integrations.urls")),
+    path("chat/", include("apps.ai_chat.urls")),
 ] 
 
 
