@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="container-fluid px-2 px-md-3">
 
   <!-- HERO -->
@@ -130,7 +132,142 @@
       </div>
     </div>
 
-  {% else %}
+{% else %}
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Personality overview</div>
+      <div class="card-body">
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Samverkande</span>
+            <span>8/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 80%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Empati</span>
+            <span>7/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 70%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Driftighet</span>
+            <span>4/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 40%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Analytisk</span>
+            <span>10/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Konceptuell</span>
+            <span>9/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 90%;"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Anpassningsbarhet</span>
+            <span>10/10</span>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div class="progress-bar" style="width: 100%;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Abilities</div>
+      <div class="card-body">
+
+        <div class="mb-4">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Verbal</span>
+            <span>78%</span>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div class="progress-bar bg-success" style="width: 78%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Logical</span>
+            <span>92%</span>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div class="progress-bar bg-info" style="width: 92%;"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Numerical</span>
+            <span>64%</span>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div class="progress-bar bg-warning" style="width: 64%;"></div>
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="row text-center g-3 mt-1">
+          <div class="col-4">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Verbal</div>
+              <div class="h4 mb-0">78</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Logical</div>
+              <div class="h4 mb-0">92</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Numerical</div>
+              <div class="h4 mb-0">64</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<br>
 
 <div class="card mb-3">
   <div class="card-header bg-white py-3">
@@ -139,16 +276,12 @@
   </div>
 
   <div class="card-body">
-
-
     <div class="tq-profile">
 
       <div class="tq-section-title">Leda och arbeta med andra</div>
 
-      <!-- Samverkande 8/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Föredrar att arbeta självständigt och säger ifrån vid meningsskiljaktigheter</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Samverkande</div>
           <div class="tq-scale" data-score="8" aria-label="Samverkande 8 av 10">
@@ -156,14 +289,11 @@
             <span></span><span></span><span></span><span class="test-marker"></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Tillmötesgående och gillar att samarbeta med andra. Är lyhörd gentemot andras behov</div>
       </div>
 
-      <!-- Empati 7/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Kan ta tid på sig att vänja sig vid andra och ha förståelse för andras perspektiv</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Empati</div>
           <div class="tq-scale" data-score="7" aria-label="Empati 7 av 10">
@@ -171,14 +301,11 @@
             <span></span><span></span><span class="test-marker"></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Empatiserar lätt med andra. Gillar att lyssna och skapa goda relationer</div>
       </div>
 
-      <!-- Stödjande 6/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Har tydliga förväntningar på andra och låter dem utvecklas självständigt</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Stödjande</div>
           <div class="tq-scale" data-score="6" aria-label="Stödjande 6 av 10">
@@ -186,14 +313,11 @@
             <span></span><span class="test-marker"></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Stöttande och hjälper andra att utvecklas och växa</div>
       </div>
 
-      <!-- Nätverkande 2/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Kommunicerar med en betrodd grupp. Kan känna sig obekväm med att skapa nya kontakter</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Nätverkande</div>
           <div class="tq-scale" data-score="2" aria-label="Nätverkande 2 av 10">
@@ -201,14 +325,11 @@
             <span class="test-marker"></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Kommunicerar med en stor grupp människor. Tar gärna kontakt med andra</div>
       </div>
 
-      <!-- Driftighet 4/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Föredrar att jobba i jämnt tempo och har ett försiktigt tillvägagångssätt</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Driftighet</div>
           <div class="tq-scale" data-score="4" aria-label="Driftighet 4 av 10">
@@ -216,14 +337,11 @@
             <span></span><span></span><span></span><span class="test-marker"></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Driven och söker nya utmaningar. Fattar beslut snabbt</div>
       </div>
 
-      <!-- Inflytelserik 1/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Föredrar att följa instruktioner och undviker att tvinga över sina egna åsikter på andra</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Inflytelserik</div>
           <div class="tq-scale" data-score="1" aria-label="Inflytelserik 1 av 10">
@@ -231,16 +349,13 @@
             <span></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Föredrar att ta ledningen och gillar att påverka andra</div>
       </div>
 
       <div class="tq-section-title">Organisering och tankemönster</div>
 
-      <!-- Måldriven 6/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Undviker både konkurrens och att sätta upp mål. Föredrar att ta saker som de kommer</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Måldriven</div>
           <div class="tq-scale" data-score="6" aria-label="Måldriven 6 av 10">
@@ -248,14 +363,11 @@
             <span></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Motiveras av utmanande mål. Har god självdisciplin och är tävlingsinriktad</div>
       </div>
 
-      <!-- Strukturerad och disciplinerad 6/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Har ett spontant tillvägagångssätt. Är mindre fokuserad på detaljer och tolererar små misstag</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Strukturerad och disciplinerad</div>
           <div class="tq-scale" data-score="6" aria-label="Strukturerad och disciplinerad 6 av 10">
@@ -263,14 +375,11 @@
             <span></span><span class="test-marker"></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Planerar och strukturerar uppgifter, engagerad att leverera och säkerställa noggrannhet</div>
       </div>
 
-      <!-- Analytisk 10/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Använder ett instinktivt tillvägagångssätt vid problemlösning. Är mindre intresserad av data och analys</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Analytisk</div>
           <div class="tq-scale" data-score="10" aria-label="Analytisk 10 av 10">
@@ -278,14 +387,11 @@
             <span class="test-marker"></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Använder ett analytiskt tillvägagångssätt för att utvärdera situationer. Använder data för att lösa problem</div>
       </div>
 
-      <!-- Konceptuell 9/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Gillar ett praktiskt tillvägagångssätt som fokuserar på operativa detaljer. Undviker sannolikt komplexa problem</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Konceptuell</div>
           <div class="tq-scale" data-score="9" aria-label="Konceptuell 9 av 10">
@@ -293,14 +399,11 @@
             <span></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Gillar att jobba med komplexa situationer. Undersöker olika perspektiv och tekniker</div>
       </div>
 
-      <!-- Kreativitet 1/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Använder hellre beprövade tillvägagångssätt än att experimentera med nya tekniker</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Kreativitet</div>
           <div class="tq-scale" data-score="1" aria-label="Kreativitet 1 av 10">
@@ -308,14 +411,11 @@
             <span></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Har ett kreativt tillvägagångssätt. Gillar att vara innovativ och hitta nya lösningar på problem</div>
       </div>
 
-      <!-- Anpassningsbarhet 10/10 -->
       <div class="tq-trait-row">
         <div class="tq-left">Behöver tid för att anpassa sig till nya omständigheter. Har bestämda åsikter och föredrar en förutsägbar rutin</div>
-
         <div class="tq-center">
           <div class="tq-trait-name">Anpassningsbarhet</div>
           <div class="tq-scale" data-score="10" aria-label="Anpassningsbarhet 10 av 10">
@@ -323,54 +423,17 @@
             <span></span><span></span><span></span><span></span><span></span>
           </div>
         </div>
-
         <div class="tq-right">Anpassar sig lätt till nya situationer. Har ett flexibelt tillvägagångssätt och gillar variation</div>
       </div>
 
     </div>
-
-    <script>
-      (function initTraitScales() {
-        document.querySelectorAll(".tq-scale[data-score]").forEach(scale => {
-          const score = Math.max(1, Math.min(10, parseInt(scale.dataset.score || "1", 10)));
-
-          // 1) Fyll rutor upp till score (diskret)
-          const blocks = scale.querySelectorAll("span");
-          blocks.forEach((b, idx) => {
-            if (idx < score) b.classList.add("is-on");
-          });
-
-          // 2) Placera markör i mitten av "score-rutan"
-          const marker = scale.querySelector(".tq-marker");
-          if (marker) {
-            // score 1 => 5%, score 10 => 95%
-            const leftPct = ((score - 0.5) / 10) * 100;
-            marker.style.left = leftPct + "%";
-          }
-        });
-      })();
-    </script>
-
   </div>
 </div>
 
-    <!-- Chartdata JSON -->
-    <script type="application/json" id="candidate-sheet-chart-data">
-      {
-        "profile": {
-          "labels": {{ dummy_profile.labels|safe }},
-          "values": {{ dummy_profile.values|safe }}
-        },
-        "abilities": {
-          "labels": {{ dummy_abilities.labels|safe }},
-          "values": {{ dummy_abilities.values|safe }}
-        }
-      }
-    </script>
-
-  {% endif %}
+{% endif %}
 
   <!-- JS -->
+
   <script>
     function copyAssessmentUrl(buttonEl) {
       const input = document.getElementById("assessmentUrlInput");
@@ -398,6 +461,8 @@
         fallbackCopy(input, buttonEl, originalText);
       }
     }
+
+    
 
     function fallbackCopy(input, buttonEl, originalText) {
       try {
