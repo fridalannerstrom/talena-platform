@@ -1097,27 +1097,33 @@ color: #6CACCB;
 
 /* Candidate bottom sheet – layout tweaks */
 #candidateSheet {
-  height: 96vh; /* lite högre än 85 */
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  width: 90vw;
-  margin: auto;
+  height: 96vh;
+  max-height: 96vh;
 }
 
-/* Centrera innehållet */
+#candidateSheet .candidate-sheet-inner {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Scrollbar ska leva här */
 #candidateSheet .offcanvas-body {
   padding-top: 2rem;
   padding-bottom: 3rem;
-  display: flex;
-  justify-content: center;
+  overflow-y: auto;
+  min-height: 0;
 }
 
-/* Maxbredd + luft i kanterna */
+
+
+/* Maxbredd + centrering + luft i kanterna */
 #candidateSheet .offcanvas-body > * {
   width: 100%;
   max-width: 1000px;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .nav-search input.form-control {

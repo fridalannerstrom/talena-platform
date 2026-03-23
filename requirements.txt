@@ -10,3 +10,5 @@ pillow
 logger
 django-storages
 azure-storage-blob
+openai
+pinecone
