@@ -162,6 +162,11 @@ class TestInvitation(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    sova_activities = models.JSONField(null=True, blank=True)
+    sova_phases = models.JSONField(null=True, blank=True)
+    sova_reports = models.JSONField(null=True, blank=True)
+
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["process", "candidate"], name="uniq_invitation_per_process")

@@ -1041,24 +1041,31 @@ def process_candidate_detail(request, process_id, candidate_id):
         .select_related("actor", "candidate", "invitation")[:50]
     )
 
-    dummy_profile = {
-        "labels": ["Struktur", "Samarbete", "Driv", "Stresstålighet", "Analys"],
-        "values": [7, 6, 8, 5, 7],
-    }
+    activities = invitation.sova_activities or []
+    project_results = invitation.project_results or {}
+    reports = invitation.sova_reports or []
 
-    dummy_abilities = {
-        "labels": ["Verbal", "Numerisk", "Logisk"],
-        "values": [62, 54, 71],
-    }
+    competency_scores = project_results.get("competency_scores", []) if isinstance(project_results, dict) else []
+    project_scores = project_results.get("project_scores", []) if isinstance(project_results, dict) else []
+    overall_score = (
+        project_results.get("overall_score")
+        if isinstance(project_results, dict) and project_results.get("overall_score") is not None
+        else invitation.overall_score
+    )
 
     ctx = {
         "process": process,
         "invitation": invitation,
         "inv": invitation,
         "candidate": candidate,
-        "dummy_profile": dummy_profile,
-        "dummy_abilities": dummy_abilities,
         "activity_events": activity_events,
+
+        "activities": activities,
+        "project_results": project_results,
+        "competency_scores": competency_scores,
+        "project_scores": project_scores,
+        "overall_score": overall_score,
+        "reports": reports,
     }
 
     # ✅ Om anropet kommer via fetch/AJAX: returnera partial (sheet)

@@ -80,3 +80,14 @@ class SovaClient:
 
         r.raise_for_status()
         return r.json() or {}
+    
+    
+    def debug_project_candidates(request, pk):
+        process = get_object_or_404(TestProcess, pk=pk)
+
+        if not process.sova_project_id:
+            return JsonResponse({"error": "No sova_project_id on process"}, status=400)
+
+        client = SovaClient()
+        data = client.get_project_candidates(process.sova_project_id)
+        return JsonResponse(data, safe=False)

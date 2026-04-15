@@ -428,6 +428,80 @@
 
     </div>
   </div>
+  </div>
+
+  <h3>Testresultat</h3>
+
+{% if activities %}
+  <div class="space-y-3">
+    {% for item in activities %}
+      <div class="border rounded p-3">
+        <div><strong>{{ item.activity }}</strong></div>
+        <div>Status: {{ item.status|default:"-" }}</div>
+        <div>Score: {{ item.score|default:"-" }}</div>
+
+        {% if item.competencies %}
+          <div class="mt-2">
+            <strong>Kompetenser</strong>
+            <ul>
+              {% for comp in item.competencies %}
+                <li>
+                  {{ comp.competency|default:"-" }}:
+                  {{ comp.score|default:"-" }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>Inga testresultat ännu.</p>
+{% endif %}
+
+<h3>Sammanfattat resultat</h3>
+
+{% if overall_score %}
+  <p><strong>Overall score:</strong> {{ overall_score }}</p>
+{% endif %}
+
+{% if project_scores %}
+  <ul>
+    {% for score in project_scores %}
+      <li>
+        {{ score.name|default:"-" }}:
+        {{ score.score|default:"-" }}
+        {% if score.level %}({{ score.level }}){% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% if competency_scores %}
+  <h4>Kompetenser</h4>
+  <ul>
+    {% for comp in competency_scores %}
+      <li>{{ comp.competency }}: {{ comp.score }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h3>Rapporter</h3>
+
+{% if reports %}
+  <ul>
+    {% for report in reports %}
+      <li>
+        <a href="{{ report.url }}" target="_blank" rel="noopener">
+          {{ report.title|default:"Rapport" }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Inga rapporter tillgängliga.</p>
+{% endif %}
 </div>
 
 {% endif %}
