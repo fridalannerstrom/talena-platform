@@ -229,7 +229,7 @@
 
                 <td>
                   <div class="d-flex align-items-center gap-3 process-detail-table">
-                    <div class="user-initials">
+                    <div class="user-initials-yellow">
                       {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
                         {% if fn or ln %}
                           {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}

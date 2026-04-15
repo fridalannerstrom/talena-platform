@@ -205,7 +205,7 @@ body {
     font-family: Sora, sans-serif;
 }
 
-.process-detail-table .user-initials {
+.user-initials-yellow {
   width: 35px;
   height: 35px;
   border-radius: 999px;
@@ -220,6 +220,13 @@ body {
   background: #F2F6BC;
   border: 1px solid #E5EBA8;
   flex: 0 0 auto;
+}
+
+.user-initials-lg {
+    width: 60px;
+  height: 60px;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 

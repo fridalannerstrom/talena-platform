@@ -7,65 +7,80 @@
     <div class="card-body py-3 py-md-4">
 
       <div class="d-flex flex-column flex-lg-row align-items-start justify-content-between gap-3">
+<!-- LEFT -->
+<div class="flex-grow-1">
+  <div class="d-flex align-items-start gap-3">
 
-        <!-- LEFT -->
-        <div class="flex-grow-1">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-            <h2 class="h5 mb-0">
-              {{ candidate.first_name }} {{ candidate.last_name }}
-            </h2>
+    <div class="user-initials-yellow user-initials-lg flex-shrink-0">
+      {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
+        {% if fn or ln %}
+          {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+        {% else %}
+          ?
+        {% endif %}
+      {% endwith %}
+    </div>
 
-            <!-- Talena status -->
-            {% if invitation.status == "completed" %}
-              <span class="badge bg-success">Färdig</span>
-            {% elif invitation.status == "started" %}
-              <span class="badge bg-info text-dark">Påbörjad</span>
-            {% elif invitation.status == "sent" %}
-              <span class="badge bg-warning text-dark">Skickad</span>
-            {% elif invitation.status == "created" %}
-              <span class="badge bg-secondary">Ej skickad</span>
-            {% else %}
-              <span class="badge bg-light text-dark">{{ invitation.status }}</span>
-            {% endif %}
+    <div class="min-w-0 flex-grow-1">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+        <h2 class="h5 mb-0">
+          {{ candidate.first_name }} {{ candidate.last_name }}
+        </h2>
 
-            <!-- SOVA overall status -->
-            {% if invitation.sova_overall_status %}
-              <span class="badge bg-success">SOVA: {{ invitation.sova_overall_status }}</span>
-            {% else %}
-              <span class="badge bg-success">SOVA: —</span>
-            {% endif %}
-          </div>
+        <!-- Talena status -->
+        {% if invitation.status == "completed" %}
+          <span class="badge bg-success">Färdig</span>
+        {% elif invitation.status == "started" %}
+          <span class="badge bg-info text-dark">Påbörjad</span>
+        {% elif invitation.status == "sent" %}
+          <span class="badge bg-warning text-dark">Skickad</span>
+        {% elif invitation.status == "created" %}
+          <span class="badge bg-secondary">Ej skickad</span>
+        {% else %}
+          <span class="badge bg-light text-dark">{{ invitation.status }}</span>
+        {% endif %}
 
-          <div class="text-muted small">{{ candidate.email }}</div>
+        <!-- SOVA overall status -->
+        {% if invitation.sova_overall_status %}
+          <span class="badge bg-success">SOVA: {{ invitation.sova_overall_status }}</span>
+        {% else %}
+          <span class="badge bg-success">SOVA: —</span>
+        {% endif %}
+      </div>
 
-          <!-- Meta -->
-          <div class="candidate-meta mt-3">
-            <div class="meta-item">
-              <div class="meta-label">Inbjuden</div>
-              <div class="meta-value">
-                {% if invitation.invited_at %}
-                  {{ invitation.invited_at|date:"Y-m-d H:i" }}
-                {% else %}—{% endif %}
-              </div>
-            </div>
+      <div class="text-muted small">{{ candidate.email }}</div>
 
-            <div class="meta-item">
-              <div class="meta-label">Slutförd</div>
-              <div class="meta-value">
-                {% if invitation.completed_at %}
-                  {{ invitation.completed_at|date:"Y-m-d H:i" }}
-                {% else %}—{% endif %}
-              </div>
-            </div>
-
-            <div class="meta-item">
-              <div class="meta-label">Process</div>
-              <div class="meta-value">
-                {{ process.project_name_snapshot|default:process.project_code }}
-              </div>
-            </div>
+      <!-- Meta -->
+      <div class="candidate-meta mt-3">
+        <div class="meta-item">
+          <div class="meta-label">Inbjuden</div>
+          <div class="meta-value">
+            {% if invitation.invited_at %}
+              {{ invitation.invited_at|date:"Y-m-d H:i" }}
+            {% else %}—{% endif %}
           </div>
         </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Slutförd</div>
+          <div class="meta-value">
+            {% if invitation.completed_at %}
+              {{ invitation.completed_at|date:"Y-m-d H:i" }}
+            {% else %}—{% endif %}
+          </div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Process</div>
+          <div class="meta-value">
+            {{ process.project_name_snapshot|default:process.project_code }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
         <!-- RIGHT actions -->
         <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
