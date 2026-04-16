@@ -1,0 +1,66 @@
+
+
+
+
+{
+    "request_id": "talena-41-38-c0d4290684744dfa80d76ea9b2e70005",
+    "meta_data": {"talena_context": "customer", "talena_user_id": "10", "talena_process_id": "41", "talena_request_id": "talena-41-38-c0d4290684744dfa80d76ea9b2e70005", "talena_candidate_id": "38"},
+    "overall_status": "added",
+    "current_phase_idx": 0,
+    "current_phase_code": "PHASE_656_2668",
+    "phases": [
+        
+            
+            {
+                "phase_idx": 0,
+                "phase_code": "PHASE_656_2668",
+                "phase_name": "",
+                "status": "in progress",
+                "phase_score": null
+            }
+        
+    ],
+    "activities": [
+        
+            
+                
+                    
+                    {
+                        "activity": "Sova Logical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_656_2668",
+                        "status": "in progress"
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Verbal Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_656_2668",
+                        "status": "added"
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Numerical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_656_2668",
+                        "status": "added"
+                    },
+                
+                    
+                    {
+                        "activity": "Motivation Questionnaire",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_656_2668",
+                        "status": "added"
+                    }
+                
+            
+        
+    ],
+    "reports": [
+        
+        
+    ]
+}

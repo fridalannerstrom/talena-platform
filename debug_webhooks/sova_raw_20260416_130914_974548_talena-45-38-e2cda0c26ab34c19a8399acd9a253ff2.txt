@@ -1,0 +1,116 @@
+
+
+
+
+{
+    "request_id": "talena-45-38-e2cda0c26ab34c19a8399acd9a253ff2",
+    "meta_data": {"talena_context": "customer", "talena_user_id": "10", "talena_process_id": "45", "talena_request_id": "talena-45-38-e2cda0c26ab34c19a8399acd9a253ff2", "talena_candidate_id": "38"},
+    "overall_status": "in progress",
+    "current_phase_idx": 0,
+    "current_phase_code": "TESTING_TEST_PHASE_1",
+    "phases": [
+        
+            
+            {
+                "phase_idx": 0,
+                "phase_code": "TESTING_TEST_PHASE_1",
+                "phase_name": "Test - Phase 1",
+                "status": "in progress",
+                "phase_score": null
+            }
+        
+    ],
+    "activities": [
+        
+            
+                
+                    
+                    {
+                        "activity": "One-question scored assessment",
+                        "phase_idx": 0,
+                        "phase_code": "TESTING_TEST_PHASE_1",
+                        "status": "fail",
+                        "score": 10.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Test Pass/Fail",
+                                    "stive": 1.00,
+                                    "stive_rounded": 1,
+                                    "sten": 1.50,
+                                    "sten_rounded": 2,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Numerical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "TESTING_TEST_PHASE_1",
+                        "status": "in progress"
+                    },
+                
+                    
+                    {
+                        "activity": "Personality Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "TESTING_TEST_PHASE_1",
+                        "status": "added"
+                    }
+                
+            
+        
+    ],
+    "reports": [
+        
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=4OEF-9aSWC47wXtKOQMwd6OK8NaawDw_bJARP1kcbzg",
+                "title": "Practitioner Numerical Reasoning Report",
+                "code": "SOVA_PRACTITIONER_NUMERICAL_REASONING",
+                "is_candidate_report": false
+            },
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=d4qBSyCQIL6nd94b_XThpcFPbeF5201JZNJf2yx8I80",
+                "title": "Sova Trait Report",
+                "code": "SOVA_PQ_TRAIT",
+                "is_candidate_report": false
+            },
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=m1gvVVSXFyDUu9xupovTZdx8sxvNbeZcNnSqQwLaO94",
+                "title": "Sample Integration Report",
+                "code": "SAMPLE_INTEGRATION_REPORT",
+                "is_candidate_report": true
+            },
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=XDE7Et6XKwV_XeZMoYEaMj_JxFocA-3fUKVzgf0B4lk",
+                "title": "Candidate Numerical Reasoning Report",
+                "code": "SOVA_CANDIDATE_NUMERICAL_REASONING",
+                "is_candidate_report": true
+            },
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=DdWFl0vhKCW6o9XR2RHJhZyA6rIKWB1RIZIs9Km10Ac",
+                "title": "Sova Candidate Trait Report",
+                "code": "SOVA_PQ_CANDIDATE_TRAIT",
+                "is_candidate_report": true
+            },
+        
+            {
+                "url": "https://assess-test.sovaonline.com/reports/report?source=2&locale=en&sat=Q_zGxfKZz6D8-k6JT-rNKdTdevGWrf5lrNGwsY-mDEs",
+                "title": "Sova Derailment Report",
+                "code": "Sova_PQ_Derailment",
+                "is_candidate_report": true
+            }
+        
+    ]
+}
