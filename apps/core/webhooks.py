@@ -7,6 +7,8 @@ from apps.core.integrations.sova import SovaClient
 import logging
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
+import os
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,35 @@ def sova_webhook(request):
     except Exception as e:
         print("❌ WEBHOOK invalid JSON:", str(e))
         return JsonResponse({"error": "invalid json"}, status=400)
+    
+    debug_dir = os.path.join(settings.BASE_DIR, "debug_webhooks")
+    os.makedirs(debug_dir, exist_ok=True)
+
+    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S_%f")
+    request_id_for_file = (
+        payload.get("request_id")
+        or payload.get("requestId")
+        or "no_request_id"
+    )
+
+    safe_request_id = str(request_id_for_file).replace("/", "_").replace("\\", "_").replace(":", "_")
+
+    raw_filepath = os.path.join(debug_dir, f"sova_raw_{timestamp}_{safe_request_id}.txt")
+    json_filepath = os.path.join(debug_dir, f"sova_{timestamp}_{safe_request_id}.json")
+    headers_filepath = os.path.join(debug_dir, f"sova_headers_{timestamp}_{safe_request_id}.json")
+
+    with open(raw_filepath, "w", encoding="utf-8") as f:
+        f.write(raw)
+
+    with open(json_filepath, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    with open(headers_filepath, "w", encoding="utf-8") as f:
+        json.dump(dict(request.headers), f, ensure_ascii=False, indent=2)
+
+    print(f"✅ Saved raw webhook body to: {raw_filepath}")
+    print(f"✅ Saved parsed webhook JSON to: {json_filepath}")
+    print(f"✅ Saved webhook headers to: {headers_filepath}")
 
     print("🔔 SOVA WEBHOOK RECEIVED (parsed):", payload)
 

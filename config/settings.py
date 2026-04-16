@@ -109,10 +109,7 @@ else:
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-secret-key")
 
 
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
-    "DJANGO_ALLOWED_HOSTS",
-    "127.0.0.1,localhost"
-).split(",") if h.strip()]
+ALLOWED_HOSTS = ["*"]
 
 # Azure health probes sometimes use link-local 169.254.x.x
 if os.environ.get("WEBSITE_INSTANCE_ID"):

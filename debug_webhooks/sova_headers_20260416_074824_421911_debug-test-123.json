@@ -1,0 +1,11 @@
+{
+  "Content-Length": "134",
+  "Content-Type": "application/json",
+  "Host": "museum-scuff-guts.ngrok-free.dev",
+  "User-Agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; sv-SE) WindowsPowerShell/5.1.26100.8115",
+  "Expect": "100-continue",
+  "X-Forwarded-For": "87.227.24.230",
+  "X-Forwarded-Host": "museum-scuff-guts.ngrok-free.dev",
+  "X-Forwarded-Proto": "https",
+  "Accept-Encoding": "gzip"
+}

@@ -1,0 +1,98 @@
+
+
+
+
+{
+    "request_id": "talena-selfreg-39-43-5b328c93412e443a940d8378a44e2311",
+    "meta_data": {"talena_process_id": "39", "talena_request_id": "talena-selfreg-39-43-5b328c93412e443a940d8378a44e2311", "talena_candidate_id": "43"},
+    "overall_status": "in progress",
+    "current_phase_idx": 0,
+    "current_phase_code": "PHASE_472_2663",
+    "phases": [
+        
+            
+            {
+                "phase_idx": 0,
+                "phase_code": "PHASE_472_2663",
+                "phase_name": "",
+                "status": "in progress",
+                "phase_score": null
+            }
+        
+    ],
+    "activities": [
+        
+            
+                
+                    
+                    {
+                        "activity": "Sova Logical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 10.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Logical Reasoning",
+                                    "stive": 1.00,
+                                    "stive_rounded": 1,
+                                    "sten": 1.48,
+                                    "sten_rounded": 1,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Numerical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 1.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Numerical Reasoning",
+                                    "stive": 1.00,
+                                    "stive_rounded": 1,
+                                    "sten": 1.00,
+                                    "sten_rounded": 1,
+                                    "percentile": 1,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Verbal Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "in progress"
+                    },
+                
+                    
+                    {
+                        "activity": "Motivation Questionnaire",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "added"
+                    }
+                
+            
+        
+    ],
+    "reports": [
+        
+        
+    ]
+}

@@ -1,0 +1,11 @@
+{
+  "Content-Length": "4092",
+  "Content-Type": "application/json",
+  "Host": "museum-scuff-guts.ngrok-free.dev",
+  "User-Agent": "Python-urllib/3.11",
+  "Accept-Encoding": "identity",
+  "X-Forwarded-For": "74.241.138.119",
+  "X-Forwarded-Host": "museum-scuff-guts.ngrok-free.dev",
+  "X-Forwarded-Proto": "https",
+  "X-Talena-Webhook-Secret": "1ByYFB*76w&jmBt"
+}

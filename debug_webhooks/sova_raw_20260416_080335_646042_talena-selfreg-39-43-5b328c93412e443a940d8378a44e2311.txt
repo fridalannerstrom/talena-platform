@@ -1,0 +1,320 @@
+
+
+
+
+{
+    "request_id": "talena-selfreg-39-43-5b328c93412e443a940d8378a44e2311",
+    "meta_data": {"talena_process_id": "39", "talena_request_id": "talena-selfreg-39-43-5b328c93412e443a940d8378a44e2311", "talena_candidate_id": "43"},
+    "overall_status": "completed",
+    "current_phase_idx": 0,
+    "current_phase_code": "PHASE_472_2663",
+    "phases": [
+        
+            
+            {
+                "phase_idx": 0,
+                "phase_code": "PHASE_472_2663",
+                "phase_name": "",
+                "status": "completed",
+                "phase_score": null
+            }
+        
+    ],
+    "activities": [
+        
+            
+                
+                    
+                    {
+                        "activity": "Sova Logical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 10.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Logical Reasoning",
+                                    "stive": 1.00,
+                                    "stive_rounded": 1,
+                                    "sten": 1.48,
+                                    "sten_rounded": 1,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Numerical Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 1.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Numerical Reasoning",
+                                    "stive": 1.00,
+                                    "stive_rounded": 1,
+                                    "sten": 1.00,
+                                    "sten_rounded": 1,
+                                    "percentile": 1,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Sova Verbal Reasoning Assessment",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 2.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Verbal Reasoning",
+                                    "stive": 1.07,
+                                    "stive_rounded": 1,
+                                    "sten": 1.65,
+                                    "sten_rounded": 2,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    },
+                
+                    
+                    {
+                        "activity": "Motivation Questionnaire",
+                        "phase_idx": 0,
+                        "phase_code": "PHASE_472_2663",
+                        "status": "completed",
+                        "score": 1.00,
+                        
+                        "competencies": [
+                            
+                                {
+                                    "competency": "Customer Service",
+                                    "stive": 1.10,
+                                    "stive_rounded": 1,
+                                    "sten": 1.69,
+                                    "sten_rounded": 2,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Ethics",
+                                    "stive": 1.24,
+                                    "stive_rounded": 1,
+                                    "sten": 1.99,
+                                    "sten_rounded": 2,
+                                    "percentile": 3,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Commercial Value",
+                                    "stive": 3.43,
+                                    "stive_rounded": 3,
+                                    "sten": 6.35,
+                                    "sten_rounded": 6,
+                                    "percentile": 66,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Curiosity",
+                                    "stive": 2.22,
+                                    "stive_rounded": 2,
+                                    "sten": 3.93,
+                                    "sten_rounded": 4,
+                                    "percentile": 21,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Making a Difference",
+                                    "stive": 1.72,
+                                    "stive_rounded": 2,
+                                    "sten": 2.94,
+                                    "sten_rounded": 3,
+                                    "percentile": 10,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Learning",
+                                    "stive": 2.30,
+                                    "stive_rounded": 2,
+                                    "sten": 4.10,
+                                    "sten_rounded": 4,
+                                    "percentile": 24,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Variety",
+                                    "stive": 2.81,
+                                    "stive_rounded": 3,
+                                    "sten": 5.12,
+                                    "sten_rounded": 5,
+                                    "percentile": 42,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Affiliation",
+                                    "stive": 2.63,
+                                    "stive_rounded": 3,
+                                    "sten": 4.75,
+                                    "sten_rounded": 5,
+                                    "percentile": 35,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Recognition",
+                                    "stive": 2.89,
+                                    "stive_rounded": 3,
+                                    "sten": 5.28,
+                                    "sten_rounded": 5,
+                                    "percentile": 45,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Acquisition",
+                                    "stive": 2.18,
+                                    "stive_rounded": 2,
+                                    "sten": 3.86,
+                                    "sten_rounded": 4,
+                                    "percentile": 20,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Authority",
+                                    "stive": 1.64,
+                                    "stive_rounded": 2,
+                                    "sten": 2.78,
+                                    "sten_rounded": 3,
+                                    "percentile": 8,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Autonomy",
+                                    "stive": 3.04,
+                                    "stive_rounded": 3,
+                                    "sten": 5.58,
+                                    "sten_rounded": 6,
+                                    "percentile": 51,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Creativity",
+                                    "stive": 2.34,
+                                    "stive_rounded": 2,
+                                    "sten": 4.18,
+                                    "sten_rounded": 4,
+                                    "percentile": 25,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Quality",
+                                    "stive": 1.93,
+                                    "stive_rounded": 2,
+                                    "sten": 3.35,
+                                    "sten_rounded": 3,
+                                    "percentile": 14,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Achievement",
+                                    "stive": 1.40,
+                                    "stive_rounded": 1,
+                                    "sten": 2.30,
+                                    "sten_rounded": 2,
+                                    "percentile": 5,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Work-life Balance",
+                                    "stive": 1.78,
+                                    "stive_rounded": 2,
+                                    "sten": 3.06,
+                                    "sten_rounded": 3,
+                                    "percentile": 11,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Enjoyment",
+                                    "stive": 3.06,
+                                    "stive_rounded": 3,
+                                    "sten": 5.62,
+                                    "sten_rounded": 6,
+                                    "percentile": 52,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Risk",
+                                    "stive": 4.09,
+                                    "stive_rounded": 4,
+                                    "sten": 7.67,
+                                    "sten_rounded": 8,
+                                    "percentile": 86,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "People Development",
+                                    "stive": 1.11,
+                                    "stive_rounded": 1,
+                                    "sten": 1.72,
+                                    "sten_rounded": 2,
+                                    "percentile": 2,
+                                    "assessment_centre": null
+                                },
+                            
+                                {
+                                    "competency": "Stability",
+                                    "stive": 2.48,
+                                    "stive_rounded": 2,
+                                    "sten": 4.46,
+                                    "sten_rounded": 4,
+                                    "percentile": 30,
+                                    "assessment_centre": null
+                                }
+                            
+                        ]
+                        
+                    }
+                
+            
+        
+    ],
+    "reports": [
+        
+        
+    ]
+}
