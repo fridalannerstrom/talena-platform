@@ -166,6 +166,10 @@ class TestInvitation(models.Model):
     sova_phases = models.JSONField(null=True, blank=True)
     sova_reports = models.JSONField(null=True, blank=True)
 
+    ai_summary = models.TextField(blank=True, default="")
+    ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
+    ai_summary_status = models.CharField(max_length=30, blank=True, default="not_started")
+
 
     class Meta:
         constraints = [

@@ -14,7 +14,7 @@ from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import render_placeholders
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse
 from apps.accounts.utils.org_access import get_accessible_orgunit_ids
 
 from urllib.parse import urlparse
@@ -39,6 +39,11 @@ from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
+
+from apps.core.ai.candidate_summary import (
+    stream_candidate_summary,
+    save_candidate_summary,
+)
 
 
 def render_placeholders(text: str, ctx: dict) -> str:
@@ -553,10 +558,6 @@ def process_detail(request, pk):
     return render(request, "customer/processes/process_detail.html", context)
 
 
-
-
-from django.http import JsonResponse
-from django.urls import reverse
 
 @login_required
 def process_add_candidate(request, pk):
@@ -1280,3 +1281,58 @@ def process_unarchive(request, pk):
     obj.unarchive()
     messages.success(request, "Processen återställdes.")
     return redirect("processes:process_list")
+
+
+@login_required
+def process_candidate_summary_stream(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id)
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related("candidate"),
+        process=process,
+        candidate_id=candidate_id
+    )
+
+    # Bara generera summary för färdiga tester
+    if invitation.status != "completed":
+        return JsonResponse({"error": "Candidate is not completed yet."}, status=400)
+
+    # Om summary redan finns, streama tillbaka den direkt
+    if invitation.ai_summary:
+        def existing_generator():
+            yield invitation.ai_summary
+
+        resp = StreamingHttpResponse(existing_generator(), content_type="text/plain; charset=utf-8")
+        resp["Cache-Control"] = "no-cache"
+        resp["X-Accel-Buffering"] = "no"
+        return resp
+
+    # Om någon annan generering redan pågår
+    if invitation.ai_summary_status == "generating":
+        return JsonResponse({"error": "Summary is already being generated."}, status=409)
+
+    invitation.ai_summary_status = "generating"
+    invitation.save(update_fields=["ai_summary_status"])
+
+    def generator():
+        full_text = ""
+
+        try:
+            for chunk in stream_candidate_summary(invitation):
+                full_text += chunk
+                yield chunk
+
+            save_candidate_summary(invitation, full_text)
+
+        except Exception as e:
+            invitation.ai_summary_status = "failed"
+            invitation.save(update_fields=["ai_summary_status"])
+            yield f"\n\n[Error: {str(e)}]"
+
+    resp = StreamingHttpResponse(generator(), content_type="text/plain; charset=utf-8")
+    resp["Cache-Control"] = "no-cache"
+    resp["X-Accel-Buffering"] = "no"
+    return resp

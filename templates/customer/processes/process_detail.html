@@ -460,13 +460,16 @@
           sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Could not load candidate details (${res.status}).</div>`;
           return;
         }
-        sheetBody.innerHTML = await res.text();
+      sheetBody.innerHTML = await res.text();
 
-        // re-init icons + tooltips efter att HTML bytts
-        if (window.feather) feather.replace();
-        if (window.bootstrap) {
-          sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-        }
+      // re-init icons + tooltips efter att HTML bytts
+      if (window.feather) feather.replace();
+      if (window.bootstrap) {
+        sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+      }
+
+      // starta AI-sammanfattning om den saknas
+      await initCandidateSummaryStream();
       } catch (err) {
         sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
         console.error(err);
@@ -675,6 +678,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+</script>
+
+<script>
+async function initCandidateSummaryStream() {
+  const summaryEl = document.getElementById("aiSummaryContent");
+  if (!summaryEl) return;
+
+  const hasSummary = summaryEl.dataset.hasSummary === "true";
+  const summaryStatus = summaryEl.dataset.summaryStatus || "not_started";
+  const streamUrl = summaryEl.dataset.streamUrl;
+
+  if (!streamUrl) return;
+  if (hasSummary) return;
+  if (summaryStatus === "completed") return;
+  if (summaryStatus === "generating") return;
+
+  try {
+    summaryEl.innerHTML = '<span class="text-muted">Genererar sammanfattning...</span>';
+
+    const response = await fetch(streamUrl, {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      summaryEl.innerHTML = '<span class="text-danger">Kunde inte generera sammanfattning.</span>';
+      console.error("AI summary stream failed:", response.status, text);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
+
+    summaryEl.innerHTML = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+      summaryEl.innerHTML = fullText.replace(/\n/g, "<br>");
+    }
+
+    if (!fullText.trim()) {
+      summaryEl.innerHTML = '<span class="text-muted">Ingen sammanfattning genererades.</span>';
+    } else {
+      summaryEl.dataset.hasSummary = "true";
+      summaryEl.dataset.summaryStatus = "completed";
+    }
+
+  } catch (error) {
+    summaryEl.innerHTML = '<span class="text-danger">Ett fel uppstod vid generering av sammanfattning.</span>';
+    console.error("AI summary stream error:", error);
+  }
+}
 </script>
 
 {% endblock %}

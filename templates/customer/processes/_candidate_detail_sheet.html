@@ -130,27 +130,8 @@
     </div>
   </div>
 
-  <!-- RESULTS / EMPTY STATE -->
-  {% if invitation.status != "completed" %}
-
-    <div class="card mb-3">
-      <div class="card-body empty-results">
-        <div class="d-flex align-items-start gap-3">
-          <div class="empty-icon">!</div>
-          <div>
-            <div class="fw-semibold mb-1">Hoppsan, här finns inga resultat ännu</div>
-            <div class="text-muted small">
-              Resultaten visas här när kandidaten har slutfört testet.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-{% else %}
-
-<div class="row g-4">
-<div class="col-lg-6">
+  <div class="row g-4">
+<div class="col-lg-12">
   <div class="card h-100">
     <div class="card-header fw-semibold">Skickade tester</div>
     <div class="card-body">
@@ -169,18 +150,26 @@
                 </div>
 
                 <div class="text-end">
-                  {% if item.status == "completed" %}
-                    <span class="badge bg-success">Färdig</span>
-                  {% elif item.status == "in progress" or item.status == "started" %}
-                    <span class="badge bg-info text-dark">Påbörjad</span>
-                  {% elif item.status == "invited" or item.status == "sent" %}
-                    <span class="badge bg-warning text-dark">Skickad</span>
-                  {% elif item.status == "added" %}
-                    <span class="badge bg-secondary">Tillagd</span>
-                  {% else %}
-                    <span class="badge bg-light text-dark">{{ item.status|default:"-" }}</span>
-                  {% endif %}
-                </div>
+
+  {% if item.status == "completed" %}
+    <span class="badge bg-success">Färdig</span>
+
+  {% elif item.status == "in progress" or item.status == "started" %}
+    <span class="badge bg-info text-dark">Påbörjad</span>
+
+  {% elif item.status == "added" %}
+    <span class="badge bg-secondary">Ej påbörjad</span>
+
+  {% elif item.status == "invited" or item.status == "sent" %}
+    <span class="badge bg-warning text-dark">Skickad</span>
+
+  {% else %}
+    <span class="badge bg-light text-dark">
+      {{ item.status|default:"-" }}
+    </span>
+  {% endif %}
+
+</div>
               </div>
             </div>
           {% endfor %}
@@ -194,7 +183,75 @@
   </div>
 </div>
 
-  <div class="col-lg-6">
+
+</div>
+
+<br>
+
+  <!-- RESULTS / EMPTY STATE -->
+  {% if invitation.status != "completed" %}
+
+    <div class="card mb-3">
+      <div class="card-body empty-results">
+        <div class="d-flex align-items-start gap-3">
+          <div class="empty-icon">!</div>
+          <div>
+            <div class="fw-semibold mb-1">Här finns inga resultat ännu</div>
+            <div class="text-muted small">
+              Resultaten visas här när kandidaten har slutfört testet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% else %}
+
+{% if invitation.status == "completed" %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card h-100">
+
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">AI-sammanfattning</div>
+
+        {% if invitation.ai_summary_generated_at %}
+          <div class="text-muted small">
+            {{ invitation.ai_summary_generated_at|date:"Y-m-d H:i" }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="card-body">
+        <div class="d-flex flex-column gap-3">
+          <div class="border rounded-3 p-3">
+            <div
+              id="aiSummaryContent"
+              class="ai-summary-text"
+              data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+              data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
+              data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
+            >
+              {% if invitation.ai_summary %}
+                {{ invitation.ai_summary|linebreaksbr }}
+              {% elif invitation.ai_summary_status == "generating" %}
+                <span class="text-muted">Genererar sammanfattning...</span>
+              {% else %}
+                <span class="text-muted">AI analyserar kandidatens testresultat...</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<br>
+
+  <div class="col-lg-12">
     <div class="card h-100">
       <div class="card-header fw-semibold">Abilities</div>
       <div class="card-body">
@@ -255,9 +312,8 @@
       </div>
     </div>
   </div>
-</div>
 
-<br>
+  <br>
 
 <div class="card mt-4">
   <div class="card-header fw-semibold">Motivation Questionnaire</div>
@@ -393,6 +449,8 @@
         setTimeout(() => buttonEl.innerText = originalText, 1400);
       }
     }
+
   </script>
+
 
 </div>

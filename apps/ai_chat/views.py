@@ -62,3 +62,20 @@ def chat_stream_api(request):
     resp["Cache-Control"] = "no-cache"
     resp["X-Accel-Buffering"] = "no"  # viktigt om du kör bakom proxy senare
     return resp
+
+    def stream_candidate_summary(invitation) -> Iterable[str]:
+        client = get_openai_client()
+
+        prompt = build_candidate_prompt(invitation)
+
+        stream = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            stream=True,
+        )
+
+        for event in stream:
+            delta = event.choices[0].delta
+            if delta and delta.content:
+                yield delta.content
