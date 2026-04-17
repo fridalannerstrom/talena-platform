@@ -292,224 +292,38 @@
 </div>
 
 <br>
-
-<div class="card mb-3">
-  <div class="card-header bg-white py-3">
-    <div class="subheading mb-1">Karaktärsdragsprofil</div>
-    <div class="text-muted small">Dummydata baserat på exempelprofil (1–10).</div>
-  </div>
-
+<div class="card mt-4">
+  <div class="card-header fw-semibold">Personality Assessment</div>
   <div class="card-body">
-    <div class="tq-profile">
 
-      <div class="tq-section-title">Leda och arbeta med andra</div>
+    {% if personality_competencies %}
+      <div class="d-flex flex-column gap-3">
 
-      <div class="tq-trait-row">
-        <div class="tq-left">Föredrar att arbeta självständigt och säger ifrån vid meningsskiljaktigheter</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Samverkande</div>
-          <div class="tq-scale" data-score="8" aria-label="Samverkande 8 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
+        {% for comp in personality_competencies %}
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-medium">{{ comp.competency }}</span>
+              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+            </div>
+
+            <div class="progress" style="height: 10px;">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;">
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="tq-right">Tillmötesgående och gillar att samarbeta med andra. Är lyhörd gentemot andras behov</div>
+        {% endfor %}
+
       </div>
+    {% else %}
+      <div class="text-muted small">Inga personlighetsresultat tillgängliga ännu.</div>
+    {% endif %}
 
-      <div class="tq-trait-row">
-        <div class="tq-left">Kan ta tid på sig att vänja sig vid andra och ha förståelse för andras perspektiv</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Empati</div>
-          <div class="tq-scale" data-score="7" aria-label="Empati 7 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span class="test-marker"></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Empatiserar lätt med andra. Gillar att lyssna och skapa goda relationer</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Har tydliga förväntningar på andra och låter dem utvecklas självständigt</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Stödjande</div>
-          <div class="tq-scale" data-score="6" aria-label="Stödjande 6 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Stöttande och hjälper andra att utvecklas och växa</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Kommunicerar med en betrodd grupp. Kan känna sig obekväm med att skapa nya kontakter</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Nätverkande</div>
-          <div class="tq-scale" data-score="2" aria-label="Nätverkande 2 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span class="test-marker"></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Kommunicerar med en stor grupp människor. Tar gärna kontakt med andra</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Föredrar att jobba i jämnt tempo och har ett försiktigt tillvägagångssätt</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Driftighet</div>
-          <div class="tq-scale" data-score="4" aria-label="Driftighet 4 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Driven och söker nya utmaningar. Fattar beslut snabbt</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Föredrar att följa instruktioner och undviker att tvinga över sina egna åsikter på andra</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Inflytelserik</div>
-          <div class="tq-scale" data-score="1" aria-label="Inflytelserik 1 av 10">
-            <span></span><span></span><span class="test-marker"></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Föredrar att ta ledningen och gillar att påverka andra</div>
-      </div>
-
-      <div class="tq-section-title">Organisering och tankemönster</div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Undviker både konkurrens och att sätta upp mål. Föredrar att ta saker som de kommer</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Måldriven</div>
-          <div class="tq-scale" data-score="6" aria-label="Måldriven 6 av 10">
-            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Motiveras av utmanande mål. Har god självdisciplin och är tävlingsinriktad</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Har ett spontant tillvägagångssätt. Är mindre fokuserad på detaljer och tolererar små misstag</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Strukturerad och disciplinerad</div>
-          <div class="tq-scale" data-score="6" aria-label="Strukturerad och disciplinerad 6 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Planerar och strukturerar uppgifter, engagerad att leverera och säkerställa noggrannhet</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Använder ett instinktivt tillvägagångssätt vid problemlösning. Är mindre intresserad av data och analys</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Analytisk</div>
-          <div class="tq-scale" data-score="10" aria-label="Analytisk 10 av 10">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span class="test-marker"></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Använder ett analytiskt tillvägagångssätt för att utvärdera situationer. Använder data för att lösa problem</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Gillar ett praktiskt tillvägagångssätt som fokuserar på operativa detaljer. Undviker sannolikt komplexa problem</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Konceptuell</div>
-          <div class="tq-scale" data-score="9" aria-label="Konceptuell 9 av 10">
-            <span></span><span></span><span></span><span class="test-marker"></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Gillar att jobba med komplexa situationer. Undersöker olika perspektiv och tekniker</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Använder hellre beprövade tillvägagångssätt än att experimentera med nya tekniker</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Kreativitet</div>
-          <div class="tq-scale" data-score="1" aria-label="Kreativitet 1 av 10">
-            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Har ett kreativt tillvägagångssätt. Gillar att vara innovativ och hitta nya lösningar på problem</div>
-      </div>
-
-      <div class="tq-trait-row">
-        <div class="tq-left">Behöver tid för att anpassa sig till nya omständigheter. Har bestämda åsikter och föredrar en förutsägbar rutin</div>
-        <div class="tq-center">
-          <div class="tq-trait-name">Anpassningsbarhet</div>
-          <div class="tq-scale" data-score="10" aria-label="Anpassningsbarhet 10 av 10">
-            <span></span><span class="test-marker"></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="tq-right">Anpassar sig lätt till nya situationer. Har ett flexibelt tillvägagångssätt och gillar variation</div>
-      </div>
-
-    </div>
   </div>
-  </div>
+</div>
 
-  <h3>Testresultat</h3>
-
-{% if activities %}
-  <div class="space-y-3">
-    {% for item in activities %}
-      <div class="border rounded p-3">
-        <div><strong>{{ item.activity }}</strong></div>
-        <div>Status: {{ item.status|default:"-" }}</div>
-        <div>Score: {{ item.score|default:"-" }}</div>
-
-        {% if item.competencies %}
-          <div class="mt-2">
-            <strong>Kompetenser</strong>
-            <ul>
-              {% for comp in item.competencies %}
-                <li>
-                  {{ comp.competency|default:"-" }}:
-                  {{ comp.score|default:"-" }}
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <p>Inga testresultat ännu.</p>
-{% endif %}
-
-<h3>Sammanfattat resultat</h3>
-
-{% if overall_score %}
-  <p><strong>Overall score:</strong> {{ overall_score }}</p>
-{% endif %}
-
-{% if project_scores %}
-  <ul>
-    {% for score in project_scores %}
-      <li>
-        {{ score.name|default:"-" }}:
-        {{ score.sten_rounded|default:"-" }}
-        {% if score.level %}({{ score.level }}){% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% endif %}
-
-{% if competency_scores %}
-  <h4>Kompetenser</h4>
-  <ul>
-{% for comp in motivation_results %}
-  <li>{{ comp.competency }}: {{ comp.sten_rounded|default:"-" }}</li>
-{% endfor %}
-  </ul>
-{% endif %}
 
 <h3>Rapporter</h3>
 

@@ -1052,6 +1052,23 @@ def process_candidate_detail(request, process_id, candidate_id):
                     "percentile": comp.get("percentile"),
                 })
 
+    personality_competencies = []
+
+    for item in activities:
+        if item.get("activity") == "Personality Assessment":
+            for comp in item.get("competencies", []) or []:
+                personality_competencies.append({
+                    "competency": comp.get("competency"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "sten": comp.get("sten"),
+                    "percentile": comp.get("percentile"),
+                })
+
+    personality_competencies = sorted(
+        personality_competencies,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
     numerical_percentile = None
     logical_percentile = None
     verbal_percentile = None
@@ -1176,6 +1193,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "verbal_percentile": verbal_percentile,
 
         "mq_competencies": mq_competencies,
+        "personality_competencies": personality_competencies,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
