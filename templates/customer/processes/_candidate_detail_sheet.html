@@ -150,74 +150,49 @@
 {% else %}
 
 <div class="row g-4">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Personality overview</div>
-      <div class="card-body">
+<div class="col-lg-6">
+  <div class="card h-100">
+    <div class="card-header fw-semibold">Skickade tester</div>
+    <div class="card-body">
 
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Samverkande</span>
-            <span>8/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 80%;"></div>
-          </div>
+      {% if activities %}
+        <div class="d-flex flex-column gap-3">
+
+          {% for item in activities %}
+            <div class="border rounded-3 p-3">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <div class="fw-semibold">{{ item.activity|default:"-" }}</div>
+                  <div class="text-muted small">
+                    Fas: {{ item.phase_code|default:"-" }}
+                  </div>
+                </div>
+
+                <div class="text-end">
+                  {% if item.status == "completed" %}
+                    <span class="badge bg-success">Färdig</span>
+                  {% elif item.status == "in progress" or item.status == "started" %}
+                    <span class="badge bg-info text-dark">Påbörjad</span>
+                  {% elif item.status == "invited" or item.status == "sent" %}
+                    <span class="badge bg-warning text-dark">Skickad</span>
+                  {% elif item.status == "added" %}
+                    <span class="badge bg-secondary">Tillagd</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ item.status|default:"-" }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+
         </div>
+      {% else %}
+        <div class="text-muted small">Inga tester hittades ännu.</div>
+      {% endif %}
 
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Empati</span>
-            <span>7/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 70%;"></div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Driftighet</span>
-            <span>4/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 40%;"></div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Analytisk</span>
-            <span>10/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 100%;"></div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Konceptuell</span>
-            <span>9/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 90%;"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="d-flex justify-content-between small mb-1">
-            <span>Anpassningsbarhet</span>
-            <span>10/10</span>
-          </div>
-          <div class="progress" style="height: 10px;">
-            <div class="progress-bar" style="width: 100%;"></div>
-          </div>
-        </div>
-
-      </div>
     </div>
   </div>
+</div>
 
   <div class="col-lg-6">
     <div class="card h-100">
@@ -226,31 +201,31 @@
 
         <div class="mb-4">
           <div class="d-flex justify-content-between small mb-1">
-            <span>Verbal</span>
-            <span>78%</span>
+<span>Verbal</span>
+<span>{{ verbal_percentile|default:"-" }}%</span>
           </div>
           <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-success" style="width: 78%;"></div>
+            <div class="progress-bar bg-success" style="width: {{ verbal_percentile|default:0 }}%;"></div>
           </div>
         </div>
 
         <div class="mb-4">
           <div class="d-flex justify-content-between small mb-1">
-            <span>Logical</span>
-            <span>92%</span>
+<span>Logical</span>
+<span>{{ logical_percentile|default:"-" }}%</span>
           </div>
           <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-info" style="width: 92%;"></div>
+            <div class="progress-bar bg-info" style="width: {{ logical_percentile|default:0 }}%;"></div>
           </div>
         </div>
 
         <div class="mb-4">
           <div class="d-flex justify-content-between small mb-1">
-            <span>Numerical</span>
-            <span>64%</span>
+<span>Numerical</span>
+<span>{{ numerical_percentile|default:"-" }}%</span>
           </div>
           <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-warning" style="width: 64%;"></div>
+            <div class="progress-bar bg-warning" style="width: {{ numerical_percentile|default:0 }}%;"></div>
           </div>
         </div>
 
@@ -260,25 +235,59 @@
           <div class="col-4">
             <div class="border rounded-3 p-3">
               <div class="small text-muted">Verbal</div>
-              <div class="h4 mb-0">78</div>
+              <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
             </div>
           </div>
           <div class="col-4">
             <div class="border rounded-3 p-3">
               <div class="small text-muted">Logical</div>
-              <div class="h4 mb-0">92</div>
+              <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
             </div>
           </div>
           <div class="col-4">
             <div class="border rounded-3 p-3">
               <div class="small text-muted">Numerical</div>
-              <div class="h4 mb-0">64</div>
+              <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
             </div>
           </div>
         </div>
 
       </div>
     </div>
+  </div>
+</div>
+
+<br>
+
+<div class="card mt-4">
+  <div class="card-header fw-semibold">Motivation Questionnaire</div>
+  <div class="card-body">
+
+    {% if mq_competencies %}
+      <div class="d-flex flex-column gap-3">
+
+        {% for comp in mq_competencies %}
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-medium">{{ comp.competency }}</span>
+              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+            </div>
+
+            <div class="progress" style="height: 10px;">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;">
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+      </div>
+    {% else %}
+      <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
+    {% endif %}
+
   </div>
 </div>
 
@@ -486,7 +495,7 @@
     {% for score in project_scores %}
       <li>
         {{ score.name|default:"-" }}:
-        {{ score.score|default:"-" }}
+        {{ score.sten_rounded|default:"-" }}
         {% if score.level %}({{ score.level }}){% endif %}
       </li>
     {% endfor %}
@@ -496,9 +505,9 @@
 {% if competency_scores %}
   <h4>Kompetenser</h4>
   <ul>
-    {% for comp in competency_scores %}
-      <li>{{ comp.competency }}: {{ comp.score }}</li>
-    {% endfor %}
+{% for comp in motivation_results %}
+  <li>{{ comp.competency }}: {{ comp.sten_rounded|default:"-" }}</li>
+{% endfor %}
   </ul>
 {% endif %}
 

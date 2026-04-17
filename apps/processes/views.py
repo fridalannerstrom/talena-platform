@@ -1019,14 +1019,11 @@ def process_send_tests(request, pk):
 
 @login_required
 def process_candidate_detail(request, process_id, candidate_id):
-    # ✅ 1) Hämta processen utan owner-filter
     process = get_object_or_404(TestProcess, pk=process_id)
 
-    # ✅ 2) Access: viewer/editor/own ska få se
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("Du har inte tillgång till denna process.")
 
-    # ✅ 3) Kandidaten måste vara kopplad till processen
     invitation = get_object_or_404(
         TestInvitation.objects.select_related("candidate"),
         process=process,
@@ -1042,16 +1039,119 @@ def process_candidate_detail(request, process_id, candidate_id):
     )
 
     activities = invitation.sova_activities or []
+
+    mq_competencies = []
+
+    for item in activities:
+        if item.get("activity") == "Motivation Questionnaire":
+            for comp in item.get("competencies", []) or []:
+                mq_competencies.append({
+                    "competency": comp.get("competency"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "sten": comp.get("sten"),
+                    "percentile": comp.get("percentile"),
+                })
+
+    numerical_percentile = None
+    logical_percentile = None
+    verbal_percentile = None
+
+    for item in activities:
+        activity_name = item.get("activity", "")
+        competencies = item.get("competencies", []) or []
+        first_comp = competencies[0] if competencies else {}
+
+        percentile = first_comp.get("percentile")
+
+        if activity_name == "Sova Numerical Reasoning Assessment":
+            numerical_percentile = percentile
+        elif activity_name == "Sova Logical Reasoning Assessment":
+            logical_percentile = percentile
+        elif activity_name == "Sova Verbal Reasoning Assessment":
+            verbal_percentile = percentile
+
     project_results = invitation.project_results or {}
     reports = invitation.sova_reports or []
 
-    competency_scores = project_results.get("competency_scores", []) if isinstance(project_results, dict) else []
     project_scores = project_results.get("project_scores", []) if isinstance(project_results, dict) else []
+    competency_scores = project_results.get("competency_scores", []) if isinstance(project_results, dict) else []
     overall_score = (
         project_results.get("overall_score")
         if isinstance(project_results, dict) and project_results.get("overall_score") is not None
         else invitation.overall_score
     )
+
+    ability_results = []
+    motivation_results = []
+    all_competencies = []
+
+    for item in activities:
+        activity_name = item.get("activity", "") or ""
+        item_status = item.get("status", "") or ""
+        item_score = item.get("score")
+        item_competencies = item.get("competencies", []) or []
+
+        # Samla alla competencies i en enda lista
+        for comp in item_competencies:
+            all_competencies.append({
+                "activity": activity_name,
+                "status": item_status,
+                "competency": comp.get("competency"),
+                "stive": comp.get("stive"),
+                "stive_rounded": comp.get("stive_rounded"),
+                "sten": comp.get("sten"),
+                "sten_rounded": comp.get("sten_rounded"),
+                "percentile": comp.get("percentile"),
+                "assessment_centre": comp.get("assessment_centre"),
+            })
+
+        # Ability-tests
+        if activity_name in {
+            "Sova Logical Reasoning Assessment",
+            "Sova Numerical Reasoning Assessment",
+            "Sova Verbal Reasoning Assessment",
+        }:
+            first_comp = item_competencies[0] if item_competencies else {}
+
+            label_map = {
+                "Sova Logical Reasoning Assessment": "Logical",
+                "Sova Numerical Reasoning Assessment": "Numerical",
+                "Sova Verbal Reasoning Assessment": "Verbal",
+            }
+
+            ability_results.append({
+                "activity": activity_name,
+                "label": label_map.get(activity_name, activity_name),
+                "status": item_status,
+                "score": item_score,
+                "competency": first_comp.get("competency"),
+                "stive": first_comp.get("stive"),
+                "stive_rounded": first_comp.get("stive_rounded"),
+                "sten": first_comp.get("sten"),
+                "sten_rounded": first_comp.get("sten_rounded"),
+                "percentile": first_comp.get("percentile"),
+            })
+
+        # Motivation Questionnaire
+        elif activity_name == "Motivation Questionnaire":
+            for comp in item_competencies:
+                motivation_results.append({
+                    "activity": activity_name,
+                    "competency": comp.get("competency"),
+                    "stive": comp.get("stive"),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "sten": comp.get("sten"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "percentile": comp.get("percentile"),
+                    "assessment_centre": comp.get("assessment_centre"),
+                })
+
+    # Sortera ability i ordningen du vill visa dem
+    ability_order = {"Verbal": 1, "Logical": 2, "Numerical": 3}
+    ability_results.sort(key=lambda x: ability_order.get(x["label"], 99))
+
+    # Sortera motivation alfabetiskt tills vidare
+    motivation_results.sort(key=lambda x: (x.get("competency") or "").lower())
 
     ctx = {
         "process": process,
@@ -1062,20 +1162,27 @@ def process_candidate_detail(request, process_id, candidate_id):
 
         "activities": activities,
         "project_results": project_results,
-        "competency_scores": competency_scores,
         "project_scores": project_scores,
+        "competency_scores": competency_scores,
         "overall_score": overall_score,
         "reports": reports,
+
+        "ability_results": ability_results,
+        "motivation_results": motivation_results,
+        "all_competencies": all_competencies,
+
+        "numerical_percentile": numerical_percentile,
+        "logical_percentile": logical_percentile,
+        "verbal_percentile": verbal_percentile,
+
+        "mq_competencies": mq_competencies,
     }
 
-    # ✅ Om anropet kommer via fetch/AJAX: returnera partial (sheet)
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if is_ajax:
         return render(request, "customer/processes/_candidate_detail_sheet.html", ctx)
 
-    # ✅ Annars: returnera full page som vanligt
     return render(request, "customer/processes/process_candidate_detail.html", ctx)
-
 
 @login_required
 def process_invitation_statuses(request, pk):

@@ -195,6 +195,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SOVA_WEBHOOK_DEBUG_TO_FILE = os.environ.get("SOVA_WEBHOOK_DEBUG_TO_FILE", "False") == "True"
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
