@@ -6,6 +6,7 @@ from .openai_client import get_openai_client, get_chat_model
 
 def build_candidate_prompt(invitation) -> str:
     activities = invitation.sova_activities or []
+    candidate = invitation.candidate
 
     lines = []
 
@@ -40,6 +41,11 @@ Instructions:
 - Keep tone neutral and professional
 - Do NOT list raw numbers
 - Interpret the data instead
+
+Candidate:
+- Name: {candidate.first_name} {candidate.last_name}
+
+Write the summary as if you are describing this specific individual.
 
 Candidate test data:
 {test_data}
