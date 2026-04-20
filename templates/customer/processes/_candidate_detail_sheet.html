@@ -1,80 +1,198 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<style>
+  
+.candidate-sheet-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.candidate-sheet-main {
+  min-width: 0;
+}
+
+.candidate-sheet-sidebar {
+  min-width: 0;
+}
+
+.candidate-sidebar-sticky {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.candidate-ai-card {
+  min-height: 70vh;
+}
+
+.candidate-ai-messages {
+  min-height: 260px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+.candidate-ai-context {
+  background: #fcfcfc;
+}
+
+@media (max-width: 1199.98px) {
+  .candidate-sheet-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .candidate-sidebar-sticky {
+    position: static;
+  }
+
+  .candidate-ai-card {
+    min-height: auto;
+  }
+}
+</style>
+
 <div class="container-fluid px-2 px-md-3">
 
-  <!-- HERO -->
-  <div class="card candidate-hero mb-3">
-    <div class="card-body py-3 py-md-4">
+  <div class="candidate-sheet-layout">
 
-      <div class="d-flex flex-column flex-lg-row align-items-start justify-content-between gap-3">
-<!-- LEFT -->
-<div class="flex-grow-1">
-  <div class="d-flex align-items-start gap-3">
+    <!-- MAIN CONTENT -->
+    <div class="candidate-sheet-main">
 
-    <div class="user-initials-yellow user-initials-lg flex-shrink-0">
-      {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
-        {% if fn or ln %}
-          {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-        {% else %}
-          ?
-        {% endif %}
-      {% endwith %}
+      <!-- HERO -->
+<div class="card candidate-header-card mb-4">
+  <div class="card-body p-0">
+
+    <!-- TOP / HERO -->
+    <div class="candidate-header-top">
+      <div class="candidate-header-main">
+
+        <!-- LEFT: identity -->
+        <div class="candidate-identity">
+          <div class="candidate-avatar">
+            FL
+          </div>
+
+          <div class="candidate-identity-content">
+            <div class="candidate-title-row">
+              <h1 class="candidate-name">Frida Lannerström</h1>
+
+              <div class="candidate-badges">
+                <span class="badge candidate-badge candidate-badge-success">Completed</span>
+                <span class="badge candidate-badge candidate-badge-soft">SOVA: passed</span>
+              </div>
+            </div>
+
+            <div class="candidate-subline">
+              <span class="candidate-email">frida@naturligtkreativ.se</span>
+              <span class="candidate-dot"></span>
+              <span class="candidate-process">Process: Test process name</span>
+            </div>
+
+            <div class="candidate-mini-meta">
+              <div class="candidate-mini-meta-item">
+                <span class="meta-k">Invited</span>
+                <span class="meta-v">2026-04-16 15:08</span>
+              </div>
+              <div class="candidate-mini-meta-item">
+                <span class="meta-k">Started</span>
+                <span class="meta-v">2026-04-16 15:10</span>
+              </div>
+              <div class="candidate-mini-meta-item">
+                <span class="meta-k">Completed</span>
+                <span class="meta-v">2026-04-16 15:14</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: actions -->
+        <div class="candidate-header-actions">
+          <button class="btn btn-light candidate-action-btn">More</button>
+          <a href="#" class="btn btn-outline-dark candidate-action-btn">Go to candidate</a>
+          <button class="btn btn-dark candidate-action-btn">Download results</button>
+        </div>
+
+      </div>
     </div>
 
-    <div class="min-w-0 flex-grow-1">
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-        <h2 class="h5 mb-0">
-          {{ candidate.first_name }} {{ candidate.last_name }}
-        </h2>
-
-        <!-- Talena status -->
-        {% if invitation.status == "completed" %}
-          <span class="badge bg-success">Färdig</span>
-        {% elif invitation.status == "started" %}
-          <span class="badge bg-info text-dark">Påbörjad</span>
-        {% elif invitation.status == "sent" %}
-          <span class="badge bg-warning text-dark">Skickad</span>
-        {% elif invitation.status == "created" %}
-          <span class="badge bg-secondary">Ej skickad</span>
-        {% else %}
-          <span class="badge bg-light text-dark">{{ invitation.status }}</span>
-        {% endif %}
-
-        <!-- SOVA overall status -->
-        {% if invitation.sova_overall_status %}
-          <span class="badge bg-success">SOVA: {{ invitation.sova_overall_status }}</span>
-        {% else %}
-          <span class="badge bg-success">SOVA: —</span>
-        {% endif %}
+    <!-- QUICK FACTS -->
+    <div class="candidate-header-facts">
+      <div class="candidate-fact-card">
+        <div class="fact-label">Tests sent</div>
+        <div class="fact-value">3</div>
+        <div class="fact-subtext">PQ, MQ, Abilities</div>
       </div>
 
-      <div class="text-muted small">{{ candidate.email }}</div>
+      <div class="candidate-fact-card">
+        <div class="fact-label">Reports</div>
+        <div class="fact-value">5</div>
+        <div class="fact-subtext">Available now</div>
+      </div>
 
-      <!-- Meta -->
-      <div class="candidate-meta mt-3">
-        <div class="meta-item">
-          <div class="meta-label">Inbjuden</div>
-          <div class="meta-value">
-            {% if invitation.invited_at %}
-              {{ invitation.invited_at|date:"Y-m-d H:i" }}
-            {% else %}—{% endif %}
-          </div>
+      <div class="candidate-fact-card">
+        <div class="fact-label">AI summary</div>
+        <div class="fact-value">Ready</div>
+        <div class="fact-subtext">Generated 12:45</div>
+      </div>
+
+      <div class="candidate-fact-card">
+        <div class="fact-label">Latest event</div>
+        <div class="fact-value">Completed</div>
+        <div class="fact-subtext">Assessment finished</div>
+      </div>
+    </div>
+
+    <!-- TEST LINK -->
+    <div class="candidate-header-linkbar">
+      <div class="candidate-linkbar-content">
+        <div class="candidate-linkbar-text">
+          <div class="linkbar-label">Assessment link</div>
+          <div class="linkbar-help">Copy the link or open it in a new tab</div>
         </div>
 
-        <div class="meta-item">
-          <div class="meta-label">Slutförd</div>
-          <div class="meta-value">
-            {% if invitation.completed_at %}
-              {{ invitation.completed_at|date:"Y-m-d H:i" }}
-            {% else %}—{% endif %}
-          </div>
+        <div class="candidate-linkbar-field">
+          <input
+            type="text"
+            class="form-control"
+            value="https://assess-test.sovaonline.com/assessment/?sat=EXAMPLE_LINK_HERE"
+            readonly
+          >
+          <button class="btn btn-outline-dark">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY PREVIEW -->
+    <div class="candidate-header-activity">
+      <div class="activity-preview-header">
+        <div class="activity-preview-title">Recent activity</div>
+        <button class="btn btn-sm btn-link p-0">View all</button>
+      </div>
+
+      <div class="activity-preview-list">
+        <div class="activity-pill">
+          <span class="activity-pill-dot"></span>
+          Invitation sent
+          <span class="activity-time">15:08</span>
         </div>
 
-        <div class="meta-item">
-          <div class="meta-label">Process</div>
-          <div class="meta-value">
-            {{ process.project_name_snapshot|default:process.project_code }}
-          </div>
+        <div class="activity-pill">
+          <span class="activity-pill-dot"></span>
+          Candidate started test
+          <span class="activity-time">15:10</span>
+        </div>
+
+        <div class="activity-pill">
+          <span class="activity-pill-dot"></span>
+          Candidate completed test
+          <span class="activity-time">15:14</span>
+        </div>
+
+        <div class="activity-pill">
+          <span class="activity-pill-dot"></span>
+          AI summary generated
+          <span class="activity-time">12:45</span>
         </div>
       </div>
     </div>
@@ -82,325 +200,285 @@
   </div>
 </div>
 
-        <!-- RIGHT actions -->
-        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
-          <a class="btn btn-outline-secondary"
-             href="{% url 'processes:process_candidate_detail' process.id candidate.id %}">
-            Gå till kandidatsida
-          </a>
+      <!-- SENT TESTS -->
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">Skickade tester</div>
+        <div class="card-body">
 
-          <button class="btn btn-primary" type="button">
-            Ladda ner resultat
-          </button>
-        </div>
+          {% if activities %}
+            <div class="d-flex flex-column gap-3">
+              {% for item in activities %}
+                <div class="border rounded-3 p-3">
+                  <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                      <div class="fw-semibold">{{ item.activity|default:"-" }}</div>
+                      <div class="text-muted small">
+                        Fas: {{ item.phase_code|default:"-" }}
+                      </div>
+                    </div>
 
-      </div>
-
-      {% if invitation.assessment_url %}
-        <hr class="my-3">
-
-        <div class="d-flex flex-column flex-md-row align-items-stretch gap-3">
-          <div class="flex-grow-1">
-            <label class="form-label mb-1 small text-muted">Testlänk</label>
-
-            <div class="input-group">
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                id="assessmentUrlInput"
-                value="{{ invitation.assessment_url }}"
-                readonly
-                onclick="this.select()"
-              >
-              <button
-                type="button"
-                class="btn btn-outline-primary btn-sm"
-                onclick="copyAssessmentUrl(this)">
-                Kopiera
-              </button>
-            </div>
-
-            <div class="text-muted small mt-2">
-              Klicka för att markera länken, eller tryck “Kopiera”.
-            </div>
-          </div>
-        </div>
-      {% endif %}
-
-    </div>
-  </div>
-
-  <div class="row g-4">
-<div class="col-lg-12">
-  <div class="card h-100">
-    <div class="card-header fw-semibold">Skickade tester</div>
-    <div class="card-body">
-
-      {% if activities %}
-        <div class="d-flex flex-column gap-3">
-
-          {% for item in activities %}
-            <div class="border rounded-3 p-3">
-              <div class="d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <div class="fw-semibold">{{ item.activity|default:"-" }}</div>
-                  <div class="text-muted small">
-                    Fas: {{ item.phase_code|default:"-" }}
+                    <div class="text-end">
+                      {% if item.status == "completed" %}
+                        <span class="badge bg-success">Färdig</span>
+                      {% elif item.status == "in progress" or item.status == "started" %}
+                        <span class="badge bg-info text-dark">Påbörjad</span>
+                      {% elif item.status == "added" %}
+                        <span class="badge bg-secondary">Ej påbörjad</span>
+                      {% elif item.status == "invited" or item.status == "sent" %}
+                        <span class="badge bg-warning text-dark">Skickad</span>
+                      {% else %}
+                        <span class="badge bg-light text-dark">
+                          {{ item.status|default:"-" }}
+                        </span>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
-
-                <div class="text-end">
-
-  {% if item.status == "completed" %}
-    <span class="badge bg-success">Färdig</span>
-
-  {% elif item.status == "in progress" or item.status == "started" %}
-    <span class="badge bg-info text-dark">Påbörjad</span>
-
-  {% elif item.status == "added" %}
-    <span class="badge bg-secondary">Ej påbörjad</span>
-
-  {% elif item.status == "invited" or item.status == "sent" %}
-    <span class="badge bg-warning text-dark">Skickad</span>
-
-  {% else %}
-    <span class="badge bg-light text-dark">
-      {{ item.status|default:"-" }}
-    </span>
-  {% endif %}
-
-</div>
-              </div>
+              {% endfor %}
             </div>
-          {% endfor %}
+          {% else %}
+            <div class="text-muted small">Inga tester hittades ännu.</div>
+          {% endif %}
 
         </div>
+      </div>
+
+      {% if invitation.status != "completed" %}
+
+        <div class="card mb-3">
+          <div class="card-body empty-results">
+            <div class="d-flex align-items-start gap-3">
+              <div class="empty-icon">!</div>
+              <div>
+                <div class="fw-semibold mb-1">Här finns inga resultat ännu</div>
+                <div class="text-muted small">
+                  Resultaten visas här när kandidaten har slutfört testet.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       {% else %}
-        <div class="text-muted small">Inga tester hittades ännu.</div>
+
+        <!-- AI SUMMARY -->
+        <div class="card mb-3">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <div class="fw-semibold">AI-sammanfattning</div>
+
+            {% if invitation.ai_summary_generated_at %}
+              <div class="text-muted small">
+                {{ invitation.ai_summary_generated_at|date:"Y-m-d H:i" }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="card-body">
+            <div class="border rounded-3 p-3">
+              <div
+                id="aiSummaryContent"
+                class="ai-summary-text"
+                data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+                data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
+                data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
+              >
+                {% if invitation.ai_summary %}
+                  {{ invitation.ai_summary|linebreaksbr }}
+                {% elif invitation.ai_summary_status == "generating" %}
+                  <span class="text-muted">Genererar sammanfattning...</span>
+                {% else %}
+                  <span class="text-muted">AI analyserar kandidatens testresultat...</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABILITIES -->
+        <div class="card mb-3">
+          <div class="card-header fw-semibold">Abilities</div>
+          <div class="card-body">
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Verbal</span>
+                <span>{{ verbal_percentile|default:"-" }}%</span>
+              </div>
+              <div class="progress" style="height: 14px;">
+                <div class="progress-bar bg-success" style="width: {{ verbal_percentile|default:0 }}%;"></div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Logical</span>
+                <span>{{ logical_percentile|default:"-" }}%</span>
+              </div>
+              <div class="progress" style="height: 14px;">
+                <div class="progress-bar bg-info" style="width: {{ logical_percentile|default:0 }}%;"></div>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Numerical</span>
+                <span>{{ numerical_percentile|default:"-" }}%</span>
+              </div>
+              <div class="progress" style="height: 14px;">
+                <div class="progress-bar bg-warning" style="width: {{ numerical_percentile|default:0 }}%;"></div>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="row text-center g-3 mt-1">
+              <div class="col-4">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Verbal</div>
+                  <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Logical</div>
+                  <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Numerical</div>
+                  <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- MQ -->
+        <div class="card mb-3">
+          <div class="card-header fw-semibold">Motivation Questionnaire</div>
+          <div class="card-body">
+
+            {% if mq_competencies %}
+              <div class="d-flex flex-column gap-3">
+                {% for comp in mq_competencies %}
+                  <div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="fw-medium">{{ comp.competency }}</span>
+                      <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+                    </div>
+
+                    <div class="progress" style="height: 10px;">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;"></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- PERSONLIGHET -->
+        <div class="card mb-3">
+          <div class="card-header fw-semibold">Personality Assessment</div>
+          <div class="card-body">
+
+            {% if personality_competencies %}
+              <div class="d-flex flex-column gap-3">
+                {% for comp in personality_competencies %}
+                  <div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="fw-medium">{{ comp.competency }}</span>
+                      <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+                    </div>
+
+                    <div class="progress" style="height: 10px;">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;"></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted small">Inga personlighetsresultat tillgängliga ännu.</div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div class="card mb-3">
+          <div class="card-header fw-semibold">Rapporter</div>
+          <div class="card-body">
+            {% if reports %}
+              <ul class="mb-0">
+                {% for report in reports %}
+                  <li>
+                    <a href="{{ report.url }}" target="_blank" rel="noopener">
+                      {{ report.title|default:"Rapport" }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">Inga rapporter tillgängliga.</p>
+            {% endif %}
+          </div>
+        </div>
+
       {% endif %}
 
     </div>
-  </div>
-</div>
 
+    <!-- SIDEBAR -->
+    <aside class="candidate-sheet-sidebar">
+      <div class="candidate-sidebar-sticky">
 
-</div>
+        <div class="card candidate-ai-card">
+          <div class="card-header fw-semibold">AI-assistent</div>
+          <div class="card-body d-flex flex-column gap-3">
 
-<br>
-
-  <!-- RESULTS / EMPTY STATE -->
-  {% if invitation.status != "completed" %}
-
-    <div class="card mb-3">
-      <div class="card-body empty-results">
-        <div class="d-flex align-items-start gap-3">
-          <div class="empty-icon">!</div>
-          <div>
-            <div class="fw-semibold mb-1">Här finns inga resultat ännu</div>
-            <div class="text-muted small">
-              Resultaten visas här när kandidaten har slutfört testet.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-{% else %}
-
-{% if invitation.status == "completed" %}
-<div class="row g-4">
-  <div class="col-12">
-    <div class="card h-100">
-
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <div class="fw-semibold">AI-sammanfattning</div>
-
-        {% if invitation.ai_summary_generated_at %}
-          <div class="text-muted small">
-            {{ invitation.ai_summary_generated_at|date:"Y-m-d H:i" }}
-          </div>
-        {% endif %}
-      </div>
-
-      <div class="card-body">
-        <div class="d-flex flex-column gap-3">
-          <div class="border rounded-3 p-3">
-            <div
-              id="aiSummaryContent"
-              class="ai-summary-text"
-              data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-              data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
-              data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
-            >
-              {% if invitation.ai_summary %}
-                {{ invitation.ai_summary|linebreaksbr }}
-              {% elif invitation.ai_summary_status == "generating" %}
-                <span class="text-muted">Genererar sammanfattning...</span>
-              {% else %}
-                <span class="text-muted">AI analyserar kandidatens testresultat...</span>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<br>
-
-  <div class="col-lg-12">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Abilities</div>
-      <div class="card-body">
-
-        <div class="mb-4">
-          <div class="d-flex justify-content-between small mb-1">
-<span>Verbal</span>
-<span>{{ verbal_percentile|default:"-" }}%</span>
-          </div>
-          <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-success" style="width: {{ verbal_percentile|default:0 }}%;"></div>
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <div class="d-flex justify-content-between small mb-1">
-<span>Logical</span>
-<span>{{ logical_percentile|default:"-" }}%</span>
-          </div>
-          <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-info" style="width: {{ logical_percentile|default:0 }}%;"></div>
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <div class="d-flex justify-content-between small mb-1">
-<span>Numerical</span>
-<span>{{ numerical_percentile|default:"-" }}%</span>
-          </div>
-          <div class="progress" style="height: 14px;">
-            <div class="progress-bar bg-warning" style="width: {{ numerical_percentile|default:0 }}%;"></div>
-          </div>
-        </div>
-
-        <hr>
-
-        <div class="row text-center g-3 mt-1">
-          <div class="col-4">
-            <div class="border rounded-3 p-3">
-              <div class="small text-muted">Verbal</div>
-              <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="border rounded-3 p-3">
-              <div class="small text-muted">Logical</div>
-              <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="border rounded-3 p-3">
-              <div class="small text-muted">Numerical</div>
-              <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <br>
-
-<div class="card mt-4">
-  <div class="card-header fw-semibold">Motivation Questionnaire</div>
-  <div class="card-body">
-
-    {% if mq_competencies %}
-      <div class="d-flex flex-column gap-3">
-
-        {% for comp in mq_competencies %}
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-medium">{{ comp.competency }}</span>
-              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+            <div class="small text-muted">
+              Här ska användaren kunna chatta om kandidaten, rapporter och markerade kompetenser.
             </div>
 
-            <div class="progress" style="height: 10px;">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;">
+            <div class="candidate-ai-context border rounded-3 p-3">
+              <div class="fw-semibold small mb-2">Vald kontext</div>
+              <div class="text-muted small">
+                Ingen vald ännu
               </div>
             </div>
-          </div>
-        {% endfor %}
 
-      </div>
-    {% else %}
-      <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
-    {% endif %}
-
-  </div>
-</div>
-
-<br>
-<div class="card mt-4">
-  <div class="card-header fw-semibold">Personality Assessment</div>
-  <div class="card-body">
-
-    {% if personality_competencies %}
-      <div class="d-flex flex-column gap-3">
-
-        {% for comp in personality_competencies %}
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-medium">{{ comp.competency }}</span>
-              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
-            </div>
-
-            <div class="progress" style="height: 10px;">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;">
+            <div class="candidate-ai-messages border rounded-3 p-3">
+              <div class="text-muted small">
+                Chatten kommer här.
               </div>
             </div>
+
+            <form>
+              <label class="form-label small text-muted">Fråga AI om kandidaten</label>
+              <textarea class="form-control" rows="4" placeholder="T.ex. Vilka risker eller styrkor ser du i kandidatens profil?"></textarea>
+              <button type="button" class="btn btn-primary w-100 mt-2">
+                Skicka
+              </button>
+            </form>
+
           </div>
-        {% endfor %}
+        </div>
 
       </div>
-    {% else %}
-      <div class="text-muted small">Inga personlighetsresultat tillgängliga ännu.</div>
-    {% endif %}
+    </aside>
 
   </div>
-</div>
-
-
-<h3>Rapporter</h3>
-
-{% if reports %}
-  <ul>
-    {% for report in reports %}
-      <li>
-        <a href="{{ report.url }}" target="_blank" rel="noopener">
-          {{ report.title|default:"Rapport" }}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>Inga rapporter tillgängliga.</p>
-{% endif %}
-</div>
-
-{% endif %}
-
-  <!-- JS -->
 
   <script>
     function copyAssessmentUrl(buttonEl) {
@@ -412,7 +490,6 @@
 
       const originalText = buttonEl.innerText;
 
-      // Clipboard API (modern browsers)
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(input.value).then(() => {
           buttonEl.innerText = "Kopierad!";
@@ -429,8 +506,6 @@
         fallbackCopy(input, buttonEl, originalText);
       }
     }
-
-    
 
     function fallbackCopy(input, buttonEl, originalText) {
       try {
@@ -449,8 +524,6 @@
         setTimeout(() => buttonEl.innerText = originalText, 1400);
       }
     }
-
   </script>
-
 
 </div>

@@ -1126,7 +1126,7 @@ color: #6CACCB;
 /* Maxbredd + centrering + luft i kanterna */
 #candidateSheet .offcanvas-body > * {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   margin-left: auto;
