@@ -462,6 +462,8 @@
         }
       sheetBody.innerHTML = await res.text();
 
+      initCandidateSheetInteractions(sheetBody);
+
       // re-init icons + tooltips efter att HTML bytts
       if (window.feather) feather.replace();
       if (window.bootstrap) {
@@ -737,6 +739,77 @@ async function initCandidateSummaryStream() {
     summaryEl.innerHTML = '<span class="text-danger">Ett fel uppstod vid generering av sammanfattning.</span>';
     console.error("AI summary stream error:", error);
   }
+}
+</script>
+
+<script>
+function initCandidateSheetInteractions(container) {
+  if (!container) return;
+
+  // Tabs
+  container.querySelectorAll(".candidate-tab").forEach(tab => {
+    tab.addEventListener("click", function () {
+      const header = this.closest(".candidate-profile-header");
+      if (!header) return;
+
+      const target = this.dataset.tabTarget;
+      const tabs = header.querySelectorAll(".candidate-tab");
+      const panels = header.querySelectorAll(".candidate-tab-panel");
+
+      tabs.forEach(t => {
+        t.classList.remove("is-active");
+        t.setAttribute("aria-selected", "false");
+      });
+
+      panels.forEach(panel => {
+        panel.classList.remove("is-active");
+      });
+
+      this.classList.add("is-active");
+      this.setAttribute("aria-selected", "true");
+
+      const activePanel = header.querySelector(`[data-tab-panel="${target}"]`);
+      if (activePanel) {
+        activePanel.classList.add("is-active");
+      }
+    });
+  });
+
+  // Copy assessment url
+  container.querySelectorAll("[data-copy-candidate-url]").forEach(button => {
+    button.addEventListener("click", async function () {
+      const targetId = this.dataset.copyCandidateUrl;
+      const input = container.querySelector(`#${targetId}`);
+      if (!input) return;
+
+      const originalText = this.innerText;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(input.value);
+        } else {
+          input.select();
+          input.setSelectionRange(0, 99999);
+          document.execCommand("copy");
+        }
+
+        this.innerText = "Kopierad!";
+        this.classList.remove("btn-outline-dark");
+        this.classList.add("btn-dark");
+
+        setTimeout(() => {
+          this.innerText = originalText;
+          this.classList.remove("btn-dark");
+          this.classList.add("btn-outline-dark");
+        }, 1400);
+      } catch (e) {
+        this.innerText = "Kunde ej kopiera";
+        setTimeout(() => {
+          this.innerText = originalText;
+        }, 1400);
+      }
+    });
+  });
 }
 </script>
 

@@ -222,6 +222,14 @@ body {
   flex: 0 0 auto;
 }
 
+.user-initials-purple {
+
+  color: #7A6FB4;
+  background: #F1EFFD;
+  border: 1px solid #D7CFF6;
+  flex: 0 0 auto;
+}
+
 .user-initials-lg {
     width: 60px;
   height: 60px;
