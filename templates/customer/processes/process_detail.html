@@ -793,14 +793,14 @@ function initCandidateSheetInteractions(container) {
           document.execCommand("copy");
         }
 
-        this.innerText = "Kopierad!";
+        this.innerText = "Copied!";
         this.classList.remove("btn-outline-dark");
         this.classList.add("btn-dark");
 
         setTimeout(() => {
           this.innerText = originalText;
           this.classList.remove("btn-dark");
-          this.classList.add("btn-outline-dark");
+          this.classList.add("btn-primary");
         }, 1400);
       } catch (e) {
         this.innerText = "Kunde ej kopiera";

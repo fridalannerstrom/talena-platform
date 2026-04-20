@@ -113,8 +113,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
-  border-radius: 999px;
+  padding: 3px 6px;
+  border-radius: 7px;
   font-size: 0.7rem;
   font-weight: 500;
   border: 1px solid transparent;
@@ -223,7 +223,7 @@
 }
 
 .candidate-tab.is-active {
-  color: #111;
+  color: #473A8B;
 }
 
 .candidate-tab.is-active::after {
@@ -234,7 +234,7 @@
   bottom: -1px;
   height: 3px;
   border-radius: 999px;
-  background: #111;
+  background: #473A8B;
 }
 
 .candidate-profile-tab-panels {
@@ -252,7 +252,7 @@
 
 .candidate-overview-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -260,6 +260,10 @@
   border-right: 1px solid #f1f1f1;
   background: #ffffff;
   border-radius: 0px;
+}
+
+.candidate-overview-card:last-child {
+  border-right: 1px solid #ffffff;
 }
 
 .candidate-overview-label {
@@ -295,19 +299,18 @@
   gap: 1rem;
   padding: 1rem;
   border: 1px solid #ececec;
-  border-radius: 16px;
-  background: #fbfbfb;
+  border-radius: 10px;
 }
 
 .candidate-inline-title {
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #171717;
   margin-bottom: 0.15rem;
 }
 
 .candidate-inline-meta {
-  font-size: 0.86rem;
+  font-size: 0.7rem;
   color: #777;
 }
 
@@ -376,15 +379,7 @@
   height: 48px;
   border-radius: 14px;
   border: 1px solid #dcdcdc;
-  font-size: 0.95rem;
-}
-
-.candidate-link-field .btn {
-  height: 48px;
-  border-radius: 14px;
-  padding-inline: 1rem;
-  font-weight: 600;
-  white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 .candidate-activity-timeline {
@@ -586,7 +581,7 @@
 
 .candidate-overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 0.75rem;
 }
 
@@ -641,11 +636,11 @@
               {% if invitation.status == "completed" %}
                 <span class="candidate-status-badge is-success">Completed</span>
               {% elif invitation.status == "started" %}
-                <span class="candidate-status-badge is-info">Påbörjad</span>
+                <span class="candidate-status-badge is-info">Started</span>
               {% elif invitation.status == "sent" %}
-                <span class="candidate-status-badge is-warning">Skickad</span>
+                <span class="candidate-status-badge is-warning">Sent</span>
               {% elif invitation.status == "created" %}
-                <span class="candidate-status-badge is-muted">Ej skickad</span>
+                <span class="candidate-status-badge is-muted">Not sent</span>
               {% else %}
                 <span class="candidate-status-badge is-muted">{{ invitation.status|default:"—" }}</span>
               {% endif %}
@@ -699,7 +694,7 @@
       role="tab"
       aria-selected="false"
       onclick="switchCandidateTab(this)">
-      Testlänk
+      Test link
     </button>
 
     <button
@@ -709,7 +704,7 @@
       role="tab"
       aria-selected="false"
       onclick="switchCandidateTab(this)">
-      Aktivitet
+      Activity
     </button>
   </div>
 </div>
@@ -757,10 +752,17 @@
       </div>
     </div>
 
+    <div class="candidate-overview-card">
+      <div class="candidate-overview-label">Available reports</div>
+      <div class="candidate-overview-value">
+        {{ activities|length|default:"0" }}
+      </div>
+    </div>
+
   </div>
 </div>
 
-      <!-- TESTS -->
+      <!-- SENT TESTS -->
       <div class="candidate-tab-panel" data-tab-panel="tests" role="tabpanel">
         {% if activities %}
           <div class="candidate-inline-list">
@@ -769,16 +771,17 @@
                 <div>
                   <div class="candidate-inline-title">{{ item.activity|default:"-" }}</div>
                   <div class="candidate-inline-meta">
-                    Fas: {{ item.phase_code|default:"-" }}
+                    Tests the candidate's verbal ability
                   </div>
                 </div>
 
+      
                 {% if item.status == "completed" %}
-                  <span class="candidate-inline-status is-success">Färdig</span>
+                  <span class="candidate-status-badge is-success">Completed</span>
                 {% elif item.status == "in progress" or item.status == "started" %}
-                  <span class="candidate-inline-status is-info">Påbörjad</span>
+                  <span class="candidate-status-badge is-info">Started</span>
                 {% elif item.status == "added" %}
-                  <span class="candidate-inline-status is-muted">Ej påbörjad</span>
+                  <span class="candidate-status-badge is-warning">Not started</span>
                 {% elif item.status == "invited" or item.status == "sent" %}
                   <span class="candidate-inline-status is-warning">Skickad</span>
                 {% else %}
@@ -799,9 +802,9 @@
         {% if invitation.assessment_url %}
           <div class="candidate-link-panel">
             <div class="candidate-link-panel-text">
-              <div class="candidate-link-label">Testlänk</div>
-              <div class="candidate-link-help">
-                Klicka för att markera länken, eller tryck “Kopiera”.
+              <div class="candidate-inline-title">Test link</div>
+              <div class="candidate-inline-meta">
+                Click to highlight the link, or press "Copy".
               </div>
             </div>
 
@@ -815,15 +818,15 @@
   onclick="this.select()"
 >
 <button
-  class="btn btn-outline-dark"
+  class="btn btn-primary"
   type="button"
   data-copy-candidate-url="candidateAssessmentUrl">
-  Kopiera
+  Copy
 </button>
             </div>
           </div>
         {% else %}
-          <div class="text-muted small">Ingen testlänk tillgänglig ännu.</div>
+          <div class="text-muted small">No test link available yet.</div>
         {% endif %}
       </div>
 
@@ -890,6 +893,8 @@
                         Fas: {{ item.phase_code|default:"-" }}
                       </div>
                     </div>
+
+                    
 
                     <div class="text-end">
                       {% if item.status == "completed" %}
@@ -1164,7 +1169,7 @@
 
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(input.value).then(() => {
-        buttonEl.innerText = "Kopierad!";
+        buttonEl.innerText = "Copied!";
         buttonEl.classList.remove("btn-outline-dark");
         buttonEl.classList.add("btn-dark");
 
@@ -1185,7 +1190,7 @@
 
     try {
       document.execCommand("copy");
-      buttonEl.innerText = "Kopierad!";
+      buttonEl.innerText = "Copied!";
       buttonEl.classList.remove("btn-outline-dark");
       buttonEl.classList.add("btn-dark");
 
