@@ -1041,6 +1041,33 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     activities = invitation.sova_activities or []
 
+    # -------------------------
+    # Overview counts
+    # -------------------------
+    activity_count = len(activities)
+
+    completed_statuses = {
+        "completed",
+        "complete",
+        "finished",
+        "done",
+        "result available",
+        "result_available",
+    }
+
+    tests_completed_count = sum(
+        1
+        for activity in activities
+        if (activity.get("status") or "").strip().lower() in completed_statuses
+    )
+
+    # Placeholder tills rapportlogik är på plats
+    # Alternativ 1: lika många rapporter som färdiga tester
+    available_reports_count = tests_completed_count
+
+    # Om du hellre vill visa 0 tills vidare, använd istället:
+    # available_reports_count = 0
+
     mq_competencies = []
 
     for item in activities:
@@ -1195,6 +1222,10 @@ def process_candidate_detail(request, process_id, candidate_id):
 
         "mq_competencies": mq_competencies,
         "personality_competencies": personality_competencies,
+
+        "tests_sent_count": activity_count,
+        "tests_completed_count": tests_completed_count,
+        "available_reports_count": available_reports_count,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
