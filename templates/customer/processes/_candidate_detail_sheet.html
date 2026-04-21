@@ -805,78 +805,182 @@
 
 
 /* profile highlights */
+.profile-highlights-section .card-body {
+  padding: 1.25rem;
+}
 
-.candidate-highlights-grid {
+.profile-domain-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.candidate-highlight-card {
-  border: 1px solid #ececec;
-  border-radius: 16px;
-  background: #fbfbfb;
+.domain-panel {
+  position: relative;
+  border: 1px solid #e9e9e9;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fcfcfd 0%, #ffffff 100%);
   padding: 1rem;
+  box-shadow: 0 6px 18px rgba(20, 20, 20, 0.03);
 }
 
-.candidate-highlight-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #181818;
-  margin-bottom: 0.9rem;
+.domain-panel--motivation {
+  background:
+    radial-gradient(circle at top right, rgba(245, 238, 220, 0.35), transparent 32%),
+    linear-gradient(180deg, #fcfcfd 0%, #ffffff 100%);
 }
 
-.candidate-highlight-list {
+.domain-panel--personality {
+  background:
+    radial-gradient(circle at top right, rgba(233, 228, 252, 0.35), transparent 32%),
+    linear-gradient(180deg, #fcfcfd 0%, #ffffff 100%);
+}
+
+.domain-panel__header {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.candidate-highlight-item {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #efefef;
+  margin-bottom: 1rem;
 }
 
-.candidate-highlight-item:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.candidate-highlight-name {
-  font-size: 0.92rem;
+.domain-panel__eyebrow {
+  font-size: 0.74rem;
   font-weight: 600;
-  color: #1b1b1b;
-  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a8a8a;
+  margin-bottom: 0.3rem;
 }
 
-.candidate-highlight-subtext {
-  font-size: 0.8rem;
-  color: #7a7a7a;
-  margin-top: 0.1rem;
+.domain-panel__title {
+  font-size: 1.1rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #191919;
+  margin: 0;
 }
 
-.candidate-highlight-score {
+.domain-panel__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
-  min-height: 34px;
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-  background: #f2f2f2;
-  border: 1px solid #e3e3e3;
-  font-size: 0.82rem;
+  background: #f5f5f5;
+  border: 1px solid #e6e6e6;
+  color: #666;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.domain-panel__section {
+  margin-bottom: 0.75rem;
+}
+
+.domain-panel__section:last-child {
+  margin-bottom: 0;
+}
+
+.domain-panel__section-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #3a3a3a;
+  margin-bottom: 0.75rem;
+}
+
+.domain-panel__divider {
+  height: 1px;
+  background: #ececec;
+  margin: 0.9rem 0 1rem;
+}
+
+.highlight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.highlight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid #ededed;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.highlight-row__content {
+  min-width: 0;
+}
+
+.highlight-row__name {
+  font-size: 0.98rem;
   font-weight: 700;
   color: #222;
-  white-space: nowrap;
+  line-height: 1.2;
+  margin-bottom: 0.18rem;
+}
+
+.highlight-row__meta {
+  font-size: 0.82rem;
+  color: #7e7e7e;
+}
+
+.highlight-score-pill {
+  min-width: 58px;
+  height: 36px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1;
+  border: 1px solid #e1e1e1;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #222;
+  flex-shrink: 0;
+}
+
+.highlight-score-pill--soft {
+  background: #f6f3ef;
+  border-color: #eadfce;
+}
+
+.highlight-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 140px;
+  border: 1px dashed #e2e2e2;
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.highlight-empty--compact {
+  min-height: 120px;
+}
+
+.highlight-empty__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #3a3a3a;
+  margin-bottom: 0.35rem;
+}
+
+.highlight-empty__text {
+  font-size: 0.84rem;
+  color: #7a7a7a;
+  line-height: 1.45;
 }
 
 @media (max-width: 991.98px) {
-  .candidate-highlights-grid {
+  .profile-domain-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1195,7 +1299,6 @@
           </div>
 
           <div class="card-body">
-            <div class="border rounded-3 p-3">
               <div
                 id="aiSummaryContent"
                 class="ai-summary-text"
@@ -1211,80 +1314,149 @@
                   <span class="text-muted">AI analyserar kandidatens testresultat...</span>
                 {% endif %}
               </div>
-            </div>
           </div>
         </div>
 
-                <div class="card mb-3">
+<!-- PROFILE HIGHLIGHTS -->
+<div class="card mb-3 profile-highlights-section">
   <div class="card-header fw-semibold">Profile highlights</div>
   <div class="card-body">
 
-    <div class="candidate-highlights-grid">
+    <div class="profile-domain-grid">
 
-      <!-- Top motivations -->
-      <div class="candidate-highlight-card">
-        <div class="candidate-highlight-title">Top motivations</div>
-
-        {% if top_motivations %}
-          <div class="candidate-highlight-list">
-            {% for comp in top_motivations %}
-              <div class="candidate-highlight-item">
-                <div>
-                  <div class="candidate-highlight-name">{{ comp.competency }}</div>
-                  <div class="candidate-highlight-subtext">Motivation</div>
-                </div>
-                <span class="candidate-highlight-score">{{ comp.sten_rounded|default:"-" }}/10</span>
-              </div>
-            {% endfor %}
+      <!-- Motivation column -->
+      <section class="domain-panel domain-panel--motivation">
+        <div class="domain-panel__header">
+          <div>
+            <div class="domain-panel__eyebrow">What drives this person</div>
+            <h3 class="domain-panel__title">Motivation</h3>
           </div>
-        {% else %}
-          <div class="text-muted small">No motivation data yet.</div>
-        {% endif %}
-      </div>
+          <div class="domain-panel__icon">↗</div>
+        </div>
 
-      <!-- Top personality -->
-      <div class="candidate-highlight-card">
-        <div class="candidate-highlight-title">Top personality traits</div>
+        <div class="domain-panel__section">
+          <div class="domain-panel__section-title">Top motivations</div>
 
-        {% if top_personality_traits %}
-          <div class="candidate-highlight-list">
-            {% for comp in top_personality_traits %}
-              <div class="candidate-highlight-item">
-                <div>
-                  <div class="candidate-highlight-name">{{ comp.competency }}</div>
-                  <div class="candidate-highlight-subtext">Personality</div>
-                </div>
-                <span class="candidate-highlight-score">{{ comp.sten_rounded|default:"-" }}/10</span>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="text-muted small">No personality data yet.</div>
-        {% endif %}
-      </div>
-
-      <!-- Areas to explore -->
-      <div class="candidate-highlight-card">
-        <div class="candidate-highlight-title">Areas to explore</div>
-
-        {% if development_areas %}
-          <div class="candidate-highlight-list">
-            {% for comp in development_areas %}
-              <div class="candidate-highlight-item">
-                <div>
-                  <div class="candidate-highlight-name">{{ comp.competency }}</div>
-                  <div class="candidate-highlight-subtext">
-                    {{ comp.source_label|default:"Lower result" }}
+          {% if top_motivations %}
+            <div class="highlight-list">
+              {% for comp in top_motivations %}
+                <div class="highlight-row">
+                  <div class="highlight-row__content">
+                    <div class="highlight-row__name">{{ comp.competency }}</div>
+                    <div class="highlight-row__meta">Motivation</div>
+                  </div>
+                  <div class="highlight-score-pill">
+                    {{ comp.sten_rounded|default:"-" }}/10
                   </div>
                 </div>
-                <span class="candidate-highlight-score">{{ comp.sten_rounded|default:"-" }}/10</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="highlight-empty highlight-empty--compact">
+              <div class="highlight-empty__title">No motivation data yet</div>
+              <div class="highlight-empty__text">
+                Motivation results will appear here when available.
               </div>
-            {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="domain-panel__divider"></div>
+
+        <div class="domain-panel__section">
+          <div class="domain-panel__section-title">Areas to explore</div>
+
+          {% if motivation_development_areas %}
+            <div class="highlight-list">
+              {% for comp in motivation_development_areas %}
+                <div class="highlight-row">
+                  <div class="highlight-row__content">
+                    <div class="highlight-row__name">{{ comp.competency }}</div>
+                    <div class="highlight-row__meta">Motivation</div>
+                  </div>
+                  <div class="highlight-score-pill highlight-score-pill--soft">
+                    {{ comp.sten_rounded|default:"-" }}/10
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="highlight-empty highlight-empty--compact">
+              <div class="highlight-empty__title">No development areas yet</div>
+              <div class="highlight-empty__text">
+                Lower-scoring motivation areas will appear here.
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Personality column -->
+      <section class="domain-panel domain-panel--personality">
+        <div class="domain-panel__header">
+          <div>
+            <div class="domain-panel__eyebrow">Most prominent traits</div>
+            <h3 class="domain-panel__title">Personality</h3>
           </div>
-        {% else %}
-          <div class="text-muted small">No development areas yet.</div>
-        {% endif %}
-      </div>
+          <div class="domain-panel__icon">✦</div>
+        </div>
+
+        <div class="domain-panel__section">
+          <div class="domain-panel__section-title">Top personality traits</div>
+
+          {% if top_personality_traits %}
+            <div class="highlight-list">
+              {% for comp in top_personality_traits %}
+                <div class="highlight-row">
+                  <div class="highlight-row__content">
+                    <div class="highlight-row__name">{{ comp.competency }}</div>
+                    <div class="highlight-row__meta">Personality</div>
+                  </div>
+                  <div class="highlight-score-pill">
+                    {{ comp.sten_rounded|default:"-" }}/10
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="highlight-empty highlight-empty--compact">
+              <div class="highlight-empty__title">No personality data yet</div>
+              <div class="highlight-empty__text">
+                Personality results will appear here when available.
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="domain-panel__divider"></div>
+
+        <div class="domain-panel__section">
+          <div class="domain-panel__section-title">Areas to explore</div>
+
+          {% if personality_development_areas %}
+            <div class="highlight-list">
+              {% for comp in personality_development_areas %}
+                <div class="highlight-row">
+                  <div class="highlight-row__content">
+                    <div class="highlight-row__name">{{ comp.competency }}</div>
+                    <div class="highlight-row__meta">Personality</div>
+                  </div>
+                  <div class="highlight-score-pill highlight-score-pill--soft">
+                    {{ comp.sten_rounded|default:"-" }}/10
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="highlight-empty highlight-empty--compact">
+              <div class="highlight-empty__title">No development areas yet</div>
+              <div class="highlight-empty__text">
+                Lower-scoring personality areas will appear here.
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </section>
 
     </div>
 
