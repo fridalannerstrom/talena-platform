@@ -19,13 +19,13 @@ def edit_process_invitation_template(request, process_id):
         template_type="invitation",
         language="sv",
         defaults={
-            "subject": "{process_name}: Ditt test för {job_title}",
+            "subject": "Inbjudan till testprocess",
             "body": (
                 "Hej {first_name}!\n\n"
                 "Klicka på länken för att starta testet:\n"
                 "{assessment_url}\n\n"
                 "Vänliga hälsningar,\n"
-                "Talena"
+                "{sender_full_name}"
             ),
         },
     )
@@ -41,8 +41,8 @@ def edit_process_invitation_template(request, process_id):
 
     placeholders = [
         "{first_name}", "{last_name}", "{email}",
-        "{process_name}", "{job_title}", "{job_location}",
-        "{assessment_url}",
+        "{process_name}", "{assessment_url}", 
+        "{sender_first_name}", "{sender_last_name}", "{sender_full_name}",
     ]
 
     return render(request, "emails/edit_invitation_template.html", {

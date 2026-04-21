@@ -94,14 +94,19 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 "Talena"
             )
 
+            sender_full_name = actor_user.get_full_name().strip() or actor_user.first_name or actor_user.email
+
             ctx = {
-                "first_name": candidate.first_name,
-                "last_name": candidate.last_name,
-                "email": candidate.email,
-                "process_name": process.name,
-                "job_title": process.job_title,
-                "job_location": process.job_location,
-                "assessment_url": test_url,
+                "first_name": candidate.first_name or "",
+                "last_name": candidate.last_name or "",
+                "email": candidate.email or "",
+                "process_name": process.name or "",
+                "job_title": process.job_title or "",
+                "job_location": process.job_location or "",
+                "assessment_url": test_url or "",
+                "sender_first_name": actor_user.first_name or "",
+                "sender_last_name": actor_user.last_name or "",
+                "sender_full_name": sender_full_name,
             }
 
             subject = render_placeholders(subject_tpl, ctx)
@@ -117,9 +122,9 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 status="queued",
             )
 
-            customer_user = process.created_by
+            customer_user = actor_user
             customer_display_name = (
-                customer_user.get_full_name()
+                customer_user.get_full_name().strip()
                 or customer_user.first_name
                 or customer_user.email
             )

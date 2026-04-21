@@ -81,9 +81,9 @@
               <div class="text-danger small mt-1">{{ form.body.errors|striptags }}</div>
             {% endif %}
           </div>
-
+<!--
           <div class="row g-3 align-items-end">
-            <!-- Language -->
+
             <div class="col-12 col-md-6">
               <label class="form-label">Språk</label>
               {{ form.language }}
@@ -92,7 +92,6 @@
               {% endif %}
             </div>
 
-            <!-- Active -->
             <div class="col-12 col-md-6">
               <div class="form-check form-switch mt-2">
                 {{ form.is_active }}
@@ -109,6 +108,8 @@
               {% endif %}
             </div>
           </div>
+        
+        -->
 
           <div class="d-flex align-items-center gap-2 mt-4">
             <button class="btn btn-primary" type="submit">Spara</button>
