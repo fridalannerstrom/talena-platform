@@ -148,6 +148,63 @@ def sova_webhook(request):
     if not invitation:
         print("⚠️ No matching invitation found.")
         return JsonResponse({"status": "ignored", "reason": "invitation not found"})
+    
+    old_status = invitation.status
+    old_activities = invitation.sova_activities or []
+    new_activities = payload.get("activities", []) or []
+
+    old_status_by_name = {
+        (item.get("activity") or "").strip(): _norm(item.get("status") or "")
+        for item in old_activities
+    }
+
+    new_status_by_name = {
+        (item.get("activity") or "").strip(): _norm(item.get("status") or "")
+        for item in new_activities
+    }
+
+    completed_statuses = {"completed", "complete", "finished", "done", "result available", "result_available"}
+    started_statuses = {"started", "in progress"}
+
+    for activity_name, new_activity_status in new_status_by_name.items():
+        old_activity_status = old_status_by_name.get(activity_name)
+
+        if old_activity_status == new_activity_status:
+            continue
+
+        if new_activity_status in started_statuses:
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={
+                    "old_status": old_activity_status,
+                    "new_status": "started",
+                    "activity_name": activity_name,
+                    "level": "activity",
+                },
+            )
+
+        elif new_activity_status in completed_statuses:
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={
+                    "old_status": old_activity_status,
+                    "new_status": "completed",
+                    "activity_name": activity_name,
+                    "level": "activity",
+                },
+            )
 
     invitation.sova_payload = payload
 
@@ -157,7 +214,7 @@ def sova_webhook(request):
 
     invitation.sova_current_phase_code = current_phase_code
     invitation.sova_current_phase_idx = current_phase_idx
-    invitation.sova_activities = payload.get("activities", []) or []
+    invitation.sova_activities = new_activities
     invitation.sova_phases = payload.get("phases", []) or []
     invitation.sova_reports = payload.get("reports", []) or []
 

@@ -83,14 +83,15 @@ class ActivityEvent(models.Model):
             return f"Inbjudan skickades till {self.candidate}"
 
         if self.verb == self.Verb.STATUS_CHANGED:
-            old = meta.get("old_status")
-            new = meta.get("new_status")
-            activity_name = meta.get("activity_name")
+            old = (self.meta or {}).get("old_status")
+            new = (self.meta or {}).get("new_status")
+            activity_name = (self.meta or {}).get("activity_name")
+            level = (self.meta or {}).get("level")
 
-            if new == "started" and activity_name:
+            if level == "activity" and new == "started" and activity_name:
                 return f"{self.candidate} påbörjade {activity_name}"
 
-            if new == "completed" and activity_name:
+            if level == "activity" and new == "completed" and activity_name:
                 return f"{self.candidate} slutförde {activity_name}"
 
             if new == "started":
@@ -100,6 +101,4 @@ class ActivityEvent(models.Model):
                 return f"{self.candidate} slutförde testet"
 
             return f"{actor} uppdaterade {self.candidate}: {old} → {new}"
-
-        return f"{actor} gjorde en uppdatering"
     
