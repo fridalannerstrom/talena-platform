@@ -1108,6 +1108,62 @@ def process_candidate_detail(request, process_id, candidate_id):
         key=lambda x: (x.get("competency") or "").lower()
     )
 
+    
+    # -------------------------
+    # Highlights / profile snapshot
+    # -------------------------
+
+    def safe_score(item):
+        return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
+
+    # Sort descending for top results
+    sorted_mq_desc = sorted(
+        mq_competencies,
+        key=safe_score,
+        reverse=True
+    )
+
+    sorted_personality_desc = sorted(
+        personality_competencies,
+        key=safe_score,
+        reverse=True
+    )
+
+    # Top results
+    top_motivations = sorted_mq_desc[:3]
+    top_personality_traits = sorted_personality_desc[:3]
+
+    # Lowest results for "areas to explore"
+    sorted_mq_asc = sorted(
+        mq_competencies,
+        key=safe_score
+    )
+
+    sorted_personality_asc = sorted(
+        personality_competencies,
+        key=safe_score
+    )
+
+    lowest_mq = [
+        {
+            **item,
+            "source_label": "Motivation",
+        }
+        for item in sorted_mq_asc[:2]
+    ]
+
+    lowest_personality = [
+        {
+            **item,
+            "source_label": "Personality",
+        }
+        for item in sorted_personality_asc[:2]
+    ]
+
+    development_areas = (lowest_mq + lowest_personality)[:4]
+
+
+
     numerical_percentile = None
     logical_percentile = None
     verbal_percentile = None
@@ -1238,6 +1294,10 @@ def process_candidate_detail(request, process_id, candidate_id):
         "tests_completed_count": tests_completed_count,
         "available_reports_count": available_reports_count,
         "email_logs_by_id": email_logs_by_id,
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "development_areas": development_areas,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
