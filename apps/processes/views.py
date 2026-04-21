@@ -40,8 +40,17 @@ from apps.projects.models import ProjectMeta
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
-from apps.reports.libraries.motivation import MOTIVATION_REPORTS, MOTIVATION_TEXTS
-from apps.reports.services.builders import build_scores_by_competency, build_report, build_reports
+from apps.reports.libraries.motivation import (
+    MOTIVATION_REPORTS,
+    MOTIVATION_TEXTS,
+    MOTIVATION_COACHING_CONTENT,
+)
+from apps.reports.services.builders import (
+    build_scores_by_competency,
+    build_report,
+    build_reports,
+    build_motivation_coaching_report,
+)
 
 from apps.core.ai.candidate_summary import (
     stream_candidate_summary,
@@ -1106,6 +1115,12 @@ def process_candidate_detail(request, process_id, candidate_id):
         text_library=MOTIVATION_TEXTS,
     )
 
+    motivation_coaching_report = build_motivation_coaching_report(
+        competencies=mq_competencies,
+        report_definition=MOTIVATION_REPORTS["coaching_report"],
+        content_library=MOTIVATION_COACHING_CONTENT,
+    )
+
     personality_competencies = []
 
     for item in activities:
@@ -1282,6 +1297,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "personality_development_areas": personality_development_areas,
 
         "motivation_reports_for_ui": motivation_reports_for_ui,
+        "motivation_coaching_report": motivation_coaching_report,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

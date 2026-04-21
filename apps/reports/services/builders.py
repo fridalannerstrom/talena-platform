@@ -1,4 +1,5 @@
 from apps.reports.services.resolver import resolve_report_text
+from apps.reports.services.score_bands import resolve_score_band
 
 
 def normalize_competency_name(name: str | None) -> str:
@@ -106,3 +107,74 @@ def build_reports(
         )
         for report_key in report_keys
     ]
+
+
+
+def build_motivation_coaching_report(
+    *,
+    competencies: list[dict],
+    report_definition: dict,
+    content_library: dict,
+    bands=None,
+) -> dict:
+    """
+    Builds a coaching-style motivation report.
+
+    Logic:
+    - take all MQ competencies
+    - match them against coaching content aliases
+    - resolve score band
+    - sort by highest score
+    - pick top N
+    """
+
+    matched_items = []
+
+    for content_key, content_def in content_library.items():
+        aliases = content_def.get("aliases", [])
+        label = content_def.get("label", content_key)
+
+        matched_score = None
+        matched_source_name = None
+
+        for comp in competencies:
+            comp_name = comp.get("competency")
+            comp_score = comp.get("sten_rounded")
+
+            if normalize_competency_name(comp_name) in {
+                normalize_competency_name(alias) for alias in aliases
+            }:
+                matched_score = comp_score
+                matched_source_name = comp_name
+                break
+
+        if matched_score is None:
+            continue
+
+        score_band = resolve_score_band(matched_score, bands=bands)
+        band_content = content_def.get("bands", {}).get(score_band, {})
+
+        matched_items.append({
+            "key": content_key,
+            "label": label,
+            "source_name": matched_source_name,
+            "score": matched_score,
+            "score_band": score_band,
+            "summary": band_content.get("summary", ""),
+            "upsides": band_content.get("upsides", []),
+            "downsides": band_content.get("downsides", []),
+            "questions": band_content.get("questions", []),
+        })
+
+    matched_items.sort(key=lambda item: item.get("score") or 0, reverse=True)
+
+    top_n = report_definition.get("top_n", 3)
+    selected_items = matched_items[:top_n]
+
+    return {
+        "key": "coaching_report",
+        "title": report_definition.get("title", "Coaching Report"),
+        "intro": report_definition.get("intro", ""),
+        "domain": report_definition.get("domain", "motivation"),
+        "items": selected_items,
+    }
