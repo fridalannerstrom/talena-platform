@@ -380,6 +380,26 @@
   </div>
 </div>
 
+
+<div class="modal fade" id="globalEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Invitation email</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="activity-email-meta mb-3">
+          <p class="mb-1"><strong>To:</strong> <span id="globalEmailTo"></span></p>
+          <p class="mb-0"><strong>Subject:</strong> <span id="globalEmailSubject"></span></p>
+        </div>
+        <div class="activity-email-body" id="globalEmailBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ✅ Self registration modal (bind till alla .js-selfreg) -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -463,6 +483,7 @@
       sheetBody.innerHTML = await res.text();
 
       initCandidateSheetInteractions(sheetBody);
+      initGlobalEmailModal(sheetBody);
 
       // re-init icons + tooltips efter att HTML bytts
       if (window.feather) feather.replace();
@@ -808,6 +829,32 @@ function initCandidateSheetInteractions(container) {
           this.innerText = originalText;
         }, 1400);
       }
+    });
+  });
+}
+</script>
+
+<script>
+function initGlobalEmailModal(container) {
+  if (!container || !window.bootstrap) return;
+
+  const modalEl = document.getElementById("globalEmailModal");
+  if (!modalEl) return;
+
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  const toEl = document.getElementById("globalEmailTo");
+  const subjectEl = document.getElementById("globalEmailSubject");
+  const bodyEl = document.getElementById("globalEmailBody");
+
+  container.querySelectorAll(".js-open-email-modal").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toEl.textContent = btn.dataset.emailTo || "—";
+      subjectEl.textContent = btn.dataset.emailSubject || "—";
+
+      const rawBody = btn.dataset.emailBody || "";
+      bodyEl.innerHTML = rawBody.replace(/\n/g, "<br>");
+
+      modal.show();
     });
   });
 }
