@@ -1055,40 +1055,44 @@ padding: 0px 0px 0px 30px;
     <button
       class="candidate-tab is-active"
       type="button"
+      data-tab-group="candidate-main-tabs"
       data-tab-target="overview"
       role="tab"
       aria-selected="true"
-      onclick="switchCandidateTab(this)">
+      onclick="switchTabs(this)">
       Overview
     </button>
 
     <button
       class="candidate-tab"
       type="button"
+      data-tab-group="candidate-main-tabs"
       data-tab-target="tests"
       role="tab"
       aria-selected="false"
-      onclick="switchCandidateTab(this)">
+      onclick="switchTabs(this)">
       Sent tests
     </button>
 
     <button
       class="candidate-tab"
       type="button"
+      data-tab-group="candidate-main-tabs"
       data-tab-target="link"
       role="tab"
       aria-selected="false"
-      onclick="switchCandidateTab(this)">
+      onclick="switchTabs(this)">
       Test link
     </button>
 
     <button
       class="candidate-tab"
       type="button"
+      data-tab-group="candidate-main-tabs"
       data-tab-target="activity"
       role="tab"
       aria-selected="false"
-      onclick="switchCandidateTab(this)">
+      onclick="switchTabs(this)">
       Activity
     </button>
   </div>
@@ -1098,7 +1102,11 @@ padding: 0px 0px 0px 30px;
     <div class="candidate-profile-tab-panels">
 
       <!-- OVERVIEW -->
-<div class="candidate-tab-panel is-active" data-tab-panel="overview" role="tabpanel">
+<div
+  class="candidate-tab-panel is-active"
+  data-tab-group="candidate-main-tabs"
+  data-tab-panel="overview"
+  role="tabpanel">
   <div class="candidate-overview-grid">
 
         <div class="candidate-overview-card">
@@ -1148,7 +1156,11 @@ padding: 0px 0px 0px 30px;
 </div>
 
       <!-- SENT TESTS -->
-      <div class="candidate-tab-panel" data-tab-panel="tests" role="tabpanel">
+      <div
+  class="candidate-tab-panel"
+  data-tab-group="candidate-main-tabs"
+  data-tab-panel="tests"
+  role="tabpanel">
         {% if activities %}
           <div class="candidate-inline-list">
             {% for item in activities %}
@@ -1183,7 +1195,11 @@ padding: 0px 0px 0px 30px;
       </div>
 
       <!-- LINK -->
-      <div class="candidate-tab-panel" data-tab-panel="link" role="tabpanel">
+     <div
+  class="candidate-tab-panel"
+  data-tab-group="candidate-main-tabs"
+  data-tab-panel="link"
+  role="tabpanel">
         {% if invitation.assessment_url %}
           <div class="candidate-link-panel">
             <div class="candidate-link-panel-text">
@@ -1216,7 +1232,11 @@ padding: 0px 0px 0px 30px;
       </div>
 
       <!-- ACTIVITY -->
-<div class="candidate-tab-panel" data-tab-panel="activity" role="tabpanel">
+<div
+  class="candidate-tab-panel"
+  data-tab-group="candidate-main-tabs"
+  data-tab-panel="activity"
+  role="tabpanel">
   <div class="activity-timeline">
 
     {% for event in activity_events %}
@@ -1489,7 +1509,39 @@ padding: 0px 0px 0px 30px;
         <!-- MQ -->
         <div class="card mb-3">
           <div class="card-header fw-semibold">Motivation Questionnaire</div>
-          <div class="card-body">
+<div class="candidate-profile-tabs-wrap">
+  <div class="candidate-profile-tabs" role="tablist" aria-label="Candidate header tabs">
+  {% for report in motivation_reports_for_ui %}
+    <button
+      class="candidate-tab {% if forloop.first %}is-active{% endif %}"
+      type="button"
+      data-tab-group="motivation-report-tabs"
+      data-tab-target="{{ report.key }}"
+      onclick="switchTabs(this)">
+      {{ report.title }}
+    </button>
+  {% endfor %}
+</div>
+</div>
+
+{% for report in motivation_reports_for_ui %}
+  <div
+    class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
+    data-tab-group="motivation-report-tabs"
+    data-tab-panel="{{ report.key }}">
+    
+    <h3>{{ report.title }}</h3>
+    <p>{{ report.intro }}</p>
+
+    {% for item in report.items %}
+      <div class="mb-3">
+        <strong>{{ item.competency }}</strong>
+        <span>{{ item.score|default:"-" }}/10</span>
+        <p>{{ item.text|default:"No text available yet." }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endfor %}
 
 <h3>{{ motivation_summary_report.title }}</h3>
 <p>{{ motivation_summary_report.intro }}</p>

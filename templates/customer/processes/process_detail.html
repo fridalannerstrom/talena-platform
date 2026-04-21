@@ -767,35 +767,6 @@ async function initCandidateSummaryStream() {
 function initCandidateSheetInteractions(container) {
   if (!container) return;
 
-  // Tabs
-  container.querySelectorAll(".candidate-tab").forEach(tab => {
-    tab.addEventListener("click", function () {
-      const header = this.closest(".candidate-profile-header");
-      if (!header) return;
-
-      const target = this.dataset.tabTarget;
-      const tabs = header.querySelectorAll(".candidate-tab");
-      const panels = header.querySelectorAll(".candidate-tab-panel");
-
-      tabs.forEach(t => {
-        t.classList.remove("is-active");
-        t.setAttribute("aria-selected", "false");
-      });
-
-      panels.forEach(panel => {
-        panel.classList.remove("is-active");
-      });
-
-      this.classList.add("is-active");
-      this.setAttribute("aria-selected", "true");
-
-      const activePanel = header.querySelector(`[data-tab-panel="${target}"]`);
-      if (activePanel) {
-        activePanel.classList.add("is-active");
-      }
-    });
-  });
-
   // Copy assessment url
   container.querySelectorAll("[data-copy-candidate-url]").forEach(button => {
     button.addEventListener("click", async function () {
@@ -858,6 +829,41 @@ function initGlobalEmailModal(container) {
     });
   });
 }
+</script>
+
+<script>
+  function switchTabs(buttonEl) {
+    const group = buttonEl.dataset.tabGroup;
+    const target = buttonEl.dataset.tabTarget;
+
+    if (!group || !target) return;
+
+    const container = buttonEl.closest(".card, .candidate-profile-shell, .domain-panel, .report-tabs-section, body");
+    const scope = container || document;
+
+    const tabs = scope.querySelectorAll(`[data-tab-group="${group}"][data-tab-target]`);
+    const panels = scope.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`);
+
+    tabs.forEach(tab => {
+      tab.classList.remove("is-active");
+      tab.setAttribute("aria-selected", "false");
+    });
+
+    panels.forEach(panel => {
+      panel.classList.remove("is-active");
+    });
+
+    buttonEl.classList.add("is-active");
+    buttonEl.setAttribute("aria-selected", "true");
+
+    const activePanel = scope.querySelector(
+      `[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (activePanel) {
+      activePanel.classList.add("is-active");
+    }
+  }
 </script>
 
 {% endblock %}

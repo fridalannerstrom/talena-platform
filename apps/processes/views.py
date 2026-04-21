@@ -41,7 +41,7 @@ from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
 from apps.reports.libraries.motivation import MOTIVATION_REPORTS, MOTIVATION_TEXTS
-from apps.reports.services.builders import build_report, build_scores_by_competency
+from apps.reports.services.builders import build_scores_by_competency, build_report, build_reports
 
 from apps.core.ai.candidate_summary import (
     stream_candidate_summary,
@@ -1096,8 +1096,11 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     motivation_scores = build_scores_by_competency(mq_competencies)
 
-    motivation_summary_report = build_report(
-        report_key="motivation_summary",
+    motivation_reports_for_ui = build_reports(
+        report_keys=[
+            "motivation_summary",
+            "practitioner_report",
+        ],
         scores_by_competency=motivation_scores,
         report_definitions=MOTIVATION_REPORTS,
         text_library=MOTIVATION_TEXTS,
@@ -1278,7 +1281,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "motivation_development_areas": motivation_development_areas,
         "personality_development_areas": personality_development_areas,
 
-        "motivation_summary_report": motivation_summary_report,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
