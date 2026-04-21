@@ -6,6 +6,8 @@ from django.conf import settings
 
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
+from apps.activity.models import ActivityEvent
+from apps.activity.services import log_event
 
 import logging
 logger = logging.getLogger(__name__)
@@ -101,6 +103,8 @@ def sova_ingest(request):
 
     print(f"✅ Found invitation: {invitation.id}")
 
+    old_status = invitation.status
+
     # ✅ Spara payload
     invitation.sova_payload = payload
     invitation.save(update_fields=["sova_payload"])
@@ -149,6 +153,20 @@ def sova_ingest(request):
             invitation.status = "started"
             invitation.save(update_fields=["status"])
             print(f"✅ Updated invitation to STARTED: {invitation.id}")
+
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={
+                    "old_status": old_status,
+                    "new_status": "started",
+                },
+            )
         else:
             print(f"ℹ️ Skip STARTED update (already {invitation.status})")
 
@@ -158,6 +176,20 @@ def sova_ingest(request):
             invitation.completed_at = timezone.now()
             invitation.save(update_fields=["status", "completed_at"])
             print(f"✅ Updated invitation to COMPLETED: {invitation.id}")
+
+            log_event(
+                company=invitation.process.company,
+                verb=ActivityEvent.Verb.STATUS_CHANGED,
+                actor=None,
+                actor_name="SOVA",
+                process=invitation.process,
+                candidate=invitation.candidate,
+                invitation=invitation,
+                meta={
+                    "old_status": old_status,
+                    "new_status": "completed",
+                },
+            )
         else:
             print("ℹ️ Skip COMPLETED update (already completed)")
     else:

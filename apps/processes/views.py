@@ -46,13 +46,6 @@ from apps.core.ai.candidate_summary import (
 )
 
 
-def render_placeholders(text: str, ctx: dict) -> str:
-    text = text or ""
-    for key, val in ctx.items():
-        text = text.replace("{" + key + "}", str(val or ""))
-    return text
-
-
 def _get_active_company_for_user(user):
     # om du bara har 1 company per user just nu: ta första
     m = CompanyMember.objects.select_related("company").filter(user=user).first()
@@ -748,193 +741,194 @@ def _is_safe_external_url(url: str) -> bool:
 def self_register(request, token):
     process = get_object_or_404(TestProcess, self_registration_token=token)
 
-    if request.method == "POST":
-        form = SelfRegisterForm(request.POST)
-        if form.is_valid():
-            first_name = form.cleaned_data["first_name"].strip()
-            last_name = form.cleaned_data["last_name"].strip()
-            email = form.cleaned_data["email"].strip().lower()
-
-            client = SovaClient()
-
-            with transaction.atomic():
-                candidate, _ = Candidate.objects.get_or_create(
-                    email=email,
-                    defaults={
-                        "first_name": first_name,
-                        "last_name": last_name,
-                    },
-                )
-
-                invitation, created = TestInvitation.objects.get_or_create(
-                    process=process,
-                    candidate=candidate,
-                    defaults={
-                        "status": "created",
-                        "source": "self_registered",
-                        "invited_at": timezone.now(),
-                    }
-                )
-
-                if created:
-                    log_event(
-                        company=process.company,
-                        verb=ActivityEvent.Verb.CANDIDATE_ADDED,
-                        actor=None,
-                        actor_name="Self-registration",
-                        process=process,
-                        candidate=candidate,
-                        invitation=invitation,
-                        meta={"source": "self_registered"},
-                    )
-
-                if not created and invitation.source != "self_registered":
-                    invitation.source = "self_registered"
-                    invitation.save(update_fields=["source"])
-
-            # ✅ Om den redan är skickad/igång/klart och vi har en url sparad: redirecta direkt
-            existing_url = None
-            try:
-                existing_url = (invitation.sova_payload or {}).get("url")
-            except Exception:
-                existing_url = None
-
-            if invitation.status in ("sent", "started", "completed") and existing_url and _is_safe_external_url(existing_url):
-                return HttpResponseRedirect(existing_url)
-
-            # 3) Beställ test i SOVA direkt
-            request_id = f"talena-selfreg-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
-
-            payload = {
-                "request_id": request_id,
-                "candidate_id": str(candidate.id),
-                "first_name": candidate.first_name,
-                "last_name": candidate.last_name,
-                "email": candidate.email,
-                "language": "sv",
-                "job_title": process.job_title or process.name,
-                "job_number": f"talena-{process.id}",
-                "meta_data": {
-                    "talena_process_id": str(process.id),
-                    "talena_candidate_id": str(candidate.id),
-                    "talena_request_id": request_id,
-                },
-            }
-
-            try:
-                resp = client.order_assessment(process.project_code, payload)
-                test_url = (resp or {}).get("url")
-
-                # Spara status + payload på invitation
-                invitation.status = "sent"
-                invitation.invited_at = timezone.now()
-                invitation.sova_payload = resp
-                invitation.request_id = request_id
-                invitation.assessment_url = test_url
-
-                update_fields = ["status", "invited_at", "sova_payload", "request_id", "assessment_url"]
-                invitation.save(update_fields=update_fields)
-
-                log_event(
-                    company=process.company,
-                    verb=ActivityEvent.Verb.INVITE_SENT,
-                    actor=None,
-                    actor_name="Self-registration",
-                    process=process,
-                    candidate=candidate,
-                    invitation=invitation,
-                    meta={"context": "self_register"},
-                )
-
-                # 4) Skicka mejl som fallback (samma logik som i process_send_tests)
-                lang = "sv"
-                template = (
-                    EmailTemplate.objects
-                    .filter(
-                        process=process,
-                        template_type="invitation",
-                        language=lang,
-                        is_active=True,
-                    )
-                    .first()
-                )
-
-                subject_tpl = template.subject if template else "{process_name}: Ditt test"
-                body_tpl = template.body if template else (
-                    "Hej {first_name}!\n\n"
-                    "Klicka på länken för att starta testet:\n"
-                    "{assessment_url}\n\n"
-                    "Vänliga hälsningar,\n"
-                    "Talena"
-                )
-
-                ctx = {
-                    "first_name": candidate.first_name,
-                    "last_name": candidate.last_name,
-                    "email": candidate.email,
-                    "process_name": process.name,
-                    "job_title": process.job_title,
-                    "job_location": process.job_location,
-                    "assessment_url": test_url,
-                }
-
-                subject = render_placeholders(subject_tpl, ctx)
-                body = render_placeholders(body_tpl, ctx)
-
-                print("\n===== SELF-REG EMAIL PREVIEW =====")
-                print("TO:", candidate.email)
-                print("SUBJECT:", subject)
-                print("BODY:\n", body)
-                print("=================================\n")
-
-                email_log = EmailLog.objects.create(
-                    invitation=invitation,
-                    template_type="invitation",
-                    to_email=candidate.email,
-                    subject=subject,
-                    body_snapshot=body,
-                    status="queued",
-                )
-
-                try:
-                    msg = EmailMultiAlternatives(
-                        subject=subject,
-                        body=body,
-                        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@talena.se",
-                        to=[candidate.email],
-                    )
-                    msg.send()
-                    email_log.mark_sent()
-                except Exception as e:
-                    email_log.mark_failed(str(e))
-                    # vi låter redirect ändå funka, mejlet är bara fallback
-
-                # 5) Redirect direkt till testet
-                if test_url and _is_safe_external_url(test_url):
-                    return HttpResponseRedirect(test_url)
-
-                # Om SOVA inte gav url: visa success-sida
-                return render(request, "customer/processes/self_register_success.html", {
-                    "process": process,
-                    "message": "Registrering klar. Vi skickar ett mejl när testlänken är redo.",
-                })
-
-            except Exception as e:
-                print("❌ SELF REGISTER order_assessment failed:", str(e))
-                # Visa vänlig sida istället för att krascha
-                return render(request, "customer/processes/self_register_success.html", {
-                    "process": process,
-                    "message": "Registrering klar, men vi kunde inte starta testet direkt. Du får ett mejl så snart det är redo.",
-                })
-
-    else:
+    if request.method != "POST":
         form = SelfRegisterForm()
+        return render(request, "customer/processes/self_register_form.html", {
+            "process": process,
+            "form": form,
+        })
 
-    return render(request, "customer/processes/self_register_form.html", {
-        "process": process,
-        "form": form
-    })
+    form = SelfRegisterForm(request.POST)
+    if not form.is_valid():
+        return render(request, "customer/processes/self_register_form.html", {
+            "process": process,
+            "form": form,
+        })
 
+    first_name = form.cleaned_data["first_name"].strip()
+    last_name = form.cleaned_data["last_name"].strip()
+    email = form.cleaned_data["email"].strip().lower()
+
+    client = SovaClient()
+
+    with transaction.atomic():
+        candidate, _ = Candidate.objects.get_or_create(
+            email=email,
+            defaults={
+                "first_name": first_name,
+                "last_name": last_name,
+            },
+        )
+
+        invitation, created = TestInvitation.objects.get_or_create(
+            process=process,
+            candidate=candidate,
+            defaults={
+                "status": "created",
+                "source": "self_registered",
+            },
+        )
+
+        if created:
+            log_event(
+                company=process.company,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                actor=None,
+                actor_name="Self-registration",
+                process=process,
+                candidate=candidate,
+                invitation=invitation,
+                meta={"source": "self_registered"},
+            )
+
+        if not created and invitation.source != "self_registered":
+            invitation.source = "self_registered"
+            invitation.save(update_fields=["source"])
+
+    existing_url = invitation.assessment_url
+    if not existing_url:
+        try:
+            existing_url = (invitation.sova_payload or {}).get("url")
+        except Exception:
+            existing_url = None
+
+    if (
+        invitation.status in ("sent", "started", "completed")
+        and existing_url
+        and _is_safe_external_url(existing_url)
+    ):
+        return HttpResponseRedirect(existing_url)
+
+    request_id = f"talena-selfreg-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+
+    payload = {
+        "request_id": request_id,
+        "candidate_id": str(candidate.id),
+        "first_name": candidate.first_name,
+        "last_name": candidate.last_name,
+        "email": candidate.email,
+        "language": "sv",
+        "job_title": process.job_title or process.name,
+        "job_number": f"talena-{process.id}",
+        "meta_data": {
+            "talena_process_id": str(process.id),
+            "talena_candidate_id": str(candidate.id),
+            "talena_request_id": request_id,
+        },
+    }
+
+    try:
+        resp = client.order_assessment(process.project_code, payload)
+        test_url = (resp or {}).get("url")
+
+        invitation.status = "sent"
+        invitation.invited_at = timezone.now()
+        invitation.sova_payload = resp
+        invitation.request_id = request_id
+        invitation.assessment_url = test_url
+        invitation.save(update_fields=[
+            "status",
+            "invited_at",
+            "sova_payload",
+            "request_id",
+            "assessment_url",
+        ])
+
+        # Hämta mall
+        lang = "sv"
+        template = (
+            EmailTemplate.objects
+            .filter(
+                process=process,
+                template_type="invitation",
+                language=lang,
+                is_active=True,
+            )
+            .first()
+        )
+
+        subject_tpl = template.subject if template else "{process_name}: Ditt test"
+        body_tpl = template.body if template else (
+            "Hej {first_name}!\n\n"
+            "Klicka på länken för att starta testet:\n"
+            "{assessment_url}\n\n"
+            "Vänliga hälsningar,\n"
+            "Talena"
+        )
+
+        ctx = {
+            "first_name": candidate.first_name,
+            "last_name": candidate.last_name,
+            "email": candidate.email,
+            "process_name": process.name,
+            "job_title": process.job_title,
+            "job_location": process.job_location,
+            "assessment_url": test_url,
+        }
+
+        subject = render_placeholders(subject_tpl, ctx)
+        body = render_placeholders(body_tpl, ctx)
+
+        email_log = EmailLog.objects.create(
+            invitation=invitation,
+            template_type="invitation",
+            to_email=candidate.email,
+            subject=subject,
+            body_snapshot=body,
+            status="queued",
+        )
+
+        try:
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@talena.se",
+                to=[candidate.email],
+            )
+            msg.send()
+            email_log.mark_sent()
+        except Exception as e:
+            email_log.mark_failed(str(e))
+            # fallback-mejlet får faila utan att stoppa redirect till testet
+
+        log_event(
+            company=process.company,
+            verb=ActivityEvent.Verb.INVITE_SENT,
+            actor=None,
+            actor_name="Self-registration",
+            process=process,
+            candidate=candidate,
+            invitation=invitation,
+            meta={
+                "context": "self_register",
+                "email_log_id": email_log.id,
+            },
+        )
+
+        if test_url and _is_safe_external_url(test_url):
+            return HttpResponseRedirect(test_url)
+
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": "Registrering klar. Vi skickar ett mejl när testlänken är redo.",
+        })
+
+    except Exception as e:
+        print("❌ SELF REGISTER order_assessment failed:", str(e))
+        return render(request, "customer/processes/self_register_success.html", {
+            "process": process,
+            "message": "Registrering klar, men vi kunde inte starta testet direkt. Du får ett mejl så snart det är redo.",
+        })
 
 
 @login_required
@@ -1038,6 +1032,23 @@ def process_candidate_detail(request, process_id, candidate_id):
         .filter(company=process.company, process=process, candidate=candidate)
         .select_related("actor", "candidate", "invitation")[:50]
     )
+
+    from apps.emails.models import EmailLog
+
+    email_log_ids = [
+        (event.meta or {}).get("email_log_id")
+        for event in activity_events
+        if (event.meta or {}).get("email_log_id")
+    ]
+
+    email_logs_by_id = {
+        log.id: log
+        for log in EmailLog.objects.filter(id__in=email_log_ids)
+    }
+
+    for event in activity_events:
+        email_log_id = (event.meta or {}).get("email_log_id")
+        event.email_log = email_logs_by_id.get(email_log_id)
 
     activities = invitation.sova_activities or []
 
@@ -1226,6 +1237,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "tests_sent_count": activity_count,
         "tests_completed_count": tests_completed_count,
         "available_reports_count": available_reports_count,
+        "email_logs_by_id": email_logs_by_id,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

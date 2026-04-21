@@ -832,45 +832,38 @@
 
       <!-- ACTIVITY -->
       <div class="candidate-tab-panel" data-tab-panel="activity" role="tabpanel">
-        <div class="candidate-activity-timeline">
-          <div class="candidate-activity-item">
-            <div class="candidate-activity-dot"></div>
-            <div class="candidate-activity-content">
-              <div class="candidate-activity-title">Aktivitetsflöde kommer här</div>
-              <div class="candidate-activity-meta">Placeholder tills vi kopplat riktig historik</div>
+{% for event in activity_events %}
+  <div class="activity-item">
+    <div class="activity-message">{{ event.message }}</div>
+    <div class="activity-time">{{ event.created_at|date:"Y-m-d H:i" }}</div>
+
+    {% if event.verb == "invite_sent" and event.email_log %}
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              data-bs-toggle="modal"
+              data-bs-target="#emailModal{{ event.id }}">
+        View email
+      </button>
+
+      <div class="modal fade" id="emailModal{{ event.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Invitation email</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>To:</strong> {{ event.email_log.to_email }}</p>
+              <p><strong>Subject:</strong> {{ event.email_log.subject }}</p>
+              <hr>
+              <pre style="white-space: pre-wrap; font-family: inherit;">{{ event.email_log.body_snapshot }}</pre>
             </div>
           </div>
-
-          {% if invitation.invited_at %}
-            <div class="candidate-activity-item">
-              <div class="candidate-activity-dot"></div>
-              <div class="candidate-activity-content">
-                <div class="candidate-activity-title">Kandidat inbjuden</div>
-                <div class="candidate-activity-meta">{{ invitation.invited_at|date:"Y-m-d H:i" }}</div>
-              </div>
-            </div>
-          {% endif %}
-
-          {% if invitation.completed_at %}
-            <div class="candidate-activity-item">
-              <div class="candidate-activity-dot"></div>
-              <div class="candidate-activity-content">
-                <div class="candidate-activity-title">Kandidat slutförde test</div>
-                <div class="candidate-activity-meta">{{ invitation.completed_at|date:"Y-m-d H:i" }}</div>
-              </div>
-            </div>
-          {% endif %}
-
-          {% if invitation.ai_summary_generated_at %}
-            <div class="candidate-activity-item">
-              <div class="candidate-activity-dot"></div>
-              <div class="candidate-activity-content">
-                <div class="candidate-activity-title">AI-sammanfattning skapad</div>
-                <div class="candidate-activity-meta">{{ invitation.ai_summary_generated_at|date:"Y-m-d H:i" }}</div>
-              </div>
-            </div>
-          {% endif %}
         </div>
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}
       </div>
 
     </div>

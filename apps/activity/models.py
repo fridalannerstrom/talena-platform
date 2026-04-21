@@ -12,6 +12,11 @@ class ActivityEvent(models.Model):
         CANDIDATE_REMOVED = "candidate_removed", "Kandidat togs bort från process"
 
         INVITE_SENT = "invite_sent", "Inbjudan skickad"
+
+        TEST_STARTED = "test_started", "Test påbörjat"
+        TEST_COMPLETED = "test_completed", "Test slutfört"
+        ALL_TESTS_COMPLETED = "all_tests_completed", "Alla tester slutförda"
+
         STATUS_CHANGED = "status_changed", "Status ändrad"
 
     company = models.ForeignKey("accounts.Company", on_delete=models.CASCADE, related_name="activity_events")
@@ -43,6 +48,12 @@ class ActivityEvent(models.Model):
             models.Index(fields=["verb", "-created_at"]),
         ]
 
+    def invite_email_log_id(self):
+        return (self.meta or {}).get("email_log_id")
+    
+    def activity_name(self):
+        return (self.meta or {}).get("activity_name")
+
     def actor_display(self):
         if self.actor:
             full = f"{self.actor.first_name} {self.actor.last_name}".strip()
@@ -51,6 +62,7 @@ class ActivityEvent(models.Model):
     
     def message(self):
         actor = self.actor_display()
+        meta = self.meta or {}
 
         if self.verb == self.Verb.PROCESS_CREATED:
             return f"{actor} skapade testprocessen {self.process.name}"
@@ -68,17 +80,26 @@ class ActivityEvent(models.Model):
             return f"{actor} tog bort {self.candidate}"
 
         if self.verb == self.Verb.INVITE_SENT:
-            return f"{actor} skickade inbjudan till {self.candidate}"
+            return f"Inbjudan skickades till {self.candidate}"
 
         if self.verb == self.Verb.STATUS_CHANGED:
-            old = (self.meta or {}).get("old_status")
-            new = (self.meta or {}).get("new_status")
+            old = meta.get("old_status")
+            new = meta.get("new_status")
+            activity_name = meta.get("activity_name")
+
+            if new == "started" and activity_name:
+                return f"{self.candidate} påbörjade {activity_name}"
+
+            if new == "completed" and activity_name:
+                return f"{self.candidate} slutförde {activity_name}"
 
             if new == "started":
                 return f"{self.candidate} påbörjade testet"
+
             if new == "completed":
                 return f"{self.candidate} slutförde testet"
 
             return f"{actor} uppdaterade {self.candidate}: {old} → {new}"
 
         return f"{actor} gjorde en uppdatering"
+    

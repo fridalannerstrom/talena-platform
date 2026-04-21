@@ -157,7 +157,10 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 process=process,
                 candidate=inv.candidate,
                 invitation=inv,
-                meta={"context": context},
+                meta={
+                    "context": context,
+                    "email_log_id": email_log.id,
+                }
             )
 
             # om du har fältet på modellen
