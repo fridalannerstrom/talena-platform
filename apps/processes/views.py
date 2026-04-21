@@ -40,6 +40,9 @@ from apps.projects.models import ProjectMeta
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
+from apps.reports.libraries.motivation import MOTIVATION_REPORTS, MOTIVATION_TEXTS
+from apps.reports.services.builders import build_report, build_scores_by_competency
+
 from apps.core.ai.candidate_summary import (
     stream_candidate_summary,
     save_candidate_summary,
@@ -1091,6 +1094,15 @@ def process_candidate_detail(request, process_id, candidate_id):
                     "percentile": comp.get("percentile"),
                 })
 
+    motivation_scores = build_scores_by_competency(mq_competencies)
+
+    motivation_summary_report = build_report(
+        report_key="motivation_summary",
+        scores_by_competency=motivation_scores,
+        report_definitions=MOTIVATION_REPORTS,
+        text_library=MOTIVATION_TEXTS,
+    )
+
     personality_competencies = []
 
     for item in activities:
@@ -1265,6 +1277,8 @@ def process_candidate_detail(request, process_id, candidate_id):
         "top_personality_traits": top_personality_traits,
         "motivation_development_areas": motivation_development_areas,
         "personality_development_areas": personality_development_areas,
+
+        "motivation_summary_report": motivation_summary_report,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

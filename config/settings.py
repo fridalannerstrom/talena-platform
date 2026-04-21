@@ -142,6 +142,7 @@ INSTALLED_APPS = [
     "apps.activity",
     "apps.ai_chat",
     "apps.knowledge",
+    "apps.reports",
     "django.contrib.humanize",
 ]
 

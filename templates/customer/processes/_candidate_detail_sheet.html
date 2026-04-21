@@ -1491,6 +1491,18 @@ padding: 0px 0px 0px 30px;
           <div class="card-header fw-semibold">Motivation Questionnaire</div>
           <div class="card-body">
 
+<h3>{{ motivation_summary_report.title }}</h3>
+<p>{{ motivation_summary_report.intro }}</p>
+
+{% for item in motivation_summary_report.items %}
+  <div class="mb-3">
+    <strong>{{ item.competency }}</strong>
+    <span>{{ item.score|default:"-" }}/10</span>
+    <div class="text-muted small">{{ item.score_band|default:"-" }}</div>
+    <p>{{ item.text|default:"No text available yet." }}</p>
+  </div>
+{% endfor %}
+
             {% if mq_competencies %}
               <div class="d-flex flex-column gap-3">
                 {% for comp in mq_competencies %}
