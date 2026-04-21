@@ -598,6 +598,212 @@
   z-index: 1;
 }
 
+/* =========================
+   Activity timeline
+========================= */
+
+.activity-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px 4px 8px 0;
+}
+
+.activity-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.activity-line {
+  position: absolute;
+  left: 11px;
+  top: 18px;
+  bottom: -30px;
+  width: 2px;
+  background: linear-gradient(to bottom, #eeeeee 0%, #ebe7fb 100%);
+  border-radius: 999px;
+}
+
+.activity-item:last-child .activity-line {
+  display: none;
+}
+
+.activity-dot {
+  position: relative;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
+  margin-top: 10px;
+  margin-left: 5px;
+  border-radius: 50%;
+  border: 3px solid #bdbdbd;
+  box-shadow: 0 0 0 1px rgba(125, 102, 196, 0.08);
+  background: #3b3b3b;
+}
+
+.activity-card {
+  background: #fff;
+  border: 1px solid #ece8f7;
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.activity-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.activity-main {
+  min-width: 0;
+}
+
+.activity-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #2f2850;
+  margin-bottom: 6px;
+}
+
+.activity-time {
+  font-size: 14px;
+  color: #7d7895;
+  line-height: 1.4;
+}
+
+.activity-side {
+  flex-shrink: 0;
+}
+
+.activity-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  background: #f1eefb;
+  color: #6756a8;
+  border: 1px solid #e2dbf7;
+}
+
+.activity-badge.is-invite {
+  background: #f3efff;
+  color: #6d5ab4;
+  border-color: #dfd5ff;
+}
+
+.activity-badge.is-status {
+  background: #eef8ff;
+  color: #2b7bb0;
+  border-color: #d5ecfb;
+}
+
+.activity-badge.is-added {
+  background: #eef9f1;
+  color: #3d8754;
+  border-color: #d8efde;
+}
+
+.activity-actions {
+  margin-top: 14px;
+}
+
+.activity-email-btn {
+  appearance: none;
+  border: 1px solid #d9d1f2;
+  background: #fff;
+  color: #000000;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.activity-email-btn:hover {
+  background: #eeeeee;
+  border-color: #e2e2e2;
+  color: #000000;
+}
+
+.activity-email-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(123, 104, 200, 0.12);
+}
+
+.activity-empty {
+  border: 1px dashed #ddd7f0;
+  border-radius: 18px;
+  padding: 24px;
+  background: #fcfbff;
+}
+
+.activity-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2f2850;
+  margin-bottom: 6px;
+}
+
+.activity-empty-text {
+  font-size: 14px;
+  color: #7d7895;
+  line-height: 1.5;
+}
+
+/* =========================
+   Email modal content
+========================= */
+
+.activity-email-meta {
+  margin-bottom: 18px;
+}
+
+.activity-email-meta p {
+  margin-bottom: 8px;
+  color: #4e4963;
+}
+
+.activity-email-body {
+  white-space: pre-wrap;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #2f2850;
+  background: #faf9fe;
+  border: 1px solid #ece8f7;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+  .activity-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activity-badge {
+    margin-top: 2px;
+  }
+
+  .activity-title {
+    font-size: 16px;
+  }
+}
+
+
 </style>
 
 <div class="container-fluid px-2 px-md-3">
@@ -831,40 +1037,68 @@
       </div>
 
       <!-- ACTIVITY -->
-      <div class="candidate-tab-panel" data-tab-panel="activity" role="tabpanel">
-{% for event in activity_events %}
-  <div class="activity-item">
-    <div class="activity-message">{{ event.message }}</div>
-    <div class="activity-time">{{ event.created_at|date:"Y-m-d H:i" }}</div>
+<div class="candidate-tab-panel" data-tab-panel="activity" role="tabpanel">
+  <div class="activity-timeline">
 
-    {% if event.verb == "invite_sent" and event.email_log %}
-      <button type="button"
-              class="btn btn-sm btn-outline-secondary"
-              data-bs-toggle="modal"
-              data-bs-target="#emailModal{{ event.id }}">
-        View email
-      </button>
+    {% for event in activity_events %}
+      <div class="activity-item">
+        <div class="activity-line"></div>
+        <div class="activity-dot 
+          {% if event.verb == 'invite_sent' %}is-invite
+          {% elif event.verb == 'status_changed' %}is-status
+          {% elif event.verb == 'candidate_added' %}is-added
+          {% else %}is-default{% endif %}">
+        </div>
 
-      <div class="modal fade" id="emailModal{{ event.id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Invitation email</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <p><strong>To:</strong> {{ event.email_log.to_email }}</p>
-              <p><strong>Subject:</strong> {{ event.email_log.subject }}</p>
-              <hr>
-              <pre style="white-space: pre-wrap; font-family: inherit;">{{ event.email_log.body_snapshot }}</pre>
+        <div class="activity-card">
+          <div class="activity-card-top">
+            <div class="activity-main">
+              <div class="candidate-inline-title">{{ event.message }}</div>
+              <div class="candidate-inline-meta">{{ event.created_at|date:"Y-m-d H:i" }}</div>
             </div>
           </div>
+
+          {% if event.verb == "invite_sent" and event.email_log %}
+            <div class="activity-actions">
+              <button
+                type="button"
+                class="activity-email-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#emailModal{{ event.id }}">
+                View email
+              </button>
+            </div>
+
+            <div class="modal fade" id="emailModal{{ event.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Invitation email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+
+                  <div class="modal-body">
+                    <div class="activity-email-meta">
+                      <p><strong>To:</strong> {{ event.email_log.to_email }}</p>
+                      <p><strong>Subject:</strong> {{ event.email_log.subject }}</p>
+                    </div>
+                    <div class="activity-email-body">{{ event.email_log.body_snapshot|linebreaksbr }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
         </div>
       </div>
-    {% endif %}
-  </div>
-{% endfor %}
+    {% empty %}
+      <div class="activity-empty">
+        <div class="activity-empty-title">No activity yet</div>
+        <div class="activity-empty-text">Events will appear here when invitations are sent and tests are started or completed.</div>
       </div>
+    {% endfor %}
+
+  </div>
+</div>
 
     </div>
   </div>
