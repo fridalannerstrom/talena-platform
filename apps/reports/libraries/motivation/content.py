@@ -989,28 +989,103 @@ MANAGER_SECTION_CONTENT = {
 
 
 MANAGER_FACTOR_CONTENT = {
-    "acquisition": {
-        "descriptor": "Motivated by acquiring wealth and financial reward.",
+    "affiliation": {
+        "descriptor": "Motivated by social interaction with others, having support and working in teams.",
         "bands": {
             "1_2": {
-                "management_tips": "Lorem ipsum management tips for very low Acquisition.",
-                "relationships_text": "Lorem ipsum relationships text for very low Acquisition.",
+                "management_tips": "Lorem ipsum management tips for very low Affiliation.",
+                "relationships_text": "Lorem ipsum relationships text for very low Affiliation.",
             },
             "3_4": {
-                "management_tips": "Lorem ipsum management tips for moderately low Acquisition.",
-                "relationships_text": "Lorem ipsum relationships text for moderately low Acquisition.",
+                "management_tips": "Lorem ipsum management tips for moderately low Affiliation.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Affiliation.",
             },
             "5_6": {
-                "management_tips": "Lorem ipsum management tips for balanced Acquisition.",
-                "relationships_text": "Lorem ipsum relationships text for balanced Acquisition.",
+                "management_tips": "Lorem ipsum management tips for balanced Affiliation.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Affiliation.",
             },
             "7_8": {
-                "management_tips": "Lorem ipsum management tips for high Acquisition.",
-                "relationships_text": "Lorem ipsum relationships text for high Acquisition.",
+                "management_tips": "Lorem ipsum management tips for high Affiliation.",
+                "relationships_text": "Lorem ipsum relationships text for high Affiliation.",
             },
             "9_10": {
-                "management_tips": "Lorem ipsum management tips for very high Acquisition.",
-                "relationships_text": "Lorem ipsum relationships text for very high Acquisition.",
+                "management_tips": "Lorem ipsum management tips for very high Affiliation.",
+                "relationships_text": "Lorem ipsum relationships text for very high Affiliation.",
+            },
+        },
+    },
+    "customer_service": {
+        "descriptor": "Motivated by customer facing environments, understanding their needs and providing a good service.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Customer Service.",
+                "relationships_text": "Lorem ipsum relationships text for very low Customer Service.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Customer Service.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Customer Service.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Customer Service.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Customer Service.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Customer Service.",
+                "relationships_text": "Lorem ipsum relationships text for high Customer Service.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Customer Service.",
+                "relationships_text": "Lorem ipsum relationships text for very high Customer Service.",
+            },
+        },
+    },
+    "work_life_balance": {
+        "descriptor": "Motivated by being able to maintain a healthy work-life balance.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Work-life Balance.",
+                "relationships_text": "Lorem ipsum relationships text for very low Work-life Balance.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Work-life Balance.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Work-life Balance.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Work-life Balance.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Work-life Balance.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Work-life Balance.",
+                "relationships_text": "Lorem ipsum relationships text for high Work-life Balance.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Work-life Balance.",
+                "relationships_text": "Lorem ipsum relationships text for very high Work-life Balance.",
+            },
+        },
+    },
+    "people_development": {
+        "descriptor": "Motivated by helping others grow and develop.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low People Development.",
+                "relationships_text": "Lorem ipsum relationships text for very low People Development.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low People Development.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low People Development.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced People Development.",
+                "relationships_text": "Lorem ipsum relationships text for balanced People Development.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high People Development.",
+                "relationships_text": "Lorem ipsum relationships text for high People Development.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high People Development.",
+                "relationships_text": "Lorem ipsum relationships text for very high People Development.",
             },
         },
     },
@@ -1039,6 +1114,156 @@ MANAGER_FACTOR_CONTENT = {
             },
         },
     },
+    "authority": {
+        "descriptor": "Motivated by recognition of seniority, and exercising authority and control over others.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Authority.",
+                "relationships_text": "Lorem ipsum relationships text for very low Authority.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Authority.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Authority.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Authority.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Authority.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Authority.",
+                "relationships_text": "Lorem ipsum relationships text for high Authority.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Authority.",
+                "relationships_text": "Lorem ipsum relationships text for very high Authority.",
+            },
+        },
+    },
+    "acquisition": {
+        "descriptor": "Motivated by acquiring wealth and financial reward.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for very low Acquisition.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Acquisition.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Acquisition.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for high Acquisition.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for very high Acquisition.",
+            },
+        },
+    },
+    "autonomy": {
+        "descriptor": "Motivated by being able to organise own time and approach to work.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Autonomy.",
+                "relationships_text": "Lorem ipsum relationships text for very low Autonomy.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Autonomy.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Autonomy.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Autonomy.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Autonomy.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Autonomy.",
+                "relationships_text": "Lorem ipsum relationships text for high Autonomy.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Autonomy.",
+                "relationships_text": "Lorem ipsum relationships text for very high Autonomy.",
+            },
+        },
+    },
+    "recognition": {
+        "descriptor": "Motivated by visibility, praise and public acknowledgement for achievements.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Recognition.",
+                "relationships_text": "Lorem ipsum relationships text for very low Recognition.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Recognition.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Recognition.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Recognition.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Recognition.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Recognition.",
+                "relationships_text": "Lorem ipsum relationships text for high Recognition.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Recognition.",
+                "relationships_text": "Lorem ipsum relationships text for very high Recognition.",
+            },
+        },
+    },
+    "making_a_difference": {
+        "descriptor": "Motivated by wider contributions to the organisation, society or cause.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Making a Difference.",
+                "relationships_text": "Lorem ipsum relationships text for very low Making a Difference.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Making a Difference.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Making a Difference.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Making a Difference.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Making a Difference.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Making a Difference.",
+                "relationships_text": "Lorem ipsum relationships text for high Making a Difference.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Making a Difference.",
+                "relationships_text": "Lorem ipsum relationships text for very high Making a Difference.",
+            },
+        },
+    },
+    "achievement": {
+        "descriptor": "Motivated by achieving goals, overcoming challenges and competing with others.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Achievement.",
+                "relationships_text": "Lorem ipsum relationships text for very low Achievement.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Achievement.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Achievement.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Achievement.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Achievement.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Achievement.",
+                "relationships_text": "Lorem ipsum relationships text for high Achievement.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Achievement.",
+                "relationships_text": "Lorem ipsum relationships text for very high Achievement.",
+            },
+        },
+    },
     "quality": {
         "descriptor": "Motivated by producing accurate, quality and timely work output.",
         "bands": {
@@ -1061,6 +1286,206 @@ MANAGER_FACTOR_CONTENT = {
             "9_10": {
                 "management_tips": "Lorem ipsum management tips for very high Quality.",
                 "relationships_text": "Lorem ipsum relationships text for very high Quality.",
+            },
+        },
+    },
+    "learning": {
+        "descriptor": "Motivated by opportunities for further development, training and learning new skills.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Learning.",
+                "relationships_text": "Lorem ipsum relationships text for very low Learning.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Learning.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Learning.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Learning.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Learning.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Learning.",
+                "relationships_text": "Lorem ipsum relationships text for high Learning.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Learning.",
+                "relationships_text": "Lorem ipsum relationships text for very high Learning.",
+            },
+        },
+    },
+    "ethics": {
+        "descriptor": "Motivated by maintaining high ethical standards, for self and organisation.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Ethics.",
+                "relationships_text": "Lorem ipsum relationships text for very low Ethics.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Ethics.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Ethics.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Ethics.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Ethics.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Ethics.",
+                "relationships_text": "Lorem ipsum relationships text for high Ethics.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Ethics.",
+                "relationships_text": "Lorem ipsum relationships text for very high Ethics.",
+            },
+        },
+    },
+    "commercial_value": {
+        "descriptor": "Motivated by generating revenue and profit for the organisation.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Commercial Value.",
+                "relationships_text": "Lorem ipsum relationships text for very low Commercial Value.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Commercial Value.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Commercial Value.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Commercial Value.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Commercial Value.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Commercial Value.",
+                "relationships_text": "Lorem ipsum relationships text for high Commercial Value.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Commercial Value.",
+                "relationships_text": "Lorem ipsum relationships text for very high Commercial Value.",
+            },
+        },
+    },
+    "curiosity": {
+        "descriptor": "Motivated by finding out new information and solving novel problems.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Curiosity.",
+                "relationships_text": "Lorem ipsum relationships text for very low Curiosity.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Curiosity.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Curiosity.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Curiosity.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Curiosity.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Curiosity.",
+                "relationships_text": "Lorem ipsum relationships text for high Curiosity.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Curiosity.",
+                "relationships_text": "Lorem ipsum relationships text for very high Curiosity.",
+            },
+        },
+    },
+    "creativity": {
+        "descriptor": "Motivated by innovation and seeing new opportunities to be creative.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Creativity.",
+                "relationships_text": "Lorem ipsum relationships text for very low Creativity.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Creativity.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Creativity.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Creativity.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Creativity.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Creativity.",
+                "relationships_text": "Lorem ipsum relationships text for high Creativity.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Creativity.",
+                "relationships_text": "Lorem ipsum relationships text for very high Creativity.",
+            },
+        },
+    },
+    "enjoyment": {
+        "descriptor": "Motivated by enjoying work and having fun with colleagues.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Enjoyment.",
+                "relationships_text": "Lorem ipsum relationships text for very low Enjoyment.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Enjoyment.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Enjoyment.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Enjoyment.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Enjoyment.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Enjoyment.",
+                "relationships_text": "Lorem ipsum relationships text for high Enjoyment.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Enjoyment.",
+                "relationships_text": "Lorem ipsum relationships text for very high Enjoyment.",
+            },
+        },
+    },
+    "variety": {
+        "descriptor": "Motivated by variety in their work, new varied approaches and change.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Variety.",
+                "relationships_text": "Lorem ipsum relationships text for very low Variety.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Variety.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Variety.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Variety.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Variety.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Variety.",
+                "relationships_text": "Lorem ipsum relationships text for high Variety.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Variety.",
+                "relationships_text": "Lorem ipsum relationships text for very high Variety.",
+            },
+        },
+    },
+    "risk": {
+        "descriptor": "Motivated by having the scope to take risks in their work.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Risk.",
+                "relationships_text": "Lorem ipsum relationships text for very low Risk.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Risk.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Risk.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Risk.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Risk.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Risk.",
+                "relationships_text": "Lorem ipsum relationships text for high Risk.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Risk.",
+                "relationships_text": "Lorem ipsum relationships text for very high Risk.",
             },
         },
     },
