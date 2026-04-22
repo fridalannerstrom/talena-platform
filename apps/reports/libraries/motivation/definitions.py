@@ -59,43 +59,29 @@ MOTIVATION_REPORTS = {
         "items": MOTIVATION_FACTORS,
         "top_n": 3,
     },
-    "candidate_report": {
-        "title": "Candidate Report",
-        "intro": (
-            "This report shows which motivational factors are most likely to "
-            "energise and engage this individual."
-        ),
-        "domain": "motivation",
-        "items": [
-            {
-                "key": "affiliation",
-                "label": "Affiliation",
-                "aliases": ["Affiliation"],
-            },
-            {
-                "key": "customer_service",
-                "label": "Customer Service",
-                "aliases": ["Customer Service", "Service Focus"],
-            },
-            {
-                "key": "work_life_balance",
-                "label": "Work-life Balance",
-                "aliases": ["Work-life Balance", "Finding the right balance"],
-            },
-            {
-                "key": "people_development",
-                "label": "People Development",
-                "aliases": ["People Development", "Developing Others", "Coaching & Developing"],
-            },
-        ],
-    },
     "coaching_report": {
         "title": "Coaching Report",
-        "intro": "...",
+        "intro": "This report is based on the individual's responses to the Sova Motivation Questionnaire. It provides a information about how their responses suggest they are motivated by all factors in the Sova Motivation Model (shown below), as well as guidance about how to run a coaching session with them.",
         "domain": "motivation",
         "sections": [
             "motivation_summary",
             "coaching_facilitation",
+        ],
+        "items": MOTIVATION_FACTORS,
+        "top_n": 3,
+    },
+    "candidate_report": {
+        "title": "Candidate Report",
+        "intro": (
+            "Thank you for completing the Sova Motivation Questionnaire. "
+            "This report describes the factors that are likely to affect your motivation at work. "
+            "It provides information about your key motivators, followed by how your responses suggest "
+            "you are motivated by all factors in the Sova Motivation Model."
+        ),
+        "domain": "motivation",
+        "sections": [
+            "top_motivators",
+            "all_motivators",
         ],
         "items": MOTIVATION_FACTORS,
         "top_n": 3,

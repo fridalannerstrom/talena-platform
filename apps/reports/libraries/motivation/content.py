@@ -1781,3 +1781,263 @@ COACHING_SECTION_CONTENT = {
         ),
     },
 }
+
+CANDIDATE_SECTION_CONTENT = {
+    "top_motivators": {
+        "title": "Your Top 3 Motivators",
+        "intro": (
+            "This page presents your top three motivators and offers some points regarding what aspects "
+            "of your work are most likely to engage and energise you."
+        ),
+    },
+    "all_motivators": {
+        "title": "Factors affecting your motivation at work",
+        "intro": (
+            "This section offers feedback on all motivators you responded to when you completed the questionnaire. "
+            "You will be naturally more drawn to some areas over others."
+        ),
+    },
+}
+
+CANDIDATE_FACTOR_CONTENT = {
+    "affiliation": {
+        "label": "Affiliation",
+        "descriptor": "Motivated by social interaction with others, having support and working in teams.",
+        "aliases": ["Affiliation"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Affiliation."},
+            "2": {"candidate_text": "Lorem ipsum for low Affiliation."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Affiliation."},
+            "4": {"candidate_text": "Lorem ipsum for high Affiliation."},
+            "5": {"candidate_text": "Lorem ipsum for very high Affiliation."},
+        },
+    },
+    "customer_service": {
+        "label": "Customer Service",
+        "descriptor": "Motivated by customer facing environments, understanding their needs and providing a good service.",
+        "aliases": ["Customer Service", "Service Focus"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Customer Service."},
+            "2": {"candidate_text": "Lorem ipsum for low Customer Service."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Customer Service."},
+            "4": {"candidate_text": "Lorem ipsum for high Customer Service."},
+            "5": {"candidate_text": "Lorem ipsum for very high Customer Service."},
+        },
+    },
+    "work_life_balance": {
+        "label": "Work-life Balance",
+        "descriptor": "Motivated by being able to maintain a healthy work-life balance.",
+        "aliases": ["Work-life Balance", "Finding the right balance"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Work-life Balance."},
+            "2": {"candidate_text": "Lorem ipsum for low Work-life Balance."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Work-life Balance."},
+            "4": {"candidate_text": "Lorem ipsum for high Work-life Balance."},
+            "5": {"candidate_text": "Lorem ipsum for very high Work-life Balance."},
+        },
+    },
+    "people_development": {
+        "label": "People Development",
+        "descriptor": "Motivated by helping others grow and develop.",
+        "aliases": ["People Development", "Developing Others", "Coaching & Developing"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low People Development."},
+            "2": {"candidate_text": "Lorem ipsum for low People Development."},
+            "3": {"candidate_text": "Lorem ipsum for balanced People Development."},
+            "4": {"candidate_text": "Lorem ipsum for high People Development."},
+            "5": {"candidate_text": "Lorem ipsum for very high People Development."},
+        },
+    },
+    "stability": {
+        "label": "Stability",
+        "descriptor": "Motivated by job security, organisational stability and consistency.",
+        "aliases": ["Stability"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Stability."},
+            "2": {"candidate_text": "Lorem ipsum for low Stability."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Stability."},
+            "4": {"candidate_text": "Lorem ipsum for high Stability."},
+            "5": {"candidate_text": "Lorem ipsum for very high Stability."},
+        },
+    },
+    "authority": {
+        "label": "Authority",
+        "descriptor": "Motivated by recognition of seniority, and exercising authority and control over others.",
+        "aliases": ["Authority"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Authority."},
+            "2": {"candidate_text": "Lorem ipsum for low Authority."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Authority."},
+            "4": {"candidate_text": "Lorem ipsum for high Authority."},
+            "5": {"candidate_text": "Lorem ipsum for very high Authority."},
+        },
+    },
+    "acquisition": {
+        "label": "Acquisition",
+        "descriptor": "Motivated by acquiring wealth and financial reward.",
+        "aliases": ["Acquisition"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Acquisition."},
+            "2": {"candidate_text": "Lorem ipsum for low Acquisition."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Acquisition."},
+            "4": {"candidate_text": "Lorem ipsum for high Acquisition."},
+            "5": {"candidate_text": "Lorem ipsum for very high Acquisition."},
+        },
+    },
+    "autonomy": {
+        "label": "Autonomy",
+        "descriptor": "Motivated by being able to organise own time and approach to work.",
+        "aliases": ["Autonomy"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Autonomy."},
+            "2": {"candidate_text": "Lorem ipsum for low Autonomy."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Autonomy."},
+            "4": {"candidate_text": "Lorem ipsum for high Autonomy."},
+            "5": {"candidate_text": "Lorem ipsum for very high Autonomy."},
+        },
+    },
+    "recognition": {
+        "label": "Recognition",
+        "descriptor": "Motivated by visibility, praise and public acknowledgement for achievements.",
+        "aliases": ["Recognition"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Recognition."},
+            "2": {"candidate_text": "Lorem ipsum for low Recognition."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Recognition."},
+            "4": {"candidate_text": "Lorem ipsum for high Recognition."},
+            "5": {"candidate_text": "Lorem ipsum for very high Recognition."},
+        },
+    },
+    "making_a_difference": {
+        "label": "Making a Difference",
+        "descriptor": "Motivated by wider contributions to the organisation, society or cause.",
+        "aliases": ["Making a Difference"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Making a Difference."},
+            "2": {"candidate_text": "Lorem ipsum for low Making a Difference."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Making a Difference."},
+            "4": {"candidate_text": "Lorem ipsum for high Making a Difference."},
+            "5": {"candidate_text": "Lorem ipsum for very high Making a Difference."},
+        },
+    },
+    "achievement": {
+        "label": "Achievement",
+        "descriptor": "Motivated by achieving goals, overcoming challenges and competing with others.",
+        "aliases": ["Achievement"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Achievement."},
+            "2": {"candidate_text": "Lorem ipsum for low Achievement."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Achievement."},
+            "4": {"candidate_text": "Lorem ipsum for high Achievement."},
+            "5": {"candidate_text": "Lorem ipsum for very high Achievement."},
+        },
+    },
+    "quality": {
+        "label": "Quality",
+        "descriptor": "Motivated by producing accurate, quality and timely work output.",
+        "aliases": ["Quality"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Quality."},
+            "2": {"candidate_text": "Lorem ipsum for low Quality."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Quality."},
+            "4": {"candidate_text": "Lorem ipsum for high Quality."},
+            "5": {"candidate_text": "Lorem ipsum for very high Quality."},
+        },
+    },
+    "learning": {
+        "label": "Learning",
+        "descriptor": "Motivated by opportunities for further development, training and learning new skills.",
+        "aliases": ["Learning"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Learning."},
+            "2": {"candidate_text": "Lorem ipsum for low Learning."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Learning."},
+            "4": {"candidate_text": "Lorem ipsum for high Learning."},
+            "5": {"candidate_text": "Lorem ipsum for very high Learning."},
+        },
+    },
+    "ethics": {
+        "label": "Ethics",
+        "descriptor": "Motivated by maintaining high ethical standards, for self and organisation.",
+        "aliases": ["Ethics"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Ethics."},
+            "2": {"candidate_text": "Lorem ipsum for low Ethics."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Ethics."},
+            "4": {"candidate_text": "Lorem ipsum for high Ethics."},
+            "5": {"candidate_text": "Lorem ipsum for very high Ethics."},
+        },
+    },
+    "commercial_value": {
+        "label": "Commercial Value",
+        "descriptor": "Motivated by generating revenue and profit for the organisation.",
+        "aliases": ["Commercial Value"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Commercial Value."},
+            "2": {"candidate_text": "Lorem ipsum for low Commercial Value."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Commercial Value."},
+            "4": {"candidate_text": "Lorem ipsum for high Commercial Value."},
+            "5": {"candidate_text": "Lorem ipsum for very high Commercial Value."},
+        },
+    },
+    "curiosity": {
+        "label": "Curiosity",
+        "descriptor": "Motivated by finding out new information and solving novel problems.",
+        "aliases": ["Curiosity"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Curiosity."},
+            "2": {"candidate_text": "Lorem ipsum for low Curiosity."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Curiosity."},
+            "4": {"candidate_text": "Lorem ipsum for high Curiosity."},
+            "5": {"candidate_text": "Lorem ipsum for very high Curiosity."},
+        },
+    },
+    "creativity": {
+        "label": "Creativity",
+        "descriptor": "Motivated by innovation and seeing new opportunities to be creative.",
+        "aliases": ["Creativity"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Creativity."},
+            "2": {"candidate_text": "Lorem ipsum for low Creativity."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Creativity."},
+            "4": {"candidate_text": "Lorem ipsum for high Creativity."},
+            "5": {"candidate_text": "Lorem ipsum for very high Creativity."},
+        },
+    },
+    "enjoyment": {
+        "label": "Enjoyment",
+        "descriptor": "Motivated by enjoying work and having fun with colleagues.",
+        "aliases": ["Enjoyment"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Enjoyment."},
+            "2": {"candidate_text": "Lorem ipsum for low Enjoyment."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Enjoyment."},
+            "4": {"candidate_text": "Lorem ipsum for high Enjoyment."},
+            "5": {"candidate_text": "Lorem ipsum for very high Enjoyment."},
+        },
+    },
+    "variety": {
+        "label": "Variety",
+        "descriptor": "Motivated by variety in their work, new varied approaches and change.",
+        "aliases": ["Variety"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Variety."},
+            "2": {"candidate_text": "Lorem ipsum for low Variety."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Variety."},
+            "4": {"candidate_text": "Lorem ipsum for high Variety."},
+            "5": {"candidate_text": "Lorem ipsum for very high Variety."},
+        },
+    },
+    "risk": {
+        "label": "Risk",
+        "descriptor": "Motivated by having the scope to take risks in their work.",
+        "aliases": ["Risk"],
+        "bands": {
+            "1": {"candidate_text": "Lorem ipsum for very low Risk."},
+            "2": {"candidate_text": "Lorem ipsum for low Risk."},
+            "3": {"candidate_text": "Lorem ipsum for balanced Risk."},
+            "4": {"candidate_text": "Lorem ipsum for high Risk."},
+            "5": {"candidate_text": "Lorem ipsum for very high Risk."},
+        },
+    },
+}

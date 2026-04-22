@@ -1529,230 +1529,264 @@ padding: 0px 0px 0px 30px;
     </div>
 
     {% for report in motivation_reports_for_ui %}
-      <div
-        class="candidate-tab-panel report-tab {% if forloop.first %}is-active{% endif %}"
-        data-tab-group="motivation-report-tabs"
-        data-tab-panel="{{ report.key }}">
+  <div
+    class="candidate-tab-panel report-tab {% if forloop.first %}is-active{% endif %}"
+    data-tab-group="motivation-report-tabs"
+    data-tab-panel="{{ report.key }}">
 
-        <div class="mb-4">
-          <h3>{{ report.title }}</h3>
-          <p>{{ report.intro }}</p>
+    <div class="mb-4">
+      <h3>{{ report.title }}</h3>
+      <p>{{ report.intro }}</p>
+    </div>
+
+    {% if report.key == "practitioner_report" %}
+      {% for section in report.sections %}
+        <div class="mb-5">
+          <h4>{{ section.title }}</h4>
+
+          {% if section.intro %}
+            <p>{{ section.intro }}</p>
+          {% endif %}
+
+          {% if section.type == "motivation_summary" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if section.type == "all_motivators" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                {% if item.descriptor %}
+                  <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                {% endif %}
+                <p class="mb-0">{{ item.profile_summary|default:"No summary available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if section.type == "implications" %}
+            {% if section.top_title %}
+              <h5 class="mt-4">{{ section.top_title }}</h5>
+            {% endif %}
+
+            {% for item in section.top_items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
+              </div>
+            {% endfor %}
+
+            {% if section.bottom_title %}
+              <h5 class="mt-4">{{ section.bottom_title }}</h5>
+            {% endif %}
+
+            {% for item in section.bottom_items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if section.type == "ideal_environment" %}
+            {% if section.top_title %}
+              <h5 class="mt-4">{{ section.top_title }}</h5>
+            {% endif %}
+
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+
+                {% if item.ideal_environment %}
+                  <ul class="mb-0">
+                    {% for point in item.ideal_environment %}
+                      <li>{{ point }}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="mb-0">No ideal environment guidance available yet.</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% endif %}
         </div>
+      {% endfor %}
 
-        {% if report.key == "practitioner_report" %}
-          {% for section in report.sections %}
-            <div class="mb-5">
-              <h4>{{ section.title }}</h4>
+    {% elif report.key == "manager_report" %}
+      {% for section in report.sections %}
+        <div class="mb-5">
+          <h4>{{ section.title }}</h4>
 
-              {% if section.intro %}
-                <p>{{ section.intro }}</p>
-              {% endif %}
+          {% if section.intro %}
+            <p>{{ section.intro }}</p>
+          {% endif %}
 
-              {% if section.type == "motivation_summary" %}
-                {% for item in section.items %}
-                  <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                      <strong>{{ item.label }}</strong>
-                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-                    </div>
-                    <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
-                  </div>
-                {% endfor %}
-              {% endif %}
+          {% if section.type == "management_tips" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                <p class="mb-0">{{ item.management_tips|default:"No management tips available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
 
-              {% if section.type == "all_motivators" %}
-                {% for item in section.items %}
-                  <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                      <strong>{{ item.label }}</strong>
-                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-                    </div>
-                    {% if item.descriptor %}
-                      <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-                    {% endif %}
-                    <p class="mb-0">{{ item.profile_summary|default:"No summary available yet." }}</p>
-                  </div>
-                {% endfor %}
-              {% endif %}
+          {% if section.type == "relationships_at_work" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                <p class="mb-0">{{ item.relationships_text|default:"No relationship guidance available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endfor %}
 
-              {% if section.type == "implications" %}
-                {% if section.top_title %}
-                  <h5 class="mt-4">{{ section.top_title }}</h5>
+    {% elif report.key == "candidate_report" %}
+      {% for section in report.sections %}
+        <div class="mb-5">
+          <h4>{{ section.title }}</h4>
+
+          {% if section.intro %}
+            <p>{{ section.intro }}</p>
+          {% endif %}
+
+          {% if section.type == "top_motivators" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <strong>{{ item.label }}</strong>
+
+                {% if item.descriptor %}
+                  <p class="mb-2"><em>{{ item.descriptor }}</em></p>
                 {% endif %}
 
-                {% for item in section.top_items %}
-                  <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                      <strong>{{ item.label }}</strong>
-                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-                    </div>
-                    <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-                    <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
-                  </div>
-                {% endfor %}
+                <p class="mb-0">{{ item.candidate_text|default:"No text available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
 
-                {% if section.bottom_title %}
-                  <h5 class="mt-4">{{ section.bottom_title }}</h5>
+          {% if section.type == "all_motivators" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <strong>{{ item.label }}</strong>
+                <p class="mb-0 mt-2">{{ item.candidate_text|default:"No text available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endfor %}
+
+    {% elif report.key == "coaching_report" %}
+      {% for section in report.sections %}
+        <div class="mb-5">
+          <h4>{{ section.title }}</h4>
+
+          {% if section.intro %}
+            <p>{{ section.intro }}</p>
+          {% endif %}
+
+          {% if section.type == "motivation_summary" %}
+            {% for item in section.items %}
+              <div class="mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+                <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if section.type == "coaching_facilitation" %}
+            {% for item in section.items %}
+              <div class="mb-4 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                  <strong>{{ item.label }}</strong>
+                  {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                </div>
+
+                {% if item.descriptor %}
+                  <p class="mb-2"><em>{{ item.descriptor }}</em></p>
                 {% endif %}
 
-                {% for item in section.bottom_items %}
-                  <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                      <strong>{{ item.label }}</strong>
-                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-                    </div>
-                    <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-                    <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
-                  </div>
-                {% endfor %}
-              {% endif %}
-
-              {% if section.type == "ideal_environment" %}
-                {% if section.top_title %}
-                  <h5 class="mt-4">{{ section.top_title }}</h5>
+                {% if item.summary %}
+                  <p>{{ item.summary }}</p>
                 {% endif %}
 
-                {% for item in section.items %}
-                  <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                      <strong>{{ item.label }}</strong>
-                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-                    </div>
+                <strong>Upsides</strong>
+                <ul>
+                  {% for text in item.upsides %}
+                    <li>{{ text }}</li>
+                  {% empty %}
+                    <li>No upsides available yet.</li>
+                  {% endfor %}
+                </ul>
 
-                    {% if item.ideal_environment %}
-                      <ul class="mb-0">
-                        {% for point in item.ideal_environment %}
-                          <li>{{ point }}</li>
-                        {% endfor %}
-                      </ul>
-                    {% else %}
-                      <p class="mb-0">No ideal environment guidance available yet.</p>
-                    {% endif %}
-                  </div>
-                {% endfor %}
-              {% endif %}
-            </div>
-          {% endfor %}
+                <strong>Downsides</strong>
+                <ul>
+                  {% for text in item.downsides %}
+                    <li>{{ text }}</li>
+                  {% empty %}
+                    <li>No downsides available yet.</li>
+                  {% endfor %}
+                </ul>
 
-        {% elif report.key == "manager_report" %}
-  {% for section in report.sections %}
-    <div class="mb-5">
-      <h4>{{ section.title }}</h4>
+                <strong>Coaching questions</strong>
+                <ul>
+                  {% for text in item.questions %}
+                    <li>{{ text }}</li>
+                  {% empty %}
+                    <li>No coaching questions available yet.</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endfor %}
 
-      {% if section.intro %}
-        <p>{{ section.intro }}</p>
-      {% endif %}
-
-      {% if section.type == "management_tips" %}
-        {% for item in section.items %}
-          <div class="mb-3 p-3 border rounded">
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-              <strong>{{ item.label }}</strong>
-              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-            </div>
-            <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-            <p class="mb-0">{{ item.management_tips|default:"No management tips available yet." }}</p>
+    {% else %}
+      {% for item in report.items %}
+        <div class="mb-3 p-3 border rounded">
+          <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+            <strong>{{ item.competency }}</strong>
+            {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
           </div>
-        {% endfor %}
-      {% endif %}
-
-      {% if section.type == "relationships_at_work" %}
-        {% for item in section.items %}
-          <div class="mb-3 p-3 border rounded">
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-              <strong>{{ item.label }}</strong>
-              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-            </div>
-            <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-            <p class="mb-0">{{ item.relationships_text|default:"No relationship guidance available yet." }}</p>
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-  {% endfor %}
-
-{% elif report.key == "coaching_report" %}
-  {% for section in report.sections %}
-    <div class="mb-5">
-      <h4>{{ section.title }}</h4>
-
-      {% if section.intro %}
-        <p>{{ section.intro }}</p>
-      {% endif %}
-
-      {% if section.type == "motivation_summary" %}
-        {% for item in section.items %}
-          <div class="mb-3 p-3 border rounded">
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-              <strong>{{ item.label }}</strong>
-              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-            </div>
-            <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
-          </div>
-        {% endfor %}
-      {% endif %}
-
-      {% if section.type == "coaching_facilitation" %}
-        {% for item in section.items %}
-          <div class="mb-4 p-3 border rounded">
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-              <strong>{{ item.label }}</strong>
-              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-            </div>
-
-            {% if item.descriptor %}
-              <p class="mb-2"><em>{{ item.descriptor }}</em></p>
-            {% endif %}
-
-            {% if item.summary %}
-              <p>{{ item.summary }}</p>
-            {% endif %}
-
-            <strong>Upsides</strong>
-            <ul>
-              {% for text in item.upsides %}
-                <li>{{ text }}</li>
-              {% empty %}
-                <li>No upsides available yet.</li>
-              {% endfor %}
-            </ul>
-
-            <strong>Downsides</strong>
-            <ul>
-              {% for text in item.downsides %}
-                <li>{{ text }}</li>
-              {% empty %}
-                <li>No downsides available yet.</li>
-              {% endfor %}
-            </ul>
-
-            <strong>Coaching questions</strong>
-            <ul>
-              {% for text in item.questions %}
-                <li>{{ text }}</li>
-              {% empty %}
-                <li>No coaching questions available yet.</li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-  {% endfor %}
-
-{% else %}
-  {% for item in report.items %}
-    <div class="mb-3 p-3 border rounded">
-      <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-        <strong>{{ item.competency }}</strong>
-        {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-      </div>
-      <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
-    </div>
-  {% endfor %}
-{% endif %}
-      </div>
-    {% endfor %}
+          <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endfor %}
 
   </div>
 </div>
