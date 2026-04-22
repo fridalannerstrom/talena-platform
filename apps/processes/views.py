@@ -40,15 +40,10 @@ from apps.projects.models import ProjectMeta
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
-from apps.reports.libraries.motivation import (
-    MOTIVATION_REPORTS,
-    MOTIVATION_TEXTS,
-    MOTIVATION_COACHING_CONTENT,
-)
-from apps.reports.services.builders import (
+from apps.reports.libraries.motivation.builder import (
     build_scores_by_competency,
-    build_report,
-    build_reports,
+    build_practitioner_report,
+    build_motivation_report,
     build_motivation_coaching_report,
 )
 
@@ -1105,21 +1100,30 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     motivation_scores = build_scores_by_competency(mq_competencies)
 
-    motivation_reports_for_ui = build_reports(
-        report_keys=[
-            "motivation_summary",
-            "practitioner_report",
-        ],
-        scores_by_competency=motivation_scores,
-        report_definitions=MOTIVATION_REPORTS,
-        text_library=MOTIVATION_TEXTS,
+    practitioner_report = build_practitioner_report(
+        competencies=mq_competencies,
     )
 
-    motivation_coaching_report = build_motivation_coaching_report(
-        competencies=mq_competencies,
-        report_definition=MOTIVATION_REPORTS["coaching_report"],
-        content_library=MOTIVATION_COACHING_CONTENT,
+    manager_report = build_motivation_report(
+        report_key="manager_report",
+        scores_by_competency=motivation_scores,
     )
+
+    candidate_report = build_motivation_report(
+        report_key="candidate_report",
+        scores_by_competency=motivation_scores,
+    )
+
+    coaching_report = build_motivation_coaching_report(
+        competencies=mq_competencies,
+    )
+
+    motivation_reports_for_ui = [
+        practitioner_report,
+        manager_report,
+        candidate_report,
+        coaching_report,
+    ]
 
     personality_competencies = []
 
@@ -1297,7 +1301,6 @@ def process_candidate_detail(request, process_id, candidate_id):
         "personality_development_areas": personality_development_areas,
 
         "motivation_reports_for_ui": motivation_reports_for_ui,
-        "motivation_coaching_report": motivation_coaching_report,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

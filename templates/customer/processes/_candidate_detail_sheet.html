@@ -1506,110 +1506,207 @@ padding: 0px 0px 0px 30px;
 
 
 
-        <!-- MQ -->
-        <div class="card mb-3">
-          <div class="card-header fw-semibold">Motivation Questionnaire</div>
-<div class="candidate-profile-tabs-wrap">
-  <div class="candidate-profile-tabs" role="tablist" aria-label="Candidate header tabs">
-  {% for report in motivation_reports_for_ui %}
-    <button
-      class="candidate-tab {% if forloop.first %}is-active{% endif %}"
-      type="button"
-      data-tab-group="motivation-report-tabs"
-      data-tab-target="{{ report.key }}"
-      onclick="switchTabs(this)">
-      {{ report.title }}
-    </button>
-  {% endfor %}
-</div>
-</div>
+<!-- MQ -->
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Motivation Questionnaire</div>
+  <div class="card-body">
 
-{% for report in motivation_reports_for_ui %}
-  <div
-    class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
-    data-tab-group="motivation-report-tabs"
-    data-tab-panel="{{ report.key }}">
-    
-    <h3>{{ report.title }}</h3>
-    <p>{{ report.intro }}</p>
-
-    {% for item in report.items %}
-      <div class="mb-3">
-        <strong>{{ item.competency }}</strong>
-        <span>{{ item.score|default:"-" }}/10</span>
-        <p>{{ item.text|default:"No text available yet." }}</p>
+    <div class="candidate-profile-tabs-wrap">
+      <div class="candidate-profile-tabs" role="tablist" aria-label="Motivation report tabs">
+        {% for report in motivation_reports_for_ui %}
+          <button
+            class="candidate-tab {% if forloop.first %}is-active{% endif %}"
+            type="button"
+            data-tab-group="motivation-report-tabs"
+            data-tab-target="{{ report.key }}"
+            onclick="switchTabs(this)">
+            {{ report.title }}
+          </button>
+        {% endfor %}
       </div>
-    {% endfor %}
-  </div>
-{% endfor %}
+    </div>
 
-<h3>{{ motivation_summary_report.title }}</h3>
-<p>{{ motivation_summary_report.intro }}</p>
+    {% for report in motivation_reports_for_ui %}
+      <div
+        class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
+        data-tab-group="motivation-report-tabs"
+        data-tab-panel="{{ report.key }}">
 
-{% for item in motivation_summary_report.items %}
-  <div class="mb-3">
-    <strong>{{ item.competency }}</strong>
-    <span>{{ item.score|default:"-" }}/10</span>
-    <div class="text-muted small">{{ item.score_band|default:"-" }}</div>
-    <p>{{ item.text|default:"No text available yet." }}</p>
-  </div>
-{% endfor %}
+        <div class="mb-4">
+          <h3>{{ report.title }}</h3>
+          <p>{{ report.intro }}</p>
+        </div>
 
-<h3>{{ motivation_coaching_report.title }}</h3>
-<p>{{ motivation_coaching_report.intro }}</p>
+        {% if report.key == "practitioner_report" %}
+          {% for section in report.sections %}
+            <div class="mb-5">
+              <h4>{{ section.title }}</h4>
 
-{% for item in motivation_coaching_report.items %}
-  <div class="mb-4">
-    <h4>{{ item.label }} ({{ item.score }}/10)</h4>
-    <p>{{ item.summary }}</p>
+              {% if section.intro %}
+                <p>{{ section.intro }}</p>
+              {% endif %}
 
-    <strong>Upsides</strong>
-    <ul>
-      {% for text in item.upsides %}
-        <li>{{ text }}</li>
-      {% endfor %}
-    </ul>
-
-    <strong>Downsides</strong>
-    <ul>
-      {% for text in item.downsides %}
-        <li>{{ text }}</li>
-      {% endfor %}
-    </ul>
-
-    <strong>Coaching questions</strong>
-    <ul>
-      {% for text in item.questions %}
-        <li>{{ text }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-{% endfor %}
-
-            {% if mq_competencies %}
-              <div class="d-flex flex-column gap-3">
-                {% for comp in mq_competencies %}
-                  <div>
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="fw-medium">{{ comp.competency }}</span>
-                      <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+              {% if section.type == "motivation_summary" %}
+                {% for item in section.items %}
+                  <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score|default:"-" }}/10</span>
                     </div>
-
-                    <div class="progress" style="height: 10px;">
-                      <div
-                        class="progress-bar"
-                        role="progressbar"
-                        style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;"></div>
-                    </div>
+                    <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
                   </div>
                 {% endfor %}
-              </div>
-            {% else %}
-              <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
-            {% endif %}
+              {% endif %}
 
+              {% if section.type == "all_motivators" %}
+                {% for item in section.items %}
+                  <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score|default:"-" }}/10</span>
+                    </div>
+                    {% if item.descriptor %}
+                      <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                    {% endif %}
+                    <p class="mb-0">{{ item.profile_summary|default:"No summary available yet." }}</p>
+                  </div>
+                {% endfor %}
+              {% endif %}
+
+              {% if section.type == "implications" %}
+                {% if section.top_title %}
+                  <h5 class="mt-4">{{ section.top_title }}</h5>
+                {% endif %}
+
+                {% for item in section.top_items %}
+                  <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score|default:"-" }}/10</span>
+                    </div>
+                    <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                    <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
+                  </div>
+                {% endfor %}
+
+                {% if section.bottom_title %}
+                  <h5 class="mt-4">{{ section.bottom_title }}</h5>
+                {% endif %}
+
+                {% for item in section.bottom_items %}
+                  <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score|default:"-" }}/10</span>
+                    </div>
+                    <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                    <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
+                  </div>
+                {% endfor %}
+              {% endif %}
+
+              {% if section.type == "ideal_environment" %}
+                {% if section.top_title %}
+                  <h5 class="mt-4">{{ section.top_title }}</h5>
+                {% endif %}
+
+                {% for item in section.items %}
+                  <div class="mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.score|default:"-" }}/10</span>
+                    </div>
+
+                    {% if item.ideal_environment %}
+                      <ul class="mb-0">
+                        {% for point in item.ideal_environment %}
+                          <li>{{ point }}</li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      <p class="mb-0">No ideal environment guidance available yet.</p>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          {% endfor %}
+
+        {% elif report.key == "coaching_report" %}
+          {% for item in report.items %}
+            <div class="mb-4 p-3 border rounded">
+              <h4>{{ item.label }} ({{ item.score|default:"-" }}/10)</h4>
+              <p>{{ item.summary|default:"No summary available yet." }}</p>
+
+              <strong>Upsides</strong>
+              <ul>
+                {% for text in item.upsides %}
+                  <li>{{ text }}</li>
+                {% empty %}
+                  <li>No upsides available yet.</li>
+                {% endfor %}
+              </ul>
+
+              <strong>Downsides</strong>
+              <ul>
+                {% for text in item.downsides %}
+                  <li>{{ text }}</li>
+                {% empty %}
+                  <li>No downsides available yet.</li>
+                {% endfor %}
+              </ul>
+
+              <strong>Coaching questions</strong>
+              <ul>
+                {% for text in item.questions %}
+                  <li>{{ text }}</li>
+                {% empty %}
+                  <li>No coaching questions available yet.</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endfor %}
+
+        {% else %}
+          {% for item in report.items %}
+            <div class="mb-3 p-3 border rounded">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>{{ item.competency }}</strong>
+                <span>{{ item.score|default:"-" }}/10</span>
+              </div>
+              <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <hr class="my-4">
+
+    {% if mq_competencies %}
+      <div class="d-flex flex-column gap-3">
+        {% for comp in mq_competencies %}
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-medium">{{ comp.competency }}</span>
+              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
+            </div>
+
+            <div class="progress" style="height: 10px;">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;"></div>
+            </div>
           </div>
-        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
+    {% endif %}
+
+  </div>
+</div>
 
         <!-- PERSONLIGHET -->
         <div class="card mb-3">
