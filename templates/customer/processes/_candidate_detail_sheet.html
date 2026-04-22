@@ -1340,72 +1340,70 @@ padding: 0px 0px 0px 30px;
 
     <div class="profile-domain-grid">
 
-      <!-- Motivation column -->
-      <section class="domain-panel domain-panel--motivation">
-        <div class="domain-panel__header">
-          <div>
-            <div class="text-muted small mb-2">What drives this person</div>
-            <h3 class="domain-panel__title">Motivation</h3>
+<!-- Motivation column -->
+<section class="domain-panel domain-panel--motivation">
+  <div class="domain-panel__header">
+    <div>
+      <div class="text-muted small mb-2">What drives this person</div>
+      <h3 class="domain-panel__title">Motivation</h3>
+    </div>
+    <div class="domain-panel__icon"><i data-feather="zap"></i></div>
+  </div>
+  <div class="domain-panel__divider"></div>
+
+  <div class="domain-panel__section-title">Top motivations</div>
+
+  <div class="domain-panel__section">
+    {% if top_motivations %}
+      <div class="highlight-list">
+        {% for comp in top_motivations %}
+          <div class="highlight-row">
+            <div class="highlight-row__content">
+              <div class="candidate-inline-title">{{ comp.competency }}</div>
+              <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
+            </div>
+            <div class="highlight-score-pill">
+              {{ comp.score|default:"-" }}/5
+            </div>
           </div>
-          <div class="domain-panel__icon"><i data-feather="zap"></i></div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="highlight-empty highlight-empty--compact">
+        <div class="highlight-empty__title">No motivation data yet</div>
+        <div class="highlight-empty__text">
+          Motivation results will appear here when available.
         </div>
-        <div class="domain-panel__divider"></div>
+      </div>
+    {% endif %}
+  </div>
 
-                  <div class="domain-panel__section-title">Top motivations</div>
-
-        <div class="domain-panel__section">
-          {% if top_motivations %}
-            <div class="highlight-list">
-              {% for comp in top_motivations %}
-                <div class="highlight-row">
-                  <div class="highlight-row__content">
-                    <div class="candidate-inline-title">{{ comp.competency }}</div>
-                    <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
-                  </div>
-                  <div class="highlight-score-pill">
-                    {{ comp.sten_rounded|default:"-" }}/10
-                  </div>
-                </div>
-              {% endfor %}
+  <div class="domain-panel__section-title mt-4">Areas to explore</div>
+  <div class="domain-panel__section">
+    {% if motivation_development_areas %}
+      <div class="highlight-list">
+        {% for comp in motivation_development_areas %}
+          <div class="highlight-row">
+            <div class="highlight-row__content">
+              <div class="candidate-inline-title">{{ comp.competency }}</div>
+              <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
             </div>
-          {% else %}
-            <div class="highlight-empty highlight-empty--compact">
-              <div class="highlight-empty__title">No motivation data yet</div>
-              <div class="highlight-empty__text">
-                Motivation results will appear here when available.
-              </div>
+            <div class="highlight-score-pill highlight-score-pill--soft">
+              {{ comp.score|default:"-" }}/5
             </div>
-          {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="highlight-empty highlight-empty--compact">
+        <div class="highlight-empty__title">No development areas yet</div>
+        <div class="highlight-empty__text">
+          Lower-scoring motivation areas will appear here.
         </div>
-
-<div class="domain-panel__section-title mt-4">Areas to explore</div>
-        <div class="domain-panel__section">
-          
-
-          {% if motivation_development_areas %}
-            <div class="highlight-list">
-              {% for comp in motivation_development_areas %}
-                <div class="highlight-row">
-                  <div class="highlight-row__content">
-                    <div class="candidate-inline-title">{{ comp.competency }}</div>
-                    <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
-                  </div>
-                  <div class="highlight-score-pill highlight-score-pill--soft">
-                    {{ comp.sten_rounded|default:"-" }}/10
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="highlight-empty highlight-empty--compact">
-              <div class="highlight-empty__title">No development areas yet</div>
-              <div class="highlight-empty__text">
-                Lower-scoring motivation areas will appear here.
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      </section>
+      </div>
+    {% endif %}
+  </div>
+</section>
 
       <!-- Personality column -->
       <section class="domain-panel domain-panel--personality">

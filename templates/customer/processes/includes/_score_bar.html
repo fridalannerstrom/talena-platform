@@ -1,10 +1,10 @@
 <div class="talena-score-block">
   <div class="talena-score-block__top">
-    <span class="talena-score-block__value">{{ score|default:"-" }}/10</span>
+    <span class="talena-score-block__value">{{ score|default:"-" }}/5</span>
   </div>
 
-  <div class="talena-score-block__bar" aria-label="Score {{ score|default:'0' }} out of 10">
-    {% for _ in "1234567890"|make_list %}
+  <div class="talena-score-block__bar" aria-label="Score {{ score|default:'0' }} out of 5">
+    {% for _ in "12345"|make_list %}
       <span class="talena-score-block__segment {% if score and forloop.counter <= score %}is-filled{% endif %}"></span>
     {% endfor %}
   </div>

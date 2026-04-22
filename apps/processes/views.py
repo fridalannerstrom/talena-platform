@@ -1094,6 +1094,9 @@ def process_candidate_detail(request, process_id, candidate_id):
             for comp in item.get("competencies", []) or []:
                 mq_competencies.append({
                     "competency": comp.get("competency"),
+                    "score": comp.get("stive_rounded"),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "stive": comp.get("stive"),
                     "sten_rounded": comp.get("sten_rounded"),
                     "sten": comp.get("sten"),
                     "percentile": comp.get("percentile"),
@@ -1142,22 +1145,24 @@ def process_candidate_detail(request, process_id, candidate_id):
         key=lambda x: (x.get("competency") or "").lower()
     )
 
-    
     # -------------------------
     # Highlights / profile snapshot
     # -------------------------
 
-    def safe_score(item):
+    def safe_motivation_score(item):
+        return item.get("score") if item.get("score") is not None else -1
+
+    def safe_personality_score(item):
         return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
 
-    sorted_mq_desc = sorted(mq_competencies, key=safe_score, reverse=True)
-    sorted_personality_desc = sorted(personality_competencies, key=safe_score, reverse=True)
+    sorted_mq_desc = sorted(mq_competencies, key=safe_motivation_score, reverse=True)
+    sorted_personality_desc = sorted(personality_competencies, key=safe_personality_score, reverse=True)
 
     top_motivations = sorted_mq_desc[:3]
     top_personality_traits = sorted_personality_desc[:3]
 
-    sorted_mq_asc = sorted(mq_competencies, key=safe_score)
-    sorted_personality_asc = sorted(personality_competencies, key=safe_score)
+    sorted_mq_asc = sorted(mq_competencies, key=safe_motivation_score)
+    sorted_personality_asc = sorted(personality_competencies, key=safe_personality_score)
 
     motivation_development_areas = sorted_mq_asc[:2]
     personality_development_areas = sorted_personality_asc[:2]

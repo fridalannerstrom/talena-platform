@@ -1,4 +1,4 @@
-from apps.reports.services.score_bands import resolve_score_band
+from apps.reports.libraries.motivation.score_bands import resolve_motivation_score_band
 from apps.reports.libraries.motivation.definitions import MOTIVATION_REPORTS
 from apps.reports.libraries.motivation.content import (
     PRACTITIONER_SECTION_CONTENT,
@@ -21,7 +21,7 @@ def build_scores_by_competency(competencies: list[dict]) -> dict:
     for item in competencies:
         raw_name = item.get("competency")
         normalized_name = normalize_competency_name(raw_name)
-        score = item.get("sten_rounded")
+        score = item.get("score")
 
         if normalized_name:
             result[normalized_name] = score
@@ -240,7 +240,7 @@ def build_motivation_coaching_report(
 
         for comp in competencies:
             comp_name = comp.get("competency")
-            comp_score = comp.get("sten_rounded")
+            comp_score = comp.get("score")
 
             normalized_comp_name = normalize_competency_name(comp_name)
 
@@ -252,7 +252,7 @@ def build_motivation_coaching_report(
         if matched_score is None:
             continue
 
-        score_band = resolve_score_band(matched_score, bands=bands)
+        score_band = resolve_motivation_score_band(matched_score)
         band_content = content_def.get("bands", {}).get(score_band, {})
 
         matched_items.append({
