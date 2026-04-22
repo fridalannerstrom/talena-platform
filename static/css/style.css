@@ -152,6 +152,45 @@
 
 /* Custom */
 
+
+/* score bar reports */
+
+.talena-score-block {
+  min-width: 120px;
+  max-width: 150px;
+}
+
+.talena-score-block__top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.35rem;
+}
+
+.talena-score-block__value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #444b5a;
+  white-space: nowrap;
+}
+
+.talena-score-block__bar {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 0.22rem;
+}
+
+.talena-score-block__segment {
+  height: 0.42rem;
+  border-radius: 999px;
+  background: #e8eaf1;
+}
+
+.talena-score-block__segment.is-filled {
+  background: linear-gradient(90deg, #6f5bd3 0%, #8f5ed8 100%);
+}
+
+/* end score bar reports */
+
 body {
   background-color: #F5F7FB !important;
 }

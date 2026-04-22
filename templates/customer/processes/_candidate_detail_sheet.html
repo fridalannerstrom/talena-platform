@@ -983,6 +983,10 @@ padding: 0px 0px 0px 30px;
   }
 }
 
+.report-tab {
+  padding: 1.5rem 1rem;
+}
+
 </style>
 
 <div class="container-fluid px-2 px-md-3">
@@ -1424,8 +1428,8 @@ padding: 0px 0px 0px 30px;
               {% for comp in top_personality_traits %}
                 <div class="highlight-row">
                   <div class="highlight-row__content">
-                    <div class="highlight-row__name">{{ comp.competency }}</div>
-                    <div class="highlight-row__meta">Personality</div>
+                    <div class="candidate-inline-title">{{ comp.competency }}</div>
+                    <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
                   </div>
                   <div class="highlight-score-pill">
                     {{ comp.sten_rounded|default:"-" }}/10
@@ -1451,8 +1455,8 @@ padding: 0px 0px 0px 30px;
               {% for comp in personality_development_areas %}
                 <div class="highlight-row">
                   <div class="highlight-row__content">
-                    <div class="highlight-row__name">{{ comp.competency }}</div>
-                    <div class="highlight-row__meta">Personality</div>
+                    <div class="candidate-inline-title">{{ comp.competency }}</div>
+                    <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
                   </div>
                   <div class="highlight-score-pill highlight-score-pill--soft">
                     {{ comp.sten_rounded|default:"-" }}/10
@@ -1509,7 +1513,7 @@ padding: 0px 0px 0px 30px;
 <!-- MQ -->
 <div class="card mb-3">
   <div class="card-header fw-semibold">Motivation Questionnaire</div>
-  <div class="card-body">
+  <div class="card-body p-0">
 
     <div class="candidate-profile-tabs-wrap">
       <div class="candidate-profile-tabs" role="tablist" aria-label="Motivation report tabs">
@@ -1528,7 +1532,7 @@ padding: 0px 0px 0px 30px;
 
     {% for report in motivation_reports_for_ui %}
       <div
-        class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
+        class="candidate-tab-panel report-tab {% if forloop.first %}is-active{% endif %}"
         data-tab-group="motivation-report-tabs"
         data-tab-panel="{{ report.key }}">
 
@@ -1549,9 +1553,9 @@ padding: 0px 0px 0px 30px;
               {% if section.type == "motivation_summary" %}
                 {% for item in section.items %}
                   <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                       <strong>{{ item.label }}</strong>
-                      <span>{{ item.score|default:"-" }}/10</span>
+                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
                     </div>
                     <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
                   </div>
@@ -1561,9 +1565,9 @@ padding: 0px 0px 0px 30px;
               {% if section.type == "all_motivators" %}
                 {% for item in section.items %}
                   <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                       <strong>{{ item.label }}</strong>
-                      <span>{{ item.score|default:"-" }}/10</span>
+                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
                     </div>
                     {% if item.descriptor %}
                       <p class="mb-2"><em>{{ item.descriptor }}</em></p>
@@ -1580,9 +1584,9 @@ padding: 0px 0px 0px 30px;
 
                 {% for item in section.top_items %}
                   <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                       <strong>{{ item.label }}</strong>
-                      <span>{{ item.score|default:"-" }}/10</span>
+                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
                     </div>
                     <p class="mb-2"><em>{{ item.descriptor }}</em></p>
                     <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
@@ -1595,9 +1599,9 @@ padding: 0px 0px 0px 30px;
 
                 {% for item in section.bottom_items %}
                   <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                       <strong>{{ item.label }}</strong>
-                      <span>{{ item.score|default:"-" }}/10</span>
+                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
                     </div>
                     <p class="mb-2"><em>{{ item.descriptor }}</em></p>
                     <p class="mb-0">{{ item.implications|default:"No implications available yet." }}</p>
@@ -1612,9 +1616,9 @@ padding: 0px 0px 0px 30px;
 
                 {% for item in section.items %}
                   <div class="mb-3 p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                       <strong>{{ item.label }}</strong>
-                      <span>{{ item.score|default:"-" }}/10</span>
+                      {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
                     </div>
 
                     {% if item.ideal_environment %}
@@ -1635,7 +1639,11 @@ padding: 0px 0px 0px 30px;
         {% elif report.key == "coaching_report" %}
           {% for item in report.items %}
             <div class="mb-4 p-3 border rounded">
-              <h4>{{ item.label }} ({{ item.score|default:"-" }}/10)</h4>
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                <h4 class="mb-0">{{ item.label }}</h4>
+                {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+              </div>
+
               <p>{{ item.summary|default:"No summary available yet." }}</p>
 
               <strong>Upsides</strong>
@@ -1670,9 +1678,9 @@ padding: 0px 0px 0px 30px;
         {% else %}
           {% for item in report.items %}
             <div class="mb-3 p-3 border rounded">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
                 <strong>{{ item.competency }}</strong>
-                <span>{{ item.score|default:"-" }}/10</span>
+                {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
               </div>
               <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
             </div>
@@ -1680,30 +1688,6 @@ padding: 0px 0px 0px 30px;
         {% endif %}
       </div>
     {% endfor %}
-
-    <hr class="my-4">
-
-    {% if mq_competencies %}
-      <div class="d-flex flex-column gap-3">
-        {% for comp in mq_competencies %}
-          <div>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-medium">{{ comp.competency }}</span>
-              <span class="small text-muted">{{ comp.sten_rounded|default:"-" }}/10</span>
-            </div>
-
-            <div class="progress" style="height: 10px;">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                style="width: {% widthratio comp.sten_rounded|default:0 10 100 %}%;"></div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="text-muted small">Inga MQ-resultat tillgängliga ännu.</div>
-    {% endif %}
 
   </div>
 </div>
