@@ -22,20 +22,292 @@ MOTIVATION_TEXTS = {
 MOTIVATION_COACHING_CONTENT = {
     "affiliation": {
         "label": "Affiliation",
+        "descriptor": "Motivated by social interaction with others, having support and working in teams.",
         "aliases": ["Affiliation"],
         "bands": {
-            "1_2": {
-                "summary": "...",
+            "1": {
+                "summary": "Lorem ipsum for very low Affiliation.",
                 "upsides": ["..."],
                 "downsides": ["..."],
                 "questions": ["..."],
             },
-            "7_8": {
-                "summary": "...",
+            "2": {
+                "summary": "Lorem ipsum for low Affiliation.",
                 "upsides": ["..."],
                 "downsides": ["..."],
                 "questions": ["..."],
             },
+            "3": {
+                "summary": "Lorem ipsum for balanced Affiliation.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "4": {
+                "summary": "Lorem ipsum for high Affiliation.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "5": {
+                "summary": "Lorem ipsum for very high Affiliation.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+        },
+    },
+    "customer_service": {
+        "label": "Customer Service",
+        "descriptor": "Motivated by customer facing environments, understanding their needs and providing a good service.",
+        "aliases": ["Customer Service", "Service Focus"],
+        "bands": {
+            "1": {
+                "summary": "Lorem ipsum for very low Customer Service.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "2": {
+                "summary": "Lorem ipsum for low Customer Service.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "3": {
+                "summary": "Lorem ipsum for balanced Customer Service.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "4": {
+                "summary": "Lorem ipsum for high Customer Service.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+            "5": {
+                "summary": "Lorem ipsum for very high Customer Service.",
+                "upsides": ["..."],
+                "downsides": ["..."],
+                "questions": ["..."],
+            },
+        },
+    },
+    "work_life_balance": {
+        "label": "Work-life Balance",
+        "descriptor": "Motivated by being able to maintain a healthy work-life balance.",
+        "aliases": ["Work-life Balance", "Finding the right balance"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Work-life Balance.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Work-life Balance.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Work-life Balance.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Work-life Balance.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Work-life Balance.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "people_development": {
+        "label": "People Development",
+        "descriptor": "Motivated by helping others grow and develop.",
+        "aliases": ["People Development", "Developing Others", "Coaching & Developing"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low People Development.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low People Development.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced People Development.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high People Development.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high People Development.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "stability": {
+        "label": "Stability",
+        "descriptor": "Motivated by job security, organisational stability and consistency.",
+        "aliases": ["Stability"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Stability.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Stability.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Stability.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Stability.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Stability.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "authority": {
+        "label": "Authority",
+        "descriptor": "Motivated by recognition of seniority, and exercising authority and control over others.",
+        "aliases": ["Authority"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Authority.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Authority.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Authority.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Authority.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Authority.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "acquisition": {
+        "label": "Acquisition",
+        "descriptor": "Motivated by acquiring wealth and financial reward.",
+        "aliases": ["Acquisition"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Acquisition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Acquisition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Acquisition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Acquisition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Acquisition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "autonomy": {
+        "label": "Autonomy",
+        "descriptor": "Motivated by being able to organise own time and approach to work.",
+        "aliases": ["Autonomy"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Autonomy.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Autonomy.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Autonomy.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Autonomy.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Autonomy.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "recognition": {
+        "label": "Recognition",
+        "descriptor": "Motivated by visibility, praise and public acknowledgement for achievements.",
+        "aliases": ["Recognition"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Recognition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Recognition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Recognition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Recognition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Recognition.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "making_a_difference": {
+        "label": "Making a Difference",
+        "descriptor": "Motivated by wider contributions to the organisation, society or cause.",
+        "aliases": ["Making a Difference"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Making a Difference.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Making a Difference.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Making a Difference.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Making a Difference.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Making a Difference.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "achievement": {
+        "label": "Achievement",
+        "descriptor": "Motivated by achieving goals, overcoming challenges and competing with others.",
+        "aliases": ["Achievement"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Achievement.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Achievement.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Achievement.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Achievement.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Achievement.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "quality": {
+        "label": "Quality",
+        "descriptor": "Motivated by producing accurate, quality and timely work output.",
+        "aliases": ["Quality"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Quality.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Quality.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Quality.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Quality.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Quality.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "learning": {
+        "label": "Learning",
+        "descriptor": "Motivated by opportunities for further development, training and learning new skills.",
+        "aliases": ["Learning"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Learning.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Learning.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Learning.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Learning.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Learning.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "ethics": {
+        "label": "Ethics",
+        "descriptor": "Motivated by maintaining high ethical standards, for self and organisation.",
+        "aliases": ["Ethics"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Ethics.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Ethics.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Ethics.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Ethics.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Ethics.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "commercial_value": {
+        "label": "Commercial Value",
+        "descriptor": "Motivated by generating revenue and profit for the organisation.",
+        "aliases": ["Commercial Value"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Commercial Value.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Commercial Value.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Commercial Value.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Commercial Value.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Commercial Value.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "curiosity": {
+        "label": "Curiosity",
+        "descriptor": "Motivated by finding out new information and solving novel problems.",
+        "aliases": ["Curiosity"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Curiosity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Curiosity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Curiosity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Curiosity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Curiosity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "creativity": {
+        "label": "Creativity",
+        "descriptor": "Motivated by innovation and seeing new opportunities to be creative.",
+        "aliases": ["Creativity"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Creativity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Creativity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Creativity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Creativity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Creativity.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "enjoyment": {
+        "label": "Enjoyment",
+        "descriptor": "Motivated by enjoying work and having fun with colleagues.",
+        "aliases": ["Enjoyment"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Enjoyment.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Enjoyment.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Enjoyment.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Enjoyment.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Enjoyment.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "variety": {
+        "label": "Variety",
+        "descriptor": "Motivated by variety in their work, new varied approaches and change.",
+        "aliases": ["Variety"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Variety.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Variety.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Variety.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Variety.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Variety.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+        },
+    },
+    "risk": {
+        "label": "Risk",
+        "descriptor": "Motivated by having the scope to take risks in their work.",
+        "aliases": ["Risk"],
+        "bands": {
+            "1": {"summary": "Lorem ipsum for very low Risk.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "2": {"summary": "Lorem ipsum for low Risk.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "3": {"summary": "Lorem ipsum for balanced Risk.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "4": {"summary": "Lorem ipsum for high Risk.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
+            "5": {"summary": "Lorem ipsum for very high Risk.", "upsides": ["..."], "downsides": ["..."], "questions": ["..."]},
         },
     },
 }
@@ -1488,5 +1760,24 @@ MANAGER_FACTOR_CONTENT = {
                 "relationships_text": "Lorem ipsum relationships text for very high Risk.",
             },
         },
+    },
+}
+
+COACHING_SECTION_CONTENT = {
+    "motivation_summary": {
+        "title": "Motivation Summary",
+        "intro": (
+            "This profile chart indicates the extent to which each area of the Sova Motivation model is "
+            "likely to energise or engage this individual. This profile should be interpreted with an "
+            "understanding of their role and the current and aspired culture of the organisation."
+        ),
+    },
+    "coaching_facilitation": {
+        "title": "Sova Motivation - Coaching facilitation",
+        "intro": (
+            "This section is intended to facilitate a coaching session between a qualified coach and the "
+            "motivation questionnaire respondent. It focuses on the respondent's top three motivators, "
+            "their advantages, potential pitfalls, and reflective coaching questions."
+        ),
     },
 }

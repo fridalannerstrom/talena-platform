@@ -90,14 +90,15 @@ MOTIVATION_REPORTS = {
         ],
     },
     "coaching_report": {
-        "title": "TQ Motivation - Coaching Report",
-        "intro": (
-            "This report is based on the individual's responses to the Sova Motivation Questionnaire. "
-            "It provides information about how their responses suggest they are motivated by all factors "
-            "in the Sova Motivation Model, as well as guidance about how to run a coaching session with them."
-        ),
+        "title": "Coaching Report",
+        "intro": "...",
         "domain": "motivation",
-        "selection_mode": "top_n",
+        "sections": [
+            "motivation_summary",
+            "coaching_facilitation",
+        ],
+        "items": MOTIVATION_FACTORS,
         "top_n": 3,
     },
 }
+

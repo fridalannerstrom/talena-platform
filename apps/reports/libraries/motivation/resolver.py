@@ -3,6 +3,7 @@ from apps.reports.libraries.motivation.content import (
     MOTIVATION_TEXTS,
     PRACTITIONER_FACTOR_CONTENT,
     MANAGER_FACTOR_CONTENT,
+    MOTIVATION_COACHING_CONTENT,
 )
 
 
@@ -66,4 +67,26 @@ def resolve_manager_factor_content(
         "descriptor": factor_content.get("descriptor", ""),
         "management_tips": band_content.get("management_tips", ""),
         "relationships_text": band_content.get("relationships_text", ""),
+    }
+
+def resolve_coaching_factor_content(
+    *,
+    factor_key: str,
+    score: int | None,
+    bands=None,
+) -> dict:
+    score_band = resolve_motivation_score_band(score)
+
+    factor_content = MOTIVATION_COACHING_CONTENT.get(factor_key, {})
+    band_content = factor_content.get("bands", {}).get(score_band, {})
+
+    return {
+        "score": score,
+        "score_band": score_band,
+        "label": factor_content.get("label", ""),
+        "descriptor": factor_content.get("descriptor", ""),
+        "summary": band_content.get("summary", ""),
+        "upsides": band_content.get("upsides", []),
+        "downsides": band_content.get("downsides", []),
+        "questions": band_content.get("questions", []),
     }

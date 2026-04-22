@@ -1671,56 +1671,86 @@ padding: 0px 0px 0px 30px;
     </div>
   {% endfor %}
 
-        {% elif report.key == "coaching_report" %}
-          {% for item in report.items %}
-            <div class="mb-4 p-3 border rounded">
-              <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                <h4 class="mb-0">{{ item.label }}</h4>
-                {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-              </div>
+{% elif report.key == "coaching_report" %}
+  {% for section in report.sections %}
+    <div class="mb-5">
+      <h4>{{ section.title }}</h4>
 
-              <p>{{ item.summary|default:"No summary available yet." }}</p>
+      {% if section.intro %}
+        <p>{{ section.intro }}</p>
+      {% endif %}
 
-              <strong>Upsides</strong>
-              <ul>
-                {% for text in item.upsides %}
-                  <li>{{ text }}</li>
-                {% empty %}
-                  <li>No upsides available yet.</li>
-                {% endfor %}
-              </ul>
-
-              <strong>Downsides</strong>
-              <ul>
-                {% for text in item.downsides %}
-                  <li>{{ text }}</li>
-                {% empty %}
-                  <li>No downsides available yet.</li>
-                {% endfor %}
-              </ul>
-
-              <strong>Coaching questions</strong>
-              <ul>
-                {% for text in item.questions %}
-                  <li>{{ text }}</li>
-                {% empty %}
-                  <li>No coaching questions available yet.</li>
-                {% endfor %}
-              </ul>
+      {% if section.type == "motivation_summary" %}
+        {% for item in section.items %}
+          <div class="mb-3 p-3 border rounded">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+              <strong>{{ item.label }}</strong>
+              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
             </div>
-          {% endfor %}
+            <p class="mb-0">{{ item.descriptor|default:"No descriptor available yet." }}</p>
+          </div>
+        {% endfor %}
+      {% endif %}
 
-        {% else %}
-          {% for item in report.items %}
-            <div class="mb-3 p-3 border rounded">
-              <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                <strong>{{ item.competency }}</strong>
-                {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
-              </div>
-              <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
+      {% if section.type == "coaching_facilitation" %}
+        {% for item in section.items %}
+          <div class="mb-4 p-3 border rounded">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+              <strong>{{ item.label }}</strong>
+              {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
             </div>
-          {% endfor %}
-        {% endif %}
+
+            {% if item.descriptor %}
+              <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+            {% endif %}
+
+            {% if item.summary %}
+              <p>{{ item.summary }}</p>
+            {% endif %}
+
+            <strong>Upsides</strong>
+            <ul>
+              {% for text in item.upsides %}
+                <li>{{ text }}</li>
+              {% empty %}
+                <li>No upsides available yet.</li>
+              {% endfor %}
+            </ul>
+
+            <strong>Downsides</strong>
+            <ul>
+              {% for text in item.downsides %}
+                <li>{{ text }}</li>
+              {% empty %}
+                <li>No downsides available yet.</li>
+              {% endfor %}
+            </ul>
+
+            <strong>Coaching questions</strong>
+            <ul>
+              {% for text in item.questions %}
+                <li>{{ text }}</li>
+              {% empty %}
+                <li>No coaching questions available yet.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  {% endfor %}
+
+{% else %}
+  {% for item in report.items %}
+    <div class="mb-3 p-3 border rounded">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+        <strong>{{ item.competency }}</strong>
+        {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+      </div>
+      <p class="mb-0">{{ item.text|default:"No text available yet." }}</p>
+    </div>
+  {% endfor %}
+{% endif %}
       </div>
     {% endfor %}
 
