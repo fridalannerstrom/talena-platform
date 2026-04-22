@@ -1479,33 +1479,169 @@ padding: 0px 0px 0px 30px;
 </div>
 
         <!-- ABILITIES -->
-        <div class="card mb-3">
-          <div class="card-header fw-semibold">Abilities</div>
-          <div class="card-body">
-            <div class="row text-center g-3 mt-1">
-              <div class="col-4 mt-0">
-                <div class="border rounded-3 p-3">
-                  <div class="small text-muted">Verbal</div>
-                  <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
-                </div>
-              </div>
-              <div class="col-4 mt-0">
-                <div class="border rounded-3 p-3">
-                  <div class="small text-muted">Logical</div>
-                  <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
-                </div>
-              </div>
-              <div class="col-4 mt-0">
-                <div class="border rounded-3 p-3">
-                  <div class="small text-muted">Numerical</div>
-                  <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
-                </div>
-              </div>
-            </div>
+<div class="card mb-3">
+  <div class="card-header fw-semibold">Abilities</div>
+  <div class="card-body p-0">
 
+    <div class="candidate-profile-tabs-wrap">
+      <div class="candidate-profile-tabs" role="tablist" aria-label="Ability tabs">
+        <button
+          class="candidate-tab is-active"
+          type="button"
+          data-tab-group="ability-tabs"
+          data-tab-target="overview"
+          onclick="switchTabs(this)">
+          Overview
+        </button>
+
+        {% if ability_reports_for_ui.verbal %}
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="ability-tabs"
+            data-tab-target="verbal"
+            onclick="switchTabs(this)">
+            Verbal
+          </button>
+        {% endif %}
+
+        {% if ability_reports_for_ui.logical %}
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="ability-tabs"
+            data-tab-target="logical"
+            onclick="switchTabs(this)">
+            Logical
+          </button>
+        {% endif %}
+
+        {% if ability_reports_for_ui.numerical %}
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="ability-tabs"
+            data-tab-target="numerical"
+            onclick="switchTabs(this)">
+            Numerical
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div
+      class="candidate-tab-panel report-tab is-active"
+      data-tab-group="ability-tabs"
+      data-tab-panel="overview">
+
+        <div class="row text-center g-3 mt-1">
+          <div class="col-4 mt-0">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Verbal</div>
+              <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
+            </div>
+          </div>
+          <div class="col-4 mt-0">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Logical</div>
+              <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
+            </div>
+          </div>
+          <div class="col-4 mt-0">
+            <div class="border rounded-3 p-3">
+              <div class="small text-muted">Numerical</div>
+              <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
+            </div>
           </div>
         </div>
+      </div>
+  
+    <!-- Verbal -->
+    {% if ability_reports_for_ui.verbal %}
+      <div
+        class="candidate-tab-panel report-tab"
+        data-tab-group="ability-tabs"
+        data-tab-panel="verbal">
 
+          <h3>Verbal</h3>
+          <p class="text-muted mb-4">
+            Percentile: {{ ability_reports_for_ui.verbal.percentile|default:"-" }}
+          </p>
+
+          <div class="mb-4 p-3 border rounded">
+            <h4>{{ ability_reports_for_ui.verbal.practitioner_report.title }}</h4>
+            <p>{{ ability_reports_for_ui.verbal.practitioner_report.intro }}</p>
+            <p class="mb-0">{{ ability_reports_for_ui.verbal.practitioner_report.body }}</p>
+          </div>
+
+          <div class="mb-0 p-3 border rounded">
+            <h4>{{ ability_reports_for_ui.verbal.candidate_report.title }}</h4>
+            <p>{{ ability_reports_for_ui.verbal.candidate_report.intro }}</p>
+            <p class="mb-0">{{ ability_reports_for_ui.verbal.candidate_report.body }}</p>
+          </div>
+      </div>
+    {% endif %}
+
+    <!-- Logical -->
+    {% if ability_reports_for_ui.logical %}
+      <div
+        class="candidate-tab-panel report-tab"
+        data-tab-group="ability-tabs"
+        data-tab-panel="logical">
+
+          <h3>Logical</h3>
+          <p class="text-muted mb-4">
+            Percentile: {{ ability_reports_for_ui.logical.percentile|default:"-" }}
+          </p>
+
+          <div class="mb-4 p-3 border rounded">
+<h4>{{ ability_reports_for_ui.logical.practitioner_report.title }}</h4>
+<p>{{ ability_reports_for_ui.logical.practitioner_report.intro }}</p>
+<p>{{ ability_reports_for_ui.logical.practitioner_report.test_description }}</p>
+<p>{{ ability_reports_for_ui.logical.practitioner_report.result_text }}</p>
+<div class="mb-3">
+  <strong>Percentile:</strong> {{ ability_reports_for_ui.logical.practitioner_report.percentile|default:"-" }}
+</div>
+          </div>
+
+          <div class="mb-0 p-3 border rounded">
+<h4>{{ ability_reports_for_ui.logical.candidate_report.title }}</h4>
+<p>{{ ability_reports_for_ui.logical.candidate_report.intro }}</p>
+<p>{{ ability_reports_for_ui.logical.candidate_report.test_description }}</p>
+<p>{{ ability_reports_for_ui.logical.candidate_report.result_text }}</p>
+          </div>
+        </div>
+    {% endif %}
+
+    <!-- Numerical -->
+    {% if ability_reports_for_ui.numerical %}
+      <div
+        class="candidate-tab-panel report-tab"
+        data-tab-group="ability-tabs"
+        data-tab-panel="numerical">
+
+          <h3>Numerical</h3>
+          <p class="text-muted mb-4">
+            Percentile: {{ ability_reports_for_ui.numerical.percentile|default:"-" }}
+          </p>
+
+          <div class="mb-4 p-3 border rounded">
+            <h4>{{ ability_reports_for_ui.numerical.practitioner_report.title }}</h4>
+            <p>{{ ability_reports_for_ui.numerical.practitioner_report.intro }}</p>
+            <p class="mb-0">{{ ability_reports_for_ui.numerical.practitioner_report.body }}</p>
+          </div>
+
+          <div class="mb-0 p-3 border rounded">
+            <h4>{{ ability_reports_for_ui.numerical.candidate_report.title }}</h4>
+            <p>{{ ability_reports_for_ui.numerical.candidate_report.intro }}</p>
+            <p class="mb-0">{{ ability_reports_for_ui.numerical.candidate_report.body }}</p>
+          </div>
+        </div>
+    {% endif %}
+
+  </div>
+</div>
 
 
 <!-- MQ -->

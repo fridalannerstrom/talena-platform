@@ -54,6 +54,7 @@ from apps.core.ai.candidate_summary import (
     save_candidate_summary,
 )
 
+from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
 def _get_active_company_for_user(user):
     # om du bara har 1 company per user just nu: ta första
@@ -1167,11 +1168,62 @@ def process_candidate_detail(request, process_id, candidate_id):
     motivation_development_areas = sorted_mq_asc[:2]
     personality_development_areas = sorted_personality_asc[:2]
 
-
-
     numerical_percentile = None
     logical_percentile = None
     verbal_percentile = None
+
+    for item in activities:
+        activity_name = item.get("activity", "")
+        competencies = item.get("competencies", []) or []
+        first_comp = competencies[0] if competencies else {}
+
+        percentile = first_comp.get("percentile")
+
+        if activity_name == "Sova Numerical Reasoning Assessment":
+            numerical_percentile = percentile
+        elif activity_name == "Sova Logical Reasoning Assessment":
+            logical_percentile = percentile
+        elif activity_name == "Sova Verbal Reasoning Assessment":
+            verbal_percentile = percentile
+
+
+    ability_reports_for_ui = {
+        "overview": [],
+        "verbal": build_cognitive_reports_for_test(
+            test_key="verbal",
+            percentile=verbal_percentile,
+        ) if verbal_percentile is not None else None,
+        "logical": build_cognitive_reports_for_test(
+            test_key="logical",
+            percentile=logical_percentile,
+        ) if logical_percentile is not None else None,
+        "numerical": build_cognitive_reports_for_test(
+            test_key="numerical",
+            percentile=numerical_percentile,
+        ) if numerical_percentile is not None else None,
+    }
+
+    if ability_reports_for_ui["verbal"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "verbal",
+            "label": "Verbal",
+            "percentile": verbal_percentile,
+        })
+
+    if ability_reports_for_ui["logical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "logical",
+            "label": "Logical",
+            "percentile": logical_percentile,
+        })
+
+    if ability_reports_for_ui["numerical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "numerical",
+            "label": "Numerical",
+            "percentile": numerical_percentile,
+        })
+
 
     for item in activities:
         activity_name = item.get("activity", "")
@@ -1306,6 +1358,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "personality_development_areas": personality_development_areas,
 
         "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
