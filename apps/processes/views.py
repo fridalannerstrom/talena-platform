@@ -45,6 +45,7 @@ from apps.reports.libraries.motivation.builder import (
     build_practitioner_report,
     build_motivation_report,
     build_motivation_coaching_report,
+    build_manager_report
 )
 
 from apps.core.ai.candidate_summary import (
@@ -1104,9 +1105,8 @@ def process_candidate_detail(request, process_id, candidate_id):
         competencies=mq_competencies,
     )
 
-    manager_report = build_motivation_report(
-        report_key="manager_report",
-        scores_by_competency=motivation_scores,
+    manager_report = build_manager_report(
+        competencies=mq_competencies,
     )
 
     candidate_report = build_motivation_report(

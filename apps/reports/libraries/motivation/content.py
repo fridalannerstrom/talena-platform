@@ -968,3 +968,100 @@ PRACTITIONER_FACTOR_CONTENT = {
         },
     },
 }
+
+
+MANAGER_SECTION_CONTENT = {
+    "management_tips": {
+        "title": "Tips for Managing Individuals' Primary Motivators",
+        "intro": (
+            "Below are some suggestions for line managers in terms of working with this individual "
+            "and ensuring they remain motivated."
+        ),
+    },
+    "relationships_at_work": {
+        "title": "How Motivation Can Affect Relationships At Work",
+        "intro": (
+            "This page offers some indications of how this individual's top motivators may affect "
+            "their relationships with others."
+        ),
+    },
+}
+
+
+MANAGER_FACTOR_CONTENT = {
+    "acquisition": {
+        "descriptor": "Motivated by acquiring wealth and financial reward.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for very low Acquisition.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Acquisition.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Acquisition.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for high Acquisition.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Acquisition.",
+                "relationships_text": "Lorem ipsum relationships text for very high Acquisition.",
+            },
+        },
+    },
+    "stability": {
+        "descriptor": "Motivated by job security, organisational stability and consistency.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Stability.",
+                "relationships_text": "Lorem ipsum relationships text for very low Stability.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Stability.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Stability.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Stability.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Stability.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Stability.",
+                "relationships_text": "Lorem ipsum relationships text for high Stability.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Stability.",
+                "relationships_text": "Lorem ipsum relationships text for very high Stability.",
+            },
+        },
+    },
+    "quality": {
+        "descriptor": "Motivated by producing accurate, quality and timely work output.",
+        "bands": {
+            "1_2": {
+                "management_tips": "Lorem ipsum management tips for very low Quality.",
+                "relationships_text": "Lorem ipsum relationships text for very low Quality.",
+            },
+            "3_4": {
+                "management_tips": "Lorem ipsum management tips for moderately low Quality.",
+                "relationships_text": "Lorem ipsum relationships text for moderately low Quality.",
+            },
+            "5_6": {
+                "management_tips": "Lorem ipsum management tips for balanced Quality.",
+                "relationships_text": "Lorem ipsum relationships text for balanced Quality.",
+            },
+            "7_8": {
+                "management_tips": "Lorem ipsum management tips for high Quality.",
+                "relationships_text": "Lorem ipsum relationships text for high Quality.",
+            },
+            "9_10": {
+                "management_tips": "Lorem ipsum management tips for very high Quality.",
+                "relationships_text": "Lorem ipsum relationships text for very high Quality.",
+            },
+        },
+    },
+}

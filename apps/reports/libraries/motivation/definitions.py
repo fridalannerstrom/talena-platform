@@ -45,32 +45,19 @@ MOTIVATION_REPORTS = {
     "manager_report": {
         "title": "Manager Report",
         "intro": (
-            "This report highlights the motivational factors that may be most "
-            "important to consider from a management perspective."
+            "This report is based on the individual's responses to the Sova Motivation Questionnaire. "
+            "Based on their top three motivators at work, it offers practical guidance for line managers "
+            "in order to motivate the individual most effectively. It offers tips on how to manage the "
+            "individual to play to their core motivations and offers some indications of how these "
+            "motivators could affect their relationships at work."
         ),
         "domain": "motivation",
-        "items": [
-            {
-                "key": "affiliation",
-                "label": "Affiliation",
-                "aliases": ["Affiliation"],
-            },
-            {
-                "key": "customer_service",
-                "label": "Customer Service",
-                "aliases": ["Customer Service", "Service Focus"],
-            },
-            {
-                "key": "work_life_balance",
-                "label": "Work-life Balance",
-                "aliases": ["Work-life Balance", "Finding the right balance"],
-            },
-            {
-                "key": "people_development",
-                "label": "People Development",
-                "aliases": ["People Development", "Developing Others", "Coaching & Developing"],
-            },
+        "sections": [
+            "management_tips",
+            "relationships_at_work",
         ],
+        "items": MOTIVATION_FACTORS,
+        "top_n": 3,
     },
     "candidate_report": {
         "title": "Candidate Report",

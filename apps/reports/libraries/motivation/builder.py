@@ -3,10 +3,12 @@ from apps.reports.libraries.motivation.definitions import MOTIVATION_REPORTS
 from apps.reports.libraries.motivation.content import (
     PRACTITIONER_SECTION_CONTENT,
     MOTIVATION_COACHING_CONTENT,
+    MANAGER_SECTION_CONTENT,
 )
 from apps.reports.libraries.motivation.resolver import (
     resolve_motivation_report_text,
     resolve_practitioner_factor_content,
+    resolve_manager_factor_content,
 )
 
 def normalize_competency_name(name: str | None) -> str:
@@ -279,4 +281,99 @@ def build_motivation_coaching_report(
         "intro": report_definition.get("intro", ""),
         "domain": report_definition.get("domain", "motivation"),
         "items": selected_items,
+    }
+
+
+def build_manager_factor_items(
+    *,
+    scores_by_competency: dict,
+    item_definitions: list[dict],
+    bands=None,
+) -> list[dict]:
+    items = []
+
+    for item_def in item_definitions:
+        factor_key = item_def["key"]
+        label = item_def["label"]
+        aliases = item_def.get("aliases", [label])
+
+        score = resolve_score_from_aliases(scores_by_competency, aliases)
+
+        resolved = resolve_manager_factor_content(
+            factor_key=factor_key,
+            score=score,
+            bands=bands,
+        )
+
+        items.append({
+            "key": factor_key,
+            "label": label,
+            "aliases": aliases,
+            "score": resolved["score"],
+            "score_band": resolved["score_band"],
+            "descriptor": resolved["descriptor"],
+            "management_tips": resolved["management_tips"],
+            "relationships_text": resolved["relationships_text"],
+        })
+
+    return items
+
+
+def build_manager_report(
+    *,
+    competencies: list[dict],
+    bands=None,
+) -> dict:
+    report_def = MOTIVATION_REPORTS["manager_report"]
+    scores_by_competency = build_scores_by_competency(competencies)
+
+    all_items = build_manager_factor_items(
+        scores_by_competency=scores_by_competency,
+        item_definitions=report_def["items"],
+        bands=bands,
+    )
+
+    scored_items = [item for item in all_items if item["score"] is not None]
+    sorted_items = sorted(scored_items, key=lambda x: x["score"], reverse=True)
+
+    top_n = report_def.get("top_n", 3)
+    top_items = sorted_items[:top_n]
+
+    return {
+        "key": "manager_report",
+        "title": report_def["title"],
+        "intro": report_def["intro"],
+        "domain": report_def["domain"],
+        "sections": [
+            {
+                "type": "management_tips",
+                "title": MANAGER_SECTION_CONTENT["management_tips"]["title"],
+                "intro": MANAGER_SECTION_CONTENT["management_tips"]["intro"],
+                "items": [
+                    {
+                        "key": item["key"],
+                        "label": item["label"],
+                        "score": item["score"],
+                        "descriptor": item["descriptor"],
+                        "management_tips": item["management_tips"],
+                    }
+                    for item in top_items
+                ],
+            },
+            {
+                "type": "relationships_at_work",
+                "title": MANAGER_SECTION_CONTENT["relationships_at_work"]["title"],
+                "intro": MANAGER_SECTION_CONTENT["relationships_at_work"]["intro"],
+                "items": [
+                    {
+                        "key": item["key"],
+                        "label": item["label"],
+                        "score": item["score"],
+                        "descriptor": item["descriptor"],
+                        "relationships_text": item["relationships_text"],
+                    }
+                    for item in top_items
+                ],
+            },
+        ],
     }
