@@ -309,6 +309,274 @@ HEXACO_NARRATIVE_REPORT = {
     ],
 }
 
+HEXACO_FACTOR_FACET_REPORT = {
+    "report_id": "hexaco_factor_facet_report",
+    "report_name": "HEXACO Factor & Facet Report",
+    "description": "Temporary internal table view showing expected HEXACO factor and facet structure for the Swedish report.",
+    "sections": [
+        {
+            "section_key": "hexaco_factor_facet_profile",
+            "section_name": "HEXACO Factor & Facet Profile",
+            "traits": [
+                {
+                    "trait_name": "Honesty-Humility",
+                    "indicators": ["Uprightness", "Avoiding Status", "Modesty"],
+                    "aliases": ["Ödmjukhet", "Honesty-Humility"],
+                    "indicator_aliases": {
+                        "Uprightness": ["Uppriktighet"],
+                        "Avoiding Status": ["Undvikande av status"],
+                        "Modesty": ["Försynthet"],
+                    },
+                },
+                {
+                    "trait_name": "Emotionality",
+                    "indicators": ["Vulnerability", "Anxiety", "Dependence"],
+                    "aliases": ["Känslighet", "Emotionality"],
+                    "indicator_aliases": {
+                        "Vulnerability": ["Sårbarhet"],
+                        "Anxiety": ["Ombytlighet"],
+                        "Dependence": ["Beroende"],
+                    },
+                },
+                {
+                    "trait_name": "Extraversion",
+                    "indicators": ["Sociability", "Impulsivity", "Assertiveness"],
+                    "aliases": ["Extraversion"],
+                    "indicator_aliases": {
+                        "Sociability": ["Sällskaplighet"],
+                        "Impulsivity": ["Impulsivitet"],
+                        "Assertiveness": ["Bestämdhet"],
+                    },
+                },
+                {
+                    "trait_name": "Agreeableness",
+                    "indicators": ["Flexibility", "Compassion", "Altruism"],
+                    "aliases": ["Vänlighet", "Agreeableness"],
+                    "indicator_aliases": {
+                        "Flexibility": ["Medgörlighet"],
+                        "Compassion": ["Medkänsla"],
+                        "Altruism": ["Altruism"],
+                    },
+                },
+                {
+                    "trait_name": "Conscientiousness",
+                    "indicators": ["Order", "Perfectionism", "Achievement-striving"],
+                    "aliases": ["Plikttrohet", "Samvetsgrannhet", "Conscientiousness"],
+                    "indicator_aliases": {
+                        "Order": ["Ordning"],
+                        "Perfectionism": ["Perfektionism"],
+                        "Achievement-striving": ["Prestationsinriktad"],
+                    },
+                },
+                {
+                    "trait_name": "Openness to Experience",
+                    "indicators": ["Inquisitiveness", "Creativity", "Openness to Change"],
+                    "aliases": ["Öppenhet för upplevelser", "Öppenhet för nya erfarenheter", "Openness to Experience"],
+                    "indicator_aliases": {
+                        "Inquisitiveness": ["Vetgirighet"],
+                        "Creativity": ["Kreativitet"],
+                        "Openness to Change": ["Öppenhet för förändring"],
+                    },
+                },
+            ],
+        },
+    ],
+}
+
+POTENTIAL_DNA_REPORT = {
+    "report_id": "potential_dna_report",
+    "report_name": "Potential DNA Report",
+    "description": "Temporary internal table view showing expected competency structure for the Potential DNA report.",
+    "sections": [
+        {
+            "section_key": "potential_dna_profile",
+            "section_name": "Potential DNA Profile",
+            "traits": [
+                {
+                    "trait_name": "Builds Strong Networks",
+                    "indicators": [],
+                    "aliases": ["Bygger starka nätverk"],
+                },
+                {
+                    "trait_name": "Inspires Others",
+                    "indicators": [],
+                    "aliases": ["Inspirera andra"],
+                },
+                {
+                    "trait_name": "Change Oriented",
+                    "indicators": [],
+                    "aliases": ["Förändringsinriktad"],
+                },
+                {
+                    "trait_name": "Learning Oriented",
+                    "indicators": [],
+                    "aliases": ["Inriktad på lärande"],
+                },
+                {
+                    "trait_name": "Strategic Insight",
+                    "indicators": [],
+                    "aliases": ["Strategisk insikt"],
+                },
+                {
+                    "trait_name": "Analytical Orientation",
+                    "indicators": [],
+                    "aliases": ["Analytisk inriktning"],
+                },
+                {
+                    "trait_name": "Courage",
+                    "indicators": [],
+                    "aliases": ["Mod"],
+                },
+                {
+                    "trait_name": "Drive to Achieve",
+                    "indicators": [],
+                    "aliases": ["Vilja att prestera"],
+                },
+                {
+                    "trait_name": "Resilience",
+                    "indicators": [],
+                    "aliases": ["Motståndskraft"],
+                },
+            ],
+        },
+    ],
+}
+
+CAREER_REPORT = {
+    "report_id": "career_report",
+    "report_name": "Career Report",
+    "description": "Temporary internal table view showing expected competency structure for the Career Report.",
+    "sections": [
+        {
+            "section_key": "career_orientations",
+            "section_name": "Career Orientations",
+            "traits": [
+                {
+                    "trait_name": "Service Focus",
+                    "indicators": [],
+                    "aliases": ["Servicefokus"],
+                },
+                {
+                    "trait_name": "Coaching and Development",
+                    "indicators": [],
+                    "aliases": ["Coaching och utveckling"],
+                },
+                {
+                    "trait_name": "Influence",
+                    "indicators": [],
+                    "aliases": ["Påverkan"],
+                },
+                {
+                    "trait_name": "Enterprise",
+                    "indicators": [],
+                    "aliases": ["Företagsamhet"],
+                },
+                {
+                    "trait_name": "Planning and Organising",
+                    "indicators": [],
+                    "aliases": ["Planering och organisering"],
+                },
+                {
+                    "trait_name": "Analytical Approach",
+                    "indicators": [],
+                    "aliases": ["Analytiskt tillvägagångssätt"],
+                },
+                {
+                    "trait_name": "Innovation",
+                    "indicators": [],
+                    "aliases": ["Nyskapande"],
+                },
+                {
+                    "trait_name": "Flexibility",
+                    "indicators": [],
+                    "aliases": ["Flexibilitet"],
+                },
+                {
+                    "trait_name": "Drive and Motivation",
+                    "indicators": [],
+                    "aliases": ["Driftighet och motivation"],
+                },
+            ],
+        },
+    ],
+}
+
+RECRUITMENT_INTERVIEW_GUIDE_REPORT = {
+    "report_id": "recruitment_interview_guide_report",
+    "report_name": "Recruitment Report with Interview Guide",
+    "description": "Temporary internal table view showing expected competency structure for the recruitment report.",
+    "sections": [
+        {
+            "section_key": "relationships",
+            "section_name": "Relationships",
+            "traits": [
+                {"trait_name": "Teamwork", "indicators": [], "aliases": ["Teamarbete"]},
+                {"trait_name": "Networking", "indicators": [], "aliases": ["Nätverka"]},
+                {"trait_name": "Developing Relationships", "indicators": [], "aliases": ["Utveckla relationer"]},
+                {"trait_name": "Developing Others", "indicators": [], "aliases": ["Utveckla andra"]},
+                {"trait_name": "Supporting Others", "indicators": [], "aliases": ["Stödja andra"]},
+            ],
+        },
+        {
+            "section_key": "influence",
+            "section_name": "Influence",
+            "traits": [
+                {"trait_name": "Influence", "indicators": [], "aliases": ["Inflytelserik"]},
+                {"trait_name": "Leading Others", "indicators": [], "aliases": ["Leda andra"]},
+                {"trait_name": "Delegating", "indicators": [], "aliases": ["Delegera"]},
+                {"trait_name": "Engaging Others", "indicators": [], "aliases": ["Engagera andra"]},
+                {"trait_name": "Managing Conflict", "indicators": [], "aliases": ["Hantera konflikter"]},
+                {"trait_name": "Personal Communication", "indicators": [], "aliases": ["Personlig kommunikation"]},
+                {"trait_name": "Written Communication", "indicators": [], "aliases": ["Skriftlig kommunikation"]},
+                {"trait_name": "Negotiation", "indicators": [], "aliases": ["Förhandla"]},
+                {"trait_name": "Customer Focus", "indicators": [], "aliases": ["Kundfokus"]},
+            ],
+        },
+        {
+            "section_key": "tasks",
+            "section_name": "Tasks",
+            "traits": [
+                {"trait_name": "Planning", "indicators": [], "aliases": ["Planera"]},
+                {"trait_name": "Organising and Prioritising", "indicators": [], "aliases": ["Organisera och prioritera"]},
+                {"trait_name": "Process Optimisation", "indicators": [], "aliases": ["Processoptimering"]},
+                {"trait_name": "Quality Focus", "indicators": [], "aliases": ["Kvalitetsfokus"]},
+                {"trait_name": "Analytical Thinking", "indicators": [], "aliases": ["Analytiskt tänkande"]},
+                {"trait_name": "Problem Solving", "indicators": [], "aliases": ["Problemlösning"]},
+            ],
+        },
+        {
+            "section_key": "strategy_and_organisation",
+            "section_name": "Strategy and Organisation",
+            "traits": [
+                {"trait_name": "Strategic Focus", "indicators": [], "aliases": ["Strategiskt fokus"]},
+                {"trait_name": "Driving Vision and Purpose", "indicators": [], "aliases": ["Driva vision och syfte"]},
+                {"trait_name": "Organisational Awareness", "indicators": [], "aliases": ["Organisatorisk medvetenhet"]},
+                {"trait_name": "Commercial Thinking", "indicators": [], "aliases": ["Kommersiellt tänkande"]},
+                {"trait_name": "Innovation", "indicators": [], "aliases": ["Nyskapande"]},
+                {"trait_name": "Adaptability", "indicators": [], "aliases": ["Anpassningsförmåga"]},
+                {"trait_name": "Cultural Awareness", "indicators": [], "aliases": ["Kulturell medvetenhet"]},
+                {"trait_name": "Decisiveness", "indicators": [], "aliases": ["Beslutsamhet"]},
+                {"trait_name": "Technical Knowledge", "indicators": [], "aliases": ["Teknisk kunskap"]},
+            ],
+        },
+        {
+            "section_key": "mindset",
+            "section_name": "Mindset",
+            "traits": [
+                {"trait_name": "Resilience", "indicators": [], "aliases": ["Uthållighet"]},
+                {"trait_name": "Drive", "indicators": [], "aliases": ["Drivkraft"]},
+                {"trait_name": "Results Orientation", "indicators": [], "aliases": ["Resultatorientering"]},
+                {"trait_name": "Reliability", "indicators": [], "aliases": ["Pålitlighet"]},
+                {"trait_name": "Integrity", "indicators": [], "aliases": ["Integritet"]},
+                {"trait_name": "Initiative", "indicators": [], "aliases": ["Initiativtagande"]},
+                {"trait_name": "Self-Awareness", "indicators": [], "aliases": ["Självmedvetenhet"]},
+                {"trait_name": "Handling Ambiguity", "indicators": [], "aliases": ["Hantera otydlighet"]},
+                {"trait_name": "Learning Focus", "indicators": [], "aliases": ["Inlärningsfokus"]},
+            ],
+        },
+    ],
+}
+
 PERSONALITY_REPORT_DEFINITIONS = [
     TRAIT_AND_INDICATOR_PROFILE,
     FULL_TRAIT_PROFILE,
@@ -317,4 +585,8 @@ PERSONALITY_REPORT_DEFINITIONS = [
     PRACTITIONER_SALES_REPORT,
     TEAM_REPORT,
     HEXACO_NARRATIVE_REPORT,
+    HEXACO_FACTOR_FACET_REPORT,
+    POTENTIAL_DNA_REPORT,
+    CAREER_REPORT,
+    RECRUITMENT_INTERVIEW_GUIDE_REPORT,
 ]
