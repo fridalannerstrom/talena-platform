@@ -289,6 +289,26 @@ TEAM_REPORT = {
     ],
 }
 
+HEXACO_NARRATIVE_REPORT = {
+    "report_id": "hexaco_narrative_report",
+    "report_name": "HEXACO Narrative Report",
+    "description": "Temporary internal table view showing expected HEXACO factor structure for the narrative report.",
+    "sections": [
+        {
+            "section_key": "hexaco_profile",
+            "section_name": "HEXACO Profile",
+            "traits": [
+                {"trait_name": "Honesty-Humility", "indicators": [], "source_label_sv": "Ödmjukhet"},
+                {"trait_name": "Emotionality", "indicators": [], "source_label_sv": "Känslighet"},
+                {"trait_name": "Extraversion", "indicators": [], "source_label_sv": "Extraversion"},
+                {"trait_name": "Agreeableness", "indicators": [], "source_label_sv": "Vänlighet"},
+                {"trait_name": "Conscientiousness", "indicators": [], "source_label_sv": "Plikttrogenhet"},
+                {"trait_name": "Openness to Experience", "indicators": [], "source_label_sv": "Öppenhet för upplevelser"},
+            ],
+        },
+    ],
+}
+
 PERSONALITY_REPORT_DEFINITIONS = [
     TRAIT_AND_INDICATOR_PROFILE,
     FULL_TRAIT_PROFILE,
@@ -296,4 +316,5 @@ PERSONALITY_REPORT_DEFINITIONS = [
     LEADERSHIP_REPORT,
     PRACTITIONER_SALES_REPORT,
     TEAM_REPORT,
+    HEXACO_NARRATIVE_REPORT,
 ]

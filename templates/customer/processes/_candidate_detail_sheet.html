@@ -987,6 +987,35 @@ padding: 0px 0px 0px 30px;
   padding: 1.75rem 1.25rem;
 }
 
+.candidate-profile-tabs-wrap {
+  padding: 0 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.candidate-profile-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: nowrap;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+.candidate-profile-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.candidate-profile-tabs-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.candidate-tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 </style>
 
 <div class="container-fluid px-2 px-md-3">

@@ -85,47 +85,4 @@
   </div>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const profileLabels = {{ dummy_profile.labels|safe }};
-  const profileValues = {{ dummy_profile.values|safe }};
-
-  new Chart(document.getElementById("profileChart"), {
-    type: "radar",
-    data: {
-      labels: profileLabels,
-      datasets: [{
-        label: "Score",
-        data: profileValues,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      scales: {
-        r: { suggestedMin: 0, suggestedMax: 10 }
-      }
-    }
-  });
-
-  const abLabels = {{ dummy_abilities.labels|safe }};
-  const abValues = {{ dummy_abilities.values|safe }};
-
-  new Chart(document.getElementById("abilitiesChart"), {
-    type: "bar",
-    data: {
-      labels: abLabels,
-      datasets: [{
-        label: "Percentile",
-        data: abValues,
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: { suggestedMin: 0, suggestedMax: 100 }
-      }
-    }
-  });
-</script>
 {% endblock %}
