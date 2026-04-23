@@ -1957,108 +1957,92 @@ padding: 0px 0px 0px 30px;
         </div>
       </div>
 
-      <div class="p-3">
-        {% for report in personality_reports %}
-          <div
-            class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
-            data-tab-group="personality-report-tabs"
-            data-tab-panel="{{ report.report_id }}"
-          >
-            <p class="text-muted small mb-3">{{ report.description }}</p>
+<div class="p-3">
+  {% for report in personality_reports %}
+    <div
+      class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
+      data-tab-group="personality-report-tabs"
+      data-tab-panel="{{ report.report_id }}"
+    >
+      <p class="text-muted small mb-3">{{ report.description }}</p>
 
-            <div class="d-flex flex-wrap gap-3 small mb-3">
-              <div><strong>Total expected:</strong> {{ report.summary.total_expected }}</div>
-              <div><strong>Matched:</strong> {{ report.summary.matched_count }}</div>
-              <div><strong>Missing:</strong> {{ report.summary.missing_count }}</div>
-              <div><strong>Duplicates:</strong> {{ report.summary.duplicate_count }}</div>
-              <div><strong>Extras:</strong> {{ report.summary.extra_count }}</div>
-            </div>
-
-            {% for section in report.sections %}
-              <div class="mb-4">
-                <h6 class="fw-bold mb-2">{{ section.section_name }}</h6>
-
-                <div class="table-responsive">
-                  <table class="table table-sm table-bordered align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Type</th>
-                        <th>Trait</th>
-                        <th>Expected name</th>
-                        <th>SOVA match</th>
-                        <th>Canonical key</th>
-                        <th>Sten</th>
-                        <th>Percentile</th>
-                        <th>Mapping</th>
-                        <th>Library</th>
-                        <th>Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for row in section.rows %}
-                        <tr class="{% if row.row_type == 'trait' %}table-light{% endif %}">
-                          <td>{{ row.row_type|title }}</td>
-                          <td>{{ row.parent_trait|default:"-" }}</td>
-                          <td><strong>{{ row.expected_name }}</strong></td>
-                          <td>{{ row.sova_name|default:"-" }}</td>
-                          <td><code>{{ row.canonical_key }}</code></td>
-                          <td>{{ row.sten|default:"-" }}</td>
-                          <td>{{ row.percentile|default:"-" }}</td>
-                          <td>
-                            {% if row.mapping_status == "matched" %}
-                              <span class="badge bg-success">Matched</span>
-                            {% elif row.mapping_status == "duplicate" %}
-                              <span class="badge bg-warning text-dark">Duplicate</span>
-                            {% else %}
-                              <span class="badge bg-danger">Missing</span>
-                            {% endif %}
-                          </td>
-                          <td>
-                            {% if row.library_status == "ready" %}
-                              <span class="badge bg-success">Ready</span>
-                            {% elif row.library_status == "in_progress" %}
-                              <span class="badge bg-info text-dark">In progress</span>
-                            {% else %}
-                              <span class="badge bg-secondary">Not started</span>
-                            {% endif %}
-                          </td>
-                          <td>{{ row.notes|default:"-" }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            {% endfor %}
-
-            {% if report.extras %}
-              <div class="mt-4">
-                <h6 class="fw-bold mb-2">Extra competencies in payload</h6>
-                <div class="table-responsive">
-                  <table class="table table-sm table-bordered align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Competency</th>
-                        <th>Sten</th>
-                        <th>Percentile</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for item in report.extras %}
-                        <tr>
-                          <td>{{ item.competency }}</td>
-                          <td>{{ item.sten_rounded|default:"-" }}</td>
-                          <td>{{ item.percentile|default:"-" }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            {% endif %}
-          </div>
-        {% endfor %}
+      <div class="d-flex flex-wrap gap-3 small mb-3">
+        <div><strong>Total expected:</strong> {{ report.summary.total_expected }}</div>
+        <div><strong>Matched:</strong> {{ report.summary.matched_count }}</div>
+        <div><strong>Missing:</strong> {{ report.summary.missing_count }}</div>
+        <div><strong>Duplicates:</strong> {{ report.summary.duplicate_count }}</div>
+        <div><strong>Extras:</strong> {{ report.summary.extra_count }}</div>
       </div>
+
+      {% for section in report.sections %}
+        <div class="mb-4">
+          <h6 class="fw-bold mb-2">{{ section.section_name }}</h6>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Type</th>
+                  <th>Trait</th>
+                  <th>Expected name</th>
+                  <th>SOVA match</th>
+                  <th>Canonical key</th>
+                  <th>Sten</th>
+                  <th>Mapping</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in section.rows %}
+                  <tr class="{% if row.row_type == 'trait' %}table-light{% endif %}">
+                    <td>{{ row.row_type|title }}</td>
+                    <td>{{ row.parent_trait|default:"-" }}</td>
+                    <td><strong>{{ row.expected_name }}</strong></td>
+                    <td>{{ row.sova_name|default:"-" }}</td>
+                    <td><code>{{ row.canonical_key }}</code></td>
+                    <td>{{ row.sten|default:"-" }}</td>
+                    <td>
+                      {% if row.mapping_status == "matched" %}
+                        <span class="badge bg-success">Matched</span>
+                      {% elif row.mapping_status == "duplicate" %}
+                        <span class="badge bg-warning text-dark">Duplicate</span>
+                      {% else %}
+                        <span class="badge bg-danger">Missing</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endfor %}
+
+      {% if report.extras %}
+        <div class="mt-4">
+          <h6 class="fw-bold mb-2">Extra competencies in payload</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Competency</th>
+                  <th>Sten</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in report.extras %}
+                  <tr>
+                    <td>{{ item.competency }}</td>
+                    <td>{{ item.sten_rounded|default:"-" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
 
     {% else %}
       <div class="p-3 text-muted small">Inga personlighetsrapporter tillgängliga ännu.</div>

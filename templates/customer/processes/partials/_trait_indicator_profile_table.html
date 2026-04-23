@@ -24,10 +24,7 @@
             <th>SOVA match</th>
             <th>Canonical key</th>
             <th>Sten</th>
-            <th>Percentile</th>
             <th>Mapping</th>
-            <th>Library</th>
-            <th>Notes</th>
           </tr>
         </thead>
         <tbody>
@@ -39,7 +36,6 @@
               <td>{{ row.sova_name|default:"-" }}</td>
               <td><code>{{ row.canonical_key }}</code></td>
               <td>{{ row.sten|default:"-" }}</td>
-              <td>{{ row.percentile|default:"-" }}</td>
               <td>
                 {% if row.mapping_status == "matched" %}
                   <span class="badge bg-success">Matched</span>
@@ -49,16 +45,6 @@
                   <span class="badge bg-danger">Missing</span>
                 {% endif %}
               </td>
-              <td>
-                {% if row.library_status == "ready" %}
-                  <span class="badge bg-success">Ready</span>
-                {% elif row.library_status == "in_progress" %}
-                  <span class="badge bg-info text-dark">In progress</span>
-                {% else %}
-                  <span class="badge bg-secondary">Not started</span>
-                {% endif %}
-              </td>
-              <td>{{ row.notes|default:"-" }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -76,7 +62,6 @@
           <tr>
             <th>Competency</th>
             <th>Sten</th>
-            <th>Percentile</th>
           </tr>
         </thead>
         <tbody>
@@ -84,7 +69,6 @@
             <tr>
               <td>{{ item.competency }}</td>
               <td>{{ item.sten_rounded|default:"-" }}</td>
-              <td>{{ item.percentile|default:"-" }}</td>
             </tr>
           {% endfor %}
         </tbody>

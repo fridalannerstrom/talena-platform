@@ -217,9 +217,83 @@ LEADERSHIP_REPORT = {
     ],
 }
 
+PRACTITIONER_SALES_REPORT = {
+    "report_id": "practitioner_sales_report",
+    "report_name": "Practitioner Sales Report",
+    "description": "Temporary internal table view showing expected competency structure for the Practitioner Sales Report.",
+    "sections": [
+        {
+            "section_key": "sales_cycle_profile",
+            "section_name": "Sales Cycle Profile",
+            "traits": [
+                {"trait_name": "Resolving Issues", "indicators": [], "group": "Maintaining Positive Relationships"},
+                {"trait_name": "Post-Sales Servicing", "indicators": [], "group": "Maintaining Positive Relationships"},
+                {"trait_name": "Prospecting and Networking with Purpose", "indicators": [], "group": "Engaging with Customers"},
+                {"trait_name": "Establishing Connections", "indicators": [], "group": "Engaging with Customers"},
+                {"trait_name": "Delivering on Commitments", "indicators": [], "group": "Earning and Retaining Trust"},
+                {"trait_name": "Creating Impactful Messages", "indicators": [], "group": "Earning and Retaining Trust"},
+                {"trait_name": "Uncovering Needs and Expectations", "indicators": [], "group": "Offering the Right Solutions"},
+                {"trait_name": "Tailoring Solutions", "indicators": [], "group": "Offering the Right Solutions"},
+            ],
+        },
+        {
+            "section_key": "sales_fundamentals_profile",
+            "section_name": "Sales Fundamentals Profile",
+            "traits": [
+                {"trait_name": "Striving for Success", "indicators": []},
+                {"trait_name": "Staying the Course", "indicators": []},
+                {"trait_name": "Collaborating Internally", "indicators": []},
+                {"trait_name": "Learning and Developing", "indicators": []},
+            ],
+        },
+    ],
+}
+
+TEAM_REPORT = {
+    "report_id": "team_report",
+    "report_name": "Team Report",
+    "description": "Temporary internal table view showing expected team style structure for the Team Report.",
+    "sections": [
+        {
+            "section_key": "exploring",
+            "section_name": "Exploring",
+            "traits": [
+                {"trait_name": "Catalyst", "indicators": []},
+                {"trait_name": "Connector", "indicators": []},
+            ],
+        },
+        {
+            "section_key": "directing",
+            "section_name": "Directing",
+            "traits": [
+                {"trait_name": "Director", "indicators": []},
+                {"trait_name": "Energiser", "indicators": []},
+            ],
+        },
+        {
+            "section_key": "delivering",
+            "section_name": "Delivering",
+            "traits": [
+                {"trait_name": "Architect", "indicators": []},
+                {"trait_name": "Harmoniser", "indicators": []},
+            ],
+        },
+        {
+            "section_key": "critiquing",
+            "section_name": "Critiquing",
+            "traits": [
+                {"trait_name": "Analyst", "indicators": []},
+                {"trait_name": "Auditor", "indicators": []},
+            ],
+        },
+    ],
+}
+
 PERSONALITY_REPORT_DEFINITIONS = [
     TRAIT_AND_INDICATOR_PROFILE,
     FULL_TRAIT_PROFILE,
     DERAILMENT_REPORT,
     LEADERSHIP_REPORT,
+    PRACTITIONER_SALES_REPORT,
+    TEAM_REPORT,
 ]
