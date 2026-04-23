@@ -132,7 +132,10 @@ def build_personality_reports_for_candidate(sova_activities, library_status_look
     personality_activity = None
 
     for activity in sova_activities or []:
-        if activity.get("activity") == "Personality Assessment":
+        activity_name = normalize_name(activity.get("activity"))
+        competencies = activity.get("competencies", []) or []
+
+        if "personality" in activity_name and competencies:
             personality_activity = activity
             break
 
