@@ -1556,32 +1556,36 @@ padding: 0px 0px 0px 30px;
           </div>
         </div>
       </div>
-  
-    <!-- Verbal -->
-    {% if ability_reports_for_ui.verbal %}
-      <div
-        class="candidate-tab-panel report-tab"
-        data-tab-group="ability-tabs"
-        data-tab-panel="verbal">
+<!-- Verbal -->
+{% if ability_reports_for_ui.verbal %}
+  <div
+    class="candidate-tab-panel report-tab"
+    data-tab-group="ability-tabs"
+    data-tab-panel="verbal">
 
-          <h3>Verbal</h3>
-          <p class="text-muted mb-4">
-            Percentile: {{ ability_reports_for_ui.verbal.percentile|default:"-" }}
-          </p>
+      <h3>Verbal</h3>
 
-          <div class="mb-4 p-3 border rounded">
-            <h4>{{ ability_reports_for_ui.verbal.practitioner_report.title }}</h4>
-            <p>{{ ability_reports_for_ui.verbal.practitioner_report.intro }}</p>
-            <p class="mb-0">{{ ability_reports_for_ui.verbal.practitioner_report.body }}</p>
-          </div>
+      <div class="mb-4 p-3 border rounded">
+        <h4>{{ ability_reports_for_ui.verbal.practitioner_report.title }}</h4>
+        <p>{{ ability_reports_for_ui.verbal.practitioner_report.intro }}</p>
+        <p>{{ ability_reports_for_ui.verbal.practitioner_report.test_description }}</p>
 
-          <div class="mb-0 p-3 border rounded">
-            <h4>{{ ability_reports_for_ui.verbal.candidate_report.title }}</h4>
-            <p>{{ ability_reports_for_ui.verbal.candidate_report.intro }}</p>
-            <p class="mb-0">{{ ability_reports_for_ui.verbal.candidate_report.body }}</p>
-          </div>
+        <div class="mb-3">
+          <strong>Percentile:</strong>
+          {{ ability_reports_for_ui.verbal.practitioner_report.percentile|default:"-" }}
+        </div>
+
+        <p class="mb-0">{{ ability_reports_for_ui.verbal.practitioner_report.result_text }}</p>
       </div>
-    {% endif %}
+
+      <div class="mb-0 p-3 border rounded">
+        <h4>{{ ability_reports_for_ui.verbal.candidate_report.title }}</h4>
+        <p>{{ ability_reports_for_ui.verbal.candidate_report.intro }}</p>
+        <p>{{ ability_reports_for_ui.verbal.candidate_report.test_description }}</p>
+        <p class="mb-0">{{ ability_reports_for_ui.verbal.candidate_report.result_text }}</p>
+      </div>
+  </div>
+{% endif %}
 
     <!-- Logical -->
     {% if ability_reports_for_ui.logical %}
@@ -1591,18 +1595,18 @@ padding: 0px 0px 0px 30px;
         data-tab-panel="logical">
 
           <h3>Logical</h3>
-          <p class="text-muted mb-4">
-            Percentile: {{ ability_reports_for_ui.logical.percentile|default:"-" }}
-          </p>
 
           <div class="mb-4 p-3 border rounded">
 <h4>{{ ability_reports_for_ui.logical.practitioner_report.title }}</h4>
 <p>{{ ability_reports_for_ui.logical.practitioner_report.intro }}</p>
 <p>{{ ability_reports_for_ui.logical.practitioner_report.test_description }}</p>
-<p>{{ ability_reports_for_ui.logical.practitioner_report.result_text }}</p>
+
 <div class="mb-3">
   <strong>Percentile:</strong> {{ ability_reports_for_ui.logical.practitioner_report.percentile|default:"-" }}
 </div>
+
+<p>{{ ability_reports_for_ui.logical.practitioner_report.result_text }}</p>
+
           </div>
 
           <div class="mb-0 p-3 border rounded">
@@ -1614,32 +1618,37 @@ padding: 0px 0px 0px 30px;
         </div>
     {% endif %}
 
-    <!-- Numerical -->
-    {% if ability_reports_for_ui.numerical %}
-      <div
-        class="candidate-tab-panel report-tab"
-        data-tab-group="ability-tabs"
-        data-tab-panel="numerical">
+  
+<!-- Numerical -->
+{% if ability_reports_for_ui.numerical %}
+  <div
+    class="candidate-tab-panel report-tab"
+    data-tab-group="ability-tabs"
+    data-tab-panel="numerical">
 
-          <h3>Numerical</h3>
-          <p class="text-muted mb-4">
-            Percentile: {{ ability_reports_for_ui.numerical.percentile|default:"-" }}
-          </p>
+      <h3>Numerical</h3>
 
-          <div class="mb-4 p-3 border rounded">
-            <h4>{{ ability_reports_for_ui.numerical.practitioner_report.title }}</h4>
-            <p>{{ ability_reports_for_ui.numerical.practitioner_report.intro }}</p>
-            <p class="mb-0">{{ ability_reports_for_ui.numerical.practitioner_report.body }}</p>
-          </div>
+      <div class="mb-4 p-3 border rounded">
+        <h4>{{ ability_reports_for_ui.numerical.practitioner_report.title }}</h4>
+        <p>{{ ability_reports_for_ui.numerical.practitioner_report.intro }}</p>
+        <p>{{ ability_reports_for_ui.numerical.practitioner_report.test_description }}</p>
 
-          <div class="mb-0 p-3 border rounded">
-            <h4>{{ ability_reports_for_ui.numerical.candidate_report.title }}</h4>
-            <p>{{ ability_reports_for_ui.numerical.candidate_report.intro }}</p>
-            <p class="mb-0">{{ ability_reports_for_ui.numerical.candidate_report.body }}</p>
-          </div>
+        <div class="mb-3">
+          <strong>Percentile:</strong>
+          {{ ability_reports_for_ui.numerical.practitioner_report.percentile|default:"-" }}
         </div>
-    {% endif %}
 
+        <p class="mb-0">{{ ability_reports_for_ui.numerical.practitioner_report.result_text }}</p>
+      </div>
+
+      <div class="mb-0 p-3 border rounded">
+        <h4>{{ ability_reports_for_ui.numerical.candidate_report.title }}</h4>
+        <p>{{ ability_reports_for_ui.numerical.candidate_report.intro }}</p>
+        <p>{{ ability_reports_for_ui.numerical.candidate_report.test_description }}</p>
+        <p class="mb-0">{{ ability_reports_for_ui.numerical.candidate_report.result_text }}</p>
+      </div>
+  </div>
+{% endif %}
   </div>
 </div>
 
