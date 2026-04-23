@@ -298,7 +298,7 @@ HEXACO_NARRATIVE_REPORT = {
             "section_key": "hexaco_profile",
             "section_name": "HEXACO Profile",
             "traits": [
-                {"trait_name": "Honesty-Humility", "indicators": [], "source_label_sv": "Ödmjukhet"},
+                {"trait_name": "Humility", "indicators": [], "source_label_sv": "Ödmjukhet"},
                 {"trait_name": "Emotionality", "indicators": [], "source_label_sv": "Känslighet"},
                 {"trait_name": "Extraversion", "indicators": [], "source_label_sv": "Extraversion"},
                 {"trait_name": "Agreeableness", "indicators": [], "source_label_sv": "Vänlighet"},
@@ -319,32 +319,32 @@ HEXACO_FACTOR_FACET_REPORT = {
             "section_name": "HEXACO Factor & Facet Profile",
             "traits": [
                 {
-                    "trait_name": "Honesty-Humility",
-                    "indicators": ["Uprightness", "Avoiding Status", "Modesty"],
-                    "aliases": ["Ödmjukhet", "Honesty-Humility"],
+                    "trait_name": "Humility",
+                    "indicators": ["Honesty", "Avoiding Status", "Modesty"],
+                    "aliases": ["Ödmjukhet", "Humility"],
                     "indicator_aliases": {
-                        "Uprightness": ["Uppriktighet"],
+                        "Honesty": ["Uppriktighet"],
                         "Avoiding Status": ["Undvikande av status"],
                         "Modesty": ["Försynthet"],
                     },
                 },
                 {
                     "trait_name": "Emotionality",
-                    "indicators": ["Vulnerability", "Anxiety", "Dependence"],
+                    "indicators": ["Vulnerability", "Volatility", "Dependence"],
                     "aliases": ["Känslighet", "Emotionality"],
                     "indicator_aliases": {
                         "Vulnerability": ["Sårbarhet"],
-                        "Anxiety": ["Ombytlighet"],
+                        "Volatility": ["Ombytlighet"],
                         "Dependence": ["Beroende"],
                     },
                 },
                 {
                     "trait_name": "Extraversion",
-                    "indicators": ["Sociability", "Impulsivity", "Assertiveness"],
+                    "indicators": ["Sociability", "Impulsiveness", "Assertiveness"],
                     "aliases": ["Extraversion"],
                     "indicator_aliases": {
                         "Sociability": ["Sällskaplighet"],
-                        "Impulsivity": ["Impulsivitet"],
+                        "Impulsiveness": ["Impulsivitet"],
                         "Assertiveness": ["Bestämdhet"],
                     },
                 },
@@ -393,12 +393,12 @@ POTENTIAL_DNA_REPORT = {
             "section_name": "Potential DNA Profile",
             "traits": [
                 {
-                    "trait_name": "Builds Strong Networks",
+                    "trait_name": "Building Strong Networks",
                     "indicators": [],
                     "aliases": ["Bygger starka nätverk"],
                 },
                 {
-                    "trait_name": "Inspires Others",
+                    "trait_name": "Inspiring Others",
                     "indicators": [],
                     "aliases": ["Inspirera andra"],
                 },
@@ -408,7 +408,7 @@ POTENTIAL_DNA_REPORT = {
                     "aliases": ["Förändringsinriktad"],
                 },
                 {
-                    "trait_name": "Learning Oriented",
+                    "trait_name": "Learning Mindset",
                     "indicators": [],
                     "aliases": ["Inriktad på lärande"],
                 },
@@ -457,17 +457,17 @@ CAREER_REPORT = {
                     "aliases": ["Servicefokus"],
                 },
                 {
-                    "trait_name": "Coaching and Development",
+                    "trait_name": "Coaching & Developing",
                     "indicators": [],
                     "aliases": ["Coaching och utveckling"],
                 },
                 {
-                    "trait_name": "Influence",
+                    "trait_name": "Influencing",
                     "indicators": [],
                     "aliases": ["Påverkan"],
                 },
                 {
-                    "trait_name": "Enterprise",
+                    "trait_name": "Entrepreneurial",
                     "indicators": [],
                     "aliases": ["Företagsamhet"],
                 },
@@ -511,18 +511,18 @@ RECRUITMENT_INTERVIEW_GUIDE_REPORT = {
             "section_name": "Relationships",
             "traits": [
                 {"trait_name": "Teamwork", "indicators": [], "aliases": ["Teamarbete"]},
-                {"trait_name": "Networking", "indicators": [], "aliases": ["Nätverka"]},
+                {"trait_name": "Building Networks", "indicators": [], "aliases": ["Nätverka"]},
                 {"trait_name": "Developing Relationships", "indicators": [], "aliases": ["Utveckla relationer"]},
                 {"trait_name": "Developing Others", "indicators": [], "aliases": ["Utveckla andra"]},
-                {"trait_name": "Supporting Others", "indicators": [], "aliases": ["Stödja andra"]},
+                {"trait_name": "Supporting", "indicators": [], "aliases": ["Stödja andra"]},
             ],
         },
         {
             "section_key": "influence",
             "section_name": "Influence",
             "traits": [
-                {"trait_name": "Influence", "indicators": [], "aliases": ["Inflytelserik"]},
-                {"trait_name": "Leading Others", "indicators": [], "aliases": ["Leda andra"]},
+                {"trait_name": "Influencing", "indicators": [], "aliases": ["Inflytelserik"]},
+                {"trait_name": "Directing Others", "indicators": [], "aliases": ["Leda andra"]},
                 {"trait_name": "Delegating", "indicators": [], "aliases": ["Delegera"]},
                 {"trait_name": "Engaging Others", "indicators": [], "aliases": ["Engagera andra"]},
                 {"trait_name": "Managing Conflict", "indicators": [], "aliases": ["Hantera konflikter"]},

@@ -1,6 +1,23 @@
 import re
 from apps.reports.libraries.personality.definitions import PERSONALITY_REPORT_DEFINITIONS
 
+POSSIBLE_MATCH_LOOKUP = {
+    "resolving_issues": ["Generates Solutions"],
+    "post_sales_servicing": ["Service Focus"],
+
+    "prospecting_and_networking_with_purpose": ["Building Networks"],
+    "establishing_connections": ["Connecting"],
+    "delivering_on_commitments": ["Keeping Promises"],
+    "creating_impactful_messages": ["Persuading"],
+    "uncovering_needs_and_expectations": ["Listening"],
+    "tailoring_solutions": ["Generates Solutions"],
+
+    "striving_for_success": ["Drive to Achieve"],
+    "staying_the_course": ["Resilience"],
+    "collaborating_internally": ["Teamwork"],
+    "learning_and_developing": ["Learning Mindset"],
+    "honesty_humility": ["Honesty, Humility"],
+}
 
 def normalize_name(value):
     value = (value or "").strip().lower()
@@ -58,6 +75,8 @@ def build_report_table(report_definition, competencies, library_status_lookup=No
                 duplicate_count += 1
 
             trait_canonical = to_canonical_key(trait_name)
+            possible_trait_matches = POSSIBLE_MATCH_LOOKUP.get(trait_canonical, [])
+
             section_rows.append({
                 "row_type": "trait",
                 "section_name": section["section_name"],
@@ -70,6 +89,7 @@ def build_report_table(report_definition, competencies, library_status_lookup=No
                 "mapping_status": "duplicate" if trait_normalized in duplicates else ("matched" if trait_match else "missing"),
                 "library_status": library_status_lookup.get(trait_canonical, "not_started"),
                 "notes": "Duplicate name in payload" if trait_normalized in duplicates else "",
+                "possible_match": ", ".join(possible_trait_matches),
             })
 
             for indicator in trait["indicators"]:
@@ -84,6 +104,8 @@ def build_report_table(report_definition, competencies, library_status_lookup=No
                     duplicate_count += 1
 
                 indicator_canonical = to_canonical_key(indicator)
+                possible_indicator_matches = POSSIBLE_MATCH_LOOKUP.get(indicator_canonical, [])
+
                 section_rows.append({
                     "row_type": "indicator",
                     "section_name": section["section_name"],
@@ -96,6 +118,7 @@ def build_report_table(report_definition, competencies, library_status_lookup=No
                     "mapping_status": "duplicate" if indicator_normalized in duplicates else ("matched" if indicator_match else "missing"),
                     "library_status": library_status_lookup.get(indicator_canonical, "not_started"),
                     "notes": "Duplicate name in payload" if indicator_normalized in duplicates else "",
+                    "possible_match": ", ".join(possible_indicator_matches),
                 })
 
         rows.append({

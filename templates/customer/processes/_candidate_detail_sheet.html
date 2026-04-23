@@ -2018,6 +2018,7 @@ padding: 0px 0px 0px 30px;
                   <th>Canonical key</th>
                   <th>Sten</th>
                   <th>Mapping</th>
+                  <th>Possible SOVA match</th>
                 </tr>
               </thead>
               <tbody>
@@ -2038,6 +2039,7 @@ padding: 0px 0px 0px 30px;
                         <span class="badge bg-danger">Missing</span>
                       {% endif %}
                     </td>
+                    <td>{{ row.possible_match|default:"-" }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
