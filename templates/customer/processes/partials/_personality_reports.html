@@ -1,0 +1,39 @@
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">Personality Reports</h5>
+  </div>
+  <div class="card-body">
+    {% if personality_reports %}
+      <ul class="nav nav-tabs mb-3" id="personalityReportTabs" role="tablist">
+        {% for report in personality_reports %}
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link {% if forloop.first %}active{% endif %}"
+              id="{{ report.report_id }}-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#{{ report.report_id }}"
+              type="button"
+              role="tab"
+            >
+              {{ report.report_name }}
+            </button>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="tab-content">
+        {% for report in personality_reports %}
+          <div
+            class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+            id="{{ report.report_id }}"
+            role="tabpanel"
+          >
+            {% include "candidates/partials/_trait_indicator_profile_table.html" with report=report %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No personality reports available yet.</p>
+    {% endif %}
+  </div>
+</div>

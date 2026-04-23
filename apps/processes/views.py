@@ -54,6 +54,7 @@ from apps.core.ai.candidate_summary import (
     save_candidate_summary,
 )
 
+from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
 def _get_active_company_for_user(user):
@@ -1322,6 +1323,86 @@ def process_candidate_detail(request, process_id, candidate_id):
     # Sortera motivation alfabetiskt tills vidare
     motivation_results.sort(key=lambda x: (x.get("competency") or "").lower())
 
+    library_status_lookup = {
+        "cooperative": "not_started",
+        "sensitivity": "not_started",
+        "teamwork": "not_started",
+        "agreeableness": "not_started",
+        "empathy": "not_started",
+        "tolerance": "not_started",
+        "listening": "not_started",
+        "warmth": "not_started",
+        "supporting": "not_started",
+        "developing_others": "not_started",
+        "helpfulness": "not_started",
+        "considerate": "not_started",
+        "connecting": "not_started",
+        "open_communication": "not_started",
+        "building_networks": "not_started",
+        "initiating_contact": "not_started",
+        "dynamic": "not_started",
+        "energetic": "not_started",
+        "enthusiastic": "not_started",
+        "risk_appetite": "not_started",
+        "influential": "not_started",
+        "persuading": "not_started",
+        "desire_to_lead": "not_started",
+        "assertive": "not_started",
+        "goal_focused": "not_started",
+        "competitive": "not_started",
+        "challenge": "not_started",
+        "self_discipline": "not_started",
+        "structured": "not_started",
+        "planning_and_organising": "not_started",
+        "attention_to_detail": "not_started",
+        "keeping_promises": "not_started",
+        "analytical": "not_started",
+        "data_focus": "not_started",
+        "evaluating": "not_started",
+        "analysing_problems": "not_started",
+        "complex_thinking": "not_started",
+        "strategic_thinking": "not_started",
+        "conceptual": "not_started",
+        "curiosity": "not_started",
+        "creativity": "not_started",
+        "innovating": "not_started",
+        "generating_ideas": "not_started",
+        "experimenting": "not_started",
+        "adaptability": "not_started",
+        "adapting_to_change": "not_started",
+        "flexible": "not_started",
+        "variety": "not_started",
+        "straightforward": "not_started",
+        "adhering_to_rules": "not_started",
+        "candid": "not_started",
+        "earnest": "not_started",
+        "status_avoidance": "not_started",
+        "egalitarian": "not_started",
+        "collective": "not_started",
+        "avoiding_status": "not_started",
+        "modesty": "not_started",
+        "humble": "not_started",
+        "modest": "not_started",
+        "avoiding_attention": "not_started",
+        "resilience": "not_started",
+        "tough_minded": "not_started",
+        "recovering": "not_started",
+        "optimistic": "not_started",
+        "emotional_control": "not_started",
+        "controlling_stress": "not_started",
+        "calm": "not_started",
+        "composed": "not_started",
+        "independence": "not_started",
+        "self_reliant": "not_started",
+        "self_contained": "not_started",
+        "thinking_independently": "not_started",
+    }
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+        library_status_lookup=library_status_lookup,
+    ) 
+
     ctx = {
         "process": process,
         "invitation": invitation,
@@ -1359,6 +1440,7 @@ def process_candidate_detail(request, process_id, candidate_id):
 
         "motivation_reports_for_ui": motivation_reports_for_ui,
         "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

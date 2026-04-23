@@ -866,4 +866,29 @@ function initGlobalEmailModal(container) {
   }
 </script>
 
+<script>
+  function switchTabs(button) {
+    const group = button.dataset.tabGroup;
+    const target = button.dataset.tabTarget;
+
+    document.querySelectorAll(`[data-tab-group="${group}"].candidate-tab`).forEach(btn => {
+      btn.classList.remove("is-active");
+    });
+
+    document.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`).forEach(panel => {
+      panel.classList.remove("is-active");
+    });
+
+    button.classList.add("is-active");
+
+    const targetPanel = document.querySelector(
+      `[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (targetPanel) {
+      targetPanel.classList.add("is-active");
+    }
+  }
+</script>
+
 {% endblock %}
