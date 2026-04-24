@@ -2,6 +2,16 @@
 
 <style>
 
+  .modal-body {
+  overflow-y: auto;
+}
+
+.candidate-sheet-layout,
+.candidate-sheet-main,
+.candidate-sheet-sidebar {
+  overflow: visible;
+}
+
 .candidate-sheet-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) 340px;
@@ -1014,6 +1024,158 @@ padding: 0px 0px 0px 30px;
 .candidate-tab {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+/* =========================
+   Candidate AI sidebar
+========================= */
+
+.candidate-sheet-sidebar {
+  min-width: 0;
+}
+
+/* Sticky inside modal/popup */
+.candidate-sidebar-sticky {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
+/* The AI card itself */
+.candidate-ai-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 7rem);
+  min-height: 520px;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* Header */
+.candidate-ai-card .card-header {
+  padding: 1rem 1.25rem;
+  background: #fff;
+}
+
+/* Body */
+.candidate-ai-card-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem;
+}
+
+/* Intro text */
+.candidate-ai-card-body > .small.text-muted {
+  line-height: 1.45;
+}
+
+/* Hide context box for now if you don't need it */
+.candidate-ai-context {
+  display: none;
+}
+
+/* Message area */
+.candidate-ai-messages {
+  flex: 1;
+  min-height: 260px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: #fafafa;
+  border-radius: 0.9rem !important;
+  padding: 1rem !important;
+}
+
+/* Empty message */
+.candidate-ai-empty {
+  color: #8a8a98;
+  line-height: 1.45;
+}
+
+/* Form */
+.candidate-ai-form {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.candidate-ai-form label {
+  margin-bottom: 0.45rem;
+}
+
+.candidate-ai-form textarea {
+  min-height: 92px;
+  max-height: 140px;
+  resize: vertical;
+  border-radius: 0.85rem;
+  padding: 0.9rem 1rem;
+  line-height: 1.35;
+  font-size: 0.8rem;
+}
+
+.candidate-ai-form button {
+  border-radius: 999px;
+  min-height: 46px;
+  font-weight: 600;
+}
+
+/* Chat bubbles */
+.candidate-ai-message {
+  margin-bottom: 0.75rem;
+}
+
+.candidate-ai-message:last-child {
+  margin-bottom: 0;
+}
+
+.candidate-ai-message-bubble {
+  padding: 0.75rem 0.9rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.candidate-ai-message-user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.candidate-ai-message-user .candidate-ai-message-bubble {
+  background: #000;
+  color: #fff;
+  border-bottom-right-radius: 0.35rem;
+  max-width: 90%;
+}
+
+.candidate-ai-message-assistant {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.candidate-ai-message-assistant .candidate-ai-message-bubble {
+  background: #fff;
+  color: #222;
+  border: 1px solid #e5e5ea;
+  border-bottom-left-radius: 0.35rem;
+  max-width: 95%;
+}
+
+/* In smaller screens, let it behave normally */
+@media (max-width: 991.98px) {
+  .candidate-sidebar-sticky {
+    position: static;
+  }
+
+  .candidate-ai-card {
+    max-height: none;
+    min-height: auto;
+  }
+
+  .candidate-ai-messages {
+    min-height: 240px;
+    max-height: 360px;
+  }
 }
 
 </style>
@@ -2239,44 +2401,53 @@ padding: 0px 0px 0px 30px;
 
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="candidate-sheet-sidebar">
-      <div class="candidate-sidebar-sticky">
+<!-- SIDEBAR -->
+<aside class="candidate-sheet-sidebar">
+  <div class="candidate-sidebar-sticky">
 
-        <div class="card candidate-ai-card">
-          <div class="card-header fw-semibold">AI-assistent</div>
-          <div class="card-body d-flex flex-column gap-3">
+    <div
+      class="card candidate-ai-card"
+      data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
+    >
+      <div class="card-header fw-semibold">AI-assistent</div>
 
-            <div class="small text-muted">
-              Här ska användaren kunna chatta om kandidaten, rapporter och markerade kompetenser.
-            </div>
+      <div class="card-body candidate-ai-card-body">
 
-            <div class="candidate-ai-context border rounded-3 p-3">
-              <div class="fw-semibold small mb-2">Vald kontext</div>
-              <div class="text-muted small">
-                Ingen vald ännu
-              </div>
-            </div>
+        <div class="small text-muted">
+          Chatta om kandidatens testresultat, rapporter och sammanfattning.
+        </div>
 
-            <div class="candidate-ai-messages border rounded-3 p-3">
-              <div class="text-muted small">
-                Chatten kommer här.
-              </div>
-            </div>
-
-            <form>
-              <label class="form-label small text-muted">Fråga AI om kandidaten</label>
-              <textarea class="form-control" rows="4" placeholder="T.ex. Vilka risker eller styrkor ser du i kandidatens profil?"></textarea>
-              <button type="button" class="btn btn-primary w-100 mt-2">
-                Skicka
-              </button>
-            </form>
-
+<div class="candidate-ai-messages border rounded-3 p-3 js-candidate-ai-messages">
+          <div class="candidate-ai-empty text-muted small">
+            Ställ en fråga om kandidaten, till exempel styrkor, risker eller intervjufrågor.
           </div>
         </div>
 
+<form class="candidate-ai-form js-candidate-ai-form">
+  {% csrf_token %}
+
+  <label class="form-label small text-muted">
+    Fråga AI om kandidaten
+  </label>
+
+  <textarea
+    class="form-control js-candidate-ai-input"
+    rows="4"
+    placeholder="T.ex. Vilka risker eller styrkor ser du i kandidatens profil?"
+  ></textarea>
+
+  <button
+    type="submit"
+    class="btn btn-primary w-100 mt-2 js-candidate-ai-submit">
+    Skicka
+  </button>
+</form>
+
       </div>
-    </aside>
+    </div>
+
+  </div>
+</aside>
 
   </div>
 
@@ -2328,5 +2499,6 @@ padding: 0px 0px 0px 30px;
     }
   }
 </script>
+
 
 </div>

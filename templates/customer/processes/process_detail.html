@@ -891,4 +891,187 @@ function initGlobalEmailModal(container) {
   }
 </script>
 
+<script>
+  document.addEventListener("submit", async function (event) {
+  const form = event.target.closest(".js-candidate-ai-form");
+
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const aiCard = form.closest(".candidate-ai-card");
+  const sidebar = form.closest(".candidate-sheet-sidebar");
+  const sheetLayout = form.closest(".candidate-sheet-layout");
+
+  if (!aiCard || !sheetLayout) {
+    console.error("AI chat: kunde inte hitta aiCard eller sheetLayout");
+    return;
+  }
+
+  const input = form.querySelector(".js-candidate-ai-input");
+  const submitButton = form.querySelector(".js-candidate-ai-submit");
+  const messages = sidebar.querySelector(".js-candidate-ai-messages");
+  const streamUrl = aiCard.dataset.chatStreamUrl;
+
+  if (!input || !submitButton || !messages || !streamUrl) {
+    console.error("AI chat: saknar input, knapp, messages eller streamUrl", {
+      input,
+      submitButton,
+      messages,
+      streamUrl,
+    });
+    return;
+  }
+
+  const userMessage = input.value.trim();
+
+  if (!userMessage) {
+    return;
+  }
+
+  input.value = "";
+  submitButton.disabled = true;
+  submitButton.textContent = "Svarar...";
+
+  addCandidateAiMessage(messages, "user", userMessage);
+  const assistantBubble = addCandidateAiMessage(messages, "assistant", "");
+
+  try {
+    const response = await fetch(streamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        message: buildCandidateAiPrompt(sheetLayout, userMessage),
+        scope: "base",
+      }),
+    });
+
+    if (!response.ok) {
+      assistantBubble.textContent = "Något gick fel när AI skulle svara.";
+      console.error("AI chat response error:", response.status, response.statusText);
+      return;
+    }
+
+    if (!response.body) {
+      assistantBubble.textContent = "AI svarade inte med streamingdata.";
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        assistantBubble.textContent += chunk;
+        scrollCandidateAiMessages(messages);
+      }
+    }
+  } catch (error) {
+    assistantBubble.textContent = "Kunde inte ansluta till AI-chatten.";
+    console.error("AI chat fetch error:", error);
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Skicka";
+    input.focus();
+  }
+});
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+
+  if (parts.length === 2) {
+    return parts.pop().split(";").shift();
+  }
+
+  return "";
+}
+
+function cleanCandidateAiText(text) {
+  return (text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getCandidateVisibleContext(sheetLayout) {
+  const main = sheetLayout.querySelector(".candidate-sheet-main");
+
+  if (!main) {
+    return "";
+  }
+
+  const clonedMain = main.cloneNode(true);
+
+  clonedMain
+    .querySelectorAll("button, input, textarea, script, style")
+    .forEach((el) => el.remove());
+
+  const rawText = clonedMain.innerText || clonedMain.textContent || "";
+  const cleanedText = cleanCandidateAiText(rawText);
+
+  return cleanedText.slice(0, 12000);
+}
+
+function buildCandidateAiPrompt(sheetLayout, userMessage) {
+  const context = getCandidateVisibleContext(sheetLayout);
+
+  return `
+You are an AI assistant inside Talena, an assessment and recruitment platform.
+
+Your task is to help the user understand and work with the candidate's assessment results.
+
+Use the candidate context below as your main source.
+Do not make final hiring decisions.
+Do not diagnose the candidate.
+Be practical, clear and recruitment-focused.
+If the data is missing or uncertain, say so.
+
+Candidate context:
+${context}
+
+User question:
+${userMessage}
+`.trim();
+}
+
+function addCandidateAiMessage(messages, role, text = "") {
+  const empty = messages.querySelector(".candidate-ai-empty");
+
+  if (empty) {
+    empty.remove();
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = `candidate-ai-message candidate-ai-message-${role}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = "candidate-ai-message-bubble";
+  bubble.textContent = text;
+
+  wrapper.appendChild(bubble);
+  messages.appendChild(wrapper);
+
+  scrollCandidateAiMessages(messages);
+
+  return bubble;
+}
+
+function scrollCandidateAiMessages(messages) {
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+
 {% endblock %}
