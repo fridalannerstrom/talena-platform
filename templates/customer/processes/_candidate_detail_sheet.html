@@ -2089,24 +2089,151 @@ padding: 0px 0px 0px 30px;
 {% endif %}
 
         <!-- REPORTS -->
-        <div class="card mb-3">
-          <div class="card-header fw-semibold">Rapporter</div>
-          <div class="card-body">
-            {% if reports %}
-              <ul class="mb-0">
-                {% for report in reports %}
-                  <li>
-                    <a href="{{ report.url }}" target="_blank" rel="noopener">
-                      {{ report.title|default:"Rapport" }}
-                    </a>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="mb-0">Inga rapporter tillgängliga.</p>
-            {% endif %}
+<!-- REPORTS -->
+<div class="card mb-3">
+  <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+    <span>Rapporter</span>
+
+    {% if available_reports_count %}
+      <span class="badge rounded-pill text-bg-light border">
+        {{ available_reports_count }} available
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="card-body">
+
+    {% if has_ability_results or has_motivation_results or has_personality_results %}
+
+      <div class="list-group list-group-flush">
+
+        <!-- Ability reports -->
+        {% if ability_reports_for_ui.verbal %}
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.verbal.practitioner_report.title|default:"Verbal Practitioner Report" }}
+              </div>
+              <div class="small text-muted">Verbal Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
           </div>
-        </div>
+
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.verbal.candidate_report.title|default:"Verbal Candidate Report" }}
+              </div>
+              <div class="small text-muted">Verbal Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
+          </div>
+        {% endif %}
+
+        {% if ability_reports_for_ui.logical %}
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.logical.practitioner_report.title|default:"Logical Practitioner Report" }}
+              </div>
+              <div class="small text-muted">Logical Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
+          </div>
+
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.logical.candidate_report.title|default:"Logical Candidate Report" }}
+              </div>
+              <div class="small text-muted">Logical Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
+          </div>
+        {% endif %}
+
+        {% if ability_reports_for_ui.numerical %}
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.numerical.practitioner_report.title|default:"Numerical Practitioner Report" }}
+              </div>
+              <div class="small text-muted">Numerical Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
+          </div>
+
+          <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <div>
+              <div class="fw-semibold">
+                {{ ability_reports_for_ui.numerical.candidate_report.title|default:"Numerical Candidate Report" }}
+              </div>
+              <div class="small text-muted">Numerical Reasoning · Abilities</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+              PDF coming soon
+            </button>
+          </div>
+        {% endif %}
+
+        <!-- Motivation reports -->
+        {% if has_motivation_results %}
+          {% for report in motivation_reports_for_ui %}
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+              <div>
+                <div class="fw-semibold">
+                  {{ report.title }}
+                </div>
+                <div class="small text-muted">
+                  Motivation Questionnaire · Motivation
+                </div>
+              </div>
+
+              <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                PDF coming soon
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- Personality reports -->
+        {% if has_personality_results %}
+          {% for report in personality_reports %}
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+              <div>
+                <div class="fw-semibold">
+                  {{ report.report_name }}
+                </div>
+                <div class="small text-muted">
+                  Personality Assessment · Personality
+                </div>
+              </div>
+
+              <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                PDF coming soon
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+      </div>
+
+    {% else %}
+      <p class="text-muted mb-0">Inga rapporter tillgängliga.</p>
+    {% endif %}
+
+  </div>
+</div>
 
       {% endif %}
 

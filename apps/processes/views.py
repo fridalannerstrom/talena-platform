@@ -1488,6 +1488,7 @@ def process_candidate_detail(request, process_id, candidate_id):
     if has_personality_results:
         available_reports_count += 11
 
+
     ctx = {
         "process": process,
         "invitation": invitation,
