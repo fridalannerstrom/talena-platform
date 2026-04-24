@@ -1508,6 +1508,7 @@ padding: 0px 0px 0px 30px;
 </div>
 
         <!-- ABILITIES -->
+         {% if has_ability_results %}
 <div class="card mb-3">
   <div class="card-header fw-semibold">Abilities</div>
   <div class="card-body p-0">
@@ -1680,9 +1681,11 @@ padding: 0px 0px 0px 30px;
 {% endif %}
   </div>
 </div>
+{% endif %}
 
 
 <!-- MQ -->
+{% if has_motivation_results %}
 <div class="card mb-3">
   <div class="card-header fw-semibold">Motivation Questionnaire</div>
   <div class="card-body p-0">
@@ -1964,7 +1967,9 @@ padding: 0px 0px 0px 30px;
 
   </div>
 </div>
+{% endif %}
 
+{% if has_personality_results %}
         <!-- PERSONLIGHET -->
 <div class="card mb-3">
   <div class="card-header fw-semibold">Personality Assessment</div>
@@ -2081,6 +2086,7 @@ padding: 0px 0px 0px 30px;
 
   </div>
 </div>
+{% endif %}
 
         <!-- REPORTS -->
         <div class="card mb-3">

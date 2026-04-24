@@ -1063,6 +1063,17 @@ def process_candidate_detail(request, process_id, candidate_id):
 
     activities = invitation.sova_activities or []
 
+    def has_real_result(competencies):
+        return any(
+            comp.get("score") is not None
+            or comp.get("stive") is not None
+            or comp.get("stive_rounded") is not None
+            or comp.get("sten") is not None
+            or comp.get("sten_rounded") is not None
+            or comp.get("percentile") is not None
+            for comp in competencies
+        )
+
     # -------------------------
     # Overview counts
     # -------------------------
@@ -1091,10 +1102,22 @@ def process_candidate_detail(request, process_id, candidate_id):
     # available_reports_count = 0
 
     mq_competencies = []
+    personality_competencies = []
+    has_personality_results = False
+
 
     for item in activities:
-        if item.get("activity") == "Motivation Questionnaire":
-            for comp in item.get("competencies", []) or []:
+        activity_name = (item.get("activity") or "").strip().lower()
+        competencies = item.get("competencies", []) or []
+
+        is_motivation_activity = (
+            activity_name == "motivation questionnaire"
+            or activity_name == "sova motivation questionnaire"
+            or "motivation" in activity_name
+        )
+
+        if is_motivation_activity:
+            for comp in competencies:
                 mq_competencies.append({
                     "competency": comp.get("competency"),
                     "score": comp.get("stive_rounded"),
@@ -1130,11 +1153,36 @@ def process_candidate_detail(request, process_id, candidate_id):
         candidate_report,
     ]
 
-    personality_competencies = []
+    has_motivation_results = False
 
     for item in activities:
-        if item.get("activity") == "Personality Assessment":
-            for comp in item.get("competencies", []) or []:
+        activity_name = (item.get("activity") or "").strip().lower()
+        competencies = item.get("competencies", []) or []
+
+        is_motivation_activity = (
+            activity_name == "motivation questionnaire"
+            or activity_name == "sova motivation questionnaire"
+            or "motivation" in activity_name
+        )
+
+        if is_motivation_activity and has_real_result(competencies):
+            has_motivation_results = True
+
+    for item in activities:
+        activity_name = (item.get("activity") or "").strip().lower()
+        competencies = item.get("competencies", []) or []
+
+        is_personality_activity = (
+            activity_name == "personality assessment"
+            or activity_name == "sova personality questionnaire"
+            or "personality" in activity_name
+        )
+
+        if is_personality_activity:
+            if has_real_result(competencies):
+                has_personality_results = True
+
+            for comp in competencies:
                 personality_competencies.append({
                     "competency": comp.get("competency"),
                     "sten_rounded": comp.get("sten_rounded"),
@@ -1169,9 +1217,16 @@ def process_candidate_detail(request, process_id, candidate_id):
     motivation_development_areas = sorted_mq_asc[:2]
     personality_development_areas = sorted_personality_asc[:2]
 
+    ABILITY_ACTIVITY_NAMES = {
+    "Sova Numerical Reasoning Assessment",
+    "Sova Logical Reasoning Assessment",
+    "Sova Verbal Reasoning Assessment",
+}
+
     numerical_percentile = None
     logical_percentile = None
     verbal_percentile = None
+    has_ability_results = False
 
     for item in activities:
         activity_name = item.get("activity", "")
@@ -1186,6 +1241,9 @@ def process_candidate_detail(request, process_id, candidate_id):
             logical_percentile = percentile
         elif activity_name == "Sova Verbal Reasoning Assessment":
             verbal_percentile = percentile
+
+        if activity_name in ABILITY_ACTIVITY_NAMES and percentile is not None:
+            has_ability_results = True
 
 
     ability_reports_for_ui = {
@@ -1424,6 +1482,7 @@ def process_candidate_detail(request, process_id, candidate_id):
         "numerical_percentile": numerical_percentile,
         "logical_percentile": logical_percentile,
         "verbal_percentile": verbal_percentile,
+        "has_ability_results": has_ability_results,
 
         "mq_competencies": mq_competencies,
         "personality_competencies": personality_competencies,
@@ -1441,6 +1500,8 @@ def process_candidate_detail(request, process_id, candidate_id):
         "motivation_reports_for_ui": motivation_reports_for_ui,
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"

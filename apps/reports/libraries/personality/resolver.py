@@ -16,7 +16,19 @@ POSSIBLE_MATCH_LOOKUP = {
     "staying_the_course": ["Resilience"],
     "collaborating_internally": ["Teamwork"],
     "learning_and_developing": ["Learning Mindset"],
-    "honesty_humility": ["Honesty, Humility"],
+
+    "networking": ["Building Networks"],
+    "developing_relationships": ["Connecting"],
+
+    "influence": ["Influential"],
+    "leading_others": ["Leading and Influencing"],
+    "delegating": ["Clarifies Expectations"],
+    "engaging_others": ["Inspiring Others"],
+    "managing_conflict": ["Tolerance"],
+    "personal_communication": ["Open Communication"],
+    "written_communication": ["Effective Communication"],
+    "negotiation": ["Persuading"],
+    "customer_focus": ["Service Focus"],
 }
 
 def normalize_name(value):
