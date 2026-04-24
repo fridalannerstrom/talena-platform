@@ -1094,13 +1094,6 @@ def process_candidate_detail(request, process_id, candidate_id):
         if (activity.get("status") or "").strip().lower() in completed_statuses
     )
 
-    # Placeholder tills rapportlogik är på plats
-    # Alternativ 1: lika många rapporter som färdiga tester
-    available_reports_count = tests_completed_count
-
-    # Om du hellre vill visa 0 tills vidare, använd istället:
-    # available_reports_count = 0
-
     mq_competencies = []
     personality_competencies = []
     has_personality_results = False
@@ -1226,7 +1219,11 @@ def process_candidate_detail(request, process_id, candidate_id):
     numerical_percentile = None
     logical_percentile = None
     verbal_percentile = None
+
     has_ability_results = False
+    has_verbal_results = False
+    has_logical_results = False
+    has_numerical_results = False
 
     for item in activities:
         activity_name = item.get("activity", "")
@@ -1237,13 +1234,26 @@ def process_candidate_detail(request, process_id, candidate_id):
 
         if activity_name == "Sova Numerical Reasoning Assessment":
             numerical_percentile = percentile
+            if percentile is not None:
+                has_numerical_results = True
+
         elif activity_name == "Sova Logical Reasoning Assessment":
             logical_percentile = percentile
+            if percentile is not None:
+                has_logical_results = True
+
         elif activity_name == "Sova Verbal Reasoning Assessment":
             verbal_percentile = percentile
+            if percentile is not None:
+                has_verbal_results = True
 
-        if activity_name in ABILITY_ACTIVITY_NAMES and percentile is not None:
-            has_ability_results = True
+    has_ability_results = (
+        has_verbal_results
+        or has_logical_results
+        or has_numerical_results
+    )
+
+    available_reports_count = tests_completed_count
 
 
     ability_reports_for_ui = {
@@ -1461,6 +1471,23 @@ def process_candidate_detail(request, process_id, candidate_id):
         library_status_lookup=library_status_lookup,
     ) 
 
+    available_reports_count = 0
+
+    if has_verbal_results:
+        available_reports_count += 2
+
+    if has_numerical_results:
+        available_reports_count += 2
+
+    if has_logical_results:
+        available_reports_count += 2
+
+    if has_motivation_results:
+        available_reports_count += 4
+
+    if has_personality_results:
+        available_reports_count += 11
+
     ctx = {
         "process": process,
         "invitation": invitation,
@@ -1502,6 +1529,8 @@ def process_candidate_detail(request, process_id, candidate_id):
         "personality_reports": personality_reports,
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
+
+        "available_reports_count": available_reports_count,
     }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
