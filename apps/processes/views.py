@@ -57,6 +57,481 @@ from apps.core.ai.candidate_summary import (
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
+def build_candidate_detail_context(process, invitation):
+    candidate = invitation.candidate
+    activities = invitation.sova_activities or []
+
+    activity_events = (
+        ActivityEvent.objects
+        .filter(company=process.company, process=process, candidate=candidate)
+        .select_related("actor", "candidate", "invitation")[:50]
+    )
+
+    from apps.emails.models import EmailLog
+
+    email_log_ids = [
+        (event.meta or {}).get("email_log_id")
+        for event in activity_events
+        if (event.meta or {}).get("email_log_id")
+    ]
+
+    email_logs_by_id = {
+        log.id: log
+        for log in EmailLog.objects.filter(id__in=email_log_ids)
+    }
+
+    for event in activity_events:
+        email_log_id = (event.meta or {}).get("email_log_id")
+        event.email_log = email_logs_by_id.get(email_log_id)
+
+    def has_real_result(competencies):
+        return any(
+            comp.get("score") is not None
+            or comp.get("stive") is not None
+            or comp.get("stive_rounded") is not None
+            or comp.get("sten") is not None
+            or comp.get("sten_rounded") is not None
+            or comp.get("percentile") is not None
+            for comp in competencies
+        )
+
+    activity_count = len(activities)
+
+    completed_statuses = {
+        "completed",
+        "complete",
+        "finished",
+        "done",
+        "result available",
+        "result_available",
+    }
+
+    tests_completed_count = sum(
+        1
+        for activity in activities
+        if (activity.get("status") or "").strip().lower() in completed_statuses
+    )
+
+    mq_competencies = []
+    personality_competencies = []
+    has_motivation_results = False
+    has_personality_results = False
+
+    for item in activities:
+        activity_name = (item.get("activity") or "").strip().lower()
+        competencies = item.get("competencies", []) or []
+
+        is_motivation_activity = (
+            activity_name == "motivation questionnaire"
+            or activity_name == "sova motivation questionnaire"
+            or "motivation" in activity_name
+        )
+
+        if is_motivation_activity:
+            if has_real_result(competencies):
+                has_motivation_results = True
+
+            for comp in competencies:
+                mq_competencies.append({
+                    "competency": comp.get("competency"),
+                    "score": comp.get("stive_rounded"),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "stive": comp.get("stive"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "sten": comp.get("sten"),
+                    "percentile": comp.get("percentile"),
+                })
+
+        is_personality_activity = (
+            activity_name == "personality assessment"
+            or activity_name == "sova personality questionnaire"
+            or "personality" in activity_name
+        )
+
+        if is_personality_activity:
+            if has_real_result(competencies):
+                has_personality_results = True
+
+            for comp in competencies:
+                personality_competencies.append({
+                    "competency": comp.get("competency"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "sten": comp.get("sten"),
+                    "percentile": comp.get("percentile"),
+                })
+
+    personality_competencies = sorted(
+        personality_competencies,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    motivation_scores = build_scores_by_competency(mq_competencies)
+
+    practitioner_report = build_practitioner_report(
+        competencies=mq_competencies,
+    )
+
+    manager_report = build_manager_report(
+        competencies=mq_competencies,
+    )
+
+    candidate_report = build_candidate_report(
+        competencies=mq_competencies,
+    )
+
+    coaching_report = build_motivation_coaching_report(
+        competencies=mq_competencies,
+    )
+
+    motivation_reports_for_ui = [
+        practitioner_report,
+        manager_report,
+        coaching_report,
+        candidate_report,
+    ]
+
+    def safe_motivation_score(item):
+        return item.get("score") if item.get("score") is not None else -1
+
+    def safe_personality_score(item):
+        return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
+
+    sorted_mq_desc = sorted(
+        mq_competencies,
+        key=safe_motivation_score,
+        reverse=True,
+    )
+
+    sorted_personality_desc = sorted(
+        personality_competencies,
+        key=safe_personality_score,
+        reverse=True,
+    )
+
+    top_motivations = sorted_mq_desc[:3]
+    top_personality_traits = sorted_personality_desc[:3]
+
+    sorted_mq_asc = sorted(
+        mq_competencies,
+        key=safe_motivation_score,
+    )
+
+    sorted_personality_asc = sorted(
+        personality_competencies,
+        key=safe_personality_score,
+    )
+
+    motivation_development_areas = sorted_mq_asc[:2]
+    personality_development_areas = sorted_personality_asc[:2]
+
+    numerical_percentile = None
+    logical_percentile = None
+    verbal_percentile = None
+
+    has_verbal_results = False
+    has_logical_results = False
+    has_numerical_results = False
+
+    for item in activities:
+        activity_name = item.get("activity", "")
+        competencies = item.get("competencies", []) or []
+        first_comp = competencies[0] if competencies else {}
+
+        percentile = first_comp.get("percentile")
+
+        if activity_name == "Sova Numerical Reasoning Assessment":
+            numerical_percentile = percentile
+            if percentile is not None:
+                has_numerical_results = True
+
+        elif activity_name == "Sova Logical Reasoning Assessment":
+            logical_percentile = percentile
+            if percentile is not None:
+                has_logical_results = True
+
+        elif activity_name == "Sova Verbal Reasoning Assessment":
+            verbal_percentile = percentile
+            if percentile is not None:
+                has_verbal_results = True
+
+    has_ability_results = (
+        has_verbal_results
+        or has_logical_results
+        or has_numerical_results
+    )
+
+    ability_reports_for_ui = {
+        "overview": [],
+        "verbal": build_cognitive_reports_for_test(
+            test_key="verbal",
+            percentile=verbal_percentile,
+        ) if verbal_percentile is not None else None,
+
+        "logical": build_cognitive_reports_for_test(
+            test_key="logical",
+            percentile=logical_percentile,
+        ) if logical_percentile is not None else None,
+
+        "numerical": build_cognitive_reports_for_test(
+            test_key="numerical",
+            percentile=numerical_percentile,
+        ) if numerical_percentile is not None else None,
+    }
+
+    if ability_reports_for_ui["verbal"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "verbal",
+            "label": "Verbal",
+            "percentile": verbal_percentile,
+        })
+
+    if ability_reports_for_ui["logical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "logical",
+            "label": "Logical",
+            "percentile": logical_percentile,
+        })
+
+    if ability_reports_for_ui["numerical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "numerical",
+            "label": "Numerical",
+            "percentile": numerical_percentile,
+        })
+
+    project_results = invitation.project_results or {}
+    reports = invitation.sova_reports or []
+
+    project_scores = (
+        project_results.get("project_scores", [])
+        if isinstance(project_results, dict)
+        else []
+    )
+
+    competency_scores = (
+        project_results.get("competency_scores", [])
+        if isinstance(project_results, dict)
+        else []
+    )
+
+    overall_score = (
+        project_results.get("overall_score")
+        if isinstance(project_results, dict)
+        and project_results.get("overall_score") is not None
+        else invitation.overall_score
+    )
+
+    ability_results = []
+    motivation_results = []
+    all_competencies = []
+
+    for item in activities:
+        activity_name = item.get("activity", "") or ""
+        item_status = item.get("status", "") or ""
+        item_score = item.get("score")
+        item_competencies = item.get("competencies", []) or []
+
+        for comp in item_competencies:
+            all_competencies.append({
+                "activity": activity_name,
+                "status": item_status,
+                "competency": comp.get("competency"),
+                "stive": comp.get("stive"),
+                "stive_rounded": comp.get("stive_rounded"),
+                "sten": comp.get("sten"),
+                "sten_rounded": comp.get("sten_rounded"),
+                "percentile": comp.get("percentile"),
+                "assessment_centre": comp.get("assessment_centre"),
+            })
+
+        if activity_name in {
+            "Sova Logical Reasoning Assessment",
+            "Sova Numerical Reasoning Assessment",
+            "Sova Verbal Reasoning Assessment",
+        }:
+            first_comp = item_competencies[0] if item_competencies else {}
+
+            label_map = {
+                "Sova Logical Reasoning Assessment": "Logical",
+                "Sova Numerical Reasoning Assessment": "Numerical",
+                "Sova Verbal Reasoning Assessment": "Verbal",
+            }
+
+            ability_results.append({
+                "activity": activity_name,
+                "label": label_map.get(activity_name, activity_name),
+                "status": item_status,
+                "score": item_score,
+                "competency": first_comp.get("competency"),
+                "stive": first_comp.get("stive"),
+                "stive_rounded": first_comp.get("stive_rounded"),
+                "sten": first_comp.get("sten"),
+                "sten_rounded": first_comp.get("sten_rounded"),
+                "percentile": first_comp.get("percentile"),
+            })
+
+        elif activity_name == "Motivation Questionnaire":
+            for comp in item_competencies:
+                motivation_results.append({
+                    "activity": activity_name,
+                    "competency": comp.get("competency"),
+                    "stive": comp.get("stive"),
+                    "stive_rounded": comp.get("stive_rounded"),
+                    "sten": comp.get("sten"),
+                    "sten_rounded": comp.get("sten_rounded"),
+                    "percentile": comp.get("percentile"),
+                    "assessment_centre": comp.get("assessment_centre"),
+                })
+
+    ability_order = {"Verbal": 1, "Logical": 2, "Numerical": 3}
+    ability_results.sort(key=lambda x: ability_order.get(x["label"], 99))
+
+    motivation_results.sort(
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    library_status_lookup = {
+        "cooperative": "not_started",
+        "sensitivity": "not_started",
+        "teamwork": "not_started",
+        "agreeableness": "not_started",
+        "empathy": "not_started",
+        "tolerance": "not_started",
+        "listening": "not_started",
+        "warmth": "not_started",
+        "supporting": "not_started",
+        "developing_others": "not_started",
+        "helpfulness": "not_started",
+        "considerate": "not_started",
+        "connecting": "not_started",
+        "open_communication": "not_started",
+        "building_networks": "not_started",
+        "initiating_contact": "not_started",
+        "dynamic": "not_started",
+        "energetic": "not_started",
+        "enthusiastic": "not_started",
+        "risk_appetite": "not_started",
+        "influential": "not_started",
+        "persuading": "not_started",
+        "desire_to_lead": "not_started",
+        "assertive": "not_started",
+        "goal_focused": "not_started",
+        "competitive": "not_started",
+        "challenge": "not_started",
+        "self_discipline": "not_started",
+        "structured": "not_started",
+        "planning_and_organising": "not_started",
+        "attention_to_detail": "not_started",
+        "keeping_promises": "not_started",
+        "analytical": "not_started",
+        "data_focus": "not_started",
+        "evaluating": "not_started",
+        "analysing_problems": "not_started",
+        "complex_thinking": "not_started",
+        "strategic_thinking": "not_started",
+        "conceptual": "not_started",
+        "curiosity": "not_started",
+        "creativity": "not_started",
+        "innovating": "not_started",
+        "generating_ideas": "not_started",
+        "experimenting": "not_started",
+        "adaptability": "not_started",
+        "adapting_to_change": "not_started",
+        "flexible": "not_started",
+        "variety": "not_started",
+        "straightforward": "not_started",
+        "adhering_to_rules": "not_started",
+        "candid": "not_started",
+        "earnest": "not_started",
+        "status_avoidance": "not_started",
+        "egalitarian": "not_started",
+        "collective": "not_started",
+        "avoiding_status": "not_started",
+        "modesty": "not_started",
+        "humble": "not_started",
+        "modest": "not_started",
+        "avoiding_attention": "not_started",
+        "resilience": "not_started",
+        "tough_minded": "not_started",
+        "recovering": "not_started",
+        "optimistic": "not_started",
+        "emotional_control": "not_started",
+        "controlling_stress": "not_started",
+        "calm": "not_started",
+        "composed": "not_started",
+        "independence": "not_started",
+        "self_reliant": "not_started",
+        "self_contained": "not_started",
+        "thinking_independently": "not_started",
+    }
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+        library_status_lookup=library_status_lookup,
+    )
+
+    available_reports_count = 0
+
+    if has_verbal_results:
+        available_reports_count += 2
+
+    if has_numerical_results:
+        available_reports_count += 2
+
+    if has_logical_results:
+        available_reports_count += 2
+
+    if has_motivation_results:
+        available_reports_count += 4
+
+    if has_personality_results:
+        available_reports_count += 11
+
+    return {
+        "company": process.company,
+        "process": process,
+        "invitation": invitation,
+        "inv": invitation,
+        "candidate": candidate,
+        "activity_events": activity_events,
+
+        "activities": activities,
+        "project_results": project_results,
+        "project_scores": project_scores,
+        "competency_scores": competency_scores,
+        "overall_score": overall_score,
+        "reports": reports,
+
+        "ability_results": ability_results,
+        "motivation_results": motivation_results,
+        "all_competencies": all_competencies,
+
+        "numerical_percentile": numerical_percentile,
+        "logical_percentile": logical_percentile,
+        "verbal_percentile": verbal_percentile,
+        "has_ability_results": has_ability_results,
+
+        "mq_competencies": mq_competencies,
+        "personality_competencies": personality_competencies,
+
+        "tests_sent_count": activity_count,
+        "tests_completed_count": tests_completed_count,
+        "available_reports_count": available_reports_count,
+        "email_logs_by_id": email_logs_by_id,
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "motivation_development_areas": motivation_development_areas,
+        "personality_development_areas": personality_development_areas,
+
+        "motivation_scores": motivation_scores,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
+    }
+
 def get_dashboard_activity_for_user(user, limit=10):
     company = get_company_for_user(user)
 
@@ -1070,512 +1545,29 @@ def process_candidate_detail(request, process_id, candidate_id):
     invitation = get_object_or_404(
         TestInvitation.objects.select_related("candidate"),
         process=process,
-        candidate_id=candidate_id
+        candidate_id=candidate_id,
     )
 
-    candidate = invitation.candidate
-
-    activity_events = (
-        ActivityEvent.objects
-        .filter(company=process.company, process=process, candidate=candidate)
-        .select_related("actor", "candidate", "invitation")[:50]
+    ctx = build_candidate_detail_context(
+        process=process,
+        invitation=invitation,
     )
-
-    from apps.emails.models import EmailLog
-
-    email_log_ids = [
-        (event.meta or {}).get("email_log_id")
-        for event in activity_events
-        if (event.meta or {}).get("email_log_id")
-    ]
-
-    email_logs_by_id = {
-        log.id: log
-        for log in EmailLog.objects.filter(id__in=email_log_ids)
-    }
-
-    for event in activity_events:
-        email_log_id = (event.meta or {}).get("email_log_id")
-        event.email_log = email_logs_by_id.get(email_log_id)
-
-    activities = invitation.sova_activities or []
-
-    def has_real_result(competencies):
-        return any(
-            comp.get("score") is not None
-            or comp.get("stive") is not None
-            or comp.get("stive_rounded") is not None
-            or comp.get("sten") is not None
-            or comp.get("sten_rounded") is not None
-            or comp.get("percentile") is not None
-            for comp in competencies
-        )
-
-    # -------------------------
-    # Overview counts
-    # -------------------------
-    activity_count = len(activities)
-
-    completed_statuses = {
-        "completed",
-        "complete",
-        "finished",
-        "done",
-        "result available",
-        "result_available",
-    }
-
-    tests_completed_count = sum(
-        1
-        for activity in activities
-        if (activity.get("status") or "").strip().lower() in completed_statuses
-    )
-
-    mq_competencies = []
-    personality_competencies = []
-    has_personality_results = False
-
-
-    for item in activities:
-        activity_name = (item.get("activity") or "").strip().lower()
-        competencies = item.get("competencies", []) or []
-
-        is_motivation_activity = (
-            activity_name == "motivation questionnaire"
-            or activity_name == "sova motivation questionnaire"
-            or "motivation" in activity_name
-        )
-
-        if is_motivation_activity:
-            for comp in competencies:
-                mq_competencies.append({
-                    "competency": comp.get("competency"),
-                    "score": comp.get("stive_rounded"),
-                    "stive_rounded": comp.get("stive_rounded"),
-                    "stive": comp.get("stive"),
-                    "sten_rounded": comp.get("sten_rounded"),
-                    "sten": comp.get("sten"),
-                    "percentile": comp.get("percentile"),
-                })
-
-    motivation_scores = build_scores_by_competency(mq_competencies)
-
-    practitioner_report = build_practitioner_report(
-        competencies=mq_competencies,
-    )
-
-    manager_report = build_manager_report(
-        competencies=mq_competencies,
-    )
-
-    candidate_report = build_candidate_report(
-        competencies=mq_competencies,
-    )
-
-    coaching_report = build_motivation_coaching_report(
-        competencies=mq_competencies,
-    )
-
-    motivation_reports_for_ui = [
-        practitioner_report,
-        manager_report,
-        coaching_report,
-        candidate_report,
-    ]
-
-    has_motivation_results = False
-
-    for item in activities:
-        activity_name = (item.get("activity") or "").strip().lower()
-        competencies = item.get("competencies", []) or []
-
-        is_motivation_activity = (
-            activity_name == "motivation questionnaire"
-            or activity_name == "sova motivation questionnaire"
-            or "motivation" in activity_name
-        )
-
-        if is_motivation_activity and has_real_result(competencies):
-            has_motivation_results = True
-
-    for item in activities:
-        activity_name = (item.get("activity") or "").strip().lower()
-        competencies = item.get("competencies", []) or []
-
-        is_personality_activity = (
-            activity_name == "personality assessment"
-            or activity_name == "sova personality questionnaire"
-            or "personality" in activity_name
-        )
-
-        if is_personality_activity:
-            if has_real_result(competencies):
-                has_personality_results = True
-
-            for comp in competencies:
-                personality_competencies.append({
-                    "competency": comp.get("competency"),
-                    "sten_rounded": comp.get("sten_rounded"),
-                    "sten": comp.get("sten"),
-                    "percentile": comp.get("percentile"),
-                })
-
-    personality_competencies = sorted(
-        personality_competencies,
-        key=lambda x: (x.get("competency") or "").lower()
-    )
-
-    # -------------------------
-    # Highlights / profile snapshot
-    # -------------------------
-
-    def safe_motivation_score(item):
-        return item.get("score") if item.get("score") is not None else -1
-
-    def safe_personality_score(item):
-        return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
-
-    sorted_mq_desc = sorted(mq_competencies, key=safe_motivation_score, reverse=True)
-    sorted_personality_desc = sorted(personality_competencies, key=safe_personality_score, reverse=True)
-
-    top_motivations = sorted_mq_desc[:3]
-    top_personality_traits = sorted_personality_desc[:3]
-
-    sorted_mq_asc = sorted(mq_competencies, key=safe_motivation_score)
-    sorted_personality_asc = sorted(personality_competencies, key=safe_personality_score)
-
-    motivation_development_areas = sorted_mq_asc[:2]
-    personality_development_areas = sorted_personality_asc[:2]
-
-    ABILITY_ACTIVITY_NAMES = {
-    "Sova Numerical Reasoning Assessment",
-    "Sova Logical Reasoning Assessment",
-    "Sova Verbal Reasoning Assessment",
-}
-
-    numerical_percentile = None
-    logical_percentile = None
-    verbal_percentile = None
-
-    has_ability_results = False
-    has_verbal_results = False
-    has_logical_results = False
-    has_numerical_results = False
-
-    for item in activities:
-        activity_name = item.get("activity", "")
-        competencies = item.get("competencies", []) or []
-        first_comp = competencies[0] if competencies else {}
-
-        percentile = first_comp.get("percentile")
-
-        if activity_name == "Sova Numerical Reasoning Assessment":
-            numerical_percentile = percentile
-            if percentile is not None:
-                has_numerical_results = True
-
-        elif activity_name == "Sova Logical Reasoning Assessment":
-            logical_percentile = percentile
-            if percentile is not None:
-                has_logical_results = True
-
-        elif activity_name == "Sova Verbal Reasoning Assessment":
-            verbal_percentile = percentile
-            if percentile is not None:
-                has_verbal_results = True
-
-    has_ability_results = (
-        has_verbal_results
-        or has_logical_results
-        or has_numerical_results
-    )
-
-    available_reports_count = tests_completed_count
-
-
-    ability_reports_for_ui = {
-        "overview": [],
-        "verbal": build_cognitive_reports_for_test(
-            test_key="verbal",
-            percentile=verbal_percentile,
-        ) if verbal_percentile is not None else None,
-        "logical": build_cognitive_reports_for_test(
-            test_key="logical",
-            percentile=logical_percentile,
-        ) if logical_percentile is not None else None,
-        "numerical": build_cognitive_reports_for_test(
-            test_key="numerical",
-            percentile=numerical_percentile,
-        ) if numerical_percentile is not None else None,
-    }
-
-    if ability_reports_for_ui["verbal"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "verbal",
-            "label": "Verbal",
-            "percentile": verbal_percentile,
-        })
-
-    if ability_reports_for_ui["logical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "logical",
-            "label": "Logical",
-            "percentile": logical_percentile,
-        })
-
-    if ability_reports_for_ui["numerical"]:
-        ability_reports_for_ui["overview"].append({
-            "key": "numerical",
-            "label": "Numerical",
-            "percentile": numerical_percentile,
-        })
-
-
-    for item in activities:
-        activity_name = item.get("activity", "")
-        competencies = item.get("competencies", []) or []
-        first_comp = competencies[0] if competencies else {}
-
-        percentile = first_comp.get("percentile")
-
-        if activity_name == "Sova Numerical Reasoning Assessment":
-            numerical_percentile = percentile
-        elif activity_name == "Sova Logical Reasoning Assessment":
-            logical_percentile = percentile
-        elif activity_name == "Sova Verbal Reasoning Assessment":
-            verbal_percentile = percentile
-
-    project_results = invitation.project_results or {}
-    reports = invitation.sova_reports or []
-
-    project_scores = project_results.get("project_scores", []) if isinstance(project_results, dict) else []
-    competency_scores = project_results.get("competency_scores", []) if isinstance(project_results, dict) else []
-    overall_score = (
-        project_results.get("overall_score")
-        if isinstance(project_results, dict) and project_results.get("overall_score") is not None
-        else invitation.overall_score
-    )
-
-    ability_results = []
-    motivation_results = []
-    all_competencies = []
-
-    for item in activities:
-        activity_name = item.get("activity", "") or ""
-        item_status = item.get("status", "") or ""
-        item_score = item.get("score")
-        item_competencies = item.get("competencies", []) or []
-
-        # Samla alla competencies i en enda lista
-        for comp in item_competencies:
-            all_competencies.append({
-                "activity": activity_name,
-                "status": item_status,
-                "competency": comp.get("competency"),
-                "stive": comp.get("stive"),
-                "stive_rounded": comp.get("stive_rounded"),
-                "sten": comp.get("sten"),
-                "sten_rounded": comp.get("sten_rounded"),
-                "percentile": comp.get("percentile"),
-                "assessment_centre": comp.get("assessment_centre"),
-            })
-
-        # Ability-tests
-        if activity_name in {
-            "Sova Logical Reasoning Assessment",
-            "Sova Numerical Reasoning Assessment",
-            "Sova Verbal Reasoning Assessment",
-        }:
-            first_comp = item_competencies[0] if item_competencies else {}
-
-            label_map = {
-                "Sova Logical Reasoning Assessment": "Logical",
-                "Sova Numerical Reasoning Assessment": "Numerical",
-                "Sova Verbal Reasoning Assessment": "Verbal",
-            }
-
-            ability_results.append({
-                "activity": activity_name,
-                "label": label_map.get(activity_name, activity_name),
-                "status": item_status,
-                "score": item_score,
-                "competency": first_comp.get("competency"),
-                "stive": first_comp.get("stive"),
-                "stive_rounded": first_comp.get("stive_rounded"),
-                "sten": first_comp.get("sten"),
-                "sten_rounded": first_comp.get("sten_rounded"),
-                "percentile": first_comp.get("percentile"),
-            })
-
-        # Motivation Questionnaire
-        elif activity_name == "Motivation Questionnaire":
-            for comp in item_competencies:
-                motivation_results.append({
-                    "activity": activity_name,
-                    "competency": comp.get("competency"),
-                    "stive": comp.get("stive"),
-                    "stive_rounded": comp.get("stive_rounded"),
-                    "sten": comp.get("sten"),
-                    "sten_rounded": comp.get("sten_rounded"),
-                    "percentile": comp.get("percentile"),
-                    "assessment_centre": comp.get("assessment_centre"),
-                })
-
-    # Sortera ability i ordningen du vill visa dem
-    ability_order = {"Verbal": 1, "Logical": 2, "Numerical": 3}
-    ability_results.sort(key=lambda x: ability_order.get(x["label"], 99))
-
-    # Sortera motivation alfabetiskt tills vidare
-    motivation_results.sort(key=lambda x: (x.get("competency") or "").lower())
-
-    library_status_lookup = {
-        "cooperative": "not_started",
-        "sensitivity": "not_started",
-        "teamwork": "not_started",
-        "agreeableness": "not_started",
-        "empathy": "not_started",
-        "tolerance": "not_started",
-        "listening": "not_started",
-        "warmth": "not_started",
-        "supporting": "not_started",
-        "developing_others": "not_started",
-        "helpfulness": "not_started",
-        "considerate": "not_started",
-        "connecting": "not_started",
-        "open_communication": "not_started",
-        "building_networks": "not_started",
-        "initiating_contact": "not_started",
-        "dynamic": "not_started",
-        "energetic": "not_started",
-        "enthusiastic": "not_started",
-        "risk_appetite": "not_started",
-        "influential": "not_started",
-        "persuading": "not_started",
-        "desire_to_lead": "not_started",
-        "assertive": "not_started",
-        "goal_focused": "not_started",
-        "competitive": "not_started",
-        "challenge": "not_started",
-        "self_discipline": "not_started",
-        "structured": "not_started",
-        "planning_and_organising": "not_started",
-        "attention_to_detail": "not_started",
-        "keeping_promises": "not_started",
-        "analytical": "not_started",
-        "data_focus": "not_started",
-        "evaluating": "not_started",
-        "analysing_problems": "not_started",
-        "complex_thinking": "not_started",
-        "strategic_thinking": "not_started",
-        "conceptual": "not_started",
-        "curiosity": "not_started",
-        "creativity": "not_started",
-        "innovating": "not_started",
-        "generating_ideas": "not_started",
-        "experimenting": "not_started",
-        "adaptability": "not_started",
-        "adapting_to_change": "not_started",
-        "flexible": "not_started",
-        "variety": "not_started",
-        "straightforward": "not_started",
-        "adhering_to_rules": "not_started",
-        "candid": "not_started",
-        "earnest": "not_started",
-        "status_avoidance": "not_started",
-        "egalitarian": "not_started",
-        "collective": "not_started",
-        "avoiding_status": "not_started",
-        "modesty": "not_started",
-        "humble": "not_started",
-        "modest": "not_started",
-        "avoiding_attention": "not_started",
-        "resilience": "not_started",
-        "tough_minded": "not_started",
-        "recovering": "not_started",
-        "optimistic": "not_started",
-        "emotional_control": "not_started",
-        "controlling_stress": "not_started",
-        "calm": "not_started",
-        "composed": "not_started",
-        "independence": "not_started",
-        "self_reliant": "not_started",
-        "self_contained": "not_started",
-        "thinking_independently": "not_started",
-    }
-
-    personality_reports = build_personality_reports_for_candidate(
-        sova_activities=activities,
-        library_status_lookup=library_status_lookup,
-    ) 
-
-    available_reports_count = 0
-
-    if has_verbal_results:
-        available_reports_count += 2
-
-    if has_numerical_results:
-        available_reports_count += 2
-
-    if has_logical_results:
-        available_reports_count += 2
-
-    if has_motivation_results:
-        available_reports_count += 4
-
-    if has_personality_results:
-        available_reports_count += 11
-
-
-    ctx = {
-        "process": process,
-        "invitation": invitation,
-        "inv": invitation,
-        "candidate": candidate,
-        "activity_events": activity_events,
-
-        "activities": activities,
-        "project_results": project_results,
-        "project_scores": project_scores,
-        "competency_scores": competency_scores,
-        "overall_score": overall_score,
-        "reports": reports,
-
-        "ability_results": ability_results,
-        "motivation_results": motivation_results,
-        "all_competencies": all_competencies,
-
-        "numerical_percentile": numerical_percentile,
-        "logical_percentile": logical_percentile,
-        "verbal_percentile": verbal_percentile,
-        "has_ability_results": has_ability_results,
-
-        "mq_competencies": mq_competencies,
-        "personality_competencies": personality_competencies,
-
-        "tests_sent_count": activity_count,
-        "tests_completed_count": tests_completed_count,
-        "available_reports_count": available_reports_count,
-        "email_logs_by_id": email_logs_by_id,
-
-        "top_motivations": top_motivations,
-        "top_personality_traits": top_personality_traits,
-        "motivation_development_areas": motivation_development_areas,
-        "personality_development_areas": personality_development_areas,
-
-        "motivation_reports_for_ui": motivation_reports_for_ui,
-        "ability_reports_for_ui": ability_reports_for_ui,
-        "personality_reports": personality_reports,
-        "has_motivation_results": has_motivation_results,
-        "has_personality_results": has_personality_results,
-
-        "available_reports_count": available_reports_count,
-    }
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
-    if is_ajax:
-        return render(request, "customer/processes/_candidate_detail_sheet.html", ctx)
 
-    return render(request, "customer/processes/process_candidate_detail.html", ctx)
+    if is_ajax:
+        return render(
+            request,
+            "customer/processes/_candidate_detail_sheet.html",
+            ctx,
+        )
+
+    return render(
+        request,
+        "customer/processes/process_candidate_detail.html",
+        ctx,
+    )
+
 
 @login_required
 def process_invitation_statuses(request, pk):

@@ -1,155 +1,1389 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}Skapa ny kund | Talena{% endblock %}
+{% block title %}{{ candidate.first_name }} {{ candidate.last_name }} | Talena Admin{% endblock %}
 
 {% block content %}
 
-
 <div class="container-fluid px-2 px-md-3">
 
-  <div class="d-flex align-items-start justify-content-between mb-3">
+  <!-- ADMIN PAGE HEADER -->
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+
     <div>
-      <h2 class="h4 mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h2>
-      <div class="text-muted">{{ candidate.email }}</div>
+      <div class="text-muted small mb-1">
+        Admin / Customer / Process / Candidate
+      </div>
+
+      <h2 class="h4 mb-1">
+        {{ candidate.first_name }} {{ candidate.last_name }}
+      </h2>
+
+      <div class="text-muted">
+        {{ candidate.email|default:"—" }}
+      </div>
     </div>
 
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary btn-sm"
-         href="{% url 'accounts:admin_process_detail' pk=process.id %}">
+    <div class="d-flex flex-wrap gap-2">
+      <a
+        class="btn btn-outline-secondary btn-sm"
+        href="{% url 'accounts:admin_process_detail' pk=process.id %}">
         ← Back to process
       </a>
 
-      <button class="btn btn-outline-secondary btn-sm" type="button" disabled title="Coming soon">
+      <button
+        class="btn btn-outline-secondary btn-sm"
+        type="button"
+        disabled
+        title="Coming soon">
         Download results
       </button>
     </div>
+
   </div>
 
-  <div class="card mb-3">
-    <div class="card-header fw-semibold">Candidate info</div>
-    <div class="card-body">
-      <dl class="row mb-0">
-        <dt class="col-sm-3 text-muted">Status</dt>
-        <dd class="col-sm-9">{{ invitation.status }}</dd>
 
-        <dt class="col-sm-3 text-muted">Invited</dt>
-        <dd class="col-sm-9">{{ invitation.invited_at|default:"-" }}</dd>
+  <!-- ADMIN CONTEXT CARDS -->
+  <div class="row g-3 mb-4">
 
-        <dt class="col-sm-3 text-muted">Completed</dt>
-        <dd class="col-sm-9">{{ invitation.completed_at|default:"-" }}</dd>
-      </dl>
-
-      {% if invitation.assessment_url %}
-        <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mt-3">
-          <div class="flex-grow-1">
-            <label class="form-label mb-1 fw-semibold">Test link</label>
-            <input
-              type="text"
-              class="form-control"
-              id="assessmentUrlInput"
-              value="{{ invitation.assessment_url }}"
-              readonly
-              onclick="this.select()"
-            >
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">Customer</div>
+        <div class="card-body">
+          <div class="fw-semibold">
+            {{ company.name|default:process.company.name|default:"—" }}
           </div>
-
-          <div class="pt-4">
-            <button type="button" class="btn btn-outline-primary" onclick="copyAssessmentUrl(event)">
-              Copy
-            </button>
+          <div class="text-muted small">
+            Customer account
           </div>
         </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="mb-3">
-    <div class="d-flex align-items-center justify-content-between">
-      <div>
-        <div class="fw-semibold">{{ process.project_name_snapshot|default:process.project_code }}</div>
-        <div class="text-muted small">Process</div>
       </div>
-
-      {% if invitation.status == "completed" %}
-        <span class="badge bg-success">Completed</span>
-      {% else %}
-        <span class="badge bg-warning text-dark">{{ invitation.status }}</span>
-      {% endif %}
     </div>
 
-    {% if invitation.status == "completed" %}
-      <div class="mt-3">
-        <div class="text-muted">Score</div>
-        <div class="display-6">
-          {% if invitation.overall_score != None %}
-            {{ invitation.overall_score }}
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">Process</div>
+        <div class="card-body">
+          <div class="fw-semibold">
+            {{ process.project_name_snapshot|default:process.project_code|default:"—" }}
+          </div>
+          <div class="text-muted small">
+            Process / project
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">Invitation status</div>
+        <div class="card-body">
+          {% if invitation.status == "completed" %}
+            <span class="candidate-status-badge is-success">Completed</span>
+          {% elif invitation.status == "started" %}
+            <span class="candidate-status-badge is-info">Started</span>
+          {% elif invitation.status == "sent" %}
+            <span class="candidate-status-badge is-warning">Sent</span>
+          {% elif invitation.status == "created" %}
+            <span class="candidate-status-badge is-muted">Not sent</span>
           {% else %}
-            —
+            <span class="candidate-status-badge is-muted">
+              {{ invitation.status|default:"—" }}
+            </span>
           {% endif %}
         </div>
       </div>
+    </div>
+
+  </div>
+
+
+  <!-- CANDIDATE HERO -->
+  <div class="card candidate-profile-header mb-4">
+    <div class="candidate-profile-shell">
+
+      <div class="candidate-profile-top">
+        <div class="candidate-profile-main">
+
+          <div class="candidate-profile-left">
+
+            <div class="candidate-profile-avatar user-initials user-initials-purple user-initials-lg">
+              {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
+                {% if fn or ln %}
+                  {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                {% else %}
+                  ?
+                {% endif %}
+              {% endwith %}
+            </div>
+
+            <div class="candidate-profile-identity">
+              <div class="candidate-profile-title-row">
+                <h1 class="candidate-profile-name">
+                  {{ candidate.first_name }} {{ candidate.last_name }}
+                </h1>
+
+                {% if invitation.status == "completed" %}
+                  <span class="candidate-status-badge is-success">Completed</span>
+                {% elif invitation.status == "started" %}
+                  <span class="candidate-status-badge is-info">Started</span>
+                {% elif invitation.status == "sent" %}
+                  <span class="candidate-status-badge is-warning">Sent</span>
+                {% elif invitation.status == "created" %}
+                  <span class="candidate-status-badge is-muted">Not sent</span>
+                {% else %}
+                  <span class="candidate-status-badge is-muted">
+                    {{ invitation.status|default:"—" }}
+                  </span>
+                {% endif %}
+              </div>
+
+              <div class="candidate-profile-email">
+                {{ candidate.email|default:"—" }}
+              </div>
+            </div>
+
+          </div>
+
+          <div class="candidate-profile-actions">
+            <div class="text-muted small">
+              Admin read-only view
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- TOP TABS -->
+      <div class="candidate-profile-tabs-wrap">
+        <div class="candidate-profile-tabs" role="tablist" aria-label="Admin candidate tabs">
+
+          <button
+            class="candidate-tab is-active"
+            type="button"
+            data-tab-group="admin-candidate-main-tabs"
+            data-tab-target="overview"
+            role="tab"
+            aria-selected="true"
+            onclick="switchTabs(this)">
+            Overview
+          </button>
+
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="admin-candidate-main-tabs"
+            data-tab-target="tests"
+            role="tab"
+            aria-selected="false"
+            onclick="switchTabs(this)">
+            Sent tests
+          </button>
+
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="admin-candidate-main-tabs"
+            data-tab-target="link"
+            role="tab"
+            aria-selected="false"
+            onclick="switchTabs(this)">
+            Test link
+          </button>
+
+          <button
+            class="candidate-tab"
+            type="button"
+            data-tab-group="admin-candidate-main-tabs"
+            data-tab-target="activity"
+            role="tab"
+            aria-selected="false"
+            onclick="switchTabs(this)">
+            Activity
+          </button>
+
+        </div>
+      </div>
+
+
+      <!-- TOP TAB PANELS -->
+      <div class="candidate-profile-tab-panels">
+
+        <!-- OVERVIEW -->
+        <div
+          class="candidate-tab-panel is-active"
+          data-tab-group="admin-candidate-main-tabs"
+          data-tab-panel="overview"
+          role="tabpanel">
+
+          <div class="candidate-overview-grid">
+
+            <div class="candidate-overview-card">
+              <div class="candidate-overview-label">Invited</div>
+              <div class="candidate-overview-value">
+                {% if invitation.invited_at %}
+                  {{ invitation.invited_at|date:"Y-m-d H:i" }}
+                {% else %}
+                  —
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="candidate-overview-card">
+              <div class="candidate-overview-label">Completed</div>
+              <div class="candidate-overview-value">
+                {% if invitation.completed_at %}
+                  {{ invitation.completed_at|date:"Y-m-d H:i" }}
+                {% else %}
+                  Not completed
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="candidate-overview-card">
+              <div class="candidate-overview-label">Tests sent</div>
+              <div class="candidate-overview-value">
+                {{ tests_sent_count|default:"0" }}
+              </div>
+            </div>
+
+            <div class="candidate-overview-card">
+              <div class="candidate-overview-label">Tests completed</div>
+              <div class="candidate-overview-value">
+                {{ tests_completed_count|default:"0" }}
+              </div>
+            </div>
+
+            <div class="candidate-overview-card">
+              <div class="candidate-overview-label">Available reports</div>
+              <div class="candidate-overview-value">
+                {{ available_reports_count|default:"0" }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        <!-- SENT TESTS -->
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="admin-candidate-main-tabs"
+          data-tab-panel="tests"
+          role="tabpanel">
+
+          {% if activities %}
+            <div class="candidate-inline-list">
+              {% for item in activities %}
+                <div class="candidate-inline-item">
+
+                  <div>
+                    <div class="candidate-inline-title">
+                      {{ item.activity|default:"-" }}
+                    </div>
+                    <div class="candidate-inline-meta">
+                      Status from SOVA activity payload
+                    </div>
+                  </div>
+
+                  {% if item.status == "completed" %}
+                    <span class="candidate-status-badge is-success">Completed</span>
+                  {% elif item.status == "in progress" or item.status == "started" %}
+                    <span class="candidate-status-badge is-info">Started</span>
+                  {% elif item.status == "added" %}
+                    <span class="candidate-status-badge is-warning">Not started</span>
+                  {% elif item.status == "invited" or item.status == "sent" %}
+                    <span class="candidate-status-badge is-warning">Sent</span>
+                  {% else %}
+                    <span class="candidate-status-badge is-muted">
+                      {{ item.status|default:"-" }}
+                    </span>
+                  {% endif %}
+
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted small">
+              No tests found yet.
+            </div>
+          {% endif %}
+
+        </div>
+
+
+        <!-- TEST LINK -->
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="admin-candidate-main-tabs"
+          data-tab-panel="link"
+          role="tabpanel">
+
+          {% if invitation.assessment_url %}
+            <div class="candidate-link-panel">
+
+              <div class="candidate-link-panel-text">
+                <div class="candidate-inline-title">Test link</div>
+                <div class="candidate-inline-meta">
+                  Admin can copy the candidate test link if needed.
+                </div>
+              </div>
+
+              <div class="candidate-link-field">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="adminCandidateAssessmentUrl"
+                  value="{{ invitation.assessment_url }}"
+                  readonly
+                  onclick="this.select()">
+
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  data-copy-candidate-url="adminCandidateAssessmentUrl">
+                  Copy
+                </button>
+              </div>
+
+            </div>
+          {% else %}
+            <div class="text-muted small">
+              No test link available yet.
+            </div>
+          {% endif %}
+
+        </div>
+
+
+        <!-- ACTIVITY -->
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="admin-candidate-main-tabs"
+          data-tab-panel="activity"
+          role="tabpanel">
+
+          <div class="activity-timeline">
+
+            {% for event in activity_events %}
+              <div class="activity-item">
+
+                <div class="activity-line"></div>
+
+                <div class="activity-dot 
+                  {% if event.verb == 'invite_sent' %}is-invite
+                  {% elif event.verb == 'status_changed' %}is-status
+                  {% elif event.verb == 'candidate_added' %}is-added
+                  {% else %}is-default{% endif %}">
+                </div>
+
+                <div class="activity-card">
+
+                  <div class="activity-card-top">
+                    <div class="activity-main">
+                      <div class="candidate-inline-title">
+                        {{ event.message }}
+                      </div>
+                      <div class="candidate-inline-meta">
+                        {{ event.created_at|date:"Y-m-d H:i" }}
+                      </div>
+                    </div>
+                  </div>
+
+                  {% if event.verb == "invite_sent" and event.email_log %}
+                    <div class="activity-actions">
+                      <button
+                        type="button"
+                        class="activity-email-btn js-open-email-modal"
+                        data-email-to="{{ event.email_log.to_email|escape }}"
+                        data-email-subject="{{ event.email_log.subject|escape }}"
+                        data-email-body="{{ event.email_log.body_snapshot|escape }}">
+                        View email
+                      </button>
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+
+            {% empty %}
+              <div class="activity-empty">
+                <div class="activity-empty-title">No activity yet</div>
+                <div class="activity-empty-text">
+                  Events will appear here when invitations are sent and tests are started or completed.
+                </div>
+              </div>
+            {% endfor %}
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  {% if not has_ability_results and not has_motivation_results and not has_personality_results %}
+
+    <div class="card mb-4">
+      <div class="card-body empty-results">
+        <div class="d-flex align-items-start gap-3">
+          <div class="empty-icon">!</div>
+          <div>
+            <div class="fw-semibold mb-1">No results available yet</div>
+            <div class="text-muted small">
+              Results will appear here when the candidate has completed the assessment.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+
+    <!-- AI SUMMARY -->
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">AI summary</div>
+        <span class="badge rounded-pill text-bg-light border">Read-only admin view</span>
+      </div>
+
+      <div class="card-body">
+        <div class="ai-summary-text">
+          {% if invitation.ai_summary %}
+            {{ invitation.ai_summary|linebreaksbr }}
+          {% elif invitation.ai_summary_status == "generating" %}
+            <span class="text-muted">Summary is currently being generated...</span>
+          {% else %}
+            <span class="text-muted">No AI summary has been generated yet.</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+
+    <!-- PROFILE HIGHLIGHTS -->
+    <div class="card mb-4 profile-highlights-section">
+      <div class="card-header fw-semibold">Profile highlights</div>
+
+      <div class="card-body">
+        <div class="profile-domain-grid">
+
+          <!-- MOTIVATION -->
+          <section class="domain-panel domain-panel--motivation">
+            <div class="domain-panel__header">
+              <div>
+                <div class="text-muted small mb-2">What drives this person</div>
+                <h3 class="domain-panel__title">Motivation</h3>
+              </div>
+              <div class="domain-panel__icon">
+                <i data-feather="zap"></i>
+              </div>
+            </div>
+
+            <div class="domain-panel__divider"></div>
+
+            <div class="domain-panel__section-title">Top motivations</div>
+
+            <div class="domain-panel__section">
+              {% if top_motivations %}
+                <div class="highlight-list">
+                  {% for comp in top_motivations %}
+                    <div class="highlight-row">
+                      <div class="highlight-row__content">
+                        <div class="candidate-inline-title">
+                          {{ comp.competency }}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          Motivation factor
+                        </div>
+                      </div>
+                      <div class="highlight-score-pill">
+                        {{ comp.score|default:"-" }}/5
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="highlight-empty highlight-empty--compact">
+                  <div class="highlight-empty__title">No motivation data yet</div>
+                  <div class="highlight-empty__text">
+                    Motivation results will appear here when available.
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="domain-panel__section-title mt-4">Areas to explore</div>
+
+            <div class="domain-panel__section">
+              {% if motivation_development_areas %}
+                <div class="highlight-list">
+                  {% for comp in motivation_development_areas %}
+                    <div class="highlight-row">
+                      <div class="highlight-row__content">
+                        <div class="candidate-inline-title">
+                          {{ comp.competency }}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          Lower-scoring motivation factor
+                        </div>
+                      </div>
+                      <div class="highlight-score-pill highlight-score-pill--soft">
+                        {{ comp.score|default:"-" }}/5
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="highlight-empty highlight-empty--compact">
+                  <div class="highlight-empty__title">No development areas yet</div>
+                  <div class="highlight-empty__text">
+                    Lower-scoring motivation areas will appear here.
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </section>
+
+
+          <!-- PERSONALITY -->
+          <section class="domain-panel domain-panel--personality">
+            <div class="domain-panel__header">
+              <div>
+                <div class="text-muted small mb-2">Most prominent traits</div>
+                <h3 class="domain-panel__title">Personality</h3>
+              </div>
+              <div class="domain-panel__icon">
+                <i data-feather="star"></i>
+              </div>
+            </div>
+
+            <div class="domain-panel__divider"></div>
+
+            <div class="domain-panel__section-title">Top personality traits</div>
+
+            <div class="domain-panel__section">
+              {% if top_personality_traits %}
+                <div class="highlight-list">
+                  {% for comp in top_personality_traits %}
+                    <div class="highlight-row">
+                      <div class="highlight-row__content">
+                        <div class="candidate-inline-title">
+                          {{ comp.competency }}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          Personality trait
+                        </div>
+                      </div>
+                      <div class="highlight-score-pill">
+                        {{ comp.sten_rounded|default:"-" }}/10
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="highlight-empty highlight-empty--compact">
+                  <div class="highlight-empty__title">No personality data yet</div>
+                  <div class="highlight-empty__text">
+                    Personality results will appear here when available.
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="domain-panel__section-title mt-4">Areas to explore</div>
+
+            <div class="domain-panel__section">
+              {% if personality_development_areas %}
+                <div class="highlight-list">
+                  {% for comp in personality_development_areas %}
+                    <div class="highlight-row">
+                      <div class="highlight-row__content">
+                        <div class="candidate-inline-title">
+                          {{ comp.competency }}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          Lower-scoring personality trait
+                        </div>
+                      </div>
+                      <div class="highlight-score-pill highlight-score-pill--soft">
+                        {{ comp.sten_rounded|default:"-" }}/10
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="highlight-empty highlight-empty--compact">
+                  <div class="highlight-empty__title">No development areas yet</div>
+                  <div class="highlight-empty__text">
+                    Lower-scoring personality areas will appear here.
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ABILITIES -->
+    {% if has_ability_results %}
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">Abilities</div>
+        <div class="card-body p-0">
+
+          <div class="candidate-profile-tabs-wrap">
+            <div class="candidate-profile-tabs" role="tablist" aria-label="Admin ability tabs">
+
+              <button
+                class="candidate-tab is-active"
+                type="button"
+                data-tab-group="admin-ability-tabs"
+                data-tab-target="overview"
+                onclick="switchTabs(this)">
+                Overview
+              </button>
+
+              {% if ability_reports_for_ui.verbal %}
+                <button
+                  class="candidate-tab"
+                  type="button"
+                  data-tab-group="admin-ability-tabs"
+                  data-tab-target="verbal"
+                  onclick="switchTabs(this)">
+                  Verbal
+                </button>
+              {% endif %}
+
+              {% if ability_reports_for_ui.logical %}
+                <button
+                  class="candidate-tab"
+                  type="button"
+                  data-tab-group="admin-ability-tabs"
+                  data-tab-target="logical"
+                  onclick="switchTabs(this)">
+                  Logical
+                </button>
+              {% endif %}
+
+              {% if ability_reports_for_ui.numerical %}
+                <button
+                  class="candidate-tab"
+                  type="button"
+                  data-tab-group="admin-ability-tabs"
+                  data-tab-target="numerical"
+                  onclick="switchTabs(this)">
+                  Numerical
+                </button>
+              {% endif %}
+
+            </div>
+          </div>
+
+
+          <!-- ABILITY OVERVIEW -->
+          <div
+            class="candidate-tab-panel report-tab is-active"
+            data-tab-group="admin-ability-tabs"
+            data-tab-panel="overview">
+
+            <div class="row text-center g-3 mt-1">
+
+              <div class="col-4 mt-0">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Verbal</div>
+                  <div class="h4 mb-0">{{ verbal_percentile|default:"-" }}</div>
+                </div>
+              </div>
+
+              <div class="col-4 mt-0">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Logical</div>
+                  <div class="h4 mb-0">{{ logical_percentile|default:"-" }}</div>
+                </div>
+              </div>
+
+              <div class="col-4 mt-0">
+                <div class="border rounded-3 p-3">
+                  <div class="small text-muted">Numerical</div>
+                  <div class="h4 mb-0">{{ numerical_percentile|default:"-" }}</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+
+          <!-- VERBAL -->
+          {% if ability_reports_for_ui.verbal %}
+            <div
+              class="candidate-tab-panel report-tab"
+              data-tab-group="admin-ability-tabs"
+              data-tab-panel="verbal">
+
+              <h3>Verbal</h3>
+
+              <div class="mb-4 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.verbal.practitioner_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.verbal.practitioner_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.verbal.practitioner_report.test_description }}</p>
+
+                <div class="mb-3">
+                  <strong>Percentile:</strong>
+                  {{ ability_reports_for_ui.verbal.practitioner_report.percentile|default:"-" }}
+                </div>
+
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.verbal.practitioner_report.result_text }}
+                </p>
+              </div>
+
+              <div class="mb-0 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.verbal.candidate_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.verbal.candidate_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.verbal.candidate_report.test_description }}</p>
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.verbal.candidate_report.result_text }}
+                </p>
+              </div>
+
+            </div>
+          {% endif %}
+
+
+          <!-- LOGICAL -->
+          {% if ability_reports_for_ui.logical %}
+            <div
+              class="candidate-tab-panel report-tab"
+              data-tab-group="admin-ability-tabs"
+              data-tab-panel="logical">
+
+              <h3>Logical</h3>
+
+              <div class="mb-4 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.logical.practitioner_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.logical.practitioner_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.logical.practitioner_report.test_description }}</p>
+
+                <div class="mb-3">
+                  <strong>Percentile:</strong>
+                  {{ ability_reports_for_ui.logical.practitioner_report.percentile|default:"-" }}
+                </div>
+
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.logical.practitioner_report.result_text }}
+                </p>
+              </div>
+
+              <div class="mb-0 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.logical.candidate_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.logical.candidate_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.logical.candidate_report.test_description }}</p>
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.logical.candidate_report.result_text }}
+                </p>
+              </div>
+
+            </div>
+          {% endif %}
+
+
+          <!-- NUMERICAL -->
+          {% if ability_reports_for_ui.numerical %}
+            <div
+              class="candidate-tab-panel report-tab"
+              data-tab-group="admin-ability-tabs"
+              data-tab-panel="numerical">
+
+              <h3>Numerical</h3>
+
+              <div class="mb-4 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.numerical.practitioner_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.numerical.practitioner_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.numerical.practitioner_report.test_description }}</p>
+
+                <div class="mb-3">
+                  <strong>Percentile:</strong>
+                  {{ ability_reports_for_ui.numerical.practitioner_report.percentile|default:"-" }}
+                </div>
+
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.numerical.practitioner_report.result_text }}
+                </p>
+              </div>
+
+              <div class="mb-0 p-3 border rounded">
+                <h4>{{ ability_reports_for_ui.numerical.candidate_report.title }}</h4>
+                <p>{{ ability_reports_for_ui.numerical.candidate_report.intro }}</p>
+                <p>{{ ability_reports_for_ui.numerical.candidate_report.test_description }}</p>
+                <p class="mb-0">
+                  {{ ability_reports_for_ui.numerical.candidate_report.result_text }}
+                </p>
+              </div>
+
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
     {% endif %}
-  </div>
 
-  <div class="row g-3">
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header fw-semibold">Personality overview (dummy)</div>
-        <div class="card-body">
-          <canvas data-chart="profile" height="140"></canvas>
+
+    <!-- MOTIVATION QUESTIONNAIRE -->
+    {% if has_motivation_results %}
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">Motivation Questionnaire</div>
+        <div class="card-body p-0">
+
+          <div class="candidate-profile-tabs-wrap">
+            <div class="candidate-profile-tabs" role="tablist" aria-label="Admin motivation report tabs">
+
+              {% for report in motivation_reports_for_ui %}
+                <button
+                  class="candidate-tab {% if forloop.first %}is-active{% endif %}"
+                  type="button"
+                  data-tab-group="admin-motivation-report-tabs"
+                  data-tab-target="{{ report.key }}"
+                  onclick="switchTabs(this)">
+                  {{ report.title }}
+                </button>
+              {% endfor %}
+
+            </div>
+          </div>
+
+          {% for report in motivation_reports_for_ui %}
+            <div
+              class="candidate-tab-panel report-tab {% if forloop.first %}is-active{% endif %}"
+              data-tab-group="admin-motivation-report-tabs"
+              data-tab-panel="{{ report.key }}">
+
+              <div class="mb-4">
+                <h3>{{ report.title }}</h3>
+                <p>{{ report.intro }}</p>
+              </div>
+
+              {% for section in report.sections %}
+                <div class="mb-5">
+
+                  <h4>{{ section.title }}</h4>
+
+                  {% if section.intro %}
+                    <p>{{ section.intro }}</p>
+                  {% endif %}
+
+                  {% if section.items %}
+                    {% for item in section.items %}
+                      <div class="mb-3 p-3 border rounded">
+
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                          <strong>{{ item.label }}</strong>
+
+                          {% if item.score %}
+                            {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                          {% endif %}
+                        </div>
+
+                        {% if item.descriptor %}
+                          <p class="mb-2">
+                            <em>{{ item.descriptor }}</em>
+                          </p>
+                        {% endif %}
+
+                        {% if item.profile_summary %}
+                          <p class="mb-0">{{ item.profile_summary }}</p>
+                        {% elif item.implications %}
+                          <p class="mb-0">{{ item.implications }}</p>
+                        {% elif item.management_tips %}
+                          <p class="mb-0">{{ item.management_tips }}</p>
+                        {% elif item.relationships_text %}
+                          <p class="mb-0">{{ item.relationships_text }}</p>
+                        {% elif item.candidate_text %}
+                          <p class="mb-0">{{ item.candidate_text }}</p>
+                        {% elif item.summary %}
+                          <p class="mb-0">{{ item.summary }}</p>
+                        {% else %}
+                          <p class="mb-0 text-muted small">No text available yet.</p>
+                        {% endif %}
+
+                        {% if item.ideal_environment %}
+                          <ul class="mb-0 mt-2">
+                            {% for point in item.ideal_environment %}
+                              <li>{{ point }}</li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+
+                        {% if item.upsides %}
+                          <strong class="d-block mt-3">Upsides</strong>
+                          <ul>
+                            {% for text in item.upsides %}
+                              <li>{{ text }}</li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+
+                        {% if item.downsides %}
+                          <strong class="d-block mt-3">Downsides</strong>
+                          <ul>
+                            {% for text in item.downsides %}
+                              <li>{{ text }}</li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+
+                        {% if item.questions %}
+                          <strong class="d-block mt-3">Coaching questions</strong>
+                          <ul class="mb-0">
+                            {% for text in item.questions %}
+                              <li>{{ text }}</li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+
+
+                  {% if section.top_items %}
+                    {% if section.top_title %}
+                      <h5 class="mt-4">{{ section.top_title }}</h5>
+                    {% endif %}
+
+                    {% for item in section.top_items %}
+                      <div class="mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                          <strong>{{ item.label }}</strong>
+                          {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                        </div>
+
+                        {% if item.descriptor %}
+                          <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                        {% endif %}
+<p class="mb-0">
+  {% if item.implications %}
+    {{ item.implications }}
+  {% elif item.profile_summary %}
+    {{ item.profile_summary }}
+  {% else %}
+    No text available yet.
+  {% endif %}
+</p>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+
+
+                  {% if section.bottom_items %}
+                    {% if section.bottom_title %}
+                      <h5 class="mt-4">{{ section.bottom_title }}</h5>
+                    {% endif %}
+
+                    {% for item in section.bottom_items %}
+                      <div class="mb-3 p-3 border rounded">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                          <strong>{{ item.label }}</strong>
+                          {% include "customer/processes/includes/_score_bar.html" with score=item.score %}
+                        </div>
+
+                        {% if item.descriptor %}
+                          <p class="mb-2"><em>{{ item.descriptor }}</em></p>
+                        {% endif %}
+
+<p class="mb-0">
+  {% if item.implications %}
+    {{ item.implications }}
+  {% elif item.profile_summary %}
+    {{ item.profile_summary }}
+  {% elif item.management_tips %}
+    {{ item.management_tips }}
+  {% elif item.relationships_text %}
+    {{ item.relationships_text }}
+  {% elif item.candidate_text %}
+    {{ item.candidate_text }}
+  {% elif item.summary %}
+    {{ item.summary }}
+  {% else %}
+    No text available yet.
+  {% endif %}
+</p>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+
+                </div>
+              {% endfor %}
+
+            </div>
+          {% endfor %}
+
         </div>
+      </div>
+    {% endif %}
+
+
+    <!-- PERSONALITY ASSESSMENT -->
+    {% if has_personality_results %}
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">Personality Assessment</div>
+        <div class="card-body p-0">
+
+          {% if personality_reports %}
+            <div class="candidate-profile-tabs-wrap">
+              <div class="candidate-profile-tabs" role="tablist" aria-label="Admin personality report tabs">
+
+                {% for report in personality_reports %}
+                  <button
+                    class="candidate-tab {% if forloop.first %}is-active{% endif %}"
+                    type="button"
+                    data-tab-group="admin-personality-report-tabs"
+                    data-tab-target="{{ report.report_id }}"
+                    onclick="switchTabs(this)">
+                    {{ report.report_name }}
+                  </button>
+                {% endfor %}
+
+              </div>
+            </div>
+
+            <div class="p-3">
+              {% for report in personality_reports %}
+                <div
+                  class="candidate-tab-panel {% if forloop.first %}is-active{% endif %}"
+                  data-tab-group="admin-personality-report-tabs"
+                  data-tab-panel="{{ report.report_id }}">
+
+                  <p class="text-muted small mb-3">
+                    {{ report.description }}
+                  </p>
+
+                  <div class="d-flex flex-wrap gap-3 small mb-3">
+                    <div><strong>Total expected:</strong> {{ report.summary.total_expected }}</div>
+                    <div><strong>Matched:</strong> {{ report.summary.matched_count }}</div>
+                    <div><strong>Missing:</strong> {{ report.summary.missing_count }}</div>
+                    <div><strong>Duplicates:</strong> {{ report.summary.duplicate_count }}</div>
+                    <div><strong>Extras:</strong> {{ report.summary.extra_count }}</div>
+                  </div>
+
+                  {% for section in report.sections %}
+                    <div class="mb-4">
+                      <h6 class="fw-bold mb-2">
+                        {{ section.section_name }}
+                      </h6>
+
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                          <thead class="table-light">
+                            <tr>
+                              <th>Type</th>
+                              <th>Trait</th>
+                              <th>Expected name</th>
+                              <th>SOVA match</th>
+                              <th>Canonical key</th>
+                              <th>Sten</th>
+                              <th>Mapping</th>
+                              <th>Possible SOVA match</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {% for row in section.rows %}
+                              <tr class="{% if row.row_type == 'trait' %}table-light{% endif %}">
+                                <td>{{ row.row_type|title }}</td>
+                                <td>{{ row.parent_trait|default:"-" }}</td>
+                                <td><strong>{{ row.expected_name }}</strong></td>
+                                <td>{{ row.sova_name|default:"-" }}</td>
+                                <td><code>{{ row.canonical_key }}</code></td>
+                                <td>{{ row.sten|default:"-" }}</td>
+                                <td>
+                                  {% if row.mapping_status == "matched" %}
+                                    <span class="badge bg-success">Matched</span>
+                                  {% elif row.mapping_status == "duplicate" %}
+                                    <span class="badge bg-warning text-dark">Duplicate</span>
+                                  {% else %}
+                                    <span class="badge bg-danger">Missing</span>
+                                  {% endif %}
+                                </td>
+                                <td>{{ row.possible_match|default:"-" }}</td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                  {% if report.extras %}
+                    <div class="mt-4">
+                      <h6 class="fw-bold mb-2">Extra competencies in payload</h6>
+
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                          <thead class="table-light">
+                            <tr>
+                              <th>Competency</th>
+                              <th>Sten</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {% for item in report.extras %}
+                              <tr>
+                                <td>{{ item.competency }}</td>
+                                <td>{{ item.sten_rounded|default:"-" }}</td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                </div>
+              {% endfor %}
+            </div>
+
+          {% else %}
+            <div class="p-3 text-muted small">
+              No personality reports available yet.
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    {% endif %}
+
+
+    <!-- REPORTS LIST -->
+    <div class="card mb-4">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span>Reports</span>
+
+        {% if available_reports_count %}
+          <span class="badge rounded-pill text-bg-light border">
+            {{ available_reports_count }} available
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="card-body">
+
+        {% if has_ability_results or has_motivation_results or has_personality_results %}
+
+          <div class="list-group list-group-flush">
+
+            {% if ability_reports_for_ui.verbal %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.verbal.practitioner_report.title|default:"Verbal Practitioner Report" }}
+                  </div>
+                  <div class="small text-muted">Verbal Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.verbal.candidate_report.title|default:"Verbal Candidate Report" }}
+                  </div>
+                  <div class="small text-muted">Verbal Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+            {% endif %}
+
+
+            {% if ability_reports_for_ui.logical %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.logical.practitioner_report.title|default:"Logical Practitioner Report" }}
+                  </div>
+                  <div class="small text-muted">Logical Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.logical.candidate_report.title|default:"Logical Candidate Report" }}
+                  </div>
+                  <div class="small text-muted">Logical Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+            {% endif %}
+
+
+            {% if ability_reports_for_ui.numerical %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.numerical.practitioner_report.title|default:"Numerical Practitioner Report" }}
+                  </div>
+                  <div class="small text-muted">Numerical Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div>
+                  <div class="fw-semibold">
+                    {{ ability_reports_for_ui.numerical.candidate_report.title|default:"Numerical Candidate Report" }}
+                  </div>
+                  <div class="small text-muted">Numerical Reasoning · Abilities</div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                  PDF coming soon
+                </button>
+              </div>
+            {% endif %}
+
+
+            {% if has_motivation_results %}
+              {% for report in motivation_reports_for_ui %}
+                <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                  <div>
+                    <div class="fw-semibold">
+                      {{ report.title }}
+                    </div>
+                    <div class="small text-muted">
+                      Motivation Questionnaire · Motivation
+                    </div>
+                  </div>
+
+                  <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                    PDF coming soon
+                  </button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+
+            {% if has_personality_results %}
+              {% for report in personality_reports %}
+                <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                  <div>
+                    <div class="fw-semibold">
+                      {{ report.report_name }}
+                    </div>
+                    <div class="small text-muted">
+                      Personality Assessment · Personality
+                    </div>
+                  </div>
+
+                  <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                    PDF coming soon
+                  </button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+          </div>
+
+        {% else %}
+          <p class="text-muted mb-0">
+            No reports available.
+          </p>
+        {% endif %}
+
       </div>
     </div>
 
-    <div class="col-lg-6">
-      <div class="card">
-        <div class="card-header fw-semibold">Abilities (dummy)</div>
-        <div class="card-body">
-          <canvas data-chart="abilities" height="140"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
+  {% endif %}
 
-  <script type="application/json" id="candidate-sheet-chart-data">
-    {
-      "profile": {
-        "labels": {{ dummy_profile.labels|safe }},
-        "values": {{ dummy_profile.values|safe }}
-      },
-      "abilities": {
-        "labels": {{ dummy_abilities.labels|safe }},
-        "values": {{ dummy_abilities.values|safe }}
+
+  <!-- COPY SCRIPT -->
+  <script>
+    document.addEventListener("click", function (event) {
+      const button = event.target.closest("[data-copy-candidate-url]");
+      if (!button) return;
+
+      const inputId = button.getAttribute("data-copy-candidate-url");
+      const input = document.getElementById(inputId);
+      if (!input) return;
+
+      const originalText = button.innerText;
+
+      function showCopied() {
+        button.innerText = "Copied!";
+        button.classList.remove("btn-primary", "btn-outline-primary", "btn-outline-secondary");
+        button.classList.add("btn-success");
+
+        setTimeout(function () {
+          button.innerText = originalText;
+          button.classList.remove("btn-success");
+          button.classList.add("btn-primary");
+        }, 1400);
       }
-    }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(input.value).then(showCopied).catch(function () {
+          input.select();
+          document.execCommand("copy");
+          showCopied();
+        });
+      } else {
+        input.select();
+        document.execCommand("copy");
+        showCopied();
+      }
+    });
   </script>
 
   <script>
-    function copyAssessmentUrl(evt) {
-      const input = document.getElementById("assessmentUrlInput");
-      if (!input) return;
+  function switchTabs(button) {
+    const group = button.dataset.tabGroup;
+    const target = button.dataset.tabTarget;
 
-      input.select();
-      input.setSelectionRange(0, 99999);
+    if (!group || !target) return;
 
-      navigator.clipboard.writeText(input.value).then(() => {
-        const btn = evt.currentTarget;
-        const originalText = btn.innerText;
+    const tabs = document.querySelectorAll(
+      `.candidate-tab[data-tab-group="${group}"]`
+    );
 
-        btn.innerText = "Copied!";
-        btn.classList.remove("btn-outline-primary");
-        btn.classList.add("btn-success");
+    const panels = document.querySelectorAll(
+      `.candidate-tab-panel[data-tab-group="${group}"]`
+    );
 
-        setTimeout(() => {
-          btn.innerText = originalText;
-          btn.classList.remove("btn-success");
-          btn.classList.add("btn-outline-primary");
-        }, 1500);
-      });
+    tabs.forEach((tab) => {
+      tab.classList.remove("is-active");
+      tab.setAttribute("aria-selected", "false");
+    });
+
+    panels.forEach((panel) => {
+      panel.classList.remove("is-active");
+    });
+
+    button.classList.add("is-active");
+    button.setAttribute("aria-selected", "true");
+
+    const activePanel = document.querySelector(
+      `.candidate-tab-panel[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (activePanel) {
+      activePanel.classList.add("is-active");
     }
-  </script>
+  }
+</script>
 
 </div>
-
-
 
 {% endblock %}
