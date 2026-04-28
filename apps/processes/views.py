@@ -57,6 +57,43 @@ from apps.core.ai.candidate_summary import (
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
+def get_dashboard_activity_for_user(user, limit=10):
+    company = get_company_for_user(user)
+
+    if not company:
+        return ActivityEvent.objects.none()
+
+    perms = get_effective_orgunit_permissions(user, company)
+
+    own_ids = [uid for uid, p in perms.items() if p == "own"]
+    visible_ids = [uid for uid, p in perms.items() if p in ("viewer", "editor")]
+
+    process_q = Q(company=company, is_archived=False) & (
+        Q(org_unit_id__in=visible_ids) |
+        Q(org_unit_id__in=own_ids, created_by=user)
+    )
+
+    accessible_process_ids = (
+        TestProcess.objects
+        .filter(process_q)
+        .values_list("id", flat=True)
+    )
+
+    return (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            process_id__in=accessible_process_ids,
+        )
+        .select_related(
+            "actor",
+            "candidate",
+            "process",
+            "invitation",
+        )
+        .order_by("-created_at")[:limit]
+    )
+
 def _get_active_company_for_user(user):
     # om du bara har 1 company per user just nu: ta första
     m = CompanyMember.objects.select_related("company").filter(user=user).first()

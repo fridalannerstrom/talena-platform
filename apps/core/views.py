@@ -112,10 +112,16 @@ def customer_dashboard(request):
         .order_by("-created_at")
     )
 
+    accessible_process_ids = accessible_processes.values_list("id", flat=True)
+
     activity_events = (
         ActivityEvent.objects
-        .filter(company=company, process__in=accessible_processes)
-        .select_related("actor", "process", "candidate")[:30]
+        .filter(
+            company=company,
+            process_id__in=accessible_process_ids,
+        )
+        .select_related("actor", "process", "candidate", "invitation")
+        .order_by("-created_at")[:10]
     )
 
     # 🧼 Om du har soft-delete, slå på EN av dessa (beroende på din modell):
