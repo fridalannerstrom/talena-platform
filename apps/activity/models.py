@@ -64,41 +64,54 @@ class ActivityEvent(models.Model):
         actor = self.actor_display()
         meta = self.meta or {}
 
+        candidate = self.candidate or "candidate"
+        process_name = self.process.name if self.process else "test process"
+
         if self.verb == self.Verb.PROCESS_CREATED:
-            return f"{actor} skapade testprocessen {self.process.name}"
+            return f"{actor} created the test process {process_name}"
 
         if self.verb == self.Verb.PROCESS_ARCHIVED:
-            return f"{actor} arkiverade testprocessen {self.process.name}"
+            return f"{actor} archived the test process {process_name}"
 
         if self.verb == self.Verb.PROCESS_DELETED:
-            return f"{actor} raderade testprocessen {self.process.name}"
+            return f"{actor} deleted the test process {process_name}"
 
         if self.verb == self.Verb.CANDIDATE_ADDED:
-            return f"{actor} lade till {self.candidate}"
+            return f"{actor} added {candidate}"
 
         if self.verb == self.Verb.CANDIDATE_REMOVED:
-            return f"{actor} tog bort {self.candidate}"
+            return f"{actor} removed {candidate}"
 
         if self.verb == self.Verb.INVITE_SENT:
-            return f"Inbjudan skickades till {self.candidate}"
+            return f"Assessment invitation sent to {self.candidate} by {actor}"
+
+        if self.verb == self.Verb.TEST_STARTED:
+            return f"{candidate} started the assessment"
+
+        if self.verb == self.Verb.TEST_COMPLETED:
+            return f"{candidate} completed the assessment"
+
+        if self.verb == self.Verb.ALL_TESTS_COMPLETED:
+            return f"{candidate} completed all assessments"
 
         if self.verb == self.Verb.STATUS_CHANGED:
-            old = (self.meta or {}).get("old_status")
-            new = (self.meta or {}).get("new_status")
-            activity_name = (self.meta or {}).get("activity_name")
-            level = (self.meta or {}).get("level")
+            old = meta.get("old_status")
+            new = meta.get("new_status")
+            activity_name = meta.get("activity_name")
+            level = meta.get("level")
 
             if level == "activity" and new == "started" and activity_name:
-                return f"{self.candidate} påbörjade {activity_name}"
+                return f"{candidate} started {activity_name}"
 
             if level == "activity" and new == "completed" and activity_name:
-                return f"{self.candidate} slutförde {activity_name}"
+                return f"{candidate} completed {activity_name}"
 
             if new == "started":
-                return f"{self.candidate} påbörjade testet"
+                return f"{candidate} started the process"
 
             if new == "completed":
-                return f"{self.candidate} slutförde testet"
+                return f"{candidate} completed the process"
 
-            return f"{actor} uppdaterade {self.candidate}: {old} → {new}"
-    
+            return f"{actor} updated {candidate}: {old} → {new}"
+
+        return self.get_verb_display()
