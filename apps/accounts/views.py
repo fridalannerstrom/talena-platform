@@ -187,13 +187,38 @@ def admin_customers_list(request):
     if not is_admin(request.user):
         return HttpResponseForbidden("No access.")
 
+    q = (request.GET.get("q") or "").strip()
+    status = (request.GET.get("status") or "").strip()
+
     customers = (
         User.objects
         .filter(is_superuser=False, is_staff=False)
-        .prefetch_related("company_memberships__company")
+        .prefetch_related(
+            "company_memberships__company",
+            "company_memberships__primary_org_unit",
+        )
         .order_by("-date_joined")
     )
-    return render(request, "admin/accounts/customer/customers_list.html", {"customers": customers})
+
+    if q:
+        customers = customers.filter(
+            Q(email__icontains=q) |
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(company_memberships__company__name__icontains=q)
+        ).distinct()
+
+    if status == "active":
+        customers = customers.filter(is_active=True)
+
+    if status == "pending":
+        customers = customers.filter(is_active=False)
+
+    return render(request, "admin/accounts/customer/customers_list.html", {
+        "customers": customers,
+        "q": q,
+        "status": status,
+    })
 
 
 @login_required
