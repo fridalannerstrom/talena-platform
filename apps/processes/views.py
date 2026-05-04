@@ -686,12 +686,31 @@ def process_create(request):
             project_id_map[value] = p.get("id")
 
             meta = meta_map.get((acc, proj_code))
+
             title = (getattr(meta, "intern_name", None) or sova_name)
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
 
             choices.append((value, title))
             template_cards.append({
                 "value": value,
                 "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,
@@ -868,19 +887,37 @@ def process_update(request, pk):
             proj_code = (p.get("code") or "").strip()
             sova_name = (p.get("name") or proj_code).strip()
 
-            meta = meta_map.get((acc, proj_code))
-            title = (getattr(meta, "intern_name", None) or sova_name)
+        meta = meta_map.get((acc, proj_code))
 
-            value = f"{acc}|{proj_code}"
-            choices.append((value, title))
+        title = (getattr(meta, "intern_name", None) or sova_name)
 
-            template_cards.append({
-                "value": value,
-                "title": title,
-                "account_code": acc,
-                "project_code": proj_code,
-                "sova_name": sova_name,
-            })
+        description = ""
+        tests = []
+        languages = []
+
+        if meta:
+            description = (getattr(meta, "notes", None) or "").strip()
+
+            tests_raw = (getattr(meta, "tests", None) or "").strip()
+            if tests_raw:
+                tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+            languages_raw = (getattr(meta, "languages", None) or "").strip()
+            if languages_raw:
+                languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+        choices.append((value, title))
+        template_cards.append({
+            "value": value,
+            "title": title,
+            "description": description,
+            "tests": tests,
+            "languages": languages,
+            "account_code": acc,
+            "project_code": proj_code,
+            "sova_name": sova_name,
+            "sova_project_id": p.get("id"),
+        })
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
