@@ -13,7 +13,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@100..800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
-  --bs-blue: #ff6f61;
+  --bs-blue: #6E63E3;
   --bs-indigo: #5800e8;
   --bs-purple: #6900c7;
   --bs-pink: #e30059;
@@ -21068,7 +21068,7 @@ body {
 }
 
 .sidenav .sidenav-menu .nav .nav-link:hover {
-color: #FF6F61;
+color: #6E63E3;
 } 
 
 
