@@ -1,11 +1,11 @@
 {% load static %}
 <!doctype html>
-<html lang="sv">
+<html lang="en">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Logga in | Talena</title>
+  <title>Log in | Talena</title>
 
   <link rel="stylesheet" href="{% static 'css/auth.css' %}">
 </head>
@@ -19,8 +19,8 @@
       </header>
 
       <div class="auth-card">
-        <h1 class="auth-title">Logga in på Talena</h1>
-        <p class="auth-subtitle">Välkommen hit! Logga in för att fortsätta ditt arbete i Talena.</p>
+        <h1 class="auth-title">Log in to Talena</h1>
+        <p class="auth-subtitle">Welcome! Log in to continue your work in Talena.</p>
 
         <form method="post" class="auth-form" novalidate>
           {% csrf_token %}
@@ -32,7 +32,7 @@
           {% endif %}
 
           <div class="field">
-            <label class="label" for="{{ form.username.id_for_label }}">E-post:</label>
+            <label class="label" for="{{ form.username.id_for_label }}">Email:</label>
             {{ form.username }}
             {% if form.username.errors %}
             <div class="field-error">{{ form.username.errors }}</div>
@@ -40,18 +40,18 @@
           </div>
 
           <div class="field">
-            <label class="label" for="{{ form.password.id_for_label }}">Lösenord:</label>
+            <label class="label" for="{{ form.password.id_for_label }}">Password:</label>
             {{ form.password }}
             {% if form.password.errors %}
             <div class="field-error">{{ form.password.errors }}</div>
             {% endif %}
           </div>
 
-          <button class="btn" type="submit">Logga in</button>
+          <button class="btn" type="submit">Log in</button>
 
           <p class="auth-foot">
-            Har du inget konto på Talena?
-            <a class="link" href="">Kom igång här</a>
+            Don’t have a Talena account?
+            <a class="link" href="">Get started here</a>
           </p>
         </form>
       </div>
@@ -61,7 +61,7 @@
     <aside class="auth-right" aria-hidden="true"></aside>
   </main>
 
-  <!-- Liten form-widget fix: lägger på klasser + placeholders om du inte vill ändra forms.py än -->
+  <!-- Small form widget fix: adds classes + placeholders if you do not want to change forms.py yet -->
   <script>
     (function () {
       const u = document.getElementById("id_username");

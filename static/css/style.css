@@ -1803,10 +1803,10 @@ body {
     font-size: 0.6rem;
     border-radius: 100px;
     padding: 2px 8px;
-    color: #000000;
-    font-weight: 400;
+    color: #6E63E3;
+    font-weight: 500;
     font-family: poppins, sans-serif;
-    background-color: #CCBBFB;
+    background-color: #EBEBF7;
   }
 
   .button-icon {
@@ -2223,13 +2223,13 @@ body {
 }
 
 .dashboard-header h1 {
-  font-size: 1.6rem;
-  font-weight: 500;
+  font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 10px;
 }
 
 .dashboard-date {
-  color: #FF6F61;
+  color: #7B71DE;
   font-size: 0.7rem;
   font-weight: 500;
 }

@@ -8,7 +8,7 @@
     <!-- Text -->
     <div>
       <h1 id="greeting" class="mb-1">
-        Hej, {{ request.user.first_name|default:request.user.get_username }}!
+        Hi, {{ request.user.first_name|default:request.user.get_username }}!
       </h1>
 
       <p class="dashboard-date mb-0" id="today-date"></p>
@@ -17,32 +17,30 @@
   </div>
 
 <section class="quick-access mt-3 py-3">
-  <h3>Vad vill du göra?</h3>
+  <h3>What would you like to do?</h3>
 
   <div class="quick-access-grid">
 
     <a href="{% url 'processes:process_create' %}" class="quick-card">
       <div class="quick-card-icon"><i data-feather="plus"></i></div>
-      <div class="quick-card-title">Skapa ny testprocess</div>
-      <div class="quick-card-desc">Skicka ut tester till kandidater</div>
+      <div class="quick-card-title">Create a new test process</div>
+      <div class="quick-card-desc">Send assessments to candidates</div>
     </a>
 
     <a href="{% url 'processes:process_list' %}" class="quick-card testprocess-card">
       <div class="quick-card-icon"><i data-feather="list"></i></div>
-      <div class="quick-card-title">Se dina testprocesser</div>
-      <div class="quick-card-desc">Se status och resultat</div>
+      <div class="quick-card-title">View your test processes</div>
+      <div class="quick-card-desc">View status and results</div>
     </a>
 
     <a href="{% url 'portal:settings' %}" class="quick-card settings-card">
       <div class="quick-card-icon"><i data-feather="settings"></i></div>
-      <div class="quick-card-title">Kontoinställningar</div>
-      <div class="quick-card-desc">Lösenord, profilbild, kontaktinformation</div>
+      <div class="quick-card-title">Account settings</div>
+      <div class="quick-card-desc">Password, profile picture, contact information</div>
     </a>
 
   </div>
 </section>
-
-
 
   <!-- Main content -->
   <div class="row g-5 mt-1">
@@ -53,51 +51,51 @@
          <!-- Stats -->
           <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
             <div>
-              <h3 class="mb-1">Översikt</h3>
-              <div class="text-muted small">Snabb status på dina senaste tester</div>
+              <h3 class="mb-1">Overview</h3>
+              <div class="text-muted small">A quick overview of your latest assessments</div>
             </div>
           </div>
 
           <div class="row g-3 mb-3">
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Testprocesser</div>
+                <div class="text-muted small">Test processes</div>
                 <div class="h3 mt-1">{{ stats.processes }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Skickade tester</div>
+                <div class="text-muted small">Sent assessments</div>
                 <div class="h3 mt-1">{{ stats.sent }}</div>
               </div>
             </div>
 
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Påbörjade tester</div>
+                <div class="text-muted small">Started assessments</div>
                 <div class="h3 mt-1">{{ stats.started }}</div>
               </div>
             </div>
             
             <div class="col-12 col-md-3">
               <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Färdiga tester</div>
+                <div class="text-muted small">Completed assessments</div>
                 <div class="h3 mt-1">{{ stats.completed }}</div>
               </div>
             </div>
           </div>
 
-      <!-- Tesprocesses -->
+      <!-- Test processes -->
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
       <div>
-        <h3 class="mb-1 mt-3">Senaste testprocesser</h3>
-        <div class="text-muted small">Snabb åtkomst till det du jobbar med just nu</div>
+        <h3 class="mb-1 mt-3">Latest test processes</h3>
+        <div class="text-muted small">Quick access to what you are currently working on</div>
       </div>
 
       <a href="{% url 'processes:process_list' %}"
          class="btn btn-outline-primary btn-sm rounded-pill mt-3">
-        Visa alla
+        View all
       </a>
     </div>
 {% if processes %}
@@ -112,30 +110,41 @@
             {{ p.name }}
           </div>
           <div class="process-sub text-muted small text-truncate">
-            Innehåller tester: {{ p.tests_display|default:"Personlighet, Motivation" }}
+            Includes assessments: {{ p.tests_display|default:"Personality, Motivation" }}
           </div>
         </div>
 
-                {# COL 1: Label/Org unit #}
-        <div class="process-col-label">
-          <span class="process-label">
-            {% if p.org_unit %}{{ p.org_unit.name }}{% else %}Enhet{% endif %}
-          </span>
-        </div>
 
+   {# COL 3: Candidates #}
+<div class="process-col-meta">
+  <span class="process-info-pill process-info-pill-candidates">
+    <span class="process-info-icon">
+      <i data-feather="users"></i>
+    </span>
+    <span class="process-info-text">
+      {{ p.candidates_count|default:"0" }}
+    </span>
+  </span>
+</div>
 
+{# COL 1: Labels #}
+<div class="process-col-label">
+  <div class="process-labels">
+    {% with labels=p.labels.all %}
+      {% if labels %}
+        {% for lab in labels|slice:":2" %}
+          <span class="process-label">{{ lab.name }}</span>
+        {% endfor %}
 
-        {# COL 3: Candidates #}
-        <div class="process-col-meta text-muted small">
-          <i class="fa-solid fa-user-group me-1"></i>
-          <span class="fw-semibold text-dark">{{ p.candidates_count|default:"0" }}</span>
-        </div>
-
-        {# COL 4: Date #}
-        <div class="process-col-date text-muted small">
-          <i class="fa-solid fa-calendar-days me-1"></i>
-          {{ p.created_at|date:"Y-m-d" }}
-        </div>
+        {% if labels|length > 2 %}
+          <span class="process-label process-label-more">...</span>
+        {% endif %}
+      {% else %}
+        <span class="process-label process-label-muted">Uncategorised</span>
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>
 
       </a>
     {% endfor %}
@@ -143,9 +152,9 @@
 
 {% else %}
   <div class="p-3 border rounded bg-light">
-    <div class="text-muted">Inga aktiva testprocesser ännu.</div>
+    <div class="text-muted">No active test processes yet.</div>
     <a class="btn btn-primary btn-sm mt-2" href="{% url 'processes:process_create' %}">
-      Skapa testprocess
+      Create test process
     </a>
   </div>
 {% endif %}
@@ -257,10 +266,10 @@
   gap: .55rem;
 }
 
-/* Gör hela raden till en snygg "row" men som länk */
+/* Makes the entire row a clean clickable link row */
 .process-row-link{
   display: grid;
-  grid-template-columns: 1fr auto 110px 140px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: .9rem;
   align-items: center;
 
@@ -271,16 +280,28 @@
 
   text-decoration: none;
   color: #000;
+    transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
 }
 
 .process-row-link:hover{
-  background: rgba(0,0,0,.015);
-  border-color: rgba(0,0,0,.16);
+  background: #fff;
+  border-color: rgba(123, 87, 209, 0.22);
+  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
+  color: black;
 }
 
-.process-row-link:focus{
-  outline: none;
-  box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+.process-row-link svg{
+ width: 12px;
+ color: #505050;
+}
+
+.process-info-text {
+  font-weight: 600;
+  color: #505050;
 }
 
 .process-chip{
@@ -480,7 +501,7 @@
   background: #fafbfc;
 }
 
-/* Responsive: rad blir två rader */
+/* Responsive: row becomes two rows */
 @media (max-width: 992px){
   .process-row-link{
     grid-template-columns: 1fr auto;
@@ -502,11 +523,11 @@
     const now = new Date();
     const hour = now.getHours();
 
-    let greeting = "Hej";
-    if (hour < 10) greeting = "God morgon";
-    else if (hour < 13) greeting = "Välkommen";
-    else if (hour < 17) greeting = "God eftermiddag";
-    else greeting = "God kväll";
+    let greeting = "Hi";
+    if (hour < 10) greeting = "Good morning";
+    else if (hour < 13) greeting = "Welcome";
+    else if (hour < 17) greeting = "Good afternoon";
+    else greeting = "Good evening";
 
     const greetingEl = document.getElementById("greeting");
     if (greetingEl) {
@@ -514,7 +535,7 @@
     }
 
     const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const dateStr = now.toLocaleDateString('sv-SE', options);
+    const dateStr = now.toLocaleDateString('en-GB', options);
 
     const dateEl = document.getElementById("today-date");
     if (dateEl) {
@@ -522,6 +543,5 @@
     }
   })();
 </script>
-
 
 {% endblock %}
