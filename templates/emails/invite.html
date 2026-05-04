@@ -1,5 +1,139 @@
-<p>Hej!</p>
-<p>Du har blivit inbjuden till <strong>Talena</strong> för <strong>{{ company_name }}</strong>.</p>
-<p>Klicka här för att skapa ditt lösenord:</p>
-<p><a href="{{ invite_link }}">{{ invite_link }}</a></p>
-<p style="color:#6b7280;font-size:12px;">Inbjuden av: {{ invited_by }}</p>
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Välkommen till Talena</title>
+</head>
+
+<body style="margin:0; padding:0; background:#fbf9ff; font-family:Arial, Helvetica, sans-serif; color:#050505;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#fbf9ff; padding:36px 16px;">
+    <tr>
+      <td align="center">
+
+        <!-- Outer container -->
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:640px;">
+          
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding:0 0 26px;">
+              <img src="{{ logo_url }}" alt="Talena" width="150" style="display:block; max-width:150px; height:auto;">
+            </td>
+          </tr>
+
+          <!-- Main card -->
+          <tr>
+            <td style="background:#ffffff; border:1px solid #eee8f8; border-radius:28px; overflow:hidden; box-shadow:0 20px 50px rgba(50, 35, 90, 0.10);">
+
+              <!-- Soft hero -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="padding:42px 38px 30px; text-align:center; background:linear-gradient(135deg, #ffffff 0%, #fbf7ff 45%, #fff8f0 100%);">
+
+                    <div style="display:inline-block; padding:8px 16px; border:1px solid #e6dcfb; border-radius:999px; background:#ffffff; color:#3f315d; font-size:13px; font-weight:600; margin-bottom:22px; box-shadow:0 8px 24px rgba(123, 92, 246, 0.10);">
+                      Du är inbjuden
+                    </div>
+
+                    <h1 style="margin:0; font-size:34px; line-height:1.18; letter-spacing:-0.04em; color:#000000; font-weight:800;">
+                      Välkommen till Talena
+                    </h1>
+
+                    <p style="margin:18px auto 0; max-width:480px; font-size:16px; line-height:1.65; color:#454545;">
+                      Du har fått ett konto i Talena, plattformen där testprocesser, resultat och AI-stöd samlas i ett tydligt arbetsflöde.
+                    </p>
+
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Content -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="padding:34px 38px 38px;">
+
+                    <p style="margin:0 0 18px; font-size:16px; line-height:1.7; color:#111111;">
+                      Hej{% if user.first_name %} {{ user.first_name }}{% endif %}!
+                    </p>
+
+                    <p style="margin:0 0 18px; font-size:16px; line-height:1.7; color:#3f3f46;">
+                      Du har blivit inbjuden till <strong style="color:#000000;">Talena</strong>
+                      för <strong style="color:#000000;">{{ company_name }}</strong>.
+                    </p>
+
+                    <p style="margin:0 0 28px; font-size:16px; line-height:1.7; color:#3f3f46;">
+                      Klicka på knappen nedan för att skapa ditt lösenord och aktivera ditt konto.
+                    </p>
+
+                    <!-- CTA button -->
+                    <table align="center" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto 30px;">
+                      <tr>
+                        <td style="border-radius:999px; background:#000000; box-shadow:0 14px 28px rgba(0,0,0,0.18);">
+                          <a href="{{ invite_link }}"
+                             style="display:inline-block; padding:15px 30px; font-size:15px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:999px;">
+                            Skapa mitt konto
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Mini info row -->
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 28px;">
+                      <tr>
+                        <td style="background:#fafafa; border:1px solid #eeeeee; border-radius:18px; padding:18px 20px;">
+                          <p style="margin:0; font-size:14px; line-height:1.65; color:#52525b;">
+                            I Talena kan du arbeta med testprocesser, kandidater, resultat och AI-baserat stöd i en modern och samlad miljö.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Fallback link -->
+                    <p style="margin:0 0 8px; font-size:13px; line-height:1.6; color:#71717a;">
+                      Fungerar inte knappen? Kopiera och klistra in länken nedan i din webbläsare:
+                    </p>
+
+                    <p style="margin:0; font-size:13px; line-height:1.6; word-break:break-all;">
+                      <a href="{{ invite_link }}" style="color:#6f4ee8; text-decoration:underline;">
+                        {{ invite_link }}
+                      </a>
+                    </p>
+
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Footer -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                <tr>
+                  <td style="padding:22px 38px 30px; border-top:1px solid #eeeeee; background:#ffffff;">
+                    <p style="margin:0 0 7px; font-size:12px; line-height:1.6; color:#71717a;">
+                      Inbjuden av: {{ invited_by }}
+                    </p>
+
+                    <p style="margin:0; font-size:12px; line-height:1.6; color:#a1a1aa;">
+                      Om du inte förväntade dig den här inbjudan kan du ignorera mejlet.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Bottom brand line -->
+          <tr>
+            <td align="center" style="padding:22px 12px 0;">
+              <p style="margin:0; font-size:12px; color:#a1a1aa;">
+                Developed and powered by Talent Qode
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
