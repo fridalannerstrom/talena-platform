@@ -705,12 +705,17 @@ def process_create(request):
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
 
             choices.append((value, title))
+
+            icon = (getattr(meta, "icon", None) or "").strip() if meta else ""
+            if not icon:
+                icon = "layers"
             template_cards.append({
                 "value": value,
                 "title": title,
                 "description": description,
                 "tests": tests,
                 "languages": languages,
+                "icon": icon,
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,

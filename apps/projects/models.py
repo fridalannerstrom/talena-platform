@@ -15,6 +15,13 @@ class ProjectMeta(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    icon = models.CharField(
+        max_length=50,
+        blank=True,
+        default="layers",
+        help_text="Feather icon name, for example: user-check, briefcase, target, bar-chart-2"
+    )
+
     class Meta:
         unique_together = ("provider", "account_code", "project_code")
 

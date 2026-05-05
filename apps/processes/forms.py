@@ -11,10 +11,10 @@ class TestProcessCreateForm(forms.ModelForm):
 
     labels_text = forms.CharField(
         required=False,
-        help_text="Skriv en eller flera taggar som beskriver testprocessen. Separera taggarna med kommatecken.",
+        help_text="Enter one or more tags that describe the testing process. Separate the tags with commas.",
         widget=forms.TextInput(attrs={
             "class": "form-control",
-            "placeholder": "Ex: Admin, Interim, Prioritet",
+            "placeholder": "E.g. Admin, Interim, Priority",
         })
     )
 
@@ -46,7 +46,7 @@ class TestProcessCreateForm(forms.ModelForm):
         # --- Bootstrap styling ---
         self.fields["name"].widget.attrs.update({
             "class": "form-control",
-            "placeholder": "T.ex. Säljare – Stockholm",
+            "placeholder": "E.g. Salesperson, Stockholm",
         })
 
         # RadioSelect får inte form-control, men vi kan lägga klass på ul:

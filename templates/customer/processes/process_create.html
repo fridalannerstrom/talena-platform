@@ -24,7 +24,7 @@
     <!-- LEFT: Form -->
     <div class="col-12 col-lg-8">
       <div class="card">
-        <div class="card-header bg-white py-3">
+        <div class="card-header py-3">
           <div class="subheading mb-1">Process details</div>
           <div class="text-muted small">Basic information about this test process.</div>
         </div>
@@ -34,7 +34,7 @@
             {% csrf_token %}
 
             <!-- Name -->
-            <div class="mb-3">
+            <div class="mb-4">
               <label class="form-label">Name</label>
               {{ form.name }}
               {% if form.name.errors %}
@@ -43,7 +43,7 @@
             </div>
 
             <!-- Labels -->
-            <div class="mb-3">
+            <div class="mb-4">
               <label class="form-label">Labels <span class="text-muted">(optional)</span></label>
               {{ form.labels_text }}
               {% if form.labels_text.help_text %}
@@ -73,9 +73,9 @@
 
                       <span class="template-card">
                         <span class="template-card-main">
-                          <span class="template-icon">
-                            <i data-feather="{{ card.icon|default:'layers' }}"></i>
-                          </span>
+<span class="template-icon">
+  <i data-feather="{{ card.icon|default:'layers' }}"></i>
+</span>
 
 <span class="template-text">
   <span class="template-title">{{ card.title }}</span>
@@ -133,7 +133,7 @@
     <!-- RIGHT: Help / Summary -->
     <div class="col-12 col-lg-4">
       <div class="card">
-        <div class="card-header bg-white py-3">
+        <div class="card-header py-3">
           <div class="subheading mb-1">Tips</div>
           <div class="text-muted small">For a smooth process start.</div>
         </div>
@@ -151,169 +151,53 @@
 
 </div>
 
-<style>
-  .template-select {
-    display: grid;
-    gap: 0.85rem;
-  }
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.feather) {
+      feather.replace();
+    }
+  });
+</script>
 
-  .template-option {
-    display: block;
-    margin: 0;
-  }
+<script>
+  (function () {
+    function renderFeatherIcons(attemptsLeft) {
+      if (window.feather && typeof window.feather.replace === "function") {
+        window.feather.replace();
+        return;
+      }
 
-  .template-radio {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
+      if (attemptsLeft > 0) {
+        setTimeout(function () {
+          renderFeatherIcons(attemptsLeft - 1);
+        }, 100);
+      }
+    }
 
-  .template-card {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+    document.addEventListener("DOMContentLoaded", function () {
+      renderFeatherIcons(20);
+    });
 
-    width: 100%;
-    min-height: 92px;
-    padding: 1rem;
+    window.addEventListener("load", function () {
+      renderFeatherIcons(20);
+    });
+  })();
+</script>
 
-    border: 1px solid #e6e3ef;
-    border-radius: 10px;
-    background: #fff;
+{% endblock %}
 
-    cursor: pointer;
-    transition:
-      box-shadow 0.3s ease,
-      transform 0.2s ease,
-      border-color 0.25s ease,
-      background-color 0.25s ease;
-  }
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.feather) {
+      feather.replace();
+    }
+  });
 
-  .template-card:hover {
-    border-color: rgba(123, 87, 209, 0.25);
-    box-shadow: 0 14px 34px rgba(25, 25, 45, 0.08);
-  }
-
-  .template-card-main {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.9rem;
-    min-width: 0;
-  }
-
-  .template-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 15px;
-    background: #f4f0ff;
-    color: #7b57d1;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 auto;
-  }
-
-  .template-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .template-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .template-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1f2430;
-    margin-bottom: 0.25rem;
-  }
-
-  .template-description {
-    font-size: 0.78rem;
-    line-height: 1.45;
-    color: #667085;
-    margin-bottom: 0.65rem;
-    max-width: 620px;
-  }
-
-  .template-tests {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .template-chip {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 999px;
-    padding: 0.26rem 0.62rem;
-    background: #f1ebff;
-    color: #6f45cf;
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1;
-  }
-
-  .template-chip-muted {
-    background: #f3f4f6;
-    color: #8b92a6;
-  }
-
-  .template-check {
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    border: 1px solid #ddd6fe;
-    background: #fff;
-    color: transparent;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 auto;
-    transition:
-      background-color 0.2s ease,
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
-
-  .template-check svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  .template-option:has(.template-radio:checked) .template-card {
-    border-color: #7b57d1;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.048);
-  }
-
-  .template-option:has(.template-radio:checked) .template-icon {
-    background: #7b57d1;
-    color: #fff;
-  }
-
-  .template-option:has(.template-radio:checked) .template-check {
-    background: #7b57d1;
-    border-color: #7b57d1;
-    color: #fff;
-  }
-
-  .template-radio:focus-visible + .template-card {
-    outline: 3px solid rgba(123, 87, 209, 0.22);
-    outline-offset: 3px;
-  }
-
-  .template-radio:disabled + .template-card {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-</style>
+  window.addEventListener("load", function () {
+    if (window.feather) {
+      feather.replace();
+    }
+  });
+</script>
 {% endblock %}
