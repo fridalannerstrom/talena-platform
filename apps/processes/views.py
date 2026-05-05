@@ -112,6 +112,13 @@ def build_candidate_detail_context(process, invitation):
         if (activity.get("status") or "").strip().lower() in completed_statuses
     )
 
+    has_any_completed_assessment = tests_completed_count > 0
+
+    all_assessments_completed = (
+        activity_count > 0
+        and tests_completed_count >= activity_count
+    )
+
     mq_competencies = []
     personality_competencies = []
     has_motivation_results = False
@@ -487,6 +494,12 @@ def build_candidate_detail_context(process, invitation):
     if has_personality_results:
         available_reports_count += 11
 
+    has_any_results = (
+        has_ability_results
+        or has_motivation_results
+        or has_personality_results
+    )
+
     return {
         "company": process.company,
         "process": process,
@@ -518,6 +531,10 @@ def build_candidate_detail_context(process, invitation):
         "tests_completed_count": tests_completed_count,
         "available_reports_count": available_reports_count,
         "email_logs_by_id": email_logs_by_id,
+
+        "has_any_results": has_any_results,
+        "has_any_completed_assessment": has_any_completed_assessment,
+        "all_assessments_completed": all_assessments_completed,
 
         "top_motivations": top_motivations,
         "top_personality_traits": top_personality_traits,
