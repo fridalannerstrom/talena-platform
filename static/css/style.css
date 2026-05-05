@@ -2323,6 +2323,7 @@ color: #6CACCB;
 }
   .template-select {
     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.85rem;
   }
 
@@ -2347,6 +2348,9 @@ color: #6CACCB;
     width: 100%;
     min-height: 92px;
     padding: 1rem;
+      height: 100%;
+  min-height: 145px;
+  align-items: flex-start;
 
     border: 1px solid #e6e3ef;
     border-radius: 10px;
@@ -2360,6 +2364,19 @@ color: #6CACCB;
       background-color 0.25s ease;
   }
 
+  .template-card-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.template-text {
+  min-width: 0;
+}
+
+.template-description {
+  max-width: none;
+}
+
   .template-card:hover {
     border-color: rgba(123, 87, 209, 0.25);
     box-shadow: 0 14px 34px rgba(25, 25, 45, 0.08);
@@ -2368,14 +2385,14 @@ color: #6CACCB;
   .template-card-main {
     display: flex;
     align-items: flex-start;
-    gap: 0.9rem;
+    gap: 1.2rem;
     min-width: 0;
   }
 
   .template-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     background: #f4f0ff;
     color: #7b57d1;
 
@@ -2393,14 +2410,14 @@ color: #6CACCB;
   }
 
   .template-title {
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 0.8rem;
+    font-weight: 600;
     color: #1f2430;
     margin-bottom: 0.25rem;
   }
 
   .template-description {
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     line-height: 1.45;
     color: #667085;
     margin-bottom: 0.65rem;
@@ -2417,11 +2434,11 @@ color: #6CACCB;
     display: inline-flex;
     align-items: center;
     border-radius: 999px;
-    padding: 0.26rem 0.62rem;
-    background: #f1ebff;
-    color: #6f45cf;
-    font-size: 0.68rem;
-    font-weight: 600;
+    padding: 5px 8px;
+    background: #ede7fc;
+    color: #7B57D1;
+    font-size: 0.65rem;
+    font-weight: 500;
     line-height: 1;
   }
 
@@ -2459,11 +2476,6 @@ color: #6CACCB;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.048);
   }
 
-  .template-option:has(.template-radio:checked) .template-icon {
-    background: #7b57d1;
-    color: #fff;
-  }
-
   .template-option:has(.template-radio:checked) .template-check {
     background: #7b57d1;
     border-color: #7b57d1;
@@ -2480,27 +2492,12 @@ color: #6CACCB;
     cursor: not-allowed;
   }
 
-
-
-.template-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 15px;
-  background: #f4f0ff;
-  color: #7b57d1;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 0 0 auto;
-  font-size: 1.05rem;
+  @media (max-width: 768px) {
+  .template-select {
+    grid-template-columns: 1fr;
+  }
 }
 
-.template-option:has(.template-radio:checked) .template-icon {
-  background: #7b57d1;
-  color: #fff;
-}
 
 /* ===== NAV BUTTONS OUTSIDE ===== */
 
