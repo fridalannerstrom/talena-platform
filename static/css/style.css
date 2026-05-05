@@ -2393,8 +2393,8 @@ color: #6CACCB;
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: #f4f0ff;
-    color: #7b57d1;
+    background: #EBEBF7;
+    color: #6E63E3;
 
     display: inline-flex;
     align-items: center;
@@ -2435,8 +2435,8 @@ color: #6CACCB;
     align-items: center;
     border-radius: 999px;
     padding: 5px 8px;
-    background: #ede7fc;
-    color: #7B57D1;
+    background: #EBEBF7;
+    color: #6E63E3;
     font-size: 0.65rem;
     font-weight: 500;
     line-height: 1;
@@ -2472,13 +2472,13 @@ color: #6CACCB;
   }
 
   .template-option:has(.template-radio:checked) .template-card {
-    border-color: #7b57d1;
+    border-color: #6E63E3;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.048);
   }
 
   .template-option:has(.template-radio:checked) .template-check {
-    background: #7b57d1;
-    border-color: #7b57d1;
+    background: #6E63E3;
+    border-color: #6E63E3;
     color: #fff;
   }
 

@@ -789,7 +789,7 @@ def process_create(request):
                 .first()
             )
             if not company_id:
-                form.add_error(None, "Du är inte kopplad till något företag.")
+                form.add_error(None, "You are not linked to a company.")
                 return render(request, "customer/processes/process_create.html", {
                     "form": form,
                     "error": error,
@@ -811,7 +811,7 @@ def process_create(request):
                 # fallback: välj en direkt/åtkomlig unit automatiskt
                 fallback_id = next(iter(accessible_ids), None)
                 if not fallback_id:
-                    form.add_error(None, "Du har ingen enhet (OrgUnit) tilldelad, kan inte skapa process.")
+                    form.add_error(None, "You do not have an assigned org unit, so a process cannot be created.")
                     return render(request, "customer/processes/process_create.html", {
                         "form": form,
                         "error": error,
@@ -846,7 +846,7 @@ def process_create(request):
             )
 
             if not membership or not membership.primary_org_unit_id:
-                form.add_error(None, "Du saknar primär enhet (OrgUnit). Kontakta admin.")
+                form.add_error(None, "You do not have a primary org unit. Please contact an administrator.")
                 return render(request, "customer/processes/process_create.html", {
                     "form": form,
                     "error": error,
@@ -883,7 +883,7 @@ def process_create(request):
 
             return redirect("processes:process_detail", pk=obj.pk)
 
-        messages.error(request, "Kunde inte skapa processen. Kontrollera fälten.")
+        messages.error(request, "The process could not be created. Please check the fields.")
     else:
         form = TestProcessCreateForm()
         form.fields["sova_template"].choices = choices
@@ -905,11 +905,11 @@ def process_update(request, pk):
         return HttpResponseForbidden("No access.")
 
     if not user_can_edit_process(request.user, company, obj):
-        return HttpResponseForbidden("Du har inte behörighet att redigera denna process.")
+        return HttpResponseForbidden("You do not have permission to edit this process.")
 
     # ✅ Säkerhetskontroll
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     old_acc = (obj.account_code or "").strip()
     old_proj = (obj.project_code or "").strip()
@@ -929,47 +929,50 @@ def process_update(request, pk):
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Bygg choices + template_cards
+    # 3) Build choices + template_cards
     choices = []
     template_cards = []
 
     for a in accounts:
         acc = (a.get("code") or "").strip()
+
         for p in (a.get("projects") or []):
             proj_code = (p.get("code") or "").strip()
             sova_name = (p.get("name") or proj_code).strip()
 
-        meta = meta_map.get((acc, proj_code))
+            value = f"{acc}|{proj_code}"
 
-        title = (getattr(meta, "intern_name", None) or sova_name)
+            meta = meta_map.get((acc, proj_code))
+            title = (getattr(meta, "intern_name", None) or sova_name)
 
-        description = ""
-        tests = []
-        languages = []
+            description = ""
+            tests = []
+            languages = []
 
-        if meta:
-            description = (getattr(meta, "notes", None) or "").strip()
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
 
-            tests_raw = (getattr(meta, "tests", None) or "").strip()
-            if tests_raw:
-                tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
 
-            languages_raw = (getattr(meta, "languages", None) or "").strip()
-            if languages_raw:
-                languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
 
-        choices.append((value, title))
-        template_cards.append({
-            "value": value,
-            "title": title,
-            "description": description,
-            "tests": tests,
-            "languages": languages,
-            "account_code": acc,
-            "project_code": proj_code,
-            "sova_name": sova_name,
-            "sova_project_id": p.get("id"),
-        })
+            choices.append((value, title))
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": p.get("id"),
+            })
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
@@ -989,7 +992,7 @@ def process_update(request, pk):
             if locked and ((acc != old_acc) or (proj != old_proj)):
                 form.add_error(
                     None,
-                    "Du kan inte ändra testpaket efter att tester har skickats i processen."
+                    "You cannot change the test template after assessments have been sent in this process."
                 )
                 # Rendera tillbaka så användaren inte tappar ändringar
                 return render(request, "customer/processes/process_edit.html", {
@@ -1027,10 +1030,10 @@ def process_update(request, pk):
 
             updated.labels.set(label_objs)
 
-            messages.success(request, "Processen uppdaterades.")
+            messages.success(request, "The process was updated.")
             return redirect("processes:process_list")
 
-        messages.error(request, "Kunde inte spara. Kontrollera fälten.")
+        messages.error(request, "Could not save. Please check the fields.")
 
     else:
         form = TestProcessCreateForm(instance=obj)
@@ -1063,7 +1066,7 @@ def process_delete(request, pk):
         return HttpResponseForbidden("Du har inte behörighet att radera denna process.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
         # ✅ B + C: delete om möjligt, annars arkivera
     if obj.can_delete():
@@ -1106,7 +1109,7 @@ def process_detail(request, pk):
 
     # ✅ nya, riktiga regeln (inkl own-only)
     if not user_can_view_process(request.user, company, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     meta = ProjectMeta.objects.filter(
         account_code=process.account_code,
@@ -1125,15 +1128,35 @@ def process_detail(request, pk):
         .values_list("status", "c")
     )
 
-    sent_count = status_counts.get("sent", 0)
-    started_count = status_counts.get("started", 0)
-    completed_count = status_counts.get("completed", 0)
-    expired_count = status_counts.get("expired", 0)
-
     can_edit = user_can_edit_process(request.user, company, process)
 
-    total_sent = sent_count + started_count + completed_count
-    not_started = sent_count
+    total_candidates = invitations.count()
+
+    # Candidates who have access to the test process.
+    # This includes both candidates invited by email and candidates who entered through self-registration.
+    invited_qs = invitations.filter(
+        Q(status__in=["sent", "started", "completed", "expired"]) |
+        Q(source="self_registered")
+    )
+
+    invited_count = invited_qs.count()
+
+    # Funnel/progression:
+    # Started should include completed, because completed candidates have also started.
+    started_count = invitations.filter(
+        status__in=["started", "completed"]
+    ).count()
+
+    completed_count = invitations.filter(status="completed").count()
+    expired_count = invitations.filter(status="expired").count()
+
+    # Candidates added but not yet given access to the assessment.
+    not_invited_count = total_candidates - invited_count
+
+    # Candidates who have access but have not started or completed.
+    not_started_count = invited_qs.exclude(
+        status__in=["started", "completed", "expired"]
+    ).count()
 
     activity_events = (
         ActivityEvent.objects
@@ -1151,12 +1174,13 @@ def process_detail(request, pk):
         "can_edit": can_edit,
         "activity_events": activity_events,
         "kpis": {
-            "total_sent": total_sent,
+            "total_candidates": total_candidates,
+            "invited": invited_count,
             "started": started_count,
             "completed": completed_count,
-            "not_started": not_started,
             "expired": expired_count,
-            "total_candidates": invitations.count(),
+            "not_started": not_started_count,
+            "not_invited": not_invited_count,
         },
     }
 
@@ -1261,7 +1285,7 @@ def invite_candidate(request, pk, candidate_id):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
     
     candidate = get_object_or_404(Candidate, pk=candidate_id)
     invitation = get_object_or_404(TestInvitation, process=process, candidate=candidate)
@@ -1282,7 +1306,7 @@ def sova_order_assessment_smoke_test(request, pk, candidate_id):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
     candidate = get_object_or_404(Candidate, pk=candidate_id)
 
     client = SovaClient()
@@ -1585,7 +1609,7 @@ def process_send_tests(request, pk):
         return redirect("processes:process_detail", pk=process.pk)
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     if request.method != "POST":
         return redirect("processes:process_detail", pk=process.pk)
@@ -1629,7 +1653,7 @@ def process_candidate_detail(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     invitation = get_object_or_404(
         TestInvitation.objects.select_related("candidate"),
@@ -1664,7 +1688,7 @@ def process_invitation_statuses(request, pk):
 
     # Säkerhetskontroll
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     qs = (
         TestInvitation.objects
@@ -1701,7 +1725,7 @@ def process_archive(request, pk):
         return HttpResponseForbidden("Du har inte behörighet att arkivera denna process.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     obj.archive()
 
@@ -1731,7 +1755,7 @@ def process_unarchive(request, pk):
         return HttpResponseForbidden("Du har inte behörighet att återställa denna process.")
 
     if not user_can_access_process(request.user, obj):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     obj.unarchive()
     messages.success(request, "Processen återställdes.")
@@ -1743,7 +1767,7 @@ def process_candidate_summary_stream(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("Du har inte tillgång till denna process.")
+        return HttpResponseForbidden("You do not have access to this process.")
 
     invitation = get_object_or_404(
         TestInvitation.objects.select_related("candidate"),

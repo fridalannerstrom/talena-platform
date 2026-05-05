@@ -86,7 +86,7 @@
       role="tab"
       aria-selected="false"
       onclick="switchTabs(this)">
-      Sent tests
+      Sent assessments
     </button>
 
     <button
@@ -97,7 +97,7 @@
       role="tab"
       aria-selected="false"
       onclick="switchTabs(this)">
-      Test link
+      Assessment link
     </button>
 
     <button
@@ -147,14 +147,14 @@
     </div>
 
     <div class="candidate-overview-card">
-      <div class="candidate-overview-label">Tests sent</div>
+      <div class="candidate-overview-label">Assessments sent</div>
       <div class="candidate-overview-value">
         {{ tests_sent_count }}
       </div>
     </div>
 
     <div class="candidate-overview-card">
-      <div class="candidate-overview-label">Tests completed</div>
+      <div class="candidate-overview-label">Assessments completed</div>
       <div class="candidate-overview-value">
         {{ tests_completed_count }}
       </div>
@@ -195,7 +195,7 @@
                 {% elif item.status == "added" %}
                   <span class="candidate-status-badge is-warning">Not started</span>
                 {% elif item.status == "invited" or item.status == "sent" %}
-                  <span class="candidate-inline-status is-warning">Skickad</span>
+                  <span class="candidate-inline-status is-warning">Sent</span>
                 {% else %}
                   <span class="candidate-inline-status is-muted">
                     {{ item.status|default:"-" }}
@@ -205,7 +205,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <div class="text-muted small">Inga tester hittades ännu.</div>
+          <div class="text-muted small">No tests found yet.</div>
         {% endif %}
       </div>
 
@@ -308,9 +308,9 @@
             <div class="d-flex align-items-start gap-3">
               <div class="empty-icon">!</div>
               <div>
-                <div class="fw-semibold mb-1">Här finns inga resultat ännu</div>
+                <div class="fw-semibold mb-1">No results yet</div>
                 <div class="text-muted small">
-                  Resultaten visas här när kandidaten har slutfört testet.
+                  Results will appear here once the candidate has completed the assessment.
                 </div>
               </div>
             </div>
@@ -336,9 +336,9 @@
                 {% if invitation.ai_summary %}
                   {{ invitation.ai_summary|linebreaksbr }}
                 {% elif invitation.ai_summary_status == "generating" %}
-                  <span class="text-muted">Genererar sammanfattning...</span>
+                  <span class="text-muted">Generating summary...</span>
                 {% else %}
-                  <span class="text-muted">AI analyserar kandidatens testresultat...</span>
+                  <span class="text-muted">AI is analysing the candidate’s assessment results...</span>
                 {% endif %}
               </div>
           </div>
@@ -371,7 +371,7 @@
           <div class="highlight-row">
             <div class="highlight-row__content">
               <div class="candidate-inline-title">{{ comp.competency }}</div>
-              <div class="candidate-inline-meta">Explanation of this trait/motivation</div>
+              <div class="candidate-inline-meta">Brief explanation of this trait or motivation</div>
             </div>
             <div class="highlight-score-pill">
               {{ comp.score|default:"-" }}/5
@@ -1063,7 +1063,7 @@
 </div>
 
     {% else %}
-      <div class="p-3 text-muted small">Inga personlighetsrapporter tillgängliga ännu.</div>
+      <div class="p-3 text-muted small">No personality reports available yet.</div>
     {% endif %}
 
   </div>
@@ -1071,10 +1071,9 @@
 {% endif %}
 
         <!-- REPORTS -->
-<!-- REPORTS -->
 <div class="card mb-3">
   <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-    <span>Rapporter</span>
+    <span>Reports</span>
 
     {% if available_reports_count %}
       <span class="badge rounded-pill text-bg-light border">
@@ -1211,7 +1210,7 @@
       </div>
 
     {% else %}
-      <p class="text-muted mb-0">Inga rapporter tillgängliga.</p>
+      <p class="text-muted mb-0">No reports available.</p>
     {% endif %}
 
   </div>
@@ -1229,17 +1228,17 @@
       class="card candidate-ai-card"
       data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
     >
-      <div class="card-header fw-semibold">AI-assistent</div>
+      <div class="card-header fw-semibold">AI assistant</div>
 
       <div class="card-body candidate-ai-card-body">
 
         <div class="small text-muted">
-          Chatta om kandidatens testresultat, rapporter och sammanfattning.
+          Chat about the candidate’s assessment results, reports and summary.
         </div>
 
 <div class="candidate-ai-messages border rounded-3 p-3 js-candidate-ai-messages">
           <div class="candidate-ai-empty text-muted small">
-            Ställ en fråga om kandidaten, till exempel styrkor, risker eller intervjufrågor.
+            Ask a question about the candidate, such as strengths, risks or interview questions.
           </div>
         </div>
 
@@ -1247,19 +1246,19 @@
   {% csrf_token %}
 
   <label class="form-label small text-muted">
-    Fråga AI om kandidaten
+    Ask AI about the candidate
   </label>
 
   <textarea
     class="form-control js-candidate-ai-input"
     rows="4"
-    placeholder="T.ex. Vilka risker eller styrkor ser du i kandidatens profil?"
+    placeholder="E.g. What risks or strengths do you see in the candidate’s profile?"
   ></textarea>
 
   <button
     type="submit"
     class="btn btn-primary w-100 mt-2 js-candidate-ai-submit">
-    Skicka
+    Send
   </button>
 </form>
 
@@ -1312,7 +1311,7 @@
         buttonEl.classList.add("btn-outline-dark");
       }, 1400);
     } catch (e) {
-      buttonEl.innerText = "Kunde ej kopiera";
+      buttonEl.innerText = "Could not copy";
       setTimeout(() => {
         buttonEl.innerText = originalText;
       }, 1400);

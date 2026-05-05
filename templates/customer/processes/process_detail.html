@@ -6,12 +6,12 @@
 
 <a href="{% url 'processes:process_list' %}"
    class="text-muted small text-decoration-none">
-  ← Tillbaka
+  ← Back
 </a>
 <!-- 
 <div class="card mt-3">
   <div class="card-body">
-    <div class="fw-semibold mb-2">Senaste aktivitet</div>
+    <div class="fw-semibold mb-2">Latest activity</div>
 
     {% if activity_events %}
       <div class="d-grid gap-2">
@@ -27,7 +27,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="text-muted small">Ingen aktivitet ännu.</div>
+      <div class="text-muted small">No activity yet.</div>
     {% endif %}
   </div>
 </div>-->
@@ -47,7 +47,7 @@
                 {% endfor %}
               </div>
             {% else %}
-              <span class="text-muted">—</span>
+              <span class="text-muted">Not categorised</span>
             {% endif %}
           </div>
         </div>
@@ -55,7 +55,7 @@
         <h2 class="mb-1 mt-2 mb-2 text-truncate">{{ process.name }}</h2>
 
         <div class="small text-dark">
-          Skapad av:
+          Created by:
           <span class="fw-semibold">
             {% with u=process.created_by %}
               {% if u.first_name or u.last_name %}
@@ -76,31 +76,31 @@
         {% if can_edit %}
           <a class="btn btn-outline-secondary"
              href="{% url 'emails:edit_process_invitation_template' process.id %}">
-            Mejlmallar
+            Email templates
           </a>
 
           <a class="btn btn-outline-secondary"
              href="{% url 'processes:process_update' process.id %}">
-            Inställningar
+            Settings
           </a>
 
           <button type="button"
                   class="btn btn-outline-secondary js-selfreg">
-            Självregistrering
+            Self-registration
           </button>
 
           <button type="button"
                   class="btn btn-primary js-add-candidate"
                   data-url="{% url 'processes:process_add_candidate' process.id %}">
-            Lägg till kandidat
+            Add candidate
           </button>
         {% else %}
           <span class="access-pill"
                 data-bs-toggle="tooltip"
                 data-bs-placement="left"
-                title="Du har läsbehörighet i denna testprocess. Du kan se kandidater och status, men kan inte lägga till kandidater, skicka ut test eller ändra inställningar.">
+                title="You have read-only access to this test process. You can view candidates and status, but you cannot add candidates, send assessments or change settings.">
             <i data-feather="eye" class="icon-16"></i>
-            Läsbehörighet
+            Read-only access
           </span>
         {% endif %}
       </div>
@@ -109,16 +109,16 @@
     {# Row 2: Key facts as chips #}
     <div class="process-header-chips mt-3">
       <div class="chip mb-3 text-dark">
-        <div class="chip-label"><strong>Testmall</strong></div>
+        <div class="chip-label"><strong>Test template</strong></div>
         <div class="chip-value">
-          {{ process.project_name_snapshot|default:"—" }}
+          {{ process.project_name_snapshot|default:"Not specified" }}
         </div>
       </div>
 
       <div class="chip text-dark">
-        <div class="chip-label"><strong>Tester</strong></div>
+        <div class="chip-label"><strong>Assessments</strong></div>
         <div class="chip-value">
-          {{ meta.tests|default:"—" }}
+          {{ meta.tests|default:"Not specified" }}
         </div>
       </div>
     </div>
@@ -130,35 +130,35 @@
 <div class="kpi-grid mb-3">
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Totalt skickade tester</div>
-      <div class="h3 mb-1">{{ kpis.total_sent|default:0 }}</div>
+      <div class="text-muted small">Candidates</div>
+      <div class="h3 mb-1">{{ kpis.total_candidates|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Påbörjade</div>
+      <div class="text-muted small">Invited</div>
+      <div class="h3 mb-1">{{ kpis.invited|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Started</div>
       <div class="h3 mb-1">{{ kpis.started|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Slutförda</div>
+      <div class="text-muted small">Completed</div>
       <div class="h3 mb-1">{{ kpis.completed|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Ej påbörjade</div>
-      <div class="h3 mb-1">{{ kpis.not_started|default:0 }}</div>
-    </div>
-  </div>
-
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Utgångna</div>
+      <div class="text-muted small">Expired</div>
       <div class="h3 mb-1">{{ kpis.expired|default:0 }}</div>
     </div>
   </div>
@@ -169,8 +169,8 @@
   <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
     <div class="min-w-0">
       <div class="fw-semibold">
-        Kandidater
-        <div class="text-muted small">Totalt: {{ invitations|length }}</div>
+        Candidates
+        <div class="text-muted small">Total: {{ invitations|length }}</div>
       </div>
     </div>
 
@@ -183,7 +183,7 @@
         disabled
         aria-disabled="true"
       >
-        <i data-feather="send"></i> Skicka ut test
+        <i data-feather="send"></i> Send assessments
       </button>
     {% else %}
     {% endif %}
@@ -203,10 +203,10 @@
                 </th>
               {% endif %}
 
-              <th style="width:40%;">Kandidat</th>
-              <th>Källa</th>
+              <th style="width:40%;">Candidate</th>
+              <th>Source</th>
               <th>Status</th>
-              <th style="width: 160px;">Registrerad</th>
+              <th style="width: 160px;">Registered</th>
 
               {% if can_edit %}
                 <th class="text-end pe-3" style="width:70px;"></th>
@@ -255,9 +255,9 @@
 
                 <td class="text-muted">
                   {% if inv.source == "self_registered" %}
-                    <span class="badge bg-info text-dark">Självregistrerad</span>
+                    <span class="badge bg-info text-dark">Self-registered</span>
                   {% else %}
-                    <span class="badge bg-primary">Inbjuden</span>
+                    <span class="badge bg-primary">Invited</span>
                   {% endif %}
                 </td>
 
@@ -281,7 +281,7 @@
                             form="send-tests-form"
                             formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                             formmethod="post"
-                            onclick="return confirm('Är du säker på att du vill ta bort kandidaten?');">
+                            onclick="return confirm('Are you sure you want to remove this candidate?');">
                       <i data-feather="trash-2"></i>
                     </button>
                   </td>
@@ -295,24 +295,24 @@
                   <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
 
                   {% if can_edit %}
-                    <div class="text-muted mb-3">Du har inga kandidater ännu.</div>
+                    <div class="text-muted mb-3">You do not have any candidates yet.</div>
 
                     <div class="d-flex justify-content-center gap-2 flex-wrap">
                       <button type="button"
                               class="btn btn-primary js-add-candidate"
                               data-url="{% url 'processes:process_add_candidate' process.id %}">
-                        Lägg till kandidat
+                        Add candidate
                       </button>
 
                       <button type="button"
                               class="btn btn-primary js-selfreg">
-                        Självregistreringslänk
+                        Self-registration link
                       </button>
                     </div>
                   {% else %}
-                    <div class="text-muted mb-2">Inga kandidater ännu.</div>
+                    <div class="text-muted mb-2">No candidates yet.</div>
                     <div class="small text-muted">
-                      Du har endast läsbehörighet i denna process.
+                      You have read-only access to this process.
                     </div>
                   {% endif %}
                 </td>
@@ -330,11 +330,11 @@
 
 <div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
 
-  <!-- LEFT ARROW (utanför content) -->
+  <!-- LEFT ARROW -->
   <button type="button"
           class="sheet-nav sheet-nav-prev"
           id="candidatePrevBtn"
-          aria-label="Föregående kandidat">
+          aria-label="Previous candidate">
     <i data-feather="chevron-left"></i>
   </button>
 
@@ -342,7 +342,7 @@
   <button type="button"
           class="sheet-nav sheet-nav-next"
           id="candidateNextBtn"
-          aria-label="Nästa kandidat">
+          aria-label="Next candidate">
     <i data-feather="chevron-right"></i>
   </button>
 
@@ -367,8 +367,8 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="d-flex flex-column">
-          <div class="subheading mb-1">Lägg till kandidat</div>
-          <div class="text-muted small">Bjud in en kandidat till denna testprocess.</div>
+          <div class="subheading mb-1">Add candidate</div>
+          <div class="text-muted small">Invite a candidate to this test process.</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -400,7 +400,7 @@
   </div>
 </div>
 
-<!-- ✅ Self registration modal (bind till alla .js-selfreg) -->
+<!-- Self registration modal -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const buttons = document.querySelectorAll(".js-selfreg");
@@ -411,26 +411,26 @@
         const url = "{{ self_reg_url|escapejs }}";
 
         openAppModal({
-          title: "Självregistrering",
+          title: "Self-registration",
           bodyHtml: `
             <p class="mb-2">
-              Dela länken med kandidater. Kandidater som registrerar sig via länken
-              startar testet automatiskt direkt efter registrering.
+              Share this link with candidates. Candidates who register through the link
+              will start the assessment automatically after registration.
             </p>
 
-            <label class="form-label">Självregistreringslänk</label>
+            <label class="form-label">Self-registration link</label>
             <input type="text" class="form-control" value="${url}" readonly>
 
             <div class="d-flex align-items-center gap-3 mt-2">
               <button class="btn btn-primary" type="button"
                 onclick="copyToClipboard('${url}', 'copyStatus')">
-                Kopiera länk
+                Copy link
               </button>
               <span id="copyStatus" class="small text-muted"></span>
             </div>
           `,
           footerHtml: `
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Stäng</button>
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
           `
         });
       });
@@ -451,7 +451,6 @@
 
     const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
 
-    // Samla alla kandidatlänkar i den ordning de syns i tabellen
     const links = Array.from(document.querySelectorAll(".js-open-candidate"));
     if (!links.length) return;
 
@@ -468,10 +467,8 @@
       sheetTitle.textContent = name;
       sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
 
-      // show sheet (om den inte redan är öppen)
       sheet.show();
 
-      // uppdatera knappar
       updateNav();
 
       try {
@@ -485,13 +482,11 @@
       initCandidateSheetInteractions(sheetBody);
       initGlobalEmailModal(sheetBody);
 
-      // re-init icons + tooltips efter att HTML bytts
       if (window.feather) feather.replace();
       if (window.bootstrap) {
         sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
       }
 
-      // starta AI-sammanfattning om den saknas
       await initCandidateSummaryStream();
       } catch (err) {
         sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
@@ -502,7 +497,6 @@
     function updateNav() {
       if (!prevBtn || !nextBtn) return;
 
-      // Om bara 1 kandidat: göm pilar
       if (links.length <= 1) {
         prevBtn.classList.add("is-hidden");
         nextBtn.classList.add("is-hidden");
@@ -516,7 +510,6 @@
       nextBtn.disabled = currentIndex >= links.length - 1;
     }
 
-    // Klick på kandidat öppnar sheet + laddar rätt index
     links.forEach((link, idx) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
@@ -524,7 +517,6 @@
       });
     });
 
-    // Pilar
     if (prevBtn) {
       prevBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex - 1));
     }
@@ -532,7 +524,6 @@
       nextBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex + 1));
     }
 
-    // Keyboard: vänster/höger när sheet är öppen
     document.addEventListener("keydown", (e) => {
       const isOpen = sheetEl.classList.contains("show");
       if (!isOpen) return;
@@ -547,7 +538,6 @@
       }
     });
 
-    // När sheet stängs: reset index (valfritt)
     sheetEl.addEventListener("hidden.bs.offcanvas", () => {
       currentIndex = -1;
       updateNav();
@@ -567,7 +557,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<!-- Poll statuses (din befintliga) -->
+<!-- Poll statuses -->
 <script>
 (function () {
   const url = "{% url 'processes:process_invitation_statuses' process.id %}";
@@ -596,10 +586,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
           let label = inv.status;
           const st = (inv.status || "").toLowerCase();
-          if (st === "completed") label = "Färdig";
-          if (st === "started") label = "Påbörjad";
-          if (st === "sent") label = "Skickad";
-          if (st === "created") label = "Ej skickad";
+          if (st === "completed") label = "Completed";
+          if (st === "started") label = "Started";
+          if (st === "sent") label = "Sent";
+          if (st === "created") label = "Not sent";
 
           el.textContent = label;
         }
@@ -612,7 +602,7 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
-<!-- ✅ Send-tests knapp enable/disable (kör bara om can_edit) -->
+<!-- Enable/disable send assessments button -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const canEdit = {{ can_edit|yesno:"true,false" }};
@@ -643,7 +633,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 </script>
 
-<!-- ✅ Add candidate modal (bind till alla .js-add-candidate) -->
+<!-- Add candidate modal -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const buttons = document.querySelectorAll(".js-add-candidate");
@@ -664,7 +654,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bodyEl.innerHTML = await res.text();
       if (window.feather) feather.replace();
     } catch (e) {
-      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Kunde inte ladda formuläret.</div>`;
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Could not load the form.</div>`;
       console.error(e);
     }
   }
@@ -696,7 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bodyEl.innerHTML = await res.text();
       if (window.feather) feather.replace();
     } catch (err) {
-      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Nätverksfel. Försök igen.</div>`;
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Network error. Please try again.</div>`;
       console.error(err);
     }
   });
@@ -718,7 +708,7 @@ async function initCandidateSummaryStream() {
   if (summaryStatus === "generating") return;
 
   try {
-    summaryEl.innerHTML = '<span class="text-muted">Genererar sammanfattning...</span>';
+    summaryEl.innerHTML = '<span class="text-muted">Generating summary...</span>';
 
     const response = await fetch(streamUrl, {
       method: "GET",
@@ -729,7 +719,7 @@ async function initCandidateSummaryStream() {
 
     if (!response.ok) {
       const text = await response.text();
-      summaryEl.innerHTML = '<span class="text-danger">Kunde inte generera sammanfattning.</span>';
+      summaryEl.innerHTML = '<span class="text-danger">Could not generate summary.</span>';
       console.error("AI summary stream failed:", response.status, text);
       return;
     }
@@ -750,14 +740,14 @@ async function initCandidateSummaryStream() {
     }
 
     if (!fullText.trim()) {
-      summaryEl.innerHTML = '<span class="text-muted">Ingen sammanfattning genererades.</span>';
+      summaryEl.innerHTML = '<span class="text-muted">No summary was generated.</span>';
     } else {
       summaryEl.dataset.hasSummary = "true";
       summaryEl.dataset.summaryStatus = "completed";
     }
 
   } catch (error) {
-    summaryEl.innerHTML = '<span class="text-danger">Ett fel uppstod vid generering av sammanfattning.</span>';
+    summaryEl.innerHTML = '<span class="text-danger">An error occurred while generating the summary.</span>';
     console.error("AI summary stream error:", error);
   }
 }
@@ -767,7 +757,6 @@ async function initCandidateSummaryStream() {
 function initCandidateSheetInteractions(container) {
   if (!container) return;
 
-  // Copy assessment url
   container.querySelectorAll("[data-copy-candidate-url]").forEach(button => {
     button.addEventListener("click", async function () {
       const targetId = this.dataset.copyCandidateUrl;
@@ -795,7 +784,7 @@ function initCandidateSheetInteractions(container) {
           this.classList.add("btn-primary");
         }, 1400);
       } catch (e) {
-        this.innerText = "Kunde ej kopiera";
+        this.innerText = "Could not copy";
         setTimeout(() => {
           this.innerText = originalText;
         }, 1400);
@@ -819,8 +808,8 @@ function initGlobalEmailModal(container) {
 
   container.querySelectorAll(".js-open-email-modal").forEach((btn) => {
     btn.addEventListener("click", () => {
-      toEl.textContent = btn.dataset.emailTo || "—";
-      subjectEl.textContent = btn.dataset.emailSubject || "—";
+      toEl.textContent = btn.dataset.emailTo || "Not specified";
+      subjectEl.textContent = btn.dataset.emailSubject || "Not specified";
 
       const rawBody = btn.dataset.emailBody || "";
       bodyEl.innerHTML = rawBody.replace(/\n/g, "<br>");
@@ -907,7 +896,7 @@ function initGlobalEmailModal(container) {
   const sheetLayout = form.closest(".candidate-sheet-layout");
 
   if (!aiCard || !sheetLayout) {
-    console.error("AI chat: kunde inte hitta aiCard eller sheetLayout");
+    console.error("AI chat: could not find aiCard or sheetLayout");
     return;
   }
 
@@ -917,7 +906,7 @@ function initGlobalEmailModal(container) {
   const streamUrl = aiCard.dataset.chatStreamUrl;
 
   if (!input || !submitButton || !messages || !streamUrl) {
-    console.error("AI chat: saknar input, knapp, messages eller streamUrl", {
+    console.error("AI chat: missing input, button, messages or streamUrl", {
       input,
       submitButton,
       messages,
@@ -934,7 +923,7 @@ function initGlobalEmailModal(container) {
 
   input.value = "";
   submitButton.disabled = true;
-  submitButton.textContent = "Svarar...";
+  submitButton.textContent = "Responding...";
 
   addCandidateAiMessage(messages, "user", userMessage);
   const assistantBubble = addCandidateAiMessage(messages, "assistant", "");
@@ -953,13 +942,13 @@ function initGlobalEmailModal(container) {
     });
 
     if (!response.ok) {
-      assistantBubble.textContent = "Något gick fel när AI skulle svara.";
+      assistantBubble.textContent = "Something went wrong while generating the AI response.";
       console.error("AI chat response error:", response.status, response.statusText);
       return;
     }
 
     if (!response.body) {
-      assistantBubble.textContent = "AI svarade inte med streamingdata.";
+      assistantBubble.textContent = "The AI response did not include streaming data.";
       return;
     }
 
@@ -980,11 +969,11 @@ function initGlobalEmailModal(container) {
       }
     }
   } catch (error) {
-    assistantBubble.textContent = "Kunde inte ansluta till AI-chatten.";
+    assistantBubble.textContent = "Could not connect to the AI chat.";
     console.error("AI chat fetch error:", error);
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Skicka";
+    submitButton.textContent = "Send";
     input.focus();
   }
 });

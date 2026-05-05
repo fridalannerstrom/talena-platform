@@ -5,24 +5,24 @@
   <!-- Header -->
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
-      <h1 class="h4 mb-1">Redigera testprocess</h1>
-      <div class="text-muted">Uppdatera information om processen. Testmall kan vara låst efter utskick.</div>
+      <h1 class="h4 mb-1">Edit test process</h1>
+      <div class="text-muted">Update the process details. The test template may be locked after assessments have been sent.</div>
     </div>
 
     <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">
-      Tillbaka
+      Back
     </a>
   </div>
 
   {% if error %}
     <div class="alert alert-danger">
-      Kunde inte ladda SOVA-mallar: {{ error }}
+      Could not load SOVA templates: {{ error }}
     </div>
   {% endif %}
 
   {% if form.errors %}
     <div class="alert alert-danger">
-      Kontrollera fälten nedan.
+      Please check the fields below.
     </div>
   {% endif %}
 
@@ -31,9 +31,9 @@
     <!-- LEFT: Form -->
     <div class="col-12 col-lg-8">
       <div class="card">
-        <div class="card-header bg-white py-3">
-          <div class="subheading mb-1">Processdetaljer</div>
-          <div class="text-muted small">Grunduppgifter för testprocessen.</div>
+        <div class="card-header py-3">
+          <div class="subheading mb-1">Process details</div>
+          <div class="text-muted small">Basic information about this test process.</div>
         </div>
 
         <div class="card-body">
@@ -45,8 +45,8 @@
             {% endif %}
 
             <!-- Name -->
-            <div class="mb-3">
-              <label class="form-label">Namn</label>
+            <div class="mb-4">
+              <label class="form-label">Name</label>
               {{ form.name }}
               {% if form.name.errors %}
                 <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
@@ -54,8 +54,8 @@
             </div>
 
             <!-- Labels -->
-            <div class="mb-3">
-              <label class="form-label">Labels</label>
+            <div class="mb-4">
+              <label class="form-label">Labels <span class="text-muted">(optional)</span></label>
               {{ form.labels_text }}
               {% if form.labels_text.help_text %}
                 <div class="form-text">{{ form.labels_text.help_text }}</div>
@@ -66,15 +66,15 @@
             </div>
 
             <!-- SOVA template -->
-            <div class="mb-3">
-              <label class="form-label">Testmall</label>
+            <div class="mb-4">
+              <label class="form-label">Test template</label>
 
               {% if template_locked %}
                 <div class="alert alert-warning d-flex align-items-start gap-2">
                   <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
                   <div>
-                    <strong>Testmallen är låst.</strong><br>
-                    Du kan inte ändra testmall efter att tester har skickats i processen.
+                    <strong>The test template is locked.</strong><br>
+                    You cannot change the test template after assessments have been sent in this process.
                   </div>
                 </div>
               {% endif %}
@@ -82,27 +82,56 @@
               <div class="template-select" role="radiogroup">
                 {% for card in template_cards %}
                   {% with val=card.value %}
-                  <label class="template-option">
-                    <input
-                      class="template-radio"
-                      type="radio"
-                      name="{{ form.sova_template.html_name }}"
-                      value="{{ val }}"
-                      {% if form.sova_template.value == val %}checked{% endif %}
-                      {% if form.sova_template.field.disabled %}disabled{% endif %}
-                    />
+                    <label class="template-option">
+                      <input
+                        class="template-radio"
+                        type="radio"
+                        name="{{ form.sova_template.html_name }}"
+                        value="{{ val }}"
+                        {% if form.sova_template.value == val %}checked{% endif %}
+                        {% if form.sova_template.field.disabled or template_locked %}disabled{% endif %}
+                      />
 
-                    <span class="template-card">
-                      <span class="template-icon">
-                        <i data-feather="{{ card.icon|default:'layers' }}"></i>
-                      </span>
+                      <span class="template-card">
+                        <span class="template-card-main">
+                          <span class="template-icon">
+                            <i class="{{ card.icon_class|default:'fa-solid fa-layer-group' }}"></i>
+                          </span>
 
-                      <span class="template-text">
-                        <span class="template-title">{{ card.title }}</span>
-                        <span class="template-subtitle text-muted">{{ card.subtitle }}</span>
+                          <span class="template-text">
+                            <span class="template-title">{{ card.title }}</span>
+
+                            {% if card.description %}
+                              <span class="template-description">
+                                {{ card.description }}
+                              </span>
+                            {% else %}
+                              <span class="template-description text-muted">
+                                No description added yet.
+                              </span>
+                            {% endif %}
+
+                            <span class="template-description">Tests included in this template:</span>
+
+                            <span class="template-tests">
+                              {% if card.tests %}
+                                {% for test in card.tests %}
+                                  <span class="template-chip">{{ test }}</span>
+                                {% endfor %}
+                              {% else %}
+                                <span class="template-chip template-chip-muted">
+                                  No assessments specified
+                                </span>
+                              {% endif %}
+                            </span>
+                          </span>
+                        </span>
+
+                        <span class="template-check">
+                          <i data-feather="check"></i>
+                        </span>
                       </span>
-                    </span>
-                  </label>
+                    </label>
                   {% endwith %}
                 {% endfor %}
               </div>
@@ -116,8 +145,8 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
-              <button class="btn btn-primary" type="submit">Spara ändringar</button>
-              <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">Avbryt</a>
+              <button class="btn btn-primary" type="submit">Save changes</button>
+              <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">Cancel</a>
             </div>
 
           </form>
@@ -128,17 +157,36 @@
     <!-- RIGHT: Help / Summary -->
     <div class="col-12 col-lg-4">
       <div class="card">
-        <div class="card-header bg-white py-3">
+        <div class="card-header py-3">
           <div class="subheading mb-1">Tips</div>
-          <div class="text-muted small">För en tydlig process.</div>
+          <div class="text-muted small">For a clear and organised process.</div>
         </div>
 
-        <div class="card-body small text-muted">
-          <ul class="mb-0 ps-3">
-            <li>Använd labels för att strukturera processer (t.ex. “Admin”, “Prioritet”, “Interim”).</li>
-            <li>Håll namnet tydligt så du hittar processen snabbt.</li>
-            <li>Om testmallen är låst beror det på att tester redan skickats.</li>
-          </ul>
+        <div class="card-body small">
+          <div class="tip-block mb-3">
+            <div class="fw-semibold text-dark mb-1">Use labels to stay organised</div>
+            <p class="mb-0">
+              Labels are for internal structure. You can use them to group processes by department,
+              role type, project, priority or customer-specific categories, such as Finance, Sales,
+              Interim or Leadership.
+            </p>
+          </div>
+
+          <div class="tip-block mb-3">
+            <div class="fw-semibold text-dark mb-1">Templates are ready-made packages</div>
+            <p class="mb-0">
+              Each test template contains a predefined set of assessments. Choose the package that
+              best matches the process.
+            </p>
+          </div>
+
+          <div class="tip-block">
+            <div class="fw-semibold text-dark mb-1">Locked template?</div>
+            <p class="mb-0">
+              If assessments have already been sent, the selected test template is locked to protect
+              the process history and candidate data.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -146,4 +194,13 @@
   </div>
 
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.feather) {
+      feather.replace();
+    }
+  });
+</script>
+
 {% endblock %}
