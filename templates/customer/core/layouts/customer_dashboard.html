@@ -1,6 +1,7 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% block content %}
 {% load static %}
+{% load dict_extras %}
 
 <div class="container-fluid px-2 px-md-3 dashboard">
   <div class="d-flex align-items-center gap-3 mb-3">
@@ -109,9 +110,20 @@
           <div class="process-name text-truncate">
             {{ p.name }}
           </div>
-          <div class="process-sub text-muted small text-truncate">
-            Includes assessments: {{ p.tests_display|default:"Personality, Motivation" }}
-          </div>
+<div class="process-sub text-muted small text-truncate">
+  {% with key=p.account_code|add:"::"|add:p.project_code %}
+    {% with m=meta_by_key|get_item:key %}
+      {% if m and m.tests %}
+        Includes assessments:
+        {% for t in m.tests|split_tests %}
+          {{ t }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        Includes assessments: Not specified
+      {% endif %}
+    {% endwith %}
+  {% endwith %}
+</div>
         </div>
 
 

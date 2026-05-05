@@ -31,6 +31,7 @@ from apps.accounts.utils.org_access import get_effective_orgunit_permissions
 from django.db.models import Q, Count
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
+from apps.projects.models import ProjectMeta
 
 User = get_user_model()
 
@@ -80,7 +81,7 @@ def customer_dashboard(request):
     if request.user.is_staff or request.user.is_superuser:
         return HttpResponseForbidden("Admins should use the admin dashboard.")
 
-    # 1) Hämta SOVA-accounts (din befintliga funktion)
+    # 1) Hämta SOVA-accounts
     accounts, error = _get_sova_accounts()
 
     # 2) Hämta userns company
@@ -92,7 +93,7 @@ def customer_dashboard(request):
     )
     company = get_object_or_404(Company, pk=company_id)
 
-    # 3) Bygg EXAKT samma accesslogik som process_list()
+    # 3) Bygg samma accesslogik som process_list()
     perms = get_effective_orgunit_permissions(request.user, company)
 
     own_ids = [uid for uid, p in perms.items() if p == "own"]
@@ -108,7 +109,8 @@ def customer_dashboard(request):
         .filter(process_q)
         .filter(is_archived=False)
         .annotate(candidates_count=Count("invitations", distinct=True))
-        .prefetch_related("org_unit", "labels")
+        .select_related("org_unit")
+        .prefetch_related("labels")
         .order_by("-created_at")
     )
 
@@ -124,22 +126,66 @@ def customer_dashboard(request):
         .order_by("-created_at")[:10]
     )
 
-    # 🧼 Om du har soft-delete, slå på EN av dessa (beroende på din modell):
-    # accessible_processes = accessible_processes.filter(is_deleted=False)
-    # accessible_processes = accessible_processes.filter(deleted_at__isnull=True)
+    # --- ProjectMeta lookup för testmallarnas metadata ---
+    latest_processes = list(accessible_processes[:5])
+
+    keys = {
+        (p.account_code, p.project_code)
+        for p in latest_processes
+        if p.account_code and p.project_code
+    }
+
+    meta_by_key = {}
+
+    if keys:
+        q = Q()
+        for acc, proj in keys:
+            q |= Q(account_code=acc, project_code=proj)
+
+        metas = ProjectMeta.objects.filter(q)
+        meta_by_key = {
+            f"{m.account_code}::{m.project_code}": m
+            for m in metas
+        }
 
     # --- Översikt / Stats ---
     total_processes = accessible_processes.count()
 
-    # ✅ All statistik kring "tester" ska räknas på TestInvitation
     invitations_qs = TestInvitation.objects.filter(process__in=accessible_processes)
+
+    # Dashboard stats som kandidatflöde:
+    # Sent/Invited = kandidater som fått tillgång, även self-registration
+    sent_count = invitations_qs.filter(
+        Q(status__in=["sent", "started", "completed", "expired"]) |
+        Q(source="self_registered")
+    ).count()
+
+    started_count = invitations_qs.filter(
+        status__in=["started", "completed"]
+    ).count()
+
+    completed_count = invitations_qs.filter(status="completed").count()
 
     stats = {
         "processes": total_processes,
-        "sent": invitations_qs.filter(status__in=["sent", "started", "completed"]).count(),
-        "started": invitations_qs.filter(status="started").count(),
-        "completed": invitations_qs.filter(status="completed").count(),
+        "sent": sent_count,
+        "started": started_count,
+        "completed": completed_count,
     }
+
+    return render(
+        request,
+        "customer/core/layouts/customer_dashboard.html",
+        {
+            "accounts": accounts,
+            "error": error,
+            "total_processes": total_processes,
+            "processes": latest_processes,
+            "stats": stats,
+            "activity_events": activity_events,
+            "meta_by_key": meta_by_key,
+        }
+    )
 
     return render(
         request,
