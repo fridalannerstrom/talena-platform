@@ -5,44 +5,83 @@
   <!-- Header -->
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
-      <h1 class="h4 mb-1">Mejlmall för inbjudan</h1>
+      <h1 class="h4 mb-1">Invitation email template</h1>
       <div class="text-muted">{{ process.name }}</div>
     </div>
 
     <div class="d-inline-flex align-items-center gap-2">
       <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
-        Tillbaka
+        Back
       </a>
     </div>
   </div>
 
   <div class="row g-4">
 
-    <!-- LEFT: Placeholders -->
+    <!-- LEFT: Merge fields -->
     <div class="col-12 col-lg-4 col-xl-3">
       <div class="card h-100">
-        <div class="card-header bg-white py-3">
-          <div class="subheading mb-1">Plats­hållare</div>
-          <div class="text-muted small">Klicka för att kopiera och klistra in i ämne eller meddelande.</div>
-        </div>
-
-        <div class="card-body">
-          <div class="placeholder-grid">
-            {% for p in placeholders %}
-              <button
-                type="button"
-                class="placeholder-pill"
-                data-copy="{{ p|escape }}"
-                aria-label="Kopiera {{ p }}"
-                title="Kopiera {{ p }}"
-              >
-                {{ p }}
-              </button>
-            {% endfor %}
+        <div class="card-header py-3">
+          <div class="subheading mb-1">Merge fields</div>
+          <div class="text-muted small">
+            Click a field to copy it, then paste it into the subject line or message.
           </div>
-
-          <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
         </div>
+
+<div class="card-body">
+
+  <div class="merge-field-list">
+    <button type="button" class="merge-field-item" data-copy="{first_name}">
+      <code>{first_name}</code>
+      <span>Candidate’s first name</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{last_name}">
+      <code>{last_name}</code>
+      <span>Candidate’s last name</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{email}">
+      <code>{email}</code>
+      <span>Candidate’s email address</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{process_name}">
+      <code>{process_name}</code>
+      <span>Name of this test process</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{assessment_url}">
+      <code>{assessment_url}</code>
+      <span>Candidate’s personal assessment link</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{sender_first_name}">
+      <code>{sender_first_name}</code>
+      <span>Your first name</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{sender_last_name}">
+      <code>{sender_last_name}</code>
+      <span>Your last name</span>
+    </button>
+
+    <button type="button" class="merge-field-item" data-copy="{sender_full_name}">
+      <code>{sender_full_name}</code>
+      <span>Your full name</span>
+    </button>
+  </div>
+
+  <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
+
+  <div class="merge-note mt-3">
+    <div class="fw-semibold mb-1">Example</div>
+    <div class="small text-muted">
+      <code>Hi {first_name}</code> becomes <strong>Hi Anna</strong> when the email is sent.
+    </div>
+  </div>
+
+</div>
       </div>
     </div>
 
@@ -51,10 +90,10 @@
       <form method="post" class="card">
         {% csrf_token %}
 
-        <div class="card-header bg-white py-3">
-          <div class="subheading mb-1">Mall</div>
+        <div class="card-header py-3">
+          <div class="subheading mb-1">Email template</div>
           <div class="text-muted small">
-            Tips: använd t.ex. <code>{first_name}</code>, <code>{process_name}</code>, <code>{assessment_url}</code>.
+            Use merge fields such as <code>{first_name}</code>, <code>{process_name}</code> and <code>{assessment_url}</code> to personalise the email.
           </div>
         </div>
 
@@ -66,7 +105,7 @@
 
           <!-- Subject -->
           <div class="mb-3">
-            <label class="form-label">Ämnesrad</label>
+            <label class="form-label">Subject line</label>
             {{ form.subject }}
             {% if form.subject.errors %}
               <div class="text-danger small mt-1">{{ form.subject.errors|striptags }}</div>
@@ -75,17 +114,18 @@
 
           <!-- Body -->
           <div class="mb-3">
-            <label class="form-label">Meddelande</label>
+            <label class="form-label">Message</label>
             {{ form.body }}
             {% if form.body.errors %}
               <div class="text-danger small mt-1">{{ form.body.errors|striptags }}</div>
             {% endif %}
           </div>
-<!--
+
+          <!--
           <div class="row g-3 align-items-end">
 
             <div class="col-12 col-md-6">
-              <label class="form-label">Språk</label>
+              <label class="form-label">Language</label>
               {{ form.language }}
               {% if form.language.errors %}
                 <div class="text-danger small mt-1">{{ form.language.errors|striptags }}</div>
@@ -96,11 +136,11 @@
               <div class="form-check form-switch mt-2">
                 {{ form.is_active }}
                 <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                  Använd denna mall för utskick
+                  Use this template for invitations
                 </label>
               </div>
               <div class="form-text">
-                Endast aktiva mallar används när testinbjudningar skickas.
+                Only active templates are used when assessment invitations are sent.
               </div>
 
               {% if form.is_active.errors %}
@@ -108,13 +148,19 @@
               {% endif %}
             </div>
           </div>
-        
-        -->
+          -->
+
+          <div class="template-tip mt-4">
+            <div class="fw-semibold mb-1">Tip</div>
+            <div class="small text-muted">
+              Make sure the message always includes <code>{assessment_url}</code>. Without it, the candidate will not receive their personal assessment link in the email.
+            </div>
+          </div>
 
           <div class="d-flex align-items-center gap-2 mt-4">
-            <button class="btn btn-primary" type="submit">Spara</button>
+            <button class="btn btn-primary" type="submit">Save</button>
             <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
-              Tillbaka
+              Back
             </a>
           </div>
 
@@ -126,47 +172,79 @@
 </div>
 
 <style>
-  /* Scoped bara till denna sida */
-  .email-template-page .placeholder-grid{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-  }
+  /* Scoped to this page only */
+.email-template-page .merge-field-list {
+  display: grid;
+  gap: .55rem;
+}
 
-  .email-template-page .placeholder-pill{
-    border: 1px solid rgba(0,0,0,.10);
-    background: #f8f9fa;
-    color: #111;
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-size: .92rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: background-color .15s ease, border-color .15s ease, transform .08s ease;
-    user-select: none;
-  }
-  .email-template-page .placeholder-pill:hover{
-    background:#fff;
-    border-color: rgba(0,0,0,.18);
-    transform: translateY(-1px);
-  }
-  .email-template-page .placeholder-pill:active{
-    transform: translateY(0);
-  }
-  .email-template-page .placeholder-pill.is-copied{
-    border-color: rgba(25,135,84,.35);
-    background: rgba(25,135,84,.06);
-  }
+.email-template-page .merge-field-item {
+  width: 100%;
+  border: 1px solid rgba(123, 87, 209, .14);
+  background: #fff;
+  border-radius: 10px;
+  padding: .65rem .75rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .65rem;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    transform .12s ease,
+    box-shadow .18s ease;
+}
 
-  /* Gör textarea snygg utan att påverka andra sidor */
-  .email-template-page textarea{
-    min-height: 220px;
-    resize: vertical;
-  }
+.email-template-page .merge-field-item:hover {
+  background: rgba(123, 87, 209, .045);
+  border-color: rgba(123, 87, 209, .28);
+  box-shadow: 0 8px 20px rgba(25, 25, 45, .05);
+}
+
+.email-template-page .merge-field-item:active {
+  transform: translateY(0);
+}
+
+.email-template-page .merge-field-item.is-copied {
+  border-color: rgba(25,135,84,.35);
+  background: rgba(25,135,84,.06);
+}
+
+.email-template-page .merge-field-item code {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(123, 87, 209, .08);
+  color: #5f3fd1;
+  padding: .22rem .5rem;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+
+.email-template-page .merge-field-item span {
+  color: #6b7280;
+  font-size: .7rem;
+  line-height: 1.25;
+}
+
+.email-template-page .merge-note {
+  border: 1px solid rgba(123, 87, 209, .14);
+  background: rgba(123, 87, 209, .045);
+  border-radius: 14px;
+  padding: .85rem .95rem;
+}
+
+.email-template-page textarea {
+  min-height: 260px;
+  resize: vertical;
+  line-height: 1.3rem;
+}
 </style>
 
 <script>
-  // Copy placeholder on click (svensk feedback + liten "copied"-markering)
+  // Copy merge field on click
   document.addEventListener("DOMContentLoaded", () => {
     const status = document.getElementById("phCopyStatus");
 
@@ -179,6 +257,7 @@
       if (navigator.clipboard && window.isSecureContext) {
         return navigator.clipboard.writeText(val);
       }
+
       const tmp = document.createElement("textarea");
       tmp.value = val;
       document.body.appendChild(tmp);
@@ -187,21 +266,20 @@
       tmp.remove();
     }
 
-    document.querySelectorAll(".placeholder-pill").forEach(btn => {
+    document.querySelectorAll(".merge-field-item").forEach(btn => {
       btn.addEventListener("click", async () => {
         const val = btn.dataset.copy || btn.innerText;
 
         try {
           await copyText(val);
 
-          // visuell feedback på pillen
           btn.classList.add("is-copied");
-          setStatus(`Kopierad: ${val}`);
+          setStatus(`Copied: ${val}`);
 
           setTimeout(() => btn.classList.remove("is-copied"), 900);
           btn.blur();
         } catch (e) {
-          setStatus("Kunde inte kopiera. Markera och kopiera manuellt.");
+          setStatus("Could not copy. Please select and copy manually.");
         }
       });
     });
