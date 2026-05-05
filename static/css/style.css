@@ -2386,11 +2386,6 @@ color: #6CACCB;
     flex: 0 0 auto;
   }
 
-  .template-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
   .template-text {
     display: flex;
     flex-direction: column;
@@ -2485,31 +2480,21 @@ color: #6CACCB;
     cursor: not-allowed;
   }
 
-  .template-icon svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  display: block;
-}
+
 
 .template-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: #f4f0ff;
   color: #7b57d1;
-}
 
-.template-option:has(.template-radio:checked) .template-icon {
-  background: #7b57d1;
-  color: #fff;
-}
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-.template-icon svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  display: block;
-}
-
-.template-icon {
-  color: #7b57d1;
+  flex: 0 0 auto;
+  font-size: 1.05rem;
 }
 
 .template-option:has(.template-radio:checked) .template-icon {

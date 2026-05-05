@@ -655,7 +655,58 @@ def process_list(request):
         }
     )
 
+def get_template_icon_class(tests, title=""):
+    """
+    Returns a FontAwesome icon class based on the test types/title.
+    """
+    text = " ".join(tests).lower()
+    title = (title or "").lower()
 
+    if "360" in text or "360" in title:
+        return "fa-solid fa-arrows-rotate"
+
+    if (
+        "numerical" in text
+        or "numerisk" in text
+        or "färdighet" in text
+        or "fardighet" in text
+        or "ability" in text
+        or "skills" in text
+    ):
+        return "fa-solid fa-chart-simple"
+
+    if (
+        "personality" in text
+        or "personlighet" in text
+        or "pq" in title
+    ):
+        return "fa-solid fa-user-check"
+
+    if (
+        "motivation" in text
+        or "motivationstest" in text
+    ):
+        return "fa-solid fa-bullseye"
+
+    if "leadership" in text or "ledarskap" in text:
+        return "fa-solid fa-award"
+
+    if "sales" in text or "sälj" in title or "salj" in title:
+        return "fa-solid fa-handshake"
+
+    if "admin" in text or "interim" in text or "interim" in title:
+        return "fa-solid fa-briefcase"
+
+    if "modern" in title:
+        return "fa-solid fa-wand-magic-sparkles"
+
+    if "linear" in title:
+        return "fa-solid fa-wave-square"
+
+    if "ihp" in title:
+        return "fa-solid fa-layer-group"
+
+    return "fa-solid fa-layer-group"
 
 
 @login_required
@@ -705,17 +756,13 @@ def process_create(request):
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
 
             choices.append((value, title))
-
-            icon = (getattr(meta, "icon", None) or "").strip() if meta else ""
-            if not icon:
-                icon = "layers"
             template_cards.append({
                 "value": value,
                 "title": title,
                 "description": description,
                 "tests": tests,
                 "languages": languages,
-                "icon": icon,
+                "icon_class": get_template_icon_class(tests, title),
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,

@@ -74,7 +74,7 @@
                       <span class="template-card">
                         <span class="template-card-main">
 <span class="template-icon">
-  <i data-feather="{{ card.icon|default:'layers' }}"></i>
+  <i class="{{ card.icon_class|default:'fa-solid fa-layer-group' }}"></i>
 </span>
 
 <span class="template-text">
@@ -186,18 +186,3 @@
 
 {% endblock %}
 
-{% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    if (window.feather) {
-      feather.replace();
-    }
-  });
-
-  window.addEventListener("load", function () {
-    if (window.feather) {
-      feather.replace();
-    }
-  });
-</script>
-{% endblock %}
