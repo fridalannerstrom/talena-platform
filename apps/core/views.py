@@ -35,7 +35,6 @@ from apps.projects.models import ProjectMeta
 
 User = get_user_model()
 
-
 def tokens_to_q(tokens, fields):
     """
     Bygger en Q där ALLA tokens måste matcha,
