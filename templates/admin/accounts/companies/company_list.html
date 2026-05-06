@@ -3,19 +3,18 @@
 
 {% load accounts_extras %}
 
-
 {% block content %}
 <div class="container-fluid px-2 px-md-4">
 
   <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
     <div>
-      <h1 class="h4 mb-1">Företag</h1>
-      <p class="text-muted mb-0">Hantera kundföretag och deras medlemmar</p>
+      <h1 class="h4 mb-1">Companies</h1>
+      <p class="text-muted mb-0">Manage customer companies and their members</p>
     </div>
 
     <div class="d-flex gap-2">
       <a href="{% url 'accounts:company_create' %}" class="btn btn-primary">
-        <i class="fa-solid fa-plus me-2"></i> Skapa företag
+        <i class="fa-solid fa-plus me-2"></i> Create company
       </a>
     </div>
   </div>
@@ -23,31 +22,26 @@
   <!-- Controls -->
   <div class="card mb-3">
     <div class="card-body py-3">
-      <form method="get" class="row g-2 align-items-center">
-        <div class="col-12 col-md-6 col-lg-7">
+      <form method="get" id="companyFilterForm" class="row g-2 align-items-center">
+        <div class="col-12 col-md-7 col-lg-8">
           <div class="input-group">
             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" name="q" class="form-control" placeholder="Sök företag eller org.nr…"
+            <input type="text" name="q" id="companySearchInput" class="form-control" placeholder="Search company or org. no…"
               value="{{ q|default:'' }}">
           </div>
         </div>
 
-        <div class="col-12 col-md-4 col-lg-3">
-          <select name="sort" class="form-select">
-            <option value="name" {% if sort == "name" %}selected{% endif %}>Sortera: A–Ö</option>
-            <option value="-name" {% if sort == "-name" %}selected{% endif %}>Sortera: Ö–A</option>
-            <option value="members" {% if sort == "members" %}selected{% endif %}>Flest användare</option>
-            <option value="units" {% if sort == "units" %}selected{% endif %}>Flest konton</option>
-            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Nyast</option>
-            <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Äldst</option>
+        <div class="col-12 col-md-5 col-lg-4">
+          <select name="sort" class="form-select" id="companySortSelect">
+            <option value="name" {% if sort == "name" %}selected{% endif %}>Sort: A–Z</option>
+            <option value="-name" {% if sort == "-name" %}selected{% endif %}>Sort: Z–A</option>
+            <option value="members" {% if sort == "members" %}selected{% endif %}>Most users</option>
+            <option value="units" {% if sort == "units" %}selected{% endif %}>Most accounts</option>
+            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+            <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest</option>
           </select>
         </div>
 
-        <div class="col-12 col-md-2 col-lg-2 d-grid">
-          <button class="btn btn-outline-primary" type="submit">
-            Filtrera
-          </button>
-        </div>
       </form>
     </div>
   </div>
@@ -73,7 +67,7 @@
                   </a>
                 </div>
                 <div class="text-muted small">
-                  Org.nr: <span class="fw-semibold">{{ c.org_number|default:"-" }}</span>
+                  Org. no: <span class="fw-semibold">{{ c.org_number|default:"-" }}</span>
                 </div>
               </div>
             </div>
@@ -86,15 +80,15 @@
               <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                   <a class="dropdown-item" href="{% url 'accounts:company_detail' c.pk %}">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Öppna
+                    <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>Open
                   </a>
                 </li>
 
-                {# Om du har edit-route, byt urlname här #}
+                {# If you add an edit route, update the url name here #}
                 {% if False %}
                 <li>
                   <a class="dropdown-item" href="{% url 'accounts:company_update' c.pk %}">
-                    <i class="fa-solid fa-pen me-2"></i>Redigera
+                    <i class="fa-solid fa-pen me-2"></i>Edit
                   </a>
                 </li>
                 {% endif %}
@@ -103,11 +97,11 @@
                   <hr class="dropdown-divider">
                 </li>
 
-                {# Om du har delete-route, byt urlname här #}
+                {# If you add a delete route, update the url name here #}
                 {% if False %}
                 <li>
                   <a class="dropdown-item text-danger" href="{% url 'accounts:company_delete' c.pk %}">
-                    <i class="fa-solid fa-trash me-2"></i>Ta bort
+                    <i class="fa-solid fa-trash me-2"></i>Delete
                   </a>
                 </li>
                 {% endif %}
@@ -118,19 +112,19 @@
           <!-- Mini stats -->
           <div class="company-card__stats mt-3">
             <div class="stat">
-              <div class="label">Användare</div>
+              <div class="label">Users</div>
               <div class="value">{{ c.member_count }}</div>
             </div>
             <div class="stat">
-              <div class="label">Konton</div>
+              <div class="label">Accounts</div>
               <div class="value">{{ c.orgunit_count }}</div>
             </div>
             <div class="stat">
-  <div class="label">Senast aktiv</div>
-  <div class="value">
-    <span class="text-muted small">{{ c.last_activity|last_active_compact }}</span>
-  </div>
-</div>
+              <div class="label">Last active</div>
+              <div class="value">
+                <span class="text-muted small">{{ c.last_activity|last_active_compact }}</span>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -140,7 +134,7 @@
     <div class="col-12">
       <div class="card">
         <div class="card-body text-center py-5 text-muted">
-          Inga företag matchar din sökning.
+          No companies match your search.
         </div>
       </div>
     </div>
@@ -150,7 +144,7 @@
 </div>
 
 <style>
-  /* Company cards (matchar din "company-hero"-känsla) */
+  /* Company cards */
   .company-card {
     border: 1px solid rgba(0, 0, 0, 0.096);
     background-color: #fff;
@@ -186,10 +180,35 @@
     font-weight: 700;
     margin-top: 2px;
   }
-
-
-  
-
-
 </style>
+
+<script>
+  (function () {
+    const form = document.getElementById("companyFilterForm");
+    const searchInput = document.getElementById("companySearchInput");
+    const sortSelect = document.getElementById("companySortSelect");
+
+    if (!form) return;
+
+    let searchTimer = null;
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        clearTimeout(searchTimer);
+
+        searchTimer = setTimeout(function () {
+          form.submit();
+        }, 1200);
+      });
+    }
+
+    if (sortSelect) {
+      sortSelect.addEventListener("change", function () {
+        form.submit();
+      });
+    }
+  })();
+</script>
+
 {% endblock %}
+
