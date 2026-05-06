@@ -1,116 +1,323 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}Admin Dashboard | Talena{% endblock %}
-
 {% block content %}
+{% load static %}
 
-  <div class="row g-4">
+<div class="container-fluid px-2 px-md-3 dashboard admin-dashboard">
 
-    {# LEFT: Quick links (Customers) #}
-    <div class="col-12 col-lg-5">
-      <div class="card h-100">
-        <div class="card-header">
-          <div class="d-flex align-items-center justify-content-between">
-            <div>
-              <div class="fw-semibold">Kunder</div>
-              <div class="small text-muted">Hantera kundkonton och inbjudningar.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <a class="btn btn-primary" href="{% url 'accounts:admin_customers_list' %}">
-              Alla kunder
-            </a>
-            <a class="btn btn-outline-primary" href="{% url 'accounts:admin_customers_create' %}">
-              Skapa ny kund
-            </a>
-          </div>
-
-          <hr class="my-4">
-
-          <div class="small text-muted">
-            Tips: Inbjudna användare visas som <strong>Pending</strong> tills de satt lösenord.
-          </div>
-        </div>
-      </div>
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="mb-1">
+        Hi, {{ request.user.first_name|default:request.user.get_username }}!
+      </h1>
+      <p class="dashboard-date mb-0">
+        Admin overview for Talena
+      </p>
     </div>
 
-    {# RIGHT: SOVA Projects list (keep as-is) #}
-    <div class="col-12 col-lg-7">
-      <div class="card h-100">
-        <div class="card-header">
-          <div class="d-flex align-items-center justify-content-between">
-            <div>
-              <div class="fw-semibold">SOVA Projects</div>
-              <div class="small text-muted">Projekt hämtade från SOVA-kontot (används som mallar)</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card-body">
-
-          {% if error %}
-          <div class="alert alert-danger mb-3">
-            Could not load projects: {{ error }}
-          </div>
-          {% endif %}
-
-          {% for account in accounts %}
-          <div class="card mb-4 border">
-            <div class="card-header py-2 d-flex align-items-center justify-content-between">
-              <div>
-                <a class="fw-semibold text-decoration-none" href="#">
-                  {{ account.name }}
-                </a>
-                <span class="text-muted small ms-1">({{ account.code }})</span>
-              </div>
-              <span class="badge bg-primary-soft text-primary">
-                {{ account.projects|length }} projects
-              </span>
-            </div>
-
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th style="width: 90px;">ID</th>
-                    <th style="width: 190px;">Code</th>
-                    <th>Name</th>
-                    <th style="width: 120px;">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for p in account.projects %}
-                  <tr role="button" onclick="window.location='{% url 'sova_project_detail' account.code p.code %}'">
-                    <td class="text-muted">{{ p.id }}</td>
-                    <td><span class="font-monospace">{{ p.code }}</span></td>
-                    <td class="fw-semibold">{{ p.name }}</td>
-                    <td>
-                      {% if p.active %}
-                      <span class="badge bg-success-soft text-success">Active</span>
-                      {% else %}
-                      <span class="badge bg-secondary-soft text-secondary">Inactive</span>
-                      {% endif %}
-                    </td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                    <td colspan="4" class="text-muted p-3">No projects found for this account.</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {% empty %}
-          <div class="text-muted">No accounts returned from SOVA.</div>
-          {% endfor %}
-
-        </div>
-      </div>
-    </div>
-
+    <a href="{% url 'accounts:company_create' %}" class="btn btn-primary rounded-pill">
+      <i data-feather="plus" class="me-1"></i>
+      Add company
+    </a>
   </div>
+
+  <!-- Quick access -->
+  <section class="quick-access mt-3 py-3">
+    <h3>What would you like to manage?</h3>
+
+    <div class="quick-access-grid">
+
+      <a href="{% url 'accounts:company_create' %}" class="quick-card">
+        <div class="quick-card-icon"><i data-feather="briefcase"></i></div>
+        <div class="quick-card-title">Add company</div>
+        <div class="quick-card-desc">Create a company before adding users</div>
+      </a>
+
+      <a href="{% url 'accounts:company_list' %}" class="quick-card testprocess-card">
+        <div class="quick-card-icon"><i data-feather="grid"></i></div>
+        <div class="quick-card-title">View companies</div>
+        <div class="quick-card-desc">Manage users, accounts and access</div>
+      </a>
+
+      <a href="{% url 'accounts:admin_customers_list' %}" class="quick-card settings-card">
+        <div class="quick-card-icon"><i data-feather="users"></i></div>
+        <div class="quick-card-title">View users</div>
+        <div class="quick-card-desc">See active and pending accounts</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- Setup note -->
+  <div class="admin-flow-note mt-3 mb-4">
+    <div class="admin-flow-icon">
+      <i data-feather="info"></i>
+    </div>
+    <div>
+      <div class="admin-flow-title">Recommended admin flow</div>
+      <div class="admin-flow-text">
+        Start by creating a company. Then add users to that company, create accounts/units, and assign access before test processes are created.
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-5 mt-1">
+
+    <!-- Left column -->
+    <div class="col-12 col-xl-8">
+
+      <!-- Stats -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div>
+          <h3 class="mb-1">Overview</h3>
+          <div class="text-muted small">A quick overview of companies, users and assessment activity</div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Companies</div>
+            <div class="h3 mt-1">{{ stats.companies }}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Users</div>
+            <div class="h3 mt-1">{{ stats.users }}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Pending invites</div>
+            <div class="h3 mt-1">{{ stats.pending_users }}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Test processes</div>
+            <div class="h3 mt-1">{{ stats.processes }}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Sent assessments</div>
+            <div class="h3 mt-1">{{ stats.sent }}</div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card">
+            <div class="text-muted small">Completed assessments</div>
+            <div class="h3 mt-1">{{ stats.completed }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Latest companies -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
+        <div>
+          <h3 class="mb-1">Latest companies</h3>
+          <div class="text-muted small">Companies recently added or available in Talena</div>
+        </div>
+
+        <a href="{% url 'accounts:company_list' %}"
+           class="btn btn-primary btn-sm rounded-pill">
+          View all
+        </a>
+      </div>
+
+      {% if latest_companies %}
+        <div class="admin-company-rows">
+          {% for company in latest_companies %}
+            <a href="{% url 'accounts:company_detail' company.pk %}"
+               class="admin-company-row">
+
+              <div class="admin-company-main min-w-0">
+                <div class="admin-company-name text-truncate">
+                  {{ company.name }}
+                </div>
+                <div class="admin-company-sub text-muted small text-truncate">
+                  {% if company.org_number %}
+                    Org no: {{ company.org_number }}
+                  {% else %}
+                    No organisation number added
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="admin-company-meta">
+                <span class="admin-info-pill">
+                  <i data-feather="users"></i>
+                  {{ company.member_count|default:"0" }}
+                </span>
+
+                <span class="admin-info-pill">
+                  <i data-feather="layers"></i>
+                  {{ company.orgunit_count|default:"0" }}
+                </span>
+
+                {% if company.pending_members %}
+                  <span class="admin-info-pill admin-info-pill-warning">
+                    {{ company.pending_members }} pending
+                  </span>
+                {% endif %}
+              </div>
+
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-3 border rounded bg-light">
+          <div class="text-muted">No companies yet.</div>
+          <a class="btn btn-primary btn-sm mt-2" href="{% url 'accounts:company_create' %}">
+            Add first company
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Latest processes -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
+        <div>
+          <h3 class="mb-1">Latest test processes</h3>
+          <div class="text-muted small">Recent test processes across all companies</div>
+        </div>
+      </div>
+
+      {% if latest_processes %}
+        <div class="process-rows">
+          {% for p in latest_processes %}
+            <a href="{% url 'accounts:admin_process_detail' p.id %}"
+               class="process-row process-row-link">
+
+              <div class="process-col-main min-w-0">
+                <div class="process-name text-truncate">
+                  {{ p.name }}
+                </div>
+                <div class="process-sub text-muted small text-truncate">
+                  {{ p.company.name|default:"No company" }}
+                  {% if p.org_unit %}
+                    · {{ p.org_unit.name }}
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="process-col-meta">
+                <span class="process-info-pill process-info-pill-candidates">
+                  <span class="process-info-icon">
+                    <i data-feather="users"></i>
+                  </span>
+                  <span class="process-info-text">
+                    {{ p.candidates_count|default:"0" }}
+                  </span>
+                </span>
+              </div>
+
+              <div class="process-col-label">
+                <div class="process-labels">
+                  <span class="process-label">
+                    {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+                  </span>
+                </div>
+              </div>
+
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-3 border rounded bg-light">
+          <div class="text-muted">No test processes yet.</div>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right column: activity -->
+    <div class="col-12 col-xl-4">
+
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+          <h3 class="mb-1">Recent activity</h3>
+          <div class="text-muted small">Activity across all customers</div>
+        </div>
+      </div>
+
+      <div class="recent-activity-list">
+        {% for event in activity_events %}
+          <div class="recent-activity-item">
+
+            {% if event.process %}
+              <a href="{% url 'accounts:admin_process_detail' event.process.pk %}"
+                 class="recent-activity-card">
+            {% elif event.company %}
+              <a href="{% url 'accounts:company_detail' event.company.pk %}"
+                 class="recent-activity-card">
+            {% else %}
+              <div class="recent-activity-card">
+            {% endif %}
+
+                <div class="recent-activity-head">
+                  <span class="recent-activity-badge
+                    {% if event.verb == 'invite_sent' %}is-invite
+                    {% elif event.verb == 'candidate_added' %}is-added
+                    {% elif event.verb == 'status_changed' %}is-status
+                    {% elif event.verb == 'process_created' %}is-created
+                    {% else %}is-default{% endif %}">
+
+                    {% if event.verb == 'invite_sent' %}
+                      Invitation sent
+                    {% elif event.verb == 'candidate_added' %}
+                      Candidate added
+                    {% elif event.verb == 'status_changed' %}
+                      Status updated
+                    {% elif event.verb == 'process_created' %}
+                      Process created
+                    {% elif event.verb == 'test_completed' %}
+                      Test completed
+                    {% else %}
+                      Activity
+                    {% endif %}
+                  </span>
+
+                  <span class="recent-activity-time">
+                    {{ event.created_at|date:"Y-m-d H:i" }}
+                  </span>
+                </div>
+
+                <div class="recent-activity-title">
+                  {{ event.message }}
+                </div>
+
+                {% if event.company %}
+                  <div class="recent-activity-process">
+                    Company: {{ event.company.name }}
+                  </div>
+                {% elif event.process and event.process.company %}
+                  <div class="recent-activity-process">
+                    Company: {{ event.process.company.name }}
+                  </div>
+                {% endif %}
+
+            {% if event.process or event.company %}
+              </a>
+            {% else %}
+              </div>
+            {% endif %}
+
+          </div>
+        {% empty %}
+          <div class="recent-activity-empty">
+            No activity yet.
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</div>
 
 {% endblock %}

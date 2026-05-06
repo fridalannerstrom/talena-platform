@@ -207,9 +207,60 @@ def admin_dashboard(request):
         return HttpResponseForbidden("No access.")
 
     accounts, error = _get_sova_accounts()
+
+    companies_qs = (
+        Company.objects
+        .annotate(
+            member_count=Count("memberships", distinct=True),
+            orgunit_count=Count("org_units", distinct=True),
+            process_count=Count("processes", distinct=True),
+            pending_members=Count(
+                "memberships",
+                filter=Q(memberships__user__is_active=False),
+                distinct=True,
+            ),
+        )
+        .order_by("-created_at" if hasattr(Company, "created_at") else "name")
+    )
+
+    users_qs = User.objects.filter(is_superuser=False, is_staff=False)
+    processes_qs = TestProcess.objects.all()
+    invitations_qs = TestInvitation.objects.all()
+
+    stats = {
+        "companies": companies_qs.count(),
+        "users": users_qs.count(),
+        "pending_users": users_qs.filter(is_active=False).count(),
+        "processes": processes_qs.count(),
+        "sent": invitations_qs.filter(
+            Q(status__in=["sent", "started", "completed", "expired"]) |
+            Q(source="self_registered")
+        ).count(),
+        "completed": invitations_qs.filter(status="completed").count(),
+    }
+
+    latest_companies = companies_qs[:5]
+
+    activity_events = (
+        ActivityEvent.objects
+        .select_related("actor", "company", "process", "candidate", "invitation")
+        .order_by("-created_at")[:8]
+    )
+
+    latest_processes = (
+        TestProcess.objects
+        .select_related("company", "org_unit", "created_by")
+        .annotate(candidates_count=Count("invitations", distinct=True))
+        .order_by("-created_at")[:5]
+    )
+
     return render(request, "admin/core/layouts/admin_dashboard.html", {
         "accounts": accounts,
         "error": error,
+        "stats": stats,
+        "latest_companies": latest_companies,
+        "latest_processes": latest_processes,
+        "activity_events": activity_events,
     })
 
 

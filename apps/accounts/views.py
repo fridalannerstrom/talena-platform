@@ -67,6 +67,17 @@ from apps.processes.services.send_tests import send_assessments_and_emails
 
 User = get_user_model()
 
+@login_required
+def admin_customers_create(request):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    messages.info(
+        request,
+        "Create a company first, then add users from the company page."
+    )
+    return redirect("accounts:company_create")
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     activities = invitation.sova_activities or []
@@ -675,9 +686,9 @@ def admin_customers_list(request):
     q = (request.GET.get("q") or "").strip()
     status = (request.GET.get("status") or "").strip()
 
-    customers = (
+    users = (
         User.objects
-        .filter(is_superuser=False, is_staff=False)
+        .all()
         .prefetch_related(
             "company_memberships__company",
             "company_memberships__primary_org_unit",
@@ -686,21 +697,28 @@ def admin_customers_list(request):
     )
 
     if q:
-        customers = customers.filter(
+        users = users.filter(
             Q(email__icontains=q) |
             Q(first_name__icontains=q) |
             Q(last_name__icontains=q) |
+            Q(username__icontains=q) |
             Q(company_memberships__company__name__icontains=q)
         ).distinct()
 
     if status == "active":
-        customers = customers.filter(is_active=True)
+        users = users.filter(is_active=True)
 
-    if status == "pending":
-        customers = customers.filter(is_active=False)
+    elif status == "pending":
+        users = users.filter(is_active=False)
+
+    elif status == "admin":
+        users = users.filter(Q(is_staff=True) | Q(is_superuser=True))
+
+    elif status == "customer":
+        users = users.filter(is_staff=False, is_superuser=False)
 
     return render(request, "admin/accounts/customer/customers_list.html", {
-        "customers": customers,
+        "customers": users,  # behåll namnet så templaten inte går sönder
         "q": q,
         "status": status,
     })

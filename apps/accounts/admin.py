@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 
-from .models import Profile, OrgUnit, UserOrgUnitAccess
+from .models import Profile, Company, CompanyMember, OrgUnit, UserOrgUnitAccess, UserInvite
 from django.utils.html import format_html
 
 User = get_user_model()
@@ -89,9 +89,10 @@ class CustomUserAdmin(BaseUserAdmin):
 
 @admin.register(OrgUnit)
 class OrgUnitAdmin(admin.ModelAdmin):
-    list_display = ("hierarchical_name", "unit_code", "parent", "level", "created_at")
-    list_filter = ("parent", "created_at")
-    search_fields = ("name", "unit_code")
+    list_display = ("hierarchical_name", "company", "unit_code", "parent", "level", "created_at")
+    list_filter = ("company", "parent", "created_at")
+    search_fields = ("name", "unit_code", "company__name")
+    autocomplete_fields = ("company", "parent")
     readonly_fields = ("created_at", "updated_at", "level", "full_path")
 
     def hierarchical_name(self, obj):
@@ -120,3 +121,63 @@ class UserOrgUnitAccessAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related("user", "org_unit")
+
+# =============================================================================
+# COMPANY ADMIN
+# =============================================================================
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ("name", "org_number", "member_count", "orgunit_count", "created_at", "updated_at")
+    search_fields = ("name", "org_number")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("name",)
+
+    def member_count(self, obj):
+        return obj.memberships.count()
+
+    member_count.short_description = "Members"
+
+    def orgunit_count(self, obj):
+        return obj.org_units.count()
+
+    orgunit_count.short_description = "Org units"
+
+
+# =============================================================================
+# COMPANY MEMBER ADMIN
+# =============================================================================
+
+@admin.register(CompanyMember)
+class CompanyMemberAdmin(admin.ModelAdmin):
+    list_display = ("company", "user", "role", "primary_org_unit", "created_at")
+    list_filter = ("company", "role")
+    search_fields = (
+        "company__name",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+    )
+    autocomplete_fields = ("company", "user", "primary_org_unit")
+    readonly_fields = ("created_at",)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("company", "user", "primary_org_unit")
+
+
+# =============================================================================
+# USER INVITE ADMIN
+# =============================================================================
+
+@admin.register(UserInvite)
+class UserInviteAdmin(admin.ModelAdmin):
+    list_display = ("user", "company", "created_by", "created_at", "accepted_at", "revoked_at")
+    list_filter = ("company", "accepted_at", "revoked_at")
+    search_fields = (
+        "user__email",
+        "company__name",
+        "created_by__email",
+    )
+    autocomplete_fields = ("user", "company", "created_by")
+    readonly_fields = ("id", "created_at", "accepted_at", "revoked_at")
