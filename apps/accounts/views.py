@@ -69,16 +69,11 @@ from apps.processes.services.send_tests import send_assessments_and_emails
 
 User = get_user_model()
 
-@login_required
-def admin_customers_create(request):
-    if not is_admin(request.user):
-        return HttpResponseForbidden("No access.")
+from apps.accounts.utils.org_units import (
+    get_or_create_main_org_unit,
+    ensure_user_has_default_orgunit,
+)
 
-    messages.info(
-        request,
-        "Create a company first, then add users from the company page."
-    )
-    return redirect("accounts:company_create")
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
@@ -962,7 +957,11 @@ def company_detail(request, pk):
                         if changed:
                             user.save(update_fields=["first_name", "last_name"])
 
-                    CompanyMember.objects.get_or_create(company=company, user=user)
+                    membership, main_unit, access = ensure_user_has_default_orgunit(
+                        user=user,
+                        company=company,
+                        permission="own",
+                    )
 
                     # Om redan aktiv, skicka inget
                     if user.is_active:
@@ -1101,6 +1100,8 @@ def company_create(request):
         if form.is_valid():
             company = form.save()
 
+            main_unit = get_or_create_main_org_unit(company)
+
             log_event(
                 company=company,
                 actor=request.user,
@@ -1109,6 +1110,8 @@ def company_create(request):
                     "company_id": company.id,
                     "company_name": company.name,
                     "org_number": company.org_number,
+                    "default_org_unit_id": main_unit.id,
+                    "default_org_unit_name": main_unit.name,
                 },
             )
 
@@ -1121,7 +1124,6 @@ def company_create(request):
         "form": form,
         "is_create": True,
     })
-
 
 def accept_invite_uuid(request, invite_id):
     invite = get_object_or_404(UserInvite, id=invite_id)
@@ -1659,13 +1661,17 @@ def admin_process_create_for_user(request, user_pk):
                 .first()
             )
 
-            if not membership or not membership.primary_org_unit_id:
-                messages.error(request, "Användaren saknar primär enhet (OrgUnit).")
-                return redirect(next_url)
+            company = get_object_or_404(Company, pk=company_id)
+
+            membership, primary_unit, access = ensure_user_has_default_orgunit(
+                user=user_obj,
+                company=company,
+                permission="own",
+            )
 
             # ✅ Set required fields
-            obj.company_id = company_id
-            obj.org_unit_id = membership.primary_org_unit_id
+            obj.company = company
+            obj.org_unit = primary_unit
 
             obj.provider = "sova"
             obj.account_code = acc

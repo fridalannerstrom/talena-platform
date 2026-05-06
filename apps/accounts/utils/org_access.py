@@ -25,7 +25,10 @@ def get_company_for_user(user):
 def get_effective_orgunit_permissions(user, company):
     """
     Return dict {org_unit_id: perm} including inherited perms to descendants.
-    More specific (child) can override if you want, but for MVP: strongest wins.
+
+    Direct permissions come from UserOrgUnitAccess.
+    If the user has a primary org unit but no explicit access row,
+    they get a safe fallback permission: own.
     """
     children_map = _build_children_map(company)
 
@@ -34,6 +37,16 @@ def get_effective_orgunit_permissions(user, company):
         .filter(user=user, org_unit__company=company)
         .values_list("org_unit_id", "permission")
     )
+
+    primary_id = (
+        CompanyMember.objects
+        .filter(user=user, company=company)
+        .values_list("primary_org_unit_id", flat=True)
+        .first()
+    )
+
+    if primary_id and not any(int(unit_id) == int(primary_id) for unit_id, _perm in direct):
+        direct.append((primary_id, "own"))
 
     perm_map = {}
 
@@ -92,6 +105,7 @@ def get_accessible_orgunit_ids(user, company):
     """
     Units user can access in company:
     - direct assignments
+    - user's primary org unit
     - plus all descendants of those units
     """
     children_map = _build_children_map(company)
@@ -110,7 +124,11 @@ def get_accessible_orgunit_ids(user, company):
     )
 
     all_ids = set(direct_ids)
-    for rid in direct_ids:
+
+    if primary_id:
+        all_ids.add(primary_id)
+
+    for rid in list(all_ids):
         all_ids |= _descendants(children_map, rid)
 
     return all_ids
