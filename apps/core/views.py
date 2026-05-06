@@ -33,6 +33,8 @@ from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 from apps.projects.models import ProjectMeta
 
+
+
 User = get_user_model()
 
 def tokens_to_q(tokens, fields):
