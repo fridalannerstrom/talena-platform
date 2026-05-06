@@ -1,92 +1,193 @@
 {% extends "admin/core/layouts/admin_base.html" %}
-{% block title %}Alla användare | Talena{% endblock %}
+{% block title %}All users | Talena{% endblock %}
 
 {% block content %}
 <div class="container-xl px-4 mt-4">
 
   <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-      <h1 class="h3 mb-1">Alla användare</h1>
-      <div class="small text-muted">Lista över interna adminanvändare, kundkonton och inbjudningar.</div>
+      <h1 class="h3 mb-1">All users</h1>
+      <div class="small text-muted">List of internal admins, customer accounts and invitations.</div>
     </div>
   </div>
 
+  <!-- Controls -->
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" id="userFilterForm" class="row g-2 align-items-center">
+
+      <div class="col-12 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input
+            type="text"
+            name="q"
+            id="userSearchInput"
+            class="form-control"
+            placeholder="Search name, email or company…"
+            value="{{ q|default:'' }}"
+          >
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4 col-lg-2">
+        <select name="status" id="userStatusSelect" class="form-select">
+          <option value="" {% if not status %}selected{% endif %}>All statuses</option>
+          <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+          <option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-4 col-lg-2">
+        <select name="role" id="userRoleSelect" class="form-select">
+          <option value="" {% if not role %}selected{% endif %}>All roles</option>
+          <option value="admin" {% if role == "admin" %}selected{% endif %}>Admins</option>
+          <option value="customer" {% if role == "customer" %}selected{% endif %}>Customers</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-4 col-lg-3">
+        <select name="sort" id="userSortSelect" class="form-select">
+          <option value="newest" {% if sort == "newest" %}selected{% endif %}>Sort: Newest</option>
+          <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Sort: Oldest</option>
+          <option value="name" {% if sort == "name" %}selected{% endif %}>Sort: Name A–Z</option>
+          <option value="-name" {% if sort == "-name" %}selected{% endif %}>Sort: Name Z–A</option>
+          <option value="email" {% if sort == "email" %}selected{% endif %}>Sort: Email A–Z</option>
+          <option value="-email" {% if sort == "-email" %}selected{% endif %}>Sort: Email Z–A</option>
+        </select>
+      </div>
+
+    </form>
+  </div>
+</div>
+
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
-      <div class="fw-semibold">Användare</div>
-      <span class="badge bg-light text-dark">{{ customers|length }} st</span>
+      <div class="fw-semibold">Users</div>
+      <span class="badge bg-light text-dark">{{ customers|length }} users</span>
     </div>
 
     <div class="table-responsive">
       <table class="table table-striped align-middle mb-0">
         <thead>
           <tr>
-            <th>Namn</th>
-            <th>E-post</th>
-            <th>Roll</th>
-            <th>Företag</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Company</th>
             <th>Status</th>
             <th>Joined</th>
           </tr>
         </thead>
 
         <tbody>
-          {% for u in customers %}
-          <tr>
-            <td>
-              <a href="{% url 'accounts:admin_user_detail' u.pk %}" class="fw-semibold text-decoration-none">
-                {{ u.get_full_name|default:u.username|default:"-" }}
-              </a>
-            </td>
+  {% for u in customers %}
+  <tr>
+    <td>
+      <a href="{% url 'accounts:admin_user_detail' u.pk %}" class="fw-semibold text-decoration-none user-name-link">
+        {{ u.get_full_name|default:u.username|default:"-" }}
+      </a>
+    </td>
 
-            <td>{{ u.email|default:"-" }}</td>
+    <td class="text-muted">{{ u.email|default:"-" }}</td>
 
-            <td>
-              {% if u.is_superuser %}
-                <span class="badge rounded-pill bg-dark">Super admin</span>
-              {% elif u.is_staff %}
-                <span class="badge rounded-pill bg-dark">Admin</span>
-              {% else %}
-                <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">Customer</span>
-              {% endif %}
-            </td>
+    <td>
+      {% if u.is_superuser %}
+        <span class="talena-pill talena-pill-dark">
+          <i data-feather="shield"></i>
+          Super admin
+        </span>
+      {% elif u.is_staff %}
+        <span class="talena-pill talena-pill-dark">
+          <i data-feather="settings"></i>
+          Admin
+        </span>
+      {% else %}
+        <span class="talena-pill talena-pill-purple">
+          <i data-feather="user"></i>
+          Customer
+        </span>
+      {% endif %}
+    </td>
 
-            <td>
-              {% with memberships=u.company_memberships.all %}
-                {% if memberships %}
-                  <div class="d-flex flex-wrap gap-1">
-                    {% for membership in memberships %}
-                      <span class="badge rounded-pill bg-light text-dark border">
-                        {{ membership.company.name }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                {% else %}
-                  <span class="text-muted">Internal / no company</span>
-                {% endif %}
-              {% endwith %}
-            </td>
+    <td>
+      {% with memberships=u.company_memberships.all %}
+        {% if memberships %}
+          <div class="talena-pill-group">
+            {% for membership in memberships %}
+              <span class="talena-pill talena-pill-soft">
+                <i data-feather="briefcase"></i>
+                {{ membership.company.name }}
+              </span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <span class="talena-pill talena-pill-muted">
+            <i data-feather="home"></i>
+            Internal / no company
+          </span>
+        {% endif %}
+      {% endwith %}
+    </td>
 
-            <td>
-              {% if u.is_active %}
-                <span class="badge rounded-pill bg-success">Active</span>
-              {% else %}
-                <span class="badge rounded-pill bg-warning text-dark">Pending</span>
-              {% endif %}
-            </td>
+    <td>
+      {% if u.is_active %}
+        <span class="talena-pill talena-pill-success">
+          <span class="talena-pill-dot"></span>
+          Active
+        </span>
+      {% else %}
+        <span class="talena-pill talena-pill-warning">
+          <span class="talena-pill-dot"></span>
+          Pending
+        </span>
+      {% endif %}
+    </td>
 
-            <td>{{ u.date_joined|date:"Y-m-d H:i" }}</td>
-          </tr>
+    <td class="text-muted">{{ u.date_joined|date:"Y-m-d H:i" }}</td>
+  </tr>
 
-          {% empty %}
-          <tr>
-            <td colspan="6" class="text-muted p-3">Inga användare ännu.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
+  {% empty %}
+  <tr>
+    <td colspan="6" class="text-muted p-3">No users match your filters.</td>
+  </tr>
+  {% endfor %}
+</tbody>
       </table>
     </div>
   </div>
 
 </div>
+
+<script>
+  (function () {
+    const form = document.getElementById("userFilterForm");
+    const searchInput = document.getElementById("userSearchInput");
+    const statusSelect = document.getElementById("userStatusSelect");
+    const roleSelect = document.getElementById("userRoleSelect");
+    const sortSelect = document.getElementById("userSortSelect");
+
+    if (!form) return;
+
+    if (searchInput) {
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          form.submit();
+        }
+      });
+    }
+
+    [statusSelect, roleSelect, sortSelect].forEach(function (select) {
+      if (!select) return;
+
+      select.addEventListener("change", function () {
+        form.submit();
+      });
+    });
+  })();
+</script>
+
 {% endblock %}

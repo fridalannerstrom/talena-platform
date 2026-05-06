@@ -2915,6 +2915,92 @@ color: #6CACCB;
   }
 }
 
+.user-name-link {
+  color: #111827;
+}
+
+.user-name-link:hover {
+  color: #6d5dfc;
+}
+
+.talena-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.talena-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 220px;
+
+  padding: 0.32rem 0.65rem;
+  border-radius: 999px;
+
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.talena-pill svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: 0 0 auto;
+}
+
+.talena-pill-dark {
+  background: #111827;
+  color: #fff;
+}
+
+.talena-pill-purple {
+  background: #f1ebff;
+  color: #6d4bd1;
+  border: 1px solid rgba(109, 75, 209, 0.12);
+}
+
+.talena-pill-soft {
+  background: #f5f3ff;
+  color: #6d4bd1;
+  border: 1px solid rgba(109, 75, 209, 0.12);
+}
+
+.talena-pill-muted {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.talena-pill-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid rgba(4, 120, 87, 0.14);
+}
+
+.talena-pill-warning {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid rgba(194, 65, 12, 0.14);
+}
+
+.talena-pill-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
 /* Admin dashboard activity */ 
 
 /* Recent activity - clean list */

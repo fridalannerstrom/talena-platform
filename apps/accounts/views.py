@@ -682,6 +682,8 @@ def admin_customers_list(request):
 
     q = (request.GET.get("q") or "").strip()
     status = (request.GET.get("status") or "").strip()
+    role = (request.GET.get("role") or "").strip()
+    sort = (request.GET.get("sort") or "newest").strip()
 
     users = (
         User.objects
@@ -690,7 +692,6 @@ def admin_customers_list(request):
             "company_memberships__company",
             "company_memberships__primary_org_unit",
         )
-        .order_by("-date_joined")
     )
 
     if q:
@@ -704,20 +705,31 @@ def admin_customers_list(request):
 
     if status == "active":
         users = users.filter(is_active=True)
-
     elif status == "pending":
         users = users.filter(is_active=False)
 
-    elif status == "admin":
+    if role == "admin":
         users = users.filter(Q(is_staff=True) | Q(is_superuser=True))
-
-    elif status == "customer":
+    elif role == "customer":
         users = users.filter(is_staff=False, is_superuser=False)
 
+    sort_map = {
+        "newest": "-date_joined",
+        "oldest": "date_joined",
+        "name": "first_name",
+        "-name": "-first_name",
+        "email": "email",
+        "-email": "-email",
+    }
+
+    users = users.order_by(sort_map.get(sort, "-date_joined"))
+
     return render(request, "admin/accounts/customer/customers_list.html", {
-        "customers": users,  # behåll namnet så templaten inte går sönder
+        "customers": users,
         "q": q,
         "status": status,
+        "role": role,
+        "sort": sort,
     })
 
 
