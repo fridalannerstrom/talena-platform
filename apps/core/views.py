@@ -33,6 +33,8 @@ from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 from apps.projects.models import ProjectMeta
 
+from apps.accounts.models import Company, OrgUnit, CompanyMember, UserInvite
+
 
 
 User = get_user_model()
@@ -227,7 +229,23 @@ def admin_dashboard(request):
         "completed": invitations_qs.filter(status="completed").count(),
     }
 
-    latest_companies = companies_qs[:5]
+    latest_companies = list(companies_qs[:5])
+
+    company_created_events = (
+        ActivityEvent.objects
+        .filter(
+            company__in=latest_companies,
+            verb=ActivityEvent.Verb.COMPANY_CREATED,
+        )
+        .select_related("actor", "company")
+        .order_by("company_id", "created_at")
+    )
+
+    company_created_by = {}
+
+    for event in company_created_events:
+        if event.company_id not in company_created_by:
+            company_created_by[event.company_id] = event
 
     admin_activity_verbs = [
         ActivityEvent.Verb.COMPANY_CREATED,
@@ -260,6 +278,12 @@ def admin_dashboard(request):
         .order_by("-created_at")[:5]
     )
 
+    latest_user_invites = (
+        UserInvite.objects
+        .select_related("user", "company", "created_by")
+        .order_by("-created_at")[:5]
+    )
+
     return render(request, "admin/core/layouts/admin_dashboard.html", {
         "accounts": accounts,
         "error": error,
@@ -267,6 +291,8 @@ def admin_dashboard(request):
         "latest_companies": latest_companies,
         "latest_processes": latest_processes,
         "activity_events": activity_events,
+        "company_created_by": company_created_by,
+        "latest_user_invites": latest_user_invites,
     })
 
 

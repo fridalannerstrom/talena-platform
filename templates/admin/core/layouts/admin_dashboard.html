@@ -1,6 +1,7 @@
 {% extends "admin/core/layouts/admin_base.html" %}
 {% block content %}
 {% load static %}
+{% load dict_extras %}
 
 <div class="container-fluid px-2 px-md-3 dashboard admin-dashboard">
 
@@ -119,7 +120,7 @@
       </div>
 
       <!-- Latest companies -->
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
         <div>
           <h3 class="mb-1">Latest companies</h3>
           <div class="text-muted small">Companies recently added or available in Talena</div>
@@ -137,18 +138,36 @@
             <a href="{% url 'accounts:company_detail' company.pk %}"
                class="admin-company-row">
 
-              <div class="admin-company-main min-w-0">
-                <div class="admin-company-name text-truncate">
-                  {{ company.name }}
-                </div>
-                <div class="admin-company-sub text-muted small text-truncate">
-                  {% if company.org_number %}
-                    Org no: {{ company.org_number }}
-                  {% else %}
-                    No organisation number added
-                  {% endif %}
-                </div>
-              </div>
+<div class="admin-company-main min-w-0">
+  <div class="admin-company-name text-truncate">
+    {{ company.name }}
+  </div>
+
+  <div class="admin-company-sub text-muted small text-truncate">
+    {% if company.org_number %}
+      Org no: {{ company.org_number }}
+    {% else %}
+      No organisation number added
+    {% endif %}
+  </div>
+
+  {% with created_event=company_created_by|get_item:company.id %}
+    <div class="admin-company-sub admin-company-sub-extra text-muted small text-truncate">
+      Created by
+      {% if created_event and created_event.actor %}
+        {{ created_event.actor.get_full_name|default:created_event.actor.email|default:created_event.actor.username }}
+      {% elif created_event %}
+        {{ created_event.actor_name|default:"System" }}
+      {% else %}
+        Unknown user
+      {% endif %}
+
+      {% if created_event %}
+        · {{ created_event.created_at|date:"Y-m-d H:i" }}
+      {% endif %}
+    </div>
+  {% endwith %}
+</div>
 
               <div class="admin-company-meta">
                 <span class="admin-info-pill">
@@ -188,51 +207,157 @@
         </div>
       </div>
 
-      {% if latest_processes %}
-        <div class="process-rows">
-          {% for p in latest_processes %}
-            <a href="{% url 'accounts:admin_process_detail' p.id %}"
-               class="process-row process-row-link">
+{% if latest_processes %}
+  <div class="process-rows">
+    {% for p in latest_processes %}
+      <a href="{% url 'accounts:admin_process_detail' p.id %}"
+         class="process-row process-row-link">
 
-              <div class="process-col-main min-w-0">
-                <div class="process-name text-truncate">
-                  {{ p.name }}
-                </div>
-                <div class="process-sub text-muted small text-truncate">
-                  {{ p.company.name|default:"No company" }}
-                  {% if p.org_unit %}
-                    · {{ p.org_unit.name }}
-                  {% endif %}
-                </div>
-              </div>
+        {# COL 1: Main info #}
+        <div class="process-col-main min-w-0">
+  <div class="process-name text-truncate">
+    {{ p.name }}
+  </div>
 
-              <div class="process-col-meta">
-                <span class="process-info-pill process-info-pill-candidates">
-                  <span class="process-info-icon">
-                    <i data-feather="users"></i>
-                  </span>
-                  <span class="process-info-text">
-                    {{ p.candidates_count|default:"0" }}
-                  </span>
-                </span>
-              </div>
+  <div class="process-sub text-muted small text-truncate">
+    {{ p.company.name|default:"No company" }}
+    {% if p.org_unit %}
+      · {{ p.org_unit.name }}
+    {% endif %}
+  </div>
 
-              <div class="process-col-label">
-                <div class="process-labels">
-                  <span class="process-label">
-                    {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-                  </span>
-                </div>
-              </div>
+  <div class="process-sub process-sub-extra text-muted small text-truncate">
+    Created by
+    {% if p.created_by %}
+      {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
+    {% else %}
+      Unknown user
+    {% endif %}
+    · {{ p.created_at|date:"Y-m-d H:i" }}
+  </div>
+</div>
 
-            </a>
-          {% endfor %}
+        {# COL 2: Candidates #}
+        <div class="process-col-meta">
+          <span class="process-info-pill process-info-pill-candidates">
+            <span class="process-info-icon">
+              <i data-feather="users"></i>
+            </span>
+            <span class="process-info-text">
+              {{ p.candidates_count|default:"0" }}
+            </span>
+          </span>
         </div>
-      {% else %}
-        <div class="p-3 border rounded bg-light">
-          <div class="text-muted">No test processes yet.</div>
+
+        {# COL 3: Template/project #}
+        <div class="process-col-label">
+          <div class="process-labels">
+            <span class="process-label">
+              {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+            </span>
+          </div>
         </div>
-      {% endif %}
+
+      </a>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="latest-process-empty">
+    <div class="latest-process-empty-icon">
+      <i data-feather="clipboard"></i>
+    </div>
+
+    <div class="latest-process-empty-title">
+      No test processes yet
+    </div>
+
+    <div class="latest-process-empty-text">
+      Once companies start creating test processes, the latest ones will appear here.
+    </div>
+  </div>
+{% endif %}
+
+<!-- Latest user invites -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
+  <div>
+    <h3 class="mb-1">Latest user invites</h3>
+    <div class="text-muted small">Recently invited users across all companies</div>
+  </div>
+
+  <a href="{% url 'accounts:admin_customers_list' %}"
+     class="btn btn-primary btn-sm rounded-pill">
+    View users
+  </a>
+</div>
+
+{% if latest_user_invites %}
+  <div class="admin-invite-rows">
+    {% for invite in latest_user_invites %}
+      <a href="{% url 'accounts:admin_user_detail' invite.user.pk %}"
+         class="admin-invite-row">
+
+        <div class="admin-invite-main min-w-0">
+          <div class="admin-invite-name text-truncate">
+            {{ invite.user.get_full_name|default:invite.user.email|default:invite.user.username }}
+          </div>
+
+          <div class="admin-invite-sub text-muted small text-truncate">
+            {{ invite.user.email|default:"No email" }}
+          </div>
+
+          <div class="admin-invite-sub admin-invite-sub-extra text-muted small text-truncate">
+            Invited by
+            {% if invite.created_by %}
+              {{ invite.created_by.get_full_name|default:invite.created_by.email|default:invite.created_by.username }}
+            {% else %}
+              System
+            {% endif %}
+            · {{ invite.created_at|date:"Y-m-d H:i" }}
+          </div>
+        </div>
+
+        <div class="admin-invite-meta">
+          {% if invite.company %}
+            <span class="admin-info-pill">
+              <i data-feather="briefcase"></i>
+              {{ invite.company.name }}
+            </span>
+          {% endif %}
+
+          {% if invite.revoked_at %}
+            <span class="admin-invite-status is-revoked">
+              Revoked
+            </span>
+          {% elif invite.accepted_at %}
+            <span class="admin-invite-status is-accepted">
+              Accepted
+            </span>
+          {% else %}
+            <span class="admin-invite-status is-pending">
+              Pending
+            </span>
+          {% endif %}
+        </div>
+
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="latest-process-empty">
+    <div class="latest-process-empty-icon">
+      <i data-feather="mail"></i>
+    </div>
+
+    <div class="latest-process-empty-title">
+      No user invites yet
+    </div>
+
+    <div class="latest-process-empty-text">
+      When admins invite users to companies, the latest invitations will appear here.
+    </div>
+  </div>
+{% endif %}
 
     </div>
 

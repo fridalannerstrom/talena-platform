@@ -2504,9 +2504,8 @@ color: #6CACCB;
   height: 100%;
   background: #fff;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 1rem;
+  border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
 }
 
 .admin-flow-note {
@@ -2514,10 +2513,9 @@ color: #6CACCB;
   align-items: flex-start;
   gap: 0.9rem;
   padding: 1rem 1.1rem;
-  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 0.95));
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 1.25rem;
-  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.05);
+  border-radius: 10px;
+  background: white;
 }
 
 .admin-flow-icon {
@@ -2538,14 +2536,14 @@ color: #6CACCB;
 }
 
 .admin-flow-title {
-  font-weight: 700;
+  font-weight: 600;
   color: #111827;
   margin-bottom: 0.15rem;
 }
 
 .admin-flow-text {
   color: #6b7280;
-  font-size: 0.92rem;
+  font-size: 0.7rem;
   line-height: 1.45;
 }
 
@@ -2566,12 +2564,11 @@ color: #6CACCB;
   border-radius: 1rem;
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  border-radius: 10px;
 }
 
 .admin-company-row:hover {
-  transform: translateY(-1px);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
   border-color: rgba(15, 23, 42, 0.14);
   color: inherit;
@@ -2623,6 +2620,297 @@ color: #6CACCB;
   }
 
   .admin-company-meta {
+    justify-content: flex-start;
+  }
+}
+
+/* admin dashboard latest test process */ 
+
+.process-rows {
+  display: grid;
+  gap: .55rem;
+}
+
+.process-row-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: .9rem;
+  align-items: center;
+
+  padding: .75rem .9rem;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  background: #fff;
+
+  text-decoration: none;
+  color: #000;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.process-row-link:hover {
+  background: #fff;
+  border-color: rgba(123, 87, 209, 0.22);
+  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
+  color: black;
+}
+
+.process-col-main {
+  min-width: 0;
+}
+
+.process-name {
+  font-weight: 600;
+}
+
+.process-sub {
+  margin-top: .15rem;
+}
+
+.process-col-meta,
+.process-col-label {
+  display: flex;
+  align-items: center;
+}
+
+.process-col-meta {
+  justify-content: flex-end;
+}
+
+.process-col-label {
+  justify-content: flex-end;
+}
+
+.process-info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  border-radius: 999px;
+  padding: .28rem .55rem;
+  background: #f3f4f6;
+  white-space: nowrap;
+}
+
+.process-info-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.process-info-icon svg,
+.process-row-link svg {
+  width: 12px;
+  height: 12px;
+  color: #505050;
+}
+
+.process-info-text {
+  font-weight: 600;
+  color: #505050;
+}
+
+.process-labels {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+
+.process-label {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .24rem .55rem;
+  background: #f1ebff;
+  color: #6d4bd1;
+  font-size: .72rem;
+  font-weight: 600;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.process-label-muted {
+  background: #f3f4f6;
+  color: #8b92a6;
+}
+
+.process-label-more {
+  background: #f3f4f6;
+  color: #667085;
+}
+
+.latest-process-empty {
+  min-height: 160px;
+  padding: 2rem 1.5rem;
+  border: 1px dashed #d9dbe7;
+  border-radius: 14px;
+  background: #fafbfc;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #8b92a6;
+}
+
+.latest-process-empty-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #f1f2f7;
+  color: #667085;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 0.85rem;
+}
+
+.latest-process-empty-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.latest-process-empty-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2430;
+  margin-bottom: 0.35rem;
+}
+
+.latest-process-empty-text {
+  max-width: 420px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #8b92a6;
+}
+
+@media (max-width: 992px) {
+  .process-row-link {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "main meta"
+      "label label";
+    align-items: start;
+  }
+
+  .process-col-main {
+    grid-area: main;
+  }
+
+  .process-col-meta {
+    grid-area: meta;
+    justify-self: end;
+  }
+
+  .process-col-label {
+    grid-area: label;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  .process-labels {
+    justify-content: flex-start;
+  }
+}
+
+
+.admin-invite-rows {
+  display: grid;
+  gap: .55rem;
+}
+
+.admin-invite-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .9rem;
+  align-items: center;
+
+  padding: .75rem .9rem;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  background: #fff;
+
+  text-decoration: none;
+  color: #000;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.admin-invite-row:hover {
+  background: #fff;
+  border-color: rgba(123, 87, 209, 0.22);
+  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
+  color: black;
+}
+
+.admin-invite-main {
+  min-width: 0;
+}
+
+.admin-invite-name {
+  font-weight: 600;
+}
+
+.admin-invite-sub {
+  margin-top: .15rem;
+}
+
+.admin-invite-sub-extra {
+  margin-top: .12rem;
+  font-size: .72rem;
+  color: #8b92a6 !important;
+}
+
+.admin-invite-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.admin-invite-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .28rem .6rem;
+  font-size: .72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-invite-status.is-pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-invite-status.is-accepted {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-invite-status.is-revoked {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+@media (max-width: 992px) {
+  .admin-invite-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-invite-meta {
     justify-content: flex-start;
   }
 }
