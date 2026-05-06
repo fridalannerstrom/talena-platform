@@ -1,160 +1,471 @@
 {% extends "admin/accounts/companies/company_base.html" %}
-{# Overview #}
+{# Company overview #}
 
 {% block company_content %}
 
-<div class="row g-3">
+<div class="company-overview">
 
-<div class="kpi-grid">
-
-  <div class="card h-100">
+  <!-- Company summary -->
+  <div class="card company-summary-card mb-4">
     <div class="card-body">
-      <div class="text-muted small">Användare</div>
-      <div class="h3 mb-1">{{ users_count|default:"-" }}</div>
-    </div>
-  </div>
+      <div class="row g-3 align-items-center">
 
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Konton</div>
-      <div class="h3 mb-1">{{ accounts_total|default:"-" }}</div>
-    </div>
-  </div>
+        <div class="col-12 col-lg-4">
+          <div class="overview-label">Company</div>
+          <div class="overview-value">{{ company.name }}</div>
+          <div class="overview-sub">
+            Org. no: {{ company.org_number|default:"Not added" }}
+          </div>
+        </div>
 
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Testprocesser</div>
-      <div class="h3 mb-1">{{ processes_count|default:"0" }}</div>
-    </div>
-  </div>
+        <div class="col-12 col-lg-4">
+          <div class="overview-label">Created by</div>
+          <div class="overview-value-sm">
+            {% if company_created_event and company_created_event.actor %}
+              {{ company_created_event.actor.get_full_name|default:company_created_event.actor.email|default:company_created_event.actor.username }}
+            {% elif company_created_event %}
+              {{ company_created_event.actor_name|default:"System" }}
+            {% else %}
+              Unknown
+            {% endif %}
+          </div>
+          <div class="overview-sub">
+            {% if company_created_event %}
+              {{ company_created_event.created_at|date:"Y-m-d H:i" }}
+            {% else %}
+              No creation event found
+            {% endif %}
+          </div>
+        </div>
 
-<div class="card h-100">
-  <div class="card-body">
-    <div class="text-muted small">Totalt skickade tester</div>
-    <div class="h3 mb-1">{{ invitations_created|default:"0" }}</div>
-  </div>
-</div>
+        <div class="col-12 col-lg-4">
+          <div class="overview-label">Setup status</div>
+          <div class="d-flex flex-wrap gap-2 mt-1">
+            {% if users_count %}
+              <span class="talena-pill talena-pill-success">
+                <span class="talena-pill-dot"></span>
+                Users added
+              </span>
+            {% else %}
+              <span class="talena-pill talena-pill-warning">
+                <span class="talena-pill-dot"></span>
+                No users yet
+              </span>
+            {% endif %}
 
-<div class="card h-100">
-  <div class="card-body">
-    <div class="text-muted small">Kandidater</div>
-    <div class="h3 mb-1">
-      {{ candidates_count|default:"0" }}
-    </div>
-  </div>
-</div>
+            {% if accounts_total %}
+              <span class="talena-pill talena-pill-purple">
+                {{ accounts_total }} account{{ accounts_total|pluralize }}
+              </span>
+            {% else %}
+              <span class="talena-pill talena-pill-muted">
+                No accounts
+              </span>
+            {% endif %}
+          </div>
+        </div>
 
-
-</div>
-
-  {# LEFT: Senaste användare #}
-  <div class="col-12 col-xl-6">
-    <div class="card h-100">
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <div class="fw-semibold">Senaste användare</div>
       </div>
+    </div>
+  </div>
 
+  <!-- KPI cards -->
+  <div class="kpi-grid mb-4">
+
+    <div class="card h-100">
       <div class="card-body">
-        {% with recent=memberships|slice:":6" %}
-          {% if recent %}
-            <div class="d-grid gap-2">
-              {% for m in recent %}
-                <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
-                  <div class="d-flex align-items-center gap-3 min-w-0">
-                    <div class="user-initials">
-                      {% if m.user.first_name and m.user.last_name %}
-                        {{ m.user.first_name|slice:":1"|upper }}{{ m.user.last_name|slice:":1"|upper }}
-                      {% elif m.user.first_name %}
-                        {{ m.user.first_name|slice:":1"|upper }}
+        <div class="text-muted small">Users</div>
+        <div class="h3 mb-1">{{ users_count|default:"0" }}</div>
+        <div class="kpi-subtext">
+          {{ active_users_count|default:"0" }} active · {{ pending_users_count|default:"0" }} pending
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Accounts</div>
+        <div class="h3 mb-1">{{ accounts_total|default:"0" }}</div>
+        <div class="kpi-subtext">
+          {{ accounts_root|default:"0" }} root · {{ accounts_sub|default:"0" }} sub accounts
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Test processes</div>
+        <div class="h3 mb-1">{{ processes_count|default:"0" }}</div>
+        <div class="kpi-subtext">
+          Created for this company
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Candidate invitations</div>
+        <div class="h3 mb-1">{{ candidate_invitations_count|default:invitations_count|default:"0" }}</div>
+        <div class="kpi-subtext">
+          Candidates invited to processes
+        </div>
+      </div>
+    </div>
+
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Completed candidates</div>
+        <div class="h3 mb-1">{{ completed_candidates_count|default:"0" }}</div>
+        <div class="kpi-subtext">
+          Completed all assigned tests
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Latest users -->
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-semibold">Latest users</div>
+            <div class="text-muted small">Recently added company members</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          {% with recent=memberships|slice:":6" %}
+            {% if recent %}
+              <div class="d-grid gap-2">
+                {% for m in recent %}
+                  <div class="company-user-row">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                      <div class="user-initials">
+                        {% if m.user.first_name and m.user.last_name %}
+                          {{ m.user.first_name|slice:":1"|upper }}{{ m.user.last_name|slice:":1"|upper }}
+                        {% elif m.user.first_name %}
+                          {{ m.user.first_name|slice:":1"|upper }}
+                        {% else %}
+                          {{ m.user.email|slice:":1"|upper }}
+                        {% endif %}
+                      </div>
+
+                      <div class="min-w-0">
+                        <div class="fw-semibold text-truncate">
+                          <a class="user-link"
+                             href="{% url 'accounts:admin_user_detail' m.user.pk %}?next={{ request.get_full_path|urlencode }}">
+                            {% if m.user.first_name or m.user.last_name %}
+                              {{ m.user.get_full_name }}
+                            {% else %}
+                              {{ m.user.email }}
+                            {% endif %}
+                          </a>
+                        </div>
+
+                        <div class="text-muted small text-truncate">
+                          {{ m.user.email }}
+                        </div>
+
+                        <div class="text-muted small text-truncate company-user-added">
+                          Added {{ m.created_at|date:"Y-m-d H:i" }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ms-3">
+                      {% if m.user.is_active %}
+                        <span class="talena-pill talena-pill-success">
+                          <span class="talena-pill-dot"></span>
+                          Active
+                        </span>
                       {% else %}
-                        {{ m.user.email|slice:":1"|upper }}
+                        <span class="talena-pill talena-pill-warning">
+                          <span class="talena-pill-dot"></span>
+                          Pending
+                        </span>
                       {% endif %}
                     </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="overview-empty">
+                No users have been added yet.
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
 
-                    <div class="min-w-0">
-                      <div class="fw-semibold text-truncate">
-                        <a class="user-link"
-                           href="{% url 'accounts:admin_user_detail' m.user.pk %}?next={{ request.get_full_path|urlencode }}">
-                          {% if m.user.first_name or m.user.last_name %}
-                            {{ m.user.get_full_name }}
-                          {% else %}
-                            {{ m.user.email }}
-                          {% endif %}
-                        </a>
-                      </div>
-                      <div class="text-muted small text-truncate">{{ m.user.email }}</div>
+        <div class="card-footer bg-transparent">
+          <a class="btn btn-primary w-100"
+             href="{% url 'accounts:company_users' company.pk %}">
+            Manage users
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidate progress -->
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-semibold">Candidate progress</div>
+            <div class="text-muted small">Status based on candidate invitations</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="d-grid gap-2">
+
+            <div class="status-row">
+              <div>
+                <div class="fw-semibold">Invited candidates</div>
+                <div class="text-muted small">Added to a test process</div>
+              </div>
+              <span class="status-count">{{ candidate_invitations_count|default:invitations_count|default:"0" }}</span>
+            </div>
+
+            <div class="status-row">
+              <div>
+                <div class="fw-semibold">Started candidates</div>
+                <div class="text-muted small">Started at least one test</div>
+              </div>
+              <span class="status-count">{{ started_candidates_count|default:"0" }}</span>
+            </div>
+
+            <div class="status-row">
+              <div>
+                <div class="fw-semibold">Completed candidates</div>
+                <div class="text-muted small">Completed all assigned tests</div>
+              </div>
+              <span class="status-count">{{ completed_candidates_count|default:"0" }}</span>
+            </div>
+
+            <div class="status-row">
+              <div>
+                <div class="fw-semibold">Unique candidates</div>
+                <div class="text-muted small">Distinct candidates in this company</div>
+              </div>
+              <span class="status-count">{{ candidates_count|default:"0" }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card-footer bg-transparent">
+          <a class="btn btn-primary w-100"
+             href="{% url 'accounts:company_stats' company.pk %}">
+            View statistics & details
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest test processes -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-semibold">Latest test processes</div>
+            <div class="text-muted small">Recently created processes for this company</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          {% if latest_processes %}
+            <div class="process-rows">
+              {% for p in latest_processes %}
+                <a href="{% url 'accounts:admin_process_detail' p.id %}"
+                   class="process-row process-row-link">
+
+                  <div class="process-col-main min-w-0">
+                    <div class="process-name text-truncate">
+                      {{ p.name }}
+                    </div>
+
+                    <div class="process-sub text-muted small text-truncate">
+                      {{ p.org_unit.name|default:"No account" }}
+                    </div>
+
+                    <div class="process-sub process-sub-extra text-muted small text-truncate">
+                      Created by
+                      {% if p.created_by %}
+                        {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
+                      {% else %}
+                        Unknown user
+                      {% endif %}
+                      · {{ p.created_at|date:"Y-m-d H:i" }}
                     </div>
                   </div>
 
-                  <div class="ms-3">
-                    {% if m.user.is_active %}
-                      <span class="badge bg-success">Aktiv</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">Inbjudan skickad</span>
-                    {% endif %}
+                  <div class="process-col-meta">
+                    <span class="process-info-pill process-info-pill-candidates">
+                      <span class="process-info-icon">
+                        <i data-feather="users"></i>
+                      </span>
+                      <span class="process-info-text">
+                        {{ p.candidates_count|default:"0" }}
+                      </span>
+                    </span>
                   </div>
-                </div>
+
+                  <div class="process-col-label">
+                    <div class="process-labels">
+                      <span class="process-label">
+                        {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+                      </span>
+                    </div>
+                  </div>
+
+                </a>
               {% endfor %}
             </div>
           {% else %}
-            <div class="text-muted">Inga användare ännu.</div>
+            <div class="overview-empty">
+              No test processes have been created yet.
+            </div>
           {% endif %}
-        {% endwith %}
-      </div>
-
-      <div class="card-footer bg-transparent">
-        <a class="btn btn-primary w-100"
-           href="{% url 'accounts:company_users' company.pk %}">
-          Hantera användare
-        </a>
-      </div>
-    </div>
-  </div>
-
-
-  {# RIGHT: Skickade tester (status) #}
-  <div class="col-12 col-xl-6">
-    <div class="card h-100">
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <div class="fw-semibold">Skickade tester</div>
-      </div>
-
-      <div class="card-body">
-        <div class="text-muted small mb-3">
-          Snabb översikt av status (baserat på skickade inbjudningar).
         </div>
-
-        {% if invitation_status %}
-          <div class="d-grid gap-2">
-{% for row in invitation_status %}
-  <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2">
-    <div class="fw-semibold">
-      {% with s=row.status %}
-        {% if s == "created" %}Totalt skickade tester
-        {% elif s == "sent" %}Ej påbörjade tester
-        {% elif s == "completed" %}Slutförda tester
-        {% else %}{{ s|default:"Okänd" }}
-        {% endif %}
-      {% endwith %}
-    </div>
-    <span class="fw-semibold">{{ row.count }}</span>
-  </div>
-{% endfor %}
-          </div>
-        {% else %}
-          <div class="text-muted">Ingen data ännu.</div>
-        {% endif %}
-      </div>
-
-      <div class="card-footer bg-transparent">
-        <a class="btn btn-primary w-100"
-           href="{% url 'accounts:company_stats' company.pk %}">
-          Gå till statistik & detaljer
-        </a>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
+
+<style>
+  .company-summary-card {
+    border-radius: 14px;
+  }
+
+  .overview-label {
+    font-size: 0.72rem;
+    color: #8b92a6;
+    margin-bottom: 0.2rem;
+  }
+
+  .overview-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .overview-value-sm {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .overview-sub,
+  .kpi-subtext {
+    font-size: 0.76rem;
+    color: #8b92a6;
+  }
+
+  .company-user-row,
+  .status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    border: 1px solid rgba(0, 0, 0, .08);
+    border-radius: 10px;
+    padding: .75rem .9rem;
+    background: #fff;
+  }
+
+  .company-user-added {
+    margin-top: .1rem;
+    font-size: .72rem;
+  }
+
+  .status-count {
+    min-width: 2rem;
+    text-align: right;
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .overview-empty {
+    padding: 1rem;
+    border: 1px dashed #d9dbe7;
+    border-radius: 14px;
+    color: #8b92a6;
+    background: #fafbfc;
+    text-align: center;
+  }
+
+  .process-sub-extra {
+    margin-top: .12rem;
+    font-size: .72rem;
+    color: #8b92a6 !important;
+  }
+
+  .talena-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 220px;
+
+    padding: 0.32rem 0.65rem;
+    border-radius: 999px;
+
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .talena-pill-success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid rgba(4, 120, 87, 0.14);
+  }
+
+  .talena-pill-warning {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid rgba(194, 65, 12, 0.14);
+  }
+
+  .talena-pill-purple {
+    background: #f1ebff;
+    color: #6d4bd1;
+    border: 1px solid rgba(109, 75, 209, 0.12);
+  }
+
+  .talena-pill-muted {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid rgba(17, 24, 39, 0.06);
+  }
+
+  .talena-pill-dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: currentColor;
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .company-user-row,
+    .status-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .status-count {
+      text-align: left;
+    }
+  }
+</style>
 
 {% endblock %}

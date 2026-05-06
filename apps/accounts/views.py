@@ -908,6 +908,45 @@ def company_detail(request, pk):
     invitations_qs = TestInvitation.objects.filter(process__company=company)
     invitations_count = invitations_qs.count()
 
+    company_created_event = (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            verb=ActivityEvent.Verb.COMPANY_CREATED,
+        )
+        .select_related("actor")
+        .order_by("created_at")
+        .first()
+    )
+
+    active_users_count = CompanyMember.objects.filter(
+        company=company,
+        user__is_active=True,
+    ).count()
+
+    pending_users_count = CompanyMember.objects.filter(
+        company=company,
+        user__is_active=False,
+    ).count()
+
+    candidate_invitations_count = invitations_qs.count()
+
+    started_candidates_count = invitations_qs.filter(
+        status__in=["started", "completed"]
+    ).count()
+
+    completed_candidates_count = invitations_qs.filter(
+        status="completed"
+    ).count()
+
+    latest_processes = (
+        TestProcess.objects
+        .filter(company=company)
+        .select_related("created_by", "org_unit")
+        .annotate(candidates_count=Count("invitations", distinct=True))
+        .order_by("-created_at")[:4]
+    )
+
     candidates_count = invitations_qs.values("candidate_id").distinct().count()
 
     invite_form = CompanyInviteMemberForm() 
@@ -1068,6 +1107,17 @@ def company_detail(request, pk):
 
         # Modal/form
         "invite_form": invite_form,
+        "active": "overview",
+
+        "company_created_event": company_created_event,
+        "active_users_count": active_users_count,
+        "pending_users_count": pending_users_count,
+
+        "candidate_invitations_count": candidate_invitations_count,
+        "started_candidates_count": started_candidates_count,
+        "completed_candidates_count": completed_candidates_count,
+
+        "latest_processes": latest_processes,
     })
 
 
