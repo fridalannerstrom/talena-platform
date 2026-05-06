@@ -2627,6 +2627,131 @@ color: #6CACCB;
   }
 }
 
+/* Admin dashboard activity */ 
+
+/* Recent activity - clean list */
+.recent-activity-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.recent-activity-item {
+  width: 100%;
+  min-width: 0;
+}
+
+.recent-activity-card {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #ececf2;
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.2s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.recent-activity-card:hover {
+  border-color: rgba(123, 87, 209, 0.22);
+  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
+  color: inherit;
+}
+
+.recent-activity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.recent-activity-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.recent-activity-time {
+  font-size: 0.68rem;
+  color: #8b92a6;
+  white-space: nowrap;
+}
+
+.recent-activity-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #1f2430;
+  margin-bottom: 0.4rem;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.recent-activity-process {
+  font-size: 0.7rem;
+  color: #667085;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.recent-activity-empty {
+  padding: 1rem;
+  border: 1px dashed #d9dbe7;
+  border-radius: 14px;
+  color: #8b92a6;
+  background: #fafbfc;
+}
+
+.recent-activity-badge.is-invite {
+  background: #fff4d8;
+  color: #946200;
+}
+
+.recent-activity-badge.is-added {
+  background: #e6f4ff;
+  color: #0b69b3;
+}
+
+.recent-activity-badge.is-status {
+  background: #e8f8ee;
+  color: #1d8a52;
+}
+
+.recent-activity-badge.is-created {
+  background: #f1ebff;
+  color: #7b57d1;
+}
+
+.recent-activity-badge.is-default {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Admin-specific activity badges */
+.recent-activity-badge.is-login {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.recent-activity-badge.is-access {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
 /* ===== NAV BUTTONS OUTSIDE ===== */
 
 .sheet-nav {

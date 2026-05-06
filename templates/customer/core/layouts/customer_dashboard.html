@@ -163,9 +163,22 @@
   </div>
 
 {% else %}
-  <div class="p-3 border rounded bg-light">
-    <div class="text-muted">No active test processes yet.</div>
-    <a class="btn btn-primary btn-sm mt-2" href="{% url 'processes:process_create' %}">
+  <div class="latest-process-empty">
+    <div class="latest-process-empty-icon">
+      <i data-feather="clipboard"></i>
+    </div>
+
+    <div class="latest-process-empty-title">
+      No active test processes yet
+    </div>
+
+    <div class="latest-process-empty-text">
+      Create your first test process to send assessments and follow candidate progress here.
+    </div>
+
+    <a class="btn btn-primary btn-sm rounded-pill mt-3"
+       href="{% url 'processes:process_create' %}">
+      <i data-feather="plus" class="me-1"></i>
       Create test process
     </a>
   </div>
@@ -474,6 +487,55 @@
   background: #f3f4f6;
   color: #6b7280;
 }
+
+.latest-process-empty {
+  min-height: 160px;
+  padding: 2rem 1.5rem;
+  border: 1px dashed #d9dbe7;
+  border-radius: 14px;
+  background: #fafbfc;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #8b92a6;
+}
+
+.latest-process-empty-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #f1f2f7;
+  color: #667085;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 0.85rem;
+}
+
+.latest-process-empty-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.latest-process-empty-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2430;
+  margin-bottom: 0.35rem;
+}
+
+.latest-process-empty-text {
+  max-width: 420px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #8b92a6;
+}
+
 /* Responsive: row becomes two rows */
 @media (max-width: 992px){
   .process-row-link{

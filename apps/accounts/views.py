@@ -20,6 +20,8 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from apps.activity.services import log_event
+
 from apps.processes.views import build_cognitive_reports_for_test
 
 from apps.processes.views import build_personality_reports_for_candidate
@@ -996,8 +998,22 @@ def company_detail(request, pk):
                         company=company,
                     )
 
-                messages.success(request, f"Inbjudan skickades till {email}.")
-                return redirect("accounts:company_detail", pk=company.pk)
+                    log_event(
+                        company=company,
+                        actor=request.user,
+                        verb=ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
+                        meta={
+                            "company_id": company.id,
+                            "company_name": company.name,
+                            "invited_user_id": user.id,
+                            "invited_user_email": user.email,
+                            "invited_user_name": user.get_full_name(),
+                            "invite_id": str(invite.id),
+                        },
+                    )
+
+                    messages.success(request, f"Inbjudan skickades till {email}.")
+                    return redirect("accounts:company_detail", pk=company.pk)
 
             messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
 
@@ -1084,6 +1100,18 @@ def company_create(request):
         form = CompanyForm(request.POST)
         if form.is_valid():
             company = form.save()
+
+            log_event(
+                company=company,
+                actor=request.user,
+                verb=ActivityEvent.Verb.COMPANY_CREATED,
+                meta={
+                    "company_id": company.id,
+                    "company_name": company.name,
+                    "org_number": company.org_number,
+                },
+            )
+
             messages.success(request, f"Företag '{company.name}' skapat.")
             return redirect("accounts:company_detail", pk=company.pk)
     else:
@@ -1118,6 +1146,20 @@ def accept_invite_uuid(request, invite_id):
 
             invite.accepted_at = timezone.now()
             invite.save(update_fields=["accepted_at"])
+
+            log_event(
+                company=invite.company,
+                actor=user,
+                verb=ActivityEvent.Verb.COMPANY_INVITE_ACCEPTED,
+                meta={
+                    "company_id": invite.company.id,
+                    "company_name": invite.company.name,
+                    "user_id": user.id,
+                    "user_email": user.email,
+                    "user_name": user.get_full_name(),
+                    "invite_id": str(invite.id),
+                },
+            )
 
             login(request, user)
             return redirect("core:post_login_redirect")

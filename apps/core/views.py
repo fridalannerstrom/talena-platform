@@ -188,18 +188,6 @@ def customer_dashboard(request):
         }
     )
 
-    return render(
-        request,
-        "customer/core/layouts/customer_dashboard.html",
-        {
-            "accounts": accounts,
-            "error": error,
-            "total_processes": total_processes,
-            "processes": accessible_processes[:5],  # senaste 5 (som användaren faktiskt ser i listan)
-            "stats": stats,
-            "activity_events": activity_events,
-        }
-    )
 
 @login_required
 def admin_dashboard(request):
@@ -241,10 +229,28 @@ def admin_dashboard(request):
 
     latest_companies = companies_qs[:5]
 
+    admin_activity_verbs = [
+        ActivityEvent.Verb.COMPANY_CREATED,
+        ActivityEvent.Verb.COMPANY_UPDATED,
+        ActivityEvent.Verb.COMPANY_DELETED,
+        ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
+        ActivityEvent.Verb.COMPANY_MEMBER_ADDED,
+        ActivityEvent.Verb.COMPANY_MEMBER_REMOVED,
+        ActivityEvent.Verb.COMPANY_MEMBER_ROLE_UPDATED,
+        ActivityEvent.Verb.COMPANY_INVITE_ACCEPTED,
+        ActivityEvent.Verb.ORGUNIT_CREATED,
+        ActivityEvent.Verb.ORGUNIT_UPDATED,
+        ActivityEvent.Verb.ORGUNIT_MOVED,
+        ActivityEvent.Verb.ORGUNIT_DELETED,
+        ActivityEvent.Verb.USER_ACCESS_UPDATED,
+        ActivityEvent.Verb.USER_LOGGED_IN,
+    ]
+
     activity_events = (
         ActivityEvent.objects
+        .filter(verb__in=admin_activity_verbs)
         .select_related("actor", "company", "process", "candidate", "invitation")
-        .order_by("-created_at")[:8]
+        .order_by("-created_at")[:10]
     )
 
     latest_processes = (

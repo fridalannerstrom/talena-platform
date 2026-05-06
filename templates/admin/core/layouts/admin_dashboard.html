@@ -236,87 +236,110 @@
 
     </div>
 
-    <!-- Right column: activity -->
-    <div class="col-12 col-xl-4">
+   <!-- Right: Admin activity feed -->
+<div class="col-12 col-xl-4">
 
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-          <h3 class="mb-1">Recent activity</h3>
-          <div class="text-muted small">Activity across all customers</div>
-        </div>
-      </div>
+  <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+    <div>
+      <h3 class="mb-1">Recent activity</h3>
+      <div class="text-muted small">Admin activity across companies and users</div>
+    </div>
 
-      <div class="recent-activity-list">
-        {% for event in activity_events %}
-          <div class="recent-activity-item">
+    <a href="#"
+       class="btn btn-primary btn-sm rounded-pill">
+      View all
+    </a>
+  </div>
 
-            {% if event.process %}
-              <a href="{% url 'accounts:admin_process_detail' event.process.pk %}"
-                 class="recent-activity-card">
-            {% elif event.company %}
-              <a href="{% url 'accounts:company_detail' event.company.pk %}"
-                 class="recent-activity-card">
-            {% else %}
-              <div class="recent-activity-card">
-            {% endif %}
+  <div class="recent-activity-list">
+    {% for event in activity_events|slice:":5" %}
+      <div class="recent-activity-item">
 
-                <div class="recent-activity-head">
-                  <span class="recent-activity-badge
-                    {% if event.verb == 'invite_sent' %}is-invite
-                    {% elif event.verb == 'candidate_added' %}is-added
-                    {% elif event.verb == 'status_changed' %}is-status
-                    {% elif event.verb == 'process_created' %}is-created
-                    {% else %}is-default{% endif %}">
+        {% if event.company %}
+          <a
+            href="{% url 'accounts:company_detail' event.company.pk %}"
+            class="recent-activity-card"
+          >
+        {% else %}
+          <div class="recent-activity-card">
+        {% endif %}
 
-                    {% if event.verb == 'invite_sent' %}
-                      Invitation sent
-                    {% elif event.verb == 'candidate_added' %}
-                      Candidate added
-                    {% elif event.verb == 'status_changed' %}
-                      Status updated
-                    {% elif event.verb == 'process_created' %}
-                      Process created
-                    {% elif event.verb == 'test_completed' %}
-                      Test completed
-                    {% else %}
-                      Activity
-                    {% endif %}
-                  </span>
+            <div class="recent-activity-head">
+              <span class="recent-activity-badge
+                {% if event.verb == 'company_created' %}is-created
+                {% elif event.verb == 'company_updated' %}is-status
+                {% elif event.verb == 'company_member_invited' %}is-invite
+                {% elif event.verb == 'company_member_added' %}is-added
+                {% elif event.verb == 'company_member_removed' %}is-default
+                {% elif event.verb == 'company_invite_accepted' %}is-added
+                {% elif event.verb == 'orgunit_created' %}is-created
+                {% elif event.verb == 'orgunit_moved' %}is-status
+                {% elif event.verb == 'user_access_updated' %}is-status
+                {% elif event.verb == 'user_logged_in' %}is-login
+                {% else %}is-default{% endif %}">
 
-                  <span class="recent-activity-time">
-                    {{ event.created_at|date:"Y-m-d H:i" }}
-                  </span>
-                </div>
-
-                <div class="recent-activity-title">
-                  {{ event.message }}
-                </div>
-
-                {% if event.company %}
-                  <div class="recent-activity-process">
-                    Company: {{ event.company.name }}
-                  </div>
-                {% elif event.process and event.process.company %}
-                  <div class="recent-activity-process">
-                    Company: {{ event.process.company.name }}
-                  </div>
+                {% if event.verb == 'company_created' %}
+                  Company created
+                {% elif event.verb == 'company_updated' %}
+                  Company updated
+                {% elif event.verb == 'company_deleted' %}
+                  Company deleted
+                {% elif event.verb == 'company_member_invited' %}
+                  User invited
+                {% elif event.verb == 'company_member_added' %}
+                  User added
+                {% elif event.verb == 'company_member_removed' %}
+                  User removed
+                {% elif event.verb == 'company_member_role_updated' %}
+                  Role updated
+                {% elif event.verb == 'company_invite_accepted' %}
+                  Invite accepted
+                {% elif event.verb == 'orgunit_created' %}
+                  Account created
+                {% elif event.verb == 'orgunit_updated' %}
+                  Account updated
+                {% elif event.verb == 'orgunit_moved' %}
+                  Account moved
+                {% elif event.verb == 'orgunit_deleted' %}
+                  Account deleted
+                {% elif event.verb == 'user_access_updated' %}
+                  Access updated
+                {% elif event.verb == 'user_logged_in' %}
+                  Login
+                {% else %}
+                  Admin activity
                 {% endif %}
+              </span>
 
-            {% if event.process or event.company %}
-              </a>
-            {% else %}
+              <span class="recent-activity-time">
+                {{ event.created_at|date:"Y-m-d H:i" }}
+              </span>
+            </div>
+
+            <div class="recent-activity-title">
+              {{ event.message }}
+            </div>
+
+            {% if event.company %}
+              <div class="recent-activity-process">
+                Company: {{ event.company.name }}
               </div>
             {% endif %}
 
+        {% if event.company %}
+          </a>
+        {% else %}
           </div>
-        {% empty %}
-          <div class="recent-activity-empty">
-            No activity yet.
-          </div>
-        {% endfor %}
-      </div>
+        {% endif %}
 
-    </div>
+      </div>
+    {% empty %}
+      <div class="recent-activity-empty">
+        No activity yet.
+      </div>
+    {% endfor %}
+  </div>
+</div>
   </div>
 </div>
 
