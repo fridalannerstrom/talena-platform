@@ -1314,6 +1314,9 @@ def company_account_structure(request, pk):
         "orgunit_form": orgunit_form,
         "root_units": root_units,
         "children_map": children_map,
+        "active": "structure",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
     })
 
 
@@ -1392,6 +1395,9 @@ def company_user_access(request, pk):
         "selected_primary_id": selected_primary_id,
         "perm_map": perm_map,
         "all_units": all_units,
+        "active": "access",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
     })
 
 
@@ -1548,7 +1554,7 @@ def company_users(request, pk):
     return render(request, "admin/accounts/companies/company_users.html", {
         "company": company,
         "memberships": memberships,
-        "active_tab": "users",
+        "active": "users",
         "show_invite_button": True,  # så knappen syns uppe i headern
         "invite_form": invite_form,  # ✅
     })
@@ -1607,7 +1613,7 @@ def company_stats(request, pk):
 
     return render(request, "admin/accounts/companies/company_stats.html", {
         "company": company,
-        "active_tab": "stats",
+        "active": "stats",
         "show_invite_button": True,
 
         "users_count": users_count,

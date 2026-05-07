@@ -13,6 +13,14 @@
         <div class="company-hero__sub text-muted">
           Org. no: <span class="fw-semibold">{{ company.org_number|default:"-" }}</span>
         </div>
+        {% if company_created_event and company_created_event.actor %}
+  <div class="company-hero__sub text-muted">
+    Created by
+    <span class="fw-semibold">
+      {{ company_created_event.actor.get_full_name|default:company_created_event.actor.email }}
+    </span>
+  </div>
+{% endif %}
       </div>
     </div>
 
