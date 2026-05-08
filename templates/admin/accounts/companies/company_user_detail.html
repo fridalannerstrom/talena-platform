@@ -1,0 +1,211 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-3">
+  <a href="{% url 'accounts:company_users' company.pk %}"
+     class="text-muted text-decoration-none small">
+    ← Back to users
+  </a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-center gap-3">
+    <div class="user-initials user-initials-lg">
+      {% if user_obj.first_name and user_obj.last_name %}
+        {{ user_obj.first_name|slice:":1"|upper }}{{ user_obj.last_name|slice:":1"|upper }}
+      {% elif user_obj.first_name %}
+        {{ user_obj.first_name|slice:":1"|upper }}
+      {% else %}
+        {{ user_obj.email|slice:":1"|upper }}
+      {% endif %}
+    </div>
+
+    <div>
+      <h1 class="h3 mb-1">
+        {% if user_obj.first_name or user_obj.last_name %}
+          {{ user_obj.get_full_name }}
+        {% else %}
+          {{ user_obj.email }}
+        {% endif %}
+      </h1>
+
+      <div class="text-muted">
+        {{ user_obj.email }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-grid mb-3">
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Created test processes</div>
+      <div class="h3 mb-1">{{ processes_count|default:"0" }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Sent tests</div>
+      <div class="h3 mb-1">{{ invitations_created|default:"0" }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Completed tests</div>
+      <div class="h3 mb-1">{{ invitations_completed|default:"0" }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Last login</div>
+      <div class="fw-semibold">
+        {% if user_obj.last_login %}
+          {{ user_obj.last_login|date:"Y-m-d H:i" }}
+        {% else %}
+          Never
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Account created</div>
+      <div class="fw-semibold">
+        {{ user_obj.date_joined|date:"Y-m-d H:i" }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-5">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="fw-semibold">User information</div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row">
+          <span>Email</span>
+          <strong>{{ user_obj.email }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span>Name</span>
+          <strong>{{ user_obj.get_full_name|default:"-" }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span>Status</span>
+          {% if user_obj.is_active %}
+            <span class="talena-pill talena-pill-success">
+              <span class="talena-pill-dot"></span>
+              Active
+            </span>
+          {% else %}
+            <span class="talena-pill talena-pill-warning">
+              <span class="talena-pill-dot"></span>
+              Pending
+            </span>
+          {% endif %}
+        </div>
+
+        {% if orgunit_accesses %}
+          <div class="mt-4">
+            <div class="text-muted small mb-2">Account access</div>
+
+            <div class="d-grid gap-2">
+              {% for access in orgunit_accesses %}
+                <div class="company-mini-card">
+                  <div>
+                    <div class="fw-semibold">{{ access.org_unit.name }}</div>
+                    <div class="text-muted small">{{ access.permission }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Test processes created by this user</div>
+      </div>
+
+      <div class="card-body">
+        {% if processes %}
+          <div class="process-rows">
+            {% for p in processes %}
+              <a href="{% url 'accounts:admin_process_detail' p.pk %}"
+                 class="process-row process-row-link">
+                <div class="process-col-main min-w-0">
+                  <div class="process-name text-truncate">{{ p.name }}</div>
+                  <div class="process-sub text-muted small text-truncate">
+                    {{ p.org_unit.name|default:"No account" }} · {{ p.created_at|date:"Y-m-d H:i" }}
+                  </div>
+                </div>
+
+                <div class="process-col-meta">
+                  <span class="process-info-pill process-info-pill-candidates">
+                    <i data-feather="users"></i>
+                    {{ p.invitations_count|default:"0" }}
+                  </span>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="overview-empty">
+            No test processes have been created by this user yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .user-initials-lg {
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1rem;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    background: #fff;
+  }
+
+  .info-row span:first-child {
+    color: #6b7280;
+  }
+
+  .company-mini-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    background: #fff;
+  }
+</style>
+
+{% endblock %}

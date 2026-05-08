@@ -49,6 +49,11 @@
       Users
     </a>
 
+    <a class="company-nav__item {% if active == 'processes' %}is-active{% endif %}"
+   href="{% url 'accounts:company_processes' company.pk %}">
+  Test processes
+</a>
+
     <a class="company-nav__item {% if active == 'structure' %}is-active{% endif %}"
        href="{% url 'accounts:company_account_structure' company.pk %}">
       Account structure

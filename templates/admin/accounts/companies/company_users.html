@@ -5,80 +5,123 @@
 <div class="card">
   <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
-      <div class="fw-semibold">Användare</div>
-      <div class="text-muted small">Alla användare som är kopplade till {{ company.name }}.</div>
+      <div class="fw-semibold">Users</div>
+      <div class="text-muted small">
+        All users connected to {{ company.name }}.
+      </div>
     </div>
 
-    <span class="badge bg-light text-dark">{{ memberships|length }}</span>
+    <span class="badge bg-light text-dark">
+      {{ memberships|length }} users
+    </span>
   </div>
 
   <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead class="table-light">
+    <table class="table table-striped align-middle mb-0">
+      <thead>
         <tr>
-          <th style="width: 32%;">Namn</th>
-          <th>E-post</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Company</th>
           <th>Status</th>
-          <th style="width: 160px;">Tillagd</th>
+          <th>Added</th>
         </tr>
       </thead>
 
       <tbody>
         {% for m in memberships %}
-        <tr>
-          <td>
-  <div class="d-flex align-items-center gap-3">
-    {# Initialer #}
-    <div class="user-initials">
-      {% if m.user.first_name and m.user.last_name %}
-        {{ m.user.first_name|slice:":1"|upper }}{{ m.user.last_name|slice:":1"|upper }}
-      {% elif m.user.first_name %}
-        {{ m.user.first_name|slice:":1"|upper }}
-      {% else %}
-        {{ m.user.email|slice:":1"|upper }}
-      {% endif %}
-    </div>
+          {% with u=m.user %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="user-initials">
+                    {% if u.first_name and u.last_name %}
+                      {{ u.first_name|slice:":1"|upper }}{{ u.last_name|slice:":1"|upper }}
+                    {% elif u.first_name %}
+                      {{ u.first_name|slice:":1"|upper }}
+                    {% else %}
+                      {{ u.email|slice:":1"|upper }}
+                    {% endif %}
+                  </div>
 
-    <div class="min-w-0">
-      <div class="fw-semibold text-truncate">
-        <a class="user-link"
-           href="{% url 'accounts:admin_user_detail' m.user.pk %}">
-          {% if m.user.first_name or m.user.last_name %}
-            {{ m.user.get_full_name }}
-          {% else %}
-            {{ m.user.email }}
-          {% endif %}
-        </a>
-      </div>
+                  <div class="min-w-0">
+                    <a href="{% url 'accounts:company_user_detail' company.pk u.pk %}?next={{ request.get_full_path|urlencode }}"
+                       class="fw-semibold text-decoration-none user-name-link text-truncate d-block">
+                      {% if u.first_name or u.last_name %}
+                        {{ u.get_full_name }}
+                      {% else %}
+                        {{ u.username|default:u.email|default:"-" }}
+                      {% endif %}
+                    </a>
 
-      <div class="text-muted small text-truncate">{{ m.user.email }}</div>
-    </div>
-  </div>
-</td>
+                    <div class="text-muted small text-truncate">
+                      {{ u.email|default:"-" }}
+                    </div>
+                  </div>
+                </div>
+              </td>
 
-          <td>{{ m.user.email }}</td>
+              <td class="text-muted">
+                {{ u.email|default:"-" }}
+              </td>
 
-          <td>
-            {% if m.user.is_active %}
-              <span class="badge bg-success">Aktiv</span>
-            {% else %}
-              <span class="badge bg-warning text-dark">Inbjudan skickad</span>
-            {% endif %}
-          </td>
+              <td>
+                {% if u.is_superuser %}
+                  <span class="talena-pill talena-pill-dark">
+                    <i data-feather="shield"></i>
+                    Super admin
+                  </span>
+                {% elif u.is_staff %}
+                  <span class="talena-pill talena-pill-dark">
+                    <i data-feather="settings"></i>
+                    Admin
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-purple">
+                    <i data-feather="user"></i>
+                    Customer
+                  </span>
+                {% endif %}
+              </td>
 
-          <td class="text-muted">
-            {% if m.created_at %}
-              {{ m.created_at|date:"Y-m-d H:i" }}
-            {% else %}
-              —
-            {% endif %}
-          </td>
+              <td>
+                <span class="talena-pill talena-pill-soft">
+                  <i data-feather="briefcase"></i>
+                  {{ company.name }}
+                </span>
+              </td>
 
-        </tr>
+              <td>
+                {% if u.is_active %}
+                  <span class="talena-pill talena-pill-success">
+                    <span class="talena-pill-dot"></span>
+                    Active
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-warning">
+                    <span class="talena-pill-dot"></span>
+                    Pending
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-muted text-nowrap">
+                {% if m.created_at %}
+                  {{ m.created_at|date:"Y-m-d H:i" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% endwith %}
+
         {% empty %}
-        <tr>
-          <td colspan="5" class="text-muted">Inga användare ännu.</td>
-        </tr>
+          <tr>
+            <td colspan="6" class="text-muted p-3">
+              No users have been added to this company yet.
+            </td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>

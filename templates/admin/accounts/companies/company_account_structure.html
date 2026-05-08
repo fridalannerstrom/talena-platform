@@ -3,37 +3,46 @@
 
 {% block content %}
 {% load org_extras %}
+
 <div class="container-fluid px-2 px-md-4">
-{% include "admin/accounts/companies/_company_header.html" with company=company active="structure" show_invite_button=True %}
 
-
-
+  {% include "admin/accounts/companies/_company_header.html" with company=company active="structure" show_invite_button=True %}
 
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
       <div>
-        <div class="fw-semibold mb-1"><i class="fa-solid fa-sitemap me-2"></i>Kontostruktur</div>
-        <div class="text-muted small">Alla användare som är kopplade till {{ company.name }}.</div>
+        <div class="fw-semibold mb-1">
+          <i class="fa-solid fa-sitemap me-2"></i>
+          Account structure
         </div>
-    
-      
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createOrgUnitModal">
-        <i class="fa-solid fa-plus me-2"></i> Skapa enhet
+        <div class="text-muted small">
+          Accounts and units connected to {{ company.name }}.
+        </div>
+      </div>
+
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createOrgUnitModal">
+        <i class="fa-solid fa-plus me-2"></i>
+        Create unit
       </button>
     </div>
 
     <div class="card-body">
       <div class="root-dropzone alert alert-light border d-flex align-items-center gap-2 mb-3"
-           data-drop-parent-id="" style="cursor: copy;">
+           data-drop-parent-id=""
+           style="cursor: copy;">
         <i class="fa-solid fa-layer-group text-muted"></i>
-        <span class="text-muted">Släpp här för att flytta till toppnivå</span>
+        <span class="text-muted">
+          Drop here to move to top level
+        </span>
       </div>
 
       <ul class="org-tree list-unstyled m-0">
         {% for unit in root_units %}
           {% include "admin/accounts/companies/_orgunit_node.html" with unit=unit selected_unit=None children_map=children_map %}
         {% empty %}
-          <li class="text-muted">Inga enheter ännu.</li>
+          <li class="text-muted">
+            No units have been created yet.
+          </li>
         {% endfor %}
       </ul>
     </div>

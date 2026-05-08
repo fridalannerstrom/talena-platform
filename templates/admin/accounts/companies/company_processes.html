@@ -1,0 +1,100 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+{# Company test processes #}
+
+{% block company_content %}
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">Test processes</div>
+      <div class="text-muted small">
+        All test processes connected to {{ company.name }}.
+      </div>
+    </div>
+
+    <span class="badge bg-light text-dark">
+      {{ processes|length }} processes
+    </span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Account</th>
+          <th>Test package</th>
+          <th>Candidates</th>
+          <th>Created by</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for p in processes %}
+          <tr>
+            <td>
+              <a href="{% url 'accounts:company_process_detail' company.pk p.pk %}"
+                 class="fw-semibold text-decoration-none user-name-link">
+                {{ p.name|default:"Untitled process" }}
+              </a>
+
+              {% if p.labels.all %}
+                <div class="talena-pill-group mt-1">
+                  {% for label in p.labels.all %}
+                    <span class="talena-pill talena-pill-soft">
+                      {{ label.name }}
+                    </span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </td>
+
+            <td class="text-muted">
+              {{ p.org_unit.name|default:"No account" }}
+            </td>
+
+            <td>
+              <span class="talena-pill talena-pill-purple">
+                {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+              </span>
+            </td>
+
+            <td>
+              <span class="talena-pill talena-pill-soft">
+                <i data-feather="users"></i>
+                {{ p.candidates_count|default:"0" }}
+              </span>
+            </td>
+
+            <td class="text-muted">
+              {% if p.created_by %}
+                {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
+              {% else %}
+                Unknown
+              {% endif %}
+
+              {% if p.created_by_admin %}
+                <div class="small text-muted">
+                  Admin: {{ p.created_by_admin.get_full_name|default:p.created_by_admin.email }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td class="text-muted text-nowrap">
+              {{ p.created_at|date:"Y-m-d H:i" }}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-muted p-3">
+              No test processes have been created for this company yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

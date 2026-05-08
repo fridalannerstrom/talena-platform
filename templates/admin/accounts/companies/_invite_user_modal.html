@@ -6,31 +6,38 @@
         <input type="hidden" name="action" value="invite_member">
 
         <div class="modal-header">
-          <h5 class="modal-title">Lägg till användare</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+          <h5 class="modal-title">Add user</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
           <div class="text-muted small mb-3">
-            En inbjudan skickas via mejl. Användaren får skapa lösenord och aktivera sitt konto.
+            An invitation will be sent by email. The user can then create a password and activate their account.
           </div>
 
           <div class="mb-3">
-            <label class="form-label">E-post</label>
+            <label class="form-label">Email</label>
             {{ invite_form.email }}
-            {% for err in invite_form.email.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            {% for err in invite_form.email.errors %}
+              <div class="text-danger small mt-1">{{ err }}</div>
+            {% endfor %}
           </div>
 
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Förnamn</label>
+              <label class="form-label">First name</label>
               {{ invite_form.first_name }}
-              {% for err in invite_form.first_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+              {% for err in invite_form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ err }}</div>
+              {% endfor %}
             </div>
+
             <div class="col-md-6">
-              <label class="form-label">Efternamn</label>
+              <label class="form-label">Last name</label>
               {{ invite_form.last_name }}
-              {% for err in invite_form.last_name.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+              {% for err in invite_form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ err }}</div>
+              {% endfor %}
             </div>
           </div>
 
@@ -42,9 +49,13 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Avbryt</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+
           <button class="btn btn-primary">
-            <i class="fa-solid fa-paper-plane me-2"></i> Skicka inbjudan
+            <i class="fa-solid fa-paper-plane me-2"></i>
+            Send invitation
           </button>
         </div>
       </form>

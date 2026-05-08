@@ -1,0 +1,184 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-3">
+  <a href="{% url 'accounts:company_processes' company.pk %}"
+     class="text-muted text-decoration-none small">
+    ← Back to test processes
+  </a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-start justify-content-between gap-3 flex-wrap">
+    <div>
+      <h1 class="h3 mb-1">{{ process.name|default:"Untitled process" }}</h1>
+
+      <div class="text-muted small">
+        {{ process.org_unit.name|default:"No account" }}
+        · Created {{ process.created_at|date:"Y-m-d H:i" }}
+      </div>
+
+      <div class="mt-2 d-flex flex-wrap gap-2">
+        <span class="talena-pill talena-pill-purple">
+          {{ process.project_name_snapshot|default:process.project_code|default:"Assessment" }}
+        </span>
+
+        {% if process.labels.all %}
+          {% for label in process.labels.all %}
+            <span class="talena-pill talena-pill-soft">
+              {{ label.name }}
+            </span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
+       class="btn btn-outline-secondary">
+      Edit process
+    </a>
+  </div>
+</div>
+
+<div class="kpi-grid mb-3">
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Candidates</div>
+      <div class="h3 mb-1">{{ total_sent|default:"0" }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Created by</div>
+      <div class="fw-semibold">
+        {% if process.created_by %}
+          {{ process.created_by.get_full_name|default:process.created_by.email|default:process.created_by.username }}
+        {% else %}
+          Unknown
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Account</div>
+      <div class="fw-semibold">
+        {{ process.org_unit.name|default:"No account" }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Self-registration link</div>
+      <div class="fw-semibold text-truncate">
+        {% if self_reg_url %}
+          Available
+        {% else %}
+          Not available
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="fw-semibold">Candidates</div>
+      <div class="text-muted small">
+        Candidates connected to this test process.
+      </div>
+    </div>
+
+    <span class="badge bg-light text-dark">
+      {{ invitations|length }} candidates
+    </span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Invited</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for inv in invitations %}
+          <tr>
+            <td>
+              {% if inv.candidate %}
+                <a href="{% url 'accounts:admin_candidate_detail' process.pk inv.candidate.pk %}"
+                   class="fw-semibold text-decoration-none user-name-link">
+                  {{ inv.candidate.name|default:inv.candidate.email }}
+                </a>
+              {% else %}
+                <span class="text-muted">Unknown candidate</span>
+              {% endif %}
+            </td>
+
+            <td class="text-muted">
+              {{ inv.candidate.email|default:"-" }}
+            </td>
+
+            <td>
+              {% if inv.status == "completed" %}
+                <span class="talena-pill talena-pill-success">
+                  <span class="talena-pill-dot"></span>
+                  Completed
+                </span>
+              {% elif inv.status == "started" %}
+                <span class="talena-pill talena-pill-purple">
+                  <span class="talena-pill-dot"></span>
+                  Started
+                </span>
+              {% elif inv.status == "sent" %}
+                <span class="talena-pill talena-pill-soft">
+                  <span class="talena-pill-dot"></span>
+                  Sent
+                </span>
+              {% else %}
+                <span class="talena-pill talena-pill-warning">
+                  <span class="talena-pill-dot"></span>
+                  {{ inv.status|default:"Created"|title }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="text-muted text-nowrap">
+              {% if inv.created_at %}
+                {{ inv.created_at|date:"Y-m-d H:i" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+
+            <td class="text-muted text-nowrap">
+              {% if inv.completed_at %}
+                {{ inv.completed_at|date:"Y-m-d H:i" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-muted p-3">
+              No candidates have been added to this process yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

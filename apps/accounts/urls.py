@@ -81,4 +81,19 @@ urlpatterns = [
     views.set_active_org_unit,
     name="set_active_org_unit",
     ),
+    path(
+        "companies/<int:pk>/processes/",
+        views.company_processes,
+        name="company_processes",
+    ),
+    path(
+        "companies/<int:company_pk>/users/<int:user_pk>/",
+        views.company_user_detail,
+        name="company_user_detail",
+    ),
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/",
+        views.company_process_detail,
+        name="company_process_detail",
+    ),
 ]

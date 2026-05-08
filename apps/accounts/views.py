@@ -2113,3 +2113,172 @@ def admin_process_delete(request, pk):
     process.delete()
     messages.success(request, f"Processen '{process_name}' raderades.")
     return redirect(next_url)
+
+@login_required
+@admin_required
+def company_processes(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    processes = (
+        TestProcess.objects
+        .filter(company=company)
+        .select_related("created_by", "created_by_admin", "org_unit")
+        .prefetch_related("labels")
+        .annotate(candidates_count=Count("invitations", distinct=True))
+        .order_by("-created_at")
+    )
+
+    invite_form = CompanyInviteMemberForm()
+
+    company_created_event = (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            verb=ActivityEvent.Verb.COMPANY_CREATED,
+        )
+        .select_related("actor")
+        .order_by("created_at")
+        .first()
+    )
+
+    return render(request, "admin/accounts/companies/company_processes.html", {
+        "company": company,
+        "processes": processes,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": invite_form,
+        "company_created_event": company_created_event,
+    })
+
+@login_required
+@admin_required
+def company_user_detail(request, company_pk, user_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    user_obj = get_object_or_404(
+        User.objects.prefetch_related(
+            "company_memberships__company",
+            "company_memberships__primary_org_unit",
+        ),
+        pk=user_pk,
+    )
+
+    membership = get_object_or_404(
+        CompanyMember.objects.select_related("company", "primary_org_unit"),
+        company=company,
+        user=user_obj,
+    )
+
+    pending_invite = not user_obj.is_active
+
+    processes = (
+        TestProcess.objects
+        .filter(company=company, created_by=user_obj)
+        .annotate(invitations_count=Count("invitations", distinct=True))
+        .order_by("-created_at")
+    )
+
+    processes_count = processes.count()
+
+    invitations_qs = TestInvitation.objects.filter(
+        process__company=company,
+        process__created_by=user_obj,
+    )
+
+    invitations_created = invitations_qs.count()
+    invitations_completed = invitations_qs.filter(status="completed").count()
+
+    orgunit_accesses = (
+        UserOrgUnitAccess.objects
+        .filter(user=user_obj, org_unit__company=company)
+        .select_related("org_unit", "org_unit__company")
+        .order_by("org_unit__name")
+    )
+
+    company_created_event = (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            verb=ActivityEvent.Verb.COMPANY_CREATED,
+        )
+        .select_related("actor")
+        .order_by("created_at")
+        .first()
+    )
+
+    invite_form = CompanyInviteMemberForm()
+
+    return render(request, "admin/accounts/companies/company_user_detail.html", {
+        "company": company,
+        "membership": membership,
+        "user_obj": user_obj,
+        "u": user_obj,
+
+        "processes": processes,
+        "active_processes": processes,
+
+        "processes_count": processes_count,
+        "invitations_created": invitations_created,
+        "invitations_completed": invitations_completed,
+
+        "pending_invite": pending_invite,
+        "orgunit_accesses": orgunit_accesses,
+
+        "active": "users",
+        "show_invite_button": True,
+        "invite_form": invite_form,
+        "company_created_event": company_created_event,
+    })
+
+@login_required
+@admin_required
+def company_process_detail(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess.objects
+        .select_related("company", "created_by", "created_by_admin", "org_unit")
+        .prefetch_related("labels"),
+        pk=process_pk,
+        company=company,
+    )
+
+    invitations = (
+        TestInvitation.objects
+        .filter(process=process)
+        .select_related("candidate")
+        .order_by("-created_at")
+    )
+
+    status_counts = {}
+    for inv in invitations:
+        status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
+
+    total_sent = invitations.count()
+
+    invite_form = CompanyInviteMemberForm()
+
+    company_created_event = (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            verb=ActivityEvent.Verb.COMPANY_CREATED,
+        )
+        .select_related("actor")
+        .order_by("created_at")
+        .first()
+    )
+
+    return render(request, "admin/accounts/companies/company_process_detail.html", {
+        "company": company,
+        "process": process,
+        "invitations": invitations,
+        "status_counts": status_counts,
+        "total_sent": total_sent,
+        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
+
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": invite_form,
+        "company_created_event": company_created_event,
+    })

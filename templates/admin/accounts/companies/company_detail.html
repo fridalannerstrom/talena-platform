@@ -191,8 +191,8 @@
       {% if latest_processes %}
         <div class="process-rows">
           {% for p in latest_processes %}
-            <a href="{% url 'accounts:admin_process_detail' p.id %}"
-               class="process-row process-row-link">
+            <a href="{% url 'accounts:company_process_detail' company.pk p.id %}"
+              class="process-row process-row-link">
 
               <div class="process-col-main min-w-0">
                 <div class="process-name text-truncate">
@@ -245,8 +245,8 @@
 
     <div class="card-footer bg-transparent">
       <a class="btn btn-primary w-100"
-         href="{% url 'accounts:company_stats' company.pk %}">
-        View statistics & details
+         href="{% url 'accounts:company_processes' company.pk %}">
+        View all test processes
       </a>
     </div>
   </div>
