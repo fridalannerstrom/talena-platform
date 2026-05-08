@@ -51,10 +51,10 @@
       </div>
 
       <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
-        <a class="btn btn-outline-secondary"
-           href="{% url 'emails:edit_process_invitation_template' process.id %}">
-          Email templates
-        </a>
+            <a class="btn btn-outline-secondary"
+            href="{% url 'emails:admin_edit_company_process_invitation_template' company.pk process.pk %}">
+            Email templates
+            </a>
 
 <button type="button"
         class="btn btn-outline-secondary js-selfreg">

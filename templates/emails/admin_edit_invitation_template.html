@@ -1,0 +1,167 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-3">
+  <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+     class="text-muted text-decoration-none small">
+    ← Back to process
+  </a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-start justify-content-between gap-3 flex-wrap">
+    <div>
+      <div class="text-muted small mb-1">Email template</div>
+      <h1 class="h3 mb-1">Invitation email</h1>
+      <div class="text-muted small">
+        Editing template for <strong>{{ process.name|default:"Untitled process" }}</strong>
+      </div>
+    </div>
+
+    <span class="talena-pill talena-pill-purple">
+      {{ process.project_name_snapshot|default:process.project_code|default:"Assessment" }}
+    </span>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="fw-semibold">Template content</div>
+        <div class="text-muted small">
+          This email will be used when candidates are invited to this process.
+        </div>
+      </div>
+
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">Subject</label>
+            {{ form.subject }}
+
+            {% for error in form.subject.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Body</label>
+            {{ form.body }}
+
+            {% for error in form.body.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+               class="btn btn-outline-secondary">
+              Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+              Save template
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="fw-semibold">Available placeholders</div>
+        <div class="text-muted small">
+          Use these in the subject or body.
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          {% for placeholder in placeholders %}
+            <button type="button"
+                    class="placeholder-copy-row"
+                    data-placeholder="{{ placeholder }}">
+              <code>{{ placeholder }}</code>
+              <span class="text-muted small">Copy</span>
+            </button>
+          {% endfor %}
+        </div>
+
+        <div class="alert alert-light border mt-3 mb-0 small text-muted">
+          Example: <code>Hi {first_name}</code> will use the candidate’s first name.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .placeholder-copy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+  }
+
+  .placeholder-copy-row:hover {
+    background: #fafbff;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".placeholder-copy-row").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const value = button.dataset.placeholder || "";
+        const label = button.querySelector("span");
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(value);
+          } else {
+            const temp = document.createElement("textarea");
+            temp.value = value;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            temp.remove();
+          }
+
+          if (label) {
+            label.textContent = "Copied";
+            setTimeout(() => {
+              label.textContent = "Copy";
+            }, 1200);
+          }
+        } catch (error) {
+          if (label) {
+            label.textContent = "Could not copy";
+            setTimeout(() => {
+              label.textContent = "Copy";
+            }, 1200);
+          }
+        }
+      });
+    });
+  });
+</script>
+
+{% endblock %}
