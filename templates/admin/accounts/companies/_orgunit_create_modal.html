@@ -6,35 +6,37 @@
         <input type="hidden" name="action" value="create_orgunit">
 
         <div class="modal-header">
-          <h5 class="modal-title">Skapa enhet</h5>
+          <h5 class="modal-title">Create unit</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Enhetsnamn</label>
+            <label class="form-label">Unit name</label>
             {{ orgunit_form.name }}
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Enhetskod</label>
+            <label class="form-label">Unit code</label>
             {{ orgunit_form.unit_code }}
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Överliggande enhet</label>
+            <label class="form-label">Parent unit</label>
             {{ orgunit_form.parent }}
-            <div class="form-text">Lämna tomt för att skapa en root-enhet.</div>
+            <div class="form-text">Leave empty to create a root unit.</div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Stäng</button>
-          <button class="btn btn-primary">Skapa</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Close
+          </button>
+          <button class="btn btn-primary">
+            Create
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
-
-

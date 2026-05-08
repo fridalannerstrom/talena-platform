@@ -101,4 +101,9 @@ urlpatterns = [
         views.company_process_candidate_detail,
         name="company_process_candidate_detail",
     ),
+    path(
+        "usage-billing/",
+        views.admin_usage_billing,
+        name="admin_usage_billing",
+    ),
 ]

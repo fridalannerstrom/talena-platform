@@ -20,6 +20,7 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from datetime import datetime, date, time
 from apps.activity.services import log_event
 
 from apps.processes.views import build_cognitive_reports_for_test
@@ -74,6 +75,412 @@ from apps.accounts.utils.org_units import (
     ensure_user_has_default_orgunit,
 )
 
+
+COMPLETED_ACTIVITY_STATUSES = {
+    "completed",
+    "complete",
+    "finished",
+    "done",
+    "result available",
+    "result_available",
+}
+
+STARTED_ACTIVITY_STATUSES = {
+    "started",
+    "in progress",
+    "in_progress",
+    "completed",
+    "complete",
+    "finished",
+    "done",
+    "result available",
+    "result_available",
+}
+
+SENT_INVITATION_STATUSES = {
+    "sent",
+    "started",
+    "completed",
+    "expired",
+    "failed",
+}
+
+
+def parse_date_param(value):
+    if not value:
+        return None
+
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def make_aware_start(d):
+    if not d:
+        return None
+
+    return timezone.make_aware(
+        datetime.combine(d, time.min),
+        timezone.get_current_timezone(),
+    )
+
+
+def make_aware_end(d):
+    if not d:
+        return None
+
+    return timezone.make_aware(
+        datetime.combine(d, time.max),
+        timezone.get_current_timezone(),
+    )
+
+
+def classify_assessment(activity_name):
+    name = (activity_name or "").strip().lower()
+
+    if "personality" in name:
+        return "personality"
+
+    if "motivation" in name:
+        return "motivation"
+
+    if "verbal" in name:
+        return "verbal"
+
+    if "numerical" in name:
+        return "numerical"
+
+    if "logical" in name:
+        return "logical"
+
+    return "other"
+
+
+def activity_is_completed(activity):
+    status = (activity.get("status") or "").strip().lower()
+    return status in COMPLETED_ACTIVITY_STATUSES
+
+
+def activity_is_started(activity):
+    status = (activity.get("status") or "").strip().lower()
+    return status in STARTED_ACTIVITY_STATUSES
+
+
+def count_activities_by_status(invitation):
+    """
+    Counts assessments inside one TestInvitation.
+
+    Sent:
+      We count all activities if the invitation has been sent/started/completed.
+    Started:
+      We count activities whose SOVA status indicates started/completed.
+    Completed / billable:
+      We count activities whose SOVA status indicates completed.
+
+    Note:
+      Billing period filtering is handled at invitation level using completed_at.
+    """
+    activities = invitation.sova_activities or []
+
+    result = {
+        "sent": 0,
+        "started": 0,
+        "completed": 0,
+        "billable": 0,
+
+        "personality": 0,
+        "motivation": 0,
+        "verbal": 0,
+        "numerical": 0,
+        "logical": 0,
+        "other": 0,
+    }
+
+    if not isinstance(activities, list):
+        return result
+
+    invitation_was_sent = (
+        invitation.status in SENT_INVITATION_STATUSES
+        or invitation.invited_at is not None
+    )
+
+    for activity in activities:
+        if not isinstance(activity, dict):
+            continue
+
+        activity_name = activity.get("activity") or activity.get("name") or ""
+        assessment_type = classify_assessment(activity_name)
+
+        if invitation_was_sent:
+            result["sent"] += 1
+
+        if activity_is_started(activity):
+            result["started"] += 1
+
+        if activity_is_completed(activity):
+            result["completed"] += 1
+            result["billable"] += 1
+            result[assessment_type] += 1
+
+    return result
+
+
+def empty_usage_row(company, org_unit, process):
+    return {
+        "company": company,
+        "org_unit": org_unit,
+        "process": process,
+
+        "company_name": company.name if company else "No company",
+        "account_name": org_unit.name if org_unit else "No account",
+        "account_code": org_unit.unit_code if org_unit else "",
+        "process_name": process.name if process else "No process",
+        "project_name": (
+            process.project_name_snapshot
+            or process.project_code
+            or "Assessment"
+        ) if process else "Assessment",
+        "created_by": process.created_by if process else None,
+        "created_by_admin": process.created_by_admin if process else None,
+        "labels": list(process.labels.all()) if process else [],
+
+        "sent": 0,
+        "started": 0,
+        "completed": 0,
+        "unfinished": 0,
+        "billable": 0,
+
+        "personality": 0,
+        "motivation": 0,
+        "verbal": 0,
+        "numerical": 0,
+        "logical": 0,
+        "other": 0,
+
+        "candidates": set(),
+    }
+
+
+@login_required
+@admin_required
+def admin_usage_billing(request):
+    today = timezone.localdate()
+    default_start = today.replace(day=1)
+
+    date_from = parse_date_param(request.GET.get("date_from")) or default_start
+    date_to = parse_date_param(request.GET.get("date_to")) or today
+
+    start_dt = make_aware_start(date_from)
+    end_dt = make_aware_end(date_to)
+
+    q = (request.GET.get("q") or "").strip()
+    company_id = (request.GET.get("company") or "").strip()
+    org_unit_id = (request.GET.get("org_unit") or "").strip()
+    label_id = (request.GET.get("label") or "").strip()
+    created_by_id = (request.GET.get("created_by") or "").strip()
+    test_type = (request.GET.get("test_type") or "").strip()
+    include_internal = request.GET.get("include_internal") == "1"
+
+    invitations = (
+        TestInvitation.objects
+        .select_related(
+            "candidate",
+            "process",
+            "process__company",
+            "process__org_unit",
+            "process__created_by",
+            "process__created_by_admin",
+        )
+        .prefetch_related("process__labels")
+        .filter(process__company__isnull=False)
+    )
+
+    # We include invitations that were sent OR completed in the selected period.
+    # Sent/started numbers use invited_at; completed/billable uses completed_at.
+    period_filter = (
+        Q(invited_at__gte=start_dt, invited_at__lte=end_dt)
+        | Q(completed_at__gte=start_dt, completed_at__lte=end_dt)
+    )
+    invitations = invitations.filter(period_filter)
+
+    if q:
+        invitations = invitations.filter(
+            Q(process__company__name__icontains=q)
+            | Q(process__org_unit__name__icontains=q)
+            | Q(process__org_unit__unit_code__icontains=q)
+            | Q(process__name__icontains=q)
+            | Q(process__project_name_snapshot__icontains=q)
+            | Q(process__project_code__icontains=q)
+            | Q(candidate__email__icontains=q)
+            | Q(candidate__first_name__icontains=q)
+            | Q(candidate__last_name__icontains=q)
+        )
+
+    if company_id:
+        invitations = invitations.filter(process__company_id=company_id)
+
+    if org_unit_id:
+        invitations = invitations.filter(process__org_unit_id=org_unit_id)
+
+    if label_id:
+        invitations = invitations.filter(process__labels__id=label_id)
+
+    if created_by_id:
+        invitations = invitations.filter(
+            Q(process__created_by_id=created_by_id)
+            | Q(process__created_by_admin_id=created_by_id)
+        )
+
+    if not include_internal:
+        invitations = invitations.exclude(
+            Q(process__labels__name__iexact="internal")
+            | Q(process__labels__name__iexact="demo")
+            | Q(process__labels__name__iexact="do not invoice")
+            | Q(process__labels__name__iexact="not billable")
+        )
+
+    invitations = invitations.distinct().order_by(
+        "process__company__name",
+        "process__org_unit__name",
+        "process__name",
+    )
+
+    rows_by_process = {}
+
+    totals = {
+        "sent": 0,
+        "started": 0,
+        "completed": 0,
+        "unfinished": 0,
+        "billable": 0,
+        "personality": 0,
+        "motivation": 0,
+        "verbal": 0,
+        "numerical": 0,
+        "logical": 0,
+        "other": 0,
+        "candidates": set(),
+        "processes": set(),
+    }
+
+    for invitation in invitations:
+        process = invitation.process
+        company = process.company
+        org_unit = process.org_unit
+
+        key = process.id
+
+        if key not in rows_by_process:
+            rows_by_process[key] = empty_usage_row(company, org_unit, process)
+
+        row = rows_by_process[key]
+
+        counts = count_activities_by_status(invitation)
+
+        # Sent/started should only count if the invitation was sent in the period.
+        invited_in_period = (
+            invitation.invited_at
+            and start_dt <= invitation.invited_at <= end_dt
+        )
+
+        # Completed/billable should only count if the invitation was completed in the period.
+        completed_in_period = (
+            invitation.completed_at
+            and start_dt <= invitation.completed_at <= end_dt
+        )
+
+        if invited_in_period:
+            row["sent"] += counts["sent"]
+            row["started"] += counts["started"]
+
+        if completed_in_period:
+            row["completed"] += counts["completed"]
+            row["billable"] += counts["billable"]
+
+            row["personality"] += counts["personality"]
+            row["motivation"] += counts["motivation"]
+            row["verbal"] += counts["verbal"]
+            row["numerical"] += counts["numerical"]
+            row["logical"] += counts["logical"]
+            row["other"] += counts["other"]
+
+        row["candidates"].add(invitation.candidate_id)
+
+    rows = list(rows_by_process.values())
+
+    # Apply test type filter after counting.
+    if test_type:
+        rows = [row for row in rows if row.get(test_type, 0) > 0]
+
+    for row in rows:
+        row["unfinished"] = max(row["sent"] - row["completed"], 0)
+        row["candidate_count"] = len(row["candidates"])
+
+        for key in [
+            "sent",
+            "started",
+            "completed",
+            "unfinished",
+            "billable",
+            "personality",
+            "motivation",
+            "verbal",
+            "numerical",
+            "logical",
+            "other",
+        ]:
+            totals[key] += row[key]
+
+        totals["candidates"].update(row["candidates"])
+        totals["processes"].add(row["process"].id)
+
+    totals["candidate_count"] = len(totals["candidates"])
+    totals["process_count"] = len(totals["processes"])
+
+    companies = Company.objects.order_by("name")
+    org_units = OrgUnit.objects.select_related("company").order_by("company__name", "name")
+    labels = ProcessLabel.objects.select_related("company").order_by("company__name", "name")
+
+    User = get_user_model()
+    creators = (
+        User.objects
+        .filter(
+            Q(test_processes__isnull=False)
+            | Q(test_processes_created_as_admin__isnull=False)
+        )
+        .distinct()
+        .order_by("first_name", "last_name", "email")
+    )
+
+    return render(request, "admin/accounts/usage_billing.html", {
+        "rows": rows,
+        "totals": totals,
+
+        "date_from": date_from.strftime("%Y-%m-%d"),
+        "date_to": date_to.strftime("%Y-%m-%d"),
+        "q": q,
+        "selected_company_id": company_id,
+        "selected_org_unit_id": org_unit_id,
+        "selected_label_id": label_id,
+        "selected_created_by_id": created_by_id,
+        "selected_test_type": test_type,
+        "include_internal": include_internal,
+
+        "companies": companies,
+        "org_units": org_units,
+        "labels": labels,
+        "creators": creators,
+
+        "test_types": [
+            ("personality", "Personality"),
+            ("motivation", "Motivation"),
+            ("verbal", "Verbal"),
+            ("numerical", "Numerical"),
+            ("logical", "Logical"),
+            ("other", "Other"),
+        ],
+    })
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
