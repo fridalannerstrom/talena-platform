@@ -1,0 +1,14 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-3">
+  <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+     class="text-muted text-decoration-none small">
+    ← Back to process
+  </a>
+</div>
+
+{% include "admin/accounts/companies/company_candidate_sheet.html" %}
+
+{% endblock %}

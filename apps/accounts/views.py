@@ -2237,7 +2237,7 @@ def company_process_detail(request, company_pk, process_pk):
 
     process = get_object_or_404(
         TestProcess.objects
-        .select_related("company", "created_by", "created_by_admin", "org_unit")
+        .select_related("company", "created_by", "org_unit")
         .prefetch_related("labels"),
         pk=process_pk,
         company=company,
@@ -2250,11 +2250,32 @@ def company_process_detail(request, company_pk, process_pk):
         .order_by("-created_at")
     )
 
-    status_counts = {}
-    for inv in invitations:
-        status_counts[inv.status] = status_counts.get(inv.status, 0) + 1
+    total_candidates = invitations.count()
 
-    total_sent = invitations.count()
+    invited_count = invitations.filter(
+        Q(status__in=["sent", "started", "completed", "expired"]) |
+        Q(invited_at__isnull=False)
+    ).distinct().count()
+
+    started_count = invitations.filter(
+        status__in=["started", "completed"]
+    ).count()
+
+    completed_count = invitations.filter(
+        status="completed"
+    ).count()
+
+    expired_count = invitations.filter(
+        status="expired"
+    ).count()
+
+    kpis = {
+        "total_candidates": total_candidates,
+        "invited": invited_count,
+        "started": started_count,
+        "completed": completed_count,
+        "expired": expired_count,
+    }
 
     invite_form = CompanyInviteMemberForm()
 
@@ -2269,16 +2290,64 @@ def company_process_detail(request, company_pk, process_pk):
         .first()
     )
 
+    self_reg_url = request.build_absolute_uri(
+        process.get_self_registration_url()
+    )
+
     return render(request, "admin/accounts/companies/company_process_detail.html", {
         "company": company,
         "process": process,
         "invitations": invitations,
-        "status_counts": status_counts,
-        "total_sent": total_sent,
-        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
+        "kpis": kpis,
+        "self_reg_url": self_reg_url,
 
         "active": "processes",
         "show_invite_button": True,
         "invite_form": invite_form,
         "company_created_event": company_created_event,
     })
+
+@login_required
+@admin_required
+def company_process_candidate_detail(request, company_pk, process_pk, candidate_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess.objects.select_related("company", "created_by", "org_unit"),
+        pk=process_pk,
+        company=company,
+    )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related("candidate", "process"),
+        process=process,
+        candidate_id=candidate_pk,
+    )
+
+    ctx = build_candidate_detail_context(
+        process=process,
+        invitation=invitation,
+    )
+
+    ctx.update({
+        "company": company,
+        "process": process,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+        "is_admin_view": True,
+        "is_company_view": True,
+    })
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(
+            request,
+            "admin/accounts/companies/company_candidate_sheet.html",
+            ctx,
+        )
+
+    return render(
+        request,
+        "admin/accounts/companies/company_candidate_detail.html",
+        ctx,
+    )

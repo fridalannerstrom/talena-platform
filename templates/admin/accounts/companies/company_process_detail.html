@@ -2,6 +2,10 @@
 
 {% block company_content %}
 
+{# ------------------------------------------------------------------ #}
+{# Back link #}
+{# ------------------------------------------------------------------ #}
+
 <div class="mb-3">
   <a href="{% url 'accounts:company_processes' company.pk %}"
      class="text-muted text-decoration-none small">
@@ -9,81 +13,148 @@
   </a>
 </div>
 
+
+{# ------------------------------------------------------------------ #}
+{# Process header #}
+{# ------------------------------------------------------------------ #}
+
 <div class="card mb-3">
-  <div class="card-body d-flex align-items-start justify-content-between gap-3 flex-wrap">
-    <div>
-      <h1 class="h3 mb-1">{{ process.name|default:"Untitled process" }}</h1>
+  <div class="card-body">
 
-      <div class="text-muted small">
-        {{ process.org_unit.name|default:"No account" }}
-        · Created {{ process.created_at|date:"Y-m-d H:i" }}
-      </div>
+    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+      <div class="min-w-0">
 
-      <div class="mt-2 d-flex flex-wrap gap-2">
-        <span class="talena-pill talena-pill-purple">
-          {{ process.project_name_snapshot|default:process.project_code|default:"Assessment" }}
-        </span>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="process-label">
+            {{ process.project_name_snapshot|default:process.project_code|default:"Assessment" }}
+          </span>
 
-        {% if process.labels.all %}
           {% for label in process.labels.all %}
-            <span class="talena-pill talena-pill-soft">
+            <span class="process-label">
               {{ label.name }}
             </span>
           {% endfor %}
-        {% endif %}
+        </div>
+
+        <h1 class="h3 mb-1 text-truncate">
+          {{ process.name|default:"Untitled process" }}
+        </h1>
+
+        <div class="small text-muted">
+          {{ process.org_unit.name|default:"No account" }}
+
+          {% if process.created_at %}
+            <span class="mx-1">·</span>
+            Created {{ process.created_at|date:"Y-m-d H:i" }}
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <a class="btn btn-outline-secondary"
+           href="{% url 'emails:edit_process_invitation_template' process.id %}">
+          Email templates
+        </a>
+
+<button type="button"
+        class="btn btn-outline-secondary js-selfreg">
+  Self-registration
+</button>
+
+        <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
+           class="btn btn-primary">
+          Edit process
+        </a>
       </div>
     </div>
 
-    <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
-       class="btn btn-outline-secondary">
-      Edit process
-    </a>
+    <div class="process-header-chips mt-3">
+      <div class="chip text-dark">
+        <div class="chip-label"><strong>Created by</strong></div>
+        <div class="chip-value">
+          {% if process.created_by %}
+            {{ process.created_by.get_full_name|default:process.created_by.email|default:process.created_by.username }}
+          {% else %}
+            Unknown
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="chip text-dark">
+        <div class="chip-label"><strong>Account</strong></div>
+        <div class="chip-value">
+          {{ process.org_unit.name|default:"No account" }}
+        </div>
+      </div>
+
+      <div class="chip text-dark">
+        <div class="chip-label"><strong>Test template</strong></div>
+        <div class="chip-value">
+          {{ process.project_name_snapshot|default:process.project_code|default:"Not specified" }}
+        </div>
+      </div>
+
+      <div class="chip text-dark">
+        <div class="chip-label"><strong>Self-registration</strong></div>
+        <div class="chip-value">
+          {% if self_reg_url %}
+            Available
+          {% else %}
+            Not available
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
+
+
+{# ------------------------------------------------------------------ #}
+{# Funnel / KPI cards #}
+{# ------------------------------------------------------------------ #}
 
 <div class="kpi-grid mb-3">
   <div class="card h-100">
     <div class="card-body">
       <div class="text-muted small">Candidates</div>
-      <div class="h3 mb-1">{{ total_sent|default:"0" }}</div>
+      <div class="h3 mb-1">{{ kpis.total_candidates|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Created by</div>
-      <div class="fw-semibold">
-        {% if process.created_by %}
-          {{ process.created_by.get_full_name|default:process.created_by.email|default:process.created_by.username }}
-        {% else %}
-          Unknown
-        {% endif %}
-      </div>
+      <div class="text-muted small">Invited</div>
+      <div class="h3 mb-1">{{ kpis.invited|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Account</div>
-      <div class="fw-semibold">
-        {{ process.org_unit.name|default:"No account" }}
-      </div>
+      <div class="text-muted small">Started</div>
+      <div class="h3 mb-1">{{ kpis.started|default:0 }}</div>
     </div>
   </div>
 
   <div class="card h-100">
     <div class="card-body">
-      <div class="text-muted small">Self-registration link</div>
-      <div class="fw-semibold text-truncate">
-        {% if self_reg_url %}
-          Available
-        {% else %}
-          Not available
-        {% endif %}
-      </div>
+      <div class="text-muted small">Completed</div>
+      <div class="h3 mb-1">{{ kpis.completed|default:0 }}</div>
+    </div>
+  </div>
+
+  <div class="card h-100">
+    <div class="card-body">
+      <div class="text-muted small">Expired</div>
+      <div class="h3 mb-1">{{ kpis.expired|default:0 }}</div>
     </div>
   </div>
 </div>
+
+
+{# ------------------------------------------------------------------ #}
+{# Candidates table #}
+{# ------------------------------------------------------------------ #}
 
 <div class="card">
   <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -116,8 +187,10 @@
           <tr>
             <td>
               {% if inv.candidate %}
-                <a href="{% url 'accounts:admin_candidate_detail' process.pk inv.candidate.pk %}"
-                   class="fw-semibold text-decoration-none user-name-link">
+                <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
+                   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+                   data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
+                   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
                   {{ inv.candidate.name|default:inv.candidate.email }}
                 </a>
               {% else %}
@@ -178,6 +251,401 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+
+
+{# ------------------------------------------------------------------ #}
+{# Candidate sheet offcanvas #}
+{# ------------------------------------------------------------------ #}
+
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
+  <button type="button"
+          class="sheet-nav sheet-nav-prev"
+          id="candidatePrevBtn"
+          aria-label="Previous candidate">
+    <i data-feather="chevron-left"></i>
+  </button>
+
+  <button type="button"
+          class="sheet-nav sheet-nav-next"
+          id="candidateNextBtn"
+          aria-label="Next candidate">
+    <i data-feather="chevron-right"></i>
+  </button>
+
+  <div class="candidate-sheet-inner">
+    <div class="offcanvas-header justify-content-end">
+      <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" id="candidateSheetBody">
+      <div class="text-muted">Loading…</div>
+    </div>
+  </div>
+</div>
+
+
+{# ------------------------------------------------------------------ #}
+{# Email preview modal #}
+{# ------------------------------------------------------------------ #}
+
+<div class="modal fade" id="globalEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Invitation email</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="activity-email-meta mb-3">
+          <p class="mb-1">
+            <strong>To:</strong>
+            <span id="globalEmailTo"></span>
+          </p>
+
+          <p class="mb-0">
+            <strong>Subject:</strong>
+            <span id="globalEmailSubject"></span>
+          </p>
+        </div>
+
+        <div class="activity-email-body" id="globalEmailBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{# ------------------------------------------------------------------ #}
+{# JavaScript #}
+{# ------------------------------------------------------------------ #}
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    initCompanyCandidateSheet();
+    initSelfRegistrationModal();
+  });
+
+
+  function initCompanyCandidateSheet() {
+    const sheetEl = document.getElementById("candidateSheet");
+    const sheetBody = document.getElementById("candidateSheetBody");
+    const sheetTitle = document.getElementById("candidateSheetLabel");
+    const prevBtn = document.getElementById("candidatePrevBtn");
+    const nextBtn = document.getElementById("candidateNextBtn");
+
+    if (!sheetEl || !sheetBody || !sheetTitle || !window.bootstrap) return;
+
+    const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
+    const links = Array.from(document.querySelectorAll(".js-open-candidate"));
+
+    if (!links.length) return;
+
+    let currentIndex = -1;
+
+    async function loadCandidateByIndex(index) {
+      if (index < 0 || index >= links.length) return;
+
+      currentIndex = index;
+
+      const link = links[currentIndex];
+      const url = link.dataset.sheetUrl || link.getAttribute("href");
+      const name = link.dataset.candidateName || "Candidate";
+
+      sheetTitle.textContent = name;
+      sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+
+      sheet.show();
+      updateNavigation();
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        });
+
+        if (!response.ok) {
+          sheetBody.innerHTML = `
+            <div class="alert alert-danger mb-0">
+              Could not load candidate details (${response.status}).
+            </div>
+          `;
+          return;
+        }
+
+        sheetBody.innerHTML = await response.text();
+
+        refreshDynamicCandidateSheetContent(sheetBody, sheetEl);
+      } catch (error) {
+        sheetBody.innerHTML = `
+          <div class="alert alert-danger mb-0">
+            Network error while loading candidate details.
+          </div>
+        `;
+        console.error(error);
+      }
+    }
+
+    function updateNavigation() {
+      if (!prevBtn || !nextBtn) return;
+
+      const shouldHide = links.length <= 1;
+
+      prevBtn.classList.toggle("is-hidden", shouldHide);
+      nextBtn.classList.toggle("is-hidden", shouldHide);
+
+      if (shouldHide) return;
+
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= links.length - 1;
+    }
+
+    links.forEach((link, index) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        loadCandidateByIndex(index);
+      });
+    });
+
+    prevBtn?.addEventListener("click", () => {
+      loadCandidateByIndex(currentIndex - 1);
+    });
+
+    nextBtn?.addEventListener("click", () => {
+      loadCandidateByIndex(currentIndex + 1);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const isOpen = sheetEl.classList.contains("show");
+      if (!isOpen) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        loadCandidateByIndex(currentIndex - 1);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        loadCandidateByIndex(currentIndex + 1);
+      }
+    });
+
+    sheetEl.addEventListener("hidden.bs.offcanvas", () => {
+      currentIndex = -1;
+      updateNavigation();
+    });
+  }
+
+
+  function refreshDynamicCandidateSheetContent(sheetBody, sheetEl) {
+    if (window.feather) {
+      feather.replace();
+    }
+
+    if (window.bootstrap) {
+      sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+        new bootstrap.Tooltip(el);
+      });
+    }
+
+    if (typeof window.initCandidateSheetInteractions === "function") {
+      window.initCandidateSheetInteractions(sheetBody);
+    }
+
+    if (typeof window.initGlobalEmailModal === "function") {
+      window.initGlobalEmailModal(sheetBody);
+    }
+
+    if (typeof window.initCandidateSummaryStream === "function") {
+      window.initCandidateSummaryStream();
+    }
+  }
+
+
+  window.switchTabs = function (buttonEl) {
+    const group = buttonEl.dataset.tabGroup;
+    const target = buttonEl.dataset.tabTarget;
+
+    if (!group || !target) return;
+
+    const container = buttonEl.closest(
+      ".card, .candidate-profile-shell, .domain-panel, .report-tabs-section, .candidate-sheet-layout, body"
+    );
+
+    const scope = container || document;
+
+    const tabs = scope.querySelectorAll(
+      `[data-tab-group="${group}"][data-tab-target]`
+    );
+
+    const panels = scope.querySelectorAll(
+      `[data-tab-group="${group}"][data-tab-panel]`
+    );
+
+    tabs.forEach((tab) => {
+      tab.classList.remove("is-active");
+      tab.setAttribute("aria-selected", "false");
+    });
+
+    panels.forEach((panel) => {
+      panel.classList.remove("is-active");
+    });
+
+    buttonEl.classList.add("is-active");
+    buttonEl.setAttribute("aria-selected", "true");
+
+    const activePanel = scope.querySelector(
+      `[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (activePanel) {
+      activePanel.classList.add("is-active");
+    }
+  };
+
+
+  document.addEventListener("click", function (event) {
+    const tabButton = event.target.closest("[data-tab-group][data-tab-target]");
+
+    if (!tabButton) return;
+
+    event.preventDefault();
+
+    if (typeof window.switchTabs === "function") {
+      window.switchTabs(tabButton);
+    }
+  });
+
+
+  window.initGlobalEmailModal = function (container) {
+    if (!container || !window.bootstrap) return;
+
+    const modalEl = document.getElementById("globalEmailModal");
+    const toEl = document.getElementById("globalEmailTo");
+    const subjectEl = document.getElementById("globalEmailSubject");
+    const bodyEl = document.getElementById("globalEmailBody");
+
+    if (!modalEl || !toEl || !subjectEl || !bodyEl) return;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    container.querySelectorAll(".js-open-email-modal").forEach((button) => {
+      button.addEventListener("click", function () {
+        toEl.textContent = button.dataset.emailTo || "Not specified";
+        subjectEl.textContent = button.dataset.emailSubject || "Not specified";
+
+        const rawBody = button.dataset.emailBody || "";
+        bodyEl.innerHTML = rawBody.replace(/\n/g, "<br>");
+
+        modal.show();
+      });
+    });
+  };
+
+</script>
+
+<script>
+  function initSelfRegistrationModal() {
+    const buttons = document.querySelectorAll(".js-selfreg");
+    const modalEl = document.getElementById("selfRegistrationModal");
+    const input = document.getElementById("selfRegistrationUrl");
+    const copyButton = document.getElementById("copySelfRegistrationUrl");
+    const status = document.getElementById("selfRegistrationCopyStatus");
+
+    if (!buttons.length || !modalEl || !window.bootstrap) return;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        modal.show();
+      });
+    });
+
+    if (copyButton && input) {
+      copyButton.addEventListener("click", async () => {
+        const url = input.value || "";
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(url);
+          } else {
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+          }
+
+          if (status) {
+            status.textContent = "Copied!";
+          }
+
+          copyButton.textContent = "Copied";
+
+          setTimeout(() => {
+            copyButton.textContent = "Copy link";
+            if (status) status.textContent = "";
+          }, 1400);
+
+        } catch (error) {
+          if (status) {
+            status.textContent = "Could not copy the link.";
+          }
+          console.error(error);
+        }
+      });
+    }
+  }
+</script>
+
+<div class="modal fade" id="selfRegistrationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Self-registration</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="text-muted mb-3">
+          Share this link with candidates. Candidates who register through the link
+          will start the assessment automatically after registration.
+        </p>
+
+        <label class="form-label">Self-registration link</label>
+
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            id="selfRegistrationUrl"
+            value="{{ self_reg_url }}"
+            readonly
+            onclick="this.select()"
+          >
+
+          <button
+            class="btn btn-primary"
+            type="button"
+            id="copySelfRegistrationUrl">
+            Copy link
+          </button>
+        </div>
+
+        <div id="selfRegistrationCopyStatus" class="small text-muted mt-2"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>
 

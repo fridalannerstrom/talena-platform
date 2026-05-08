@@ -96,4 +96,9 @@ urlpatterns = [
         views.company_process_detail,
         name="company_process_detail",
     ),
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/candidates/<int:candidate_pk>/",
+        views.company_process_candidate_detail,
+        name="company_process_candidate_detail",
+    ),
 ]

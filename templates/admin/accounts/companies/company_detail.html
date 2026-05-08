@@ -103,8 +103,8 @@
                       </div>
 
                       <div class="min-w-0">
-                        <a class="fw-semibold text-decoration-none user-name-link text-truncate d-block"
-                           href="{% url 'accounts:admin_user_detail' u.pk %}?next={{ request.get_full_path|urlencode }}">
+                          <a class="fw-semibold text-decoration-none user-name-link text-truncate d-block"
+                            href="{% url 'accounts:company_user_detail' company.pk u.pk %}">
                           {% if u.first_name or u.last_name %}
                             {{ u.get_full_name }}
                           {% else %}

@@ -145,8 +145,8 @@
         {% if processes %}
           <div class="process-rows">
             {% for p in processes %}
-              <a href="{% url 'accounts:admin_process_detail' p.pk %}"
-                 class="process-row process-row-link">
+                <a href="{% url 'accounts:company_process_detail' company.pk p.pk %}"
+                class="process-row process-row-link">
                 <div class="process-col-main min-w-0">
                   <div class="process-name text-truncate">{{ p.name }}</div>
                   <div class="process-sub text-muted small text-truncate">
