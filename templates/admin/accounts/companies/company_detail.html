@@ -72,68 +72,101 @@
           </div>
         </div>
 
-        <div class="card-body">
-          {% with recent=memberships|slice:":6" %}
-            {% if recent %}
-              <div class="d-grid gap-2">
-                {% for m in recent %}
-                  <div class="company-user-row">
-                    <div class="d-flex align-items-center gap-3 min-w-0">
-                      <div class="user-initials">
-                        {% if m.user.first_name and m.user.last_name %}
-                          {{ m.user.first_name|slice:":1"|upper }}{{ m.user.last_name|slice:":1"|upper }}
-                        {% elif m.user.first_name %}
-                          {{ m.user.first_name|slice:":1"|upper }}
+<div class="card-body">
+  {% with recent=memberships|slice:":6" %}
+    {% if recent %}
+      <div class="overview-users-table-wrap">
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0 overview-users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for m in recent %}
+              {% with u=m.user %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2 min-w-0">
+                      <div class="user-initials user-initials-sm">
+                        {% if u.first_name and u.last_name %}
+                          {{ u.first_name|slice:":1"|upper }}{{ u.last_name|slice:":1"|upper }}
+                        {% elif u.first_name %}
+                          {{ u.first_name|slice:":1"|upper }}
                         {% else %}
-                          {{ m.user.email|slice:":1"|upper }}
+                          {{ u.email|slice:":1"|upper }}
                         {% endif %}
                       </div>
 
                       <div class="min-w-0">
-                        <div class="fw-semibold text-truncate">
-                          <a class="user-link"
-                             href="{% url 'accounts:admin_user_detail' m.user.pk %}?next={{ request.get_full_path|urlencode }}">
-                            {% if m.user.first_name or m.user.last_name %}
-                              {{ m.user.get_full_name }}
-                            {% else %}
-                              {{ m.user.email }}
-                            {% endif %}
-                          </a>
-                        </div>
+                        <a class="fw-semibold text-decoration-none user-name-link text-truncate d-block"
+                           href="{% url 'accounts:admin_user_detail' u.pk %}?next={{ request.get_full_path|urlencode }}">
+                          {% if u.first_name or u.last_name %}
+                            {{ u.get_full_name }}
+                          {% else %}
+                            {{ u.email|default:"-" }}
+                          {% endif %}
+                        </a>
 
-                        <div class="text-muted small text-truncate">
-                          {{ m.user.email }}
-                        </div>
-
-                        <div class="text-muted small text-truncate company-user-added">
-                          Added {{ m.created_at|date:"Y-m-d H:i" }}
+                        <div class="text-muted small text-truncate overview-user-email">
+                          {{ u.email|default:"-" }}
                         </div>
                       </div>
                     </div>
+                  </td>
 
-                    <div class="ms-3">
-                      {% if m.user.is_active %}
-                        <span class="talena-pill talena-pill-success">
-                          <span class="talena-pill-dot"></span>
-                          Active
-                        </span>
-                      {% else %}
-                        <span class="talena-pill talena-pill-warning">
-                          <span class="talena-pill-dot"></span>
-                          Pending
-                        </span>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="overview-empty">
-                No users have been added yet.
-              </div>
-            {% endif %}
-          {% endwith %}
+                  <td>
+                    {% if u.is_superuser %}
+                      <span class="talena-pill talena-pill-dark">
+                        <i data-feather="shield"></i>
+                        Super admin
+                      </span>
+                    {% elif u.is_staff %}
+                      <span class="talena-pill talena-pill-dark">
+                        <i data-feather="settings"></i>
+                        Admin
+                      </span>
+                    {% else %}
+                      <span class="talena-pill talena-pill-purple">
+                        <i data-feather="user"></i>
+                        Customer
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    {% if u.is_active %}
+                      <span class="talena-pill talena-pill-success">
+                        <span class="talena-pill-dot"></span>
+                        Active
+                      </span>
+                    {% else %}
+                      <span class="talena-pill talena-pill-warning">
+                        <span class="talena-pill-dot"></span>
+                        Pending
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      </div>
+    {% else %}
+      <div class="p-3">
+        <div class="overview-empty">
+          No users have been added yet.
         </div>
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
 
         <div class="card-footer bg-transparent">
           <a class="btn btn-primary w-100"
@@ -144,130 +177,80 @@
       </div>
     </div>
 
-    <!-- Candidate progress -->
-    <div class="col-12 col-xl-6">
-      <div class="card h-100">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div>
-            <div class="fw-semibold">Candidate progress</div>
-            <div class="text-muted small">Status based on candidate invitations</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="d-grid gap-2">
-
-            <div class="status-row">
-              <div>
-                <div class="fw-semibold">Invited candidates</div>
-                <div class="text-muted small">Added to a test process</div>
-              </div>
-              <span class="status-count">{{ candidate_invitations_count|default:invitations_count|default:"0" }}</span>
-            </div>
-
-            <div class="status-row">
-              <div>
-                <div class="fw-semibold">Started candidates</div>
-                <div class="text-muted small">Started at least one test</div>
-              </div>
-              <span class="status-count">{{ started_candidates_count|default:"0" }}</span>
-            </div>
-
-            <div class="status-row">
-              <div>
-                <div class="fw-semibold">Completed candidates</div>
-                <div class="text-muted small">Completed all assigned tests</div>
-              </div>
-              <span class="status-count">{{ completed_candidates_count|default:"0" }}</span>
-            </div>
-
-            <div class="status-row">
-              <div>
-                <div class="fw-semibold">Unique candidates</div>
-                <div class="text-muted small">Distinct candidates in this company</div>
-              </div>
-              <span class="status-count">{{ candidates_count|default:"0" }}</span>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="card-footer bg-transparent">
-          <a class="btn btn-primary w-100"
-             href="{% url 'accounts:company_stats' company.pk %}">
-            View statistics & details
-          </a>
-        </div>
+<!-- Latest test processes -->
+<div class="col-12 col-xl-6">
+  <div class="card h-100">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div>
+        <div class="fw-semibold">Latest test processes</div>
+        <div class="text-muted small">Recently created processes for this company</div>
       </div>
     </div>
 
-    <!-- Latest test processes -->
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div>
-            <div class="fw-semibold">Latest test processes</div>
-            <div class="text-muted small">Recently created processes for this company</div>
-          </div>
+    <div class="card-body">
+      {% if latest_processes %}
+        <div class="process-rows">
+          {% for p in latest_processes %}
+            <a href="{% url 'accounts:admin_process_detail' p.id %}"
+               class="process-row process-row-link">
+
+              <div class="process-col-main min-w-0">
+                <div class="process-name text-truncate">
+                  {{ p.name }}
+                </div>
+
+                <div class="process-sub text-muted small text-truncate">
+                  {{ p.org_unit.name|default:"No account" }}
+                </div>
+
+                <div class="process-sub process-sub-extra text-muted small text-truncate">
+                  Created by
+                  {% if p.created_by %}
+                    {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
+                  {% else %}
+                    Unknown user
+                  {% endif %}
+                  · {{ p.created_at|date:"Y-m-d H:i" }}
+                </div>
+              </div>
+
+              <div class="process-col-meta">
+                <span class="process-info-pill process-info-pill-candidates">
+                  <span class="process-info-icon">
+                    <i data-feather="users"></i>
+                  </span>
+                  <span class="process-info-text">
+                    {{ p.candidates_count|default:"0" }}
+                  </span>
+                </span>
+              </div>
+
+              <div class="process-col-label">
+                <div class="process-labels">
+                  <span class="process-label">
+                    {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+                  </span>
+                </div>
+              </div>
+
+            </a>
+          {% endfor %}
         </div>
-
-        <div class="card-body">
-          {% if latest_processes %}
-            <div class="process-rows">
-              {% for p in latest_processes %}
-                <a href="{% url 'accounts:admin_process_detail' p.id %}"
-                   class="process-row process-row-link">
-
-                  <div class="process-col-main min-w-0">
-                    <div class="process-name text-truncate">
-                      {{ p.name }}
-                    </div>
-
-                    <div class="process-sub text-muted small text-truncate">
-                      {{ p.org_unit.name|default:"No account" }}
-                    </div>
-
-                    <div class="process-sub process-sub-extra text-muted small text-truncate">
-                      Created by
-                      {% if p.created_by %}
-                        {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
-                      {% else %}
-                        Unknown user
-                      {% endif %}
-                      · {{ p.created_at|date:"Y-m-d H:i" }}
-                    </div>
-                  </div>
-
-                  <div class="process-col-meta">
-                    <span class="process-info-pill process-info-pill-candidates">
-                      <span class="process-info-icon">
-                        <i data-feather="users"></i>
-                      </span>
-                      <span class="process-info-text">
-                        {{ p.candidates_count|default:"0" }}
-                      </span>
-                    </span>
-                  </div>
-
-                  <div class="process-col-label">
-                    <div class="process-labels">
-                      <span class="process-label">
-                        {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-                      </span>
-                    </div>
-                  </div>
-
-                </a>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="overview-empty">
-              No test processes have been created yet.
-            </div>
-          {% endif %}
+      {% else %}
+        <div class="overview-empty">
+          No test processes have been created yet.
         </div>
-      </div>
+      {% endif %}
     </div>
+
+    <div class="card-footer bg-transparent">
+      <a class="btn btn-primary w-100"
+         href="{% url 'accounts:company_stats' company.pk %}">
+        View statistics & details
+      </a>
+    </div>
+  </div>
+</div>
 
   </div>
 </div>
@@ -402,6 +385,52 @@
       text-align: left;
     }
   }
+
+  .overview-users-table-wrap {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.overview-users-table {
+  font-size: 0.84rem;
+}
+
+.overview-users-table thead th {
+  padding: 0.7rem 0.9rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+  font-weight: 800;
+  background: #f8fafc;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.overview-users-table tbody td {
+  padding: 0.8rem 0.9rem;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.overview-users-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.overview-users-table tbody tr:hover {
+  background: #fafbff;
+}
+
+.overview-users-table .talena-pill {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+.user-initials-sm {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.68rem;
+}
 </style>
 
 {% endblock %}
