@@ -204,14 +204,24 @@ def build_candidate_detail_context(process, invitation):
     def safe_personality_score(item):
         return item.get("sten_rounded") if item.get("sten_rounded") is not None else -1
 
+    valid_mq_competencies = [
+        comp for comp in mq_competencies
+        if comp.get("score") is not None
+    ]
+
+    valid_personality_competencies = [
+        comp for comp in personality_competencies
+        if comp.get("sten_rounded") is not None
+    ]
+
     sorted_mq_desc = sorted(
-        mq_competencies,
+        valid_mq_competencies,
         key=safe_motivation_score,
         reverse=True,
     )
 
     sorted_personality_desc = sorted(
-        personality_competencies,
+        valid_personality_competencies,
         key=safe_personality_score,
         reverse=True,
     )
@@ -220,12 +230,12 @@ def build_candidate_detail_context(process, invitation):
     top_personality_traits = sorted_personality_desc[:3]
 
     sorted_mq_asc = sorted(
-        mq_competencies,
+        valid_mq_competencies,
         key=safe_motivation_score,
     )
 
     sorted_personality_asc = sorted(
-        personality_competencies,
+        valid_personality_competencies,
         key=safe_personality_score,
     )
 
