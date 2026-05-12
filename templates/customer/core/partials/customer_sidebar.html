@@ -1,62 +1,116 @@
+{% load static %}
+
 <div id="layoutSidenav_nav">
-    <nav class="sidenav sidenav-light border">
+    <nav class="sidenav sidenav-light talena-sidebar">
+        <div id="layoutSidenav_nav">
+    <nav class="sidenav sidenav-light talena-sidebar">
+
+        <!-- Sidebar Brand -->
+        <div class="talena-sidebar-brand">
+            <a href="{% url 'core:customer_dashboard' %}" class="talena-brand-link">
+                <img src="{% static 'images/symbol.svg' %}" alt="Talena" class="talena-sidebar-logo">
+            </a>
+        </div>
+
         <div class="sidenav-menu">
-            <div class="nav accordion" id="accordionSidenav">
-                <!-- Sidenav Menu Heading (Core)-->
-                <div class="sidenav-menu-heading">Account</div>
-                <!-- Sidenav Accordion (Dashboard)-->
+            <div class="nav accordion talena-sidebar-nav" id="accordionSidenav">
 
-                <a class="nav-link" href="{% url 'core:customer_dashboard' %}">
-                    <div class="nav-link-icon"><i data-feather="grid"></i></div>
-                    Dashboard
+                <div class="sidenav-menu-heading">General</div>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" 
+                   href="{% url 'core:customer_dashboard' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="grid"></i>
+                    </div>
+                    <span>Dashboard</span>
                 </a>
 
-                <a class="nav-link" href="{% url 'portal:settings' %}">
-                    <div class="nav-link-icon"><i data-feather="settings"></i></div>
-                    Account settings
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" 
+                   href="{% url 'portal:settings' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <span>Account settings</span>
                 </a>
 
-                <div class="collapse" id="collapseDashboards" data-bs-parent="#accordionSidenav">
-                    <nav class="sidenav-menu-nested nav accordion" id="accordionSidenavPages">
-                        <a class="nav-link" href="dashboard-1.html">
-                            Default
-                            <span class="badge bg-primary-soft text-primary ms-auto">Updated</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <!-- Sidenav Heading (Custom)-->
                 <div class="sidenav-menu-heading">Assessments</div>
-                <!-- Sidenav Accordion (Pages)-->
 
-                <a class="nav-link" href="{% url 'processes:process_list' %}">
-                    <div class="nav-link-icon"><i data-feather="list"></i></div>
-                    Test processes
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}" 
+                   href="{% url 'processes:process_list' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="list"></i>
+                    </div>
+                    <span>Test processes</span>
                 </a>
 
-                <a class="nav-link" href="{% url 'processes:process_create' %}">
-                    <div class="nav-link-icon"><i data-feather="plus"></i></div>
-                    Create new test process
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_create' %}active{% endif %}" 
+                   href="{% url 'processes:process_create' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="plus"></i>
+                    </div>
+                    <span>Create new test process</span>
                 </a>
-
-                {% comment %}
-                <!-- Tools section hidden for now -->
-                <div class="sidenav-menu-heading">Tools</div>
-
-                <a class="nav-link" href="{% url 'ai_chat:chat' %}">
-                    <div class="nav-link-icon"><i data-feather="message-square"></i></div>
-                    Chat with Talena
-                </a>
-                {% endcomment %}
 
             </div>
         </div>
 
-        <!-- Sidenav Footer-->
-        <div class="sidenav-footer">
+        <div class="sidenav-footer talena-sidebar-footer">
             <div class="sidenav-footer-content">
-                <div class="sidenav-footer-subtitle">Signed in as:</div>
-                <div class="sidenav-footer-title">{{ request.user.get_full_name }}</div>
+                <div class="sidenav-footer-subtitle">Signed in as</div>
+                <div class="sidenav-footer-title">
+                    {{ request.user.get_full_name|default:request.user.email }}
+                </div>
+            </div>
+        </div>
+
+    </nav>
+</div>
+        <div class="sidenav-menu">
+            <div class="nav accordion talena-sidebar-nav" id="accordionSidenav">
+
+                <div class="sidenav-menu-heading">General</div>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" 
+                   href="{% url 'core:customer_dashboard' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="grid"></i>
+                    </div>
+                    <span>Dashboard</span>
+                </a>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" 
+                   href="{% url 'portal:settings' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <span>Account settings</span>
+                </a>
+
+                <div class="sidenav-menu-heading">Assessments</div>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}" 
+                   href="{% url 'processes:process_list' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="list"></i>
+                    </div>
+                    <span>Test processes</span>
+                </a>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_create' %}active{% endif %}" 
+                   href="{% url 'processes:process_create' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="plus"></i>
+                    </div>
+                    <span>Create new test process</span>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="sidenav-footer talena-sidebar-footer">
+            <div class="sidenav-footer-content">
+                <div class="sidenav-footer-subtitle">Signed in as</div>
+                <div class="sidenav-footer-title">{{ request.user.get_full_name|default:request.user.email }}</div>
             </div>
         </div>
     </nav>

@@ -1,76 +1,139 @@
 /*!
-    * Start Bootstrap - SB Admin Pro v2.0.5 (https://shop.startbootstrap.com/product/sb-admin-pro)
-    * Copyright 2013-2023 Start Bootstrap
-    * Licensed under SEE_LICENSE (https://github.com/StartBootstrap/sb-admin-pro/blob/master/LICENSE)
-    */
-    window.addEventListener('DOMContentLoaded', event => {
-    // Activate feather
-    feather.replace();
+ * Start Bootstrap - SB Admin Pro v2.0.5
+ * Custom Talena sidebar handling
+ */
 
-    // Enable tooltips globally
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+window.addEventListener("DOMContentLoaded", () => {
+    /* --------------------------------
+       Feather icons
+    -------------------------------- */
+    if (typeof feather !== "undefined") {
+        feather.replace();
+    }
+
+    /* --------------------------------
+       Bootstrap tooltips
+    -------------------------------- */
+    const tooltipTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+
+    tooltipTriggerList.map((tooltipTriggerEl) => {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Enable popovers globally
-    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+    /* --------------------------------
+       Bootstrap popovers
+    -------------------------------- */
+    const popoverTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="popover"]')
+    );
+
+    popoverTriggerList.map((popoverTriggerEl) => {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    // Toggle the side navigation
-    const sidebarToggle = document.body.querySelector('#sidebarToggle');
-    if (sidebarToggle) {
-        // Uncomment Below to persist sidebar toggle between refreshes
-        // if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
-        //     document.body.classList.toggle('sidenav-toggled');
-        // }
-        sidebarToggle.addEventListener('click', event => {
+    /* --------------------------------
+       Sidebar toggle
+    -------------------------------- */
+
+    const sidebarToggle = document.querySelector("#sidebarToggle");
+    const sidebarToggleDesktop = document.querySelector("#sidebarToggleDesktop");
+
+    function toggleSidebar(event) {
+        if (event) {
             event.preventDefault();
-            document.body.classList.toggle('sidenav-toggled');
-            localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
-        });
+        }
+
+        document.body.classList.toggle("sidenav-toggled");
+
+        localStorage.setItem(
+            "sb|sidebar-toggle",
+            document.body.classList.contains("sidenav-toggled")
+        );
     }
 
-    // Close side navigation when width < LG
-    const sidenavContent = document.body.querySelector('#layoutSidenav_content');
+    /*
+     * Restore sidebar state on page load.
+     * If you do NOT want it to remember closed/open state between pages,
+     * remove this block.
+     */
+    if (localStorage.getItem("sb|sidebar-toggle") === "true") {
+        document.body.classList.add("sidenav-toggled");
+    }
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener("click", toggleSidebar);
+    }
+
+    if (sidebarToggleDesktop) {
+        sidebarToggleDesktop.addEventListener("click", toggleSidebar);
+    }
+
+    /* --------------------------------
+       Close sidebar on mobile when clicking content
+    -------------------------------- */
+
+    const sidenavContent = document.querySelector("#layoutSidenav_content");
+
     if (sidenavContent) {
-        sidenavContent.addEventListener('click', event => {
+        sidenavContent.addEventListener("click", () => {
             const BOOTSTRAP_LG_WIDTH = 992;
-            if (window.innerWidth >= 992) {
+
+            if (window.innerWidth >= BOOTSTRAP_LG_WIDTH) {
                 return;
             }
+
             if (document.body.classList.contains("sidenav-toggled")) {
-                document.body.classList.toggle("sidenav-toggled");
+                document.body.classList.remove("sidenav-toggled");
+                localStorage.setItem("sb|sidebar-toggle", "false");
             }
         });
     }
 
-    // Add active state to sidbar nav links
-    let activatedPath = window.location.pathname.match(/([\w-]+\.html)/, '$1');
+    /* --------------------------------
+       Active state for sidebar nav links
+       This is mostly SB Admin fallback.
+       Your Django active classes can still handle this better.
+    -------------------------------- */
 
-    if (activatedPath) {
-        activatedPath = activatedPath[0];
-    } else {
-        activatedPath = 'index.html';
-    }
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll(".sidenav .nav-link");
 
-    const targetAnchors = document.body.querySelectorAll('[href="' + activatedPath + '"].nav-link');
+    navLinks.forEach((link) => {
+        const href = link.getAttribute("href");
 
-    targetAnchors.forEach(targetAnchor => {
-        let parentNode = targetAnchor.parentNode;
-        while (parentNode !== null && parentNode !== document.documentElement) {
-            if (parentNode.classList.contains('collapse')) {
-                parentNode.classList.add('show');
-                const parentNavLink = document.body.querySelector(
-                    '[data-bs-target="#' + parentNode.id + '"]'
-                );
-                parentNavLink.classList.remove('collapsed');
-                parentNavLink.classList.add('active');
-            }
-            parentNode = parentNode.parentNode;
+        if (!href) {
+            return;
         }
-        targetAnchor.classList.add('active');
+
+        try {
+            const linkUrl = new URL(href, window.location.origin);
+
+            if (linkUrl.pathname === currentPath) {
+                link.classList.add("active");
+
+                let parentNode = link.parentNode;
+
+                while (parentNode && parentNode !== document.documentElement) {
+                    if (parentNode.classList.contains("collapse")) {
+                        parentNode.classList.add("show");
+
+                        const parentNavLink = document.querySelector(
+                            `[data-bs-target="#${parentNode.id}"]`
+                        );
+
+                        if (parentNavLink) {
+                            parentNavLink.classList.remove("collapsed");
+                            parentNavLink.classList.add("active");
+                        }
+                    }
+
+                    parentNode = parentNode.parentNode;
+                }
+            }
+        } catch (error) {
+            // Ignore invalid hrefs like javascript:void(0)
+        }
     });
 });
