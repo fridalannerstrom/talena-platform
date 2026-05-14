@@ -26,14 +26,6 @@
     </div>
   {% endif %}
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-
   {% if form.non_field_errors %}
     <div class="alert alert-danger">
       {{ form.non_field_errors }}
@@ -83,44 +75,52 @@
             <div class="purpose-grid">
               {% for purpose in process_purposes %}
                 <label class="purpose-card" data-purpose-card>
-                  <input
-                    type="radio"
-                    name="purpose"
-                    value="{{ purpose.key }}"
-                    {% if form.purpose.value == purpose.key %}checked{% endif %}
-                  >
+  <input
+    type="radio"
+    name="purpose"
+    value="{{ purpose.key }}"
+    {% if form.purpose.value == purpose.key %}checked{% endif %}
+  >
 
-                  <div class="purpose-card-inner">
-                    <div class="purpose-icon">
-                      {% if purpose.key == "hiring" %}
-                        <i class="fa-solid fa-user-plus"></i>
-                      {% elif purpose.key == "internal_role_match" %}
-                        <i class="fa-solid fa-arrows-left-right"></i>
-                      {% elif purpose.key == "leadership_potential" %}
-                        <i class="fa-solid fa-seedling"></i>
-                      {% elif purpose.key == "career_path" %}
-                        <i class="fa-solid fa-route"></i>
-                      {% elif purpose.key == "onboarding" %}
-                        <i class="fa-solid fa-door-open"></i>
-                      {% elif purpose.key == "employee_development" %}
-                        <i class="fa-solid fa-chart-line"></i>
-                      {% elif purpose.key == "leader_development" %}
-                        <i class="fa-solid fa-award"></i>
-                      {% elif purpose.key == "team_development" %}
-                        <i class="fa-solid fa-people-group"></i>
-                      {% elif purpose.key == "reorganisation" %}
-                        <i class="fa-solid fa-diagram-project"></i>
-                      {% else %}
-                        <i class="fa-solid fa-compass"></i>
-                      {% endif %}
-                    </div>
+  <div class="purpose-card-inner">
 
-                    <div>
-                      <h3>{{ purpose.label }}</h3>
-                      <p>{{ purpose.description }}</p>
-                    </div>
-                  </div>
-                </label>
+    <div class="purpose-card-top">
+      <div class="purpose-icon">
+        {% if purpose.key == "hiring" %}
+          <i class="fa-solid fa-user-plus"></i>
+        {% elif purpose.key == "internal_role_match" %}
+          <i class="fa-solid fa-arrows-left-right"></i>
+        {% elif purpose.key == "leadership_potential" %}
+          <i class="fa-solid fa-seedling"></i>
+        {% elif purpose.key == "career_path" %}
+          <i class="fa-solid fa-route"></i>
+        {% elif purpose.key == "onboarding" %}
+          <i class="fa-solid fa-door-open"></i>
+        {% elif purpose.key == "employee_development" %}
+          <i class="fa-solid fa-chart-line"></i>
+        {% elif purpose.key == "leader_development" %}
+          <i class="fa-solid fa-award"></i>
+        {% elif purpose.key == "team_development" %}
+          <i class="fa-solid fa-people-group"></i>
+        {% elif purpose.key == "reorganisation" %}
+          <i class="fa-solid fa-diagram-project"></i>
+        {% else %}
+          <i class="fa-solid fa-compass"></i>
+        {% endif %}
+      </div>
+
+      <span class="purpose-radio-dot">
+  <i class="fa-solid fa-check"></i>
+</span>
+    </div>
+
+    <div class="purpose-card-copy">
+      <h3>{{ purpose.label }}</h3>
+      <p>{{ purpose.description }}</p>
+    </div>
+
+  </div>
+</label>
               {% endfor %}
             </div>
 
@@ -151,50 +151,51 @@
               <div class="alert alert-danger">{{ form.selected_tests.errors }}</div>
             {% endif %}
 
-            <div class="test-grid">
-              {% for test in available_tests %}
-                <label class="test-card" data-test-card>
-                  <input
-                    type="checkbox"
-                    name="selected_tests"
-                    value="{{ test.key }}"
-                    {% if test.key in form.selected_tests.value %}checked{% endif %}
-                  >
+<div class="test-grid">
+  {% for test in available_tests %}
+    <label class="test-card" data-test-card>
+      <input
+        type="checkbox"
+        name="selected_tests"
+        value="{{ test.key }}"
+        {% if test.key in form.selected_tests.value %}checked{% endif %}
+      >
 
-                  <div class="test-card-inner">
-                    <div class="test-card-top">
-                      <div class="test-icon">
-                        {% if test.key == "personality" %}
-                          <i class="fa-solid fa-user-check"></i>
-                        {% elif test.key == "motivation" %}
-                          <i class="fa-solid fa-bullseye"></i>
-                        {% elif test.key == "verbal" %}
-                          <i class="fa-solid fa-align-left"></i>
-                        {% elif test.key == "logical" %}
-                          <i class="fa-solid fa-puzzle-piece"></i>
-                        {% elif test.key == "numerical" %}
-                          <i class="fa-solid fa-chart-simple"></i>
-                        {% else %}
-                          <i class="fa-solid fa-layer-group"></i>
-                        {% endif %}
-                      </div>
+      <div class="test-card-inner">
 
-                      <div class="test-check">
-                        <i class="fa-solid fa-check"></i>
-                      </div>
-                    </div>
+        <div class="test-card-top">
+          <div class="test-icon">
+            {% if test.key == "personality" %}
+              <i class="fa-solid fa-user-check"></i>
+            {% elif test.key == "motivation" %}
+              <i class="fa-solid fa-bullseye"></i>
+            {% elif test.key == "verbal" %}
+              <i class="fa-solid fa-align-left"></i>
+            {% elif test.key == "logical" %}
+              <i class="fa-solid fa-puzzle-piece"></i>
+            {% elif test.key == "numerical" %}
+              <i class="fa-solid fa-chart-simple"></i>
+            {% else %}
+              <i class="fa-solid fa-layer-group"></i>
+            {% endif %}
+          </div>
 
-                    <h3>{{ test.label }}</h3>
-                    <div class="test-short-label">{{ test.short_label }}</div>
-                    <p>{{ test.description }}</p>
+          <span class="test-checkbox-dot">
+            <i class="fa-solid fa-check"></i>
+          </span>
+        </div>
+                  <div class="recommended-badge d-none" data-recommended-for="{{ test.key }}">
+          Recommended
+        </div>
+        <div class="test-card-copy">
+          <h3>{{ test.label }}</h3>
+          <p>{{ test.description }}</p>
+        </div>
 
-                    <div class="recommended-badge d-none" data-recommended-for="{{ test.key }}">
-                      Recommended
-                    </div>
-                  </div>
-                </label>
-              {% endfor %}
-            </div>
+      </div>
+    </label>
+  {% endfor %}
+</div>
 
             <!-- DEV / CURRENT SETUP INFO -->
             <div class="dev-template-box mt-4">
@@ -283,26 +284,6 @@
 
             </div>
 
-            <!-- SUMMARY -->
-            <div class="process-summary mt-4">
-              <div class="small text-muted mb-2">Summary</div>
-
-              <div class="summary-row">
-                <span>Purpose</span>
-                <strong id="summaryPurpose">Not selected</strong>
-              </div>
-
-              <div class="summary-row">
-                <span>Selected tests</span>
-                <strong id="summaryTests">Not selected</strong>
-              </div>
-
-              <div class="summary-row">
-                <span>Sova setup</span>
-                <strong id="summarySovaSetup">Not selected</strong>
-              </div>
-            </div>
-
             <div class="wizard-actions mt-4">
               <button type="button" class="btn btn-outline-secondary" data-prev-step>
                 Back
@@ -327,9 +308,6 @@
 {{ available_tests|json_script:"availableTestsData" }}
 
 <style>
-  .talena-wizard {
-    max-width: 1180px;
-  }
 
   .wizard-steps {
     display: flex;
@@ -384,90 +362,101 @@
     display: block;
   }
 
-  .purpose-grid,
-  .test-grid {
-    display: grid;
-    gap: 1rem;
-  }
+.purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
 
-  .purpose-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.purpose-card {
+  display: block;
+  cursor: pointer;
+  margin: 0;
+}
 
-  .test-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
+.purpose-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
 
-  .purpose-card,
-  .test-card {
-    cursor: pointer;
-    display: block;
-    margin: 0;
-  }
+.purpose-card-inner {
+  position: relative;
+  min-height: 138px;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 2rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    min-height: 180px;
+}
 
-  .purpose-card input,
-  .test-card input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
+.purpose-card-inner:hover {
+  border-color: #111827;
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.06);
+  transform: translateY(-1px);
+}
 
-  .purpose-card-inner,
-  .test-card-inner {
-    position: relative;
-    height: 100%;
-    border: 1px solid #e5e7eb;
-    border-radius: 1.25rem;
-    background:
-      radial-gradient(600px 240px at 20% 0%, rgba(245, 243, 255, 0.95), transparent 55%),
-      #fff;
-    padding: 1rem;
-    transition: all 0.18s ease;
-  }
+.purpose-card input:checked + .purpose-card-inner {
+  border: 1px solid #111827;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+}
 
-  .purpose-card-inner:hover,
-  .test-card-inner:hover {
-    transform: translateY(-2px);
-    border-color: #c4b5fd;
-    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.08);
-  }
+.purpose-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
 
-  .purpose-card input:checked + .purpose-card-inner,
-  .test-card input:checked + .test-card-inner {
-    border-color: #7c3aed;
-    box-shadow: 0 16px 36px rgba(124, 58, 237, 0.16);
-  }
+.purpose-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.55rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
 
-  .purpose-icon,
-  .test-icon {
-    width: 2.35rem;
-    height: 2.35rem;
-    display: grid;
-    place-items: center;
-    border-radius: 0.9rem;
-    background: #f5f3ff;
-    color: #7c3aed;
-    flex: 0 0 auto;
-  }
+.purpose-radio-dot {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  font-size: 0.48rem;
+}
 
-  .purpose-card-inner {
-    display: flex;
-    gap: 0.9rem;
-  }
+.purpose-card input:checked + .purpose-card-inner .purpose-radio-dot {
+  border-color: #111827;
+  background: #111827;
+  color: #fff;
+}
 
-  .purpose-card h3,
-  .test-card h3 {
-    font-size: 1rem;
-    margin: 0 0 0.35rem;
-  }
+.purpose-card-copy h3 {
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.35rem;
+}
 
-  .purpose-card p,
-  .test-card p {
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin: 0;
-    line-height: 1.45;
-  }
+.purpose-card-copy p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
 
   .test-card-top {
     display: flex;
@@ -499,16 +488,6 @@
     margin-bottom: 0.5rem;
   }
 
-  .recommended-badge {
-    margin-top: 0.85rem;
-    display: inline-flex;
-    border-radius: 999px;
-    padding: 0.25rem 0.55rem;
-    background: #ede9fe;
-    color: #5b21b6;
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
 
   .dev-template-box {
     border: 1px solid #e5e7eb;
@@ -567,11 +546,133 @@
     }
   }
 
+  .test-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.test-card {
+  display: block;
+  cursor: pointer;
+  margin: 0;
+}
+
+.test-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.test-card-inner {
+  position: relative;
+  min-height: 164px;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 1rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+  min-height: 300px;
+}
+
+.test-card-inner:hover {
+  border-color: #111827;
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.06);
+  transform: translateY(-1px);
+}
+
+.test-card input:checked + .test-card-inner {
+  border: 1px solid #111827;
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+}
+
+.test-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+.test-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.55rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+
+.test-checkbox-dot {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  font-size: 0.48rem;
+}
+
+.test-card input:checked + .test-card-inner .test-checkbox-dot {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-color: #111827;
+  background: #111827;
+  color: #fff;
+}
+
+.test-card-copy h3 {
+  font-size: 1rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem;
+}
+
+.test-short-label {
+  color: #7c3aed;
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-bottom: 0.55rem;
+}
+
+.test-card-copy p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.recommended-badge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  background: #f3f0ff;
+  color: #6d28d9;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-top: -45px;
+  position: absolute;
+}
+
   @media (max-width: 640px) {
-    .purpose-grid,
+  .purpose-grid {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
+
     .test-grid {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
 
     .wizard-actions {
       flex-direction: column-reverse;

@@ -1,53 +1,53 @@
 PROCESS_PURPOSES = [
     {
         "key": "hiring",
-        "label": "Anställa en kandidat",
-        "description": "Skapa en testprocess inför rekrytering och urval.",
+        "label": "Hire a candidate",
+        "description": "Create an assessment process for recruitment and selection.",
     },
     {
         "key": "internal_role_match",
-        "label": "Bedöma en intern rollmatch",
-        "description": "Bedöm hur väl en medarbetare matchar en ny eller befintlig roll.",
+        "label": "Assess internal role match",
+        "description": "Assess how well an employee matches a new or existing role.",
     },
     {
         "key": "leadership_potential",
-        "label": "Identifiera ledarpotential",
-        "description": "Utforska potential för framtida ledarroller.",
+        "label": "Identify leadership potential",
+        "description": "Explore potential for future leadership roles.",
     },
     {
         "key": "career_path",
-        "label": "Identifiera karriärväg",
-        "description": "Få stöd i att förstå möjliga utvecklings- och karriärvägar.",
+        "label": "Identify career path",
+        "description": "Gain support in understanding possible development and career paths.",
     },
     {
         "key": "onboarding",
-        "label": "Inför onboarding",
-        "description": "Förstå hur en person bäst introduceras och får rätt stöd från start.",
+        "label": "Prepare for onboarding",
+        "description": "Understand how a person can be introduced and supported in the best way from the start.",
     },
     {
         "key": "employee_development",
-        "label": "Utveckla en medarbetare",
-        "description": "Skapa underlag för utvecklingssamtal, coaching och individuell utveckling.",
+        "label": "Develop an employee",
+        "description": "Create a foundation for development conversations, coaching and individual growth.",
     },
     {
         "key": "leader_development",
-        "label": "Utveckla en ledare",
-        "description": "Skapa underlag för ledarutveckling och reflektion.",
+        "label": "Develop a leader",
+        "description": "Create a foundation for leadership development and reflection.",
     },
     {
         "key": "team_development",
-        "label": "Förstå och utveckla team",
-        "description": "Utforska drivkrafter, beteenden och möjliga teammönster.",
+        "label": "Understand and develop a team",
+        "description": "Explore drivers, behaviours and possible team patterns.",
     },
     {
         "key": "reorganisation",
-        "label": "Stötta vid omorganisering",
-        "description": "Få stöd vid förändring, ny rollfördelning eller intern omställning.",
+        "label": "Support reorganisation",
+        "description": "Gain support during change, new role distribution or internal transition.",
     },
     {
         "key": "unsure",
-        "label": "Jag är osäker / fri testprocess",
-        "description": "Skapa en flexibel process utan ett bestämt syfte.",
+        "label": "I am unsure / free assessment process",
+        "description": "Create a flexible process without a defined purpose.",
     },
 ]
 
