@@ -108,3 +108,18 @@ class SelfRegisterForm(forms.Form):
         label="E-post",
         widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "email"})
     )
+
+class TestProcessWizardCreateForm(forms.Form):
+    purpose = forms.CharField(max_length=80)
+    selected_tests = forms.MultipleChoiceField(
+        choices=[
+            ("personality", "Personality"),
+            ("motivation", "Motivation"),
+            ("verbal", "Verbal"),
+            ("logical", "Logical"),
+            ("numerical", "Numerical"),
+        ],
+        required=False,
+    )
+    name = forms.CharField(max_length=255, required=False)
+    labels_text = forms.CharField(required=False)

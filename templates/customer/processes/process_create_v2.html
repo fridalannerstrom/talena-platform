@@ -1,0 +1,811 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid px-3 px-md-4">
+
+  <!-- PAGE HEADER -->
+  <div class="d-flex align-items-start justify-content-between mb-4">
+    <div>
+      <div class="text-muted small mb-1">Test processes</div>
+      <h1 class="h3 mb-1">Create test process</h1>
+      <p class="text-muted mb-0">
+        Choose why you are creating this process, then Talena will recommend a suitable assessment setup.
+      </p>
+    </div>
+
+    <a href="{% url 'processes:process_list' %}" class="btn btn-outline-secondary btn-sm">
+      Back to processes
+    </a>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-warning">
+      Could not load Sova projects: {{ error }}
+    </div>
+  {% endif %}
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <form method="post" id="processCreateWizardForm">
+    {% csrf_token %}
+
+    <!-- WIZARD SHELL -->
+    <div class="talena-wizard">
+
+      <!-- STEP INDICATOR -->
+      <div class="wizard-steps mb-4">
+        <button type="button" class="wizard-step-indicator active" data-step-target="1">
+          <span>1</span>
+          <strong>Purpose</strong>
+        </button>
+
+        <button type="button" class="wizard-step-indicator" data-step-target="2">
+          <span>2</span>
+          <strong>Tests</strong>
+        </button>
+
+        <button type="button" class="wizard-step-indicator" data-step-target="3">
+          <span>3</span>
+          <strong>Details</strong>
+        </button>
+      </div>
+
+      <!-- STEP 1 -->
+      <section class="wizard-panel active" data-step="1">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+
+            <div class="mb-4">
+              <h2 class="h4 mb-1">Why are you creating this process?</h2>
+              <p class="text-muted mb-0">
+                This helps Talena suggest the right test combination and later adapt the report.
+              </p>
+            </div>
+
+            {% if form.purpose.errors %}
+              <div class="alert alert-danger">{{ form.purpose.errors }}</div>
+            {% endif %}
+
+            <div class="purpose-grid">
+              {% for purpose in process_purposes %}
+                <label class="purpose-card" data-purpose-card>
+                  <input
+                    type="radio"
+                    name="purpose"
+                    value="{{ purpose.key }}"
+                    {% if form.purpose.value == purpose.key %}checked{% endif %}
+                  >
+
+                  <div class="purpose-card-inner">
+                    <div class="purpose-icon">
+                      {% if purpose.key == "hiring" %}
+                        <i class="fa-solid fa-user-plus"></i>
+                      {% elif purpose.key == "internal_role_match" %}
+                        <i class="fa-solid fa-arrows-left-right"></i>
+                      {% elif purpose.key == "leadership_potential" %}
+                        <i class="fa-solid fa-seedling"></i>
+                      {% elif purpose.key == "career_path" %}
+                        <i class="fa-solid fa-route"></i>
+                      {% elif purpose.key == "onboarding" %}
+                        <i class="fa-solid fa-door-open"></i>
+                      {% elif purpose.key == "employee_development" %}
+                        <i class="fa-solid fa-chart-line"></i>
+                      {% elif purpose.key == "leader_development" %}
+                        <i class="fa-solid fa-award"></i>
+                      {% elif purpose.key == "team_development" %}
+                        <i class="fa-solid fa-people-group"></i>
+                      {% elif purpose.key == "reorganisation" %}
+                        <i class="fa-solid fa-diagram-project"></i>
+                      {% else %}
+                        <i class="fa-solid fa-compass"></i>
+                      {% endif %}
+                    </div>
+
+                    <div>
+                      <h3>{{ purpose.label }}</h3>
+                      <p>{{ purpose.description }}</p>
+                    </div>
+                  </div>
+                </label>
+              {% endfor %}
+            </div>
+
+            <div class="wizard-actions mt-4">
+              <div></div>
+              <button type="button" class="btn btn-primary" data-next-step>
+                Continue
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="wizard-panel" data-step="2">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+
+            <div class="mb-4">
+              <h2 class="h4 mb-1">Choose tests</h2>
+              <p class="text-muted mb-0">
+                Talena has preselected recommended tests based on your purpose, but you can adjust the selection.
+              </p>
+            </div>
+
+            {% if form.selected_tests.errors %}
+              <div class="alert alert-danger">{{ form.selected_tests.errors }}</div>
+            {% endif %}
+
+            <div class="test-grid">
+              {% for test in available_tests %}
+                <label class="test-card" data-test-card>
+                  <input
+                    type="checkbox"
+                    name="selected_tests"
+                    value="{{ test.key }}"
+                    {% if test.key in form.selected_tests.value %}checked{% endif %}
+                  >
+
+                  <div class="test-card-inner">
+                    <div class="test-card-top">
+                      <div class="test-icon">
+                        {% if test.key == "personality" %}
+                          <i class="fa-solid fa-user-check"></i>
+                        {% elif test.key == "motivation" %}
+                          <i class="fa-solid fa-bullseye"></i>
+                        {% elif test.key == "verbal" %}
+                          <i class="fa-solid fa-align-left"></i>
+                        {% elif test.key == "logical" %}
+                          <i class="fa-solid fa-puzzle-piece"></i>
+                        {% elif test.key == "numerical" %}
+                          <i class="fa-solid fa-chart-simple"></i>
+                        {% else %}
+                          <i class="fa-solid fa-layer-group"></i>
+                        {% endif %}
+                      </div>
+
+                      <div class="test-check">
+                        <i class="fa-solid fa-check"></i>
+                      </div>
+                    </div>
+
+                    <h3>{{ test.label }}</h3>
+                    <div class="test-short-label">{{ test.short_label }}</div>
+                    <p>{{ test.description }}</p>
+
+                    <div class="recommended-badge d-none" data-recommended-for="{{ test.key }}">
+                      Recommended
+                    </div>
+                  </div>
+                </label>
+              {% endfor %}
+            </div>
+
+            <!-- DEV / CURRENT SETUP INFO -->
+            <div class="dev-template-box mt-4">
+              <div class="d-flex gap-3 align-items-start">
+                <div class="dev-template-icon">
+                  <i class="fa-solid fa-flask"></i>
+                </div>
+
+                <div>
+                  <div class="small text-muted mb-1">Current Sova setup</div>
+                  <strong id="currentSovaSetupLabel">Select Personality or Motivation</strong>
+                  <p class="mb-0 text-muted small">
+                    In the current development environment, Talena maps your selection to one available Sova project.
+                    The full flexible test setup will be connected later.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-actions mt-4">
+              <button type="button" class="btn btn-outline-secondary" data-prev-step>
+                Back
+              </button>
+
+              <button type="button" class="btn btn-primary" data-next-step>
+                Continue
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="wizard-panel" data-step="3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+
+            <div class="mb-4">
+              <h2 class="h4 mb-1">Name and organize</h2>
+              <p class="text-muted mb-0">
+                Give the process an internal name and add labels if you want to organize it by department, role or project.
+              </p>
+            </div>
+
+            <div class="row g-4">
+
+              <div class="col-12 col-lg-7">
+                <label class="form-label">Process name</label>
+                <input
+                  type="text"
+                  name="name"
+                  id="processNameInput"
+                  class="form-control form-control-lg"
+                  value="{{ form.name.value|default:'' }}"
+                  placeholder="Talena can suggest a name automatically"
+                >
+
+                {% if form.name.errors %}
+                  <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                {% endif %}
+
+                <div class="form-text">
+                  This is only used internally. You can leave it empty and Talena will create a name.
+                </div>
+              </div>
+
+              <div class="col-12 col-lg-5">
+                <label class="form-label">Labels</label>
+                <input
+                  type="text"
+                  name="labels_text"
+                  class="form-control form-control-lg"
+                  value="{{ form.labels_text.value|default:'' }}"
+                  placeholder="e.g. Sales, Stockholm, Graduate"
+                >
+
+                {% if form.labels_text.errors %}
+                  <div class="text-danger small mt-1">{{ form.labels_text.errors }}</div>
+                {% endif %}
+
+                <div class="form-text">
+                  Separate labels with commas.
+                </div>
+              </div>
+
+            </div>
+
+            <!-- SUMMARY -->
+            <div class="process-summary mt-4">
+              <div class="small text-muted mb-2">Summary</div>
+
+              <div class="summary-row">
+                <span>Purpose</span>
+                <strong id="summaryPurpose">Not selected</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Selected tests</span>
+                <strong id="summaryTests">Not selected</strong>
+              </div>
+
+              <div class="summary-row">
+                <span>Sova setup</span>
+                <strong id="summarySovaSetup">Not selected</strong>
+              </div>
+            </div>
+
+            <div class="wizard-actions mt-4">
+              <button type="button" class="btn btn-outline-secondary" data-prev-step>
+                Back
+              </button>
+
+              <button type="submit" class="btn btn-primary">
+                Create process
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </form>
+
+</div>
+
+{{ purpose_recommended_tests|json_script:"purposeRecommendedTestsData" }}
+{{ process_purposes|json_script:"processPurposesData" }}
+{{ available_tests|json_script:"availableTestsData" }}
+
+<style>
+  .talena-wizard {
+    max-width: 1180px;
+  }
+
+  .wizard-steps {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .wizard-step-indicator {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem 0.45rem 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #6b7280;
+    transition: all 0.18s ease;
+  }
+
+  .wizard-step-indicator span {
+    width: 1.7rem;
+    height: 1.7rem;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .wizard-step-indicator strong {
+    font-size: 0.9rem;
+  }
+
+  .wizard-step-indicator.active {
+    border-color: #7c3aed;
+    color: #4c1d95;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
+  }
+
+  .wizard-step-indicator.active span {
+    background: #7c3aed;
+    color: #fff;
+  }
+
+  .wizard-panel {
+    display: none;
+  }
+
+  .wizard-panel.active {
+    display: block;
+  }
+
+  .purpose-grid,
+  .test-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .purpose-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .test-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .purpose-card,
+  .test-card {
+    cursor: pointer;
+    display: block;
+    margin: 0;
+  }
+
+  .purpose-card input,
+  .test-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .purpose-card-inner,
+  .test-card-inner {
+    position: relative;
+    height: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(600px 240px at 20% 0%, rgba(245, 243, 255, 0.95), transparent 55%),
+      #fff;
+    padding: 1rem;
+    transition: all 0.18s ease;
+  }
+
+  .purpose-card-inner:hover,
+  .test-card-inner:hover {
+    transform: translateY(-2px);
+    border-color: #c4b5fd;
+    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.08);
+  }
+
+  .purpose-card input:checked + .purpose-card-inner,
+  .test-card input:checked + .test-card-inner {
+    border-color: #7c3aed;
+    box-shadow: 0 16px 36px rgba(124, 58, 237, 0.16);
+  }
+
+  .purpose-icon,
+  .test-icon {
+    width: 2.35rem;
+    height: 2.35rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.9rem;
+    background: #f5f3ff;
+    color: #7c3aed;
+    flex: 0 0 auto;
+  }
+
+  .purpose-card-inner {
+    display: flex;
+    gap: 0.9rem;
+  }
+
+  .purpose-card h3,
+  .test-card h3 {
+    font-size: 1rem;
+    margin: 0 0 0.35rem;
+  }
+
+  .purpose-card p,
+  .test-card p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .test-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.85rem;
+  }
+
+  .test-check {
+    width: 1.65rem;
+    height: 1.65rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: transparent;
+    transition: all 0.18s ease;
+  }
+
+  .test-card input:checked + .test-card-inner .test-check {
+    background: #7c3aed;
+    color: #fff;
+  }
+
+  .test-short-label {
+    color: #7c3aed;
+    font-weight: 700;
+    font-size: 0.78rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .recommended-badge {
+    margin-top: 0.85rem;
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+    background: #ede9fe;
+    color: #5b21b6;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .dev-template-box {
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+    border-radius: 1.25rem;
+    padding: 1rem;
+  }
+
+  .dev-template-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.9rem;
+    background: #f3f4f6;
+    color: #4b5563;
+    flex: 0 0 auto;
+  }
+
+  .wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .process-summary {
+    border: 1px solid #e5e7eb;
+    border-radius: 1.25rem;
+    padding: 1rem;
+    background: #fff;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .summary-row span {
+    color: #6b7280;
+  }
+
+  .summary-row strong {
+    text-align: right;
+  }
+
+  @media (max-width: 1100px) {
+    .purpose-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .test-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .purpose-grid,
+    .test-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .wizard-actions {
+      flex-direction: column-reverse;
+    }
+
+    .wizard-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("processCreateWizardForm");
+
+    const recommendedByPurpose = JSON.parse(
+      document.getElementById("purposeRecommendedTestsData").textContent
+    );
+
+    const purposes = JSON.parse(
+      document.getElementById("processPurposesData").textContent
+    );
+
+    const availableTests = JSON.parse(
+      document.getElementById("availableTestsData").textContent
+    );
+
+    const purposeLabelMap = {};
+    purposes.forEach((purpose) => {
+      purposeLabelMap[purpose.key] = purpose.label;
+    });
+
+    const testLabelMap = {};
+    availableTests.forEach((test) => {
+      testLabelMap[test.key] = test.short_label || test.label;
+    });
+
+    let currentStep = 1;
+
+    const panels = document.querySelectorAll(".wizard-panel");
+    const indicators = document.querySelectorAll(".wizard-step-indicator");
+
+    const purposeInputs = document.querySelectorAll('input[name="purpose"]');
+    const testInputs = document.querySelectorAll('input[name="selected_tests"]');
+
+    const summaryPurpose = document.getElementById("summaryPurpose");
+    const summaryTests = document.getElementById("summaryTests");
+    const summarySovaSetup = document.getElementById("summarySovaSetup");
+    const currentSovaSetupLabel = document.getElementById("currentSovaSetupLabel");
+    const processNameInput = document.getElementById("processNameInput");
+
+    function showStep(step) {
+      currentStep = step;
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.step === String(step));
+      });
+
+      indicators.forEach((indicator) => {
+        indicator.classList.toggle("active", indicator.dataset.stepTarget === String(step));
+      });
+
+      updateSummary();
+    }
+
+    function getSelectedPurpose() {
+      const checked = document.querySelector('input[name="purpose"]:checked');
+      return checked ? checked.value : "";
+    }
+
+    function getSelectedTests() {
+      return Array.from(document.querySelectorAll('input[name="selected_tests"]:checked'))
+        .map((input) => input.value);
+    }
+
+    function applyRecommendedTests() {
+      const purpose = getSelectedPurpose();
+      const recommended = recommendedByPurpose[purpose] || [];
+
+      testInputs.forEach((input) => {
+        input.checked = recommended.includes(input.value);
+      });
+
+      document.querySelectorAll("[data-recommended-for]").forEach((badge) => {
+        const key = badge.dataset.recommendedFor;
+        badge.classList.toggle("d-none", !recommended.includes(key));
+      });
+
+      updateSummary();
+      updateSuggestedName();
+    }
+
+    function getDevSovaSetupLabel(selectedTests) {
+      if (selectedTests.includes("personality")) {
+        return "Personality setup";
+      }
+
+      if (selectedTests.includes("motivation")) {
+        return "Motivation setup";
+      }
+
+      return "Select Personality or Motivation";
+    }
+
+    function updateSummary() {
+      const purpose = getSelectedPurpose();
+      const selectedTests = getSelectedTests();
+
+      summaryPurpose.textContent = purpose
+        ? purposeLabelMap[purpose] || purpose
+        : "Not selected";
+
+      summaryTests.textContent = selectedTests.length
+        ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
+        : "Not selected";
+
+      const sovaSetup = getDevSovaSetupLabel(selectedTests);
+      summarySovaSetup.textContent = sovaSetup;
+      currentSovaSetupLabel.textContent = sovaSetup;
+    }
+
+    function updateSuggestedName() {
+      if (!processNameInput || processNameInput.value.trim()) {
+        return;
+      }
+
+      const purpose = getSelectedPurpose();
+      const selectedTests = getSelectedTests();
+
+      if (!purpose && !selectedTests.length) {
+        return;
+      }
+
+      const purposeLabel = purposeLabelMap[purpose] || "Test process";
+      const testsLabel = selectedTests.length
+        ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
+        : "";
+
+      processNameInput.placeholder = testsLabel
+        ? `${purposeLabel} · ${testsLabel}`
+        : purposeLabel;
+    }
+
+    document.querySelectorAll("[data-next-step]").forEach((button) => {
+      button.addEventListener("click", function () {
+        if (currentStep === 1 && !getSelectedPurpose()) {
+          alert("Please select a purpose before continuing.");
+          return;
+        }
+
+        if (currentStep === 2 && getSelectedTests().length === 0) {
+          alert("Please select at least one test before continuing.");
+          return;
+        }
+
+        showStep(Math.min(currentStep + 1, 3));
+      });
+    });
+
+    document.querySelectorAll("[data-prev-step]").forEach((button) => {
+      button.addEventListener("click", function () {
+        showStep(Math.max(currentStep - 1, 1));
+      });
+    });
+
+    indicators.forEach((indicator) => {
+      indicator.addEventListener("click", function () {
+        const targetStep = Number(indicator.dataset.stepTarget);
+
+        if (targetStep > 1 && !getSelectedPurpose()) {
+          alert("Please select a purpose first.");
+          return;
+        }
+
+        if (targetStep > 2 && getSelectedTests().length === 0) {
+          alert("Please select at least one test first.");
+          return;
+        }
+
+        showStep(targetStep);
+      });
+    });
+
+    purposeInputs.forEach((input) => {
+      input.addEventListener("change", function () {
+        applyRecommendedTests();
+      });
+    });
+
+    testInputs.forEach((input) => {
+      input.addEventListener("change", function () {
+        updateSummary();
+        updateSuggestedName();
+      });
+    });
+
+    form.addEventListener("submit", function (event) {
+      const selectedTests = getSelectedTests();
+
+      if (!getSelectedPurpose()) {
+        event.preventDefault();
+        showStep(1);
+        alert("Please select a purpose.");
+        return;
+      }
+
+      if (!selectedTests.length) {
+        event.preventDefault();
+        showStep(2);
+        alert("Please select at least one test.");
+        return;
+      }
+
+      if (!selectedTests.includes("personality") && !selectedTests.includes("motivation")) {
+        event.preventDefault();
+        showStep(2);
+        alert("In the current development environment, please select Personality or Motivation.");
+      }
+    });
+
+    const initiallySelectedPurpose = getSelectedPurpose();
+
+    if (initiallySelectedPurpose) {
+      document.querySelectorAll("[data-recommended-for]").forEach((badge) => {
+        const recommended = recommendedByPurpose[initiallySelectedPurpose] || [];
+        const key = badge.dataset.recommendedFor;
+        badge.classList.toggle("d-none", !recommended.includes(key));
+      });
+    }
+
+    updateSummary();
+    updateSuggestedName();
+    showStep(1);
+  });
+</script>
+
+{% endblock %}

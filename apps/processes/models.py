@@ -25,6 +25,9 @@ class TestProcess(models.Model):
     is_archived = models.BooleanField(default=False, db_index=True)
     archived_at = models.DateTimeField(null=True, blank=True)
 
+    purpose = models.CharField(max_length=80, blank=True, default="")
+    selected_tests = models.JSONField(default=list, blank=True)
+
     self_registration_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,

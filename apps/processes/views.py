@@ -58,6 +58,16 @@ from apps.core.ai.candidate_summary import (
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
+from .forms import TestProcessWizardCreateForm
+
+from apps.processes.services.process_recommendations import (
+    PROCESS_PURPOSES,
+    AVAILABLE_TESTS,
+    PURPOSE_RECOMMENDED_TESTS,
+    resolve_dev_sova_template,
+    build_default_process_name,
+)
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     activities = invitation.sova_activities or []
@@ -1843,3 +1853,260 @@ def process_candidate_summary_stream(request, process_id, candidate_id):
     resp["Cache-Control"] = "no-cache"
     resp["X-Accel-Buffering"] = "no"
     return resp
+
+
+
+@login_required
+def process_create_v2(request):
+    client = SovaClient()
+    error = None
+
+    # --------------------------------------------------
+    # 1. Hämta Sova-projekt från API
+    # --------------------------------------------------
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    project_id_map = {}
+    template_cards = []
+
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
+
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = project.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+            title = getattr(meta, "intern_name", None) or sova_name
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": project.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    # --------------------------------------------------
+    # 3. Hämta company
+    # --------------------------------------------------
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+
+    if not company_id:
+        messages.error(request, "You are not linked to a company.")
+        return redirect("processes:process_list")
+
+    company = get_object_or_404(Company, pk=company_id)
+
+    # --------------------------------------------------
+    # 4. POST: skapa processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST)
+
+        if form.is_valid():
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+            name = (form.cleaned_data.get("name") or "").strip()
+
+            # Om användaren inte skrev namn, skapa ett automatiskt
+            if not name:
+                name = build_default_process_name(
+                    purpose=purpose,
+                    selected_tests=selected_tests,
+                )
+
+            # --------------------------------------------------
+            # 5. Tillfällig dev-mapping:
+            # selected_tests -> Sova account/project
+            # --------------------------------------------------
+            resolved_template = resolve_dev_sova_template(selected_tests)
+
+            if not resolved_template:
+                form.add_error(
+                    "selected_tests",
+                    "Please select at least Personality or Motivation in the current development environment."
+                )
+
+                return render(request, "customer/processes/process_create_v2.html", {
+                    "form": form,
+                    "error": error,
+                    "process_purposes": PROCESS_PURPOSES,
+                    "available_tests": AVAILABLE_TESTS,
+                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
+
+            acc = resolved_template["account_code"]
+            proj = resolved_template["project_code"]
+            value = f"{acc}|{proj}"
+
+            # --------------------------------------------------
+            # 6. Hämta org unit
+            # --------------------------------------------------
+            active_unit_id = request.session.get("active_org_unit_id")
+            accessible_ids = get_accessible_orgunit_ids(request.user, company)
+
+            if not active_unit_id or int(active_unit_id) not in accessible_ids:
+                fallback_id = next(iter(accessible_ids), None)
+
+                if not fallback_id:
+                    form.add_error(
+                        None,
+                        "You do not have an assigned org unit, so a process cannot be created."
+                    )
+
+                    return render(request, "customer/processes/process_create_v2.html", {
+                        "form": form,
+                        "error": error,
+                        "process_purposes": PROCESS_PURPOSES,
+                        "available_tests": AVAILABLE_TESTS,
+                        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                        "template_cards": template_cards,
+                        "templates_count": len(template_cards),
+                        "accounts_count": len(accounts),
+                    })
+
+                active_unit_id = fallback_id
+                request.session["active_org_unit_id"] = active_unit_id
+
+            # --------------------------------------------------
+            # 7. Skapa TestProcess
+            # --------------------------------------------------
+            obj = TestProcess(
+                name=name,
+                company=company,
+                org_unit_id=int(active_unit_id),
+                provider="sova",
+                account_code=acc,
+                project_code=proj,
+                created_by=request.user,
+                purpose=purpose,
+                selected_tests=selected_tests,
+            )
+
+            # --------------------------------------------------
+            # 8. Sätt project_name_snapshot
+            # --------------------------------------------------
+            meta = meta_map.get((acc, proj))
+
+            if meta and getattr(meta, "intern_name", None):
+                obj.project_name_snapshot = meta.intern_name
+            else:
+                match = next(
+                    (t for t in template_cards if t["value"] == value),
+                    None
+                )
+                obj.project_name_snapshot = (
+                    match["sova_name"] if match else proj
+                )
+
+            obj.save()
+
+            # --------------------------------------------------
+            # 9. Spara labels
+            # --------------------------------------------------
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            # Om labels_text råkar komma in som string istället för lista
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            if label_names:
+                label_objs = []
+
+                for label_name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company=company,
+                        name=label_name,
+                    )
+                    label_objs.append(lab)
+
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
+            # --------------------------------------------------
+            # 10. Logga activity
+            # --------------------------------------------------
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={
+                    "process_name": obj.name,
+                    "purpose": obj.purpose,
+                    "selected_tests": obj.selected_tests,
+                    "resolved_sova_template": value,
+                    "sova_project_id": project_id_map.get(value),
+                },
+            )
+
+            messages.success(request, "Testprocessen skapades.")
+            return redirect("processes:process_detail", pk=obj.pk)
+
+        messages.error(request, "The process could not be created. Please check the fields.")
+
+    # --------------------------------------------------
+    # 11. GET: visa tom form
+    # --------------------------------------------------
+    else:
+        form = TestProcessWizardCreateForm()
+
+    return render(request, "customer/processes/process_create_v2.html", {
+        "form": form,
+        "error": error,
+        "process_purposes": PROCESS_PURPOSES,
+        "available_tests": AVAILABLE_TESTS,
+        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+    })
