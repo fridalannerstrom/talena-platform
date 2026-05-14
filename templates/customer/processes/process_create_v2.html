@@ -251,7 +251,7 @@
                   id="processNameInput"
                   class="form-control form-control-lg"
                   value="{{ form.name.value|default:'' }}"
-                  placeholder="Talena can suggest a name automatically"
+                  placeholder="Process name"
                 >
 
                 {% if form.name.errors %}
@@ -335,12 +335,13 @@
     border-radius: 999px;
     background: #f3f4f6;
     color: #6b7280;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: 0.7rem;
+    font-weight: 500;
   }
 
   .wizard-step-indicator strong {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 
   .wizard-step-indicator.active {
@@ -382,13 +383,12 @@
 
 .purpose-card-inner {
   position: relative;
-  min-height: 138px;
   border: 1px solid #e5e7eb;
   border-radius: 1rem;
   background: #fff;
   padding: 2rem;
   transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
-    min-height: 180px;
+    min-height: 200px;
 }
 
 .purpose-card-inner:hover {
@@ -448,14 +448,14 @@
   line-height: 1.25;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 0.35rem;
+  margin: 1.5rem 0 0.35rem;
 }
 
 .purpose-card-copy p {
   color: #6b7280;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.4;
-  margin: 0;
+  margin-top: 0.5rem;
 }
 
   .test-card-top {
@@ -718,11 +718,19 @@
     const purposeInputs = document.querySelectorAll('input[name="purpose"]');
     const testInputs = document.querySelectorAll('input[name="selected_tests"]');
 
-    const summaryPurpose = document.getElementById("summaryPurpose");
-    const summaryTests = document.getElementById("summaryTests");
-    const summarySovaSetup = document.getElementById("summarySovaSetup");
-    const currentSovaSetupLabel = document.getElementById("currentSovaSetupLabel");
-    const processNameInput = document.getElementById("processNameInput");
+const summaryPurpose = document.getElementById("summaryPurpose");
+const summaryTests = document.getElementById("summaryTests");
+const summarySovaSetup = document.getElementById("summarySovaSetup");
+const currentSovaSetupLabel = document.getElementById("currentSovaSetupLabel");
+const processNameInput = document.getElementById("processNameInput");
+
+let userHasEditedProcessName = false;
+
+if (processNameInput) {
+  processNameInput.addEventListener("input", function () {
+    userHasEditedProcessName = true;
+  });
+}
 
     function showStep(step) {
       currentStep = step;
@@ -777,44 +785,54 @@
       return "Select Personality or Motivation";
     }
 
-    function updateSummary() {
-      const purpose = getSelectedPurpose();
-      const selectedTests = getSelectedTests();
+function updateSummary() {
+  const purpose = getSelectedPurpose();
+  const selectedTests = getSelectedTests();
 
-      summaryPurpose.textContent = purpose
-        ? purposeLabelMap[purpose] || purpose
-        : "Not selected";
+  if (summaryPurpose) {
+    summaryPurpose.textContent = purpose
+      ? purposeLabelMap[purpose] || purpose
+      : "Not selected";
+  }
 
-      summaryTests.textContent = selectedTests.length
-        ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
-        : "Not selected";
+  if (summaryTests) {
+    summaryTests.textContent = selectedTests.length
+      ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
+      : "Not selected";
+  }
 
-      const sovaSetup = getDevSovaSetupLabel(selectedTests);
-      summarySovaSetup.textContent = sovaSetup;
-      currentSovaSetupLabel.textContent = sovaSetup;
-    }
+  const sovaSetup = getDevSovaSetupLabel(selectedTests);
 
-    function updateSuggestedName() {
-      if (!processNameInput || processNameInput.value.trim()) {
-        return;
-      }
+  if (summarySovaSetup) {
+    summarySovaSetup.textContent = sovaSetup;
+  }
 
-      const purpose = getSelectedPurpose();
-      const selectedTests = getSelectedTests();
+  if (currentSovaSetupLabel) {
+    currentSovaSetupLabel.textContent = sovaSetup;
+  }
+}
 
-      if (!purpose && !selectedTests.length) {
-        return;
-      }
+function updateSuggestedName() {
+  if (!processNameInput || userHasEditedProcessName) {
+    return;
+  }
 
-      const purposeLabel = purposeLabelMap[purpose] || "Test process";
-      const testsLabel = selectedTests.length
-        ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
-        : "";
+  const purpose = getSelectedPurpose();
+  const selectedTests = getSelectedTests();
 
-      processNameInput.placeholder = testsLabel
-        ? `${purposeLabel} · ${testsLabel}`
-        : purposeLabel;
-    }
+  if (!purpose && !selectedTests.length) {
+    return;
+  }
+
+  const purposeLabel = purposeLabelMap[purpose] || "Test process";
+  const testsLabel = selectedTests.length
+    ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
+    : "";
+
+  processNameInput.value = testsLabel
+    ? `${purposeLabel} · ${testsLabel}`
+    : purposeLabel;
+}
 
     document.querySelectorAll("[data-next-step]").forEach((button) => {
       button.addEventListener("click", function () {
@@ -828,7 +846,13 @@
           return;
         }
 
-        showStep(Math.min(currentStep + 1, 3));
+        const nextStep = Math.min(currentStep + 1, 3);
+
+if (nextStep === 3) {
+  updateSuggestedName();
+}
+
+showStep(nextStep);
       });
     });
 
