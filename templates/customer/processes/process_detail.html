@@ -106,22 +106,41 @@
       </div>
     </div>
 
-    {# Row 2: Key facts as chips #}
-    <div class="process-header-chips mt-3">
-      <div class="chip mb-3 text-dark">
-        <div class="chip-label"><strong>Test template</strong></div>
-        <div class="chip-value">
-          {{ process.project_name_snapshot|default:"Not specified" }}
-        </div>
-      </div>
+{# Row 2: Key facts as chips #}
+<div class="process-header-chips mt-3">
 
-      <div class="chip text-dark">
-        <div class="chip-label"><strong>Assessments</strong></div>
-        <div class="chip-value">
-          {{ meta.tests|default:"Not specified" }}
-        </div>
+  <div class="chip mb-3 text-dark">
+    <div class="chip-label"><strong>Purpose</strong></div>
+
+    {% if process_purpose %}
+      <div class="chip-value">
+        {{ process_purpose.label }}
       </div>
+      <div class="text-muted small mt-1">
+        {{ process_purpose.description }}
+      </div>
+    {% else %}
+      <div class="chip-value text-muted">
+        No purpose selected
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="chip mb-3 text-dark">
+    <div class="chip-label"><strong>Test template</strong></div>
+    <div class="chip-value">
+      {{ process.project_name_snapshot|default:"Not specified" }}
     </div>
+  </div>
+
+  <div class="chip text-dark">
+    <div class="chip-label"><strong>Assessments</strong></div>
+    <div class="chip-value">
+      {{ meta.tests|default:"Not specified" }}
+    </div>
+  </div>
+
+</div>
 
   </div>
 </div>

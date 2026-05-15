@@ -70,6 +70,8 @@ from apps.processes.services.process_recommendations import (
     build_default_process_name,
 )
 
+from apps.processes.services.process_recommendations import PROCESS_PURPOSES
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     activities = invitation.sova_activities or []
@@ -1393,6 +1395,13 @@ def process_detail(request, pk):
         [:50]
     )
 
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(process.purpose)
+
     context = {
         "process": process,
         "invitations": invitations,
@@ -1401,6 +1410,7 @@ def process_detail(request, pk):
         "status_counts": status_counts,
         "can_edit": can_edit,
         "activity_events": activity_events,
+        "process_purpose": process_purpose,
         "kpis": {
             "total_candidates": total_candidates,
             "invited": invited_count,

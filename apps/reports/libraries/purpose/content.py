@@ -56,7 +56,7 @@ REPORT_MODE_CONTENT = {
     "development": {
         "key": "development",
         "label": "Development",
-        "title": "Development-focused result view",
+        "title": "Leadership-focused result view",
         "intro": (
             "Use this view to support reflection, coaching and individual development. "
             "The focus is on strengths, growth areas and the conditions that help the person thrive."
