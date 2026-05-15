@@ -232,35 +232,7 @@
   padding: 2rem 2rem 2rem;
   border-bottom: 1px solid #efefef;
   
-  background:
-    radial-gradient(520px 360px at 20% 16%,
-      rgba(190, 166, 241, 0.45) 0%,
-      rgba(209, 189, 247, 0.28) 34%,
-      rgba(255, 255, 255, 0) 68%
-    ),
-
-    radial-gradient(460px 330px at 27% 48%,
-      rgba(218, 130, 178, 0.38) 0%,
-      rgba(235, 177, 204, 0.22) 36%,
-      rgba(255, 255, 255, 0) 70%
-    ),
-
-    radial-gradient(620px 380px at 70% 48%,
-      rgba(241, 191, 97, 0.42) 0%,
-      rgba(250, 220, 143, 0.24) 40%,
-      rgba(255, 255, 255, 0) 74%
-    ),
-
-    radial-gradient(520px 330px at 72% 82%,
-      rgba(221, 238, 80, 0.38) 0%,
-      rgba(232, 243, 132, 0.22) 38%,
-      rgba(255, 255, 255, 0) 72%
-    ),
-
-    linear-gradient(180deg,
-      #ffffff 0%,
-      #fbfaf8 100%
-    );
+  background: #FEF8FE;
 }
 
 /* -------------------------------

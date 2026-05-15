@@ -60,6 +60,8 @@ from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for
 
 from .forms import TestProcessWizardCreateForm
 
+from apps.reports.libraries.purpose.content import get_report_mode_content
+
 from apps.processes.services.process_recommendations import (
     PROCESS_PURPOSES,
     AVAILABLE_TESTS,
@@ -71,6 +73,188 @@ from apps.processes.services.process_recommendations import (
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     activities = invitation.sova_activities or []
+
+    def get_assessment_key(name):
+        """
+        Converts both ProjectMeta test names and Sova activity names
+        into the same internal key, so we can avoid duplicates.
+        """
+        text = (name or "").strip().lower()
+
+        if "personality" in text or text in {"pq", "personlighet"}:
+            return "personality"
+
+        if "motivation" in text or text in {"mq", "motivation questionnaire"}:
+            return "motivation"
+
+        if "numerical" in text or "numeric" in text or "numerisk" in text:
+            return "numerical"
+
+        if "logical" in text or "logisk" in text:
+            return "logical"
+
+        if "verbal" in text:
+            return "verbal"
+
+        if "one-question" in text or "one question" in text:
+            return "one_question"
+
+        return text
+
+
+    def get_base_status_for_missing_activity(invitation):
+        """
+        Status for assessments that are part of the Sova project,
+        but do not yet exist in invitation.sova_activities.
+        """
+        status = (invitation.status or "").strip().lower()
+
+        if status == "completed":
+            return "completed"
+
+        if status == "started":
+            return "not_started"
+
+        if status == "sent":
+            return "sent"
+
+        if status == "created":
+            return "created"
+
+        return status or "created"
+
+
+    def get_display_status(raw_status):
+        status = (raw_status or "").strip().lower()
+
+        if status in {
+            "completed",
+            "complete",
+            "finished",
+            "done",
+            "result available",
+            "result_available",
+        }:
+            return "completed"
+
+        if status in {
+            "started",
+            "in progress",
+            "in_progress",
+        }:
+            return "started"
+
+        if status in {
+            "sent",
+            "invited",
+        }:
+            return "sent"
+
+        if status in {
+            "created",
+            "not_sent",
+            "not sent",
+        }:
+            return "created"
+
+        if status in {
+            "added",
+            "not_started",
+            "not started",
+        }:
+            return "not_started"
+
+        # Sova can return pass/fail for small scored assessments.
+        return status or "created"
+
+
+    def build_sent_assessments(process, invitation, activities):
+        """
+        Shows the actual assessments included in the Sova project.
+
+        Base source:
+        - ProjectMeta.tests, based on process.account_code + process.project_code
+
+        Status source:
+        - invitation.sova_activities, when available
+
+        Matching:
+        - Uses internal assessment keys instead of exact display names.
+        """
+
+        meta = ProjectMeta.objects.filter(
+            provider="sova",
+            account_code=process.account_code,
+            project_code=process.project_code,
+        ).first()
+
+        tests_raw = (getattr(meta, "tests", "") or "").strip() if meta else ""
+
+        project_tests = [
+            test_name.strip()
+            for test_name in tests_raw.split(",")
+            if test_name.strip()
+        ]
+
+        activity_by_key = {}
+
+        for item in activities:
+            activity_name = item.get("activity") or ""
+            activity_key = get_assessment_key(activity_name)
+
+            if activity_key:
+                activity_by_key[activity_key] = item
+
+        base_status = get_base_status_for_missing_activity(invitation)
+        sent_assessments = []
+        used_keys = set()
+
+        # 1. Start with the actual tests in ProjectMeta.
+        for test_name in project_tests:
+            test_key = get_assessment_key(test_name)
+            matching_activity = activity_by_key.get(test_key)
+
+            if matching_activity:
+                display_name = matching_activity.get("activity") or test_name
+                status = get_display_status(matching_activity.get("status"))
+                source = "sova_activity"
+            else:
+                display_name = test_name
+                status = base_status
+                source = "project_meta"
+
+            sent_assessments.append({
+                "activity": display_name,
+                "status": status,
+                "source": source,
+                "key": test_key,
+            })
+
+            used_keys.add(test_key)
+
+        # 2. Safety net: add Sova activities only if their key was not already shown.
+        for item in activities:
+            activity_name = item.get("activity") or ""
+            activity_key = get_assessment_key(activity_name)
+
+            if activity_key and activity_key not in used_keys:
+                sent_assessments.append({
+                    "activity": activity_name,
+                    "status": get_display_status(item.get("status")),
+                    "source": "sova_activity_extra",
+                    "key": activity_key,
+                })
+
+                used_keys.add(activity_key)
+
+        return sent_assessments
+
+
+    sent_assessments = build_sent_assessments(
+        process=process,
+        invitation=invitation,
+        activities=activities,
+    )
 
     activity_events = (
         ActivityEvent.objects
@@ -106,7 +290,7 @@ def build_candidate_detail_context(process, invitation):
             for comp in competencies
         )
 
-    activity_count = len(activities)
+    activity_count = len(sent_assessments)
 
     completed_statuses = {
         "completed",
@@ -521,6 +705,8 @@ def build_candidate_detail_context(process, invitation):
         or has_personality_results
     )
 
+    purpose_report = get_report_mode_content(process.purpose)
+
     return {
         "company": process.company,
         "process": process,
@@ -530,6 +716,7 @@ def build_candidate_detail_context(process, invitation):
         "activity_events": activity_events,
 
         "activities": activities,
+        "sent_assessments": sent_assessments,
         "project_results": project_results,
         "project_scores": project_scores,
         "competency_scores": competency_scores,
@@ -568,6 +755,9 @@ def build_candidate_detail_context(process, invitation):
         "personality_reports": personality_reports,
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
+
+        "purpose_report": purpose_report,
+        "report_mode": purpose_report.get("key"),
     }
 
 def get_dashboard_activity_for_user(user, limit=10):

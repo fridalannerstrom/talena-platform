@@ -1,279 +1,43 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  /* =========================================================
-   Talena Combined Report Demo
-   ========================================================= */
-
-.talena-report-demo {
+ 
+.purpose-report-hero {
   border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  overflow: hidden;
-}
-
-.talena-report-demo .card-header {
-  background: linear-gradient(135deg, #faf7ff 0%, #ffffff 55%, #f8fafc 100%);
-  border-bottom: 1px solid #e5e7eb;
-  padding: 1.1rem 1.25rem;
-}
-
-.talena-report-section {
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  background: #ffffff;
-}
-
-.talena-report-hero {
+  border-radius: 1.25rem;
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 32%),
-    linear-gradient(135deg, #ffffff 0%, #faf7ff 100%);
-  border-color: #ddd6fe;
+    radial-gradient(700px 260px at 20% 0%, rgba(245, 243, 255, 0.9), transparent 55%),
+    #fff;
 }
 
-.talena-report-kicker {
-  color: #7c3aed;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 0.35rem;
-}
-
-.talena-report-section h3 {
-  font-size: 1.15rem;
-  font-weight: 750;
-  margin-bottom: 0.75rem;
-  color: #111827;
-}
-
-.talena-report-section p {
-  color: #374151;
-  line-height: 1.65;
-}
-
-.talena-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.talena-section-pill {
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #6b7280;
+.purpose-report-badge {
+  display: inline-flex;
+  align-items: center;
   border-radius: 999px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.talena-report-snapshot-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin: 1rem 0;
-}
-
-.talena-snapshot-card,
-.talena-score-card,
-.talena-combo-card,
-.talena-guidance-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #ffffff;
-  padding: 1rem;
-}
-
-.talena-snapshot-label,
-.talena-score-label {
-  color: #6b7280;
-  font-size: 0.78rem;
-  font-weight: 650;
-  margin-bottom: 0.35rem;
-}
-
-.talena-snapshot-value {
-  color: #111827;
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 0.35rem;
-}
-
-.talena-snapshot-text,
-.talena-score-meta {
-  color: #6b7280;
-  font-size: 0.88rem;
-  line-height: 1.45;
-}
-
-.talena-two-column-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.talena-insight-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.talena-insight-item {
-  border-left: 4px solid #7c3aed;
-  background: #faf7ff;
-  border-radius: 14px;
-  padding: 0.85rem 0.9rem;
-}
-
-.talena-insight-item.is-risk {
-  border-left-color: #f59e0b;
-  background: #fffbeb;
-}
-
-.talena-insight-title {
-  font-weight: 750;
-  color: #111827;
-  margin-bottom: 0.25rem;
-}
-
-.talena-insight-text {
-  color: #4b5563;
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
-.talena-combo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-.talena-combo-title,
-.talena-guidance-title {
-  font-weight: 750;
-  color: #111827;
-  margin-bottom: 0.4rem;
-}
-
-.talena-combo-card p,
-.talena-guidance-card p {
-  margin-bottom: 0;
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
-
-.talena-score-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-.talena-score-value {
-  font-size: 2rem;
-  line-height: 1;
-  font-weight: 850;
-  color: #7c3aed;
-  margin-bottom: 0.35rem;
-}
-
-.talena-tag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 1rem;
-}
-
-.talena-tag {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
-.talena-warning-box {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
-  border-radius: 16px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.talena-warning-box strong {
-  display: block;
-  color: #92400e;
-  margin-bottom: 0.35rem;
-}
-
-.talena-warning-box p {
-  margin-bottom: 0;
-}
-
-.talena-question-list {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.talena-question-item {
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 14px;
-  padding: 0.85rem 1rem;
-  color: #374151;
-}
-
-.talena-guidance-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-.talena-timeline {
-  display: grid;
-  gap: 0.85rem;
-}
-
-.talena-timeline-item {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-}
-
-.talena-timeline-marker {
-  width: 2.25rem;
-  height: 2.25rem;
-  flex: 0 0 2.25rem;
-  border-radius: 999px;
-  background: #7c3aed;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.85rem;
-}
-
-.talena-timeline-item p {
-  margin-bottom: 0;
-}
-
-.talena-decision-section {
+.purpose-report-recruitment {
   background:
-    radial-gradient(circle at top right, rgba(124, 58, 237, 0.1), transparent 30%),
-    #ffffff;
+    radial-gradient(700px 260px at 20% 0%, rgba(239, 246, 255, 0.95), transparent 55%),
+    #fff;
 }
 
-.talena-next-steps {
-  border: 1px solid #ddd6fe;
-  background: #faf7ff;
-  border-radius: 16px;
-  padding: 1rem;
-  color: #374151;
+.purpose-report-development {
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(245, 243, 255, 0.95), transparent 55%),
+    #fff;
+}
+
+.purpose-report-team {
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(236, 253, 245, 0.9), transparent 55%),
+    #fff;
 }
 
 @media (max-width: 992px) {
@@ -463,9 +227,9 @@
               data-tab-group="candidate-main-tabs"
               data-tab-panel="tests"
               role="tabpanel">
-              {% if activities %}
+              {% if sent_assessments %}
                 <div class="candidate-inline-list">
-                  {% for item in activities %}
+                  {% for item in sent_assessments %}
                     <div class="candidate-inline-item">
                       <div>
                         <div class="candidate-inline-title">{{ item.activity|default:"-" }}</div>
@@ -475,18 +239,20 @@
                       </div>
 
                       {% if item.status == "completed" %}
-                        <span class="candidate-status-badge is-success">Completed</span>
-                      {% elif item.status == "in progress" or item.status == "started" %}
-                        <span class="candidate-status-badge is-info">Started</span>
-                      {% elif item.status == "added" %}
-                        <span class="candidate-status-badge is-warning">Not started</span>
-                      {% elif item.status == "invited" or item.status == "sent" %}
-                        <span class="candidate-inline-status is-warning">Sent</span>
-                      {% else %}
-                        <span class="candidate-inline-status is-muted">
-                          {{ item.status|default:"-" }}
-                        </span>
-                      {% endif %}
+  <span class="candidate-status-badge is-success">Completed</span>
+{% elif item.status == "started" %}
+  <span class="candidate-status-badge is-info">Started</span>
+{% elif item.status == "sent" %}
+  <span class="candidate-status-badge is-warning">Sent</span>
+{% elif item.status == "not_started" %}
+  <span class="candidate-status-badge is-warning">Not started</span>
+{% elif item.status == "created" %}
+  <span class="candidate-status-badge is-muted">Not sent</span>
+{% else %}
+  <span class="candidate-status-badge is-muted">
+    {{ item.status|default:"-" }}
+  </span>
+{% endif %}
                     </div>
                   {% endfor %}
                 </div>
@@ -603,8 +369,27 @@
       {% endif %}
 
       {% if all_assessments_completed %}
-        <!-- AI SUMMARY -->
-        <div class="card mb-4">
+
+  {% if purpose_report %}
+    <div class="card mb-4 purpose-report-hero purpose-report-{{ report_mode }}">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between gap-3">
+          <div>
+            <div class="text-muted small mb-1">Report focus</div>
+            <h2 class="h5 mb-2">{{ purpose_report.title }}</h2>
+            <p class="text-muted mb-0">{{ purpose_report.intro }}</p>
+          </div>
+
+          <span class="purpose-report-badge">
+            {{ purpose_report.label }}
+          </span>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- AI SUMMARY -->
+  <div class="card mb-4">
           <div class="card-header d-flex align-items-center justify-content-between">
             <div class="fw-semibold">AI summary</div>
           </div>
@@ -1501,483 +1286,12 @@
               {% endif %}
 
             </div>
-            </div>
-            </div>
-
-            <!-- REPORTS / TALENA COMBINED REPORT DEMO -->
-{% if has_any_results %}
-  <div class="card mb-3 talena-report-demo">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <div>
-        <div class="fw-semibold">Talena Combined Report</div>
-        <div class="small text-muted">
-          Demo preview · Cognitive ability, personality and motivation combined
-        </div>
-      </div>
-
-      <span class="badge rounded-pill text-bg-light border">
-        New report concept
-      </span>
-    </div>
-
-    <div class="card-body">
-
-      <!-- 20 SECOND SUMMARY -->
-      <section class="talena-report-section talena-report-hero">
-        <div class="talena-report-kicker">Read this first</div>
-        <h3>20-second summary</h3>
-        <p>
-          The candidate shows a strong combination of analytical ability, structured working style and
-          high motivation to deliver quality. They are likely to perform well in environments where they
-          can solve complex problems, work independently and contribute with careful judgement.
-        </p>
-        <p class="mb-0">
-          Areas to explore further include how they respond to unclear priorities, fast changes and
-          situations where quick decisions are required before all information is available.
-        </p>
-      </section>
-
-      <!-- SNAPSHOT CARDS -->
-      <div class="talena-report-snapshot-grid">
-
-        <div class="talena-snapshot-card">
-          <div class="talena-snapshot-label">Cognitive profile</div>
-          <div class="talena-snapshot-value">Strong</div>
-          <div class="talena-snapshot-text">
-            Strong logical and numerical reasoning, with solid verbal understanding.
           </div>
-        </div>
-
-        <div class="talena-snapshot-card">
-          <div class="talena-snapshot-label">Personality profile</div>
-          <div class="talena-snapshot-value">Structured</div>
-          <div class="talena-snapshot-text">
-            Careful, reliable and likely to prefer clarity, planning and well-defined expectations.
-          </div>
-        </div>
-
-        <div class="talena-snapshot-card">
-          <div class="talena-snapshot-label">Motivation profile</div>
-          <div class="talena-snapshot-value">Quality-driven</div>
-          <div class="talena-snapshot-text">
-            Motivated by achievement, quality, learning and meaningful contribution.
-          </div>
-        </div>
-
-      </div>
-
-      <!-- WHOLE PROFILE -->
-      <section class="talena-report-section">
-        <div class="talena-section-header">
-          <div>
-            <div class="talena-report-kicker">Combined interpretation</div>
-            <h3>Overall profile</h3>
-          </div>
-        </div>
-
-        <p>
-          This profile suggests a person who is likely to combine thoughtful problem-solving with a
-          conscientious and quality-oriented approach. The candidate may prefer to understand the full
-          picture before acting and is likely to value professionalism, accuracy and clear expectations.
-        </p>
-
-        <p class="mb-0">
-          The combination of strong reasoning ability and high structure can be especially valuable in
-          work that requires analysis, planning, risk awareness and careful decision-making.
-        </p>
-      </section>
-
-      <!-- STRENGTHS + RISKS -->
-      <div class="talena-two-column-grid">
-
-        <section class="talena-report-section">
-          <div class="talena-report-kicker">What speaks for the candidate?</div>
-          <h3>Key strengths</h3>
-
-          <div class="talena-insight-list">
-            <div class="talena-insight-item">
-              <div class="talena-insight-title">Analytical problem-solving</div>
-              <div class="talena-insight-text">
-                Strong reasoning results indicate good capacity to understand complex information,
-                identify patterns and make sense of new problems.
-              </div>
-            </div>
-
-            <div class="talena-insight-item">
-              <div class="talena-insight-title">High quality orientation</div>
-              <div class="talena-insight-text">
-                Motivation and personality results suggest that the candidate is likely to care about
-                doing things properly and delivering reliable work.
-              </div>
-            </div>
-
-            <div class="talena-insight-item">
-              <div class="talena-insight-title">Structured and dependable working style</div>
-              <div class="talena-insight-text">
-                The candidate may be particularly effective when expectations, goals and priorities are clear.
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="talena-report-section">
-          <div class="talena-report-kicker">What should we follow up?</div>
-          <h3>Possible risks</h3>
-
-          <div class="talena-insight-list">
-            <div class="talena-insight-item is-risk">
-              <div class="talena-insight-title">May need clarity before acting</div>
-              <div class="talena-insight-text">
-                A careful and structured profile can mean the candidate prefers clear information before
-                making decisions.
-              </div>
-            </div>
-
-            <div class="talena-insight-item is-risk">
-              <div class="talena-insight-title">May find rapid changes draining</div>
-              <div class="talena-insight-text">
-                If the environment is highly ambiguous or constantly changing, it may be important to
-                explore how the candidate stays effective.
-              </div>
-            </div>
-
-            <div class="talena-insight-item is-risk">
-              <div class="talena-insight-title">Risk of over-focusing on quality</div>
-              <div class="talena-insight-text">
-                High quality motivation can be a strength, but may need balancing with speed and pragmatism.
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
-
-      <!-- COMBINED INSIGHTS -->
-      <section class="talena-report-section">
-        <div class="talena-section-header">
-          <div>
-            <div class="talena-report-kicker">Where Talena connects the dots</div>
-            <h3>Combined insights</h3>
-          </div>
-          <span class="talena-section-pill">Personality + Motivation + Ability</span>
-        </div>
-
-        <div class="talena-combo-grid">
-
-          <div class="talena-combo-card">
-            <div class="talena-combo-title">Strong reasoning + high structure</div>
-            <p>
-              This combination suggests good potential for roles or tasks requiring analysis,
-              accuracy and systematic follow-through.
-            </p>
-          </div>
-
-          <div class="talena-combo-card">
-            <div class="talena-combo-title">Quality motivation + careful decision style</div>
-            <p>
-              The candidate may set high standards and prefer to reduce uncertainty before acting.
-              This can improve reliability, but may slow decisions in fast-moving contexts.
-            </p>
-          </div>
-
-          <div class="talena-combo-card">
-            <div class="talena-combo-title">Learning motivation + logical ability</div>
-            <p>
-              The candidate may be well suited to learning new systems, understanding complex processes
-              and developing specialist knowledge over time.
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- COGNITIVE -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">Cognitive ability</div>
-        <h3>Cognitive profile</h3>
-
-        <div class="talena-score-grid">
-          <div class="talena-score-card">
-            <div class="talena-score-label">Verbal reasoning</div>
-            <div class="talena-score-value">68</div>
-            <div class="talena-score-meta">Percentile</div>
-          </div>
-
-          <div class="talena-score-card">
-            <div class="talena-score-label">Logical reasoning</div>
-            <div class="talena-score-value">82</div>
-            <div class="talena-score-meta">Percentile</div>
-          </div>
-
-          <div class="talena-score-card">
-            <div class="talena-score-label">Numerical reasoning</div>
-            <div class="talena-score-value">76</div>
-            <div class="talena-score-meta">Percentile</div>
-          </div>
-        </div>
-
-        <p class="mt-3 mb-0">
-          The candidate appears to have a strong capacity for understanding complex information,
-          especially when working with patterns, logic and numerical data.
-        </p>
-      </section>
-
-      <!-- PERSONALITY + MOTIVATION -->
-      <div class="talena-two-column-grid">
-
-        <section class="talena-report-section">
-          <div class="talena-report-kicker">Personality</div>
-          <h3>Personality profile</h3>
-
-          <div class="talena-tag-list">
-            <span class="talena-tag">Structured</span>
-            <span class="talena-tag">Conscientious</span>
-            <span class="talena-tag">Analytical</span>
-            <span class="talena-tag">Calm</span>
-          </div>
-
-          <p>
-            The candidate is likely to approach work in a planned and thoughtful way. They may prefer
-            clear goals, defined responsibilities and enough time to evaluate information before making
-            important decisions.
-          </p>
-
-          <p class="mb-0">
-            In collaboration, they may contribute with stability, careful judgement and an ability to
-            keep focus on quality and risk.
-          </p>
-        </section>
-
-        <section class="talena-report-section">
-          <div class="talena-report-kicker">Motivation</div>
-          <h3>Motivation profile</h3>
-
-          <div class="talena-tag-list">
-            <span class="talena-tag">Quality</span>
-            <span class="talena-tag">Achievement</span>
-            <span class="talena-tag">Learning</span>
-            <span class="talena-tag">Autonomy</span>
-          </div>
-
-          <p>
-            The candidate is likely to be motivated by opportunities to deliver high-quality work,
-            develop competence and take responsibility for meaningful tasks.
-          </p>
-
-          <p class="mb-0">
-            They may feel less energised in environments with unclear expectations, frequent last-minute
-            changes or limited opportunity to do work properly.
-          </p>
-        </section>
-
-      </div>
-
-      <!-- MISINTERPRETATIONS -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">Important nuance</div>
-        <h3>What could be misinterpreted?</h3>
-
-        <div class="talena-warning-box">
-          <strong>Careful does not mean slow.</strong>
-          <p>
-            A structured and quality-oriented profile should not automatically be interpreted as low pace.
-            It may instead mean that the candidate works best when priorities are clear and quality expectations
-            are explicit.
-          </p>
-        </div>
-
-        <div class="talena-warning-box">
-          <strong>Lower change motivation does not mean low adaptability.</strong>
-          <p class="mb-0">
-            It may simply mean that the candidate prefers changes to be explained, planned and connected to a
-            clear purpose.
-          </p>
-        </div>
-      </section>
-
-      <!-- INTERVIEW QUESTIONS -->
-      <section class="talena-report-section">
-        <div class="talena-section-header">
-          <div>
-            <div class="talena-report-kicker">Suggested follow-up</div>
-            <h3>Interview questions</h3>
-          </div>
-          <span class="talena-section-pill">Generated by AI</span>
-        </div>
-
-        <div class="talena-question-list">
-          <div class="talena-question-item">
-            Tell me about a situation where you had to make a decision without having all the information you wanted.
-          </div>
-
-          <div class="talena-question-item">
-            What type of work environment helps you deliver your best work?
-          </div>
-
-          <div class="talena-question-item">
-            Can you give an example of when your focus on quality helped a project succeed?
-          </div>
-
-          <div class="talena-question-item">
-            How do you handle situations where priorities change quickly?
-          </div>
-
-          <div class="talena-question-item">
-            What kind of support from a manager helps you stay motivated and effective?
-          </div>
-        </div>
-      </section>
-
-      <!-- MANAGER GUIDE -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">For the manager</div>
-        <h3>Manager guide</h3>
-
-        <div class="talena-guidance-grid">
-          <div class="talena-guidance-card">
-            <div class="talena-guidance-title">How to lead</div>
-            <p>
-              Give clear expectations, explain priorities and allow space for thoughtful preparation.
-            </p>
-          </div>
-
-          <div class="talena-guidance-card">
-            <div class="talena-guidance-title">How to motivate</div>
-            <p>
-              Connect tasks to quality, learning and meaningful outcomes. Give ownership where possible.
-            </p>
-          </div>
-
-          <div class="talena-guidance-card">
-            <div class="talena-guidance-title">How to give feedback</div>
-            <p>
-              Be specific, factual and constructive. The candidate may appreciate feedback that helps improve quality.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ONBOARDING -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">First 90 days</div>
-        <h3>Onboarding tips</h3>
-
-        <div class="talena-timeline">
-          <div class="talena-timeline-item">
-            <div class="talena-timeline-marker">1</div>
-            <div>
-              <strong>First week</strong>
-              <p>Clarify expectations, responsibilities, key people and what good performance looks like.</p>
-            </div>
-          </div>
-
-          <div class="talena-timeline-item">
-            <div class="talena-timeline-marker">30</div>
-            <div>
-              <strong>First 30 days</strong>
-              <p>Give the candidate structured tasks where they can learn systems and build confidence.</p>
-            </div>
-          </div>
-
-          <div class="talena-timeline-item">
-            <div class="talena-timeline-marker">90</div>
-            <div>
-              <strong>First 90 days</strong>
-              <p>Follow up on workload, clarity, quality expectations and how they experience the pace of change.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TEAM DYNAMICS -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">Team perspective</div>
-        <h3>Team dynamics</h3>
-
-        <p>
-          The candidate may contribute to a team through structure, analytical thinking and a stabilising
-          focus on quality. They may be especially valuable in teams that need stronger planning,
-          risk awareness or follow-through.
-        </p>
-
-        <p class="mb-0">
-          Possible friction could arise in very spontaneous or poorly structured teams, especially if
-          expectations change frequently without explanation.
-        </p>
-      </section>
-
-      <!-- DECISION SUMMARY -->
-      <section class="talena-report-section talena-decision-section">
-        <div class="talena-report-kicker">Final takeaway</div>
-        <h3>Decision summary</h3>
-
-        <p>
-          The candidate’s results suggest strong potential for work requiring analytical thinking,
-          structure and quality focus. The main areas to explore are adaptability in fast-changing
-          environments and comfort with making decisions under uncertainty.
-        </p>
-
-        <div class="talena-next-steps">
-          <strong>Recommended next steps:</strong>
-          <ul class="mb-0">
-            <li>Follow up on change, ambiguity and decision speed in interview.</li>
-            <li>Explore what type of management style helps the candidate perform best.</li>
-            <li>Use onboarding to create clarity around expectations, priorities and success measures.</li>
-          </ul>
-        </div>
-      </section>
-
-      <!-- DETAILED RESULTS -->
-      <section class="talena-report-section">
-        <div class="talena-report-kicker">For deeper review</div>
-        <h3>Detailed test results</h3>
-
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Area</th>
-                <th>Result</th>
-                <th>Interpretation</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Logical reasoning</td>
-                <td>82nd percentile</td>
-                <td>Strong ability to identify patterns and solve abstract problems.</td>
-              </tr>
-              <tr>
-                <td>Numerical reasoning</td>
-                <td>76th percentile</td>
-                <td>Above-average ability to work with numerical information.</td>
-              </tr>
-              <tr>
-                <td>Verbal reasoning</td>
-                <td>68th percentile</td>
-                <td>Solid ability to understand and evaluate written information.</td>
-              </tr>
-              <tr>
-                <td>Top personality trait</td>
-                <td>Structure · 9/10</td>
-                <td>Likely to prefer planning, order and clear expectations.</td>
-              </tr>
-              <tr>
-                <td>Top motivator</td>
-                <td>Quality · 5/5</td>
-                <td>Likely to be energised by delivering work to a high standard.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </div>
-{% endif %}
         </div>
       {% endif %}
 
     </div>
+    <!-- /MAIN CONTENT -->
 
     <!-- SIDEBAR -->
     <aside class="candidate-sheet-sidebar">
