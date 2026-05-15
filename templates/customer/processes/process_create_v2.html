@@ -39,22 +39,37 @@
     <div class="talena-wizard">
 
       <!-- STEP INDICATOR -->
-      <div class="wizard-steps mb-4">
-        <button type="button" class="wizard-step-indicator active" data-step-target="1">
-          <span>1</span>
-          <strong>Purpose</strong>
-        </button>
+<div class="wizard-progress mb-4" aria-label="Create process steps">
+  <button type="button" class="wizard-progress-step active" data-step-target="1">
+    <span class="wizard-progress-line"></span>
+    <span class="wizard-progress-meta">
+      <span class="wizard-progress-dot">
+        <i class="fa-solid fa-check"></i>
+      </span>
+      <span class="wizard-progress-label">Purpose</span>
+    </span>
+  </button>
 
-        <button type="button" class="wizard-step-indicator" data-step-target="2">
-          <span>2</span>
-          <strong>Tests</strong>
-        </button>
+  <button type="button" class="wizard-progress-step" data-step-target="2">
+    <span class="wizard-progress-line"></span>
+    <span class="wizard-progress-meta">
+      <span class="wizard-progress-dot">
+        <i class="fa-solid fa-check"></i>
+      </span>
+      <span class="wizard-progress-label">Tests</span>
+    </span>
+  </button>
 
-        <button type="button" class="wizard-step-indicator" data-step-target="3">
-          <span>3</span>
-          <strong>Details</strong>
-        </button>
-      </div>
+  <button type="button" class="wizard-progress-step" data-step-target="3">
+    <span class="wizard-progress-line"></span>
+    <span class="wizard-progress-meta">
+      <span class="wizard-progress-dot">
+        <i class="fa-solid fa-check"></i>
+      </span>
+      <span class="wizard-progress-label">Details</span>
+    </span>
+  </button>
+</div>
 
       <!-- STEP 1 -->
       <section class="wizard-panel active" data-step="1">
@@ -309,59 +324,121 @@
 
 <style>
 
-  .wizard-steps {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+.wizard-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.wizard-progress-step {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.wizard-progress-line {
+  display: block;
+  width: 100%;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+  margin-bottom: 0.55rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.wizard-progress-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #7c3aed;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s ease;
+}
+
+.wizard-progress-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.wizard-progress-dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: transparent;
+  display: grid;
+  place-items: center;
+  font-size: 0.48rem;
+}
+
+.wizard-progress-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+/* Completed steps */
+.wizard-progress-step.completed .wizard-progress-line::after {
+  transform: scaleX(1);
+  background: #7c3aed;
+}
+
+.wizard-progress-step.completed .wizard-progress-dot {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #fff;
+}
+
+.wizard-progress-step.completed .wizard-progress-label {
+  color: #111827;
+}
+
+/* Current step */
+.wizard-progress-step.active .wizard-progress-line::after {
+  transform: scaleX(1);
+  background: #ddd6fe;
+}
+
+.wizard-progress-step.active .wizard-progress-dot {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  color: transparent;
+}
+
+.wizard-progress-step.active .wizard-progress-label {
+  color: #7c3aed;
+}
+
+.wizard-progress-step.active .wizard-progress-line {
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.10);
+}
+
+.wizard-panel {
+  display: none;
+}
+
+.wizard-panel.active {
+  display: block;
+}
+
+
+
+@media (max-width: 640px) {
+  .wizard-progress {
+    gap: 0.5rem;
   }
 
-  .wizard-step-indicator {
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    border-radius: 999px;
-    padding: 0.45rem 0.85rem 0.45rem 0.45rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    color: #6b7280;
-    transition: all 0.18s ease;
+  .wizard-progress-label {
+    font-size: 0.75rem;
   }
-
-  .wizard-step-indicator span {
-    width: 1.7rem;
-    height: 1.7rem;
-    display: inline-grid;
-    place-items: center;
-    border-radius: 999px;
-    background: #f3f4f6;
-    color: #6b7280;
-    font-size: 0.7rem;
-    font-weight: 500;
-  }
-
-  .wizard-step-indicator strong {
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
-  .wizard-step-indicator.active {
-    border-color: #7c3aed;
-    color: #4c1d95;
-    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
-  }
-
-  .wizard-step-indicator.active span {
-    background: #7c3aed;
-    color: #fff;
-  }
-
-  .wizard-panel {
-    display: none;
-  }
-
-  .wizard-panel.active {
-    display: block;
-  }
+}
 
 .purpose-grid {
   display: grid;
@@ -713,7 +790,7 @@
     let currentStep = 1;
 
     const panels = document.querySelectorAll(".wizard-panel");
-    const indicators = document.querySelectorAll(".wizard-step-indicator");
+    const indicators = document.querySelectorAll(".wizard-progress-step");
 
     const purposeInputs = document.querySelectorAll('input[name="purpose"]');
     const testInputs = document.querySelectorAll('input[name="selected_tests"]');
@@ -732,19 +809,22 @@ if (processNameInput) {
   });
 }
 
-    function showStep(step) {
-      currentStep = step;
+function showStep(step) {
+  currentStep = step;
 
-      panels.forEach((panel) => {
-        panel.classList.toggle("active", panel.dataset.step === String(step));
-      });
+  panels.forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.step === String(step));
+  });
 
-      indicators.forEach((indicator) => {
-        indicator.classList.toggle("active", indicator.dataset.stepTarget === String(step));
-      });
+  indicators.forEach((indicator) => {
+    const targetStep = Number(indicator.dataset.stepTarget);
 
-      updateSummary();
-    }
+    indicator.classList.toggle("active", targetStep === step);
+    indicator.classList.toggle("completed", targetStep < step);
+  });
+
+  updateSummary();
+}
 
     function getSelectedPurpose() {
       const checked = document.querySelector('input[name="purpose"]:checked');

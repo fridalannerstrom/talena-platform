@@ -1,53 +1,53 @@
 PROCESS_PURPOSES = [
     {
         "key": "hiring",
-        "label": "Hire a candidate",
-        "description": "Create an assessment process for recruitment and selection.",
+        "label": "Recruitment",
+        "description": "Assess candidates for selection and role fit.",
     },
     {
         "key": "internal_role_match",
-        "label": "Assess internal role match",
+        "label": "Role match",
         "description": "Assess how well an employee matches a new or existing role.",
     },
     {
         "key": "leadership_potential",
-        "label": "Identify leadership potential",
+        "label": "Leadership potential",
         "description": "Explore potential for future leadership roles.",
     },
     {
         "key": "career_path",
-        "label": "Identify career path",
-        "description": "Gain support in understanding possible development and career paths.",
+        "label": "Career path",
+        "description": "Understand possible development and career directions.",
     },
     {
         "key": "onboarding",
-        "label": "Prepare for onboarding",
-        "description": "Understand how a person can be introduced and supported in the best way from the start.",
+        "label": "Onboarding",
+        "description": "Understand how to support a person from the start.",
     },
     {
         "key": "employee_development",
-        "label": "Develop an employee",
-        "description": "Create a foundation for development conversations, coaching and individual growth.",
+        "label": "Employee development",
+        "description": "Create a foundation for coaching and individual growth.",
     },
     {
         "key": "leader_development",
-        "label": "Develop a leader",
+        "label": "Leader development",
         "description": "Create a foundation for leadership development and reflection.",
     },
     {
         "key": "team_development",
-        "label": "Understand and develop a team",
-        "description": "Explore drivers, behaviours and possible team patterns.",
+        "label": "Team development",
+        "description": "Explore drivers, behaviours and team patterns.",
     },
     {
         "key": "reorganisation",
-        "label": "Support reorganisation",
-        "description": "Gain support during change, new role distribution or internal transition.",
+        "label": "Reorganisation",
+        "description": "Support change, role distribution or internal transition.",
     },
     {
         "key": "unsure",
-        "label": "I am unsure / free assessment process",
-        "description": "Create a flexible process without a defined purpose.",
+        "label": "Flexible process",
+        "description": "Create a process without a defined purpose.",
     },
 ]
 
