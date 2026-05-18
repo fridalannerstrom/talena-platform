@@ -9,27 +9,23 @@
   <div class="process-kpi-grid mb-4">
 
     <div class="process-kpi-card">
-      <div class="process-kpi-label">Candidates</div>
-      <div class="process-kpi-value">{{ kpis.total_candidates|default:0 }}</div>
-      <div class="process-kpi-sub">In this process</div>
+      <div class="text-muted small">Candidates</div>
+      <div class="h3 mt-1">{{ kpis.total_candidates|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="process-kpi-label">Invited</div>
-      <div class="process-kpi-value">{{ kpis.invited|default:0 }}</div>
-      <div class="process-kpi-sub">Assessment sent</div>
+      <div class="text-muted small">Invited</div>
+      <div class="h3 mt-1">{{ kpis.invited|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="process-kpi-label">Started</div>
-      <div class="process-kpi-value">{{ kpis.started|default:0 }}</div>
-      <div class="process-kpi-sub">In progress</div>
+      <div class="text-muted small">Started</div>
+      <div class="h3 mt-1">{{ kpis.started|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="process-kpi-label">Completed</div>
-      <div class="process-kpi-value">{{ kpis.completed|default:0 }}</div>
-      <div class="process-kpi-sub">Ready to review</div>
+      <div class="text-muted small">Completed</div>
+      <div class="h3 mt-1">{{ kpis.completed|default:0 }}</div>
     </div>
 
   </div>

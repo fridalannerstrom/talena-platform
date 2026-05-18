@@ -10,7 +10,7 @@
     <!-- LEFT: Merge fields -->
     <div class="col-12 col-lg-4 col-xl-3">
       <div class="card process-section-card h-100">
-        <div class="card-header bg-white py-3 px-4">
+        <div class="card-header edit-email-header bg-white py-3 px-4">
           <div class="fw-semibold mb-1">Merge fields</div>
           <div class="text-muted small">
             Click a field to copy it, then paste it into the subject line or message.
@@ -79,18 +79,13 @@
       <form method="post" class="card process-section-card">
         {% csrf_token %}
 
-        <div class="card-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
+        <div class="card-header edit-email-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
           <div>
             <div class="fw-semibold mb-1">Invitation email template</div>
             <div class="text-muted small">
               Personalise the email candidates receive when assessments are sent.
             </div>
           </div>
-
-          <span class="email-template-pill">
-            <i class="fa-regular fa-envelope me-1"></i>
-            Invitation
-          </span>
         </div>
 
         <div class="card-body p-4">
