@@ -18,4 +18,688 @@
 
 </div>
 
+<!-- Add candidate modal -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex flex-column">
+          <div class="subheading mb-1">Add candidate</div>
+          <div class="text-muted small">Invite a candidate to this test process.</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" id="addCandidateModalBody">
+        <div class="text-muted">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Self registration modal -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll(".js-selfreg");
+    if (!buttons.length) return;
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const url = "{{ self_reg_url|escapejs }}";
+
+        openAppModal({
+          title: "Self-registration",
+          bodyHtml: `
+            <p class="mb-2">
+              Share this link with candidates. Candidates who register through the link
+              will start the assessment automatically after registration.
+            </p>
+
+            <label class="form-label">Self-registration link</label>
+            <input type="text" class="form-control" value="${url}" readonly>
+
+            <div class="d-flex align-items-center gap-3 mt-2">
+              <button class="btn btn-primary" type="button"
+                onclick="copyToClipboard('${url}', 'copyStatus')">
+                Copy link
+              </button>
+              <span id="copyStatus" class="small text-muted"></span>
+            </div>
+          `,
+          footerHtml: `
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+          `
+        });
+      });
+    });
+  });
+</script>
+
+<!-- Candidate sheet fetch -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const sheetEl = document.getElementById("candidateSheet");
+    const sheetBody = document.getElementById("candidateSheetBody");
+    const sheetTitle = document.getElementById("candidateSheetLabel");
+    const prevBtn = document.getElementById("candidatePrevBtn");
+    const nextBtn = document.getElementById("candidateNextBtn");
+
+    if (!sheetEl || !sheetBody || !sheetTitle) return;
+
+    const sheet = bootstrap.Offcanvas.getOrCreateInstance(sheetEl);
+
+    const links = Array.from(document.querySelectorAll(".js-open-candidate"));
+    if (!links.length) return;
+
+    let currentIndex = -1;
+
+    async function loadCandidateByIndex(idx) {
+      if (idx < 0 || idx >= links.length) return;
+      currentIndex = idx;
+
+      const link = links[currentIndex];
+      const url = link.dataset.sheetUrl || link.getAttribute("href");
+      const name = link.dataset.candidateName || "Candidate";
+
+      sheetTitle.textContent = name;
+      sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+
+      sheet.show();
+
+      updateNav();
+
+      try {
+        const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+        if (!res.ok) {
+          sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Could not load candidate details (${res.status}).</div>`;
+          return;
+        }
+      sheetBody.innerHTML = await res.text();
+
+      initCandidateSheetInteractions(sheetBody);
+      initGlobalEmailModal(sheetBody);
+
+      if (window.feather) feather.replace();
+      if (window.bootstrap) {
+        sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+      }
+
+      await initCandidateSummaryStream();
+      } catch (err) {
+        sheetBody.innerHTML = `<div class="alert alert-danger mb-0">Network error while loading candidate details.</div>`;
+        console.error(err);
+      }
+    }
+
+    function updateNav() {
+      if (!prevBtn || !nextBtn) return;
+
+      if (links.length <= 1) {
+        prevBtn.classList.add("is-hidden");
+        nextBtn.classList.add("is-hidden");
+        return;
+      }
+
+      prevBtn.classList.remove("is-hidden");
+      nextBtn.classList.remove("is-hidden");
+
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= links.length - 1;
+    }
+
+    links.forEach((link, idx) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        loadCandidateByIndex(idx);
+      });
+    });
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex - 1));
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => loadCandidateByIndex(currentIndex + 1));
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const isOpen = sheetEl.classList.contains("show");
+      if (!isOpen) return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        loadCandidateByIndex(currentIndex - 1);
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        loadCandidateByIndex(currentIndex + 1);
+      }
+    });
+
+    sheetEl.addEventListener("hidden.bs.offcanvas", () => {
+      currentIndex = -1;
+      updateNav();
+    });
+  });
+</script>
+
+
+<!-- Tooltips + Feather -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (!window.bootstrap) return;
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+    new bootstrap.Tooltip(el);
+  });
+  if (window.feather) feather.replace();
+});
+</script>
+
+<!-- Poll statuses -->
+<script>
+(function () {
+  const url = "{% url 'processes:process_invitation_statuses' process.id %}";
+  const POLL_MS = 5000;
+
+  function badgeClassFor(status) {
+    switch ((status || "").toLowerCase()) {
+      case "completed": return "badge bg-success";
+      case "started": return "badge bg-info text-dark";
+      case "sent": return "badge bg-warning text-dark";
+      case "created": return "badge bg-secondary";
+      default: return "badge bg-light text-dark";
+    }
+  }
+
+  async function poll() {
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      (data.invitations || []).forEach(inv => {
+        const el = document.querySelector(`[data-status-badge="1"][data-invitation-id="${inv.id}"]`);
+        if (el) {
+          el.className = badgeClassFor(inv.status);
+
+          let label = inv.status;
+          const st = (inv.status || "").toLowerCase();
+          if (st === "completed") label = "Completed";
+          if (st === "started") label = "Started";
+          if (st === "sent") label = "Sent";
+          if (st === "created") label = "Not sent";
+
+          el.textContent = label;
+        }
+      });
+    } catch (e) {}
+  }
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+
+<!-- Enable/disable send assessments button -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const canEdit = {{ can_edit|yesno:"true,false" }};
+    if (!canEdit) return;
+
+    const btn = document.getElementById("send-tests-btn");
+    const selectAll = document.getElementById("select-all");
+    const checks = Array.from(document.querySelectorAll(".row-check"));
+
+    if (!btn) return;
+
+    function updateSendButton() {
+      const anyChecked = checks.some(ch => ch.checked);
+      btn.disabled = !anyChecked;
+      btn.setAttribute("aria-disabled", String(!anyChecked));
+      btn.classList.toggle("is-disabled", !anyChecked);
+    }
+
+    updateSendButton();
+    checks.forEach(ch => ch.addEventListener("change", updateSendButton));
+
+    if (selectAll) {
+      selectAll.addEventListener("change", () => {
+        checks.forEach(ch => ch.checked = selectAll.checked);
+        updateSendButton();
+      });
+    }
+  });
+</script>
+
+<!-- Add candidate modal -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const buttons = document.querySelectorAll(".js-add-candidate");
+  const modalEl = document.getElementById("addCandidateModal");
+  const bodyEl = document.getElementById("addCandidateModalBody");
+
+  if (!buttons.length || !modalEl || !bodyEl) return;
+  if (!window.bootstrap) return;
+
+  const modal = new bootstrap.Modal(modalEl);
+
+  async function loadForm(url) {
+    bodyEl.innerHTML = `<div class="text-muted">Loading…</div>`;
+    modal.show();
+
+    try {
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      bodyEl.innerHTML = await res.text();
+      if (window.feather) feather.replace();
+    } catch (e) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Could not load the form.</div>`;
+      console.error(e);
+    }
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => loadForm(btn.dataset.url));
+  });
+
+  modalEl.addEventListener("submit", async (e) => {
+    const form = e.target.closest("#addCandidateForm");
+    if (!form) return;
+
+    e.preventDefault();
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        modal.hide();
+        window.location.href = data.redirect_url || window.location.href;
+        return;
+      }
+
+      bodyEl.innerHTML = await res.text();
+      if (window.feather) feather.replace();
+    } catch (err) {
+      bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Network error. Please try again.</div>`;
+      console.error(err);
+    }
+  });
+});
+</script>
+
+<script>
+async function initCandidateSummaryStream() {
+  const summaryEl = document.getElementById("aiSummaryContent");
+  if (!summaryEl) return;
+
+  const hasSummary = summaryEl.dataset.hasSummary === "true";
+  const summaryStatus = summaryEl.dataset.summaryStatus || "not_started";
+  const streamUrl = summaryEl.dataset.streamUrl;
+
+  if (!streamUrl) return;
+  if (hasSummary) return;
+  if (summaryStatus === "completed") return;
+  if (summaryStatus === "generating") return;
+
+  try {
+    summaryEl.innerHTML = '<span class="text-muted">Generating summary...</span>';
+
+    const response = await fetch(streamUrl, {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      summaryEl.innerHTML = '<span class="text-danger">Could not generate summary.</span>';
+      console.error("AI summary stream failed:", response.status, text);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
+
+    summaryEl.innerHTML = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+      summaryEl.innerHTML = fullText.replace(/\n/g, "<br>");
+    }
+
+    if (!fullText.trim()) {
+      summaryEl.innerHTML = '<span class="text-muted">No summary was generated.</span>';
+    } else {
+      summaryEl.dataset.hasSummary = "true";
+      summaryEl.dataset.summaryStatus = "completed";
+    }
+
+  } catch (error) {
+    summaryEl.innerHTML = '<span class="text-danger">An error occurred while generating the summary.</span>';
+    console.error("AI summary stream error:", error);
+  }
+}
+</script>
+
+<script>
+function initCandidateSheetInteractions(container) {
+  if (!container) return;
+
+  container.querySelectorAll("[data-copy-candidate-url]").forEach(button => {
+    button.addEventListener("click", async function () {
+      const targetId = this.dataset.copyCandidateUrl;
+      const input = container.querySelector(`#${targetId}`);
+      if (!input) return;
+
+      const originalText = this.innerText;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(input.value);
+        } else {
+          input.select();
+          input.setSelectionRange(0, 99999);
+          document.execCommand("copy");
+        }
+
+        this.innerText = "Copied!";
+        this.classList.remove("btn-outline-dark");
+        this.classList.add("btn-dark");
+
+        setTimeout(() => {
+          this.innerText = originalText;
+          this.classList.remove("btn-dark");
+          this.classList.add("btn-primary");
+        }, 1400);
+      } catch (e) {
+        this.innerText = "Could not copy";
+        setTimeout(() => {
+          this.innerText = originalText;
+        }, 1400);
+      }
+    });
+  });
+}
+</script>
+
+<script>
+function initGlobalEmailModal(container) {
+  if (!container || !window.bootstrap) return;
+
+  const modalEl = document.getElementById("globalEmailModal");
+  if (!modalEl) return;
+
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  const toEl = document.getElementById("globalEmailTo");
+  const subjectEl = document.getElementById("globalEmailSubject");
+  const bodyEl = document.getElementById("globalEmailBody");
+
+  container.querySelectorAll(".js-open-email-modal").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toEl.textContent = btn.dataset.emailTo || "Not specified";
+      subjectEl.textContent = btn.dataset.emailSubject || "Not specified";
+
+      const rawBody = btn.dataset.emailBody || "";
+      bodyEl.innerHTML = rawBody.replace(/\n/g, "<br>");
+
+      modal.show();
+    });
+  });
+}
+</script>
+
+<script>
+  function switchTabs(buttonEl) {
+    const group = buttonEl.dataset.tabGroup;
+    const target = buttonEl.dataset.tabTarget;
+
+    if (!group || !target) return;
+
+    const container = buttonEl.closest(".card, .candidate-profile-shell, .domain-panel, .report-tabs-section, body");
+    const scope = container || document;
+
+    const tabs = scope.querySelectorAll(`[data-tab-group="${group}"][data-tab-target]`);
+    const panels = scope.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`);
+
+    tabs.forEach(tab => {
+      tab.classList.remove("is-active");
+      tab.setAttribute("aria-selected", "false");
+    });
+
+    panels.forEach(panel => {
+      panel.classList.remove("is-active");
+    });
+
+    buttonEl.classList.add("is-active");
+    buttonEl.setAttribute("aria-selected", "true");
+
+    const activePanel = scope.querySelector(
+      `[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (activePanel) {
+      activePanel.classList.add("is-active");
+    }
+  }
+</script>
+
+<script>
+  function switchTabs(button) {
+    const group = button.dataset.tabGroup;
+    const target = button.dataset.tabTarget;
+
+    document.querySelectorAll(`[data-tab-group="${group}"].candidate-tab`).forEach(btn => {
+      btn.classList.remove("is-active");
+    });
+
+    document.querySelectorAll(`[data-tab-group="${group}"][data-tab-panel]`).forEach(panel => {
+      panel.classList.remove("is-active");
+    });
+
+    button.classList.add("is-active");
+
+    const targetPanel = document.querySelector(
+      `[data-tab-group="${group}"][data-tab-panel="${target}"]`
+    );
+
+    if (targetPanel) {
+      targetPanel.classList.add("is-active");
+    }
+  }
+</script>
+
+<script>
+  document.addEventListener("submit", async function (event) {
+  const form = event.target.closest(".js-candidate-ai-form");
+
+  if (!form) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const aiCard = form.closest(".candidate-ai-card");
+  const sidebar = form.closest(".candidate-sheet-sidebar");
+  const sheetLayout = form.closest(".candidate-sheet-layout");
+
+  if (!aiCard || !sheetLayout) {
+    console.error("AI chat: could not find aiCard or sheetLayout");
+    return;
+  }
+
+  const input = form.querySelector(".js-candidate-ai-input");
+  const submitButton = form.querySelector(".js-candidate-ai-submit");
+  const messages = sidebar.querySelector(".js-candidate-ai-messages");
+  const streamUrl = aiCard.dataset.chatStreamUrl;
+
+  if (!input || !submitButton || !messages || !streamUrl) {
+    console.error("AI chat: missing input, button, messages or streamUrl", {
+      input,
+      submitButton,
+      messages,
+      streamUrl,
+    });
+    return;
+  }
+
+  const userMessage = input.value.trim();
+
+  if (!userMessage) {
+    return;
+  }
+
+  input.value = "";
+  submitButton.disabled = true;
+  submitButton.textContent = "Responding...";
+
+  addCandidateAiMessage(messages, "user", userMessage);
+  const assistantBubble = addCandidateAiMessage(messages, "assistant", "");
+
+  try {
+    const response = await fetch(streamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        message: buildCandidateAiPrompt(sheetLayout, userMessage),
+        scope: "base",
+      }),
+    });
+
+    if (!response.ok) {
+      assistantBubble.textContent = "Something went wrong while generating the AI response.";
+      console.error("AI chat response error:", response.status, response.statusText);
+      return;
+    }
+
+    if (!response.body) {
+      assistantBubble.textContent = "The AI response did not include streaming data.";
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      if (value) {
+        const chunk = decoder.decode(value, { stream: true });
+        assistantBubble.textContent += chunk;
+        scrollCandidateAiMessages(messages);
+      }
+    }
+  } catch (error) {
+    assistantBubble.textContent = "Could not connect to the AI chat.";
+    console.error("AI chat fetch error:", error);
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Send";
+    input.focus();
+  }
+});
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+
+  if (parts.length === 2) {
+    return parts.pop().split(";").shift();
+  }
+
+  return "";
+}
+
+function cleanCandidateAiText(text) {
+  return (text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getCandidateVisibleContext(sheetLayout) {
+  const main = sheetLayout.querySelector(".candidate-sheet-main");
+
+  if (!main) {
+    return "";
+  }
+
+  const clonedMain = main.cloneNode(true);
+
+  clonedMain
+    .querySelectorAll("button, input, textarea, script, style")
+    .forEach((el) => el.remove());
+
+  const rawText = clonedMain.innerText || clonedMain.textContent || "";
+  const cleanedText = cleanCandidateAiText(rawText);
+
+  return cleanedText.slice(0, 12000);
+}
+
+function buildCandidateAiPrompt(sheetLayout, userMessage) {
+  const context = getCandidateVisibleContext(sheetLayout);
+
+  return `
+You are an AI assistant inside Talena, an assessment and recruitment platform.
+
+Your task is to help the user understand and work with the candidate's assessment results.
+
+Use the candidate context below as your main source.
+Do not make final hiring decisions.
+Do not diagnose the candidate.
+Be practical, clear and recruitment-focused.
+If the data is missing or uncertain, say so.
+
+Candidate context:
+${context}
+
+User question:
+${userMessage}
+`.trim();
+}
+
+function addCandidateAiMessage(messages, role, text = "") {
+  const empty = messages.querySelector(".candidate-ai-empty");
+
+  if (empty) {
+    empty.remove();
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = `candidate-ai-message candidate-ai-message-${role}`;
+
+  const bubble = document.createElement("div");
+  bubble.className = "candidate-ai-message-bubble";
+  bubble.textContent = text;
+
+  wrapper.appendChild(bubble);
+  messages.appendChild(wrapper);
+
+  scrollCandidateAiMessages(messages);
+
+  return bubble;
+}
+
+function scrollCandidateAiMessages(messages) {
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
+
+
 {% endblock %}
