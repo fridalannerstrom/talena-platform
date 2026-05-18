@@ -1,349 +1,217 @@
-{% extends "customer/core/layouts/customer_base.html" %}
-{% block content %}
+{% extends "customer/processes/process_base.html" %}
 {% load static %}
 
-<div class="container-fluid px-2 px-md-3">
+{% block process_content %}
 
-<a href="{% url 'processes:process_list' %}"
-   class="text-muted small text-decoration-none">
-  ← Back
-</a>
-<!-- 
-<div class="card mt-3">
-  <div class="card-body">
-    <div class="fw-semibold mb-2">Latest activity</div>
 
-    {% if activity_events %}
-      <div class="d-grid gap-2">
-        {% for e in activity_events %}
-          <div class="border rounded p-2">
-            <div class="small">
-              <div class="fw-semibold">{{ e.message }}</div>
-            </div>
-            <div class="text-muted small">
-              {{ e.created_at|date:"Y-m-d H:i" }}
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="text-muted small">No activity yet.</div>
-    {% endif %}
+
+  {# STATUS OVERVIEW #}
+  <div class="process-kpi-grid mb-4">
+
+    <div class="process-kpi-card">
+      <div class="process-kpi-label">Candidates</div>
+      <div class="process-kpi-value">{{ kpis.total_candidates|default:0 }}</div>
+      <div class="process-kpi-sub">In this process</div>
+    </div>
+
+    <div class="process-kpi-card">
+      <div class="process-kpi-label">Invited</div>
+      <div class="process-kpi-value">{{ kpis.invited|default:0 }}</div>
+      <div class="process-kpi-sub">Assessment sent</div>
+    </div>
+
+    <div class="process-kpi-card">
+      <div class="process-kpi-label">Started</div>
+      <div class="process-kpi-value">{{ kpis.started|default:0 }}</div>
+      <div class="process-kpi-sub">In progress</div>
+    </div>
+
+    <div class="process-kpi-card">
+      <div class="process-kpi-label">Completed</div>
+      <div class="process-kpi-value">{{ kpis.completed|default:0 }}</div>
+      <div class="process-kpi-sub">Ready to review</div>
+    </div>
+
   </div>
-</div>-->
 
-<div class="card mb-3 mt-2">
-  <div class="card-body">
+  {# CANDIDATES TABLE #}
+  <div class="card process-section-card">
 
-    {# Row 1: Title + actions #}
-    <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
-      <div class="min-w-0">
-        <div class="chip chip-labels">
-          <div class="chip-value mb-3">
-            {% if process.labels %}
-              <div class="d-flex flex-wrap gap-2">
-                {% for label in process.labels.all %}
-                  <span class="process-label">{{ label }}</span>
-                {% endfor %}
-              </div>
-            {% else %}
-              <span class="text-muted">Not categorised</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <h2 class="mb-1 mt-2 mb-2 text-truncate">{{ process.name }}</h2>
-
-        <div class="small text-dark">
-          Created by:
-          <span class="fw-semibold">
-            {% with u=process.created_by %}
-              {% if u.first_name or u.last_name %}
-                {{ u.first_name }} {{ u.last_name }}
-              {% else %}
-                {{ u.email }}
-              {% endif %}
-            {% endwith %}
-          </span>
-
-          {% if process.created_at %}
-            <span class="mx-1">·</span>{{ process.created_at|date:"Y-m-d H:i" }}
-          {% endif %}
+    <div class="card-header bg-white d-flex align-items-center justify-content-between gap-3 flex-wrap py-3 px-4">
+      <div>
+        <div class="fw-semibold">Candidates</div>
+        <div class="text-muted small">
+          {{ invitations|length }} candidate{{ invitations|length|pluralize }} in this test process
         </div>
       </div>
 
-      <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
-        {% if can_edit %}
-          <a class="btn btn-outline-secondary"
-             href="{% url 'emails:edit_process_invitation_template' process.id %}">
-            Email templates
-          </a>
-
-          <a class="btn btn-outline-secondary"
-             href="{% url 'processes:process_update' process.id %}">
-            Settings
-          </a>
-
-          <button type="button"
-                  class="btn btn-outline-secondary js-selfreg">
-            Self-registration
+      {% if can_edit %}
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button
+            id="send-tests-btn"
+            type="submit"
+            form="send-tests-form"
+            class="btn btn-outline-secondary btn-sm"
+            disabled
+            aria-disabled="true"
+          >
+            <i data-feather="send" class="icon-16"></i>
+            Send assessments
           </button>
 
           <button type="button"
-                  class="btn btn-primary js-add-candidate"
+                  class="btn btn-primary btn-sm js-add-candidate"
                   data-url="{% url 'processes:process_add_candidate' process.id %}">
             Add candidate
           </button>
-        {% else %}
-          <span class="access-pill"
-                data-bs-toggle="tooltip"
-                data-bs-placement="left"
-                title="You have read-only access to this test process. You can view candidates and status, but you cannot add candidates, send assessments or change settings.">
-            <i data-feather="eye" class="icon-16"></i>
-            Read-only access
-          </span>
-        {% endif %}
-      </div>
+        </div>
+      {% endif %}
     </div>
 
-{# Row 2: Key facts as chips #}
-<div class="process-header-chips mt-3">
+    <div class="card-body p-0">
+      <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
+        {% csrf_token %}
 
-  <div class="chip mb-3 text-dark">
-    <div class="chip-label"><strong>Purpose</strong></div>
-
-    {% if process_purpose %}
-      <div class="chip-value">
-        {{ process_purpose.label }}
-      </div>
-      <div class="text-muted small mt-1">
-        {{ process_purpose.description }}
-      </div>
-    {% else %}
-      <div class="chip-value text-muted">
-        No purpose selected
-      </div>
-    {% endif %}
-  </div>
-
-  <div class="chip mb-3 text-dark">
-    <div class="chip-label"><strong>Test template</strong></div>
-    <div class="chip-value">
-      {{ process.project_name_snapshot|default:"Not specified" }}
-    </div>
-  </div>
-
-  <div class="chip text-dark">
-    <div class="chip-label"><strong>Assessments</strong></div>
-    <div class="chip-value">
-      {{ meta.tests|default:"Not specified" }}
-    </div>
-  </div>
-
-</div>
-
-  </div>
-</div>
-
-{# KPI grid #}
-<div class="kpi-grid mb-3">
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Candidates</div>
-      <div class="h3 mb-1">{{ kpis.total_candidates|default:0 }}</div>
-    </div>
-  </div>
-
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Invited</div>
-      <div class="h3 mb-1">{{ kpis.invited|default:0 }}</div>
-    </div>
-  </div>
-
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Started</div>
-      <div class="h3 mb-1">{{ kpis.started|default:0 }}</div>
-    </div>
-  </div>
-
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Completed</div>
-      <div class="h3 mb-1">{{ kpis.completed|default:0 }}</div>
-    </div>
-  </div>
-
-  <div class="card h-100">
-    <div class="card-body">
-      <div class="text-muted small">Expired</div>
-      <div class="h3 mb-1">{{ kpis.expired|default:0 }}</div>
-    </div>
-  </div>
-</div>
-
-{# Candidates table #}
-<div class="card process-sidebar">
-  <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
-    <div class="min-w-0">
-      <div class="fw-semibold">
-        Candidates
-        <div class="text-muted small">Total: {{ invitations|length }}</div>
-      </div>
-    </div>
-
-    {% if can_edit %}
-      <button
-        id="send-tests-btn"
-        type="submit"
-        form="send-tests-form"
-        class="link-button"
-        disabled
-        aria-disabled="true"
-      >
-        <i data-feather="send"></i> Send assessments
-      </button>
-    {% else %}
-    {% endif %}
-  </div>
-
-  <div class="card-body p-0">
-    <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
-      {% csrf_token %}
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 process-table">
-          <thead class="table-light">
-            <tr>
-              {% if can_edit %}
-                <th style="width:44px;" class="ps-3">
-                  <input type="checkbox" id="select-all">
-                </th>
-              {% endif %}
-
-              <th style="width:40%;">Candidate</th>
-              <th>Source</th>
-              <th>Status</th>
-              <th style="width: 160px;">Registered</th>
-
-              {% if can_edit %}
-                <th class="text-end pe-3" style="width:70px;"></th>
-              {% endif %}
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for inv in invitations %}
-              <tr class="candidate-row">
-
-                {% if can_edit %}
-                  <td class="ps-3">
-                    <input type="checkbox"
-                           name="invitation_ids"
-                           value="{{ inv.id }}"
-                           class="row-check">
-                  </td>
-                {% endif %}
-
-                <td>
-                  <div class="d-flex align-items-center gap-3 process-detail-table">
-                    <div class="user-initials-yellow">
-                      {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
-                        {% if fn or ln %}
-                          {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-                        {% else %}
-                          ?
-                        {% endif %}
-                      {% endwith %}
-                    </div>
-
-                    <div class="min-w-0">
-                      <div class="fw-semibold text-truncate">
-                        <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                           class="user-link js-open-candidate"
-                           data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                           data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
-                          {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
-                        </a>
-                      </div>
-                      <div class="text-muted small text-truncate">{{ inv.candidate.email }}</div>
-                    </div>
-                  </div>
-                </td>
-
-                <td class="text-muted">
-                  {% if inv.source == "self_registered" %}
-                    <span class="badge bg-info text-dark">Self-registered</span>
-                  {% else %}
-                    <span class="badge bg-primary">Invited</span>
-                  {% endif %}
-                </td>
-
-                <td>
-                  <span class="badge"
-                        data-invitation-id="{{ inv.id }}"
-                        data-status-badge="1">
-                    {{ inv.status_label }}
-                  </span>
-                </td>
-
-                <td class="text-muted">
-                  {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
-                  <div class="small text-muted">{{ inv.invited_at|default:inv.created_at|date:"H:i" }}</div>
-                </td>
-
-                {% if can_edit %}
-                  <td class="text-end pe-3">
-                    <button type="submit"
-                            class="button-icon"
-                            form="send-tests-form"
-                            formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-                            formmethod="post"
-                            onclick="return confirm('Are you sure you want to remove this candidate?');">
-                      <i data-feather="trash-2"></i>
-                    </button>
-                  </td>
-                {% endif %}
-
-              </tr>
-
-            {% empty %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 process-table">
+            <thead class="table-light">
               <tr>
-                <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
-                  <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
+                {% if can_edit %}
+                  <th style="width:44px;" class="ps-4">
+                    <input type="checkbox" id="select-all">
+                  </th>
+                {% endif %}
+
+                <th>Candidate</th>
+                <th style="width: 190px;">Invitation</th>
+                <th style="width: 160px;">Status</th>
+                <th style="width: 170px;">Registered</th>
+
+                {% if can_edit %}
+                  <th class="text-end pe-4" style="width:90px;"></th>
+                {% endif %}
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for inv in invitations %}
+                <tr class="candidate-row">
 
                   {% if can_edit %}
-                    <div class="text-muted mb-3">You do not have any candidates yet.</div>
-
-                    <div class="d-flex justify-content-center gap-2 flex-wrap">
-                      <button type="button"
-                              class="btn btn-primary js-add-candidate"
-                              data-url="{% url 'processes:process_add_candidate' process.id %}">
-                        Add candidate
-                      </button>
-
-                      <button type="button"
-                              class="btn btn-primary js-selfreg">
-                        Self-registration link
-                      </button>
-                    </div>
-                  {% else %}
-                    <div class="text-muted mb-2">No candidates yet.</div>
-                    <div class="small text-muted">
-                      You have read-only access to this process.
-                    </div>
+                    <td class="ps-4">
+                      <input type="checkbox"
+                             name="invitation_ids"
+                             value="{{ inv.id }}"
+                             class="row-check">
+                    </td>
                   {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
 
-    </form>
-  </div>
-</div>
+                  <td>
+                    <div class="d-flex align-items-center gap-3 process-detail-table">
+                      <div class="user-initials-yellow">
+                        {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
+                          {% if fn or ln %}
+                            {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                          {% else %}
+                            ?
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+
+                      <div class="min-w-0">
+                        <div class="fw-semibold text-truncate">
+                          <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                             class="user-link js-open-candidate"
+                             data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                             data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+                            {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                          </a>
+                        </div>
+
+                        <div class="text-muted small text-truncate">
+                          {{ inv.candidate.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    {% if inv.source == "self_registered" %}
+                      <span class="badge bg-info text-dark">Self-registered</span>
+                    {% else %}
+                      <span class="badge bg-primary">Invited</span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    <span class="badge"
+                          data-invitation-id="{{ inv.id }}"
+                          data-status-badge="1">
+                      {{ inv.status_label }}
+                    </span>
+                  </td>
+
+                  <td class="text-muted">
+                    {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
+                    <div class="small text-muted">
+                      {{ inv.invited_at|default:inv.created_at|date:"H:i" }}
+                    </div>
+                  </td>
+
+                  {% if can_edit %}
+                    <td class="text-end pe-4">
+                      <button type="submit"
+                              class="button-icon"
+                              form="send-tests-form"
+                              formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                              formmethod="post"
+                              onclick="return confirm('Are you sure you want to remove this candidate?');"
+                              aria-label="Remove candidate">
+                        <i data-feather="trash-2"></i>
+                      </button>
+                    </td>
+                  {% endif %}
+
+                </tr>
+
+              {% empty %}
+                <tr>
+                  <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
+                    <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
+
+                    {% if can_edit %}
+                      <div class="fw-semibold text-dark mb-1">No candidates yet</div>
+                      <div class="text-muted mb-3">
+                        Add a candidate manually or share the self-registration link.
+                      </div>
+
+                      <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button type="button"
+                                class="btn btn-primary js-add-candidate"
+                                data-url="{% url 'processes:process_add_candidate' process.id %}">
+                          Add candidate
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-secondary js-selfreg">
+                          Self-registration link
+                        </button>
+                      </div>
+                    {% else %}
+                      <div class="fw-semibold text-dark mb-1">No candidates yet</div>
+                      <div class="small text-muted">
+                        You have read-only access to this process.
+                      </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </form>
+    </div>
 
 </div>
 
@@ -417,6 +285,9 @@
       </div>
     </div>
   </div>
+</div>
+
+</div>
 </div>
 
 <!-- Self registration modal -->

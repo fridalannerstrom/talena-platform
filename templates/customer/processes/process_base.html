@@ -1,0 +1,21 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+
+{% block content %}
+{% load static %}
+
+<div class="container-fluid px-2 px-md-4 process-page">
+
+  <a href="{% url 'processes:process_list' %}"
+     class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
+    ← Back to processes
+  </a>
+
+  {% with current_active=active|default:"overview" %}
+    {% include "customer/processes/_process_header.html" with process=process active=current_active %}
+  {% endwith %}
+
+  {% block process_content %}{% endblock %}
+
+</div>
+
+{% endblock %}

@@ -1,18 +1,7 @@
-{% extends "customer/core/layouts/customer_base.html" %}
-{% block content %}
-<div class="container-fluid px-2 px-md-3">
+{% extends "customer/processes/process_base.html" %}
+{% load static %}
 
-  <!-- Header -->
-  <div class="d-flex align-items-start justify-content-between mb-4">
-    <div>
-      <h1 class="h4 mb-1">Edit test process</h1>
-      <div class="text-muted">Update the process details. The test template may be locked after assessments have been sent.</div>
-    </div>
-
-    <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">
-      Back
-    </a>
-  </div>
+{% block process_content %}
 
   {% if error %}
     <div class="alert alert-danger">
@@ -29,14 +18,16 @@
   <div class="row g-4">
 
     <!-- LEFT: Form -->
-    <div class="col-12 col-lg-8">
-      <div class="card">
-        <div class="card-header py-3">
-          <div class="subheading mb-1">Process details</div>
-          <div class="text-muted small">Basic information about this test process.</div>
+    <div class="col-12 col-xl-8">
+      <div class="card process-section-card">
+        <div class="card-header bg-white py-3 px-4">
+          <div class="fw-semibold">Process settings</div>
+          <div class="text-muted small">
+            Update the process details. The test template may be locked after assessments have been sent.
+          </div>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-4">
           <form method="post" novalidate>
             {% csrf_token %}
 
@@ -55,7 +46,9 @@
 
             <!-- Labels -->
             <div class="mb-4">
-              <label class="form-label">Labels <span class="text-muted">(optional)</span></label>
+              <label class="form-label">
+                Labels <span class="text-muted">(optional)</span>
+              </label>
               {{ form.labels_text }}
               {% if form.labels_text.help_text %}
                 <div class="form-text">{{ form.labels_text.help_text }}</div>
@@ -111,7 +104,9 @@
                               </span>
                             {% endif %}
 
-                            <span class="template-description">Tests included in this template:</span>
+                            <span class="template-description">
+                              Tests included in this template:
+                            </span>
 
                             <span class="template-tests">
                               {% if card.tests %}
@@ -145,8 +140,14 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
-              <button class="btn btn-primary" type="submit">Save changes</button>
-              <a class="btn btn-outline-secondary" href="{% url 'processes:process_list' %}">Cancel</a>
+              <button class="btn btn-primary" type="submit">
+                Save changes
+              </button>
+
+              <a class="btn btn-outline-secondary"
+                 href="{% url 'processes:process_detail' process.id %}">
+                Cancel
+              </a>
             </div>
 
           </form>
@@ -155,10 +156,21 @@
     </div>
 
     <!-- RIGHT: Help / Summary -->
-    <div class="col-12 col-lg-4">
-      <div class="card">
-        <div class="card-header py-3">
-          <div class="subheading mb-1">Tips</div>
+    <div class="col-12 col-xl-4">
+
+      <div class="card process-section-card mb-4">
+        <div class="card-body">
+          <div class="process-side-kicker">Settings</div>
+          <h3 class="process-side-title">Keep the process clear</h3>
+          <p class="text-muted mb-0">
+            Use a clear name, helpful labels and the right setup so the process stays easy to manage.
+          </p>
+        </div>
+      </div>
+
+      <div class="card process-section-card">
+        <div class="card-header bg-white py-3 px-4">
+          <div class="fw-semibold">Tips</div>
           <div class="text-muted small">For a clear and organised process.</div>
         </div>
 
@@ -189,11 +201,10 @@
           </div>
         </div>
       </div>
+
     </div>
 
   </div>
-
-</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {

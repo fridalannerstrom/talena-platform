@@ -1261,7 +1261,7 @@ def process_update(request, pk):
             updated.labels.set(label_objs)
 
             messages.success(request, "The process was updated.")
-            return redirect("processes:process_list")
+            return redirect("processes:process_update", pk=updated.pk)
 
         messages.error(request, "Could not save. Please check the fields.")
 
@@ -1270,6 +1270,20 @@ def process_update(request, pk):
         form.fields["sova_template"].choices = choices
         form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
 
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(obj.purpose)
+
+    meta = ProjectMeta.objects.filter(
+        account_code=obj.account_code,
+        project_code=obj.project_code,
+    ).first()
+
+    can_edit = user_can_edit_process(request.user, company, obj)
+
     return render(request, "customer/processes/process_edit.html", {
         "form": form,
         "process": obj,
@@ -1277,6 +1291,13 @@ def process_update(request, pk):
         "choices_count": len(choices),
         "template_cards": template_cards,
         "template_locked": locked,
+
+        # For process header/tabs
+        "active": "settings",
+        "meta": meta,
+        "can_edit": can_edit,
+        "process_purpose": process_purpose,
+        "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
     })
 
 
@@ -1411,6 +1432,7 @@ def process_detail(request, pk):
         "can_edit": can_edit,
         "activity_events": activity_events,
         "process_purpose": process_purpose,
+        "active": "overview",
         "kpis": {
             "total_candidates": total_candidates,
             "invited": invited_count,

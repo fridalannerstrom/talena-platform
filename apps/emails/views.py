@@ -12,14 +12,27 @@ from django.http import HttpResponseRedirect
 from apps.accounts.decorators import admin_required
 from apps.accounts.models import Company
 
+from django.http import HttpResponseForbidden
+from apps.projects.models import ProjectMeta
+from apps.processes.services.process_recommendations import PROCESS_PURPOSES
+from apps.accounts.utils.org_access import get_company_for_user
+from apps.accounts.utils.org_access import user_can_edit_process
+
 
 @login_required
 def edit_process_invitation_template(request, process_id):
     process = get_object_or_404(
-        TestProcess,
+        TestProcess.objects.select_related("company", "created_by", "org_unit"),
         pk=process_id,
-        created_by=request.user,
     )
+
+    company = get_company_for_user(request.user)
+
+    if not company or process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_edit_process(request.user, company, process):
+        return HttpResponseForbidden("You do not have permission to edit this email template.")
 
     tpl, _ = EmailTemplate.objects.get_or_create(
         process=process,
@@ -30,17 +43,40 @@ def edit_process_invitation_template(request, process_id):
 
     if request.method == "POST":
         form = EmailTemplateForm(request.POST, instance=tpl)
+
         if form.is_valid():
             form.save()
             messages.success(request, "Invitation email template updated.")
-            return redirect("processes:process_detail", pk=process.id)
+
+            # Stanna kvar i samma tab efter save
+            return redirect("emails:edit_process_invitation_template", process_id=process.id)
     else:
         form = EmailTemplateForm(instance=tpl)
+
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(process.purpose)
+
+    meta = ProjectMeta.objects.filter(
+        provider="sova",
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
 
     return render(request, "emails/edit_invitation_template.html", {
         "process": process,
         "form": form,
         "placeholders": get_email_template_placeholders(),
+
+        # Needed by process_base / _process_header.html
+        "active": "email_templates",
+        "meta": meta,
+        "can_edit": True,
+        "process_purpose": process_purpose,
+        "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
     })
 
 def get_default_invitation_template():

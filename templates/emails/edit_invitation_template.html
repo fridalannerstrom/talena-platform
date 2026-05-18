@@ -1,103 +1,99 @@
-{% extends "customer/core/layouts/customer_base.html" %}
-{% block content %}
-<div class="container-fluid px-2 px-md-3 email-template-page">
+{% extends "customer/processes/process_base.html" %}
+{% load static %}
 
-  <!-- Header -->
-  <div class="d-flex align-items-start justify-content-between mb-4">
-    <div>
-      <h1 class="h4 mb-1">Invitation email template</h1>
-      <div class="text-muted">{{ process.name }}</div>
-    </div>
+{% block process_content %}
 
-    <div class="d-inline-flex align-items-center gap-2">
-      <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
-        Back
-      </a>
-    </div>
-  </div>
+<div class="email-template-page">
 
   <div class="row g-4">
 
     <!-- LEFT: Merge fields -->
     <div class="col-12 col-lg-4 col-xl-3">
-      <div class="card h-100">
-        <div class="card-header py-3">
-          <div class="subheading mb-1">Merge fields</div>
+      <div class="card process-section-card h-100">
+        <div class="card-header bg-white py-3 px-4">
+          <div class="fw-semibold mb-1">Merge fields</div>
           <div class="text-muted small">
             Click a field to copy it, then paste it into the subject line or message.
           </div>
         </div>
 
-<div class="card-body">
+        <div class="card-body">
 
-  <div class="merge-field-list">
-    <button type="button" class="merge-field-item" data-copy="{first_name}">
-      <code>{first_name}</code>
-      <span>Candidate’s first name</span>
-    </button>
+          <div class="merge-field-list">
+            <button type="button" class="merge-field-item" data-copy="{first_name}">
+              <code>{first_name}</code>
+              <span>Candidate’s first name</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{last_name}">
-      <code>{last_name}</code>
-      <span>Candidate’s last name</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{last_name}">
+              <code>{last_name}</code>
+              <span>Candidate’s last name</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{email}">
-      <code>{email}</code>
-      <span>Candidate’s email address</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{email}">
+              <code>{email}</code>
+              <span>Candidate’s email address</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{process_name}">
-      <code>{process_name}</code>
-      <span>Name of this test process</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{process_name}">
+              <code>{process_name}</code>
+              <span>Name of this test process</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{assessment_url}">
-      <code>{assessment_url}</code>
-      <span>Candidate’s personal assessment link</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{assessment_url}">
+              <code>{assessment_url}</code>
+              <span>Candidate’s personal assessment link</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{sender_first_name}">
-      <code>{sender_first_name}</code>
-      <span>Your first name</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{sender_first_name}">
+              <code>{sender_first_name}</code>
+              <span>Your first name</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{sender_last_name}">
-      <code>{sender_last_name}</code>
-      <span>Your last name</span>
-    </button>
+            <button type="button" class="merge-field-item" data-copy="{sender_last_name}">
+              <code>{sender_last_name}</code>
+              <span>Your last name</span>
+            </button>
 
-    <button type="button" class="merge-field-item" data-copy="{sender_full_name}">
-      <code>{sender_full_name}</code>
-      <span>Your full name</span>
-    </button>
-  </div>
+            <button type="button" class="merge-field-item" data-copy="{sender_full_name}">
+              <code>{sender_full_name}</code>
+              <span>Your full name</span>
+            </button>
+          </div>
 
-  <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
+          <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
 
-  <div class="merge-note mt-3">
-    <div class="fw-semibold mb-1">Example</div>
-    <div class="small text-muted">
-      <code>Hi {first_name}</code> becomes <strong>Hi Anna</strong> when the email is sent.
-    </div>
-  </div>
+          <div class="merge-note mt-3">
+            <div class="fw-semibold mb-1">Example</div>
+            <div class="small text-muted">
+              <code>Hi {first_name}</code> becomes <strong>Hi Anna</strong> when the email is sent.
+            </div>
+          </div>
 
-</div>
+        </div>
       </div>
     </div>
 
     <!-- RIGHT: Form -->
     <div class="col-12 col-lg-8 col-xl-9">
-      <form method="post" class="card">
+      <form method="post" class="card process-section-card">
         {% csrf_token %}
 
-        <div class="card-header py-3">
-          <div class="subheading mb-1">Email template</div>
-          <div class="text-muted small">
-            Use merge fields such as <code>{first_name}</code>, <code>{process_name}</code> and <code>{assessment_url}</code> to personalise the email.
+        <div class="card-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
+          <div>
+            <div class="fw-semibold mb-1">Invitation email template</div>
+            <div class="text-muted small">
+              Personalise the email candidates receive when assessments are sent.
+            </div>
           </div>
+
+          <span class="email-template-pill">
+            <i class="fa-regular fa-envelope me-1"></i>
+            Invitation
+          </span>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-4">
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -121,46 +117,22 @@
             {% endif %}
           </div>
 
-          <!--
-          <div class="row g-3 align-items-end">
-
-            <div class="col-12 col-md-6">
-              <label class="form-label">Language</label>
-              {{ form.language }}
-              {% if form.language.errors %}
-                <div class="text-danger small mt-1">{{ form.language.errors|striptags }}</div>
-              {% endif %}
-            </div>
-
-            <div class="col-12 col-md-6">
-              <div class="form-check form-switch mt-2">
-                {{ form.is_active }}
-                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                  Use this template for invitations
-                </label>
-              </div>
-              <div class="form-text">
-                Only active templates are used when assessment invitations are sent.
-              </div>
-
-              {% if form.is_active.errors %}
-                <div class="text-danger small mt-1">{{ form.is_active.errors|striptags }}</div>
-              {% endif %}
-            </div>
-          </div>
-          -->
-
           <div class="template-tip mt-4">
             <div class="fw-semibold mb-1">Tip</div>
             <div class="small text-muted">
-              Make sure the message always includes <code>{assessment_url}</code>. Without it, the candidate will not receive their personal assessment link in the email.
+              Make sure the message always includes <code>{assessment_url}</code>.
+              Without it, the candidate will not receive their personal assessment link in the email.
             </div>
           </div>
 
           <div class="d-flex align-items-center gap-2 mt-4">
-            <button class="btn btn-primary" type="submit">Save</button>
-            <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
-              Back
+            <button class="btn btn-primary" type="submit">
+              Save template
+            </button>
+
+            <a class="btn btn-outline-secondary"
+               href="{% url 'processes:process_detail' process.id %}">
+              Cancel
             </a>
           </div>
 
@@ -172,7 +144,6 @@
 </div>
 
 <style>
-  /* Scoped to this page only */
 .email-template-page .merge-field-list {
   display: grid;
   gap: .55rem;
@@ -182,8 +153,8 @@
   width: 100%;
   border: 1px solid rgba(123, 87, 209, .14);
   background: #fff;
-  border-radius: 10px;
-  padding: .65rem .75rem;
+  border-radius: 12px;
+  padding: .7rem .8rem;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: .65rem;
@@ -201,10 +172,6 @@
   background: rgba(123, 87, 209, .045);
   border-color: rgba(123, 87, 209, .28);
   box-shadow: 0 8px 20px rgba(25, 25, 45, .05);
-}
-
-.email-template-page .merge-field-item:active {
-  transform: translateY(0);
 }
 
 .email-template-page .merge-field-item.is-copied {
@@ -225,11 +192,12 @@
 
 .email-template-page .merge-field-item span {
   color: #6b7280;
-  font-size: .7rem;
+  font-size: .74rem;
   line-height: 1.25;
 }
 
-.email-template-page .merge-note {
+.email-template-page .merge-note,
+.email-template-page .template-tip {
   border: 1px solid rgba(123, 87, 209, .14);
   background: rgba(123, 87, 209, .045);
   border-radius: 14px;
@@ -237,14 +205,25 @@
 }
 
 .email-template-page textarea {
-  min-height: 260px;
+  min-height: 300px;
   resize: vertical;
-  line-height: 1.3rem;
+  line-height: 1.35rem;
+}
+
+.email-template-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .45rem .75rem;
+  font-size: .78rem;
+  font-weight: 750;
+  background: #f1e8ff;
+  color: #6d3adf;
+  white-space: nowrap;
 }
 </style>
 
 <script>
-  // Copy merge field on click
   document.addEventListener("DOMContentLoaded", () => {
     const status = document.getElementById("phCopyStatus");
 
