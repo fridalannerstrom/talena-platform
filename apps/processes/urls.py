@@ -31,5 +31,6 @@ urlpatterns = [
     views.process_candidate_summary_stream,
     name="process_candidate_summary_stream",
     ),
-    path("processes/create-v2/", views.process_create_v2, name="process_create_v2")
+    path("create-v2/", views.process_create_v2, name="process_create_v2"),
+    path("<int:pk>/role-context/", views.process_role_context, name="process_role_context"),
 ]

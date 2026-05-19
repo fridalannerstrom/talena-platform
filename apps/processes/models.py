@@ -222,3 +222,39 @@ class ProcessLabel(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class ProcessRoleContext(models.Model):
+    process = models.OneToOneField(
+        TestProcess,
+        on_delete=models.CASCADE,
+        related_name="role_context"
+    )
+
+    role_title = models.CharField(max_length=255, blank=True)
+
+    job_advertisement = models.TextField(blank=True)
+    requirements_profile = models.TextField(blank=True)
+    competency_profile = models.TextField(blank=True)
+    must_haves = models.TextField(blank=True)
+    nice_to_haves = models.TextField(blank=True)
+    priorities = models.TextField(blank=True)
+    interview_notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def has_content(self):
+        return any([
+            self.role_title.strip(),
+            self.job_advertisement.strip(),
+            self.requirements_profile.strip(),
+            self.competency_profile.strip(),
+            self.must_haves.strip(),
+            self.nice_to_haves.strip(),
+            self.priorities.strip(),
+            self.interview_notes.strip(),
+        ])
+
+    def __str__(self):
+        return f"Role context for {self.process}"

@@ -72,6 +72,9 @@ from apps.processes.services.process_recommendations import (
 
 from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 
+from .models import ProcessRoleContext
+from .forms import ProcessRoleContextForm
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     activities = invitation.sova_activities or []
@@ -1382,6 +1385,73 @@ def process_delete(request, pk):
         messages.info(request, "Processen kunde inte raderas eftersom tester har skickats. Den arkiverades istället.")
 
     return redirect("processes:process_list")
+
+@login_required
+def process_role_context(request, pk):
+    process = get_object_or_404(TestProcess, pk=pk)
+
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+    company = get_object_or_404(Company, pk=company_id)
+
+    if process.company_id != company.id:
+        return HttpResponseForbidden("No access.")
+
+    if not user_can_view_process(request.user, company, process):
+        return HttpResponseForbidden("You do not have access to this process.")
+
+    if process.purpose != "hiring":
+        return HttpResponseForbidden("Role context is only available for recruitment processes.")
+
+    role_context, created = ProcessRoleContext.objects.get_or_create(
+        process=process
+    )
+
+    if request.method == "POST":
+        role_context_form = ProcessRoleContextForm(
+            request.POST,
+            instance=role_context
+        )
+
+        if role_context_form.is_valid():
+            role_context_form.save()
+            messages.success(request, "Role context saved.")
+            return redirect("processes:process_role_context", pk=process.pk)
+    else:
+        role_context_form = ProcessRoleContextForm(instance=role_context)
+
+    purpose_lookup = {
+        item["key"]: item
+        for item in PROCESS_PURPOSES
+    }
+
+    process_purpose = purpose_lookup.get(process.purpose)
+
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
+
+    can_edit = user_can_edit_process(request.user, company, process)
+
+    context = {
+        "process": process,
+        "meta": meta,
+        "can_edit": can_edit,
+        "process_purpose": process_purpose,
+        "role_context_form": role_context_form,
+        "active": "role_context",
+    }
+
+    return render(
+        request,
+        "customer/processes/process_role_context.html",
+        context
+    )
 
 
 @login_required

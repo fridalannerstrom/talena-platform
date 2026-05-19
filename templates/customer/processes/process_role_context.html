@@ -1,0 +1,83 @@
+{% extends "customer/processes/process_base.html" %}
+{% load static %}
+
+{% block process_content %}
+
+
+
+  <div class="card mt-4 role-context-card">
+    <div class="card-body">
+
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h5 class="mb-1">Role context</h5>
+          <p class="text-muted mb-0">
+            Add information about the role so Talena can interpret candidate results in relation to the job.
+          </p>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label">Role title</label>
+          {{ role_context_form.role_title }}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Job advertisement</label>
+          {{ role_context_form.job_advertisement }}
+          <div class="form-text">
+            Paste the full job advertisement if available.
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Requirements profile</label>
+          {{ role_context_form.requirements_profile }}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Competency profile</label>
+          {{ role_context_form.competency_profile }}
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <label class="form-label">Must-have requirements</label>
+            {{ role_context_form.must_haves }}
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <label class="form-label">Nice-to-have requirements</label>
+            {{ role_context_form.nice_to_haves }}
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Priorities</label>
+          {{ role_context_form.priorities }}
+          <div class="form-text">
+            For example: structure, sales drive, leadership potential, culture fit or learning ability.
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Interview notes</label>
+          {{ role_context_form.interview_notes }}
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-dark">
+            Save role context
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+
+{% endblock %}

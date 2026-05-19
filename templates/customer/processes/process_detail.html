@@ -3,7 +3,112 @@
 
 {% block process_content %}
 
+<style>
+  .role-context-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(360px, calc(100vw - 32px));
+  z-index: 1050;
 
+  padding: 1rem 1.15rem 1.05rem;
+  border-radius: 18px;
+  border: 1px solid rgba(126, 87, 194, 0.18);
+
+  background:
+    radial-gradient(circle at top left, rgba(168, 121, 255, 0.18), transparent 38%),
+    linear-gradient(135deg, #ffffff 0%, #fbf9ff 100%);
+
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.14),
+    0 3px 10px rgba(15, 23, 42, 0.04);
+
+  animation: roleContextToastIn 0.35s ease-out;
+}
+
+.role-context-toast.is-hidden {
+  display: none;
+}
+
+.role-context-toast__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b5cf6;
+  margin-bottom: 0.25rem;
+}
+
+.role-context-toast__title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #111827;
+  padding-right: 1.75rem;
+}
+
+.role-context-toast__text {
+  margin: 0.35rem 0 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.role-context-toast__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #111827;
+  text-decoration: none;
+}
+
+.role-context-toast__link:hover {
+  color: #7c3aed;
+}
+
+.role-context-toast__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+
+  width: 28px;
+  height: 28px;
+
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #9ca3af;
+
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.role-context-toast__close:hover {
+  background: rgba(15, 23, 42, 0.05);
+  color: #111827;
+}
+
+@keyframes roleContextToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 576px) {
+  .role-context-toast {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+</style>
 
   {# STATUS OVERVIEW #}
   <div class="process-kpi-grid mb-4">
@@ -268,5 +373,6 @@
 
 </div>
 </div>
+
 
 {% endblock %}

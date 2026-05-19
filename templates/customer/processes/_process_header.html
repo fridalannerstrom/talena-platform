@@ -382,24 +382,30 @@
 
   </div>
 
-  <div class="process-nav">
+<div class="process-nav">
 
-    <a class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
-       href="{% url 'processes:process_detail' process.id %}">
-      Overview
+  <a class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
+     href="{% url 'processes:process_detail' process.id %}">
+    Overview
+  </a>
+
+  {% if process.purpose == "hiring" %}
+    <a class="process-nav__item {% if active == 'role_context' %}is-active{% endif %}"
+       href="{% url 'processes:process_role_context' process.id %}">
+      Role context
     </a>
+  {% endif %}
 
-    <a class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
-       href="{% url 'emails:edit_process_invitation_template' process.id %}">
-      Email templates
-    </a>
+  <a class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
+     href="{% url 'emails:edit_process_invitation_template' process.id %}">
+    Email templates
+  </a>
 
-    <a class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
-       href="{% url 'processes:process_update' process.id %}">
-      Settings
-    </a>
+  <a class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
+     href="{% url 'processes:process_update' process.id %}">
+    Settings
+  </a>
 
-
-  </div>
+</div>
 
 </div>

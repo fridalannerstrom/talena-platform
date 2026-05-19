@@ -1,5 +1,6 @@
 from django import forms
 from .models import TestProcess, Candidate
+from .models import ProcessRoleContext
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
@@ -144,3 +145,60 @@ class TestProcessWizardCreateForm(forms.Form):
         }),
         help_text="Enter one or more tags that describe the testing process. Separate the tags with commas."
     )
+
+
+class ProcessRoleContextForm(forms.ModelForm):
+    class Meta:
+        model = ProcessRoleContext
+        fields = [
+            "role_title",
+            "job_advertisement",
+            "requirements_profile",
+            "competency_profile",
+            "must_haves",
+            "nice_to_haves",
+            "priorities",
+            "interview_notes",
+        ]
+
+        widgets = {
+            "role_title": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "e.g. Customer Success Manager"
+            }),
+            "job_advertisement": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 5,
+                "placeholder": "Paste the job advertisement here..."
+            }),
+            "requirements_profile": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Add the requirements profile for this role..."
+            }),
+            "competency_profile": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Describe the key competencies for this role..."
+            }),
+            "must_haves": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "What is required for this role?"
+            }),
+            "nice_to_haves": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "What would be beneficial, but not required?"
+            }),
+            "priorities": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "What should Talena prioritize when interpreting results?"
+            }),
+            "interview_notes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Optional notes from interviews or screening..."
+            }),
+        }
