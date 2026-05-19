@@ -168,7 +168,7 @@
 
 <div class="test-grid">
   {% for test in available_tests %}
-    <label class="test-card" data-test-card>
+    <label class="test-card" data-test-card data-test-key="{{ test.key }}">
       <input
         type="checkbox"
         name="selected_tests"
@@ -199,13 +199,15 @@
             <i class="fa-solid fa-check"></i>
           </span>
         </div>
-                  <div class="recommended-badge d-none" data-recommended-for="{{ test.key }}">
-          Recommended
-        </div>
-        <div class="test-card-copy">
-          <h3>{{ test.label }}</h3>
-          <p>{{ test.description }}</p>
-        </div>
+<div class="test-guidance-badge js-test-badge" data-recommended-for="{{ test.key }}">
+  Optional
+</div>
+<div class="test-card-copy">
+  <h3>{{ test.label }}</h3>
+  <p class="js-test-description" data-test-key="{{ test.key }}">
+    {{ test.description }}
+  </p>
+</div>
 
       </div>
     </label>
@@ -530,7 +532,7 @@
 
 .purpose-card-copy p {
   color: #6b7280;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   line-height: 1.4;
   margin-top: 0.5rem;
 }
@@ -647,7 +649,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 1rem;
   background: #fff;
-  padding: 1rem;
+  padding: 2rem;
   transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
   min-height: 300px;
 }
@@ -723,21 +725,31 @@
 
 .test-card-copy p {
   color: #6b7280;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin-top: 10px;
 }
 
-.recommended-badge {
+.test-guidance-badge {
   display: inline-flex;
+  align-items: center;
+  width: fit-content;
   border-radius: 999px;
   padding: 0.25rem 0.6rem;
-  background: #f3f0ff;
-  color: #6d28d9;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 600;
   margin-top: -45px;
   position: absolute;
+}
+
+.test-guidance-badge.is-recommended {
+  background: #f3f0ff;
+  color: #6d28d9;
+}
+
+.test-guidance-badge.is-optional {
+  background: #E9F6F6;
+  color: #3786b1;
 }
 
   @media (max-width: 640px) {
@@ -786,6 +798,267 @@
     availableTests.forEach((test) => {
       testLabelMap[test.key] = test.short_label || test.label;
     });
+
+    const TEST_GUIDANCE_BY_PURPOSE = {
+  hiring: {
+    personality: {
+      recommended: "Helps assess behavioural style, strengths, risks and role fit in a selection context.",
+      optional: "Add Personality if you want deeper insight into behavioural style, strengths and potential role fit."
+    },
+    motivation: {
+      recommended: "Shows what drives the candidate and what kind of work environment supports performance and retention.",
+      optional: "Add Motivation if you want to understand what will keep the candidate engaged and performing over time."
+    },
+    verbal: {
+      recommended: "Adds insight into how the candidate understands, interprets and communicates written information.",
+      optional: "Add Verbal if the role requires reading, interpreting or communicating complex written information."
+    },
+    logical: {
+      recommended: "Adds insight into problem-solving, structure and analytical thinking relevant to the role.",
+      optional: "Add Logical if the role requires problem-solving, structure, analysis or complex decision-making."
+    },
+    numerical: {
+      recommended: "Adds insight into how the candidate handles numbers, data, finance, reporting or analysis.",
+      optional: "Add Numerical if the role involves numbers, data, finance, reporting, KPIs or analysis."
+    }
+  },
+
+  internal_role_match: {
+    personality: {
+      recommended: "Helps compare behavioural style with the demands of a specific role or future position.",
+      optional: "Add Personality if you want to understand how the person’s working style fits the role."
+    },
+    motivation: {
+      recommended: "Shows whether the role is likely to match what motivates and energises the person.",
+      optional: "Add Motivation if you want to see whether the role is likely to feel engaging and sustainable."
+    },
+    verbal: {
+      recommended: "Useful when the role requires reading, interpreting or communicating complex information.",
+      optional: "Add Verbal if the role includes written communication, documentation or complex information."
+    },
+    logical: {
+      recommended: "Useful when the role requires structured problem-solving and analytical decision-making.",
+      optional: "Add Logical if the role requires analysis, structure, prioritisation or problem-solving."
+    },
+    numerical: {
+      recommended: "Useful when the role involves numbers, data, finance, reporting or analysis.",
+      optional: "Add Numerical if the role includes reports, budgets, KPIs, data or financial information."
+    }
+  },
+
+  leadership_potential: {
+    personality: {
+      recommended: "Helps identify behavioural strengths, leadership potential and possible risk areas in future leadership roles.",
+      optional: "Add Personality if you want to explore behavioural leadership potential and possible risk areas."
+    },
+    motivation: {
+      recommended: "Shows what drives the person and whether leadership responsibility is likely to feel energising.",
+      optional: "Add Motivation if you want to understand whether leadership responsibility is likely to motivate the person."
+    },
+    verbal: {
+      recommended: "Adds insight into how the person understands and communicates complex information.",
+      optional: "Add Verbal if future leadership roles require communication, written information or stakeholder updates."
+    },
+    logical: {
+      recommended: "Adds insight into analytical thinking, problem-solving and decision-making potential.",
+      optional: "Add Logical if the future leadership role involves complex decisions, strategy or problem-solving."
+    },
+    numerical: {
+      recommended: "Useful if the future leadership role includes budgets, KPIs, reporting or data-driven decisions.",
+      optional: "Add Numerical if future leadership responsibilities include budgets, KPIs, data or business reporting."
+    }
+  },
+
+  career_path: {
+    personality: {
+      recommended: "Helps identify natural working style, strengths and development areas that may guide future career direction.",
+      optional: "Add Personality if you want to map natural strengths, working style and possible development paths."
+    },
+    motivation: {
+      recommended: "Shows what kind of tasks, environments and responsibilities are most likely to create engagement.",
+      optional: "Add Motivation if you want to understand what type of work and environment may suit the person long term."
+    },
+    verbal: {
+      recommended: "Adds insight into whether communication-heavy or information-rich roles may suit the person.",
+      optional: "Add Verbal if you want to explore whether communication-heavy or information-rich roles may be suitable."
+    },
+    logical: {
+      recommended: "Adds insight into whether analytical, strategic or problem-solving roles may suit the person.",
+      optional: "Add Logical if you want to explore analytical, strategic or problem-solving career directions."
+    },
+    numerical: {
+      recommended: "Adds insight into whether data, finance, reporting or analytical roles may be a good direction.",
+      optional: "Add Numerical if you want to explore roles involving data, finance, reporting or analysis."
+    }
+  },
+
+  onboarding: {
+    personality: {
+      recommended: "Helps managers understand how to support the person’s working style from the start.",
+      optional: "Add Personality if you want to tailor onboarding to the person’s working style and support needs."
+    },
+    motivation: {
+      recommended: "Shows what helps the person feel engaged, supported and productive during onboarding.",
+      optional: "Add Motivation if you want to understand what will help the person feel engaged from the start."
+    },
+    verbal: {
+      recommended: "Useful if the onboarding includes complex written material, policies or documentation.",
+      optional: "Add Verbal if onboarding involves policies, documentation, written instructions or complex information."
+    },
+    logical: {
+      recommended: "Useful if the role requires the person to quickly understand processes, systems or problem-solving tasks.",
+      optional: "Add Logical if the person needs to quickly understand systems, processes or problem-solving tasks."
+    },
+    numerical: {
+      recommended: "Useful if the role requires early work with numbers, reports, KPIs or financial information.",
+      optional: "Add Numerical if onboarding includes reports, KPIs, financial information or numerical tasks."
+    }
+  },
+
+  employee_development: {
+    personality: {
+      recommended: "Helps identify behavioural strengths, development areas and coaching themes.",
+      optional: "Add Personality if you want to identify behavioural strengths, development areas and coaching themes."
+    },
+    motivation: {
+      recommended: "Shows what drives engagement and what kind of environment supports sustainable growth.",
+      optional: "Add Motivation if you want to understand what supports engagement, growth and sustainable performance."
+    },
+    verbal: {
+      recommended: "Adds insight into communication, comprehension and learning through written information.",
+      optional: "Add Verbal if the development plan includes communication, written information or knowledge-heavy tasks."
+    },
+    logical: {
+      recommended: "Adds insight into problem-solving style and areas for analytical development.",
+      optional: "Add Logical if the development focus includes problem-solving, structure or analytical thinking."
+    },
+    numerical: {
+      recommended: "Useful when development goals include data, reporting, finance or numerical confidence.",
+      optional: "Add Numerical if development goals include data, reports, finance, KPIs or numerical confidence."
+    }
+  },
+
+  leader_development: {
+    personality: {
+      recommended: "Helps identify leadership style, behavioural strengths, blind spots and possible derailers.",
+      optional: "Add Personality if you want to explore leadership style, behavioural strengths and possible blind spots."
+    },
+    motivation: {
+      recommended: "Shows what drives the leader and what kind of environment supports sustainable leadership.",
+      optional: "Add Motivation if you want to understand what energises the leader and supports sustainable leadership."
+    },
+    verbal: {
+      recommended: "Adds insight into how the leader processes and communicates complex information.",
+      optional: "Add Verbal if the leader needs to interpret complex information or communicate clearly in writing."
+    },
+    logical: {
+      recommended: "Adds insight into structured thinking, problem-solving and decision-making in leadership situations.",
+      optional: "Add Logical if the leader works with strategy, complex decisions or structured problem-solving."
+    },
+    numerical: {
+      recommended: "Useful when the leader works with budgets, KPIs, performance data or business reporting.",
+      optional: "Add Numerical if the leader works with budgets, KPIs, performance data or business reporting."
+    }
+  },
+
+  team_development: {
+    personality: {
+      recommended: "Helps reveal behavioural patterns, collaboration styles and possible friction points in the team.",
+      optional: "Add Personality if you want to understand collaboration styles, team dynamics and possible friction points."
+    },
+    motivation: {
+      recommended: "Shows what energises different team members and where motivational needs may differ.",
+      optional: "Add Motivation if you want to understand what energises the team and where needs may differ."
+    },
+    verbal: {
+      recommended: "Useful if the team relies heavily on written communication, documentation or shared information.",
+      optional: "Add Verbal if the team relies on written communication, documentation or shared information."
+    },
+    logical: {
+      recommended: "Adds insight into how team members approach problems, structure and decisions.",
+      optional: "Add Logical if the team works with prioritisation, problem-solving or shared decision-making."
+    },
+    numerical: {
+      recommended: "Useful if the team works with data, reporting, finance, analysis or measurable targets.",
+      optional: "Add Numerical if the team works with targets, reporting, data, finance or measurable outcomes."
+    }
+  },
+
+  reorganisation: {
+    personality: {
+      recommended: "Helps understand how people may respond to change, uncertainty and new role expectations.",
+      optional: "Add Personality if you want to understand how people may respond to change and new role expectations."
+    },
+    motivation: {
+      recommended: "Shows what people need to stay engaged and supported during change.",
+      optional: "Add Motivation if you want to understand what people need to stay engaged during change."
+    },
+    verbal: {
+      recommended: "Useful when people need to absorb and communicate new information during transition.",
+      optional: "Add Verbal if the change requires people to absorb, interpret or communicate new information."
+    },
+    logical: {
+      recommended: "Adds insight into problem-solving and adaptability in changing structures.",
+      optional: "Add Logical if new roles require problem-solving, structure or analytical thinking."
+    },
+    numerical: {
+      recommended: "Useful when new roles involve reporting, analysis, budgets or data-driven work.",
+      optional: "Add Numerical if new roles involve reporting, analysis, budgets, KPIs or data-driven work."
+    }
+  },
+
+  flexible_process: {
+    personality: {
+      recommended: "Gives a broad view of behavioural style, strengths and potential development areas.",
+      optional: "Add Personality if you want a broad view of behavioural style, strengths and development areas."
+    },
+    motivation: {
+      recommended: "Shows what drives the person and what kind of environment supports engagement.",
+      optional: "Add Motivation if you want to understand what drives the person and supports engagement."
+    },
+    verbal: {
+      recommended: "Adds insight into understanding and working with written information.",
+      optional: "Add Verbal if written communication, reading or information handling is relevant."
+    },
+    logical: {
+      recommended: "Adds insight into problem-solving and analytical thinking.",
+      optional: "Add Logical if problem-solving, structure or analytical thinking is relevant."
+    },
+    numerical: {
+      recommended: "Adds insight into working with numbers, data and reports.",
+      optional: "Add Numerical if numbers, data, reports or KPIs are relevant."
+    }
+  }
+};
+
+function updateTestGuidance() {
+  const purpose = getSelectedPurpose();
+  const recommended = recommendedByPurpose[purpose] || [];
+  const guidanceForPurpose =
+    TEST_GUIDANCE_BY_PURPOSE[purpose] ||
+    TEST_GUIDANCE_BY_PURPOSE.flexible_process ||
+    {};
+
+  document.querySelectorAll("[data-test-card]").forEach((card) => {
+    const testKey = card.dataset.testKey;
+    const isRecommended = recommended.includes(testKey);
+
+    const badge = card.querySelector(".js-test-badge");
+    const description = card.querySelector(".js-test-description");
+
+    if (badge) {
+      badge.textContent = isRecommended ? "Recommended" : "Optional";
+      badge.classList.toggle("is-recommended", isRecommended);
+      badge.classList.toggle("is-optional", !isRecommended);
+    }
+
+    if (description && guidanceForPurpose[testKey]) {
+      description.textContent = isRecommended
+        ? guidanceForPurpose[testKey].recommended
+        : guidanceForPurpose[testKey].optional;
+    }
+  });
+}
 
     let currentStep = 1;
 
@@ -836,22 +1109,18 @@ function showStep(step) {
         .map((input) => input.value);
     }
 
-    function applyRecommendedTests() {
-      const purpose = getSelectedPurpose();
-      const recommended = recommendedByPurpose[purpose] || [];
+function applyRecommendedTests() {
+  const purpose = getSelectedPurpose();
+  const recommended = recommendedByPurpose[purpose] || [];
 
-      testInputs.forEach((input) => {
-        input.checked = recommended.includes(input.value);
-      });
+  testInputs.forEach((input) => {
+    input.checked = recommended.includes(input.value);
+  });
 
-      document.querySelectorAll("[data-recommended-for]").forEach((badge) => {
-        const key = badge.dataset.recommendedFor;
-        badge.classList.toggle("d-none", !recommended.includes(key));
-      });
-
-      updateSummary();
-      updateSuggestedName();
-    }
+  updateTestGuidance();
+  updateSummary();
+  updateSuggestedName();
+}
 
     function getDevSovaSetupLabel(selectedTests) {
       if (selectedTests.includes("personality")) {
@@ -966,12 +1235,13 @@ showStep(nextStep);
       });
     });
 
-    testInputs.forEach((input) => {
-      input.addEventListener("change", function () {
-        updateSummary();
-        updateSuggestedName();
-      });
-    });
+testInputs.forEach((input) => {
+  input.addEventListener("change", function () {
+    updateTestGuidance();
+    updateSummary();
+    updateSuggestedName();
+  });
+});
 
     form.addEventListener("submit", function (event) {
       const selectedTests = getSelectedTests();
@@ -997,19 +1267,10 @@ showStep(nextStep);
       }
     });
 
-    const initiallySelectedPurpose = getSelectedPurpose();
-
-    if (initiallySelectedPurpose) {
-      document.querySelectorAll("[data-recommended-for]").forEach((badge) => {
-        const recommended = recommendedByPurpose[initiallySelectedPurpose] || [];
-        const key = badge.dataset.recommendedFor;
-        badge.classList.toggle("d-none", !recommended.includes(key));
-      });
-    }
-
-    updateSummary();
-    updateSuggestedName();
-    showStep(1);
+updateTestGuidance();
+updateSummary();
+updateSuggestedName();
+showStep(1);
   });
 </script>
 
