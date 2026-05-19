@@ -1,11 +1,12 @@
 {% extends "customer/processes/process_base.html" %}
 {% load static %}
+{% load dict_extras %}
 
 {% block process_content %}
 
   {% if error %}
     <div class="alert alert-danger">
-      Could not load SOVA templates: {{ error }}
+      Could not load SOVA setup data: {{ error }}
     </div>
   {% endif %}
 
@@ -23,7 +24,7 @@
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">Process settings</div>
           <div class="text-muted small">
-            Update the process details. The test template may be locked after assessments have been sent.
+            Update the process details, purpose and selected assessments.
           </div>
         </div>
 
@@ -50,75 +51,83 @@
                 Labels <span class="text-muted">(optional)</span>
               </label>
               {{ form.labels_text }}
+
               {% if form.labels_text.help_text %}
                 <div class="form-text">{{ form.labels_text.help_text }}</div>
               {% endif %}
+
               {% if form.labels_text.errors %}
                 <div class="text-danger small mt-1">{{ form.labels_text.errors|striptags }}</div>
               {% endif %}
             </div>
 
-            <!-- SOVA template -->
-            <div class="mb-4">
-              <label class="form-label">Test template</label>
+            <!-- Assessment setup -->
+            <div class="border-top pt-4 mt-4">
+              <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                <div>
+                  <div class="fw-semibold">Assessment setup</div>
+                  <div class="text-muted small">
+                    Choose the purpose and the assessments that should be included in this process.
+                  </div>
+                </div>
+
+                {% if template_locked %}
+                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                    Locked
+                  </span>
+                {% endif %}
+              </div>
 
               {% if template_locked %}
                 <div class="alert alert-warning d-flex align-items-start gap-2">
                   <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
                   <div>
-                    <strong>The test template is locked.</strong><br>
-                    You cannot change the test template after assessments have been sent in this process.
+                    <strong>The assessment setup is locked.</strong><br>
+                    You can still update the name and labels, but purpose and selected assessments cannot be changed after assessments have been sent.
                   </div>
                 </div>
+
+                <!-- Disabled inputs are not submitted, so we keep hidden values too -->
+                <input type="hidden" name="purpose" value="{{ form.purpose.value|default:'' }}">
+
+                {% for value in form.selected_tests.value %}
+                  <input type="hidden" name="selected_tests" value="{{ value }}">
+                {% endfor %}
               {% endif %}
 
-              <div class="template-select" role="radiogroup">
-                {% for card in template_cards %}
-                  {% with val=card.value %}
+              <!-- Purpose -->
+              <div class="mb-4">
+                <label class="form-label">Purpose</label>
+
+                <div class="template-select" role="radiogroup">
+                  {% for purpose in process_purposes %}
                     <label class="template-option">
                       <input
-                        class="template-radio"
+                        class="template-radio js-purpose-radio"
                         type="radio"
-                        name="{{ form.sova_template.html_name }}"
-                        value="{{ val }}"
-                        {% if form.sova_template.value == val %}checked{% endif %}
-                        {% if form.sova_template.field.disabled or template_locked %}disabled{% endif %}
+                        name="{{ form.purpose.html_name }}"
+                        value="{{ purpose.key }}"
+                        {% if form.purpose.value == purpose.key %}checked{% endif %}
+                        {% if template_locked %}disabled{% endif %}
+                        data-recommended-tests="{% for test in purpose_recommended_tests|get_item:purpose.key %}{{ test }}{% if not forloop.last %},{% endif %}{% endfor %}"
                       />
 
-                      <span class="template-card">
+                      <span class="template-card process-edit">
                         <span class="template-card-main">
                           <span class="template-icon">
-                            <i class="{{ card.icon_class|default:'fa-solid fa-layer-group' }}"></i>
+                            <i class="fa-solid fa-bullseye"></i>
                           </span>
 
                           <span class="template-text">
-                            <span class="template-title">{{ card.title }}</span>
+                            <span class="template-title">
+                              {{ purpose.title|default:purpose.label|default:purpose.key }}
+                            </span>
 
-                            {% if card.description %}
+                            {% if purpose.description %}
                               <span class="template-description">
-                                {{ card.description }}
-                              </span>
-                            {% else %}
-                              <span class="template-description text-muted">
-                                No description added yet.
+                                {{ purpose.description }}
                               </span>
                             {% endif %}
-
-                            <span class="template-description">
-                              Tests included in this template:
-                            </span>
-
-                            <span class="template-tests">
-                              {% if card.tests %}
-                                {% for test in card.tests %}
-                                  <span class="template-chip">{{ test }}</span>
-                                {% endfor %}
-                              {% else %}
-                                <span class="template-chip template-chip-muted">
-                                  No assessments specified
-                                </span>
-                              {% endif %}
-                            </span>
                           </span>
                         </span>
 
@@ -127,16 +136,67 @@
                         </span>
                       </span>
                     </label>
-                  {% endwith %}
-                {% endfor %}
+                  {% endfor %}
+                </div>
+
+                {% if form.purpose.errors %}
+                  <div class="text-danger small mt-2">{{ form.purpose.errors|striptags }}</div>
+                {% endif %}
               </div>
 
-              {% if form.sova_template.help_text %}
-                <div class="form-text mt-2">{{ form.sova_template.help_text }}</div>
-              {% endif %}
-              {% if form.sova_template.errors %}
-                <div class="text-danger small mt-2">{{ form.sova_template.errors|striptags }}</div>
-              {% endif %}
+              <!-- Selected tests -->
+              <div class="mb-4">
+                <label class="form-label">Selected assessments</label>
+
+                <div class="template-select" role="group">
+                  {% for test in available_tests %}
+                    <label class="template-option">
+                      <input
+                        class="template-radio js-test-checkbox"
+                        type="checkbox"
+                        name="{{ form.selected_tests.html_name }}"
+                        value="{{ test.key }}"
+                        {% if test.key in form.selected_tests.value %}checked{% endif %}
+                        {% if template_locked %}disabled{% endif %}
+                      />
+
+                      <span class="template-card process-edit">
+                        <span class="template-card-main">
+                          <span class="template-icon">
+                            <i class="{{ test.icon_class|default:'fa-solid fa-chart-simple' }}"></i>
+                          </span>
+
+                          <span class="template-text">
+                            <span class="template-title">
+                              {{ test.title|default:test.label|default:test.key }}
+                            </span>
+
+                            {% if test.description %}
+                              <span class="template-description">
+                                {{ test.description }}
+                              </span>
+                            {% endif %}
+                          </span>
+                        </span>
+
+                        <span class="template-check">
+                          <i data-feather="check"></i>
+                        </span>
+                      </span>
+                    </label>
+                  {% endfor %}
+                </div>
+
+                {% if form.selected_tests.errors %}
+                  <div class="text-danger small mt-2">{{ form.selected_tests.errors|striptags }}</div>
+                {% endif %}
+
+                {% if not template_locked %}
+                  <div class="form-text mt-2">
+                    Tip: choose a purpose first, then adjust the assessments if needed.
+                  </div>
+                {% endif %}
+              </div>
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
@@ -158,16 +218,6 @@
     <!-- RIGHT: Help / Summary -->
     <div class="col-12 col-xl-4">
 
-      <div class="card process-section-card mb-4">
-        <div class="card-body">
-          <div class="process-side-kicker">Settings</div>
-          <h3 class="process-side-title">Keep the process clear</h3>
-          <p class="text-muted mb-0">
-            Use a clear name, helpful labels and the right setup so the process stays easy to manage.
-          </p>
-        </div>
-      </div>
-
       <div class="card process-section-card">
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">Tips</div>
@@ -179,24 +229,21 @@
             <div class="fw-semibold text-dark mb-1">Use labels to stay organised</div>
             <p class="mb-0">
               Labels are for internal structure. You can use them to group processes by department,
-              role type, project, priority or customer-specific categories, such as Finance, Sales,
-              Interim or Leadership.
+              role type, project, priority or customer-specific categories.
             </p>
           </div>
 
           <div class="tip-block mb-3">
-            <div class="fw-semibold text-dark mb-1">Templates are ready-made packages</div>
+            <div class="fw-semibold text-dark mb-1">Purpose guides the report</div>
             <p class="mb-0">
-              Each test template contains a predefined set of assessments. Choose the package that
-              best matches the process.
+              The selected purpose helps Talena understand how the results should be interpreted and presented.
             </p>
           </div>
 
           <div class="tip-block">
-            <div class="fw-semibold text-dark mb-1">Locked template?</div>
+            <div class="fw-semibold text-dark mb-1">Locked setup?</div>
             <p class="mb-0">
-              If assessments have already been sent, the selected test template is locked to protect
-              the process history and candidate data.
+              Once assessments have been sent, purpose and selected assessments are locked to protect the process history.
             </p>
           </div>
         </div>
@@ -211,6 +258,30 @@
     if (window.feather) {
       feather.replace();
     }
+
+    const purposeRadios = document.querySelectorAll(".js-purpose-radio");
+    const testCheckboxes = document.querySelectorAll(".js-test-checkbox");
+
+    purposeRadios.forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        if (!radio.checked) return;
+
+        const recommended = (radio.dataset.recommendedTests || "")
+          .split(",")
+          .map(function (item) { return item.trim(); })
+          .filter(Boolean);
+
+        if (!recommended.length) return;
+
+        testCheckboxes.forEach(function (checkbox) {
+          checkbox.checked = recommended.includes(checkbox.value);
+        });
+
+        if (window.feather) {
+          feather.replace();
+        }
+      });
+    });
   });
 </script>
 

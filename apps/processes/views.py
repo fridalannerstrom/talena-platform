@@ -1137,7 +1137,6 @@ def process_update(request, pk):
     if not user_can_edit_process(request.user, company, obj):
         return HttpResponseForbidden("You do not have permission to edit this process.")
 
-    # ✅ Säkerhetskontroll
     if not user_can_access_process(request.user, obj):
         return HttpResponseForbidden("You do not have access to this process.")
 
@@ -1148,49 +1147,50 @@ def process_update(request, pk):
     client = SovaClient()
     error = None
 
-    # 1) Hämta accounts + projects från SOVA
+    # --------------------------------------------------
+    # 1. Hämta Sova-projekt från API
+    # --------------------------------------------------
     try:
         accounts = client.get_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
 
-    # 2) Hämta meta för intern_name
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
     metas = ProjectMeta.objects.filter(provider="sova")
     meta_map = {(m.account_code, m.project_code): m for m in metas}
 
-    # 3) Build choices + template_cards
-    choices = []
     template_cards = []
 
-    for a in accounts:
-        acc = (a.get("code") or "").strip()
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
 
-        for p in (a.get("projects") or []):
-            proj_code = (p.get("code") or "").strip()
-            sova_name = (p.get("name") or proj_code).strip()
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
 
             value = f"{acc}|{proj_code}"
 
-            meta = meta_map.get((acc, proj_code))
-            title = (getattr(meta, "intern_name", None) or sova_name)
+            meta_item = meta_map.get((acc, proj_code))
+            title = getattr(meta_item, "intern_name", None) or sova_name
 
             description = ""
             tests = []
             languages = []
 
-            if meta:
-                description = (getattr(meta, "notes", None) or "").strip()
+            if meta_item:
+                description = (getattr(meta_item, "notes", None) or "").strip()
 
-                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                tests_raw = (getattr(meta_item, "tests", None) or "").strip()
                 if tests_raw:
                     tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
 
-                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                languages_raw = (getattr(meta_item, "languages", None) or "").strip()
                 if languages_raw:
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
 
-            choices.append((value, title))
             template_cards.append({
                 "value": value,
                 "title": title,
@@ -1201,75 +1201,14 @@ def process_update(request, pk):
                 "account_code": acc,
                 "project_code": proj_code,
                 "sova_name": sova_name,
-                "sova_project_id": p.get("id"),
+                "sova_project_id": project.get("id"),
             })
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
-    if request.method == "POST":
-        form = TestProcessCreateForm(request.POST, instance=obj)
-        form.fields["sova_template"].choices = choices
-
-        if form.is_valid():
-            updated = form.save(commit=False)
-
-            value = form.cleaned_data["sova_template"]  # "ACC|PROJ"
-            acc, proj = value.split("|", 1)
-            acc = acc.strip()
-            proj = proj.strip()
-
-            # 🔒 template lock check
-            if locked and ((acc != old_acc) or (proj != old_proj)):
-                form.add_error(
-                    None,
-                    "You cannot change the test template after assessments have been sent in this process."
-                )
-                # Rendera tillbaka så användaren inte tappar ändringar
-                return render(request, "customer/processes/process_edit.html", {
-                    "form": form,
-                    "process": obj,
-                    "error": error,
-                    "choices_count": len(choices),
-                    "template_cards": template_cards,
-                    "template_locked": locked,
-                })
-
-            updated.provider = "sova"
-            updated.account_code = acc
-            updated.project_code = proj
-
-            # Snapshot: intern_name om finns, annars sova_name
-            meta = meta_map.get((acc, proj))
-            if meta and getattr(meta, "intern_name", None):
-                updated.project_name_snapshot = meta.intern_name
-            else:
-                match = next((t for t in template_cards if t["value"] == value), None)
-                updated.project_name_snapshot = (match["sova_name"] if match else proj)
-
-            updated.save()
-
-            # ✅ Spara labels (M2M) här, efter save()
-            label_names = form.cleaned_data.get("labels_text", [])
-            label_objs = []
-            for name in label_names:
-                lab, _ = ProcessLabel.objects.get_or_create(
-                    company_id=updated.company_id,
-                    name=name,
-                )
-                label_objs.append(lab)
-
-            updated.labels.set(label_objs)
-
-            messages.success(request, "The process was updated.")
-            return redirect("processes:process_update", pk=updated.pk)
-
-        messages.error(request, "Could not save. Please check the fields.")
-
-    else:
-        form = TestProcessCreateForm(instance=obj)
-        form.fields["sova_template"].choices = choices
-        form.initial["sova_template"] = f"{obj.account_code}|{obj.project_code}"
-
+    # --------------------------------------------------
+    # 3. Hjälpvariabler till header/tabs
+    # --------------------------------------------------
     purpose_lookup = {
         item["key"]: item
         for item in PROCESS_PURPOSES
@@ -1284,21 +1223,124 @@ def process_update(request, pk):
 
     can_edit = user_can_edit_process(request.user, company, obj)
 
-    return render(request, "customer/processes/process_edit.html", {
-        "form": form,
-        "process": obj,
-        "error": error,
-        "choices_count": len(choices),
-        "template_cards": template_cards,
-        "template_locked": locked,
+    def render_edit(form):
+        return render(request, "customer/processes/process_edit.html", {
+            "form": form,
+            "process": obj,
+            "error": error,
+            "template_locked": locked,
 
-        # For process header/tabs
-        "active": "settings",
-        "meta": meta,
-        "can_edit": can_edit,
-        "process_purpose": process_purpose,
-        "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
-    })
+            "active": "settings",
+            "meta": meta,
+            "can_edit": can_edit,
+            "process_purpose": process_purpose,
+            "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
+
+            "process_purposes": PROCESS_PURPOSES,
+            "available_tests": AVAILABLE_TESTS,
+            "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+            "template_cards": template_cards,
+            "templates_count": len(template_cards),
+            "accounts_count": len(accounts),
+        })
+
+    # --------------------------------------------------
+    # 4. POST: uppdatera processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST)
+
+        if form.is_valid():
+            name = (form.cleaned_data.get("name") or "").strip()
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            # Namn får alltid ändras
+            obj.name = name or obj.name
+
+            # Labels får alltid ändras
+            label_objs = []
+            for label_name in label_names:
+                lab, _ = ProcessLabel.objects.get_or_create(
+                    company=company,
+                    name=label_name,
+                )
+                label_objs.append(lab)
+
+            # --------------------------------------------------
+            # Om test redan skickats: lås syfte/tester/Sova-projekt
+            # --------------------------------------------------
+            if locked:
+                obj.provider = "sova"
+                obj.account_code = old_acc
+                obj.project_code = old_proj
+
+                # Behåll gamla värden, även om någon manipulerar POST
+                obj.purpose = obj.purpose
+                obj.selected_tests = obj.selected_tests or []
+
+            else:
+                obj.purpose = purpose
+                obj.selected_tests = selected_tests
+
+                resolved_template = resolve_dev_sova_template(selected_tests)
+
+                if not resolved_template:
+                    form.add_error(
+                        "selected_tests",
+                        "Please select at least Personality or Motivation in the current development environment."
+                    )
+                    return render_edit(form)
+
+                acc = (resolved_template["account_code"] or "").strip()
+                proj = (resolved_template["project_code"] or "").strip()
+                value = f"{acc}|{proj}"
+
+                obj.provider = "sova"
+                obj.account_code = acc
+                obj.project_code = proj
+
+                meta_match = meta_map.get((acc, proj))
+
+                if meta_match and getattr(meta_match, "intern_name", None):
+                    obj.project_name_snapshot = meta_match.intern_name
+                else:
+                    match = next(
+                        (t for t in template_cards if t["value"] == value),
+                        None
+                    )
+                    obj.project_name_snapshot = (
+                        match["sova_name"] if match else proj
+                    )
+
+            obj.save()
+            obj.labels.set(label_objs)
+
+            messages.success(request, "The process was updated.")
+            return redirect("processes:process_update", pk=obj.pk)
+
+        messages.error(request, "Could not save. Please check the fields.")
+
+    # --------------------------------------------------
+    # 5. GET: fyll edit-formuläret med befintliga värden
+    # --------------------------------------------------
+    else:
+        form = TestProcessWizardCreateForm(initial={
+            "name": obj.name,
+            "labels_text": ", ".join(obj.labels.values_list("name", flat=True)),
+            "purpose": obj.purpose,
+            "selected_tests": obj.selected_tests or [],
+        })
+
+    return render_edit(form)
 
 
 @login_required

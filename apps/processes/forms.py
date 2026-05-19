@@ -110,7 +110,11 @@ class SelfRegisterForm(forms.Form):
     )
 
 class TestProcessWizardCreateForm(forms.Form):
-    purpose = forms.CharField(max_length=80)
+    purpose = forms.CharField(
+        max_length=80,
+        widget=forms.HiddenInput()
+    )
+
     selected_tests = forms.MultipleChoiceField(
         choices=[
             ("personality", "Personality"),
@@ -120,6 +124,23 @@ class TestProcessWizardCreateForm(forms.Form):
             ("numerical", "Numerical"),
         ],
         required=False,
+        widget=forms.CheckboxSelectMultiple
     )
-    name = forms.CharField(max_length=255, required=False)
-    labels_text = forms.CharField(required=False)
+
+    name = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "e.g. Leadership potential"
+        })
+    )
+
+    labels_text = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "e.g. Admin, Interim, Priority"
+        }),
+        help_text="Enter one or more tags that describe the testing process. Separate the tags with commas."
+    )
