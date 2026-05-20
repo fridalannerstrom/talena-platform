@@ -1,0 +1,56 @@
+name: Build and deploy Talena dev to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Collect static files
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings
+          DJANGO_SECRET_KEY: dummy-build-secret
+          DJANGO_DEBUG: "False"
+          DB_HOST: psql-talena-dev.postgres.database.azure.com
+          DB_NAME: talena_dev
+          DB_USER: talenaadmin
+          DB_PASSWORD: dummy
+          DB_PORT: "5432"
+          USE_AZURE_STORAGE: "0"
+        run: |
+          python manage.py collectstatic --noinput
+
+      - name: Log in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: app-talena-dev
+          package: .
