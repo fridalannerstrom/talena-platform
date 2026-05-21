@@ -18,6 +18,8 @@ from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 from apps.accounts.utils.org_access import get_company_for_user
 from apps.accounts.utils.org_access import user_can_edit_process
 
+from apps.processes.purpose_context_config import get_purpose_context_config
+
 
 @login_required
 def edit_process_invitation_template(request, process_id):
@@ -66,6 +68,8 @@ def edit_process_invitation_template(request, process_id):
         project_code=process.project_code,
     ).first()
 
+    context_config = get_purpose_context_config(process.purpose)
+
     return render(request, "emails/edit_invitation_template.html", {
         "process": process,
         "form": form,
@@ -77,6 +81,7 @@ def edit_process_invitation_template(request, process_id):
         "can_edit": True,
         "process_purpose": process_purpose,
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
+        "context_config": context_config,
     })
 
 def get_default_invitation_template():

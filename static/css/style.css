@@ -152,6 +152,122 @@
 
 /* Custom */
 
+/* ------------------------------------------------------------
+   Insight summary
+------------------------------------------------------------ */
+
+.insight-summary-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(700px 260px at 15% 0%, rgba(245, 243, 255, 0.95), transparent 55%),
+    #fff;
+}
+
+.insight-summary-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.insight-summary-kicker {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7c3aed;
+  margin-bottom: 0.25rem;
+}
+
+.insight-summary-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+
+.insight-summary-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.insight-summary-note {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.insight-summary-content {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 1.1rem;
+  color: #111827;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  min-height: 120px;
+}
+
+.insight-summary-content strong,
+.insight-summary-content b {
+  color: #111827;
+  font-weight: 800;
+}
+
+.insight-summary-content ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.insight-summary-content li {
+  margin-bottom: 0.45rem;
+}
+
+.insight-summary-loading {
+  color: #6b7280;
+  font-size: 0.92rem;
+}
+
+.insight-summary-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.insight-summary-footnote {
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+  .insight-summary-header {
+    flex-direction: column;
+  }
+
+  .insight-summary-mode-badge {
+    align-self: flex-start;
+  }
+}
+
 /* candidate sheet, candidate detial */
 
   .modal-body {

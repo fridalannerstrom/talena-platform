@@ -19,33 +19,66 @@ def build_candidate_prompt(invitation) -> str:
         for c in comps:
             comp_name = c.get("competency")
             sten = c.get("sten_rounded")
+            stive = c.get("stive_rounded")
             percentile = c.get("percentile")
 
-            lines.append(f"- {comp_name}: sten {sten}, percentile {percentile}")
+            score_parts = []
+
+            if sten is not None:
+                score_parts.append(f"sten {sten}")
+
+            if stive is not None:
+                score_parts.append(f"stive {stive}")
+
+            if percentile is not None:
+                score_parts.append(f"percentile {percentile}")
+
+            score_text = ", ".join(score_parts) if score_parts else "no score available"
+
+            lines.append(f"- {comp_name}: {score_text}")
 
     test_data = "\n".join(lines)
 
     prompt = f"""
-You are an expert in psychometric assessment and recruitment.
+You are generating the first section of a candidate assessment report in Talena.
 
-Your task is to write a concise, professional summary of a candidate based on their test results.
+This section is called: Insight summary.
 
-Focus on:
-- Cognitive ability (logical, verbal, numerical)
-- Personality traits
-- Motivation profile
+Important:
+- This is GENERAL MODE.
+- No role, job, team, leadership or development context has been added.
+- Do not assess whether the candidate fits a specific role.
+- Do not make hiring recommendations.
+- Do not use a match score.
+- Do not overstate certainty.
+- Write in professional, clear English.
+- Keep it concise and useful for a recruiter, hiring manager or HR professional.
+- Interpret the assessment results. Do not list raw numbers in the final answer.
+- Write about the candidate as a person, but avoid sounding absolute or deterministic.
+- Use cautious language such as "may indicate", "suggests", "appears to", "could be useful to explore".
 
-Instructions:
-- Write 1 short paragraph (4–6 sentences)
-- Highlight strengths and potential risks
-- Keep tone neutral and professional
-- Do NOT list raw numbers
-- Interpret the data instead
+Use this structure exactly:
+
+Overall summary
+Write 1–2 short sentences summarising the candidate's general assessment profile.
+
+Most important interpretation
+- Write exactly 3 bullet points.
+- Each bullet should highlight one important general insight from the assessment results.
+- Include both strengths and possible areas to validate where relevant.
+
+Confidence / context level
+Write 1 short sentence explaining that confidence is limited because no process context has been added.
+
+What this report is based on
+Write 1 short sentence explaining which completed assessment data this summary is based on.
+
+Do not include any markdown tables.
+Do not include headings other than the four headings above.
+Do not include the candidate's raw scores.
 
 Candidate:
 - Name: {candidate.first_name} {candidate.last_name}
-
-Write the summary as if you are describing this specific individual.
 
 Candidate test data:
 {test_data}

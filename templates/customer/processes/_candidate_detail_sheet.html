@@ -411,30 +411,62 @@
   </div>
 {% endif %}
 
-  <!-- AI SUMMARY -->
-  <div class="card mb-4">
-          <div class="card-header d-flex align-items-center justify-content-between">
-            <div class="fw-semibold">AI summary</div>
-          </div>
+<!-- INSIGHT SUMMARY -->
+<div class="card mb-4 insight-summary-card">
 
-          <div class="card-body">
-            <div
-              id="aiSummaryContent"
-              class="ai-summary-text"
-              data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-              data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
-              data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
-            >
-              {% if invitation.ai_summary %}
-                {{ invitation.ai_summary|linebreaksbr }}
-              {% elif invitation.ai_summary_status == "generating" %}
-                <span class="text-muted">Generating summary...</span>
-              {% else %}
-                <span class="text-muted">AI is analysing the candidate’s assessment results...</span>
-              {% endif %}
-            </div>
-          </div>
+  <div class="card-body">
+
+    <div class="insight-summary-header">
+      <div>
+        <div class="insight-summary-kicker">Candidate Insights</div>
+        <h2 class="insight-summary-title">Insight summary</h2>
+      </div>
+
+      <span class="insight-summary-mode-badge">
+        General mode
+      </span>
+    </div>
+
+    <div class="insight-summary-note">
+      This is a general assessment summary based on the candidate’s completed tests.
+      Add context later to tailor the interpretation to a specific role, team or development purpose.
+    </div>
+
+    <div
+      id="aiSummaryContent"
+      class="insight-summary-content"
+      data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+      data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
+      data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
+    >
+      {% if invitation.ai_summary %}
+        {{ invitation.ai_summary|linebreaksbr }}
+      {% elif invitation.ai_summary_status == "generating" %}
+        <div class="insight-summary-loading">
+          Generating insight summary...
         </div>
+      {% else %}
+        <div class="insight-summary-loading">
+          AI is analysing the candidate’s assessment results...
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="insight-summary-footer">
+      <div class="insight-summary-footnote">
+        Based on completed assessment data only. No role or process context has been added yet.
+      </div>
+
+      <a
+        href="{% url 'processes:process_role_context' process.id %}"
+        class="btn btn-sm btn-outline-primary">
+        Add context
+      </a>
+    </div>
+
+  </div>
+</div>
+<!-- /INSIGHT SUMMARY -->
 
         {% endif %}
 

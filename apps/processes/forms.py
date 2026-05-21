@@ -164,41 +164,92 @@ class ProcessRoleContextForm(forms.ModelForm):
         widgets = {
             "role_title": forms.TextInput(attrs={
                 "class": "form-control",
-                "placeholder": "e.g. Customer Success Manager"
+                "placeholder": "Add a short title..."
             }),
             "job_advertisement": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 5,
-                "placeholder": "Paste the job advertisement here..."
+                "placeholder": "Add context..."
             }),
             "requirements_profile": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 4,
-                "placeholder": "Add the requirements profile for this role..."
+                "placeholder": "Add expectations, criteria or requirements..."
             }),
             "competency_profile": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 4,
-                "placeholder": "Describe the key competencies for this role..."
+                "placeholder": "Add important behaviours or competencies..."
             }),
             "must_haves": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "What is required for this role?"
+                "placeholder": "Add must-haves..."
             }),
             "nice_to_haves": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "What would be beneficial, but not required?"
+                "placeholder": "Add nice-to-haves..."
             }),
             "priorities": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "What should Talena prioritize when interpreting results?"
+                "placeholder": "Add priorities..."
             }),
             "interview_notes": forms.Textarea(attrs={
                 "class": "form-control",
-                "rows": 4,
-                "placeholder": "Optional notes from interviews or screening..."
+                "rows": 3,
+                "placeholder": "Add notes..."
             }),
         }
+
+    def __init__(self, *args, context_config=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        config = context_config or {}
+
+        field_config = {
+            "role_title": {
+                "label": "title_label",
+                "help": "title_help",
+            },
+            "job_advertisement": {
+                "label": "job_advertisement_label",
+                "help": "job_advertisement_help",
+            },
+            "requirements_profile": {
+                "label": "requirements_profile_label",
+                "help": "requirements_profile_help",
+            },
+            "competency_profile": {
+                "label": "competency_profile_label",
+                "help": "competency_profile_help",
+            },
+            "must_haves": {
+                "label": "must_haves_label",
+                "help": "must_haves_help",
+            },
+            "nice_to_haves": {
+                "label": "nice_to_haves_label",
+                "help": "nice_to_haves_help",
+            },
+            "priorities": {
+                "label": "priorities_label",
+                "help": "priorities_help",
+            },
+            "interview_notes": {
+                "label": "interview_notes_label",
+                "help": "interview_notes_help",
+            },
+        }
+
+        for field_name, keys in field_config.items():
+            if field_name in self.fields:
+                label = config.get(keys["label"])
+                help_text = config.get(keys["help"])
+
+                if label:
+                    self.fields[field_name].label = label
+
+                if help_text:
+                    self.fields[field_name].help_text = help_text

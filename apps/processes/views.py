@@ -16,6 +16,7 @@ from apps.emails.utils import render_placeholders
 from django.core.mail import send_mail
 from django.http import StreamingHttpResponse, JsonResponse
 from apps.accounts.utils.org_access import get_accessible_orgunit_ids
+from .purpose_context_config import get_purpose_context_config
 
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
@@ -28,6 +29,7 @@ from apps.accounts.utils.org_access import get_effective_orgunit_permissions, us
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
+from .purpose_context_config import get_purpose_context_config
 
 import json
 import uuid
@@ -712,20 +714,134 @@ def build_candidate_detail_context(process, invitation):
 
     purpose_report = get_report_mode_content(process.purpose)
 
-    role_context_obj = getattr(process, "role_context", None)
+    # ------------------------------------------------------------
+    # Purpose context / report mode
+    # ------------------------------------------------------------
+    # For now we still use the existing ProcessRoleContext model,
+    # but expose it to templates as both role_context and purpose_context.
+    # This lets us move towards a more general "purpose context" setup
+    # without renaming models or breaking old templates.
+    purpose_context_obj = getattr(process, "role_context", None)
+    role_context_obj = purpose_context_obj
 
-    has_role_context = (
-        role_context_obj.has_content()
-        if role_context_obj
+    has_purpose_context = (
+        purpose_context_obj.has_content()
+        if purpose_context_obj
         else False
     )
 
+    # Backwards-compatible name for existing templates
+    has_role_context = has_purpose_context
+
+    context_config = get_purpose_context_config(process.purpose)
+
+    # New report mode:
+    # - "general" = no added context, only test-based insights
+    # - "context" = test data + purpose + added context
+    candidate_insights_mode = (
+        "context"
+        if has_purpose_context
+        else "general"
+    )
+
+    # Keep the old purpose/report key available separately.
+    # Do not use this as the general/context mode.
+    purpose_report_key = purpose_report.get("key")
+
     show_role_context_prompt = (
         has_any_results
-        and all_assessments_completed
-        and purpose_report.get("key") == "recruitment"
-        and not has_role_context
+        and not has_purpose_context
     )
+
+    show_context_prompt = show_role_context_prompt
+
+    critical_competencies_active = has_purpose_context
+    competency_overview_active = not has_purpose_context
+
+    # ------------------------------------------------------------
+    # Temporary dummy data for Candidate Insights
+    # Later this can be replaced by structured AI JSON output.
+    # ------------------------------------------------------------
+    candidate_insights = {
+        "summary": {
+            "headline": (
+                "General assessment summary"
+                if candidate_insights_mode == "general"
+                else "Contextual candidate insight summary"
+            ),
+            "body": (
+                "This is a general assessment summary based on the completed tests. "
+                "Add context to tailor the insights to this process purpose."
+                if candidate_insights_mode == "general"
+                else
+                "These insights are tailored using the completed assessment data together "
+                "with the added process context."
+            ),
+        },
+        "fit": {
+            "label": (
+                "Insufficient context"
+                if candidate_insights_mode == "general"
+                else "Potential fit"
+            ),
+            "confidence": (
+                "Low"
+                if candidate_insights_mode == "general"
+                else "Medium"
+            ),
+            "suggested_next_step": (
+                "Add context"
+                if candidate_insights_mode == "general"
+                else "Structured follow-up"
+            ),
+            "body": (
+                "No process context has been added yet, so this section does not assess "
+                "fit for a specific role, team, leadership situation or development goal."
+                if candidate_insights_mode == "general"
+                else
+                "Based on the added context, the candidate appears to show several relevant "
+                "indicators. Some areas should be explored further before making a decision."
+            ),
+        },
+        "key_strengths": [
+            {
+                "title": "Structured approach",
+                "body": "Likely to value clarity, order and follow-through in work situations.",
+                "evidence": ["Reliability", "Planning", "Task focus"],
+            },
+            {
+                "title": "Analytical problem solving",
+                "body": "May be comfortable working with information, patterns and conclusions.",
+                "evidence": ["Analytical Thinking", "Logical reasoning"],
+            },
+        ],
+        "areas_to_explore": [
+            {
+                "title": "Stakeholder influence",
+                "body": "Explore how the candidate communicates recommendations and gains buy-in from others.",
+                "evidence": ["Influencing", "Communication"],
+            },
+            {
+                "title": "Pressure response",
+                "body": "Explore how the candidate responds when priorities change or pressure increases.",
+                "evidence": ["Resilience", "Adaptability"],
+            },
+        ],
+        "questions": [
+            {
+                "question": "Tell me about a time when you used analysis to influence a decision.",
+                "why": "Validates analytical thinking and communication in a practical situation.",
+            },
+            {
+                "question": "How do you handle situations where priorities change quickly?",
+                "why": "Explores adaptability, structure and decision-making under pressure.",
+            },
+            {
+                "question": "What type of work environment helps you perform at your best?",
+                "why": "Connects motivation and work style to the candidate’s preferred conditions.",
+            },
+        ],
+    }
 
     return {
         "company": process.company,
@@ -776,11 +892,30 @@ def build_candidate_detail_context(process, invitation):
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
 
+        # Existing report/purpose content
         "purpose_report": purpose_report,
-        "report_mode": purpose_report.get("key"),
+        "purpose_report_key": purpose_report_key,
+
+        # New Candidate Insights mode
+        "report_mode": candidate_insights_mode,
+        "candidate_insights_mode": candidate_insights_mode,
+        "candidate_insights": candidate_insights,
+
+        # Purpose context
+        "purpose_context": purpose_context_obj,
+        "has_purpose_context": has_purpose_context,
+        "context_config": context_config,
+        "show_context_prompt": show_context_prompt,
+
+        # Backwards-compatible role context names
         "role_context": role_context_obj,
         "has_role_context": has_role_context,
         "show_role_context_prompt": show_role_context_prompt,
+
+        # Competency tab logic
+        "critical_competencies_active": critical_competencies_active,
+        "competency_overview_active": competency_overview_active,
+        "critical_competencies_enabled": has_purpose_context,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
@@ -1251,12 +1386,15 @@ def process_update(request, pk):
             "error": error,
             "template_locked": locked,
 
+            # Header/base template stuff
             "active": "settings",
             "meta": meta,
             "can_edit": can_edit,
             "process_purpose": process_purpose,
+            "context_config": get_purpose_context_config(obj.purpose),
             "self_reg_url": request.build_absolute_uri(obj.get_self_registration_url()),
 
+            # Edit page stuff
             "process_purposes": PROCESS_PURPOSES,
             "available_tests": AVAILABLE_TESTS,
             "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
@@ -1404,43 +1542,42 @@ def process_delete(request, pk):
 
     return redirect("processes:process_list")
 
+
+
 @login_required
 def process_role_context(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
-    company_id = (
-        CompanyMember.objects
-        .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
-    )
-    company = get_object_or_404(Company, pk=company_id)
-
-    if process.company_id != company.id:
-        return HttpResponseForbidden("No access.")
-
-    if not user_can_view_process(request.user, company, process):
+    if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("You do not have access to this process.")
 
-    if process.purpose != "hiring":
-        return HttpResponseForbidden("Role context is only available for recruitment processes.")
+    context_config = get_purpose_context_config(process.purpose)
 
     role_context, created = ProcessRoleContext.objects.get_or_create(
         process=process
     )
 
     if request.method == "POST":
-        role_context_form = ProcessRoleContextForm(
+        form = ProcessRoleContextForm(
             request.POST,
-            instance=role_context
+            instance=role_context,
+            context_config=context_config,
         )
 
-        if role_context_form.is_valid():
-            role_context_form.save()
-            messages.success(request, "Role context saved.")
-            return redirect("processes:process_role_context", pk=process.pk)
+        if form.is_valid():
+            form.save()
+            return redirect("processes:process_detail", pk=process.pk)
+
     else:
-        role_context_form = ProcessRoleContextForm(instance=role_context)
+        form = ProcessRoleContextForm(
+            instance=role_context,
+            context_config=context_config,
+        )
+
+    meta = ProjectMeta.objects.filter(
+        account_code=process.account_code,
+        project_code=process.project_code,
+    ).first()
 
     purpose_lookup = {
         item["key"]: item
@@ -1449,32 +1586,35 @@ def process_role_context(request, pk):
 
     process_purpose = purpose_lookup.get(process.purpose)
 
-    meta = ProjectMeta.objects.filter(
-        account_code=process.account_code,
-        project_code=process.project_code,
-    ).first()
-
+    company = process.company
     can_edit = user_can_edit_process(request.user, company, process)
-
-    context = {
-        "process": process,
-        "meta": meta,
-        "can_edit": can_edit,
-        "process_purpose": process_purpose,
-        "role_context_form": role_context_form,
-        "active": "role_context",
-    }
 
     return render(
         request,
         "customer/processes/process_role_context.html",
-        context
+        {
+            "process": process,
+            "form": form,
+            "role_context": role_context,
+            "purpose_context": role_context,
+            "context_config": context_config,
+
+            # Header/base template stuff
+            "meta": meta,
+            "process_purpose": process_purpose,
+            "can_edit": can_edit,
+
+            # Active tab
+            "active": "context",
+        },
     )
 
 
 @login_required
 def process_detail(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
+
+    context_config = get_purpose_context_config(process.purpose)
 
     company_id = (
         CompanyMember.objects
@@ -1563,6 +1703,8 @@ def process_detail(request, pk):
         "activity_events": activity_events,
         "process_purpose": process_purpose,
         "active": "overview",
+        "process": process,
+        "context_config": context_config,
         "kpis": {
             "total_candidates": total_candidates,
             "invited": invited_count,
