@@ -860,7 +860,7 @@ body.sidenav-toggled #layoutSidenav_content {
 }
 
 .candidate-inline-title {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #171717;
   margin-bottom: 0.15rem;
@@ -22736,15 +22736,13 @@ color: #6E63E3;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-bottom: 20px;
   padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
 }
 
 .snapshot-card {
   border: 1px solid #ece5dd;
-  border-radius: 18px;
-  padding: 16px;
-  background: #fbfaf8;
+  border-radius: 10px;
+  padding: 20px;
 }
 
 .snapshot-top {
@@ -22774,15 +22772,16 @@ color: #6E63E3;
 }
 
 .snapshot-row span {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #8a8178;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #171717;
 }
 
 .snapshot-row strong {
-  font-size: 0.86rem;
-  color: #111827;
+  font-size: 0.75rem;
+  color: #41804B;
   text-align: right;
+  font-weight: 600;
 }
 
 .snapshot-row.positive strong {
@@ -22796,18 +22795,22 @@ color: #6E63E3;
 /* Columns */
 
 .competency-columns {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 32px;
   margin-bottom: 20px;
   padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
 }
 
-.competency-panel {
-  border: 1px solid #ece5dd;
-  border-radius: 20px;
-  padding: 20px;
-  background: #ffffff;
+.competency-columns::before {
+  content: "";
+  position: absolute;
+  top: var(--bs-card-spacer-y);
+  bottom: var(--bs-card-spacer-y);
+  left: 50%;
+  width: 1px;
+  background: #e5e7eb;
 }
 
 .panel-heading {
@@ -22831,9 +22834,8 @@ color: #6E63E3;
   grid-template-columns: 36px 1fr;
   gap: 12px;
   padding: 14px;
-  border: 1px solid #f0e9df;
-  border-radius: 16px;
-  background: #fbfaf8;
+  border: 1px solid rgb(235, 235, 235);
+  border-radius: 10px;
 }
 
 .competency-icon {
@@ -22859,8 +22861,7 @@ color: #6E63E3;
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: flex-start;
-  margin-bottom: 6px;
+  align-items: flex-end;
 }
 
 .competency-title-row h4 {
@@ -22873,8 +22874,8 @@ color: #6E63E3;
 .score-pill {
   border-radius: 999px;
   padding: 4px 8px;
-  font-size: 0.7rem;
-  font-weight: 850;
+  font-size: 0.6rem;
+  font-weight: 650;
   background: #eaf8ef;
   color: #177245;
   white-space: nowrap;
