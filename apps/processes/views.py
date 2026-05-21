@@ -712,6 +712,21 @@ def build_candidate_detail_context(process, invitation):
 
     purpose_report = get_report_mode_content(process.purpose)
 
+    role_context_obj = getattr(process, "role_context", None)
+
+    has_role_context = (
+        role_context_obj.has_content()
+        if role_context_obj
+        else False
+    )
+
+    show_role_context_prompt = (
+        has_any_results
+        and all_assessments_completed
+        and purpose_report.get("key") == "recruitment"
+        and not has_role_context
+    )
+
     return {
         "company": process.company,
         "process": process,
@@ -763,6 +778,9 @@ def build_candidate_detail_context(process, invitation):
 
         "purpose_report": purpose_report,
         "report_mode": purpose_report.get("key"),
+        "role_context": role_context_obj,
+        "has_role_context": has_role_context,
+        "show_role_context_prompt": show_role_context_prompt,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):

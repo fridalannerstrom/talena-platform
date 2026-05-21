@@ -22496,6 +22496,58 @@ color: #6E63E3;
   border-bottom: 1px solid #e0e5ec;
 }
 
+
+.role-context-prompt-card {
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  background:
+    radial-gradient(circle at top left, rgba(231, 217, 255, 0.45), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(255, 237, 215, 0.55), transparent 38%),
+    #fff;
+}
+
+.role-context-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.role-context-prompt__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+  flex: 0 0 auto;
+}
+
+.role-context-prompt__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.role-context-prompt__action {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .role-context-prompt {
+    flex-direction: column;
+  }
+
+  .role-context-prompt__action {
+    width: 100%;
+  }
+
+  .role-context-prompt__action .btn {
+    width: 100%;
+  }
+}
+
 .edit-email-header {
   border-radius: 10px 10px 0px 0px !important;
 }

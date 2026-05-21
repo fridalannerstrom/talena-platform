@@ -701,5 +701,29 @@ function scrollCandidateAiMessages(messages) {
 }
 </script>
 
+<script>
+  function openCandidateTab(tabTarget) {
+  const tabButton = document.querySelector(
+    `[data-tab-group="candidate-main-tabs"][data-tab-target="${tabTarget}"]`
+  );
+
+  if (!tabButton) {
+    console.warn(`No candidate tab found for target: ${tabTarget}`);
+    return;
+  }
+
+  switchTabs(tabButton);
+
+  const candidateCard = document.querySelector(".candidate-profile-header");
+
+  if (candidateCard) {
+    candidateCard.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+</script>
+
 
 {% endblock %}
