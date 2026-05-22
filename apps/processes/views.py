@@ -877,6 +877,137 @@ def build_candidate_detail_context(process, invitation):
                 "why": "Connects motivation and work style to the candidate’s preferred conditions.",
             },
         ],
+        "motivation_environment": {
+            "summary": (
+                "The candidate appears likely to be energised by quality, autonomy and meaningful contribution. "
+                "They may perform best in an environment with clear expectations, room for ownership and opportunities to do work properly."
+            ),
+            "top_motivators": [
+                {
+                    "title": "Quality",
+                    "body": "May be motivated by doing work to a high standard and feeling that the result is accurate and reliable.",
+                },
+                {
+                    "title": "Autonomy",
+                    "body": "May value having ownership over tasks and enough freedom to decide how work should be approached.",
+                },
+                {
+                    "title": "Making a difference",
+                    "body": "May gain energy from seeing that their work contributes to something meaningful or useful.",
+                },
+            ],
+            "possible_demotivators": [
+                {
+                    "title": "Unclear expectations",
+                    "body": "May lose energy if goals, responsibilities or decision-making authority are vague for too long.",
+                },
+                {
+                    "title": "Low-quality shortcuts",
+                    "body": "May become frustrated if speed is consistently prioritised over accuracy or thoughtful delivery.",
+                },
+                {
+                    "title": "Limited ownership",
+                    "body": "May find it less engaging if there is little room to take responsibility or influence how work is done.",
+                },
+            ],
+            "best_environment": [
+                {
+                    "title": "Clear goals",
+                    "body": "An environment with clear priorities and expectations may help the candidate focus their energy effectively.",
+                },
+                {
+                    "title": "Trust and ownership",
+                    "body": "They may perform well when trusted to take responsibility and manage tasks with a degree of independence.",
+                },
+                {
+                    "title": "Quality-focused culture",
+                    "body": "A culture that values accuracy, improvement and thoughtful work may support engagement.",
+                },
+                {
+                    "title": "Constructive feedback",
+                    "body": "Regular feedback and clear dialogue may help maintain motivation and alignment.",
+                },
+            ],
+            "manager_tips": [
+                {
+                    "title": "Clarify expectations early",
+                    "body": "Be clear about what success looks like and which priorities matter most.",
+                },
+                {
+                    "title": "Give ownership with boundaries",
+                    "body": "Allow independence while agreeing on checkpoints, timelines and decision areas.",
+                },
+                {
+                    "title": "Connect work to purpose",
+                    "body": "Explain why tasks matter and how they contribute to wider goals or customer value.",
+                },
+                {
+                    "title": "Avoid unnecessary ambiguity",
+                    "body": "When things are changing, communicate what is known, what is uncertain and when decisions will be made.",
+                },
+            ],
+            "context_implications": (
+                "Without added process context, these insights should be read as general motivation themes. "
+                "If this report is used for a specific role, onboarding plan or development purpose, the motivation profile should be interpreted against that situation."
+            ),
+        },
+        "work_style": {
+            "summary": (
+                "The candidate appears likely to work best with clarity, structure and enough space to think things through. "
+                "Their profile may suggest a thoughtful and reliable working style, with a preference for quality and considered decisions."
+            ),
+            "items": [
+                {
+                    "title": "How they work",
+                    "subtitle": "Structure, pace and task approach",
+                    "body": "The candidate may prefer clear expectations, organised work and time to understand the task before moving into action.",
+                    "practical_tip": "Provide clear priorities and agree on what good delivery looks like early in the process.",
+                    "evidence": ["Planning", "Reliability", "Quality Focus"],
+                    "icon": "work",
+                    "icon_class": "",
+                },
+                {
+                    "title": "How they communicate",
+                    "subtitle": "Information sharing and collaboration",
+                    "body": "They may communicate most effectively when there is a clear purpose and enough context to form a considered view.",
+                    "practical_tip": "Invite them to explain their reasoning and give space for questions, especially in complex discussions.",
+                    "evidence": ["Communication", "Analytical Thinking"],
+                    "icon": "communicate",
+                    "icon_class": "is-blue",
+                },
+                {
+                    "title": "How they handle change",
+                    "subtitle": "Adaptability and shifting priorities",
+                    "body": "They may adapt well when changes are explained clearly, but may need clarity around priorities if several things change at once.",
+                    "practical_tip": "When priorities shift, clarify what has changed, what stays the same and what should be handled first.",
+                    "evidence": ["Adaptability", "Decision-making"],
+                    "icon": "change",
+                    "icon_class": "is-green",
+                },
+                {
+                    "title": "How they handle pressure",
+                    "subtitle": "Pressure response and workload",
+                    "body": "The candidate may perform best when pressure is paired with structure, realistic priorities and clear expectations.",
+                    "practical_tip": "Use regular check-ins during intense periods to remove blockers and keep priorities visible.",
+                    "evidence": ["Resilience", "Emotional Control"],
+                    "icon": "pressure",
+                    "icon_class": "is-orange",
+                },
+                {
+                    "title": "How they prefer to be managed",
+                    "subtitle": "Support, autonomy and feedback",
+                    "body": "They may respond well to a management style that combines trust and autonomy with clear goals and constructive feedback.",
+                    "practical_tip": "Give ownership, but agree on checkpoints and make expectations explicit.",
+                    "evidence": ["Autonomy", "Quality", "Achievement"],
+                    "icon": "managed",
+                    "icon_class": "is-pink",
+                },
+            ],
+            "footer_note": (
+                "This section translates personality and work style indicators into practical behaviours. "
+                "Full trait-level results can be reviewed further down as evidence."
+            ),
+        },
         "next_steps": [
             {
                 "label": "Recommended action",
@@ -897,6 +1028,45 @@ def build_candidate_detail_context(process, invitation):
                 "focus": "Add role, team, leadership or onboarding context to tailor the interpretation.",
             },
         ],
+
+        "questions": [
+            {
+                "category": "strengths",
+                "category_label": "Strengths",
+                "question": "Tell me about a situation where you used structure or analysis to solve a work-related problem.",
+                "why": "Helps validate how the candidate applies analytical and structured strengths in real situations.",
+                "listen_for": "Look for clear reasoning, practical action, follow-through and ability to explain the outcome.",
+            },
+            {
+                "category": "explore",
+                "category_label": "Explore",
+                "question": "Can you describe a time when you needed to influence someone who had a different opinion from you?",
+                "why": "Explores how the candidate gains buy-in and handles different perspectives.",
+                "listen_for": "Look for listening, clarity, adaptability, confidence and respect for other viewpoints.",
+            },
+            {
+                "category": "explore",
+                "category_label": "Explore",
+                "question": "Tell me about a situation where you had to make progress without having all the information you wanted.",
+                "why": "Helps understand how the candidate handles ambiguity and changing priorities.",
+                "listen_for": "Look for balance between careful thinking and practical action.",
+            },
+            {
+                "category": "motivation",
+                "category_label": "Motivation",
+                "question": "What type of work tends to give you the most energy, and what tends to drain your energy over time?",
+                "why": "Explores motivation fit and the conditions that may support sustained performance.",
+                "listen_for": "Look for alignment between the candidate’s drivers and the realities of the role or context.",
+            },
+            {
+                "category": "work_style",
+                "category_label": "Work style",
+                "question": "How do you prefer to receive goals, feedback and follow-up from a manager?",
+                "why": "Helps understand what management style may support the candidate’s performance.",
+                "listen_for": "Look for self-awareness, clarity around support needs and ability to work with expectations.",
+            },
+        ],
+        
     }
 
     return {

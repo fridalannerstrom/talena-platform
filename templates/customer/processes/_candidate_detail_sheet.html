@@ -774,6 +774,410 @@
 {% endif %}
 <!-- /AREAS TO EXPLORE -->
 
+
+<!-- QUESTIONS TO ASK -->
+{% if candidate_insights.questions %}
+  <section class="card mb-4 questions-card">
+
+    <div class="card-header questions-header bg-white">
+      <div>
+        <div class="questions-kicker">Candidate Insights</div>
+
+        <h2 class="questions-title">
+          {{ context_config.questions_title|default:"Questions to ask" }}
+        </h2>
+
+        {% if report_mode == "context" %}
+          <p class="questions-intro">
+            Suggested follow-up questions tailored to this process context.
+          </p>
+        {% else %}
+          <p class="questions-intro">
+            Suggested follow-up questions based on the completed assessments. Add context to make them more specific.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <div class="questions-filter-bar" aria-label="Question filters">
+        <button type="button" class="questions-filter is-active" data-question-filter="all">
+          All
+        </button>
+        <button type="button" class="questions-filter" data-question-filter="strengths">
+          Strengths
+        </button>
+        <button type="button" class="questions-filter" data-question-filter="explore">
+          Explore
+        </button>
+        <button type="button" class="questions-filter" data-question-filter="motivation">
+          Motivation
+        </button>
+        <button type="button" class="questions-filter" data-question-filter="work_style">
+          Work style
+        </button>
+      </div>
+
+      <div class="questions-list mt-3">
+
+        {% for item in candidate_insights.questions %}
+          <article
+            class="question-card"
+            data-question-category="{{ item.category|default:'all' }}">
+
+            <div class="question-card__top">
+              <div class="question-card__icon">
+                <i data-feather="message-circle"></i>
+              </div>
+
+              <div>
+                <div class="question-card__meta">
+                  {{ item.category_label|default:"Follow-up question" }}
+                </div>
+
+                <h3 class="question-card__question">
+                  {{ item.question }}
+                </h3>
+              </div>
+            </div>
+
+            {% if item.why %}
+              <div class="question-card__section">
+                <div class="question-card__label">Why ask this?</div>
+                <div class="question-card__text">
+                  {{ item.why }}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if item.listen_for %}
+              <div class="question-card__section">
+                <div class="question-card__label">What to listen for</div>
+                <div class="question-card__text">
+                  {{ item.listen_for }}
+                </div>
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+    </div>
+
+  </section>
+{% endif %}
+<!-- /QUESTIONS TO ASK -->
+
+<!-- MOTIVATION & WORK ENVIRONMENT -->
+{% if candidate_insights.motivation_environment %}
+  <section class="card mb-4 motivation-env-card">
+
+    <div class="card-header motivation-env-header bg-white">
+      <div>
+        <div class="motivation-env-kicker">Candidate Insights</div>
+        <h2 class="motivation-env-title">Motivation & work environment</h2>
+
+        {% if report_mode == "context" %}
+          <p class="motivation-env-intro">
+            How the candidate’s motivation profile may influence energy, engagement and performance in this process context.
+          </p>
+        {% else %}
+          <p class="motivation-env-intro">
+            General motivation themes that may influence what gives the candidate energy, what may reduce engagement and which environment may suit them.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      {% if candidate_insights.motivation_environment.summary %}
+        <div class="motivation-env-summary mb-4">
+          <div class="motivation-env-summary__icon">
+            <i data-feather="zap"></i>
+          </div>
+
+          <div>
+            <div class="motivation-env-summary__label">
+              Motivation summary
+            </div>
+            <div class="motivation-env-summary__text">
+              {{ candidate_insights.motivation_environment.summary }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="motivation-env-grid">
+
+        <!-- Top motivators -->
+        <article class="motivation-env-panel">
+          <div class="motivation-env-panel__top">
+            <div class="motivation-env-panel__icon">
+              <i data-feather="trending-up"></i>
+            </div>
+
+            <div>
+              <h3 class="motivation-env-panel__title">Top motivators</h3>
+              <p class="motivation-env-panel__subtitle">
+                What may give energy and drive performance.
+              </p>
+            </div>
+          </div>
+
+          <div class="motivation-env-list">
+            {% for item in candidate_insights.motivation_environment.top_motivators|slice:":3" %}
+              <div class="motivation-env-item">
+                <div class="motivation-env-item__name">
+                  {{ item.title }}
+                </div>
+                <div class="motivation-env-item__text">
+                  {{ item.body }}
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-muted small">No top motivators available yet.</div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <!-- Possible demotivators -->
+        <article class="motivation-env-panel">
+          <div class="motivation-env-panel__top">
+            <div class="motivation-env-panel__icon is-soft">
+              <i data-feather="battery-charging"></i>
+            </div>
+
+            <div>
+              <h3 class="motivation-env-panel__title">Possible demotivators</h3>
+              <p class="motivation-env-panel__subtitle">
+                Conditions that may reduce energy over time.
+              </p>
+            </div>
+          </div>
+
+          <div class="motivation-env-list">
+            {% for item in candidate_insights.motivation_environment.possible_demotivators|slice:":3" %}
+              <div class="motivation-env-item">
+                <div class="motivation-env-item__name">
+                  {{ item.title }}
+                </div>
+                <div class="motivation-env-item__text">
+                  {{ item.body }}
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-muted small">No possible demotivators available yet.</div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <!-- Best environment -->
+        <article class="motivation-env-panel">
+          <div class="motivation-env-panel__top">
+            <div class="motivation-env-panel__icon is-green">
+              <i data-feather="home"></i>
+            </div>
+
+            <div>
+              <h3 class="motivation-env-panel__title">Best environment</h3>
+              <p class="motivation-env-panel__subtitle">
+                Work conditions that may help this person perform well.
+              </p>
+            </div>
+          </div>
+
+          <div class="motivation-env-list">
+            {% for item in candidate_insights.motivation_environment.best_environment|slice:":4" %}
+              <div class="motivation-env-item">
+                <div class="motivation-env-item__name">
+                  {{ item.title }}
+                </div>
+                <div class="motivation-env-item__text">
+                  {{ item.body }}
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-muted small">No environment guidance available yet.</div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <!-- Manager tips -->
+        <article class="motivation-env-panel">
+          <div class="motivation-env-panel__top">
+            <div class="motivation-env-panel__icon is-blue">
+              <i data-feather="message-circle"></i>
+            </div>
+
+            <div>
+              <h3 class="motivation-env-panel__title">Manager tips</h3>
+              <p class="motivation-env-panel__subtitle">
+                Practical ways to support motivation and engagement.
+              </p>
+            </div>
+          </div>
+
+          <div class="motivation-env-list">
+            {% for item in candidate_insights.motivation_environment.manager_tips|slice:":4" %}
+              <div class="motivation-env-item">
+                <div class="motivation-env-item__name">
+                  {{ item.title }}
+                </div>
+                <div class="motivation-env-item__text">
+                  {{ item.body }}
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-muted small">No manager tips available yet.</div>
+            {% endfor %}
+          </div>
+        </article>
+
+      </div>
+
+      {% if candidate_insights.motivation_environment.context_implications %}
+        <div class="motivation-env-context mt-4">
+          <div class="motivation-env-context__label">
+            Context implications
+          </div>
+
+          <div class="motivation-env-context__text">
+            {{ candidate_insights.motivation_environment.context_implications }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </section>
+{% endif %}
+<!-- /MOTIVATION & WORK ENVIRONMENT -->
+
+<!-- WORK STYLE PROFILE -->
+{% if candidate_insights.work_style %}
+  <section class="card mb-4 work-style-card">
+
+    <div class="card-header work-style-header bg-white">
+      <div>
+        <div class="work-style-kicker">Candidate Insights</div>
+        <h2 class="work-style-title">Work style profile</h2>
+
+        {% if report_mode == "context" %}
+          <p class="work-style-intro">
+            Practical work style themes interpreted in relation to this process context.
+          </p>
+        {% else %}
+          <p class="work-style-intro">
+            A practical summary of how the candidate may prefer to work, communicate and respond to different work situations.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      {% if candidate_insights.work_style.summary %}
+        <div class="work-style-summary mb-4">
+          <div class="work-style-summary__icon">
+            <i data-feather="compass"></i>
+          </div>
+
+          <div>
+            <div class="work-style-summary__label">
+              Work style summary
+            </div>
+            <div class="work-style-summary__text">
+              {{ candidate_insights.work_style.summary }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="work-style-grid">
+
+        {% for item in candidate_insights.work_style.items %}
+          <article class="work-style-panel">
+
+            <div class="work-style-panel__top">
+              <div class="work-style-panel__icon {% if item.icon_class %}{{ item.icon_class }}{% endif %}">
+                {% if item.icon == "work" %}
+                  <i data-feather="briefcase"></i>
+                {% elif item.icon == "communicate" %}
+                  <i data-feather="message-circle"></i>
+                {% elif item.icon == "change" %}
+                  <i data-feather="shuffle"></i>
+                {% elif item.icon == "pressure" %}
+                  <i data-feather="activity"></i>
+                {% elif item.icon == "managed" %}
+                  <i data-feather="users"></i>
+                {% else %}
+                  <i data-feather="circle"></i>
+                {% endif %}
+              </div>
+
+              <div>
+                <h3 class="work-style-panel__title">
+                  {{ item.title }}
+                </h3>
+
+                <p class="work-style-panel__subtitle">
+                  {{ item.subtitle }}
+                </p>
+              </div>
+            </div>
+
+            <div class="work-style-panel__body">
+              {{ item.body }}
+            </div>
+
+            {% if item.practical_tip %}
+              <div class="work-style-tip">
+                <div class="work-style-tip__label">
+                  Practical tip
+                </div>
+                <div class="work-style-tip__text">
+                  {{ item.practical_tip }}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if item.evidence %}
+              <div class="work-style-tags">
+                {% for evidence in item.evidence %}
+                  <span class="work-style-tag">
+                    {{ evidence }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+      {% if candidate_insights.work_style.footer_note %}
+        <div class="work-style-footer-note mt-4">
+          <div class="work-style-footer-note__label">
+            Note
+          </div>
+          <div class="work-style-footer-note__text">
+            {{ candidate_insights.work_style.footer_note }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </section>
+{% endif %}
+<!-- /WORK STYLE PROFILE -->
+
+
 <!-- SUGGESTED NEXT STEPS -->
 {% if candidate_insights.next_steps %}
   <section class="card mb-4 next-steps-card">
@@ -855,6 +1259,386 @@
   </section>
 {% endif %}
 <!-- /SUGGESTED NEXT STEPS -->
+
+<!-- DETAILED EVIDENCE -->
+{% if has_any_results %}
+  <section class="card mb-4 detailed-evidence-card">
+
+    <div class="card-header detailed-evidence-header bg-white">
+      <div>
+        <div class="detailed-evidence-kicker">Candidate Insights</div>
+        <h2 class="detailed-evidence-title">Detailed evidence</h2>
+        <p class="detailed-evidence-intro">
+          Review the assessment data behind the interpreted insights. This section is intended for transparency and deeper analysis.
+        </p>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- Main tabs -->
+      <div class="detailed-evidence-tabs" role="tablist" aria-label="Detailed evidence tabs">
+
+        <button
+          class="detailed-evidence-tab is-active"
+          type="button"
+          data-tab-group="detailed-evidence-tabs"
+          data-tab-target="competencies"
+          onclick="switchTabs(this)">
+          Competencies
+        </button>
+
+        {% if has_motivation_results %}
+          <button
+            class="detailed-evidence-tab"
+            type="button"
+            data-tab-group="detailed-evidence-tabs"
+            data-tab-target="motivation"
+            onclick="switchTabs(this)">
+            Motivation
+          </button>
+        {% endif %}
+
+        {% if has_personality_results %}
+          <button
+            class="detailed-evidence-tab"
+            type="button"
+            data-tab-group="detailed-evidence-tabs"
+            data-tab-target="personality"
+            onclick="switchTabs(this)">
+            Personality
+          </button>
+        {% endif %}
+
+        {% if has_ability_results %}
+          <button
+            class="detailed-evidence-tab"
+            type="button"
+            data-tab-group="detailed-evidence-tabs"
+            data-tab-target="ability"
+            onclick="switchTabs(this)">
+            Ability
+          </button>
+        {% endif %}
+
+        <button
+          class="detailed-evidence-tab"
+          type="button"
+          data-tab-group="detailed-evidence-tabs"
+          data-tab-target="raw"
+          onclick="switchTabs(this)">
+          Full results
+        </button>
+
+      </div>
+
+      <!-- COMPETENCIES -->
+      <div
+        class="candidate-tab-panel is-active"
+        data-tab-group="detailed-evidence-tabs"
+        data-tab-panel="competencies">
+
+        <div class="evidence-section-note mb-3">
+          <div class="fw-semibold mb-1">Competency overview</div>
+          <div class="text-muted small">
+            A simplified view of behavioural themes grouped into interpersonal, task and mindset-related areas.
+          </div>
+        </div>
+
+        <div class="evidence-domain-grid mb-4">
+
+          <article class="evidence-domain-card">
+            <div class="evidence-domain-card__title">Interpersonal</div>
+            <p class="evidence-domain-card__text">
+              People-related behaviours that may affect collaboration, communication and stakeholder work.
+            </p>
+
+            <div class="evidence-mini-row">
+              <span>Strength</span>
+              <strong>Teamwork</strong>
+            </div>
+
+            <div class="evidence-mini-row">
+              <span>Explore</span>
+              <strong>Influencing</strong>
+            </div>
+          </article>
+
+          <article class="evidence-domain-card">
+            <div class="evidence-domain-card__title">Task</div>
+            <p class="evidence-domain-card__text">
+              Work-related behaviours that may affect structure, analysis, prioritisation and delivery.
+            </p>
+
+            <div class="evidence-mini-row">
+              <span>Strength</span>
+              <strong>Analytical Thinking</strong>
+            </div>
+
+            <div class="evidence-mini-row">
+              <span>Explore</span>
+              <strong>Decision-making pace</strong>
+            </div>
+          </article>
+
+          <article class="evidence-domain-card">
+            <div class="evidence-domain-card__title">Mindset</div>
+            <p class="evidence-domain-card__text">
+              Personal drivers and coping behaviours that may affect pressure, accountability and adaptability.
+            </p>
+
+            <div class="evidence-mini-row">
+              <span>Strength</span>
+              <strong>Reliability</strong>
+            </div>
+
+            <div class="evidence-mini-row">
+              <span>Explore</span>
+              <strong>Pressure response</strong>
+            </div>
+          </article>
+
+        </div>
+
+        {% if all_competencies %}
+          <details class="evidence-details">
+            <summary>Show full competency list</summary>
+
+            <div class="table-responsive mt-3">
+              <table class="table table-sm align-middle evidence-table">
+                <thead>
+                  <tr>
+                    <th>Assessment</th>
+                    <th>Competency</th>
+                    <th>Sten</th>
+                    <th>Motivation score</th>
+                    <th>Percentile</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in all_competencies %}
+                    <tr>
+                      <td>{{ item.activity|default:"-" }}</td>
+                      <td class="fw-semibold">{{ item.competency|default:"-" }}</td>
+                      <td>{{ item.sten_rounded|default:item.sten|default:"-" }}</td>
+                      <td>{{ item.stive_rounded|default:item.stive|default:"-" }}</td>
+                      <td>{{ item.percentile|default:"-" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        {% endif %}
+
+      </div>
+
+      <!-- MOTIVATION -->
+      {% if has_motivation_results %}
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="detailed-evidence-tabs"
+          data-tab-panel="motivation">
+
+          <div class="evidence-section-note mb-3">
+            <div class="fw-semibold mb-1">Motivation results</div>
+            <div class="text-muted small">
+              Motivation scores indicate what may energise or reduce engagement for the candidate.
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm align-middle evidence-table">
+              <thead>
+                <tr>
+                  <th>Motivator</th>
+                  <th>Score</th>
+                  <th>Percentile</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for comp in mq_competencies %}
+                  <tr>
+                    <td class="fw-semibold">{{ comp.competency|default:"-" }}</td>
+                    <td>{{ comp.score|default:comp.stive_rounded|default:"-" }}/5</td>
+                    <td>{{ comp.percentile|default:"-" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      {% endif %}
+
+      <!-- PERSONALITY -->
+      {% if has_personality_results %}
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="detailed-evidence-tabs"
+          data-tab-panel="personality">
+
+          <div class="evidence-section-note mb-3">
+            <div class="fw-semibold mb-1">Personality results</div>
+            <div class="text-muted small">
+              Personality results are shown as trait-level indicators. Interpret them together with context and other evidence.
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm align-middle evidence-table">
+              <thead>
+                <tr>
+                  <th>Trait</th>
+                  <th>Sten</th>
+                  <th>Percentile</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for comp in personality_competencies %}
+                  <tr>
+                    <td class="fw-semibold">{{ comp.competency|default:"-" }}</td>
+                    <td>{{ comp.sten_rounded|default:comp.sten|default:"-" }}/10</td>
+                    <td>{{ comp.percentile|default:"-" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      {% endif %}
+
+      <!-- ABILITY -->
+      {% if has_ability_results %}
+        <div
+          class="candidate-tab-panel"
+          data-tab-group="detailed-evidence-tabs"
+          data-tab-panel="ability">
+
+          <div class="evidence-section-note mb-3">
+            <div class="fw-semibold mb-1">Ability results</div>
+            <div class="text-muted small">
+              Ability results show percentile performance for completed reasoning assessments.
+            </div>
+          </div>
+
+          <div class="evidence-ability-grid">
+
+            {% if verbal_percentile %}
+              <article class="evidence-ability-card">
+                <div class="evidence-ability-card__label">Verbal</div>
+                <div class="evidence-ability-card__value">{{ verbal_percentile }}</div>
+                <div class="evidence-ability-card__meta">Percentile</div>
+              </article>
+            {% endif %}
+
+            {% if logical_percentile %}
+              <article class="evidence-ability-card">
+                <div class="evidence-ability-card__label">Logical</div>
+                <div class="evidence-ability-card__value">{{ logical_percentile }}</div>
+                <div class="evidence-ability-card__meta">Percentile</div>
+              </article>
+            {% endif %}
+
+            {% if numerical_percentile %}
+              <article class="evidence-ability-card">
+                <div class="evidence-ability-card__label">Numerical</div>
+                <div class="evidence-ability-card__value">{{ numerical_percentile }}</div>
+                <div class="evidence-ability-card__meta">Percentile</div>
+              </article>
+            {% endif %}
+
+          </div>
+
+        </div>
+      {% endif %}
+
+      <!-- RAW / FULL RESULTS -->
+      <div
+        class="candidate-tab-panel"
+        data-tab-group="detailed-evidence-tabs"
+        data-tab-panel="raw">
+
+        <div class="evidence-section-note mb-3">
+          <div class="fw-semibold mb-1">Full result data</div>
+          <div class="text-muted small">
+            This is a structured view of the available assessment data stored for this candidate.
+          </div>
+        </div>
+
+        {% if activities %}
+          <div class="accordion evidence-accordion" id="rawSovaAccordion">
+            {% for activity in activities %}
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="rawHeading{{ forloop.counter }}">
+                  <button
+                    class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#rawCollapse{{ forloop.counter }}"
+                    aria-expanded="false"
+                    aria-controls="rawCollapse{{ forloop.counter }}">
+                    {{ activity.activity|default:"Assessment" }}
+                  </button>
+                </h2>
+
+                <div
+                  id="rawCollapse{{ forloop.counter }}"
+                  class="accordion-collapse collapse"
+                  aria-labelledby="rawHeading{{ forloop.counter }}"
+                  data-bs-parent="#rawSovaAccordion">
+
+                  <div class="accordion-body">
+                    <div class="small text-muted mb-2">
+                      Status: {{ activity.status|default:"-" }}
+                    </div>
+
+                    {% if activity.competencies %}
+                      <div class="table-responsive">
+                        <table class="table table-sm align-middle evidence-table">
+                          <thead>
+                            <tr>
+                              <th>Competency</th>
+                              <th>Sten</th>
+                              <th>Motivation score</th>
+                              <th>Percentile</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for comp in activity.competencies %}
+                              <tr>
+                                <td class="fw-semibold">{{ comp.competency|default:"-" }}</td>
+                                <td>{{ comp.sten_rounded|default:comp.sten|default:"-" }}</td>
+                                <td>{{ comp.stive_rounded|default:comp.stive|default:"-" }}</td>
+                                <td>{{ comp.percentile|default:"-" }}</td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    {% else %}
+                      <div class="text-muted small">
+                        No competency rows available for this assessment.
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted small">
+            No raw assessment data available.
+          </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /DETAILED EVIDENCE -->
 
         {% if has_motivation_results or has_personality_results %}
 
