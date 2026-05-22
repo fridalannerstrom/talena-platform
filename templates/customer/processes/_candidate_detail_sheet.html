@@ -427,11 +427,6 @@
       </span>
     </div>
 
-    <div class="insight-summary-note">
-      This is a general assessment summary based on the candidate’s completed tests.
-      Add context later to tailor the interpretation to a specific role, team or development purpose.
-    </div>
-
     <div
       id="aiSummaryContent"
       class="insight-summary-content"
@@ -477,26 +472,12 @@
 
   <div class="card mb-4">
           <div class="card-header d-flex align-items-center justify-content-between">
-            <div class="fw-semibold">Competency overview</div>
-          </div>
-
-        <div class="candidate-profile-tabs-wrap">
-              <div class="candidate-profile-tabs" role="tablist" aria-label="Ability tabs">
-    <button class="competency-tab active" type="button">
-      Competency overview
-      <span>General profile</span>
-    </button>
-
-        <button class="competency-tab disabled" type="button">
-      Critical competencies
-      <span>Requires role context</span>
-    </button>
-    </div>
-    </div>
-  
+            <div class="fw-semibold">Competency overview - Baseras på Competency Practitioner och Recruitment/Interview Guide.
+</div>
+</div>
 
   <!-- Main overview -->
-  <div class="competency-columns">
+  <div class="competency-columns mb-0">
 
     <!-- Strengths -->
     <div class="competency-panel">
@@ -551,8 +532,7 @@
     <!-- Areas to explore -->
     <div class="competency-panel">
       <div class="panel-heading">
-        <span>Areas to explore</span>
-        <h3>Useful interview themes</h3>
+        <h3 class="domain-panel__title">Areas to explore</h3>
       </div>
 
       <div class="competency-list">
@@ -561,12 +541,12 @@
           <div class="competency-icon">!</div>
           <div class="competency-content">
             <div class="competency-title-row">
-              <h4>Influencing</h4>
-              <span class="score-pill neutral">Explore</span>
+              <div class="candidate-inline-title mb-0">Influencing</div>
+              <span class="score-pill neutral">1/10</span>
             </div>
-            <p>
+            <div class="candidate-inline-meta mt-1">
               Explore how the candidate gains buy-in, challenges others or persuades stakeholders when needed.
-            </p>
+            </div>
           </div>
         </article>
 
@@ -574,12 +554,12 @@
           <div class="competency-icon">!</div>
           <div class="competency-content">
             <div class="competency-title-row">
-              <h4>Networking</h4>
-              <span class="score-pill neutral">Explore</span>
+              <div class="candidate-inline-title mb-0">Networking</div>
+              <span class="score-pill neutral">1/10</span>
             </div>
-            <p>
+            <div class="candidate-inline-meta mt-1">
               Explore whether the candidate actively builds relationships beyond their immediate circle.
-            </p>
+            </div>
           </div>
         </article>
 
@@ -587,12 +567,12 @@
           <div class="competency-icon">!</div>
           <div class="competency-content">
             <div class="competency-title-row">
-              <h4>Decisiveness</h4>
-              <span class="score-pill neutral">Explore</span>
+              <div class="candidate-inline-title mb-0">Decisiveness</div>
+              <span class="score-pill neutral">1/10</span>
             </div>
-            <p>
+            <div class="candidate-inline-meta mt-1">
               Clarify how they make decisions when pace is important or information is incomplete.
-            </p>
+            </div>
           </div>
         </article>
 
@@ -602,23 +582,112 @@
   </div>
 
   <!-- Footer CTA -->
-  <div class="competency-footer">
+  <div class="competency-footer mt-0">
     <div>
       <h3>Want role-specific insights?</h3>
-      <p>
+      <div class="candidate-inline-meta mt-1">
         Add a role description or requirement profile to identify critical competencies and tailored interview focus.
-      </p>
+      </div>
     </div>
 
     <div class="footer-actions">
-      <button class="competency-btn-secondary">View full competency profile</button>
-      <button class="competency-btn-primary">Add role context</button>
+      <button class="btn btn-primary">Add role context</button>
     </div>
   </div>
 
 </div>
 
   <!-- END COMPENENCY OVERVIEW -->
+
+
+  <!-- KEY STRENGTHS -->
+{% if candidate_insights.key_strengths %}
+  <section class="card mb-4 key-strengths-card">
+
+    <div class="card-header key-strengths-header bg-white">
+      <div>
+        <div class="key-strengths-kicker">Candidate Insights</div>
+        <h2 class="key-strengths-title">Key strengths</h2>
+
+        {% if report_mode == "context" %}
+          <p class="key-strengths-intro">
+            Strengths that appear most relevant to this process context.
+          </p>
+        {% else %}
+          <p class="key-strengths-intro">
+            The strongest themes identified in the candidate’s assessment profile.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="key-strengths-grid">
+
+        {% for strength in candidate_insights.key_strengths|slice:":4" %}
+          <article class="key-strength-card">
+
+            <div class="key-strength-card__top">
+              <div class="key-strength-icon">
+                <i data-feather="check"></i>
+              </div>
+
+              <div>
+                <h3 class="key-strength-card__title">
+                  {{ strength.title }}
+                </h3>
+
+                <p class="key-strength-card__body">
+                  {{ strength.body }}
+                </p>
+              </div>
+            </div>
+
+            <div class="key-strength-detail-list">
+
+              <div class="key-strength-detail">
+                <div class="key-strength-detail__label">
+                  How this may show up
+                </div>
+                <div class="key-strength-detail__text">
+                  {{ strength.how_it_may_show|default:"May show up as a consistent behavioural tendency in relevant work situations." }}
+                </div>
+              </div>
+
+              <div class="key-strength-detail">
+                <div class="key-strength-detail__label">
+                  {% if report_mode == "context" %}
+                    Why this matters here
+                  {% else %}
+                    Why this may matter
+                  {% endif %}
+                </div>
+                <div class="key-strength-detail__text">
+                  {{ strength.why_it_matters|default:"This may be useful to consider when interpreting the candidate’s overall profile." }}
+                </div>
+              </div>
+
+            </div>
+
+            {% if strength.evidence %}
+              <div class="key-strength-evidence">
+                {% for item in strength.evidence %}
+                  <span class="key-strength-evidence-pill">
+                    {{ item }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+    </div>
+
+  </section>
+{% endif %}
+<!-- /KEY STRENGTHS -->
 
         {% if has_motivation_results or has_personality_results %}
 

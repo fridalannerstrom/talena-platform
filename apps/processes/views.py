@@ -803,18 +803,36 @@ def build_candidate_detail_context(process, invitation):
                 "indicators. Some areas should be explored further before making a decision."
             ),
         },
-        "key_strengths": [
-            {
-                "title": "Structured approach",
-                "body": "Likely to value clarity, order and follow-through in work situations.",
-                "evidence": ["Reliability", "Planning", "Task focus"],
-            },
-            {
-                "title": "Analytical problem solving",
-                "body": "May be comfortable working with information, patterns and conclusions.",
-                "evidence": ["Analytical Thinking", "Logical reasoning"],
-            },
-        ],
+            "key_strengths": [
+                {
+                    "title": "Structured approach",
+                    "body": "Likely to value clarity, order and follow-through in work situations.",
+                    "how_it_may_show": "May create structure, keep track of details and prefer clear expectations before moving into action.",
+                    "why_it_matters": "This can support consistency, planning and dependable delivery in day-to-day work.",
+                    "evidence": ["Reliability", "Planning", "Task focus"],
+                },
+                {
+                    "title": "Analytical problem solving",
+                    "body": "May be comfortable working with information, patterns and conclusions.",
+                    "how_it_may_show": "May identify patterns, compare options and use information to support decisions.",
+                    "why_it_matters": "This can support work that requires prioritisation, judgement and problem-solving.",
+                    "evidence": ["Analytical Thinking", "Logical reasoning"],
+                },
+                {
+                    "title": "Reliable ownership",
+                    "body": "May take commitments seriously and show a preference for doing things properly.",
+                    "how_it_may_show": "May follow through on agreed responsibilities and aim to deliver work to a consistent standard.",
+                    "why_it_matters": "This can be useful where trust, accountability and reliable execution are important.",
+                    "evidence": ["Quality Focus", "Self-discipline"],
+                },
+                {
+                    "title": "Thoughtful decision-making",
+                    "body": "May prefer to consider information carefully before reaching conclusions.",
+                    "how_it_may_show": "May ask clarifying questions, weigh alternatives and avoid rushing decisions without enough information.",
+                    "why_it_matters": "This can support sound judgement, especially in situations where decisions have practical consequences.",
+                    "evidence": ["Analytical Thinking", "Complex Thinking"],
+                },
+            ],
         "areas_to_explore": [
             {
                 "title": "Stakeholder influence",
