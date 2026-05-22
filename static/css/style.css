@@ -24417,6 +24417,59 @@ color: #6E63E3;
   }
 }
 
+
+.purpose-report-hero {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(245, 243, 255, 0.9), transparent 55%),
+    #fff;
+}
+
+.purpose-report-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.purpose-report-recruitment {
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(239, 246, 255, 0.95), transparent 55%),
+    #fff;
+}
+
+.purpose-report-development {
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(245, 243, 255, 0.95), transparent 55%),
+    #fff;
+}
+
+.purpose-report-team {
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(236, 253, 245, 0.9), transparent 55%),
+    #fff;
+}
+
+@media (max-width: 992px) {
+  .talena-report-snapshot-grid,
+  .talena-two-column-grid,
+  .talena-combo-grid,
+  .talena-score-grid,
+  .talena-guidance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .talena-section-header {
+    flex-direction: column;
+  }
+}
+
 /* Footer */
 
 .competency-footer {

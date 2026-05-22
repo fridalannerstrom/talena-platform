@@ -748,10 +748,8 @@ def build_candidate_detail_context(process, invitation):
     # Do not use this as the general/context mode.
     purpose_report_key = purpose_report.get("key")
 
-    show_role_context_prompt = (
-        has_any_results
-        and not has_purpose_context
-    )
+    show_role_context_prompt = not has_purpose_context
+    show_context_prompt = show_role_context_prompt
 
     show_context_prompt = show_role_context_prompt
 
