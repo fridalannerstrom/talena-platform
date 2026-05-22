@@ -1082,12 +1082,10 @@ def build_candidate_detail_context(process, invitation):
                     else "Contextual candidate insight summary"
                 ),
                 "body": (
-                    "This is a general assessment summary based on the completed tests. "
-                    "Add context to tailor the insights to this process purpose."
-                    if candidate_insights_mode == "general"
-                    else
-                    "These insights are tailored using the completed assessment data together "
-                    "with the added process context."
+                    "The candidate’s assessment profile suggests a structured and analytical work style, with strong indicators around planning, quality focus and working with complex information. "
+                    "This may support roles or situations where careful follow-up, accuracy and thoughtful problem-solving are important. "
+                    "At the same time, the results should be explored further through conversation, especially around stakeholder influence, decision-making pace and how the candidate handles changing priorities. "
+                    "Add role or process context to make this interpretation more specific."
                 ),
             },
             "fit": {
