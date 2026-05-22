@@ -689,6 +689,173 @@
 {% endif %}
 <!-- /KEY STRENGTHS -->
 
+<!-- AREAS TO EXPLORE -->
+{% if candidate_insights.areas_to_explore %}
+  <section class="card mb-4 areas-explore-card">
+
+    <div class="card-header areas-explore-header bg-white">
+      <div>
+        <div class="areas-explore-kicker">Candidate Insights</div>
+        <h2 class="areas-explore-title">Areas to explore</h2>
+
+        {% if report_mode == "context" %}
+          <p class="areas-explore-intro">
+            Useful themes to validate in relation to this process context. These are not weaknesses, but areas where follow-up can add important context.
+          </p>
+        {% else %}
+          <p class="areas-explore-intro">
+            Useful themes to explore further. These are not conclusions or concerns, but areas where more context may help interpretation.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="areas-explore-grid">
+
+        {% for area in candidate_insights.areas_to_explore|slice:":4" %}
+          <article class="area-explore-card">
+
+            <div class="area-explore-card__top">
+              <div class="area-explore-icon">
+                <i data-feather="help-circle"></i>
+              </div>
+
+              <div>
+                <h3 class="area-explore-card__title">
+                  {{ area.title }}
+                </h3>
+
+                <p class="area-explore-card__body">
+                  {{ area.body }}
+                </p>
+              </div>
+            </div>
+
+            <div class="area-explore-detail-list">
+
+              <div class="area-explore-detail">
+                <div class="area-explore-detail__label">
+                  Explore through
+                </div>
+                <div class="area-explore-detail__text">
+                  {{ area.explore_through|default:"Ask for a concrete example from a real work situation where this theme was relevant." }}
+                </div>
+              </div>
+
+              <div class="area-explore-detail">
+                <div class="area-explore-detail__label">
+                  What to listen for
+                </div>
+                <div class="area-explore-detail__text">
+                  {{ area.what_to_listen_for|default:"Look for self-awareness, practical examples and how the candidate adapts their behaviour depending on the situation." }}
+                </div>
+              </div>
+
+            </div>
+
+            {% if area.evidence %}
+              <div class="area-explore-tags">
+                {% for item in area.evidence %}
+                  <span class="area-explore-tag">
+                    {{ item }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+    </div>
+
+  </section>
+{% endif %}
+<!-- /AREAS TO EXPLORE -->
+
+<!-- SUGGESTED NEXT STEPS -->
+{% if candidate_insights.next_steps %}
+  <section class="card mb-4 next-steps-card">
+
+    <div class="card-header next-steps-header bg-white">
+      <div>
+        <div class="next-steps-kicker">Candidate Insights</div>
+        <h2 class="next-steps-title">Suggested next steps</h2>
+
+        {% if report_mode == "context" %}
+          <p class="next-steps-intro">
+            Recommended follow-up actions based on the assessment results and the added process context.
+          </p>
+        {% else %}
+          <p class="next-steps-intro">
+            Suggested follow-up actions based on the completed assessments. Add context to make these more specific.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      {% if report_mode != "context" %}
+        <div class="next-steps-context-note mb-3">
+          <div class="next-steps-context-note__icon">
+            <i data-feather="info"></i>
+          </div>
+          <div>
+            <div class="fw-semibold mb-1">General suggestions only</div>
+            <div class="text-muted small">
+              These next steps are based on assessment data only. Add context to tailor them to a role, team, onboarding plan or development purpose.
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="next-steps-grid">
+
+        {% for step in candidate_insights.next_steps|slice:":3" %}
+          <article class="next-step-card">
+
+            <div class="next-step-card__number">
+              {{ forloop.counter }}
+            </div>
+
+            <div class="next-step-card__content">
+              <div class="next-step-card__label">
+                {{ step.label|default:"Recommended action" }}
+              </div>
+
+              <h3 class="next-step-card__title">
+                {{ step.title }}
+              </h3>
+
+              <p class="next-step-card__body">
+                {{ step.body }}
+              </p>
+
+              {% if step.focus %}
+                <div class="next-step-focus">
+                  <div class="next-step-focus__label">
+                    Focus on
+                  </div>
+                  <div class="next-step-focus__text">
+                    {{ step.focus }}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+    </div>
+
+  </section>
+{% endif %}
+<!-- /SUGGESTED NEXT STEPS -->
+
         {% if has_motivation_results or has_personality_results %}
 
         <!-- PROFILE HIGHLIGHTS -->

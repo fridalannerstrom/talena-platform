@@ -836,13 +836,31 @@ def build_candidate_detail_context(process, invitation):
         "areas_to_explore": [
             {
                 "title": "Stakeholder influence",
-                "body": "Explore how the candidate communicates recommendations and gains buy-in from others.",
+                "body": "It may be useful to understand how the candidate communicates ideas, gains buy-in and handles situations where others have different views.",
+                "explore_through": "Ask about a time when they needed to influence a decision or create agreement without having full authority.",
+                "what_to_listen_for": "Look for clarity, confidence, listening, adaptability and ability to connect their message to others’ needs.",
                 "evidence": ["Influencing", "Communication"],
             },
             {
-                "title": "Pressure response",
-                "body": "Explore how the candidate responds when priorities change or pressure increases.",
-                "evidence": ["Resilience", "Adaptability"],
+                "title": "Pace under ambiguity",
+                "body": "It may be useful to explore how the candidate handles situations where information is incomplete, priorities change or decisions need to be made quickly.",
+                "explore_through": "Ask about a situation where they had to move forward without having all the information they wanted.",
+                "what_to_listen_for": "Look for how they balance careful thinking with practical action, and whether they can adjust when conditions change.",
+                "evidence": ["Adaptability", "Decision-making"],
+            },
+            {
+                "title": "Collaboration style",
+                "body": "It may be useful to understand what type of collaboration helps the candidate perform at their best, especially in teams with different working styles.",
+                "explore_through": "Ask what they need from colleagues and managers to collaborate well, and what others usually appreciate about working with them.",
+                "what_to_listen_for": "Look for self-awareness, openness to feedback and ability to adapt communication to different people.",
+                "evidence": ["Teamwork", "Listening"],
+            },
+            {
+                "title": "Energy and motivation fit",
+                "body": "It may be useful to explore what gives the candidate energy at work and which conditions may reduce engagement over time.",
+                "explore_through": "Ask what types of tasks, environments or goals tend to bring out their best contribution.",
+                "what_to_listen_for": "Look for alignment between the person’s drivers and the realities of the role, team or development context.",
+                "evidence": ["Motivation", "Work preferences"],
             },
         ],
         "questions": [
@@ -857,6 +875,26 @@ def build_candidate_detail_context(process, invitation):
             {
                 "question": "What type of work environment helps you perform at your best?",
                 "why": "Connects motivation and work style to the candidate’s preferred conditions.",
+            },
+        ],
+        "next_steps": [
+            {
+                "label": "Recommended action",
+                "title": "Use a structured follow-up conversation",
+                "body": "Use the insights as a starting point for a structured conversation rather than as a final conclusion.",
+                "focus": "Focus on examples from real work situations, especially where the candidate had to apply their strengths in practice.",
+            },
+            {
+                "label": "Validate through examples",
+                "title": "Explore the most relevant follow-up themes",
+                "body": "Ask targeted questions around the areas that would benefit from more context before making decisions or recommendations.",
+                "focus": "Prioritise stakeholder influence, pace under ambiguity and collaboration style.",
+            },
+            {
+                "label": "Connect insights to context",
+                "title": "Add process context for sharper recommendations",
+                "body": "If this report will be used for a specific role, team, onboarding plan or development purpose, add context to make the next steps more precise.",
+                "focus": "Add role, team, leadership or onboarding context to tailor the interpretation.",
             },
         ],
     }
