@@ -5,6 +5,7 @@ PURPOSE_CONTEXT_CONFIG = {
         "context_intro": "Add role information to tailor candidate insights, questions and recommendations to this hiring process.",
 
         "title_label": "Role title",
+        "fit_label": "Role fit",
         "title_help": "Example: Business Controller, Sales Manager, Customer Support Specialist.",
 
         "job_advertisement_label": "Job advertisement or role description",

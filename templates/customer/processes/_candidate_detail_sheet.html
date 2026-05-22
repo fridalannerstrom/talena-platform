@@ -363,19 +363,6 @@
 
 {% if all_assessments_completed %}
 
-{% if purpose_report %}
-  <div class="card mb-4 purpose-report-hero purpose-report-{{ report_mode }}">
-    <div class="card-body">
-      <div class="d-flex align-items-start justify-content-between gap-3">
-        <div>
-          <div class="text-muted small mb-1">Report focus</div>
-          <h2 class="h5 mb-2">{{ purpose_report.title }}</h2>
-          <p class="text-muted mb-0">{{ purpose_report.intro }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-{% endif %}
 
 <!-- INSIGHT SUMMARY -->
 <div class="card mb-4 insight-summary-card">
@@ -387,42 +374,21 @@
         <div class="insight-summary-kicker">Candidate Insights</div>
         <h2 class="insight-summary-title">Insight summary</h2>
       </div>
-
-      <span class="insight-summary-mode-badge">
-        General mode
-      </span>
     </div>
 
-    <div
-      id="aiSummaryContent"
-      class="insight-summary-content"
-      data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-      data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
-      data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
-    >
-      {% if invitation.ai_summary %}
-        {{ invitation.ai_summary|linebreaksbr }}
-      {% elif invitation.ai_summary_status == "generating" %}
-        <div class="insight-summary-loading">
-          Generating insight summary...
-        </div>
+    <div class="insight-summary-content">
+
+      {% if candidate_insights.summary %}
+
+        <p class="mb-0">
+          {{ candidate_insights.summary.body }}
+        </p>
       {% else %}
         <div class="insight-summary-loading">
-          AI is analysing the candidate’s assessment results...
+          Candidate insight summary is not available yet.
         </div>
       {% endif %}
-    </div>
 
-    <div class="insight-summary-footer">
-      <div class="insight-summary-footnote">
-        Based on completed assessment data only. No role or process context has been added yet.
-      </div>
-
-      <a
-        href="{% url 'processes:process_role_context' process.id %}"
-        class="btn btn-sm btn-outline-primary">
-        Add context
-      </a>
     </div>
 
   </div>
@@ -431,6 +397,103 @@
 
         <!-- END AI SUMMARY -->
 
+ <!-- CONTEXT / PURPOSE FIT -->
+{% if report_mode == "context" and candidate_insights.fit %}
+  <section class="card mb-4 role-match-card">
+
+    <div class="card-header role-match-header bg-white">
+      <div>
+        <div class="role-match-kicker">Candidate Insights</div>
+        <h2 class="role-match-title">
+          {{ candidate_insights.fit.title|default:"Role match verdict" }}
+        </h2>
+        <p class="role-match-intro">
+          How Talena interprets the candidate’s fit for the added role context.
+        </p>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <div class="role-match-verdict">
+
+        <div class="role-match-score">
+          <div class="role-match-score__label">Match level</div>
+          <div class="role-match-score__value">
+            {{ candidate_insights.fit.label|default:"Potential match" }}
+          </div>
+          <div class="role-match-score__confidence">
+            Confidence: {{ candidate_insights.fit.confidence|default:"Medium" }}
+          </div>
+        </div>
+
+        <div class="role-match-summary">
+          <div class="role-match-summary__label">Talena’s interpretation</div>
+          <p class="role-match-summary__text">
+            {{ candidate_insights.fit.summary|default:candidate_insights.fit.body }}
+          </p>
+        </div>
+
+      </div>
+
+      {% if candidate_insights.fit.reasoning %}
+        <div class="role-match-section mt-3">
+          <div class="role-match-section__label">Why this looks like a potential match</div>
+
+          <div class="role-match-reasons">
+            {% for item in candidate_insights.fit.reasoning %}
+              <div class="role-match-reason">
+                <div class="role-match-reason__icon">
+                  <i data-feather="check"></i>
+                </div>
+                <div class="role-match-reason__text">
+                  {{ item }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if candidate_insights.fit.watch_points %}
+        <div class="role-match-section mt-3">
+          <div class="role-match-section__label">Look closer at before deciding</div>
+
+          <div class="role-match-watch-grid">
+            {% for item in candidate_insights.fit.watch_points %}
+              <div class="role-match-watch-item">
+                <i data-feather="search"></i>
+                <span>{{ item }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if candidate_insights.fit.suggested_next_step %}
+        <div class="role-match-next-step mt-3">
+          <div class="role-match-next-step__label">Suggested next step</div>
+          <div class="role-match-next-step__text">
+            {{ candidate_insights.fit.suggested_next_step }}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if candidate_insights.fit.decision_note %}
+        <div class="role-match-note mt-3">
+          <div class="role-match-note__icon">
+            <i data-feather="info"></i>
+          </div>
+          <div class="role-match-note__text">
+            {{ candidate_insights.fit.decision_note }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </section>
+{% endif %}
+<!-- /CONTEXT / PURPOSE FIT -->
         <!-- COMPENENCY OVERVIEW -->
 
   <div class="card mb-4">
