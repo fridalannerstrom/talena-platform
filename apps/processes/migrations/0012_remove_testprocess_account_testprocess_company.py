@@ -12,13 +12,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='testprocess',
-            name='account',
-        ),
         migrations.AddField(
             model_name='testprocess',
             name='company',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='processes', to='accounts.company'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='processes',
+                to='accounts.company',
+            ),
         ),
     ]
