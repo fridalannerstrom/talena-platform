@@ -12,9 +12,19 @@
       </div>
     </div>
 
-    <span class="badge bg-light text-dark">
-      {{ processes|length }} processes
-    </span>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'accounts:company_process_create' company.pk %}"
+         class="btn btn-primary">
+        <i data-feather="plus-circle"></i>
+        Add SOVA process
+      </a>
+
+      <a href="{% url 'accounts:company_historical_process_create' company.pk %}"
+         class="btn btn-outline-dark">
+        <i data-feather="archive"></i>
+        Add historical process
+      </a>
+    </div>
   </div>
 
   <div class="table-responsive">
@@ -39,15 +49,25 @@
                 {{ p.name|default:"Untitled process" }}
               </a>
 
-              {% if p.labels.all %}
-                <div class="talena-pill-group mt-1">
+              <div class="talena-pill-group mt-1">
+                {% if p.is_historical %}
+                  <span class="talena-pill talena-pill-soft">
+                    Historical
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-purple">
+                    Live
+                  </span>
+                {% endif %}
+
+                {% if p.labels.all %}
                   {% for label in p.labels.all %}
                     <span class="talena-pill talena-pill-soft">
                       {{ label.name }}
                     </span>
                   {% endfor %}
-                </div>
-              {% endif %}
+                {% endif %}
+              </div>
             </td>
 
             <td class="text-muted">
@@ -55,9 +75,15 @@
             </td>
 
             <td>
-              <span class="talena-pill talena-pill-purple">
-                {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-              </span>
+              {% if p.is_historical %}
+                <span class="talena-pill talena-pill-soft">
+                  {{ p.project_name_snapshot|default:p.sova_project_name|default:"Historical SOVA process" }}
+                </span>
+              {% else %}
+                <span class="talena-pill talena-pill-purple">
+                  {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
+                </span>
+              {% endif %}
             </td>
 
             <td>

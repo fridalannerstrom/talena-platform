@@ -20,6 +20,22 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from apps.processes.forms import (
+    TestProcessWizardCreateForm,
+    HistoricalTestProcessForm,
+    HistoricalCandidateForm,
+)
+
+from apps.processes.services.process_recommendations import (
+    PROCESS_PURPOSES,
+    AVAILABLE_TESTS,
+    PURPOSE_RECOMMENDED_TESTS,
+    resolve_dev_sova_template,
+    build_default_process_name,
+)
+
+from apps.processes.forms import HistoricalTestProcessForm, HistoricalCandidateForm
+
 from datetime import datetime, date, time
 from apps.activity.services import log_event
 
@@ -2361,6 +2377,10 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
 def admin_process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    if process.is_historical or not process.sova_sync_enabled:
+        messages.error(request, "This is a historical process and cannot send SOVA invitations.")
+        return redirect("accounts:admin_process_detail", pk=process.pk)
+
     if request.method != "POST":
         return redirect("accounts:admin_process_detail", pk=process.pk)
 
@@ -2758,3 +2778,447 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         "admin/accounts/companies/company_candidate_detail.html",
         ctx,
     )
+
+
+@login_required
+@admin_required
+def company_historical_process_create(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    if request.method == "POST":
+        form = HistoricalTestProcessForm(request.POST, company=company)
+
+        if form.is_valid():
+            process = form.save(commit=False)
+
+            process.company = company
+            process.provider = "sova"
+
+            process.source = "sova_import"
+            process.is_historical = True
+            process.sova_sync_enabled = False
+
+            process.account_code = "HIST"
+            process.project_code = f"HIST-{company.id}-{uuid.uuid4().hex[:8]}"
+
+            process.project_name_snapshot = (
+                process.sova_project_name
+                or process.name
+                or process.project_code
+            )
+
+            process.created_by = request.user
+            process.created_by_admin = request.user
+
+            process.save()
+            form.save_m2m()
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=process,
+                meta={
+                    "source": "sova_import",
+                    "is_historical": True,
+                    "process_name": process.name,
+                    "sova_account_name": process.sova_account_name,
+                    "sova_project_name": process.sova_project_name,
+                },
+            )
+
+            messages.success(request, "Historical test process created.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=process.pk,
+            )
+
+        messages.error(request, "Could not create historical process. Check the form fields.")
+
+    else:
+        form = HistoricalTestProcessForm(company=company)
+
+    return render(request, "admin/accounts/companies/company_historical_process_form.html", {
+        "company": company,
+        "form": form,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })
+
+@login_required
+@admin_required
+def company_historical_candidate_add(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+        is_historical=True,
+    )
+
+    if request.method == "POST":
+        form = HistoricalCandidateForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            email = form.cleaned_data["email"].strip().lower()
+
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    "first_name": form.cleaned_data["first_name"],
+                    "last_name": form.cleaned_data["last_name"],
+                }
+            )
+
+            if not created:
+                changed_fields = []
+
+                if form.cleaned_data["first_name"] and not candidate.first_name:
+                    candidate.first_name = form.cleaned_data["first_name"]
+                    changed_fields.append("first_name")
+
+                if form.cleaned_data["last_name"] and not candidate.last_name:
+                    candidate.last_name = form.cleaned_data["last_name"]
+                    changed_fields.append("last_name")
+
+                if changed_fields:
+                    candidate.save(update_fields=changed_fields)
+
+            invitation, inv_created = TestInvitation.objects.get_or_create(
+                process=process,
+                candidate=candidate,
+                defaults={
+                    "source": "historical",
+                    "status": form.cleaned_data["status"],
+                    "invited_by": request.user,
+                    "completed_at": form.cleaned_data.get("completed_at"),
+                },
+            )
+
+            invitation.source = "historical"
+            invitation.status = form.cleaned_data["status"]
+            invitation.completed_at = form.cleaned_data.get("completed_at")
+            invitation.sova_candidate_id = form.cleaned_data.get("sova_candidate_id") or ""
+            invitation.historical_report_url = form.cleaned_data.get("historical_report_url") or ""
+            invitation.historical_notes = form.cleaned_data.get("historical_notes") or ""
+
+            if form.cleaned_data.get("historical_report_file"):
+                invitation.historical_report_file = form.cleaned_data["historical_report_file"]
+
+            invitation.save()
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                actor=request.user,
+                process=process,
+                candidate=candidate,
+                invitation=invitation,
+                meta={
+                    "source": "historical",
+                    "sova_candidate_id": invitation.sova_candidate_id,
+                },
+            )
+
+            messages.success(request, "Historical candidate added.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=process.pk,
+            )
+
+        messages.error(request, "Could not add historical candidate. Check the form fields.")
+
+    else:
+        form = HistoricalCandidateForm()
+
+    return render(request, "admin/accounts/companies/company_historical_candidate_form.html", {
+        "company": company,
+        "process": process,
+        "form": form,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })
+
+def get_template_icon_class(tests, title=""):
+    """
+    Returns a FontAwesome icon class based on the test types/title.
+    Used when displaying SOVA project/template cards.
+    """
+    text = " ".join(tests).lower()
+    title = (title or "").lower()
+
+    if "360" in text or "360" in title:
+        return "fa-solid fa-arrows-rotate"
+
+    if (
+        "numerical" in text
+        or "numerisk" in text
+        or "färdighet" in text
+        or "fardighet" in text
+        or "ability" in text
+        or "skills" in text
+    ):
+        return "fa-solid fa-chart-simple"
+
+    if (
+        "personality" in text
+        or "personlighet" in text
+        or "pq" in title
+    ):
+        return "fa-solid fa-user-check"
+
+    if (
+        "motivation" in text
+        or "motivationstest" in text
+        or "mq" in title
+    ):
+        return "fa-solid fa-bullseye"
+
+    if "leadership" in text or "ledarskap" in text:
+        return "fa-solid fa-award"
+
+    if "sales" in text or "sälj" in title or "salj" in title:
+        return "fa-solid fa-handshake"
+
+    if "admin" in text or "interim" in text or "interim" in title:
+        return "fa-solid fa-briefcase"
+
+    if "modern" in title:
+        return "fa-solid fa-wand-magic-sparkles"
+
+    if "linear" in title:
+        return "fa-solid fa-wave-square"
+
+    if "ihp" in title:
+        return "fa-solid fa-layer-group"
+
+    return "fa-solid fa-layer-group"
+
+
+@login_required
+@admin_required
+def company_process_create(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    client = SovaClient()
+    error = None
+
+    # --------------------------------------------------
+    # 1. Hämta SOVA-projekt från API
+    # --------------------------------------------------
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    project_id_map = {}
+    template_cards = []
+
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
+
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = project.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+            title = getattr(meta, "intern_name", None) or sova_name
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": project.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    # --------------------------------------------------
+    # 3. POST: skapa processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST)
+
+        if form.is_valid():
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+            name = (form.cleaned_data.get("name") or "").strip()
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            if not name:
+                name = build_default_process_name(
+                    purpose=purpose,
+                    selected_tests=selected_tests,
+                )
+
+            resolved_template = resolve_dev_sova_template(selected_tests)
+
+            if not resolved_template:
+                form.add_error(
+                    "selected_tests",
+                    "Please select a valid test combination. No matching SOVA project/template was found."
+                )
+
+                return render(request, "admin/accounts/companies/company_process_create.html", {
+                    "company": company,
+                    "form": form,
+                    "error": error,
+                    "process_purposes": PROCESS_PURPOSES,
+                    "available_tests": AVAILABLE_TESTS,
+                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                    "active": "processes",
+                    "show_invite_button": True,
+                    "invite_form": CompanyInviteMemberForm(),
+                })
+
+            acc = (resolved_template["account_code"] or "").strip()
+            proj = (resolved_template["project_code"] or "").strip()
+            value = f"{acc}|{proj}"
+
+            # --------------------------------------------------
+            # 4. Välj org unit
+            # --------------------------------------------------
+            # Om adminformuläret senare får org_unit-fält kan vi läsa det där.
+            # Just nu väljer vi root/main unit för företaget.
+            main_unit = (
+                OrgUnit.objects
+                .filter(company=company, parent__isnull=True)
+                .order_by("id")
+                .first()
+            )
+
+            if not main_unit:
+                main_unit = get_or_create_main_org_unit(company)
+
+            obj = TestProcess(
+                name=name,
+                company=company,
+                org_unit=main_unit,
+                provider="sova",
+                account_code=acc,
+                project_code=proj,
+                created_by=request.user,
+                created_by_admin=request.user,
+                purpose=purpose,
+                selected_tests=selected_tests,
+                source="talena",
+                is_historical=False,
+                sova_sync_enabled=True,
+            )
+
+            meta = meta_map.get((acc, proj))
+
+            if meta and getattr(meta, "intern_name", None):
+                obj.project_name_snapshot = meta.intern_name
+            else:
+                match = next(
+                    (t for t in template_cards if t["value"] == value),
+                    None
+                )
+                obj.project_name_snapshot = (
+                    match["sova_name"] if match else proj
+                )
+
+            obj.save()
+
+            if label_names:
+                label_objs = []
+
+                for label_name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company=company,
+                        name=label_name,
+                    )
+                    label_objs.append(lab)
+
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={
+                    "source": "talena_admin_company_create",
+                    "process_name": obj.name,
+                    "purpose": obj.purpose,
+                    "selected_tests": obj.selected_tests,
+                    "resolved_sova_template": value,
+                    "sova_project_id": project_id_map.get(value),
+                },
+            )
+
+            messages.success(request, "SOVA process created.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=obj.pk,
+            )
+
+        messages.error(request, "Could not create SOVA process. Check the form fields.")
+
+    else:
+        form = TestProcessWizardCreateForm()
+
+    return render(request, "admin/accounts/companies/company_process_create.html", {
+        "company": company,
+        "form": form,
+        "error": error,
+        "process_purposes": PROCESS_PURPOSES,
+        "available_tests": AVAILABLE_TESTS,
+        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })

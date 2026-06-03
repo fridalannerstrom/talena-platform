@@ -1,0 +1,154 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+{% load static %}
+
+{# Add historical test process #}
+
+{% block company_content %}
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">Add historical process</div>
+      <div class="text-muted small">
+        Store an old SOVA process for {{ company.name }} without sending live SOVA invitations.
+      </div>
+    </div>
+
+    <a href="{% url 'accounts:company_processes' company.pk %}"
+       class="btn btn-outline-secondary">
+      Cancel
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="card-body">
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="row g-4">
+
+        <div class="col-12 col-lg-7">
+          <div class="talena-form-section">
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ form.name.id_for_label }}">
+                Process name
+              </label>
+              {{ form.name }}
+
+              {% if form.name.errors %}
+                <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+              {% endif %}
+
+              <div class="form-text">
+                Example: TT Sweden Numerisk och Verbal.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="{{ form.org_unit.id_for_label }}">
+                Account / unit
+              </label>
+              {{ form.org_unit }}
+
+              {% if form.org_unit.errors %}
+                <div class="text-danger small mt-1">{{ form.org_unit.errors }}</div>
+              {% endif %}
+
+              <div class="form-text">
+                Choose which account/unit this historical process belongs to.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                Included tests
+              </label>
+
+              <div class="talena-checkbox-grid">
+                {% for checkbox in form.selected_tests %}
+                  <label class="talena-check-card">
+                    {{ checkbox.tag }}
+                    <span>{{ checkbox.choice_label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+
+              {% if form.selected_tests.errors %}
+                <div class="text-danger small mt-1">{{ form.selected_tests.errors }}</div>
+              {% endif %}
+
+              <div class="form-text">
+                Select the tests that were included in the original SOVA project.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="talena-form-section bg-light rounded-4 p-3">
+            <div class="fw-semibold mb-2">Original SOVA information</div>
+            <div class="text-muted small mb-3">
+              Optional reference information from the old SOVA setup.
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.sova_account_name.id_for_label }}">
+                Original SOVA account name
+              </label>
+              {{ form.sova_account_name }}
+
+              {% if form.sova_account_name.errors %}
+                <div class="text-danger small mt-1">{{ form.sova_account_name.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.sova_project_name.id_for_label }}">
+                Original SOVA project name
+              </label>
+              {{ form.sova_project_name }}
+
+              {% if form.sova_project_name.errors %}
+                <div class="text-danger small mt-1">{{ form.sova_project_name.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-0">
+              <label class="form-label" for="{{ form.sova_import_notes.id_for_label }}">
+                Notes
+              </label>
+              {{ form.sova_import_notes }}
+
+              {% if form.sova_import_notes.errors %}
+                <div class="text-danger small mt-1">{{ form.sova_import_notes.errors }}</div>
+              {% endif %}
+
+              <div class="form-text">
+                Add anything useful about the old process, for example old naming, structure or missing data.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-end gap-2">
+      <a href="{% url 'accounts:company_processes' company.pk %}"
+         class="btn btn-outline-secondary">
+        Cancel
+      </a>
+
+      <button type="submit" class="btn btn-dark">
+        Save historical process
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

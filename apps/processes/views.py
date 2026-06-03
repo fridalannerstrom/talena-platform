@@ -2670,6 +2670,10 @@ def remove_candidate_from_process(request, process_id, candidate_id):
 def process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    if process.is_historical or not process.sova_sync_enabled:
+        messages.error(request, "This is a historical process and cannot send SOVA invitations.")
+        return redirect("processes:process_detail", pk=process.pk)
+
     company = get_company_for_user(request.user)
     if not company or process.company_id != company.id:
         return HttpResponseForbidden("No access.")

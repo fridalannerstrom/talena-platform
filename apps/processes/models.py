@@ -67,6 +67,38 @@ class TestProcess(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    SOURCE_CHOICES = (
+        ("talena", "Created in Talena"),
+        ("sova_import", "Imported from SOVA"),
+    )
+
+    source = models.CharField(
+        max_length=50,
+        choices=SOURCE_CHOICES,
+        default="talena",
+    )
+
+    is_historical = models.BooleanField(default=False)
+
+    sova_sync_enabled = models.BooleanField(default=True)
+
+    sova_account_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    sova_project_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    sova_import_notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -127,6 +159,7 @@ class TestInvitation(models.Model):
     SOURCE_CHOICES = [
         ("invited", "Invited"),
         ("self_registered", "Self-registered"),
+        ("historical", "Historical"),
     ]
 
     def status_label(self):
@@ -172,6 +205,31 @@ class TestInvitation(models.Model):
     ai_summary = models.TextField(blank=True, default="")
     ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
     ai_summary_status = models.CharField(max_length=30, blank=True, default="not_started")
+    is_historical = models.BooleanField(default=False, db_index=True)
+
+    historical_report_file = models.FileField(
+        upload_to="historical_sova_reports/",
+        blank=True,
+        null=True,
+    )
+
+    historical_report_url = models.URLField(
+        blank=True,
+        default="",
+    )
+
+    historical_notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    sova_candidate_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    
 
 
     class Meta:

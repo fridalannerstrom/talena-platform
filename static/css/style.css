@@ -24708,6 +24708,20 @@ color: #6E63E3;
   justify-content: center;
 }
 
+.talena-purpose-card {
+  border: 1px solid #e5e7eb;
+  transition: 0.15s ease;
+}
+
+.talena-purpose-card:hover {
+  border-color: #7c5cff;
+  background: #f7f4ff;
+}
+
+.talena-purpose-card input[type="radio"]:checked + div .fw-semibold {
+  color: #6f4cff;
+}
+
 .role-match-note__icon svg {
   width: 1rem;
   height: 1rem;

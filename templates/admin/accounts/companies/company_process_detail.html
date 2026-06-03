@@ -61,6 +61,23 @@
   Self-registration
 </button>
 
+{% if process.is_historical %}
+  <div class="alert alert-secondary d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-semibold">Historical SOVA process</div>
+      <div class="small">
+        This process is stored as historical data only. It is not connected to live SOVA invitations.
+      </div>
+    </div>
+
+    <a href="{% url 'accounts:company_historical_candidate_add' company.pk process.pk %}"
+       class="btn btn-dark">
+      <i data-feather="user-plus"></i>
+      Add historical candidate
+    </a>
+  </div>
+{% endif %}
+
         <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
            class="btn btn-primary">
           Edit process

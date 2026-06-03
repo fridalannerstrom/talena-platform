@@ -1,6 +1,7 @@
 from django import forms
 from .models import TestProcess, Candidate
 from .models import ProcessRoleContext
+from apps.accounts.models import OrgUnit
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
@@ -253,3 +254,91 @@ class ProcessRoleContextForm(forms.ModelForm):
 
                 if help_text:
                     self.fields[field_name].help_text = help_text
+
+
+class HistoricalTestProcessForm(forms.ModelForm):
+    TEST_CHOICES = (
+        ("personality", "Personality"),
+        ("motivation", "Motivation"),
+        ("verbal", "Verbal"),
+        ("logical", "Logical"),
+        ("numerical", "Numerical"),
+    )
+
+    selected_tests = forms.MultipleChoiceField(
+        choices=TEST_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Included tests",
+    )
+
+    class Meta:
+        model = TestProcess
+        fields = [
+            "name",
+            "org_unit",
+            "selected_tests",
+            "sova_account_name",
+            "sova_project_name",
+            "sova_import_notes",
+        ]
+
+        labels = {
+            "name": "Historical process name",
+            "org_unit": "Account / unit",
+            "sova_account_name": "Original SOVA account name",
+            "sova_project_name": "Original SOVA project name",
+            "sova_import_notes": "Notes",
+        }
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if company:
+            self.fields["org_unit"].queryset = OrgUnit.objects.filter(
+                company=company
+            ).order_by("name")
+        else:
+            self.fields["org_unit"].queryset = OrgUnit.objects.none()
+
+
+class HistoricalCandidateForm(forms.Form):
+    first_name = forms.CharField(max_length=255)
+    last_name = forms.CharField(max_length=255)
+    email = forms.EmailField(required=True)
+
+    status = forms.ChoiceField(
+        choices=(
+            ("completed", "Completed"),
+            ("started", "Started"),
+            ("created", "Created / unknown"),
+        ),
+        initial="completed",
+    )
+
+    completed_at = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+
+    sova_candidate_id = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Original SOVA candidate ID",
+    )
+
+    historical_report_file = forms.FileField(
+        required=False,
+        label="Original SOVA report PDF",
+    )
+
+    historical_report_url = forms.URLField(
+        required=False,
+        label="SOVA report link",
+    )
+
+    historical_notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea,
+        label="Notes",
+    )
