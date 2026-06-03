@@ -123,43 +123,52 @@
 
         <div class="col-12 col-lg-6">
           <div class="talena-form-section bg-light rounded-4 p-3">
-            <div class="fw-semibold mb-2">Original report</div>
-            <div class="text-muted small mb-3">
-              Upload the original SOVA report or add a link if the report should remain in SOVA for now.
-            </div>
+            <div class="col-12 col-lg-6">
+  <div class="talena-form-section bg-light rounded-4 p-3">
+    <div class="fw-semibold mb-2">Historical reports</div>
 
-            <div class="mb-3">
-              <label class="form-label" for="{{ form.historical_report_file.id_for_label }}">
-                Original SOVA report PDF
-              </label>
-              {{ form.historical_report_file }}
+    <div class="text-muted small mb-3">
+      Upload one or more original SOVA PDF reports for this candidate.
+      Talena will save each PDF as a separate report and use the filename as the report name.
+    </div>
 
-              {% if form.historical_report_file.errors %}
-                <div class="text-danger small mt-1">{{ form.historical_report_file.errors }}</div>
-              {% endif %}
-            </div>
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.historical_reports.id_for_label }}">
+        SOVA report PDFs
+      </label>
 
-            <div class="mb-3">
-              <label class="form-label" for="{{ form.historical_report_url.id_for_label }}">
-                SOVA report link
-              </label>
-              {{ form.historical_report_url }}
+      {{ form.historical_reports }}
 
-              {% if form.historical_report_url.errors %}
-                <div class="text-danger small mt-1">{{ form.historical_report_url.errors }}</div>
-              {% endif %}
-            </div>
+      {% if form.historical_reports.errors %}
+        <div class="text-danger small mt-1">
+          {{ form.historical_reports.errors }}
+        </div>
+      {% endif %}
 
-            <div class="mb-0">
-              <label class="form-label" for="{{ form.historical_notes.id_for_label }}">
-                Notes
-              </label>
-              {{ form.historical_notes }}
+      <div class="form-text">
+        You can select several PDF files at once.
+      </div>
+    </div>
 
-              {% if form.historical_notes.errors %}
-                <div class="text-danger small mt-1">{{ form.historical_notes.errors }}</div>
-              {% endif %}
-            </div>
+    <div class="mb-0">
+      <label class="form-label" for="{{ form.historical_notes.id_for_label }}">
+        Notes
+      </label>
+
+      {{ form.historical_notes }}
+
+      {% if form.historical_notes.errors %}
+        <div class="text-danger small mt-1">
+          {{ form.historical_notes.errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-text">
+        Optional internal notes about this historical candidate or the uploaded reports.
+      </div>
+    </div>
+  </div>
+</div>
           </div>
         </div>
 

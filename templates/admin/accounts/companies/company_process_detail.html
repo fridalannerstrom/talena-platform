@@ -279,8 +279,6 @@
     </div>
   </div>
 </div>
-
-
 {# ------------------------------------------------------------------ #}
 {# Candidates table #}
 {# ------------------------------------------------------------------ #}
@@ -295,7 +293,7 @@
     </div>
 
     <span class="badge bg-light text-dark">
-      {{ invitations|length }} candidates
+      {{ kpis.total_candidates }} candidates
     </span>
   </div>
 
@@ -306,78 +304,139 @@
           <th>Name</th>
           <th>Email</th>
           <th>Status</th>
-          <th>Invited</th>
-          <th>Completed</th>
+
+          {% if process.is_historical %}
+            <th>Added</th>
+          {% else %}
+            <th>Invited</th>
+            <th>Completed</th>
+          {% endif %}
         </tr>
       </thead>
 
       <tbody>
-        {% for inv in invitations %}
-          <tr>
-            <td>
-              {% if inv.candidate %}
-                <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
-                   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-                   data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
-                   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
-                  {{ inv.candidate.name|default:inv.candidate.email }}
-                </a>
-              {% else %}
-                <span class="text-muted">Unknown candidate</span>
-              {% endif %}
-            </td>
+        {% if process.is_historical %}
 
-            <td class="text-muted">
-              {{ inv.candidate.email|default:"-" }}
-            </td>
+          {% for record in historical_candidates %}
+            <tr>
+<td>
+  <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.pk %}"
+     class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+     data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.pk %}"
+     data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}">
+    {% if record.candidate.first_name or record.candidate.last_name %}
+      {{ record.candidate.first_name }} {{ record.candidate.last_name }}
+    {% else %}
+      {{ record.candidate.email|default:"Unnamed candidate" }}
+    {% endif %}
+  </a>
+</td>
 
-            <td>
-              {% if inv.status == "completed" %}
-                <span class="talena-pill talena-pill-success">
-                  <span class="talena-pill-dot"></span>
-                  Completed
-                </span>
-              {% elif inv.status == "started" %}
-                <span class="talena-pill talena-pill-purple">
-                  <span class="talena-pill-dot"></span>
-                  Started
-                </span>
-              {% elif inv.status == "sent" %}
-                <span class="talena-pill talena-pill-soft">
-                  <span class="talena-pill-dot"></span>
-                  Sent
-                </span>
-              {% else %}
-                <span class="talena-pill talena-pill-warning">
-                  <span class="talena-pill-dot"></span>
-                  {{ inv.status|default:"Created"|title }}
-                </span>
-              {% endif %}
-            </td>
+              <td class="text-muted">
+                {{ record.candidate.email|default:"-" }}
+              </td>
 
-            <td class="text-muted text-nowrap">
-              {% if inv.created_at %}
-                {{ inv.created_at|date:"Y-m-d H:i" }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
+              <td>
+                {% if record.status == "completed" %}
+                  <span class="talena-pill talena-pill-success">
+                    <span class="talena-pill-dot"></span>
+                    Completed
+                  </span>
+                {% elif record.status == "started" %}
+                  <span class="talena-pill talena-pill-purple">
+                    <span class="talena-pill-dot"></span>
+                    Started
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-soft">
+                    <span class="talena-pill-dot"></span>
+                    {{ record.get_status_display|default:"Created / unknown" }}
+                  </span>
+                {% endif %}
+              </td>
 
-            <td class="text-muted text-nowrap">
-              {% if inv.completed_at %}
-                {{ inv.completed_at|date:"Y-m-d H:i" }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="text-muted p-3">
-              No candidates have been added to this process yet.
-            </td>
-          </tr>
-        {% endfor %}
+              <td class="text-muted text-nowrap">
+                {{ record.created_at|date:"Y-m-d H:i" }}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-muted p-3">
+                No historical candidates have been added to this process yet.
+              </td>
+            </tr>
+          {% endfor %}
+
+        {% else %}
+
+          {% for inv in invitations %}
+            <tr>
+              <td>
+                {% if inv.candidate %}
+                  <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
+                     class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+                     data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
+                     data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+                    {{ inv.candidate.name|default:inv.candidate.email }}
+                  </a>
+                {% else %}
+                  <span class="text-muted">Unknown candidate</span>
+                {% endif %}
+              </td>
+
+              <td class="text-muted">
+                {{ inv.candidate.email|default:"-" }}
+              </td>
+
+              <td>
+                {% if inv.status == "completed" %}
+                  <span class="talena-pill talena-pill-success">
+                    <span class="talena-pill-dot"></span>
+                    Completed
+                  </span>
+                {% elif inv.status == "started" %}
+                  <span class="talena-pill talena-pill-purple">
+                    <span class="talena-pill-dot"></span>
+                    Started
+                  </span>
+                {% elif inv.status == "sent" %}
+                  <span class="talena-pill talena-pill-soft">
+                    <span class="talena-pill-dot"></span>
+                    Sent
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-warning">
+                    <span class="talena-pill-dot"></span>
+                    {{ inv.status|default:"Created"|title }}
+                  </span>
+                {% endif %}
+              </td>
+
+              <td class="text-muted text-nowrap">
+                {% if inv.created_at %}
+                  {{ inv.created_at|date:"Y-m-d H:i" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+
+              <td class="text-muted text-nowrap">
+                {% if inv.completed_at %}
+                  {{ inv.completed_at|date:"Y-m-d H:i" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-muted p-3">
+                No candidates have been added to this process yet.
+              </td>
+            </tr>
+          {% endfor %}
+
+        {% endif %}
       </tbody>
     </table>
   </div>

@@ -18,6 +18,10 @@ from django.http import StreamingHttpResponse, JsonResponse
 from apps.accounts.utils.org_access import get_accessible_orgunit_ids
 from .purpose_context_config import get_purpose_context_config
 
+import os
+from django.conf import settings
+from django.db import models
+
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
 from django.db.models import Count, Q
@@ -29,7 +33,6 @@ from apps.accounts.utils.org_access import get_effective_orgunit_permissions, us
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
-from .purpose_context_config import get_purpose_context_config
 
 import json
 import uuid

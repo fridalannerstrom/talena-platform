@@ -20,6 +20,15 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from apps.processes.models import (
+    Candidate,
+    TestProcess,
+    TestInvitation,
+    HistoricalProcessCandidate,
+)
+
+from apps.processes.models import HistoricalCandidateReport
+
 from django.views.decorators.http import require_POST
 
 from apps.processes.forms import (
@@ -2679,24 +2688,39 @@ def company_process_detail(request, company_pk, process_pk):
         .order_by("-created_at")
     )
 
-    total_candidates = invitations.count()
+    historical_candidates = (
+        HistoricalProcessCandidate.objects
+        .filter(process=process)
+        .select_related("candidate", "created_by")
+        .prefetch_related("reports")
+        .order_by("-created_at")
+    )
 
-    invited_count = invitations.filter(
-        Q(status__in=["sent", "started", "completed", "expired"]) |
-        Q(invited_at__isnull=False)
-    ).distinct().count()
+    if process.is_historical:
+        total_candidates = historical_candidates.count()
+        invited_count = 0
+        started_count = historical_candidates.filter(status="started").count()
+        completed_count = historical_candidates.filter(status="completed").count()
+        expired_count = 0
+    else:
+        total_candidates = invitations.count()
 
-    started_count = invitations.filter(
-        status__in=["started", "completed"]
-    ).count()
+        invited_count = invitations.filter(
+            Q(status__in=["sent", "started", "completed", "expired"]) |
+            Q(invited_at__isnull=False)
+        ).distinct().count()
 
-    completed_count = invitations.filter(
-        status="completed"
-    ).count()
+        started_count = invitations.filter(
+            status__in=["started", "completed"]
+        ).count()
 
-    expired_count = invitations.filter(
-        status="expired"
-    ).count()
+        completed_count = invitations.filter(
+            status="completed"
+        ).count()
+
+        expired_count = invitations.filter(
+            status="expired"
+        ).count()
 
     kpis = {
         "total_candidates": total_candidates,
@@ -2727,6 +2751,7 @@ def company_process_detail(request, company_pk, process_pk):
         "company": company,
         "process": process,
         "invitations": invitations,
+        "historical_candidates": historical_candidates,
         "kpis": kpis,
         "self_reg_url": self_reg_url,
 
@@ -2747,26 +2772,53 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         company=company,
     )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate", "process"),
-        process=process,
-        candidate_id=candidate_pk,
-    )
+    candidate = get_object_or_404(Candidate, pk=candidate_pk)
 
-    ctx = build_candidate_detail_context(
-        process=process,
-        invitation=invitation,
-    )
+    if process.is_historical:
+        historical_candidate = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process", "created_by")
+            .prefetch_related("reports"),
+            process=process,
+            candidate=candidate,
+        )
 
-    ctx.update({
-        "company": company,
-        "process": process,
-        "active": "processes",
-        "show_invite_button": True,
-        "invite_form": CompanyInviteMemberForm(),
-        "is_admin_view": True,
-        "is_company_view": True,
-    })
+        ctx = {
+            "company": company,
+            "process": process,
+            "candidate": candidate,
+            "historical_candidate": historical_candidate,
+            "historical_reports": historical_candidate.reports.all(),
+            "is_historical": True,
+            "active": "processes",
+            "show_invite_button": True,
+            "invite_form": CompanyInviteMemberForm(),
+            "is_admin_view": True,
+            "is_company_view": True,
+        }
+
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate", "process"),
+            process=process,
+            candidate_id=candidate_pk,
+        )
+
+        ctx = build_candidate_detail_context(
+            process=process,
+            invitation=invitation,
+        )
+
+        ctx.update({
+            "company": company,
+            "process": process,
+            "active": "processes",
+            "show_invite_button": True,
+            "invite_form": CompanyInviteMemberForm(),
+            "is_admin_view": True,
+            "is_company_view": True,
+            "is_historical": False,
+        })
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(
@@ -2780,7 +2832,6 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         "admin/accounts/companies/company_candidate_detail.html",
         ctx,
     )
-
 
 @login_required
 @admin_required
@@ -2889,28 +2940,30 @@ def company_historical_candidate_add(request, company_pk, process_pk):
                 if changed_fields:
                     candidate.save(update_fields=changed_fields)
 
-            invitation, inv_created = TestInvitation.objects.get_or_create(
+            historical_candidate, record_created = HistoricalProcessCandidate.objects.get_or_create(
                 process=process,
                 candidate=candidate,
                 defaults={
-                    "source": "historical",
                     "status": form.cleaned_data["status"],
-                    "invited_by": request.user,
-                    "completed_at": form.cleaned_data.get("completed_at"),
+                    "notes": form.cleaned_data.get("historical_notes") or "",
+                    "created_by": request.user,
                 },
             )
 
-            invitation.source = "historical"
-            invitation.status = form.cleaned_data["status"]
-            invitation.completed_at = form.cleaned_data.get("completed_at")
-            invitation.sova_candidate_id = form.cleaned_data.get("sova_candidate_id") or ""
-            invitation.historical_report_url = form.cleaned_data.get("historical_report_url") or ""
-            invitation.historical_notes = form.cleaned_data.get("historical_notes") or ""
+            historical_candidate.status = form.cleaned_data["status"]
+            historical_candidate.notes = form.cleaned_data.get("historical_notes") or ""
+            historical_candidate.save(update_fields=["status", "notes"])
 
-            if form.cleaned_data.get("historical_report_file"):
-                invitation.historical_report_file = form.cleaned_data["historical_report_file"]
+            uploaded_reports = form.cleaned_data.get("historical_reports") or []
 
-            invitation.save()
+            for uploaded_file in uploaded_reports:
+                HistoricalCandidateReport.objects.create(
+                    historical_candidate=historical_candidate,
+                    title=uploaded_file.name,
+                    original_filename=uploaded_file.name,
+                    file=uploaded_file,
+                    uploaded_by=request.user,
+                )
 
             log_event(
                 company=company,
@@ -2918,14 +2971,21 @@ def company_historical_candidate_add(request, company_pk, process_pk):
                 actor=request.user,
                 process=process,
                 candidate=candidate,
-                invitation=invitation,
                 meta={
                     "source": "historical",
-                    "sova_candidate_id": invitation.sova_candidate_id,
+                    "record_created": record_created,
+                    "uploaded_reports": len(uploaded_reports),
                 },
             )
 
-            messages.success(request, "Historical candidate added.")
+            if uploaded_reports:
+                messages.success(
+                    request,
+                    f"Historical candidate added with {len(uploaded_reports)} report(s)."
+                )
+            else:
+                messages.success(request, "Historical candidate added.")
+
             return redirect(
                 "accounts:company_process_detail",
                 company_pk=company.pk,
@@ -3365,3 +3425,4 @@ def company_process_delete(request, company_pk, process_pk):
         "accounts:company_processes",
         pk=company.pk,
     )
+

@@ -302,6 +302,23 @@ class HistoricalTestProcessForm(forms.ModelForm):
             self.fields["org_unit"].queryset = OrgUnit.objects.none()
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(file, initial) for file in data]
+
+        if data:
+            return [single_file_clean(data, initial)]
+
+        return []
+
+
 class HistoricalCandidateForm(forms.Form):
     first_name = forms.CharField(max_length=255)
     last_name = forms.CharField(max_length=255)
@@ -316,25 +333,14 @@ class HistoricalCandidateForm(forms.Form):
         initial="completed",
     )
 
-    completed_at = forms.DateTimeField(
+    historical_reports = MultipleFileField(
+        label="Historical SOVA report PDFs",
+        widget=MultipleFileInput(attrs={
+            "multiple": True,
+            "accept": "application/pdf",
+            "class": "form-control",
+        }),
         required=False,
-        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
-    )
-
-    sova_candidate_id = forms.CharField(
-        max_length=255,
-        required=False,
-        label="Original SOVA candidate ID",
-    )
-
-    historical_report_file = forms.FileField(
-        required=False,
-        label="Original SOVA report PDF",
-    )
-
-    historical_report_url = forms.URLField(
-        required=False,
-        label="SOVA report link",
     )
 
     historical_notes = forms.CharField(
@@ -342,3 +348,24 @@ class HistoricalCandidateForm(forms.Form):
         widget=forms.Textarea,
         label="Notes",
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            if name == "historical_reports":
+                continue
+
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.setdefault("class", "form-select")
+            else:
+                field.widget.attrs.setdefault("class", "form-control")
+
+    def clean_historical_reports(self):
+        files = self.cleaned_data.get("historical_reports") or []
+
+        for file in files:
+            if file.content_type != "application/pdf":
+                raise forms.ValidationError("Only PDF files are allowed.")
+
+        return files

@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import TestInvitation
 
+from .models import HistoricalProcessCandidate, HistoricalCandidateReport
+
 
 @admin.register(TestInvitation)
 class TestInvitationAdmin(admin.ModelAdmin):
@@ -38,4 +40,66 @@ class TestInvitationAdmin(admin.ModelAdmin):
         ("Webhook debug (latest payload)", {"fields": ("sova_payload",)}),
         ("Results", {"fields": ("overall_score", "project_results")}),
         ("Timestamps", {"fields": ("created_at", "invited_at", "completed_at")}),
+    )
+
+
+@admin.register(HistoricalProcessCandidate)
+class HistoricalProcessCandidateAdmin(admin.ModelAdmin):
+    list_display = (
+        "candidate",
+        "process",
+        "status",
+        "created_by",
+        "created_at",
+    )
+    list_filter = (
+        "status",
+        "process__company",
+        "process",
+        "created_at",
+    )
+    search_fields = (
+        "candidate__first_name",
+        "candidate__last_name",
+        "candidate__email",
+        "process__name",
+        "notes",
+    )
+    raw_id_fields = (
+        "process",
+        "candidate",
+        "created_by",
+    )
+    readonly_fields = (
+        "created_at",
+    )
+
+
+@admin.register(HistoricalCandidateReport)
+class HistoricalCandidateReportAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "historical_candidate",
+        "uploaded_by",
+        "uploaded_at",
+    )
+    list_filter = (
+        "uploaded_at",
+        "historical_candidate__process__company",
+        "historical_candidate__process",
+    )
+    search_fields = (
+        "title",
+        "original_filename",
+        "historical_candidate__candidate__first_name",
+        "historical_candidate__candidate__last_name",
+        "historical_candidate__candidate__email",
+        "historical_candidate__process__name",
+    )
+    autocomplete_fields = (
+        "historical_candidate",
+        "uploaded_by",
+    )
+    readonly_fields = (
+        "uploaded_at",
     )
