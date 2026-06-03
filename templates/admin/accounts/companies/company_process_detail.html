@@ -2,6 +2,7 @@
 
 {% block company_content %}
 
+
 {# ------------------------------------------------------------------ #}
 {# Back link #}
 {# ------------------------------------------------------------------ #}
@@ -25,12 +26,28 @@
       <div class="min-w-0">
 
         <div class="d-flex flex-wrap gap-2 mb-3">
-          <span class="process-label">
-            {{ process.project_name_snapshot|default:process.project_code|default:"Assessment" }}
-          </span>
+          {% if process.is_archived %}
+            <span class="talena-pill talena-pill-soft">
+              Archived
+            </span>
+          {% elif process.is_historical %}
+            <span class="talena-pill talena-pill-soft">
+              Historical
+            </span>
+            <span class="talena-pill talena-pill-soft">
+              Manual data
+            </span>
+          {% else %}
+            <span class="talena-pill talena-pill-purple">
+              Active
+            </span>
+            <span class="talena-pill talena-pill-soft">
+              Live SOVA
+            </span>
+          {% endif %}
 
           {% for label in process.labels.all %}
-            <span class="process-label">
+            <span class="talena-pill talena-pill-soft">
               {{ label.name }}
             </span>
           {% endfor %}
@@ -51,81 +68,147 @@
       </div>
 
       <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
-            <a class="btn btn-outline-secondary"
-            href="{% url 'emails:admin_edit_company_process_invitation_template' company.pk process.pk %}">
+        {% if not process.is_historical %}
+          <a class="btn btn-outline-secondary"
+             href="{% url 'emails:admin_edit_company_process_invitation_template' company.pk process.pk %}">
             Email templates
-            </a>
+          </a>
 
-<button type="button"
-        class="btn btn-outline-secondary js-selfreg">
-  Self-registration
-</button>
+          <button type="button"
+                  class="btn btn-outline-secondary js-selfreg">
+            Self-registration
+          </button>
+        {% endif %}
 
-{% if process.is_historical %}
-  <div class="alert alert-secondary d-flex justify-content-between align-items-center">
-    <div>
-      <div class="fw-semibold">Historical SOVA process</div>
-      <div class="small">
-        This process is stored as historical data only. It is not connected to live SOVA invitations.
-      </div>
-    </div>
-
-    <a href="{% url 'accounts:company_historical_candidate_add' company.pk process.pk %}"
-       class="btn btn-dark">
-      <i data-feather="user-plus"></i>
-      Add historical candidate
-    </a>
-  </div>
-{% endif %}
+        {% if process.is_historical %}
+          <a href="{% url 'accounts:company_historical_candidate_add' company.pk process.pk %}"
+             class="btn btn-dark">
+            <i data-feather="user-plus"></i>
+            Add historical candidate
+          </a>
+        {% endif %}
 
         <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
-           class="btn btn-primary">
+           class="btn btn-dark">
           Edit process
         </a>
       </div>
     </div>
 
-    <div class="process-header-chips mt-3">
-      <div class="chip text-dark">
-        <div class="chip-label"><strong>Created by</strong></div>
-        <div class="chip-value">
+    {% if process.is_historical %}
+      <div class="alert alert-secondary mt-4 mb-0 d-flex align-items-start justify-content-between gap-3 flex-wrap">
+        <div>
+          <div class="fw-semibold">Historical SOVA process</div>
+          <div class="small">
+            This process is stored as historical data only. It is not connected to live SOVA invitations.
+          </div>
+        </div>
+
+        <a href="{% url 'accounts:company_historical_candidate_add' company.pk process.pk %}"
+           class="btn btn-outline-dark btn-sm">
+          <i data-feather="user-plus"></i>
+          Add candidate
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+
+{# ------------------------------------------------------------------ #}
+{# Process information #}
+{# ------------------------------------------------------------------ #}
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Created by</div>
+        <div class="fw-semibold">
           {% if process.created_by %}
             {{ process.created_by.get_full_name|default:process.created_by.email|default:process.created_by.username }}
           {% else %}
             Unknown
           {% endif %}
         </div>
-      </div>
 
-      <div class="chip text-dark">
-        <div class="chip-label"><strong>Account</strong></div>
-        <div class="chip-value">
+        {% if process.created_by_admin %}
+          <div class="small text-muted mt-1">
+            Admin: {{ process.created_by_admin.get_full_name|default:process.created_by_admin.email }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Account</div>
+        <div class="fw-semibold">
           {{ process.org_unit.name|default:"No account" }}
         </div>
       </div>
+    </div>
+  </div>
 
-      <div class="chip text-dark">
-        <div class="chip-label"><strong>Test template</strong></div>
-        <div class="chip-value">
-          {{ process.project_name_snapshot|default:process.project_code|default:"Not specified" }}
-        </div>
-      </div>
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">Tests</div>
 
-      <div class="chip text-dark">
-        <div class="chip-label"><strong>Self-registration</strong></div>
-        <div class="chip-value">
-          {% if self_reg_url %}
-            Available
+        <div class="talena-pill-group mt-1">
+          {% if process.selected_tests %}
+            {% for test in process.selected_tests %}
+              <span class="talena-pill talena-pill-soft">
+                {% if test == "personality" %}
+                  Personality
+                {% elif test == "motivation" %}
+                  Motivation
+                {% elif test == "verbal" %}
+                  Verbal
+                {% elif test == "logical" %}
+                  Logical
+                {% elif test == "numerical" %}
+                  Numerical
+                {% else %}
+                  {{ test }}
+                {% endif %}
+              </span>
+            {% endfor %}
           {% else %}
-            Not available
+            <span class="text-muted small">No tests selected</span>
           {% endif %}
         </div>
       </div>
     </div>
+  </div>
 
+  <div class="col-12 col-md-6 col-xl-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small">
+          {% if process.is_historical %}
+            Original SOVA project
+          {% else %}
+            SOVA project
+          {% endif %}
+        </div>
+
+        <div class="fw-semibold">
+          {{ process.project_name_snapshot|default:process.sova_project_name|default:process.project_code|default:"Not specified" }}
+        </div>
+
+        {% if process.sova_account_name %}
+          <div class="small text-muted mt-1">
+            Account: {{ process.sova_account_name }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
-
 
 {# ------------------------------------------------------------------ #}
 {# Funnel / KPI cards #}

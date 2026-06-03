@@ -83,6 +83,27 @@
   </div>
 </div>
 
+<div class="mb-4">
+  <label class="form-label fw-semibold" for="id_org_unit">
+    Account / unit
+  </label>
+
+  <select name="org_unit" id="id_org_unit" class="form-select" required>
+    <option value="">Select account / unit</option>
+
+    {% for unit in org_units %}
+      <option value="{{ unit.id }}"
+        {% if request.POST.org_unit == unit.id|stringformat:"s" %}selected{% endif %}>
+        {{ unit.name }}
+      </option>
+    {% endfor %}
+  </select>
+
+  <div class="form-text">
+    Choose where this process should be placed. This controls which customer users can access it.
+  </div>
+</div>
+
           {% if form.labels_text %}
             <div class="mb-4">
               <label class="form-label fw-semibold" for="{{ form.labels_text.id_for_label }}">

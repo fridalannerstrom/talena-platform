@@ -14,7 +14,7 @@
 
     <div class="d-flex align-items-center gap-2">
       <a href="{% url 'accounts:company_process_create' company.pk %}"
-         class="btn btn-primary">
+         class="btn btn-dark">
         <i data-feather="plus-circle"></i>
         Add SOVA process
       </a>
@@ -32,8 +32,9 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Status</th>
           <th>Account</th>
-          <th>Test package</th>
+          <th>Tests</th>
           <th>Candidates</th>
           <th>Created by</th>
           <th>Created</th>
@@ -49,23 +50,37 @@
                 {{ p.name|default:"Untitled process" }}
               </a>
 
-              <div class="talena-pill-group mt-1">
-                {% if p.is_historical %}
-                  <span class="talena-pill talena-pill-soft">
-                    Historical
-                  </span>
-                {% else %}
-                  <span class="talena-pill talena-pill-purple">
-                    Live
-                  </span>
-                {% endif %}
-
-                {% if p.labels.all %}
+              {% if p.labels.all %}
+                <div class="talena-pill-group mt-1">
                   {% for label in p.labels.all %}
                     <span class="talena-pill talena-pill-soft">
                       {{ label.name }}
                     </span>
                   {% endfor %}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="talena-pill-group">
+                {% if p.is_archived %}
+                  <span class="talena-pill talena-pill-soft">
+                    Archived
+                  </span>
+                {% elif p.is_historical %}
+                  <span class="talena-pill talena-pill-soft">
+                    Historical
+                  </span>
+                {% else %}
+                  <span class="talena-pill talena-pill-purple">
+                    Active
+                  </span>
+                {% endif %}
+
+                {% if not p.is_historical and p.sova_sync_enabled %}
+                  <span class="talena-pill talena-pill-soft">
+                    Live SOVA
+                  </span>
                 {% endif %}
               </div>
             </td>
@@ -75,15 +90,31 @@
             </td>
 
             <td>
-              {% if p.is_historical %}
-                <span class="talena-pill talena-pill-soft">
-                  {{ p.project_name_snapshot|default:p.sova_project_name|default:"Historical SOVA process" }}
-                </span>
-              {% else %}
-                <span class="talena-pill talena-pill-purple">
-                  {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-                </span>
-              {% endif %}
+              <div class="talena-pill-group">
+                {% if p.selected_tests %}
+                  {% for test in p.selected_tests %}
+                    <span class="talena-pill talena-pill-soft">
+                      {% if test == "personality" %}
+                        Personality
+                      {% elif test == "motivation" %}
+                        Motivation
+                      {% elif test == "verbal" %}
+                        Verbal
+                      {% elif test == "logical" %}
+                        Logical
+                      {% elif test == "numerical" %}
+                        Numerical
+                      {% else %}
+                        {{ test }}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted small">
+                    No tests selected
+                  </span>
+                {% endif %}
+              </div>
             </td>
 
             <td>
@@ -113,7 +144,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="6" class="text-muted p-3">
+            <td colspan="7" class="text-muted p-3">
               No test processes have been created for this company yet.
             </td>
           </tr>

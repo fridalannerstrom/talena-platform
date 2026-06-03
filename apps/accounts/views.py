@@ -3004,6 +3004,7 @@ def get_template_icon_class(tests, title=""):
 @admin_required
 def company_process_create(request, company_pk):
     company = get_object_or_404(Company, pk=company_pk)
+    org_units = OrgUnit.objects.filter(company=company).order_by("name")
 
     client = SovaClient()
     error = None
@@ -3069,6 +3070,21 @@ def company_process_create(request, company_pk):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
+    context_base = {
+        "company": company,
+        "error": error,
+        "org_units": org_units,
+        "process_purposes": PROCESS_PURPOSES,
+        "available_tests": AVAILABLE_TESTS,
+        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    }
+
     # --------------------------------------------------
     # 3. POST: skapa processen
     # --------------------------------------------------
@@ -3080,6 +3096,33 @@ def company_process_create(request, company_pk):
             selected_tests = form.cleaned_data.get("selected_tests") or []
             name = (form.cleaned_data.get("name") or "").strip()
             label_names = form.cleaned_data.get("labels_text") or []
+
+            # --------------------------------------------------
+            # 4. Välj org unit / account
+            # --------------------------------------------------
+            org_unit_id = request.POST.get("org_unit")
+
+            org_unit = None
+            if org_unit_id:
+                org_unit = OrgUnit.objects.filter(
+                    pk=org_unit_id,
+                    company=company,
+                ).first()
+
+            if not org_unit:
+                form.add_error(
+                    None,
+                    "Please select which account/unit this process belongs to."
+                )
+
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {
+                        **context_base,
+                        "form": form,
+                    },
+                )
 
             if isinstance(label_names, str):
                 label_names = [
@@ -3102,44 +3145,23 @@ def company_process_create(request, company_pk):
                     "Please select a valid test combination. No matching SOVA project/template was found."
                 )
 
-                return render(request, "admin/accounts/companies/company_process_create.html", {
-                    "company": company,
-                    "form": form,
-                    "error": error,
-                    "process_purposes": PROCESS_PURPOSES,
-                    "available_tests": AVAILABLE_TESTS,
-                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-                    "template_cards": template_cards,
-                    "templates_count": len(template_cards),
-                    "accounts_count": len(accounts),
-                    "active": "processes",
-                    "show_invite_button": True,
-                    "invite_form": CompanyInviteMemberForm(),
-                })
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {
+                        **context_base,
+                        "form": form,
+                    },
+                )
 
             acc = (resolved_template["account_code"] or "").strip()
             proj = (resolved_template["project_code"] or "").strip()
             value = f"{acc}|{proj}"
 
-            # --------------------------------------------------
-            # 4. Välj org unit
-            # --------------------------------------------------
-            # Om adminformuläret senare får org_unit-fält kan vi läsa det där.
-            # Just nu väljer vi root/main unit för företaget.
-            main_unit = (
-                OrgUnit.objects
-                .filter(company=company, parent__isnull=True)
-                .order_by("id")
-                .first()
-            )
-
-            if not main_unit:
-                main_unit = get_or_create_main_org_unit(company)
-
             obj = TestProcess(
                 name=name,
                 company=company,
-                org_unit=main_unit,
+                org_unit=org_unit,
                 provider="sova",
                 account_code=acc,
                 project_code=proj,
@@ -3191,6 +3213,8 @@ def company_process_create(request, company_pk):
                     "process_name": obj.name,
                     "purpose": obj.purpose,
                     "selected_tests": obj.selected_tests,
+                    "org_unit_id": org_unit.id,
+                    "org_unit_name": org_unit.name,
                     "resolved_sova_template": value,
                     "sova_project_id": project_id_map.get(value),
                 },
@@ -3208,17 +3232,11 @@ def company_process_create(request, company_pk):
     else:
         form = TestProcessWizardCreateForm()
 
-    return render(request, "admin/accounts/companies/company_process_create.html", {
-        "company": company,
-        "form": form,
-        "error": error,
-        "process_purposes": PROCESS_PURPOSES,
-        "available_tests": AVAILABLE_TESTS,
-        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-        "template_cards": template_cards,
-        "templates_count": len(template_cards),
-        "accounts_count": len(accounts),
-        "active": "processes",
-        "show_invite_button": True,
-        "invite_form": CompanyInviteMemberForm(),
-    })
+    return render(
+        request,
+        "admin/accounts/companies/company_process_create.html",
+        {
+            **context_base,
+            "form": form,
+        },
+    )
