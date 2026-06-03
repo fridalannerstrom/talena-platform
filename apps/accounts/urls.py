@@ -122,4 +122,21 @@ urlpatterns = [
         views.company_process_create,
         name="company_process_create",
     ),
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/archive/",
+        views.company_process_archive,
+        name="company_process_archive",
+    ),
+
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/unarchive/",
+        views.company_process_unarchive,
+        name="company_process_unarchive",
+    ),
+
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/delete/",
+        views.company_process_delete,
+        name="company_process_delete",
+    ),
 ]

@@ -92,6 +92,35 @@
            class="btn btn-dark">
           Edit process
         </a>
+        {% if process.is_archived %}
+  <form method="post"
+        action="{% url 'accounts:company_process_unarchive' company.pk process.pk %}"
+        class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-dark">
+      Restore process
+    </button>
+  </form>
+{% else %}
+  <form method="post"
+        action="{% url 'accounts:company_process_archive' company.pk process.pk %}"
+        class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-secondary">
+      Archive process
+    </button>
+  </form>
+{% endif %}
+
+<form method="post"
+      action="{% url 'accounts:company_process_delete' company.pk process.pk %}"
+      class="d-inline"
+      onsubmit="return confirm('Are you sure you want to delete this process? This can only be done if no tests have been sent, started or completed.');">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-outline-danger">
+    Delete process
+  </button>
+</form>
       </div>
     </div>
 

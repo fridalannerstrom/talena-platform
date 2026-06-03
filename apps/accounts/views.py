@@ -20,6 +20,8 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from django.views.decorators.http import require_POST
+
 from apps.processes.forms import (
     TestProcessWizardCreateForm,
     HistoricalTestProcessForm,
@@ -2552,7 +2554,7 @@ def company_processes(request, pk):
         .select_related("created_by", "created_by_admin", "org_unit")
         .prefetch_related("labels")
         .annotate(candidates_count=Count("invitations", distinct=True))
-        .order_by("-created_at")
+        .order_by("is_archived", "-created_at")
     )
 
     invite_form = CompanyInviteMemberForm()
@@ -3239,4 +3241,127 @@ def company_process_create(request, company_pk):
             **context_base,
             "form": form,
         },
+    )
+
+@login_required
+@admin_required
+@require_POST
+def company_process_archive(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if process.is_archived:
+        messages.info(request, "This process is already archived.")
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process.archive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+        actor=request.user,
+        process=process,
+        meta={"context": "admin_company_view"},
+    )
+
+    messages.success(request, "Process archived.")
+    return redirect(
+        "accounts:company_process_detail",
+        company_pk=company.pk,
+        process_pk=process.pk,
+    )
+
+
+@login_required
+@admin_required
+@require_POST
+def company_process_unarchive(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if not process.is_archived:
+        messages.info(request, "This process is not archived.")
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process.unarchive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_UPDATED,
+        actor=request.user,
+        process=process,
+        meta={
+            "context": "admin_company_view",
+            "action": "unarchive",
+        },
+    )
+
+    messages.success(request, "Process restored.")
+    return redirect(
+        "accounts:company_process_detail",
+        company_pk=company.pk,
+        process_pk=process.pk,
+    )
+
+
+@login_required
+@admin_required
+@require_POST
+def company_process_delete(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if not process.can_delete():
+        messages.error(
+            request,
+            "This process cannot be deleted because tests have been sent, started or completed. Archive it instead."
+        )
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process_name = process.name
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_DELETED,
+        actor=request.user,
+        process=process,
+        meta={
+            "context": "admin_company_view",
+            "process_name": process_name,
+        },
+    )
+
+    process.delete()
+
+    messages.success(request, f"Process '{process_name}' deleted.")
+    return redirect(
+        "accounts:company_processes",
+        pk=company.pk,
     )

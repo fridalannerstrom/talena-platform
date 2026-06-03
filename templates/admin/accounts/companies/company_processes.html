@@ -43,7 +43,7 @@
 
       <tbody>
         {% for p in processes %}
-          <tr>
+          <tr class="{% if p.is_archived %}opacity-75{% endif %}">
             <td>
               <a href="{% url 'accounts:company_process_detail' company.pk p.pk %}"
                  class="fw-semibold text-decoration-none user-name-link">
@@ -63,25 +63,25 @@
 
             <td>
               <div class="talena-pill-group">
-                {% if p.is_archived %}
-                  <span class="talena-pill talena-pill-soft">
-                    Archived
-                  </span>
-                {% elif p.is_historical %}
-                  <span class="talena-pill talena-pill-soft">
-                    Historical
-                  </span>
-                {% else %}
-                  <span class="talena-pill talena-pill-purple">
-                    Active
-                  </span>
-                {% endif %}
-
-                {% if not p.is_historical and p.sova_sync_enabled %}
-                  <span class="talena-pill talena-pill-soft">
-                    Live SOVA
-                  </span>
-                {% endif %}
+{% if p.is_archived %}
+  <span class="talena-pill talena-pill-soft">
+    Archived
+  </span>
+{% elif p.is_historical %}
+  <span class="talena-pill talena-pill-soft">
+    Historical
+  </span>
+  <span class="talena-pill talena-pill-soft">
+    Manual data
+  </span>
+{% else %}
+  <span class="talena-pill talena-pill-purple">
+    Active
+  </span>
+  <span class="talena-pill talena-pill-soft">
+    Live SOVA
+  </span>
+{% endif %}
               </div>
             </td>
 
