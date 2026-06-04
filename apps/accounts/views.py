@@ -1383,8 +1383,6 @@ def company_detail(request, pk):
 
     candidates_count = invitations_qs.values("candidate_id").distinct().count()
 
-    invite_form = CompanyInviteMemberForm() 
-
     invitation_status = (
         invitations_qs
         .values("status")
@@ -1407,99 +1405,6 @@ def company_detail(request, pk):
     # Modaler / actions (om du vill kunna bjuda in härifrån)
     invite_form = CompanyInviteMemberForm()
 
-    # ------------------------------------------------------------
-    # POST (endast invite här, resten finns på egna sidor)
-    # ------------------------------------------------------------
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "invite_member":
-            invite_form = CompanyInviteMemberForm(request.POST)
-            if invite_form.is_valid():
-                email = invite_form.cleaned_data["email"]
-                first_name = invite_form.cleaned_data.get("first_name", "")
-                last_name = invite_form.cleaned_data.get("last_name", "")
-
-                with transaction.atomic():
-                    user, created_user = User.objects.get_or_create(
-                        email=email,
-                        defaults={
-                            "username": email,
-                            "first_name": first_name,
-                            "last_name": last_name,
-                            "is_active": False,
-                        }
-                    )
-
-                    if not created_user:
-                        changed = False
-                        if first_name and not user.first_name:
-                            user.first_name = first_name
-                            changed = True
-                        if last_name and not user.last_name:
-                            user.last_name = last_name
-                            changed = True
-                        if changed:
-                            user.save(update_fields=["first_name", "last_name"])
-
-                    membership, main_unit, access = ensure_user_has_default_orgunit(
-                        user=user,
-                        company=company,
-                        permission="own",
-                    )
-
-                    # Om redan aktiv, skicka inget
-                    if user.is_active:
-                        messages.info(request, f"{email} har redan ett aktivt konto. Ingen inbjudan skickades.")
-                        return redirect("accounts:company_detail", pk=company.pk)
-
-                    # Se till att användaren är pending
-                    if user.has_usable_password():
-                        user.set_unusable_password()
-                    user.is_active = False
-                    user.save(update_fields=["is_active", "password"])
-
-                    # Revoka gamla invites
-                    UserInvite.objects.filter(
-                        user=user,
-                        company=company,
-                        accepted_at__isnull=True,
-                        revoked_at__isnull=True,
-                    ).update(revoked_at=timezone.now())
-
-                    # Skapa ny invite
-                    invite = UserInvite.objects.create(
-                        user=user,
-                        company=company,
-                        created_by=request.user,
-                    )
-
-                    invite_link = build_invite_uuid_link(request, invite)
-                    send_invite_email(
-                        request,
-                        user,
-                        invite_link=invite_link,
-                        company=company,
-                    )
-
-                    log_event(
-                        company=company,
-                        actor=request.user,
-                        verb=ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
-                        meta={
-                            "company_id": company.id,
-                            "company_name": company.name,
-                            "invited_user_id": user.id,
-                            "invited_user_email": user.email,
-                            "invited_user_name": user.get_full_name(),
-                            "invite_id": str(invite.id),
-                        },
-                    )
-
-                    messages.success(request, f"Inbjudan skickades till {email}.")
-                    return redirect("accounts:company_detail", pk=company.pk)
-
-            messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
 
     # Kandidater (unika via invitations i företaget)
     candidate_rows = (
@@ -3426,3 +3331,107 @@ def company_process_delete(request, company_pk, process_pk):
         pk=company.pk,
     )
 
+@login_required
+@admin_required
+@require_POST
+def company_invite_member(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    next_url = (
+        request.POST.get("next")
+        or request.META.get("HTTP_REFERER")
+        or reverse("accounts:company_detail", kwargs={"pk": company.pk})
+    )
+
+    invite_form = CompanyInviteMemberForm(request.POST)
+
+    if invite_form.is_valid():
+        email = invite_form.cleaned_data["email"].strip().lower()
+        first_name = invite_form.cleaned_data.get("first_name", "").strip()
+        last_name = invite_form.cleaned_data.get("last_name", "").strip()
+
+        with transaction.atomic():
+            user, created_user = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    "username": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "is_active": False,
+                }
+            )
+
+            if not created_user:
+                changed_fields = []
+
+                if first_name and not user.first_name:
+                    user.first_name = first_name
+                    changed_fields.append("first_name")
+
+                if last_name and not user.last_name:
+                    user.last_name = last_name
+                    changed_fields.append("last_name")
+
+                if changed_fields:
+                    user.save(update_fields=changed_fields)
+
+            ensure_user_has_default_orgunit(
+                user=user,
+                company=company,
+                permission="own",
+            )
+
+            if user.is_active:
+                messages.info(
+                    request,
+                    f"{email} har redan ett aktivt konto. Ingen inbjudan skickades."
+                )
+                return redirect(next_url)
+
+            if user.has_usable_password():
+                user.set_unusable_password()
+
+            user.is_active = False
+            user.save(update_fields=["is_active", "password"])
+
+            UserInvite.objects.filter(
+                user=user,
+                company=company,
+                accepted_at__isnull=True,
+                revoked_at__isnull=True,
+            ).update(revoked_at=timezone.now())
+
+            invite = UserInvite.objects.create(
+                user=user,
+                company=company,
+                created_by=request.user,
+            )
+
+            invite_link = build_invite_uuid_link(request, invite)
+
+            send_invite_email(
+                request,
+                user,
+                invite_link=invite_link,
+                company=company,
+            )
+
+            log_event(
+                company=company,
+                actor=request.user,
+                verb=ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
+                meta={
+                    "company_id": company.id,
+                    "company_name": company.name,
+                    "invited_user_id": user.id,
+                    "invited_user_email": user.email,
+                    "invited_user_name": user.get_full_name(),
+                    "invite_id": str(invite.id),
+                },
+            )
+
+        messages.success(request, f"Inbjudan skickades till {email}.")
+        return redirect(next_url)
+
+    messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
+    return redirect(next_url)

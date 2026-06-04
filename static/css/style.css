@@ -2280,7 +2280,7 @@ body {
   .card-divider {
     height: 1px;
     background: rgba(0, 0, 0, 0.11);
-    margin: 20px -17px 17px;
+    margin: -20px -17px 17px;
   }
 
   .card-footer-meta {
@@ -25660,4 +25660,50 @@ body.sidenav-toggled #layoutSidenav_content {
 
 .nav-search .form-control {
     padding-left: 2.75rem;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.process-card {
+  height: 100%;
+}
+
+.process-card-body {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.process-title {
+  min-height: 50px;
+  display: block;
+}
+
+.card-divider {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.card-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  .process-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
 }

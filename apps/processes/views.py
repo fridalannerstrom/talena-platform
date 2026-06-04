@@ -3,7 +3,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from apps.core.integrations.sova import SovaClient
 from apps.projects.models import ProjectMeta
 from .forms import TestProcessCreateForm, CandidateCreateForm
-from .models import TestProcess, Candidate, TestInvitation, SelfRegistration, ProcessLabel
+from .models import (
+    TestProcess,
+    Candidate,
+    TestInvitation,
+    SelfRegistration,
+    ProcessLabel,
+    HistoricalProcessCandidate,
+)
 from django.contrib import messages
 from django.db import transaction
 from .forms import SelfRegisterForm
@@ -18,10 +25,6 @@ from django.http import StreamingHttpResponse, JsonResponse
 from apps.accounts.utils.org_access import get_accessible_orgunit_ids
 from .purpose_context_config import get_purpose_context_config
 
-import os
-from django.conf import settings
-from django.db import models
-
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
 from django.db.models import Count, Q
@@ -33,6 +36,7 @@ from apps.accounts.utils.org_access import get_effective_orgunit_permissions, us
 from django.http import HttpResponseForbidden
 
 from apps.processes.services.send_tests import send_assessments_and_emails
+from .purpose_context_config import get_purpose_context_config
 
 import json
 import uuid
@@ -1543,7 +1547,10 @@ def process_list(request):
         TestProcess.objects
         .filter(process_q)
         .filter(is_archived=show_archived)
-        .annotate(candidates_count=Count("invitations", distinct=True))
+        .annotate(
+            invitations_count=Count("invitations", distinct=True),
+            historical_candidates_count=Count("historical_candidates", distinct=True),
+        )
         .order_by("-created_at")
         .prefetch_related("labels")
     )
@@ -1829,6 +1836,9 @@ def process_create(request):
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
 
+    if obj.is_historical:
+        return HttpResponseForbidden("Historical processes are read-only.")
+
     company = get_company_for_user(request.user)
     if not company or obj.company_id != company.id:
         return HttpResponseForbidden("No access.")
@@ -2091,6 +2101,9 @@ def process_delete(request, pk):
 def process_role_context(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    if process.is_historical:
+        return HttpResponseForbidden("Historical processes are read-only.")
+
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("You do not have access to this process.")
 
@@ -2167,11 +2180,11 @@ def process_detail(request, pk):
     )
     company = get_object_or_404(Company, pk=company_id)
 
-    # ✅ måste tillhöra samma company
+    # Must belong to the same company
     if process.company_id != company.id:
         return HttpResponseForbidden("No access.")
 
-    # ✅ nya, riktiga regeln (inkl own-only)
+    # Access rule, including own-only logic
     if not user_can_view_process(request.user, company, process):
         return HttpResponseForbidden("You do not have access to this process.")
 
@@ -2180,47 +2193,86 @@ def process_detail(request, pk):
         project_code=process.project_code,
     ).first()
 
-    invitations = (
-        process.invitations
-        .select_related("candidate")
-        .order_by("-created_at")
-    )
-
-    status_counts = dict(
-        invitations.values("status")
-        .annotate(c=Count("id"))
-        .values_list("status", "c")
-    )
-
     can_edit = user_can_edit_process(request.user, company, process)
 
-    total_candidates = invitations.count()
+    if process.is_historical:
+        invitations = TestInvitation.objects.none()
 
-    # Candidates who have access to the test process.
-    # This includes both candidates invited by email and candidates who entered through self-registration.
-    invited_qs = invitations.filter(
-        Q(status__in=["sent", "started", "completed", "expired"]) |
-        Q(source="self_registered")
-    )
+        historical_candidates = (
+            HistoricalProcessCandidate.objects
+            .filter(process=process)
+            .select_related("candidate", "created_by")
+            .prefetch_related("reports")
+            .order_by("-created_at")
+        )
 
-    invited_count = invited_qs.count()
+        status_counts = dict(
+            historical_candidates.values("status")
+            .annotate(c=Count("id"))
+            .values_list("status", "c")
+        )
 
-    # Funnel/progression:
-    # Started should include completed, because completed candidates have also started.
-    started_count = invitations.filter(
-        status__in=["started", "completed"]
-    ).count()
+        total_candidates = historical_candidates.count()
+        invited_count = 0
 
-    completed_count = invitations.filter(status="completed").count()
-    expired_count = invitations.filter(status="expired").count()
+        started_count = historical_candidates.filter(
+            status__in=["started", "completed"]
+        ).count()
 
-    # Candidates added but not yet given access to the assessment.
-    not_invited_count = total_candidates - invited_count
+        completed_count = historical_candidates.filter(
+            status="completed"
+        ).count()
 
-    # Candidates who have access but have not started or completed.
-    not_started_count = invited_qs.exclude(
-        status__in=["started", "completed", "expired"]
-    ).count()
+        expired_count = 0
+        not_invited_count = 0
+
+        not_started_count = historical_candidates.exclude(
+            status__in=["started", "completed"]
+        ).count()
+
+    else:
+        historical_candidates = HistoricalProcessCandidate.objects.none()
+
+        invitations = (
+            process.invitations
+            .select_related("candidate")
+            .order_by("-created_at")
+        )
+
+        status_counts = dict(
+            invitations.values("status")
+            .annotate(c=Count("id"))
+            .values_list("status", "c")
+        )
+
+        total_candidates = invitations.count()
+
+        invited_qs = invitations.filter(
+            Q(status__in=["sent", "started", "completed", "expired"]) |
+            Q(source="self_registered")
+        )
+
+        invited_count = invited_qs.count()
+
+        started_count = invitations.filter(
+            status__in=["started", "completed"]
+        ).count()
+
+        completed_count = invitations.filter(
+            status="completed"
+        ).count()
+
+        expired_count = invitations.filter(
+            status="expired"
+        ).count()
+
+        # Candidates added but not yet given access to the assessment
+        not_invited_count = total_candidates - invited_count
+
+        # Candidates who have access but have not started or completed
+        not_started_count = invited_qs.exclude(
+            status__in=["started", "completed", "expired"]
+        ).count()
 
     activity_events = (
         ActivityEvent.objects
@@ -2239,6 +2291,8 @@ def process_detail(request, pk):
     context = {
         "process": process,
         "invitations": invitations,
+        "historical_candidates": historical_candidates,
+        "is_historical": process.is_historical,
         "meta": meta,
         "self_reg_url": request.build_absolute_uri(process.get_self_registration_url()),
         "status_counts": status_counts,
@@ -2246,7 +2300,6 @@ def process_detail(request, pk):
         "activity_events": activity_events,
         "process_purpose": process_purpose,
         "active": "overview",
-        "process": process,
         "context_config": context_config,
         "kpis": {
             "total_candidates": total_candidates,
@@ -2266,6 +2319,9 @@ def process_detail(request, pk):
 @login_required
 def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
+    
+    if process.is_historical:
+        return HttpResponseForbidden("Historical processes are read-only.")
 
     company = get_company_for_user(request.user)
     if not company or process.company_id != company.id:
@@ -2726,7 +2782,6 @@ def process_send_tests(request, pk):
 
     return redirect("processes:process_detail", pk=process.pk)
 
-
 @login_required
 def process_candidate_detail(request, process_id, candidate_id):
     process = get_object_or_404(TestProcess, pk=process_id)
@@ -2734,18 +2789,39 @@ def process_candidate_detail(request, process_id, candidate_id):
     if not user_can_access_process(request.user, process):
         return HttpResponseForbidden("You do not have access to this process.")
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate"),
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-    ctx = build_candidate_detail_context(
-        process=process,
-        invitation=invitation,
-    )
-
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+    if process.is_historical:
+        historical_candidate = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process", "created_by")
+            .prefetch_related("reports"),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        ctx = {
+            "company": process.company,
+            "process": process,
+            "candidate": historical_candidate.candidate,
+            "historical_candidate": historical_candidate,
+            "historical_reports": historical_candidate.reports.all(),
+            "is_historical": True,
+        }
+
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate"),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        ctx = build_candidate_detail_context(
+            process=process,
+            invitation=invitation,
+        )
+
+        ctx["is_historical"] = False
 
     if is_ajax:
         return render(

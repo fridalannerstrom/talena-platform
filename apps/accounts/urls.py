@@ -139,4 +139,9 @@ urlpatterns = [
         views.company_process_delete,
         name="company_process_delete",
     ),
+    path(
+        "companies/<int:company_pk>/invite-member/",
+        views.company_invite_member,
+        name="company_invite_member",
+    ),
 ]
