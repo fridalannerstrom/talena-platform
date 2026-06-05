@@ -106,6 +106,7 @@ STATICFILES_BACKEND = (
 if USE_AZURE_STORAGE:
     azure_options = {
         "azure_container": AZURE_CONTAINER,
+        "expiration_secs": int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600")),
     }
 
     if AZURE_STORAGE_CONNECTION_STRING:
