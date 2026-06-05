@@ -16,4 +16,6 @@ venv/
 .vscode/
 
 # Logs
-*.log
+*.log__pycache__/
+*.py[cod]
+*.class
