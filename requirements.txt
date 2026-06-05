@@ -12,3 +12,4 @@ django-storages
 azure-storage-blob
 openai
 pinecone
+dj-database-url

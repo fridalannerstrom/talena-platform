@@ -26,7 +26,14 @@ if os.path.exists(BASE_DIR / ".env"):
 def env_bool(name: str, default: str = "False") -> bool:
     return os.getenv(name, default).lower() in ("1", "true", "yes", "on")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
+ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
+
+DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "True")).lower() == "true"
+
+SOVA_SYNC_ENABLED = env_bool("SOVA_SYNC_ENABLED", "False")
+EMAIL_SENDING_ENABLED = env_bool("EMAIL_SENDING_ENABLED", "False")
+AI_CHAT_ENABLED = env_bool("AI_CHAT_ENABLED", "False")
+HISTORICAL_MODE_ENABLED = env_bool("HISTORICAL_MODE_ENABLED", "True")
 
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", "False")
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", "False")
@@ -39,9 +46,21 @@ MESSAGE_TAGS = {
 SOVA_WEBHOOK_SHARED_SECRET = os.getenv("SOVA_WEBHOOK_SHARED_SECRET", "")
 
 # --- Database --- #
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DB_HOST = (os.getenv("DB_HOST") or "").strip()
 
-if DB_HOST:
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+
+elif DB_HOST:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -53,16 +72,17 @@ if DB_HOST:
             "OPTIONS": {"sslmode": "require"},
         }
     }
+
 else:
     if not DEBUG:
-        raise RuntimeError("DB_HOST missing in production!")
+        raise RuntimeError("DATABASE_URL or DB_HOST missing in production!")
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/ 
@@ -73,8 +93,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 USE_AZURE_STORAGE = os.getenv("USE_AZURE_STORAGE") == "1"
 
 AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-AZURE_ACCOUNT_NAME = "talenamedia"
-AZURE_CONTAINER = "media"
+AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME", "")
+AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY", "")
+AZURE_CONTAINER = os.getenv("AZURE_CONTAINER", "media")
 
 STATICFILES_BACKEND = (
     "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -83,16 +104,24 @@ STATICFILES_BACKEND = (
 )
 
 if USE_AZURE_STORAGE:
+    azure_options = {
+        "azure_container": AZURE_CONTAINER,
+    }
+
+    if AZURE_STORAGE_CONNECTION_STRING:
+        azure_options["connection_string"] = AZURE_STORAGE_CONNECTION_STRING
+    else:
+        azure_options["account_name"] = AZURE_ACCOUNT_NAME
+        azure_options["account_key"] = AZURE_ACCOUNT_KEY
+
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.azure_storage.AzureStorage",
-            "OPTIONS": {
-                "connection_string": AZURE_STORAGE_CONNECTION_STRING,
-                "azure_container": AZURE_CONTAINER,
-            },
+            "OPTIONS": azure_options,
         },
         "staticfiles": {"BACKEND": STATICFILES_BACKEND},
     }
+
     MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
 else:
     STORAGES = {
@@ -106,10 +135,16 @@ else:
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-secret-key")
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    os.environ.get("SECRET_KEY", "dev-only-secret-key")
+)
 
 
-allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "")
+allowed_hosts_env = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    os.environ.get("ALLOWED_HOSTS", "")
+)
 
 if allowed_hosts_env:
     ALLOWED_HOSTS = [
@@ -129,7 +164,14 @@ if os.environ.get("WEBSITE_INSTANCE_ID"):
         "169.254.129.4",
     ]
 
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get(
+        "DJANGO_CSRF_TRUSTED_ORIGINS",
+        os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+    ).split(",")
+    if o.strip()
+]
 
 
 # Application definition
