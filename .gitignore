@@ -20,3 +20,5 @@ venv/
 *.log__pycache__/
 *.py[cod]
 *.class
+media/
+historical_sova_reports/
