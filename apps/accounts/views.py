@@ -1375,12 +1375,29 @@ def company_detail(request, pk):
     completed_candidates_count = invitations_qs.filter(
         status="completed"
     ).count()
+    
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
 
     latest_processes = (
         TestProcess.objects
         .filter(company=company)
         .select_related("created_by", "org_unit")
-        .annotate(candidates_count=Count("invitations", distinct=True))
+        .annotate(
+            live_candidates_count=Count("invitations", distinct=True),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
+        )
         .order_by("-created_at")[:4]
     )
 
