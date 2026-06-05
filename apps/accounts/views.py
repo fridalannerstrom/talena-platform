@@ -20,6 +20,9 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
+
 from apps.processes.models import (
     Candidate,
     TestProcess,
@@ -2482,6 +2485,32 @@ def company_processes(request, pk):
         .select_related("actor")
         .order_by("created_at")
         .first()
+    )
+
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
+    processes = (
+        TestProcess.objects
+        .filter(company=company)
+        .select_related("created_by", "created_by_admin", "org_unit")
+        .prefetch_related("labels")
+        .annotate(
+            live_candidates_count=Count("invitations", distinct=True),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
+        )
+        .order_by("is_archived", "-created_at")
     )
 
     return render(request, "admin/accounts/companies/company_processes.html", {

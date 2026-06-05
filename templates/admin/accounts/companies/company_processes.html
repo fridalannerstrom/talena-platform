@@ -120,7 +120,11 @@
             <td>
               <span class="talena-pill talena-pill-soft">
                 <i data-feather="users"></i>
-                {{ p.candidates_count|default:"0" }}
+                {% if p.is_historical %}
+  {{ p.historical_candidates_count|default:"0" }}
+{% else %}
+  {{ p.live_candidates_count|default:"0" }}
+{% endif %}
               </span>
             </td>
 
