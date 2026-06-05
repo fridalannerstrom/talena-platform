@@ -106,4 +106,42 @@ urlpatterns = [
         views.admin_usage_billing,
         name="admin_usage_billing",
     ),
+    path(
+    "companies/<int:pk>/processes/historical/new/",
+    views.company_historical_process_create,
+    name="company_historical_process_create",
+    ),
+
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/historical-candidate/add/",
+        views.company_historical_candidate_add,
+        name="company_historical_candidate_add",
+    ),
+    path(
+        "companies/<int:company_pk>/processes/new/",
+        views.company_process_create,
+        name="company_process_create",
+    ),
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/archive/",
+        views.company_process_archive,
+        name="company_process_archive",
+    ),
+
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/unarchive/",
+        views.company_process_unarchive,
+        name="company_process_unarchive",
+    ),
+
+    path(
+        "companies/<int:company_pk>/processes/<int:process_pk>/delete/",
+        views.company_process_delete,
+        name="company_process_delete",
+    ),
+    path(
+        "companies/<int:company_pk>/invite-member/",
+        views.company_invite_member,
+        name="company_invite_member",
+    ),
 ]

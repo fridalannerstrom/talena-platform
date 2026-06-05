@@ -1,6 +1,7 @@
 from django import forms
 from .models import TestProcess, Candidate
 from .models import ProcessRoleContext
+from apps.accounts.models import OrgUnit
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
@@ -253,3 +254,118 @@ class ProcessRoleContextForm(forms.ModelForm):
 
                 if help_text:
                     self.fields[field_name].help_text = help_text
+
+
+class HistoricalTestProcessForm(forms.ModelForm):
+    TEST_CHOICES = (
+        ("personality", "Personality"),
+        ("motivation", "Motivation"),
+        ("verbal", "Verbal"),
+        ("logical", "Logical"),
+        ("numerical", "Numerical"),
+    )
+
+    selected_tests = forms.MultipleChoiceField(
+        choices=TEST_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Included tests",
+    )
+
+    class Meta:
+        model = TestProcess
+        fields = [
+            "name",
+            "org_unit",
+            "selected_tests",
+            "sova_account_name",
+            "sova_project_name",
+            "sova_import_notes",
+        ]
+
+        labels = {
+            "name": "Historical process name",
+            "org_unit": "Account / unit",
+            "sova_account_name": "Original SOVA account name",
+            "sova_project_name": "Original SOVA project name",
+            "sova_import_notes": "Notes",
+        }
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if company:
+            self.fields["org_unit"].queryset = OrgUnit.objects.filter(
+                company=company
+            ).order_by("name")
+        else:
+            self.fields["org_unit"].queryset = OrgUnit.objects.none()
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(file, initial) for file in data]
+
+        if data:
+            return [single_file_clean(data, initial)]
+
+        return []
+
+
+class HistoricalCandidateForm(forms.Form):
+    first_name = forms.CharField(max_length=255)
+    last_name = forms.CharField(max_length=255)
+    email = forms.EmailField(required=True)
+
+    status = forms.ChoiceField(
+        choices=(
+            ("completed", "Completed"),
+            ("started", "Started"),
+            ("created", "Created / unknown"),
+        ),
+        initial="completed",
+    )
+
+    historical_reports = MultipleFileField(
+        label="Historical SOVA report PDFs",
+        widget=MultipleFileInput(attrs={
+            "multiple": True,
+            "accept": "application/pdf",
+            "class": "form-control",
+        }),
+        required=False,
+    )
+
+    historical_notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea,
+        label="Notes",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            if name == "historical_reports":
+                continue
+
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs.setdefault("class", "form-select")
+            else:
+                field.widget.attrs.setdefault("class", "form-control")
+
+    def clean_historical_reports(self):
+        files = self.cleaned_data.get("historical_reports") or []
+
+        for file in files:
+            if file.content_type != "application/pdf":
+                raise forms.ValidationError("Only PDF files are allowed.")
+
+        return files

@@ -1,7 +1,10 @@
 <div class="modal fade" id="inviteUserModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <form method="post">
+      <form method="post" action="{% url 'accounts:company_invite_member' company.pk %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <input type="hidden" name="action" value="invite_member">
         {% csrf_token %}
         <input type="hidden" name="action" value="invite_member">
 

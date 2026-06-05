@@ -6,6 +6,9 @@ from django.urls import reverse
 from apps.accounts.models import OrgUnit, Company
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
+import os
+from django.conf import settings
+from django.db import models
 
 
 class TestProcess(models.Model):
@@ -67,6 +70,38 @@ class TestProcess(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    SOURCE_CHOICES = (
+        ("talena", "Created in Talena"),
+        ("sova_import", "Imported from SOVA"),
+    )
+
+    source = models.CharField(
+        max_length=50,
+        choices=SOURCE_CHOICES,
+        default="talena",
+    )
+
+    is_historical = models.BooleanField(default=False)
+
+    sova_sync_enabled = models.BooleanField(default=True)
+
+    sova_account_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    sova_project_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    sova_import_notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -127,6 +162,7 @@ class TestInvitation(models.Model):
     SOURCE_CHOICES = [
         ("invited", "Invited"),
         ("self_registered", "Self-registered"),
+        ("historical", "Historical"),
     ]
 
     def status_label(self):
@@ -172,6 +208,31 @@ class TestInvitation(models.Model):
     ai_summary = models.TextField(blank=True, default="")
     ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
     ai_summary_status = models.CharField(max_length=30, blank=True, default="not_started")
+    is_historical = models.BooleanField(default=False, db_index=True)
+
+    historical_report_file = models.FileField(
+        upload_to="historical_sova_reports/",
+        blank=True,
+        null=True,
+    )
+
+    historical_report_url = models.URLField(
+        blank=True,
+        default="",
+    )
+
+    historical_notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    sova_candidate_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    
 
 
     class Meta:
@@ -258,3 +319,138 @@ class ProcessRoleContext(models.Model):
 
     def __str__(self):
         return f"Role context for {self.process}"
+    
+
+
+def historical_candidate_report_upload_path(instance, filename):
+    company_id = instance.invitation.process.company_id or "unknown-company"
+    process_id = instance.invitation.process_id or "unknown-process"
+    candidate_id = instance.invitation.candidate_id or "unknown-candidate"
+
+    return (
+        f"historical_sova_reports/"
+        f"company_{company_id}/"
+        f"process_{process_id}/"
+        f"candidate_{candidate_id}/"
+        f"{filename}"
+    )
+
+
+class HistoricalProcessCandidate(models.Model):
+    STATUS_CHOICES = (
+        ("completed", "Completed"),
+        ("started", "Started"),
+        ("created", "Created / unknown"),
+    )
+
+    process = models.ForeignKey(
+        "processes.TestProcess",
+        on_delete=models.CASCADE,
+        related_name="historical_candidates",
+    )
+
+    candidate = models.ForeignKey(
+        "processes.Candidate",
+        on_delete=models.CASCADE,
+        related_name="historical_process_records",
+    )
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default="completed",
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    sova_candidate_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_historical_process_candidates",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["candidate__last_name", "candidate__first_name", "-created_at"]
+        unique_together = ("process", "candidate", "sova_candidate_id")
+
+    def __str__(self):
+        return f"{self.candidate} in {self.process}"
+
+
+def historical_candidate_report_upload_path(instance, filename):
+    company_id = instance.historical_candidate.process.company_id or "unknown-company"
+    process_id = instance.historical_candidate.process_id or "unknown-process"
+    candidate_id = instance.historical_candidate.candidate_id or "unknown-candidate"
+
+    return (
+        f"historical_sova_reports/"
+        f"company_{company_id}/"
+        f"process_{process_id}/"
+        f"candidate_{candidate_id}/"
+        f"{filename}"
+    )
+
+
+class HistoricalCandidateReport(models.Model):
+    historical_candidate = models.ForeignKey(
+        "processes.HistoricalProcessCandidate",
+        on_delete=models.CASCADE,
+        related_name="reports",
+        null=True,
+        blank=True,
+    )
+
+    title = models.CharField(max_length=255)
+
+    file = models.FileField(
+        upload_to=historical_candidate_report_upload_path,
+    )
+
+    original_filename = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_historical_candidate_reports",
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["title", "uploaded_at"]
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if self.file and not self.original_filename:
+            self.original_filename = os.path.basename(self.file.name)
+
+        if not self.title and self.original_filename:
+            self.title = self.original_filename
+
+        super().save(*args, **kwargs)

@@ -1,5 +1,116 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+{% if is_historical %}
+
+<div class="container-fluid px-2 px-md-3">
+  <div class="candidate-sheet-layout">
+    <div class="candidate-sheet-main">
+
+      <div class="card candidate-profile-header mb-4">
+        <div class="candidate-profile-shell">
+          <div class="candidate-profile-top">
+            <div class="candidate-profile-main">
+
+              <div class="candidate-profile-left">
+                <div class="candidate-profile-avatar user-initials user-initials-purple user-initials-lg">
+                  {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
+                    {% if fn or ln %}
+                      {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                    {% else %}
+                      ?
+                    {% endif %}
+                  {% endwith %}
+                </div>
+
+                <div class="candidate-profile-identity">
+                  <div class="candidate-profile-title-row">
+                    <h1 class="candidate-profile-name">
+                      {% if candidate.first_name or candidate.last_name %}
+                        {{ candidate.first_name }} {{ candidate.last_name }}
+                      {% else %}
+                        {{ candidate.email|default:"Unnamed candidate" }}
+                      {% endif %}
+                    </h1>
+
+                    <span class="candidate-status-badge is-muted">
+                      Historical
+                    </span>
+                  </div>
+
+                  <div class="candidate-profile-email">
+                    {{ candidate.email|default:"—" }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="candidate-profile-actions">
+                <span class="talena-pill talena-pill-soft">Manual data</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-semibold">Historical reports</div>
+            <div class="text-muted small">
+              PDF reports uploaded for this historical candidate.
+            </div>
+          </div>
+
+          <span class="badge bg-light text-dark">
+            {{ historical_reports|length }} reports
+          </span>
+        </div>
+
+        <div class="card-body">
+          {% if historical_reports %}
+            <div class="list-group list-group-flush">
+              {% for report in historical_reports %}
+                <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                  <div>
+                    <div class="fw-semibold">
+                      {{ report.title|default:report.original_filename }}
+                    </div>
+                    <div class="small text-muted">
+                      Uploaded {{ report.uploaded_at|date:"Y-m-d H:i" }}
+                    </div>
+                  </div>
+
+                  <a href="{{ report.file.url }}"
+                     target="_blank"
+                     class="btn btn-sm btn-outline-dark">
+                    Open PDF
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted small">
+              No PDF reports have been uploaded for this candidate yet.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if historical_candidate.notes %}
+        <div class="card">
+          <div class="card-header fw-semibold">Notes</div>
+          <div class="card-body">
+            {{ historical_candidate.notes|linebreaksbr }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% else %}
+
 <div class="container-fluid px-2 px-md-3">
 
   <div class="candidate-sheet-layout">
@@ -1313,3 +1424,5 @@
 
 
 </div>
+
+{% endif %}
