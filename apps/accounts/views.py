@@ -20,6 +20,36 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
+
+from apps.processes.models import (
+    Candidate,
+    TestProcess,
+    TestInvitation,
+    HistoricalProcessCandidate,
+)
+
+from apps.processes.models import HistoricalCandidateReport
+
+from django.views.decorators.http import require_POST
+
+from apps.processes.forms import (
+    TestProcessWizardCreateForm,
+    HistoricalTestProcessForm,
+    HistoricalCandidateForm,
+)
+
+from apps.processes.services.process_recommendations import (
+    PROCESS_PURPOSES,
+    AVAILABLE_TESTS,
+    PURPOSE_RECOMMENDED_TESTS,
+    resolve_dev_sova_template,
+    build_default_process_name,
+)
+
+from apps.processes.forms import HistoricalTestProcessForm, HistoricalCandidateForm
+
 from datetime import datetime, date, time
 from apps.activity.services import log_event
 
@@ -1346,17 +1376,32 @@ def company_detail(request, pk):
         status="completed"
     ).count()
 
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
     latest_processes = (
         TestProcess.objects
         .filter(company=company)
         .select_related("created_by", "org_unit")
-        .annotate(candidates_count=Count("invitations", distinct=True))
+        .annotate(
+            live_candidates_count=Count("invitations", distinct=True),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
+        )
         .order_by("-created_at")[:4]
     )
 
     candidates_count = invitations_qs.values("candidate_id").distinct().count()
-
-    invite_form = CompanyInviteMemberForm() 
 
     invitation_status = (
         invitations_qs
@@ -1380,99 +1425,6 @@ def company_detail(request, pk):
     # Modaler / actions (om du vill kunna bjuda in härifrån)
     invite_form = CompanyInviteMemberForm()
 
-    # ------------------------------------------------------------
-    # POST (endast invite här, resten finns på egna sidor)
-    # ------------------------------------------------------------
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "invite_member":
-            invite_form = CompanyInviteMemberForm(request.POST)
-            if invite_form.is_valid():
-                email = invite_form.cleaned_data["email"]
-                first_name = invite_form.cleaned_data.get("first_name", "")
-                last_name = invite_form.cleaned_data.get("last_name", "")
-
-                with transaction.atomic():
-                    user, created_user = User.objects.get_or_create(
-                        email=email,
-                        defaults={
-                            "username": email,
-                            "first_name": first_name,
-                            "last_name": last_name,
-                            "is_active": False,
-                        }
-                    )
-
-                    if not created_user:
-                        changed = False
-                        if first_name and not user.first_name:
-                            user.first_name = first_name
-                            changed = True
-                        if last_name and not user.last_name:
-                            user.last_name = last_name
-                            changed = True
-                        if changed:
-                            user.save(update_fields=["first_name", "last_name"])
-
-                    membership, main_unit, access = ensure_user_has_default_orgunit(
-                        user=user,
-                        company=company,
-                        permission="own",
-                    )
-
-                    # Om redan aktiv, skicka inget
-                    if user.is_active:
-                        messages.info(request, f"{email} har redan ett aktivt konto. Ingen inbjudan skickades.")
-                        return redirect("accounts:company_detail", pk=company.pk)
-
-                    # Se till att användaren är pending
-                    if user.has_usable_password():
-                        user.set_unusable_password()
-                    user.is_active = False
-                    user.save(update_fields=["is_active", "password"])
-
-                    # Revoka gamla invites
-                    UserInvite.objects.filter(
-                        user=user,
-                        company=company,
-                        accepted_at__isnull=True,
-                        revoked_at__isnull=True,
-                    ).update(revoked_at=timezone.now())
-
-                    # Skapa ny invite
-                    invite = UserInvite.objects.create(
-                        user=user,
-                        company=company,
-                        created_by=request.user,
-                    )
-
-                    invite_link = build_invite_uuid_link(request, invite)
-                    send_invite_email(
-                        request,
-                        user,
-                        invite_link=invite_link,
-                        company=company,
-                    )
-
-                    log_event(
-                        company=company,
-                        actor=request.user,
-                        verb=ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
-                        meta={
-                            "company_id": company.id,
-                            "company_name": company.name,
-                            "invited_user_id": user.id,
-                            "invited_user_email": user.email,
-                            "invited_user_name": user.get_full_name(),
-                            "invite_id": str(invite.id),
-                        },
-                    )
-
-                    messages.success(request, f"Inbjudan skickades till {email}.")
-                    return redirect("accounts:company_detail", pk=company.pk)
-
-            messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
 
     # Kandidater (unika via invitations i företaget)
     candidate_rows = (
@@ -2361,6 +2313,10 @@ def admin_remove_candidate_from_process(request, process_id, candidate_id):
 def admin_process_send_tests(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
+    if process.is_historical or not process.sova_sync_enabled:
+        messages.error(request, "This is a historical process and cannot send SOVA invitations.")
+        return redirect("accounts:admin_process_detail", pk=process.pk)
+
     if request.method != "POST":
         return redirect("accounts:admin_process_detail", pk=process.pk)
 
@@ -2532,7 +2488,7 @@ def company_processes(request, pk):
         .select_related("created_by", "created_by_admin", "org_unit")
         .prefetch_related("labels")
         .annotate(candidates_count=Count("invitations", distinct=True))
-        .order_by("-created_at")
+        .order_by("is_archived", "-created_at")
     )
 
     invite_form = CompanyInviteMemberForm()
@@ -2546,6 +2502,32 @@ def company_processes(request, pk):
         .select_related("actor")
         .order_by("created_at")
         .first()
+    )
+
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
+    processes = (
+        TestProcess.objects
+        .filter(company=company)
+        .select_related("created_by", "created_by_admin", "org_unit")
+        .prefetch_related("labels")
+        .annotate(
+            live_candidates_count=Count("invitations", distinct=True),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
+        )
+        .order_by("is_archived", "-created_at")
     )
 
     return render(request, "admin/accounts/companies/company_processes.html", {
@@ -2657,24 +2639,39 @@ def company_process_detail(request, company_pk, process_pk):
         .order_by("-created_at")
     )
 
-    total_candidates = invitations.count()
+    historical_candidates = (
+        HistoricalProcessCandidate.objects
+        .filter(process=process)
+        .select_related("candidate", "created_by")
+        .prefetch_related("reports")
+        .order_by("-created_at")
+    )
 
-    invited_count = invitations.filter(
-        Q(status__in=["sent", "started", "completed", "expired"]) |
-        Q(invited_at__isnull=False)
-    ).distinct().count()
+    if process.is_historical:
+        total_candidates = historical_candidates.count()
+        invited_count = 0
+        started_count = historical_candidates.filter(status="started").count()
+        completed_count = historical_candidates.filter(status="completed").count()
+        expired_count = 0
+    else:
+        total_candidates = invitations.count()
 
-    started_count = invitations.filter(
-        status__in=["started", "completed"]
-    ).count()
+        invited_count = invitations.filter(
+            Q(status__in=["sent", "started", "completed", "expired"]) |
+            Q(invited_at__isnull=False)
+        ).distinct().count()
 
-    completed_count = invitations.filter(
-        status="completed"
-    ).count()
+        started_count = invitations.filter(
+            status__in=["started", "completed"]
+        ).count()
 
-    expired_count = invitations.filter(
-        status="expired"
-    ).count()
+        completed_count = invitations.filter(
+            status="completed"
+        ).count()
+
+        expired_count = invitations.filter(
+            status="expired"
+        ).count()
 
     kpis = {
         "total_candidates": total_candidates,
@@ -2705,6 +2702,7 @@ def company_process_detail(request, company_pk, process_pk):
         "company": company,
         "process": process,
         "invitations": invitations,
+        "historical_candidates": historical_candidates,
         "kpis": kpis,
         "self_reg_url": self_reg_url,
 
@@ -2725,26 +2723,53 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         company=company,
     )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate", "process"),
-        process=process,
-        candidate_id=candidate_pk,
-    )
+    candidate = get_object_or_404(Candidate, pk=candidate_pk)
 
-    ctx = build_candidate_detail_context(
-        process=process,
-        invitation=invitation,
-    )
+    if process.is_historical:
+        historical_candidate = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process", "created_by")
+            .prefetch_related("reports"),
+            process=process,
+            candidate=candidate,
+        )
 
-    ctx.update({
-        "company": company,
-        "process": process,
-        "active": "processes",
-        "show_invite_button": True,
-        "invite_form": CompanyInviteMemberForm(),
-        "is_admin_view": True,
-        "is_company_view": True,
-    })
+        ctx = {
+            "company": company,
+            "process": process,
+            "candidate": candidate,
+            "historical_candidate": historical_candidate,
+            "historical_reports": historical_candidate.reports.all(),
+            "is_historical": True,
+            "active": "processes",
+            "show_invite_button": True,
+            "invite_form": CompanyInviteMemberForm(),
+            "is_admin_view": True,
+            "is_company_view": True,
+        }
+
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related("candidate", "process"),
+            process=process,
+            candidate_id=candidate_pk,
+        )
+
+        ctx = build_candidate_detail_context(
+            process=process,
+            invitation=invitation,
+        )
+
+        ctx.update({
+            "company": company,
+            "process": process,
+            "active": "processes",
+            "show_invite_button": True,
+            "invite_form": CompanyInviteMemberForm(),
+            "is_admin_view": True,
+            "is_company_view": True,
+            "is_historical": False,
+        })
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(
@@ -2758,3 +2783,702 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         "admin/accounts/companies/company_candidate_detail.html",
         ctx,
     )
+
+@login_required
+@admin_required
+def company_historical_process_create(request, pk):
+    company = get_object_or_404(Company, pk=pk)
+
+    if request.method == "POST":
+        form = HistoricalTestProcessForm(request.POST, company=company)
+
+        if form.is_valid():
+            process = form.save(commit=False)
+
+            process.company = company
+            process.provider = "sova"
+
+            process.source = "sova_import"
+            process.is_historical = True
+            process.sova_sync_enabled = False
+            process.is_archived = True
+
+            process.account_code = "HIST"
+            process.project_code = f"HIST-{company.id}-{uuid.uuid4().hex[:8]}"
+
+            process.project_name_snapshot = (
+                process.sova_project_name
+                or process.name
+                or process.project_code
+            )
+
+            process.created_by = request.user
+            process.created_by_admin = request.user
+
+            process.save()
+            form.save_m2m()
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=process,
+                meta={
+                    "source": "sova_import",
+                    "is_historical": True,
+                    "process_name": process.name,
+                    "sova_account_name": process.sova_account_name,
+                    "sova_project_name": process.sova_project_name,
+                },
+            )
+
+            messages.success(request, "Historical test process created.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=process.pk,
+            )
+
+        messages.error(request, "Could not create historical process. Check the form fields.")
+
+    else:
+        form = HistoricalTestProcessForm(company=company)
+
+    return render(request, "admin/accounts/companies/company_historical_process_form.html", {
+        "company": company,
+        "form": form,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })
+
+@login_required
+@admin_required
+def company_historical_candidate_add(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+        is_historical=True,
+    )
+
+    if request.method == "POST":
+        form = HistoricalCandidateForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            email = form.cleaned_data["email"].strip().lower()
+
+            candidate, created = Candidate.objects.get_or_create(
+                email=email,
+                defaults={
+                    "first_name": form.cleaned_data["first_name"],
+                    "last_name": form.cleaned_data["last_name"],
+                }
+            )
+
+            if not created:
+                changed_fields = []
+
+                if form.cleaned_data["first_name"] and not candidate.first_name:
+                    candidate.first_name = form.cleaned_data["first_name"]
+                    changed_fields.append("first_name")
+
+                if form.cleaned_data["last_name"] and not candidate.last_name:
+                    candidate.last_name = form.cleaned_data["last_name"]
+                    changed_fields.append("last_name")
+
+                if changed_fields:
+                    candidate.save(update_fields=changed_fields)
+
+            historical_candidate, record_created = HistoricalProcessCandidate.objects.get_or_create(
+                process=process,
+                candidate=candidate,
+                defaults={
+                    "status": form.cleaned_data["status"],
+                    "notes": form.cleaned_data.get("historical_notes") or "",
+                    "created_by": request.user,
+                },
+            )
+
+            historical_candidate.status = form.cleaned_data["status"]
+            historical_candidate.notes = form.cleaned_data.get("historical_notes") or ""
+            historical_candidate.save(update_fields=["status", "notes"])
+
+            uploaded_reports = form.cleaned_data.get("historical_reports") or []
+
+            for uploaded_file in uploaded_reports:
+                HistoricalCandidateReport.objects.create(
+                    historical_candidate=historical_candidate,
+                    title=uploaded_file.name,
+                    original_filename=uploaded_file.name,
+                    file=uploaded_file,
+                    uploaded_by=request.user,
+                )
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                actor=request.user,
+                process=process,
+                candidate=candidate,
+                meta={
+                    "source": "historical",
+                    "record_created": record_created,
+                    "uploaded_reports": len(uploaded_reports),
+                },
+            )
+
+            if uploaded_reports:
+                messages.success(
+                    request,
+                    f"Historical candidate added with {len(uploaded_reports)} report(s)."
+                )
+            else:
+                messages.success(request, "Historical candidate added.")
+
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=process.pk,
+            )
+
+        messages.error(request, "Could not add historical candidate. Check the form fields.")
+
+    else:
+        form = HistoricalCandidateForm()
+
+    return render(request, "admin/accounts/companies/company_historical_candidate_form.html", {
+        "company": company,
+        "process": process,
+        "form": form,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })
+
+def get_template_icon_class(tests, title=""):
+    """
+    Returns a FontAwesome icon class based on the test types/title.
+    Used when displaying SOVA project/template cards.
+    """
+    text = " ".join(tests).lower()
+    title = (title or "").lower()
+
+    if "360" in text or "360" in title:
+        return "fa-solid fa-arrows-rotate"
+
+    if (
+        "numerical" in text
+        or "numerisk" in text
+        or "färdighet" in text
+        or "fardighet" in text
+        or "ability" in text
+        or "skills" in text
+    ):
+        return "fa-solid fa-chart-simple"
+
+    if (
+        "personality" in text
+        or "personlighet" in text
+        or "pq" in title
+    ):
+        return "fa-solid fa-user-check"
+
+    if (
+        "motivation" in text
+        or "motivationstest" in text
+        or "mq" in title
+    ):
+        return "fa-solid fa-bullseye"
+
+    if "leadership" in text or "ledarskap" in text:
+        return "fa-solid fa-award"
+
+    if "sales" in text or "sälj" in title or "salj" in title:
+        return "fa-solid fa-handshake"
+
+    if "admin" in text or "interim" in text or "interim" in title:
+        return "fa-solid fa-briefcase"
+
+    if "modern" in title:
+        return "fa-solid fa-wand-magic-sparkles"
+
+    if "linear" in title:
+        return "fa-solid fa-wave-square"
+
+    if "ihp" in title:
+        return "fa-solid fa-layer-group"
+
+    return "fa-solid fa-layer-group"
+
+
+@login_required
+@admin_required
+def company_process_create(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+    org_units = OrgUnit.objects.filter(company=company).order_by("name")
+
+    client = SovaClient()
+    error = None
+
+    # --------------------------------------------------
+    # 1. Hämta SOVA-projekt från API
+    # --------------------------------------------------
+    try:
+        accounts = client.get_accounts_with_projects()
+    except Exception as e:
+        accounts = []
+        error = str(e)
+
+    # --------------------------------------------------
+    # 2. Hämta ProjectMeta så vi kan hitta namn, tester osv
+    # --------------------------------------------------
+    metas = ProjectMeta.objects.filter(provider="sova")
+    meta_map = {(m.account_code, m.project_code): m for m in metas}
+
+    project_id_map = {}
+    template_cards = []
+
+    for account in accounts:
+        acc = (account.get("code") or "").strip()
+
+        for project in (account.get("projects") or []):
+            proj_code = (project.get("code") or "").strip()
+            sova_name = (project.get("name") or proj_code).strip()
+
+            value = f"{acc}|{proj_code}"
+            project_id_map[value] = project.get("id")
+
+            meta = meta_map.get((acc, proj_code))
+            title = getattr(meta, "intern_name", None) or sova_name
+
+            description = ""
+            tests = []
+            languages = []
+
+            if meta:
+                description = (getattr(meta, "notes", None) or "").strip()
+
+                tests_raw = (getattr(meta, "tests", None) or "").strip()
+                if tests_raw:
+                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+
+                languages_raw = (getattr(meta, "languages", None) or "").strip()
+                if languages_raw:
+                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            template_cards.append({
+                "value": value,
+                "title": title,
+                "description": description,
+                "tests": tests,
+                "languages": languages,
+                "icon_class": get_template_icon_class(tests, title),
+                "account_code": acc,
+                "project_code": proj_code,
+                "sova_name": sova_name,
+                "sova_project_id": project.get("id"),
+            })
+
+    template_cards.sort(key=lambda x: (x["title"] or "").lower())
+
+    context_base = {
+        "company": company,
+        "error": error,
+        "org_units": org_units,
+        "process_purposes": PROCESS_PURPOSES,
+        "available_tests": AVAILABLE_TESTS,
+        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+        "template_cards": template_cards,
+        "templates_count": len(template_cards),
+        "accounts_count": len(accounts),
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    }
+
+    # --------------------------------------------------
+    # 3. POST: skapa processen
+    # --------------------------------------------------
+    if request.method == "POST":
+        form = TestProcessWizardCreateForm(request.POST)
+
+        if form.is_valid():
+            purpose = form.cleaned_data.get("purpose")
+            selected_tests = form.cleaned_data.get("selected_tests") or []
+            name = (form.cleaned_data.get("name") or "").strip()
+            label_names = form.cleaned_data.get("labels_text") or []
+
+            # --------------------------------------------------
+            # 4. Välj org unit / account
+            # --------------------------------------------------
+            org_unit_id = request.POST.get("org_unit")
+
+            org_unit = None
+            if org_unit_id:
+                org_unit = OrgUnit.objects.filter(
+                    pk=org_unit_id,
+                    company=company,
+                ).first()
+
+            if not org_unit:
+                form.add_error(
+                    None,
+                    "Please select which account/unit this process belongs to."
+                )
+
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {
+                        **context_base,
+                        "form": form,
+                    },
+                )
+
+            if isinstance(label_names, str):
+                label_names = [
+                    item.strip()
+                    for item in label_names.split(",")
+                    if item.strip()
+                ]
+
+            if not name:
+                name = build_default_process_name(
+                    purpose=purpose,
+                    selected_tests=selected_tests,
+                )
+
+            resolved_template = resolve_dev_sova_template(selected_tests)
+
+            if not resolved_template:
+                form.add_error(
+                    "selected_tests",
+                    "Please select a valid test combination. No matching SOVA project/template was found."
+                )
+
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {
+                        **context_base,
+                        "form": form,
+                    },
+                )
+
+            acc = (resolved_template["account_code"] or "").strip()
+            proj = (resolved_template["project_code"] or "").strip()
+            value = f"{acc}|{proj}"
+
+            obj = TestProcess(
+                name=name,
+                company=company,
+                org_unit=org_unit,
+                provider="sova",
+                account_code=acc,
+                project_code=proj,
+                created_by=request.user,
+                created_by_admin=request.user,
+                purpose=purpose,
+                selected_tests=selected_tests,
+                source="talena",
+                is_historical=False,
+                sova_sync_enabled=True,
+            )
+
+            meta = meta_map.get((acc, proj))
+
+            if meta and getattr(meta, "intern_name", None):
+                obj.project_name_snapshot = meta.intern_name
+            else:
+                match = next(
+                    (t for t in template_cards if t["value"] == value),
+                    None
+                )
+                obj.project_name_snapshot = (
+                    match["sova_name"] if match else proj
+                )
+
+            obj.save()
+
+            if label_names:
+                label_objs = []
+
+                for label_name in label_names:
+                    lab, _ = ProcessLabel.objects.get_or_create(
+                        company=company,
+                        name=label_name,
+                    )
+                    label_objs.append(lab)
+
+                obj.labels.set(label_objs)
+            else:
+                obj.labels.clear()
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.PROCESS_CREATED,
+                actor=request.user,
+                process=obj,
+                meta={
+                    "source": "talena_admin_company_create",
+                    "process_name": obj.name,
+                    "purpose": obj.purpose,
+                    "selected_tests": obj.selected_tests,
+                    "org_unit_id": org_unit.id,
+                    "org_unit_name": org_unit.name,
+                    "resolved_sova_template": value,
+                    "sova_project_id": project_id_map.get(value),
+                },
+            )
+
+            messages.success(request, "SOVA process created.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=obj.pk,
+            )
+
+        messages.error(request, "Could not create SOVA process. Check the form fields.")
+
+    else:
+        form = TestProcessWizardCreateForm()
+
+    return render(
+        request,
+        "admin/accounts/companies/company_process_create.html",
+        {
+            **context_base,
+            "form": form,
+        },
+    )
+
+@login_required
+@admin_required
+@require_POST
+def company_process_archive(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if process.is_archived:
+        messages.info(request, "This process is already archived.")
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process.archive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_ARCHIVED,
+        actor=request.user,
+        process=process,
+        meta={"context": "admin_company_view"},
+    )
+
+    messages.success(request, "Process archived.")
+    return redirect(
+        "accounts:company_process_detail",
+        company_pk=company.pk,
+        process_pk=process.pk,
+    )
+
+
+@login_required
+@admin_required
+@require_POST
+def company_process_unarchive(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if not process.is_archived:
+        messages.info(request, "This process is not archived.")
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process.unarchive()
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_UPDATED,
+        actor=request.user,
+        process=process,
+        meta={
+            "context": "admin_company_view",
+            "action": "unarchive",
+        },
+    )
+
+    messages.success(request, "Process restored.")
+    return redirect(
+        "accounts:company_process_detail",
+        company_pk=company.pk,
+        process_pk=process.pk,
+    )
+
+
+@login_required
+@admin_required
+@require_POST
+def company_process_delete(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+    )
+
+    if not process.can_delete():
+        messages.error(
+            request,
+            "This process cannot be deleted because tests have been sent, started or completed. Archive it instead."
+        )
+        return redirect(
+            "accounts:company_process_detail",
+            company_pk=company.pk,
+            process_pk=process.pk,
+        )
+
+    process_name = process.name
+
+    log_event(
+        company=company,
+        verb=ActivityEvent.Verb.PROCESS_DELETED,
+        actor=request.user,
+        process=process,
+        meta={
+            "context": "admin_company_view",
+            "process_name": process_name,
+        },
+    )
+
+    process.delete()
+
+    messages.success(request, f"Process '{process_name}' deleted.")
+    return redirect(
+        "accounts:company_processes",
+        pk=company.pk,
+    )
+
+@login_required
+@admin_required
+@require_POST
+def company_invite_member(request, company_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    next_url = (
+        request.POST.get("next")
+        or request.META.get("HTTP_REFERER")
+        or reverse("accounts:company_detail", kwargs={"pk": company.pk})
+    )
+
+    invite_form = CompanyInviteMemberForm(request.POST)
+
+    if invite_form.is_valid():
+        email = invite_form.cleaned_data["email"].strip().lower()
+        first_name = invite_form.cleaned_data.get("first_name", "").strip()
+        last_name = invite_form.cleaned_data.get("last_name", "").strip()
+
+        with transaction.atomic():
+            user, created_user = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    "username": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "is_active": False,
+                }
+            )
+
+            if not created_user:
+                changed_fields = []
+
+                if first_name and not user.first_name:
+                    user.first_name = first_name
+                    changed_fields.append("first_name")
+
+                if last_name and not user.last_name:
+                    user.last_name = last_name
+                    changed_fields.append("last_name")
+
+                if changed_fields:
+                    user.save(update_fields=changed_fields)
+
+            ensure_user_has_default_orgunit(
+                user=user,
+                company=company,
+                permission="own",
+            )
+
+            if user.is_active:
+                messages.info(
+                    request,
+                    f"{email} har redan ett aktivt konto. Ingen inbjudan skickades."
+                )
+                return redirect(next_url)
+
+            if user.has_usable_password():
+                user.set_unusable_password()
+
+            user.is_active = False
+            user.save(update_fields=["is_active", "password"])
+
+            UserInvite.objects.filter(
+                user=user,
+                company=company,
+                accepted_at__isnull=True,
+                revoked_at__isnull=True,
+            ).update(revoked_at=timezone.now())
+
+            invite = UserInvite.objects.create(
+                user=user,
+                company=company,
+                created_by=request.user,
+            )
+
+            invite_link = build_invite_uuid_link(request, invite)
+
+            send_invite_email(
+                request,
+                user,
+                invite_link=invite_link,
+                company=company,
+            )
+
+            log_event(
+                company=company,
+                actor=request.user,
+                verb=ActivityEvent.Verb.COMPANY_MEMBER_INVITED,
+                meta={
+                    "company_id": company.id,
+                    "company_name": company.name,
+                    "invited_user_id": user.id,
+                    "invited_user_email": user.email,
+                    "invited_user_name": user.get_full_name(),
+                    "invite_id": str(invite.id),
+                },
+            )
+
+        messages.success(request, f"Inbjudan skickades till {email}.")
+        return redirect(next_url)
+
+    messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
+    return redirect(next_url)

@@ -295,7 +295,6 @@
   }
 }
 </style>
-
 <div class="process-hero mb-4">
 
   <div class="process-hero__top">
@@ -311,6 +310,12 @@
                 {{ label }}
               </span>
             {% endfor %}
+          {% endif %}
+
+          {% if process.is_historical %}
+            <span class="process-label">
+              Historical
+            </span>
           {% endif %}
         </div>
 
@@ -335,21 +340,27 @@
 
         <div class="process-hero__details mt-3">
 
-          <div class="process-mini-info">
-            <div class="text-muted small mb-1">Purpose</div>
-            <div class="quick-card-title mt-0">
-              {% if process_purpose %}
-                {{ process_purpose.label }}
-              {% else %}
-                Not selected
-              {% endif %}
+          {% if not process.is_historical %}
+            <div class="process-mini-info">
+              <div class="text-muted small mb-1">Purpose</div>
+              <div class="quick-card-title mt-0">
+                {% if process_purpose %}
+                  {{ process_purpose.label }}
+                {% else %}
+                  Not selected
+                {% endif %}
+              </div>
             </div>
-          </div>
+          {% endif %}
 
           <div class="process-mini-info">
             <div class="text-muted small mb-1">Assessments</div>
             <div class="quick-card-title mt-0">
-              {{ meta.tests|default:"Not specified" }}
+              {% if process.is_historical %}
+                Tests
+              {% else %}
+                {{ meta.tests|default:"Not specified" }}
+              {% endif %}
             </div>
           </div>
 
@@ -358,52 +369,59 @@
       </div>
     </div>
 
-<div class="process-hero__right">
-  {% if can_edit %}
-    <button type="button"
-            class="btn btn-outline-secondary js-selfreg">
-      <i class="fa-solid fa-link me-2"></i>
-      Self-registration
-    </button>
+    <div class="process-hero__right">
+      {% if process.is_historical %}
+        <span class="process-readonly-pill">
+          <i class="fa-regular fa-eye me-1"></i>
+          Read-only archive
+        </span>
+      {% elif can_edit %}
+        <button type="button"
+                class="btn btn-outline-secondary js-selfreg">
+          <i class="fa-solid fa-link me-2"></i>
+          Self-registration
+        </button>
 
-    <button type="button"
-            class="btn btn-primary js-add-candidate"
-            data-url="{% url 'processes:process_add_candidate' process.id %}">
-      <i class="fa-solid fa-user-plus me-2"></i>
-      Add candidate
-    </button>
-  {% else %}
-    <span class="process-readonly-pill">
-      <i class="fa-regular fa-eye me-1"></i>
-      Read-only
-    </span>
-  {% endif %}
-</div>
+        <button type="button"
+                class="btn btn-primary js-add-candidate"
+                data-url="{% url 'processes:process_add_candidate' process.id %}">
+          <i class="fa-solid fa-user-plus me-2"></i>
+          Add candidate
+        </button>
+      {% else %}
+        <span class="process-readonly-pill">
+          <i class="fa-regular fa-eye me-1"></i>
+          Read-only
+        </span>
+      {% endif %}
+    </div>
 
   </div>
 
-<div class="process-nav">
+  <div class="process-nav">
 
-  <a class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
-     href="{% url 'processes:process_detail' process.id %}">
-    Overview
-  </a>
+    <a class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
+       href="{% url 'processes:process_detail' process.id %}">
+      Overview
+    </a>
 
-  <a class="process-nav__item {% if active == 'context' %}is-active{% endif %}"
-     href="{% url 'processes:process_role_context' process.id %}">
-    {{ context_config.tab_label|default:"Process context" }}
-  </a>
+    {% if not process.is_historical %}
+      <a class="process-nav__item {% if active == 'context' %}is-active{% endif %}"
+         href="{% url 'processes:process_role_context' process.id %}">
+        {{ context_config.tab_label|default:"Process context" }}
+      </a>
 
-  <a class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
-     href="{% url 'emails:edit_process_invitation_template' process.id %}">
-    Email templates
-  </a>
+      <a class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
+         href="{% url 'emails:edit_process_invitation_template' process.id %}">
+        Email templates
+      </a>
 
-  <a class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
-     href="{% url 'processes:process_update' process.id %}">
-    Settings
-  </a>
+      <a class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
+         href="{% url 'processes:process_update' process.id %}">
+        Settings
+      </a>
+    {% endif %}
 
-</div>
+  </div>
 
 </div>

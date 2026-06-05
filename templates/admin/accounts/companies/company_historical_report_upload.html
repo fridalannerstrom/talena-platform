@@ -1,0 +1,77 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+{% load static %}
+
+{% block company_content %}
+
+<div class="mb-3">
+  <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+     class="text-muted text-decoration-none small">
+    ← Back to process
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">Upload historical reports</div>
+      <div class="text-muted small">
+        Upload PDF reports for {{ candidate.first_name }} {{ candidate.last_name }}.
+      </div>
+    </div>
+
+    <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+       class="btn btn-outline-secondary">
+      Cancel
+    </a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <div class="card-body">
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="alert alert-secondary">
+        <div class="fw-semibold">Multiple PDF upload</div>
+        <div class="small">
+          You can upload several PDF reports at once. Talena will use each PDF filename as the report name.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold" for="{{ form.files.id_for_label }}">
+          PDF reports
+        </label>
+
+        {{ form.files }}
+
+        {% if form.files.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.files.errors }}
+          </div>
+        {% endif %}
+
+        <div class="form-text">
+          Select one or more PDF files.
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-end gap-2">
+      <a href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+         class="btn btn-outline-secondary">
+        Cancel
+      </a>
+
+      <button type="submit" class="btn btn-dark">
+        Upload reports
+      </button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

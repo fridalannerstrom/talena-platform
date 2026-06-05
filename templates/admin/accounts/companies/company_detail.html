@@ -220,16 +220,17 @@
                     <i data-feather="users"></i>
                   </span>
                   <span class="process-info-text">
-                    {{ p.candidates_count|default:"0" }}
+                    {% if p.is_historical %}
+  {{ p.historical_candidates_count|default:"0" }}
+{% else %}
+  {{ p.live_candidates_count|default:"0" }}
+{% endif %}
                   </span>
                 </span>
               </div>
 
               <div class="process-col-label">
                 <div class="process-labels">
-                  <span class="process-label">
-                    {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-                  </span>
                 </div>
               </div>
 

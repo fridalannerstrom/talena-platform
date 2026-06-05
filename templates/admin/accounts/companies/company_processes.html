@@ -12,9 +12,19 @@
       </div>
     </div>
 
-    <span class="badge bg-light text-dark">
-      {{ processes|length }} processes
-    </span>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'accounts:company_process_create' company.pk %}"
+         class="btn btn-dark">
+        <i data-feather="plus-circle"></i>
+        Add SOVA process
+      </a>
+
+      <a href="{% url 'accounts:company_historical_process_create' company.pk %}"
+         class="btn btn-outline-dark">
+        <i data-feather="archive"></i>
+        Add historical process
+      </a>
+    </div>
   </div>
 
   <div class="table-responsive">
@@ -22,8 +32,9 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Status</th>
           <th>Account</th>
-          <th>Test package</th>
+          <th>Tests</th>
           <th>Candidates</th>
           <th>Created by</th>
           <th>Created</th>
@@ -32,7 +43,7 @@
 
       <tbody>
         {% for p in processes %}
-          <tr>
+          <tr class="{% if p.is_archived %}opacity-75{% endif %}">
             <td>
               <a href="{% url 'accounts:company_process_detail' company.pk p.pk %}"
                  class="fw-semibold text-decoration-none user-name-link">
@@ -50,20 +61,70 @@
               {% endif %}
             </td>
 
+            <td>
+              <div class="talena-pill-group">
+{% if p.is_archived %}
+  <span class="talena-pill talena-pill-soft">
+    Archived
+  </span>
+{% elif p.is_historical %}
+  <span class="talena-pill talena-pill-soft">
+    Historical
+  </span>
+  <span class="talena-pill talena-pill-soft">
+    Manual data
+  </span>
+{% else %}
+  <span class="talena-pill talena-pill-purple">
+    Active
+  </span>
+  <span class="talena-pill talena-pill-soft">
+    Live SOVA
+  </span>
+{% endif %}
+              </div>
+            </td>
+
             <td class="text-muted">
               {{ p.org_unit.name|default:"No account" }}
             </td>
 
             <td>
-              <span class="talena-pill talena-pill-purple">
-                {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-              </span>
+              <div class="talena-pill-group">
+                {% if p.selected_tests %}
+                  {% for test in p.selected_tests %}
+                    <span class="talena-pill talena-pill-soft">
+                      {% if test == "personality" %}
+                        Personality
+                      {% elif test == "motivation" %}
+                        Motivation
+                      {% elif test == "verbal" %}
+                        Verbal
+                      {% elif test == "logical" %}
+                        Logical
+                      {% elif test == "numerical" %}
+                        Numerical
+                      {% else %}
+                        {{ test }}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted small">
+                    No tests selected
+                  </span>
+                {% endif %}
+              </div>
             </td>
 
             <td>
               <span class="talena-pill talena-pill-soft">
                 <i data-feather="users"></i>
-                {{ p.candidates_count|default:"0" }}
+                {% if p.is_historical %}
+  {{ p.historical_candidates_count|default:"0" }}
+{% else %}
+  {{ p.live_candidates_count|default:"0" }}
+{% endif %}
               </span>
             </td>
 
@@ -87,7 +148,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="6" class="text-muted p-3">
+            <td colspan="7" class="text-muted p-3">
               No test processes have been created for this company yet.
             </td>
           </tr>
