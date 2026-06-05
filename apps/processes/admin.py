@@ -3,6 +3,109 @@ from .models import TestInvitation
 
 from .models import HistoricalProcessCandidate, HistoricalCandidateReport
 
+from django.contrib import admin
+
+from .models import (
+    TestProcess,
+    Candidate,
+    TestInvitation,
+    HistoricalProcessCandidate,
+    HistoricalCandidateReport,
+)
+
+@admin.register(TestProcess)
+class TestProcessAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "company",
+        "org_unit",
+        "process_type",
+        "is_archived",
+        "sova_sync_enabled",
+        "created_by",
+        "created_at",
+    )
+
+    list_filter = (
+        "is_historical",
+        "is_archived",
+        "sova_sync_enabled",
+        "company",
+        "org_unit",
+        "created_at",
+    )
+
+    search_fields = (
+        "name",
+        "company__name",
+        "org_unit__name",
+        "created_by__email",
+        "created_by__first_name",
+        "created_by__last_name",
+        "account_code",
+        "project_code",
+        "project_name_snapshot",
+    )
+
+    raw_id_fields = (
+        "company",
+        "org_unit",
+        "created_by",
+        "created_by_admin",
+    )
+
+    readonly_fields = (
+        "created_at",
+    )
+
+    ordering = ("-created_at",)
+
+    fieldsets = (
+        ("Basic information", {
+            "fields": (
+                "name",
+                "company",
+                "org_unit",
+                "created_by",
+                "created_by_admin",
+            )
+        }),
+        ("Process type", {
+            "fields": (
+                "is_historical",
+                "is_archived",
+                "sova_sync_enabled",
+                "source",
+            )
+        }),
+        ("Tests", {
+            "fields": (
+                "purpose",
+                "selected_tests",
+            )
+        }),
+        ("SOVA information", {
+            "fields": (
+                "provider",
+                "account_code",
+                "project_code",
+                "sova_project_id",
+                "project_name_snapshot",
+            )
+        }),
+        ("Timestamps", {
+            "fields": (
+                "created_at",
+            )
+        }),
+    )
+
+    def process_type(self, obj):
+        if obj.is_historical:
+            return "Historical"
+        return "Live SOVA"
+
+    process_type.short_description = "Type"
 
 @admin.register(TestInvitation)
 class TestInvitationAdmin(admin.ModelAdmin):

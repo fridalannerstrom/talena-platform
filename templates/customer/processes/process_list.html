@@ -88,7 +88,7 @@
              data-package="{{ p.project_name_snapshot|default:'' }}"
              data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
              data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
-             data-candidates="{{ p.candidates_count|default:0 }}"
+             data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
              data-created="{{ p.created_at|date:'Y-m-d' }}">
 
           <div class="card-body process-card-body">
@@ -206,7 +206,20 @@
             <div class="card-footer-meta">
               <div class="meta-item">
                 <i data-feather="users" class="icon-16"></i>
-                <span>Candidates: <strong>{{ p.candidates_count|default:0 }}</strong></span>
+                <span>
+  Candidates:
+  <strong>
+    {% if p.is_historical %}
+      {{ p.historical_candidates_count|default:0 }}
+    {% else %}
+      {% if p.is_historical %}
+  {{ p.historical_candidates_count|default:0 }}
+{% else %}
+  {{ p.live_candidates_count|default:0 }}
+{% endif %}
+    {% endif %}
+  </strong>
+</span>
               </div>
 
               <div class="meta-item">

@@ -1375,7 +1375,7 @@ def company_detail(request, pk):
     completed_candidates_count = invitations_qs.filter(
         status="completed"
     ).count()
-    
+
     historical_candidate_count_subquery = (
         HistoricalProcessCandidate.objects
         .filter(process=OuterRef("pk"))
@@ -2801,6 +2801,7 @@ def company_historical_process_create(request, pk):
             process.source = "sova_import"
             process.is_historical = True
             process.sova_sync_enabled = False
+            process.is_archived = True
 
             process.account_code = "HIST"
             process.project_code = f"HIST-{company.id}-{uuid.uuid4().hex[:8]}"

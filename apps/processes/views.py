@@ -11,6 +11,9 @@ from .models import (
     ProcessLabel,
     HistoricalProcessCandidate,
 )
+from django.db.models import Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
+from apps.processes.models import HistoricalProcessCandidate
 from django.contrib import messages
 from django.db import transaction
 from .forms import SelfRegisterForm
@@ -1540,29 +1543,46 @@ def process_list(request):
         Q(org_unit_id__in=own_ids, created_by=request.user)
     )
 
-    # ✅ Tab: Aktiva / Arkiverade
+    # Tab: Active / Archived
     show_archived = request.GET.get("archived") == "1"
+
+    historical_candidate_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"))
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
 
     processes = (
         TestProcess.objects
         .filter(process_q)
         .filter(is_archived=show_archived)
         .annotate(
-            invitations_count=Count("invitations", distinct=True),
-            historical_candidates_count=Count("historical_candidates", distinct=True),
+            live_candidates_count=Count("invitations", distinct=True),
+            historical_candidates_count=Coalesce(
+                Subquery(
+                    historical_candidate_count_subquery,
+                    output_field=IntegerField(),
+                ),
+                0,
+            ),
         )
         .order_by("-created_at")
         .prefetch_related("labels")
     )
 
-    # ✅ Bygg edit-permissions EFTER att processes finns
+    # Build edit permissions after processes exists
     can_edit_by_process_id = {}
     for p in processes:
         perm = perms.get(p.org_unit_id)
-        can_edit = (perm == "editor") or (perm == "own" and p.created_by_id == request.user.id)
+        can_edit = (
+            perm == "editor"
+            or (perm == "own" and p.created_by_id == request.user.id)
+        )
         can_edit_by_process_id[p.id] = can_edit
 
-    # ---- ProjectMeta lookup (tests) ----
+    # ProjectMeta lookup
     keys = {
         (p.account_code, p.project_code)
         for p in processes
@@ -1576,7 +1596,10 @@ def process_list(request):
             q |= Q(account_code=acc, project_code=proj)
 
         metas = ProjectMeta.objects.filter(q)
-        meta_by_key = {f"{m.account_code}::{m.project_code}": m for m in metas}
+        meta_by_key = {
+            f"{m.account_code}::{m.project_code}": m
+            for m in metas
+        }
 
     return render(
         request,
@@ -2319,7 +2342,7 @@ def process_detail(request, pk):
 @login_required
 def process_add_candidate(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
-    
+
     if process.is_historical:
         return HttpResponseForbidden("Historical processes are read-only.")
 
