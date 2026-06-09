@@ -2,6 +2,7 @@ from django import forms
 from .models import TestProcess, Candidate
 from .models import ProcessRoleContext
 from apps.accounts.models import OrgUnit
+from apps.teams.models import Team
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
@@ -349,7 +350,28 @@ class HistoricalCandidateForm(forms.Form):
         label="Notes",
     )
 
+    teams = forms.ModelMultipleChoiceField(
+        queryset=Team.objects.none(),
+        required=False,
+        label="Existing teams",
+        widget=forms.SelectMultiple(attrs={
+            "class": "form-select",
+            "size": "5",
+        }),
+    )
+
+    new_team_name = forms.CharField(
+        required=False,
+        label="Create new team",
+        widget=forms.TextInput(attrs={
+            "class": "form-control",
+            "placeholder": "Example: Finance Team",
+        }),
+    )
+
     def __init__(self, *args, **kwargs):
+        company = kwargs.pop("company", None)
+
         super().__init__(*args, **kwargs)
 
         for name, field in self.fields.items():
@@ -360,6 +382,13 @@ class HistoricalCandidateForm(forms.Form):
                 field.widget.attrs.setdefault("class", "form-select")
             else:
                 field.widget.attrs.setdefault("class", "form-control")
+
+        if company:
+            self.fields["teams"].queryset = (
+                Team.objects
+                .filter(company=company, is_archived=False)
+                .order_by("name")
+            )
 
     def clean_historical_reports(self):
         files = self.cleaned_data.get("historical_reports") or []

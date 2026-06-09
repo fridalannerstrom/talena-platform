@@ -195,6 +195,7 @@ INSTALLED_APPS = [
     "apps.ai_chat",
     "apps.knowledge",
     "apps.reports",
+    "apps.teams",
     "django.contrib.humanize",
 ]
 

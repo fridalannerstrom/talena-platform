@@ -20,6 +20,8 @@ from apps.processes.views import (
     build_motivation_coaching_report,
 )
 
+from apps.teams.models import Team, TeamMembership
+
 from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 
@@ -2865,7 +2867,11 @@ def company_historical_candidate_add(request, company_pk, process_pk):
     )
 
     if request.method == "POST":
-        form = HistoricalCandidateForm(request.POST, request.FILES)
+        form = HistoricalCandidateForm(
+            request.POST,
+            request.FILES,
+            company=company,
+        )
 
         if form.is_valid():
             email = form.cleaned_data["email"].strip().lower()
@@ -2917,6 +2923,33 @@ def company_historical_candidate_add(request, company_pk, process_pk):
                     uploaded_by=request.user,
                 )
 
+            selected_teams = list(form.cleaned_data.get("teams") or [])
+            new_team_name = (form.cleaned_data.get("new_team_name") or "").strip()
+
+            if new_team_name:
+                new_team, _ = Team.objects.get_or_create(
+                    company=company,
+                    name=new_team_name,
+                    defaults={
+                        "description": "Created while adding historical candidate."
+                    },
+                )
+                selected_teams.append(new_team)
+
+            assigned_team_count = 0
+
+            for team in selected_teams:
+                _, membership_created = TeamMembership.objects.get_or_create(
+                    team=team,
+                    candidate=candidate,
+                    defaults={
+                        "source": "historical_import",
+                    },
+                )
+
+                if membership_created:
+                    assigned_team_count += 1
+
             log_event(
                 company=company,
                 verb=ActivityEvent.Verb.CANDIDATE_ADDED,
@@ -2927,16 +2960,19 @@ def company_historical_candidate_add(request, company_pk, process_pk):
                     "source": "historical",
                     "record_created": record_created,
                     "uploaded_reports": len(uploaded_reports),
+                    "assigned_teams": assigned_team_count,
                 },
             )
 
+            message_parts = ["Historical candidate added"]
+
             if uploaded_reports:
-                messages.success(
-                    request,
-                    f"Historical candidate added with {len(uploaded_reports)} report(s)."
-                )
-            else:
-                messages.success(request, "Historical candidate added.")
+                message_parts.append(f"{len(uploaded_reports)} report(s) uploaded")
+
+            if selected_teams:
+                message_parts.append(f"assigned to {len(selected_teams)} team(s)")
+
+            messages.success(request, ". ".join(message_parts) + ".")
 
             return redirect(
                 "accounts:company_process_detail",
@@ -2947,7 +2983,8 @@ def company_historical_candidate_add(request, company_pk, process_pk):
         messages.error(request, "Could not add historical candidate. Check the form fields.")
 
     else:
-        form = HistoricalCandidateForm()
+        form = HistoricalCandidateForm(company=company)
+
 
     return render(request, "admin/accounts/companies/company_historical_candidate_form.html", {
         "company": company,
