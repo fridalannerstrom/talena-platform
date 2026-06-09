@@ -144,4 +144,9 @@ urlpatterns = [
         views.company_invite_member,
         name="company_invite_member",
     ),
+    path(
+    "companies/<int:company_pk>/processes/<int:process_pk>/historical-candidates/<int:candidate_pk>/edit/",
+    views.company_historical_candidate_edit,
+    name="company_historical_candidate_edit",
+),
 ]

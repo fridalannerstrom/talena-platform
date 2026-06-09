@@ -8,9 +8,15 @@
 <div class="card">
   <div class="card-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
     <div>
-      <div class="fw-semibold">Add historical candidate</div>
+      <div class="fw-semibold">
+  {% if is_edit %}Edit historical candidate{% else %}Add historical candidate{% endif %}
+</div>
       <div class="text-muted small">
-        Add an old candidate/result to {{ process.name }}.
+        {% if is_edit %}
+  Update historical candidate details, reports and team assignment.
+{% else %}
+  Add an old candidate/result to {{ process.name }}.
+{% endif %}
       </div>
     </div>
 
@@ -190,7 +196,11 @@
             <div class="fw-semibold mb-2">Historical reports</div>
 
             <div class="text-muted small mb-4">
-              Upload one or more original SOVA PDF reports for this candidate.
+              {% if is_edit %}
+  Upload additional original SOVA PDF reports for this candidate.
+{% else %}
+  Upload one or more original SOVA PDF reports for this candidate.
+{% endif %}
               Talena will save each PDF as a separate report and use the filename as the report name.
             </div>
 
@@ -198,6 +208,21 @@
               <label class="form-label" for="{{ form.historical_reports.id_for_label }}">
                 SOVA report PDFs
               </label>
+
+              {% if is_edit and historical_reports %}
+  <div class="mb-4">
+    <div class="fw-semibold small mb-2">Existing reports</div>
+
+    <div class="list-group list-group-flush rounded-3 overflow-hidden">
+      {% for report in historical_reports %}
+        <div class="list-group-item px-0 bg-transparent">
+          <div class="fw-semibold small">{{ report.title }}</div>
+          <div class="text-muted small">{{ report.original_filename }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
 
               {{ form.historical_reports }}
 
@@ -242,7 +267,7 @@
       </a>
 
       <button type="submit" class="btn btn-dark">
-        Save historical candidate
+        {% if is_edit %}Update historical candidate{% else %}Save historical candidate{% endif %}
       </button>
     </div>
   </form>

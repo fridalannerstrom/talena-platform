@@ -371,6 +371,7 @@ class HistoricalCandidateForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         company = kwargs.pop("company", None)
+        historical_candidate = kwargs.pop("historical_candidate", None)
 
         super().__init__(*args, **kwargs)
 
@@ -388,6 +389,21 @@ class HistoricalCandidateForm(forms.Form):
                 Team.objects
                 .filter(company=company, is_archived=False)
                 .order_by("name")
+            )
+
+        if historical_candidate:
+            candidate = historical_candidate.candidate
+
+            self.fields["first_name"].initial = candidate.first_name
+            self.fields["last_name"].initial = candidate.last_name
+            self.fields["email"].initial = candidate.email
+            self.fields["status"].initial = historical_candidate.status
+            self.fields["historical_notes"].initial = historical_candidate.notes
+
+            self.fields["teams"].initial = (
+                candidate.team_memberships
+                .filter(team__company=company, team__is_archived=False)
+                .values_list("team_id", flat=True)
             )
 
     def clean_historical_reports(self):

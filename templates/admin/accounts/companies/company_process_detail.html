@@ -299,12 +299,13 @@
           <th>Email</th>
           <th>Status</th>
 
-          {% if process.is_historical %}
-            <th>Added</th>
-          {% else %}
-            <th>Invited</th>
-            <th>Completed</th>
-          {% endif %}
+{% if process.is_historical %}
+  <th>Added</th>
+  <th class="text-end">Actions</th>
+{% else %}
+  <th>Invited</th>
+  <th>Completed</th>
+{% endif %}
         </tr>
       </thead>
 
@@ -352,6 +353,12 @@
               <td class="text-muted text-nowrap">
                 {{ record.created_at|date:"Y-m-d H:i" }}
               </td>
+              <td class="text-end text-nowrap">
+  <a href="{% url 'accounts:company_historical_candidate_edit' company.pk process.pk record.candidate.pk %}"
+     class="btn btn-sm btn-outline-secondary">
+    Edit
+  </a>
+</td>
             </tr>
           {% empty %}
             <tr>

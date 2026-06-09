@@ -2727,6 +2727,13 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
 
     candidate = get_object_or_404(Candidate, pk=candidate_pk)
 
+    candidate_teams = (
+        candidate.team_memberships
+        .filter(team__company=company, team__is_archived=False)
+        .select_related("team")
+        .order_by("team__name")
+    )
+
     if process.is_historical:
         historical_candidate = get_object_or_404(
             HistoricalProcessCandidate.objects
@@ -2748,6 +2755,7 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             "invite_form": CompanyInviteMemberForm(),
             "is_admin_view": True,
             "is_company_view": True,
+            "candidate_teams": candidate_teams,
         }
 
     else:
@@ -2771,6 +2779,7 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             "is_admin_view": True,
             "is_company_view": True,
             "is_historical": False,
+            "candidate_teams": candidate_teams,
         })
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -3519,3 +3528,135 @@ def company_invite_member(request, company_pk):
 
     messages.error(request, "Kunde inte bjuda in användare. Kontrollera fälten.")
     return redirect(next_url)
+
+
+@login_required
+@admin_required
+def company_historical_candidate_edit(request, company_pk, process_pk, candidate_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+        is_historical=True,
+    )
+
+    historical_candidate = get_object_or_404(
+        HistoricalProcessCandidate.objects
+        .select_related("candidate", "process", "created_by")
+        .prefetch_related("reports"),
+        process=process,
+        candidate_id=candidate_pk,
+    )
+
+    candidate = historical_candidate.candidate
+
+    if request.method == "POST":
+        form = HistoricalCandidateForm(
+            request.POST,
+            request.FILES,
+            company=company,
+            historical_candidate=historical_candidate,
+        )
+
+        if form.is_valid():
+            new_email = form.cleaned_data["email"].strip().lower()
+
+            candidate.first_name = form.cleaned_data["first_name"]
+            candidate.last_name = form.cleaned_data["last_name"]
+            candidate.email = new_email
+            candidate.save(update_fields=["first_name", "last_name", "email"])
+
+            historical_candidate.status = form.cleaned_data["status"]
+            historical_candidate.notes = form.cleaned_data.get("historical_notes") or ""
+            historical_candidate.save(update_fields=["status", "notes"])
+
+            uploaded_reports = form.cleaned_data.get("historical_reports") or []
+
+            for uploaded_file in uploaded_reports:
+                HistoricalCandidateReport.objects.create(
+                    historical_candidate=historical_candidate,
+                    title=uploaded_file.name,
+                    original_filename=uploaded_file.name,
+                    file=uploaded_file,
+                    uploaded_by=request.user,
+                )
+
+            selected_teams = list(form.cleaned_data.get("teams") or [])
+            new_team_name = (form.cleaned_data.get("new_team_name") or "").strip()
+
+            if new_team_name:
+                new_team, _ = Team.objects.get_or_create(
+                    company=company,
+                    name=new_team_name,
+                    defaults={
+                        "description": "Created while editing historical candidate."
+                    },
+                )
+                selected_teams.append(new_team)
+
+            selected_team_ids = [team.id for team in selected_teams]
+
+            TeamMembership.objects.filter(
+                candidate=candidate,
+                team__company=company,
+            ).exclude(
+                team_id__in=selected_team_ids
+            ).delete()
+
+            assigned_team_count = 0
+
+            for team in selected_teams:
+                _, membership_created = TeamMembership.objects.get_or_create(
+                    team=team,
+                    candidate=candidate,
+                    defaults={
+                        "source": "historical_edit",
+                    },
+                )
+
+                if membership_created:
+                    assigned_team_count += 1
+
+            log_event(
+                company=company,
+                verb=ActivityEvent.Verb.CANDIDATE_ADDED,
+                actor=request.user,
+                process=process,
+                candidate=candidate,
+                meta={
+                    "source": "historical_edit",
+                    "uploaded_reports": len(uploaded_reports),
+                    "selected_teams": len(selected_teams),
+                    "new_team_memberships": assigned_team_count,
+                },
+            )
+
+            messages.success(request, "Historical candidate updated.")
+            return redirect(
+                "accounts:company_process_detail",
+                company_pk=company.pk,
+                process_pk=process.pk,
+            )
+
+        messages.error(request, "Could not update historical candidate. Check the form fields.")
+
+    else:
+        form = HistoricalCandidateForm(
+            company=company,
+            historical_candidate=historical_candidate,
+        )
+
+    return render(request, "admin/accounts/companies/company_historical_candidate_form.html", {
+        "company": company,
+        "process": process,
+        "candidate": candidate,
+        "historical_candidate": historical_candidate,
+        "historical_reports": historical_candidate.reports.all(),
+        "form": form,
+        "is_edit": True,
+        "active": "processes",
+        "show_invite_button": True,
+        "invite_form": CompanyInviteMemberForm(),
+    })

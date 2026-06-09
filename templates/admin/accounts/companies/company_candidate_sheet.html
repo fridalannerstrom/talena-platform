@@ -53,6 +53,37 @@
       </div>
 
       <div class="card mb-3">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">Teams</div>
+      <div class="text-muted small">
+        Company-level team assignments for this candidate.
+      </div>
+    </div>
+
+    <span class="badge bg-success text-dark">
+      {{ candidate_teams|length }} team{% if candidate_teams|length != 1 %}s{% endif %}
+    </span>
+  </div>
+
+  <div class="card-body">
+    {% if candidate_teams %}
+      <div class="d-flex flex-wrap gap-2">
+        {% for membership in candidate_teams %}
+          <span class="badge bg-success text-dark">
+            {{ membership.team.name }}
+          </span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-muted small">
+        This candidate has not been assigned to any team yet.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+      <div class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div>
             <div class="fw-semibold">Historical reports</div>
