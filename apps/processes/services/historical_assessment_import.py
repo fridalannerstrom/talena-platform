@@ -126,8 +126,12 @@ def parse_datetime(value):
             return timezone.make_aware(value)
         return value
 
+    if isinstance(value, (int, float)) and value > 1000:
+        return excel_serial_to_datetime(value)
+
     try:
         parsed = pd.to_datetime(value)
+
         if pd.isna(parsed):
             return None
 
@@ -137,6 +141,7 @@ def parse_datetime(value):
             return timezone.make_aware(parsed)
 
         return parsed
+
     except Exception:
         return None
 
@@ -195,6 +200,75 @@ def is_score_column(column_name, assessment_type):
     # For personality/motivation, most non-metadata numeric columns are scores
     return True
 
+def find_header_row(file_path, required_columns=None, max_rows=10):
+    """
+    SOVA exports sometimes have one or more empty rows before the actual header.
+    This finds the row containing the real column names.
+    """
+    required_columns = required_columns or {"Email", "Candidate ID", "Result ID"}
+
+    preview = pd.read_excel(
+        file_path,
+        header=None,
+        nrows=max_rows,
+    )
+
+    for index, row in preview.iterrows():
+        values = {
+            str(value).strip()
+            for value in row.tolist()
+            if value is not None and not pd.isna(value)
+        }
+
+        if required_columns.intersection(values):
+            return index
+
+    return 0
+
+
+def excel_serial_to_datetime(value):
+    """
+    Converts Excel serial date numbers to timezone-aware datetimes.
+    Example: 45951.345 becomes an actual date/time.
+    """
+    try:
+        parsed = pd.to_datetime(
+            float(value),
+            unit="D",
+            origin="1899-12-30",
+        )
+
+        parsed = parsed.to_pydatetime()
+
+        if timezone.is_naive(parsed):
+            return timezone.make_aware(parsed)
+
+        return parsed
+
+    except Exception:
+        return None
+
+
+def json_safe_value(value):
+    """
+    Makes values safe for JSONField.
+    """
+    value = clean_value(value)
+
+    if value is None:
+        return None
+
+    if isinstance(value, datetime):
+        return value.isoformat()
+
+    try:
+        if hasattr(value, "isoformat"):
+            return value.isoformat()
+    except Exception:
+        pass
+
+    return value
+
 
 @transaction.atomic
 def import_historical_assessment_file(process, uploaded_file, user=None):
@@ -214,8 +288,17 @@ def import_historical_assessment_file(process, uploaded_file, user=None):
 
     file_path = import_record.file.path
 
-    df = pd.read_excel(file_path)
+    header_row = find_header_row(file_path)
+
+    df = pd.read_excel(
+        file_path,
+        header=header_row,
+    )
+
     df = df.where(pd.notnull(df), None)
+
+    # Remove completely empty rows
+    df = df.dropna(how="all")
 
     rows_processed = 0
     candidates_created = 0
@@ -224,7 +307,7 @@ def import_historical_assessment_file(process, uploaded_file, user=None):
 
     for _, row in df.iterrows():
         raw_data = {
-            str(column): clean_value(row[column])
+            str(column).strip(): json_safe_value(row[column])
             for column in df.columns
         }
 
