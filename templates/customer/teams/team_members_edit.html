@@ -1,0 +1,116 @@
+{% extends "../core/layouts/customer_base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <p class="text-uppercase text-muted small fw-semibold mb-1">
+        Team members
+      </p>
+      <h1 class="h3 mb-1">Manage members: {{ team.name }}</h1>
+      <p class="text-muted mb-0">
+        Add candidates to this team. Candidates can belong to several teams.
+      </p>
+    </div>
+
+    <a href="{% url 'teams:team_detail' team.pk %}" class="btn btn-outline-secondary">
+      Back to team
+    </a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="max-width: 340px; width: 100%;">
+            <input
+              type="search"
+              class="form-control"
+              placeholder="Search candidates..."
+              id="candidateSearch"
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            Save members
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle mb-0" id="candidateTable">
+            <thead>
+              <tr>
+                <th style="width: 50px;"></th>
+                <th>Candidate</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for candidate in candidates %}
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="candidate_ids"
+                      value="{{ candidate.id }}"
+                      class="form-check-input"
+                      {% if candidate.id in selected_candidate_ids %}checked{% endif %}
+                    >
+                  </td>
+
+                  <td>
+                    <strong>
+                      {{ candidate.first_name }} {{ candidate.last_name }}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span class="text-muted small">
+                      {{ candidate.email }}
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted py-5">
+                    No candidates available.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("candidateSearch");
+    const table = document.getElementById("candidateTable");
+
+    if (!searchInput || !table) return;
+
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value.toLowerCase();
+      const rows = table.querySelectorAll("tbody tr");
+
+      rows.forEach(function (row) {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+      });
+    });
+  });
+</script>
+
+{% endblock %}

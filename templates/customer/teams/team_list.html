@@ -1,0 +1,85 @@
+{% extends "../core/layouts/customer_base.html" %}
+
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <p class="text-uppercase text-muted small fw-semibold mb-1">
+        Candidates
+      </p>
+      <h1 class="h3 mb-1">Teams</h1>
+      <p class="text-muted mb-0">
+        Create and manage candidate teams across processes.
+      </p>
+    </div>
+
+    <a href="{% url 'teams:team_create' %}" class="btn btn-primary">
+      + Create team
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Team</th>
+              <th>Description</th>
+              <th>Members</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for team in teams %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">
+                    {{ team.name }}
+                  </div>
+                </td>
+
+                <td>
+                  {% if team.description %}
+                    <span class="text-muted small">
+                      {{ team.description }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted small">
+                      No description
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ team.member_count }} member{% if team.member_count != 1 %}s{% endif %}
+                </td>
+
+                <td class="text-end">
+                  <a href="{% url 'teams:team_detail' team.pk %}" class="btn btn-sm btn-outline-primary">
+                    View
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted py-5">
+                  No teams created yet.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

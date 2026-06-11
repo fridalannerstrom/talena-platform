@@ -51,6 +51,24 @@
                     <span>Create new test process</span>
                 </a>
 
+
+            <div class="sidenav-menu-heading">Candidates</div>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'candidates:candidate_list' %}active{% endif %}" 
+                   href="{% url 'candidates:candidate_list' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="grid"></i>
+                    </div>
+                    <span>All candidates</span>
+                </a>
+
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'teams:team_list' %}active{% endif %}" 
+                   href="{% url 'teams:team_list' %}">
+                    <div class="nav-link-icon">
+                        <i data-feather="settings"></i>
+                    </div>
+                    <span>Teams</span>
+                </a>
             </div>
         </div>
 
