@@ -414,3 +414,5 @@ class HistoricalCandidateForm(forms.Form):
                 raise forms.ValidationError("Only PDF files are allowed.")
 
         return files
+    
+

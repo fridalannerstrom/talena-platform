@@ -1,0 +1,79 @@
+{% extends "admin/accounts/companies/company_base.html" %}
+
+{% block company_content %}
+
+<div class="mb-4">
+  <a
+    href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+    class="text-muted text-decoration-none"
+  >
+    ← Back to process
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+
+    <p class="text-uppercase text-muted small fw-semibold mb-1">
+      Import complete
+    </p>
+
+    <h1 class="h4 mb-2">
+      SOVA data extracts imported
+    </h1>
+
+    <p class="text-muted mb-4">
+      Talena has processed the uploaded files and saved structured historical assessment data.
+    </p>
+
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Type</th>
+            <th>Scale</th>
+            <th>Rows</th>
+            <th>New candidates</th>
+            <th>Results</th>
+            <th>Scores</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in import_results %}
+            <tr>
+              <td>{{ item.filename }}</td>
+              <td>
+                <span class="badge rounded-pill bg-light text-dark border">
+                  {{ item.assessment_type }}
+                </span>
+              </td>
+              <td>{{ item.scale }}</td>
+              <td>{{ item.rows_processed }}</td>
+              <td>{{ item.candidates_created }}</td>
+              <td>{{ item.results_created }}</td>
+              <td>{{ item.scores_created }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-muted text-center py-4">
+                No files were imported.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <a
+      href="{% url 'accounts:company_process_detail' company.pk process.pk %}"
+      class="btn btn-primary"
+    >
+      Back to process
+    </a>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -11,6 +11,7 @@ from .models import (
     ProcessLabel,
     HistoricalProcessCandidate,
 )
+from apps.processes.services.historical_assessment_import import import_historical_assessment_file
 from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 from apps.processes.models import HistoricalProcessCandidate
@@ -3250,3 +3251,4 @@ def process_create_v2(request):
         "templates_count": len(template_cards),
         "accounts_count": len(accounts),
     })
+

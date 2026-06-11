@@ -19,9 +19,8 @@ from apps.processes.views import (
     build_candidate_report,
     build_motivation_coaching_report,
 )
-
+from .forms import HistoricalAssessmentImportForm
 from apps.teams.models import Team, TeamMembership
-
 from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 
@@ -30,6 +29,10 @@ from apps.processes.models import (
     TestProcess,
     TestInvitation,
     HistoricalProcessCandidate,
+)
+
+from apps.processes.services.historical_assessment_import import (
+    import_historical_assessment_file,
 )
 
 from apps.processes.models import HistoricalCandidateReport
@@ -3660,3 +3663,68 @@ def company_historical_candidate_edit(request, company_pk, process_pk, candidate
         "show_invite_button": True,
         "invite_form": CompanyInviteMemberForm(),
     })
+
+
+@login_required
+@admin_required
+def company_historical_assessment_import_upload(request, company_pk, process_pk):
+    company = get_object_or_404(Company, pk=company_pk)
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_pk,
+        company=company,
+        is_historical=True,
+    )
+
+    import_results = []
+
+    if request.method == "POST":
+        form = HistoricalAssessmentImportForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            files = request.FILES.getlist("files")
+
+            for uploaded_file in files:
+                result = import_historical_assessment_file(
+                    process=process,
+                    uploaded_file=uploaded_file,
+                    user=request.user,
+                )
+                import_results.append(result)
+
+            messages.success(
+                request,
+                f"Imported {len(import_results)} SOVA data extract file(s)."
+            )
+
+            return render(
+                request,
+                "admin/accounts/companies/company_historical_assessment_import_result.html",
+                {
+                    "company": company,
+                    "process": process,
+                    "import_results": import_results,
+                    "active": "processes",
+                    "show_invite_button": True,
+                    "invite_form": CompanyInviteMemberForm(),
+                },
+            )
+
+        messages.error(request, "Could not import files. Please check the uploaded files.")
+
+    else:
+        form = HistoricalAssessmentImportForm()
+
+    return render(
+        request,
+        "admin/accounts/companies/company_historical_assessment_import_upload.html",
+        {
+            "company": company,
+            "process": process,
+            "form": form,
+            "active": "processes",
+            "show_invite_button": True,
+            "invite_form": CompanyInviteMemberForm(),
+        },
+    )

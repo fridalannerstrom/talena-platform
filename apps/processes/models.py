@@ -7,8 +7,6 @@ from apps.accounts.models import OrgUnit, Company
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 import os
-from django.conf import settings
-from django.db import models
 
 
 class TestProcess(models.Model):
@@ -454,3 +452,126 @@ class HistoricalCandidateReport(models.Model):
             self.title = self.original_filename
 
         super().save(*args, **kwargs)
+
+
+class HistoricalAssessmentImport(models.Model):
+    process = models.ForeignKey(
+        "processes.TestProcess",
+        on_delete=models.CASCADE,
+        related_name="assessment_imports",
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="historical_assessment_imports",
+    )
+
+    file = models.FileField(upload_to="historical_assessment_imports/")
+    original_filename = models.CharField(max_length=255)
+
+    assessment_type = models.CharField(max_length=50, blank=True)
+    scale = models.CharField(max_length=50, blank=True)
+
+    status = models.CharField(max_length=50, default="uploaded")
+    rows_processed = models.PositiveIntegerField(default=0)
+    candidates_created = models.PositiveIntegerField(default=0)
+    results_created = models.PositiveIntegerField(default=0)
+    scores_created = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.original_filename
+
+
+class HistoricalAssessmentResult(models.Model):
+    process = models.ForeignKey(
+        "processes.TestProcess",
+        on_delete=models.CASCADE,
+        related_name="historical_assessment_results",
+    )
+    historical_candidate = models.ForeignKey(
+        "processes.HistoricalProcessCandidate",
+        on_delete=models.CASCADE,
+        related_name="assessment_results",
+    )
+    candidate = models.ForeignKey(
+        "processes.Candidate",
+        on_delete=models.CASCADE,
+        related_name="historical_assessment_results",
+    )
+    import_file = models.ForeignKey(
+        "processes.HistoricalAssessmentImport",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="results",
+    )
+
+    assessment_type = models.CharField(max_length=50)
+    scale = models.CharField(max_length=50, blank=True)
+
+    sova_candidate_id = models.CharField(max_length=100, blank=True)
+    sova_result_id = models.CharField(max_length=100, blank=True)
+
+    status = models.CharField(max_length=50, blank=True)
+    language = models.CharField(max_length=20, blank=True)
+
+    time_added = models.DateTimeField(null=True, blank=True)
+    time_completed = models.DateTimeField(null=True, blank=True)
+
+    raw_data = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["candidate__last_name", "candidate__first_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "process",
+                    "candidate",
+                    "assessment_type",
+                    "scale",
+                    "sova_result_id",
+                ],
+                name="unique_historical_assessment_result",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.candidate} - {self.assessment_type} ({self.scale})"
+
+
+class HistoricalAssessmentScore(models.Model):
+    result = models.ForeignKey(
+        "processes.HistoricalAssessmentResult",
+        on_delete=models.CASCADE,
+        related_name="scores",
+    )
+
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, blank=True)
+    scale = models.CharField(max_length=50, blank=True)
+
+    score = models.FloatField(null=True, blank=True)
+    percentile = models.FloatField(null=True, blank=True)
+
+    raw_value = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["category", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["result", "name", "category", "scale"],
+                name="unique_historical_assessment_score",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.name}: {self.score or self.percentile}"

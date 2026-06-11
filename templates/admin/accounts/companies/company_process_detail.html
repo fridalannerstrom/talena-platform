@@ -88,6 +88,15 @@
           </a>
         {% endif %}
 
+        {% if process.is_historical %}
+  <a
+    href="{% url 'accounts:company_historical_assessment_import_upload' company.pk process.pk %}"
+    class="btn btn-dark"
+  >
+    Upload data extracts
+  </a>
+{% endif %}
+
         <a href="{% url 'accounts:admin_process_update' process.pk %}?next={{ request.get_full_path|urlencode }}"
            class="btn btn-dark">
           Edit process
