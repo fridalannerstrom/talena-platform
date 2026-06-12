@@ -2,6 +2,7 @@
 
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="container-fluid py-4">
 
@@ -30,43 +31,328 @@
 </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-start gap-3">
+    <div>
+      <p class="text-uppercase text-muted small fw-semibold mb-1">
+        Team styles
+      </p>
+      <h2 class="h5 mb-1">Composite team style profile</h2>
+      <p class="text-muted small mb-0">
+        Aggregated team style scores based on imported SOVA personality data.
+      </p>
+    </div>
+
+    <span class="badge bg-light text-dark border">
+      {{ team_style_stats.members_with_scores }} / {{ team_style_stats.members_total }} with data
+    </span>
+  </div>
+
+  <div class="card-body">
+
+    {% if team_style_stats.members_with_scores %}
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="text-muted small mb-1">Members with team style data</div>
+            <div class="h3 mb-0">
+              {{ team_style_stats.members_with_scores }}
+            </div>
+            <div class="text-muted small">
+              out of {{ team_style_stats.members_total }} team members
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="text-muted small mb-1">Strongest average style</div>
+            {% if team_style_stats.strongest_average %}
+              <div class="h4 mb-0">
+                {{ team_style_stats.strongest_average.style }}
+              </div>
+              <div class="text-muted small">
+                Average {{ team_style_stats.strongest_average.average }} / 10
+              </div>
+            {% else %}
+              <div class="h4 mb-0">—</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="text-muted small mb-1">Lowest average style</div>
+            {% if team_style_stats.lowest_average %}
+              <div class="h4 mb-0">
+                {{ team_style_stats.lowest_average.style }}
+              </div>
+              <div class="text-muted small">
+                Average {{ team_style_stats.lowest_average.average }} / 10
+              </div>
+            {% else %}
+              <div class="h4 mb-0">—</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <div class="fw-semibold">Average profile</div>
+                <div class="text-muted small">
+                  Average score across selected team members.
+                </div>
+              </div>
+            </div>
+
+            <div class="team-style-chart-box">
+  <canvas id="teamStyleAverageChart"></canvas>
+</div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="fw-semibold mb-1">Ranked averages</div>
+            <div class="text-muted small mb-3">
+              Team styles ordered by average score.
+            </div>
+
+            <div class="team-style-rank-list">
+              {% for row in team_style_stats.ranked_averages %}
+                <div class="team-style-rank-row">
+                  <div class="team-style-rank-label">
+                    <div class="fw-semibold">{{ row.style }}</div>
+                    <div class="text-muted small">{{ row.quadrant }}</div>
+                  </div>
+
+                  <div class="team-style-bar-wrap">
+                    <div class="team-style-bar">
+                      <div
+                        class="team-style-bar-fill"
+                        style="width: {{ row.average_percent }}%;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="team-style-rank-score">
+                    {% if row.average is not None %}
+                      {{ row.average }} / 10
+                    {% else %}
+                      —
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+
+      <div class="text-muted small">
+        No team style data is available for the candidates in this team yet.
+      </div>
+
+    {% endif %}
+
+  </div>
+</div>
+
+
+{% if team_style_stats.members_with_scores %}
+
+  <div class="row g-4 mb-4">
+
+    <!-- MAXIMUM SCORES -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white">
+          <div class="fw-semibold">Composite team styles · Maximum</div>
+          <div class="text-muted small">
+            Highest score found in the team for each style.
+          </div>
+        </div>
+
         <div class="card-body">
-          <p class="text-muted small mb-1">Members</p>
-          <h3 class="mb-0">{{ stats.members }}</h3>
+          <div class="team-style-rank-list">
+            {% for row in team_style_stats.ranked_maximums %}
+              <div class="team-style-rank-row">
+                <div class="team-style-rank-label">
+                  <div class="fw-semibold">{{ row.style }}</div>
+                  <div class="text-muted small">{{ row.quadrant }}</div>
+                </div>
+
+                <div class="team-style-bar-wrap">
+                  <div class="team-style-bar">
+                    <div
+                      class="team-style-bar-fill team-style-bar-fill-max"
+                      style="width: {{ row.maximum_percent }}%;">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="team-style-rank-score">
+                  {% if row.maximum is not None %}
+                    {{ row.maximum }} / 10
+                  {% else %}
+                    —
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted small mb-1">Processes</p>
-          <h3 class="mb-0">{{ stats.processes }}</h3>
+    <!-- MOST / LEAST -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white">
+          <div class="fw-semibold">Most and least preferred styles</div>
+          <div class="text-muted small">
+            Team members with the highest and lowest score for each style.
+          </div>
         </div>
+
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Team style</th>
+                  <th>Most preferred</th>
+                  <th>Least preferred</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for row in team_style_stats.most_least_rows %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold">{{ row.style }}</div>
+                      <div class="text-muted small">{{ row.quadrant }}</div>
+                    </td>
+
+                    <td>
+                      {% if row.most %}
+                        <div class="d-flex flex-wrap gap-1">
+                          {% for person in row.most %}
+                            <span
+                              class="badge bg-light text-dark border"
+                              title="{{ person.name }}">
+                              {{ person.initials }}
+                            </span>
+                          {% endfor %}
+                        </div>
+                        <div class="text-muted small mt-1">
+                          {{ row.max }} / 10
+                        </div>
+                      {% else %}
+                        <span class="text-muted small">—</span>
+                      {% endif %}
+                    </td>
+
+                    <td>
+                      {% if row.least %}
+                        <div class="d-flex flex-wrap gap-1">
+                          {% for person in row.least %}
+                            <span
+                              class="badge bg-light text-dark border"
+                              title="{{ person.name }}">
+                              {{ person.initials }}
+                            </span>
+                          {% endfor %}
+                        </div>
+                        <div class="text-muted small mt-1">
+                          {{ row.min }} / 10
+                        </div>
+                      {% else %}
+                        <span class="text-muted small">—</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted small mb-1">Completed</p>
-          <h3 class="mb-0">{{ stats.completed }}</h3>
-        </div>
+  </div>
+
+
+  <!-- INDIVIDUAL MEMBER SCORES -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <div class="fw-semibold">Team member profiles</div>
+      <div class="text-muted small">
+        Individual team style scores for each team member.
       </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted small mb-1">Historical</p>
-          <h3 class="mb-0">{{ stats.historical }}</h3>
-        </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="min-width: 220px;">Member</th>
+              {% for style in team_style_stats.styles %}
+                <th class="text-center">{{ style }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for member in team_style_stats.member_profiles %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="team-member-initials">
+                      {{ member.initials }}
+                    </div>
+                    <div>
+                      <div class="fw-semibold">
+                        {{ member.candidate.first_name }} {{ member.candidate.last_name }}
+                      </div>
+                      <div class="text-muted small">
+                        {{ member.candidate.email }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                {% for score in member.scores %}
+                  <td class="text-center">
+                    {% if score.score is not None %}
+                      <span class="badge bg-light text-dark border">
+                        {{ score.score|floatformat:0 }}
+                      </span>
+                    {% else %}
+                      <span class="text-muted small">—</span>
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+
+{% endif %}
+
 
   <div class="card border-0 shadow-sm">
     <div class="card-body">
@@ -150,5 +436,162 @@
   </div>
 
 </div>
+
+
+<style>
+  .team-style-rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .team-style-rank-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 72px;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .team-style-rank-label {
+    min-width: 0;
+  }
+
+  .team-style-bar-wrap {
+    min-width: 0;
+  }
+
+  .team-style-bar {
+    height: 14px;
+    border-radius: 999px;
+    background: #f1eefb;
+    overflow: hidden;
+    border: 1px solid #e5def8;
+  }
+
+  .team-style-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: #785CE7;
+  }
+
+  .team-style-bar-fill-max {
+    background: #2f80ed;
+  }
+
+  .team-style-rank-score {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .team-member-initials {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: #f5f3ff;
+    color: #6d28d9;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex: 0 0 auto;
+  }
+
+  .team-style-chart-box {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+.team-style-chart-box canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+  @media (max-width: 768px) {
+    .team-style-rank-row {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .team-style-rank-score {
+      text-align: left;
+    }
+  }
+</style>
+
+{{ team_style_stats.chart_labels|json_script:"team-style-chart-labels" }}
+{{ team_style_stats.chart_average_values|json_script:"team-style-chart-averages" }}
+{{ team_style_stats.chart_max_values|json_script:"team-style-chart-max" }}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const chartElement = document.getElementById("teamStyleAverageChart");
+
+    if (!chartElement || typeof Chart === "undefined") {
+      return;
+    }
+
+    const labelsEl = document.getElementById("team-style-chart-labels");
+    const averagesEl = document.getElementById("team-style-chart-averages");
+    const maxEl = document.getElementById("team-style-chart-max");
+
+    if (!labelsEl || !averagesEl || !maxEl) {
+      return;
+    }
+
+    const labels = JSON.parse(labelsEl.textContent || "[]");
+    const averageValues = JSON.parse(averagesEl.textContent || "[]");
+    const maxValues = JSON.parse(maxEl.textContent || "[]");
+
+    if (!labels.length) {
+      return;
+    }
+
+    new Chart(chartElement, {
+      type: "radar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Average",
+            data: averageValues,
+            borderWidth: 2,
+            pointRadius: 3,
+            fill: true
+          },
+          {
+            label: "Maximum",
+            data: maxValues,
+            borderWidth: 2,
+            pointRadius: 3,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0,
+            max: 10,
+            ticks: {
+              stepSize: 2
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    });
+  });
+</script>
+
 
 {% endblock %}
