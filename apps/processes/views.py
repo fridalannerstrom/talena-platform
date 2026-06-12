@@ -2819,9 +2819,24 @@ def process_candidate_detail(request, process_id, candidate_id):
         historical_candidate = get_object_or_404(
             HistoricalProcessCandidate.objects
             .select_related("candidate", "process", "created_by")
-            .prefetch_related("reports"),
+            .prefetch_related(
+                "reports",
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
             process=process,
             candidate_id=candidate_id,
+        )
+
+        ctx = build_historical_candidate_detail_context(
+            process=process,
+            historical_candidate=historical_candidate,
+        )
+
+        return render(
+            request,
+            "customer/processes/_candidate_detail_sheet.html",
+            ctx,
         )
 
         ctx = {
@@ -2831,6 +2846,7 @@ def process_candidate_detail(request, process_id, candidate_id):
             "historical_candidate": historical_candidate,
             "historical_reports": historical_candidate.reports.all(),
             "is_historical": True,
+            "assessment_results": assessment_results,
         }
 
     else:
@@ -3252,3 +3268,410 @@ def process_create_v2(request):
         "accounts_count": len(accounts),
     })
 
+
+def build_historical_candidate_detail_context(process, historical_candidate):
+    """
+    Builds the same kind of context as build_candidate_detail_context,
+    but from imported historical Excel extract data instead of live SOVA API data.
+    """
+    candidate = historical_candidate.candidate
+
+    assessment_results = (
+        historical_candidate.assessment_results
+        .prefetch_related("scores", "import_file")
+        .all()
+        .order_by("assessment_type", "scale", "-created_at")
+    )
+
+    all_scores = []
+
+    motivation_results = []
+    mq_competencies = []
+
+    personality_competencies = []
+    team_style_scores = []
+
+    verbal_percentile = None
+    logical_percentile = None
+    numerical_percentile = None
+
+    has_motivation_results = False
+    has_personality_results = False
+    has_verbal_results = False
+    has_logical_results = False
+    has_numerical_results = False
+
+    for result in assessment_results:
+        for score in result.scores.all():
+            score_row = {
+                "activity": result.assessment_type,
+                "competency": score.name,
+                "score": score.score,
+                "stive_rounded": score.score,
+                "stive": score.score,
+                "sten_rounded": score.score,
+                "sten": score.score,
+                "percentile": score.percentile,
+                "category": score.category,
+                "scale": score.scale,
+            }
+
+            all_scores.append(score_row)
+
+            if result.assessment_type == "motivation":
+                has_motivation_results = True
+
+                motivation_results.append({
+                    "activity": "Motivation Questionnaire",
+                    "competency": score.name,
+                    "stive": score.score,
+                    "stive_rounded": score.score,
+                    "sten": score.score,
+                    "sten_rounded": score.score,
+                    "percentile": score.percentile,
+                    "assessment_centre": None,
+                })
+
+                mq_competencies.append({
+                    "competency": score.name,
+                    "score": score.score,
+                    "stive_rounded": score.score,
+                    "stive": score.score,
+                    "sten_rounded": score.score,
+                    "sten": score.score,
+                    "percentile": score.percentile,
+                })
+
+            elif result.assessment_type == "personality":
+                has_personality_results = True
+
+                item = {
+                    "competency": score.name,
+                    "sten_rounded": score.score,
+                    "sten": score.score,
+                    "percentile": score.percentile,
+                    "category": score.category,
+                }
+
+                if score.category == "team_style":
+                    team_style_scores.append(item)
+                else:
+                    personality_competencies.append(item)
+
+            elif result.assessment_type == "verbal":
+                if score.percentile is not None:
+                    verbal_percentile = score.percentile
+                    has_verbal_results = True
+                elif score.score is not None:
+                    verbal_percentile = score.score
+                    has_verbal_results = True
+
+            elif result.assessment_type == "logical":
+                if score.percentile is not None:
+                    logical_percentile = score.percentile
+                    has_logical_results = True
+                elif score.score is not None:
+                    logical_percentile = score.score
+                    has_logical_results = True
+
+            elif result.assessment_type == "numerical":
+                if score.percentile is not None:
+                    numerical_percentile = score.percentile
+                    has_numerical_results = True
+                elif score.score is not None:
+                    numerical_percentile = score.score
+                    has_numerical_results = True
+
+    personality_competencies = sorted(
+        personality_competencies,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    motivation_results = sorted(
+        motivation_results,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    mq_competencies = sorted(
+        mq_competencies,
+        key=lambda x: (x.get("competency") or "").lower()
+    )
+
+    def safe_score(item):
+        value = (
+            item.get("score")
+            or item.get("sten_rounded")
+            or item.get("stive_rounded")
+            or item.get("percentile")
+        )
+        return value if value is not None else -1
+
+    top_motivations = sorted(
+        mq_competencies,
+        key=safe_score,
+        reverse=True,
+    )[:3]
+
+    top_personality_traits = sorted(
+        personality_competencies + team_style_scores,
+        key=safe_score,
+        reverse=True,
+    )[:3]
+
+    motivation_development_areas = sorted(
+        mq_competencies,
+        key=safe_score,
+    )[:2]
+
+    personality_development_areas = sorted(
+        personality_competencies + team_style_scores,
+        key=safe_score,
+    )[:2]
+
+    has_ability_results = (
+        has_verbal_results
+        or has_logical_results
+        or has_numerical_results
+    )
+
+    has_any_results = (
+        has_motivation_results
+        or has_personality_results
+        or has_ability_results
+    )
+
+    all_assessments_completed = has_any_results
+
+    ability_reports_for_ui = {
+        "overview": [],
+        "verbal": build_cognitive_reports_for_test(
+            test_key="verbal",
+            percentile=verbal_percentile,
+        ) if verbal_percentile is not None else None,
+
+        "logical": build_cognitive_reports_for_test(
+            test_key="logical",
+            percentile=logical_percentile,
+        ) if logical_percentile is not None else None,
+
+        "numerical": build_cognitive_reports_for_test(
+            test_key="numerical",
+            percentile=numerical_percentile,
+        ) if numerical_percentile is not None else None,
+    }
+
+    if ability_reports_for_ui["verbal"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "verbal",
+            "label": "Verbal",
+            "percentile": verbal_percentile,
+        })
+
+    if ability_reports_for_ui["logical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "logical",
+            "label": "Logical",
+            "percentile": logical_percentile,
+        })
+
+    if ability_reports_for_ui["numerical"]:
+        ability_reports_for_ui["overview"].append({
+            "key": "numerical",
+            "label": "Numerical",
+            "percentile": numerical_percentile,
+        })
+
+    motivation_scores = build_scores_by_competency(mq_competencies)
+
+    practitioner_report = build_practitioner_report(
+        competencies=mq_competencies,
+    )
+
+    manager_report = build_manager_report(
+        competencies=mq_competencies,
+    )
+
+    candidate_report = build_candidate_report(
+        competencies=mq_competencies,
+    )
+
+    coaching_report = build_motivation_coaching_report(
+        competencies=mq_competencies,
+    )
+
+    motivation_reports_for_ui = [
+        practitioner_report,
+        manager_report,
+        coaching_report,
+        candidate_report,
+    ] if has_motivation_results else []
+
+    personality_reports = []
+
+    if has_personality_results:
+        personality_reports = [
+            {
+                "report_name": "Personality overview",
+                "description": "Generated from imported historical personality scores.",
+            },
+            {
+                "report_name": "Team style overview",
+                "description": "Generated from imported team style scores.",
+            },
+        ]
+
+    available_reports_count = 0
+
+    if has_verbal_results:
+        available_reports_count += 2
+
+    if has_logical_results:
+        available_reports_count += 2
+
+    if has_numerical_results:
+        available_reports_count += 2
+
+    if has_motivation_results:
+        available_reports_count += 4
+
+    if has_personality_results:
+        available_reports_count += 2
+
+    candidate_insights = {
+        "summary": {
+            "body": "This candidate has imported historical SOVA assessment data. The profile below is generated from structured raw scores rather than PDF reports."
+        },
+        "key_strengths": [],
+        "areas_to_explore": [],
+        "questions": [],
+        "fit": None,
+    }
+
+    for item in top_personality_traits[:2]:
+        candidate_insights["key_strengths"].append({
+            "title": item.get("competency"),
+            "body": "This is one of the candidate’s higher imported personality or team style scores.",
+            "how_it_may_show": "This may show up as a recurring behavioural tendency in work-related situations.",
+            "why_it_matters": "This can be useful when understanding the candidate’s general work style.",
+            "evidence": [
+                f"{item.get('competency')}: {safe_score(item)}"
+            ],
+        })
+
+    for item in top_motivations[:2]:
+        candidate_insights["key_strengths"].append({
+            "title": item.get("competency"),
+            "body": "This is one of the candidate’s higher imported motivation scores.",
+            "how_it_may_show": "This may indicate what tends to energise or engage the candidate.",
+            "why_it_matters": "Motivational drivers can be important for role fit, leadership and retention.",
+            "evidence": [
+                f"{item.get('competency')}: {safe_score(item)}"
+            ],
+        })
+
+    for item in personality_development_areas[:2]:
+        candidate_insights["areas_to_explore"].append({
+            "title": item.get("competency"),
+            "body": "This is one of the lower imported personality or team style scores.",
+            "explore_through": "Ask for examples of when this behaviour is more or less natural for the candidate.",
+            "what_to_listen_for": "Listen for context, self-awareness and compensating strategies.",
+            "evidence": [
+                f"{item.get('competency')}: {safe_score(item)}"
+            ],
+        })
+
+    for item in motivation_development_areas[:2]:
+        candidate_insights["areas_to_explore"].append({
+            "title": item.get("competency"),
+            "body": "This is one of the lower imported motivation scores.",
+            "explore_through": "Ask what type of work situations tend to reduce energy or engagement.",
+            "what_to_listen_for": "Listen for what the candidate needs from role, manager and environment.",
+            "evidence": [
+                f"{item.get('competency')}: {safe_score(item)}"
+            ],
+        })
+
+    candidate_insights["questions"] = [
+        {
+            "category": "strengths",
+            "category_label": "Strength",
+            "question": "Which parts of your work tend to bring out your strongest qualities?",
+            "why": "This helps validate whether the imported assessment profile matches the candidate’s own experience.",
+            "listen_for": "Concrete examples and consistency with the strongest assessment themes.",
+        },
+        {
+            "category": "explore",
+            "category_label": "Explore",
+            "question": "Are there situations where your usual work style becomes less effective?",
+            "why": "This helps understand potential development areas without treating lower scores as weaknesses.",
+            "listen_for": "Self-awareness, nuance and practical strategies.",
+        },
+        {
+            "category": "motivation",
+            "category_label": "Motivation",
+            "question": "What type of work environment gives you the most energy over time?",
+            "why": "This helps connect motivation scores to real workplace conditions.",
+            "listen_for": "Drivers, demotivators and fit with the role environment.",
+        },
+    ]
+
+    return {
+        "company": process.company,
+        "process": process,
+        "candidate": candidate,
+        "historical_candidate": historical_candidate,
+        "is_historical": True,
+
+        "historical_reports": historical_candidate.reports.all(),
+        "assessment_results": assessment_results,
+
+        "invitation": None,
+        "inv": None,
+        "activity_events": [],
+
+        "activities": [],
+        "project_results": {},
+        "project_scores": [],
+        "competency_scores": [],
+        "overall_score": None,
+        "reports": [],
+
+        "ability_results": [],
+        "motivation_results": motivation_results,
+        "all_competencies": all_scores,
+
+        "numerical_percentile": numerical_percentile,
+        "logical_percentile": logical_percentile,
+        "verbal_percentile": verbal_percentile,
+        "has_ability_results": has_ability_results,
+
+        "mq_competencies": mq_competencies,
+        "personality_competencies": personality_competencies,
+        "team_style_scores": team_style_scores,
+
+        "tests_sent_count": assessment_results.count(),
+        "tests_completed_count": assessment_results.count(),
+        "available_reports_count": available_reports_count,
+        "email_logs_by_id": {},
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "motivation_development_areas": motivation_development_areas,
+        "personality_development_areas": personality_development_areas,
+
+        "motivation_scores": motivation_scores,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
+
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
+        "has_any_results": has_any_results,
+        "all_assessments_completed": all_assessments_completed,
+
+        "candidate_insights": candidate_insights,
+        "purpose_report": None,
+        "report_mode": "general",
+        "context_config": {},
+        "show_context_prompt": False,
+    }

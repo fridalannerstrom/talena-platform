@@ -111,6 +111,7 @@ from apps.accounts.utils.org_units import (
 )
 
 
+
 COMPLETED_ACTIVITY_STATUSES = {
     "completed",
     "complete",
