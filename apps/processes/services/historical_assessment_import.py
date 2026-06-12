@@ -200,17 +200,25 @@ def is_score_column(column_name, assessment_type):
     # For personality/motivation, most non-metadata numeric columns are scores
     return True
 
-def find_header_row(file_path, required_columns=None, max_rows=10):
+def find_header_row(file_obj, required_columns=None, max_rows=10):
     """
     SOVA exports sometimes have one or more empty rows before the actual header.
     This finds the row containing the real column names.
     """
-    required_columns = required_columns or {"Email", "Candidate ID", "Result ID"}
+    required_columns = required_columns or {
+        "Email",
+        "Candidate ID",
+        "Result ID",
+        "Full Name",
+    }
+
+    file_obj.seek(0)
 
     preview = pd.read_excel(
-        file_path,
+        file_obj,
         header=None,
         nrows=max_rows,
+        engine="openpyxl",
     )
 
     for index, row in preview.iterrows():
@@ -286,19 +294,43 @@ def import_historical_assessment_file(process, uploaded_file, user=None):
         status="processing",
     )
 
-    file_path = import_record.file.path
+    uploaded_file.seek(0)
+    header_row = find_header_row(uploaded_file)
 
-    header_row = find_header_row(file_path)
-
+    uploaded_file.seek(0)
     df = pd.read_excel(
-        file_path,
+        uploaded_file,
         header=header_row,
+        engine="openpyxl",
     )
+
+    df = df.where(pd.notnull(df), None)
+    df = df.dropna(how="all")
 
     df = df.where(pd.notnull(df), None)
 
     # Remove completely empty rows
     df = df.dropna(how="all")
+
+    print("IMPORT START:", original_filename)
+
+    uploaded_file.seek(0)
+    print("FINDING HEADER...")
+    header_row = find_header_row(uploaded_file)
+    print("HEADER ROW:", header_row)
+
+    uploaded_file.seek(0)
+    print("READING EXCEL...")
+    df = pd.read_excel(
+        uploaded_file,
+        header=header_row,
+        engine="openpyxl",
+    )
+    print("EXCEL READ DONE:", df.shape)
+
+    df = df.where(pd.notnull(df), None)
+    df = df.dropna(how="all")
+    print("ROWS AFTER DROP EMPTY:", len(df))
 
     rows_processed = 0
     candidates_created = 0

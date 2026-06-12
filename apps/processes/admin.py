@@ -11,6 +11,9 @@ from .models import (
     TestInvitation,
     HistoricalProcessCandidate,
     HistoricalCandidateReport,
+    HistoricalAssessmentImport,
+    HistoricalAssessmentResult,
+    HistoricalAssessmentScore,
 )
 
 @admin.register(TestProcess)
@@ -146,6 +149,36 @@ class TestInvitationAdmin(admin.ModelAdmin):
     )
 
 
+class HistoricalAssessmentResultInline(admin.TabularInline):
+    model = HistoricalAssessmentResult
+    extra = 0
+
+    fields = (
+        "assessment_type",
+        "scale",
+        "status",
+        "sova_candidate_id",
+        "sova_result_id",
+        "time_completed",
+        "created_at",
+    )
+
+    readonly_fields = (
+        "assessment_type",
+        "scale",
+        "status",
+        "sova_candidate_id",
+        "sova_result_id",
+        "time_completed",
+        "created_at",
+    )
+
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(HistoricalProcessCandidate)
 class HistoricalProcessCandidateAdmin(admin.ModelAdmin):
     list_display = (
@@ -155,12 +188,14 @@ class HistoricalProcessCandidateAdmin(admin.ModelAdmin):
         "created_by",
         "created_at",
     )
+
     list_filter = (
         "status",
         "process__company",
         "process",
         "created_at",
     )
+
     search_fields = (
         "candidate__first_name",
         "candidate__last_name",
@@ -168,13 +203,19 @@ class HistoricalProcessCandidateAdmin(admin.ModelAdmin):
         "process__name",
         "notes",
     )
+
     raw_id_fields = (
         "process",
         "candidate",
         "created_by",
     )
+
     readonly_fields = (
         "created_at",
+    )
+
+    inlines = (
+        HistoricalAssessmentResultInline,
     )
 
 
@@ -205,4 +246,182 @@ class HistoricalCandidateReportAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         "uploaded_at",
+    )
+
+
+# =============================================================================
+# HISTORICAL ASSESSMENT DATA IMPORT ADMIN
+# =============================================================================
+
+class HistoricalAssessmentScoreInline(admin.TabularInline):
+    model = HistoricalAssessmentScore
+    extra = 0
+
+    fields = (
+        "name",
+        "category",
+        "scale",
+        "score",
+        "percentile",
+        "raw_value",
+    )
+
+    readonly_fields = (
+        "name",
+        "category",
+        "scale",
+        "score",
+        "percentile",
+        "raw_value",
+    )
+
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(HistoricalAssessmentImport)
+class HistoricalAssessmentImportAdmin(admin.ModelAdmin):
+    list_display = (
+        "original_filename",
+        "process",
+        "assessment_type",
+        "scale",
+        "status",
+        "rows_processed",
+        "candidates_created",
+        "results_created",
+        "scores_created",
+        "created_at",
+    )
+
+    list_filter = (
+        "assessment_type",
+        "scale",
+        "status",
+        "process__company",
+        "process",
+        "created_at",
+    )
+
+    search_fields = (
+        "original_filename",
+        "process__name",
+        "process__company__name",
+    )
+
+    raw_id_fields = (
+        "process",
+        "uploaded_by",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "rows_processed",
+        "candidates_created",
+        "results_created",
+        "scores_created",
+    )
+
+    ordering = ("-created_at",)
+
+
+@admin.register(HistoricalAssessmentResult)
+class HistoricalAssessmentResultAdmin(admin.ModelAdmin):
+    list_display = (
+        "candidate",
+        "process",
+        "assessment_type",
+        "scale",
+        "status",
+        "sova_candidate_id",
+        "sova_result_id",
+        "time_completed",
+        "score_count",
+        "created_at",
+    )
+
+    list_filter = (
+        "assessment_type",
+        "scale",
+        "status",
+        "process__company",
+        "process",
+        "created_at",
+    )
+
+    search_fields = (
+        "candidate__first_name",
+        "candidate__last_name",
+        "candidate__email",
+        "process__name",
+        "process__company__name",
+        "sova_candidate_id",
+        "sova_result_id",
+    )
+
+    raw_id_fields = (
+        "process",
+        "historical_candidate",
+        "candidate",
+        "import_file",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "raw_data",
+    )
+
+    inlines = (
+        HistoricalAssessmentScoreInline,
+    )
+
+    ordering = (
+        "candidate__last_name",
+        "candidate__first_name",
+        "assessment_type",
+    )
+
+    def score_count(self, obj):
+        return obj.scores.count()
+
+    score_count.short_description = "Scores"
+
+
+@admin.register(HistoricalAssessmentScore)
+class HistoricalAssessmentScoreAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "result",
+        "category",
+        "scale",
+        "score",
+        "percentile",
+    )
+
+    list_filter = (
+        "category",
+        "scale",
+        "result__assessment_type",
+        "result__process__company",
+        "result__process",
+    )
+
+    search_fields = (
+        "name",
+        "result__candidate__first_name",
+        "result__candidate__last_name",
+        "result__candidate__email",
+        "result__process__name",
+    )
+
+    raw_id_fields = (
+        "result",
+    )
+
+    ordering = (
+        "result__candidate__last_name",
+        "category",
+        "name",
     )

@@ -2741,9 +2741,19 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
         historical_candidate = get_object_or_404(
             HistoricalProcessCandidate.objects
             .select_related("candidate", "process", "created_by")
-            .prefetch_related("reports"),
+            .prefetch_related(
+                "reports",
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
             process=process,
             candidate=candidate,
+        )
+
+        assessment_results = (
+            historical_candidate.assessment_results
+            .all()
+            .order_by("assessment_type", "scale", "-created_at")
         )
 
         ctx = {
@@ -2759,6 +2769,7 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             "is_admin_view": True,
             "is_company_view": True,
             "candidate_teams": candidate_teams,
+            "assessment_results": assessment_results,
         }
 
     else:
