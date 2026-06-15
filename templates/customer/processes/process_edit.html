@@ -21,6 +21,7 @@
     <!-- LEFT: Form -->
     <div class="col-12 col-xl-8">
       <div class="card process-section-card">
+
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">Process settings</div>
           <div class="text-muted small">
@@ -29,19 +30,26 @@
         </div>
 
         <div class="card-body p-4">
+
           <form method="post" novalidate>
             {% csrf_token %}
 
             {% if form.non_field_errors %}
-              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
             {% endif %}
 
             <!-- Name -->
             <div class="mb-4">
               <label class="form-label">Name</label>
+
               {{ form.name }}
+
               {% if form.name.errors %}
-                <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.name.errors|striptags }}
+                </div>
               {% endif %}
             </div>
 
@@ -50,75 +58,71 @@
               <label class="form-label">
                 Labels <span class="text-muted">(optional)</span>
               </label>
+
               {{ form.labels_text }}
 
               {% if form.labels_text.help_text %}
-                <div class="form-text">{{ form.labels_text.help_text }}</div>
+                <div class="form-text">
+                  {{ form.labels_text.help_text }}
+                </div>
               {% endif %}
 
               {% if form.labels_text.errors %}
-                <div class="text-danger small mt-1">{{ form.labels_text.errors|striptags }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.labels_text.errors|striptags }}
+                </div>
               {% endif %}
             </div>
 
             <!-- Assessment setup -->
             <div class="border-top pt-4 mt-4">
+
               <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
                 <div>
                   <div class="fw-semibold">Assessment setup</div>
+
                   <div class="text-muted small">
-                    Choose the purpose and the assessments that should be included in this process.
+                    Choose the purpose and the assessments that should be included
+                    in this process.
                   </div>
                 </div>
-
-                {% if template_locked %}
-                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
-                    Locked
-                  </span>
-                {% endif %}
               </div>
-
-              {% if template_locked %}
-                <div class="alert alert-warning d-flex align-items-start gap-2">
-                  <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
-                  <div>
-                    <strong>The assessment setup is locked.</strong><br>
-                    You can still update the name and labels, but purpose and selected assessments cannot be changed after assessments have been sent.
-                  </div>
-                </div>
-
-                <!-- Disabled inputs are not submitted, so we keep hidden values too -->
-                <input type="hidden" name="purpose" value="{{ form.purpose.value|default:'' }}">
-
-                {% for value in form.selected_tests.value %}
-                  <input type="hidden" name="selected_tests" value="{{ value }}">
-                {% endfor %}
-              {% endif %}
 
               <!-- Purpose -->
               <div class="mb-4">
-                <label class="form-label">Purpose</label>
+                <label class="form-label">
+                  Purpose
+                </label>
+
+                <div class="text-muted small mb-3">
+                  Changing the purpose updates how Talena interprets and presents
+                  candidate results. It does not change assessments already sent.
+                </div>
 
                 <div class="template-select" role="radiogroup">
+
                   {% for purpose in process_purposes %}
                     <label class="template-option">
+
                       <input
                         class="template-radio js-purpose-radio"
                         type="radio"
                         name="{{ form.purpose.html_name }}"
                         value="{{ purpose.key }}"
                         {% if form.purpose.value == purpose.key %}checked{% endif %}
-                        {% if template_locked %}disabled{% endif %}
                         data-recommended-tests="{% for test in purpose_recommended_tests|get_item:purpose.key %}{{ test }}{% if not forloop.last %},{% endif %}{% endfor %}"
-                      />
+                      >
 
                       <span class="template-card process-edit">
+
                         <span class="template-card-main">
+
                           <span class="template-icon">
                             <i class="fa-solid fa-bullseye"></i>
                           </span>
 
                           <span class="template-text">
+
                             <span class="template-title">
                               {{ purpose.title|default:purpose.label|default:purpose.key }}
                             </span>
@@ -128,29 +132,80 @@
                                 {{ purpose.description }}
                               </span>
                             {% endif %}
+
                           </span>
                         </span>
 
                         <span class="template-check">
                           <i data-feather="check"></i>
                         </span>
+
                       </span>
                     </label>
                   {% endfor %}
+
                 </div>
 
                 {% if form.purpose.errors %}
-                  <div class="text-danger small mt-2">{{ form.purpose.errors|striptags }}</div>
+                  <div class="text-danger small mt-2">
+                    {{ form.purpose.errors|striptags }}
+                  </div>
                 {% endif %}
               </div>
 
-              <!-- Selected tests -->
+
+              <!-- Selected assessments -->
               <div class="mb-4">
-                <label class="form-label">Selected assessments</label>
+
+                <label class="form-label">
+                  Selected assessments
+                </label>
+
+                {% if template_locked %}
+                  <div class="text-muted small mb-3">
+                    The assessment selection cannot be changed because assessments
+                    have already been sent in this process.
+                  </div>
+                {% endif %}
+
+                
+                            {% if template_locked %}
+                <div class="alert alert-warning d-flex align-items-start gap-2">
+                  <div style="font-size: 1.2rem; line-height: 1;">
+                    🔒
+                  </div>
+
+                  <div>
+                    <strong>The selected assessments are locked.</strong>
+                    <br>
+
+                    You can still update the process name, labels and purpose.
+                    Changing the purpose updates how Talena interprets and presents
+                    candidate reports, but the assessments already sent will remain
+                    unchanged.
+                  </div>
+                </div>
+
+                <!--
+                  Disabled checkbox fields are not included in POST requests.
+                  These hidden fields preserve the current assessment selection.
+                -->
+                {% for value in process.selected_tests %}
+                  <input
+                    type="hidden"
+                    name="selected_tests"
+                    value="{{ value }}"
+                  >
+                {% endfor %}
+              {% endif %}
 
                 <div class="template-select" role="group">
+
                   {% for test in available_tests %}
-                    <label class="template-option">
+                    <label
+                      class="template-option {% if template_locked %}is-disabled{% endif %}"
+                    >
+
                       <input
                         class="template-radio js-test-checkbox"
                         type="checkbox"
@@ -158,15 +213,18 @@
                         value="{{ test.key }}"
                         {% if test.key in form.selected_tests.value %}checked{% endif %}
                         {% if template_locked %}disabled{% endif %}
-                      />
+                      >
 
                       <span class="template-card process-edit">
+
                         <span class="template-card-main">
+
                           <span class="template-icon">
                             <i class="{{ test.icon_class|default:'fa-solid fa-chart-simple' }}"></i>
                           </span>
 
                           <span class="template-text">
+
                             <span class="template-title">
                               {{ test.title|default:test.label|default:test.key }}
                             </span>
@@ -176,19 +234,24 @@
                                 {{ test.description }}
                               </span>
                             {% endif %}
+
                           </span>
                         </span>
 
                         <span class="template-check">
                           <i data-feather="check"></i>
                         </span>
+
                       </span>
                     </label>
                   {% endfor %}
+
                 </div>
 
                 {% if form.selected_tests.errors %}
-                  <div class="text-danger small mt-2">{{ form.selected_tests.errors|striptags }}</div>
+                  <div class="text-danger small mt-2">
+                    {{ form.selected_tests.errors|striptags }}
+                  </div>
                 {% endif %}
 
                 {% if not template_locked %}
@@ -197,17 +260,22 @@
                   </div>
                 {% endif %}
               </div>
+
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
+
               <button class="btn btn-primary" type="submit">
                 Save changes
               </button>
 
-              <a class="btn btn-outline-secondary"
-                 href="{% url 'processes:process_detail' process.id %}">
+              <a
+                class="btn btn-outline-secondary"
+                href="{% url 'processes:process_detail' process.id %}"
+              >
                 Cancel
               </a>
+
             </div>
 
           </form>
@@ -219,33 +287,51 @@
     <div class="col-12 col-xl-4">
 
       <div class="card process-section-card">
+
         <div class="card-header bg-white py-3 px-4">
           <div class="fw-semibold">Tips</div>
-          <div class="text-muted small">For a clear and organised process.</div>
+          <div class="text-muted small">
+            For a clear and organised process.
+          </div>
         </div>
 
         <div class="card-body small">
+
           <div class="tip-block mb-3">
-            <div class="fw-semibold text-dark mb-1">Use labels to stay organised</div>
+            <div class="fw-semibold text-dark mb-1">
+              Use labels to stay organised
+            </div>
+
             <p class="mb-0">
-              Labels are for internal structure. You can use them to group processes by department,
-              role type, project, priority or customer-specific categories.
+              Labels are for internal structure. You can use them to group
+              processes by department, role type, project, priority or
+              customer-specific categories.
             </p>
           </div>
 
           <div class="tip-block mb-3">
-            <div class="fw-semibold text-dark mb-1">Purpose guides the report</div>
+            <div class="fw-semibold text-dark mb-1">
+              Purpose guides the report
+            </div>
+
             <p class="mb-0">
-              The selected purpose helps Talena understand how the results should be interpreted and presented.
+              The selected purpose helps Talena understand how candidate results
+              should be interpreted and presented. You can update it later if the
+              focus of the process changes.
             </p>
           </div>
 
           <div class="tip-block">
-            <div class="fw-semibold text-dark mb-1">Locked setup?</div>
+            <div class="fw-semibold text-dark mb-1">
+              Locked assessments?
+            </div>
+
             <p class="mb-0">
-              Once assessments have been sent, purpose and selected assessments are locked to protect the process history.
+              Once assessments have been sent, the assessment selection is locked
+              to protect the process history. The purpose can still be updated.
             </p>
           </div>
+
         </div>
       </div>
 
@@ -253,36 +339,52 @@
 
   </div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    if (window.feather) {
-      feather.replace();
-    }
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.feather) {
+        feather.replace();
+      }
 
-    const purposeRadios = document.querySelectorAll(".js-purpose-radio");
-    const testCheckboxes = document.querySelectorAll(".js-test-checkbox");
+      const templateLocked = {{ template_locked|yesno:"true,false" }};
+      const purposeRadios = document.querySelectorAll(".js-purpose-radio");
+      const testCheckboxes = document.querySelectorAll(".js-test-checkbox");
 
-    purposeRadios.forEach(function (radio) {
-      radio.addEventListener("change", function () {
-        if (!radio.checked) return;
+      purposeRadios.forEach(function (radio) {
+        radio.addEventListener("change", function () {
+          if (!radio.checked) {
+            return;
+          }
 
-        const recommended = (radio.dataset.recommendedTests || "")
-          .split(",")
-          .map(function (item) { return item.trim(); })
-          .filter(Boolean);
+          /*
+           * Purpose may still change in a locked process,
+           * but it must not visually or technically change
+           * the assessments already selected.
+           */
+          if (templateLocked) {
+            return;
+          }
 
-        if (!recommended.length) return;
+          const recommended = (radio.dataset.recommendedTests || "")
+            .split(",")
+            .map(function (item) {
+              return item.trim();
+            })
+            .filter(Boolean);
 
-        testCheckboxes.forEach(function (checkbox) {
-          checkbox.checked = recommended.includes(checkbox.value);
+          if (!recommended.length) {
+            return;
+          }
+
+          testCheckboxes.forEach(function (checkbox) {
+            checkbox.checked = recommended.includes(checkbox.value);
+          });
+
+          if (window.feather) {
+            feather.replace();
+          }
         });
-
-        if (window.feather) {
-          feather.replace();
-        }
       });
     });
-  });
-</script>
+  </script>
 
 {% endblock %}

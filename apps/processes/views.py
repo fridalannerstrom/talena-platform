@@ -2012,19 +2012,21 @@ def process_update(request, pk):
                 label_objs.append(lab)
 
             # --------------------------------------------------
-            # Om test redan skickats: lås syfte/tester/Sova-projekt
+            # Purpose får alltid ändras.
+            # Tester och Sova-projekt låses efter första utskicket.
             # --------------------------------------------------
+            obj.purpose = purpose
+
             if locked:
+                # Behåll befintliga tester och befintlig Sova-koppling.
+                # Ignorera manipulerade testvärden från POST.
                 obj.provider = "sova"
                 obj.account_code = old_acc
                 obj.project_code = old_proj
-
-                # Behåll gamla värden, även om någon manipulerar POST
-                obj.purpose = obj.purpose
                 obj.selected_tests = obj.selected_tests or []
 
             else:
-                obj.purpose = purpose
+                # Innan tester har skickats får testpaketet fortfarande ändras.
                 obj.selected_tests = selected_tests
 
                 resolved_template = resolve_dev_sova_template(selected_tests)
@@ -2053,17 +2055,31 @@ def process_update(request, pk):
                         (t for t in template_cards if t["value"] == value),
                         None
                     )
+
                     obj.project_name_snapshot = (
                         match["sova_name"] if match else proj
                     )
 
+            # --------------------------------------------------
+            # Spara ändringarna
+            # --------------------------------------------------
             obj.save()
             obj.labels.set(label_objs)
 
-            messages.success(request, "The process was updated.")
-            return redirect("processes:process_update", pk=obj.pk)
+            messages.success(
+                request,
+                "The process was updated."
+            )
 
-        messages.error(request, "Could not save. Please check the fields.")
+            return redirect(
+                "processes:process_update",
+                pk=obj.pk,
+            )
+        
+        messages.error(
+            request,
+            "Could not save. Please check the fields."
+        )
 
     # --------------------------------------------------
     # 5. GET: fyll edit-formuläret med befintliga värden
