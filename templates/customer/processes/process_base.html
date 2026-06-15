@@ -268,6 +268,19 @@
       });
     });
 
+    const queryParams = new URLSearchParams(window.location.search);
+const candidateIdToOpen = queryParams.get("open_candidate");
+
+if (candidateIdToOpen) {
+  const targetIndex = links.findIndex((link) => {
+    return String(link.dataset.candidateId) === String(candidateIdToOpen);
+  });
+
+  if (targetIndex !== -1) {
+    loadCandidateByIndex(targetIndex);
+  }
+}
+
     if (prevBtn) {
       prevBtn.addEventListener("click", () => {
         loadCandidateByIndex(currentIndex - 1);

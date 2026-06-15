@@ -233,10 +233,11 @@
 
                         <div class="min-w-0">
                           <div class="fw-semibold text-truncate">
-                            <a href="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
-                               class="user-link js-open-candidate"
-                               data-sheet-url="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
-                               data-candidate-name="{{ hc.candidate.first_name }} {{ hc.candidate.last_name|escape }}">
+<a href="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
+   class="user-link js-open-candidate"
+   data-sheet-url="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
+   data-candidate-id="{{ hc.candidate.id }}"
+   data-candidate-name="{{ hc.candidate.first_name }} {{ hc.candidate.last_name|escape }}">
                               {% if hc.candidate.first_name or hc.candidate.last_name %}
                                 {{ hc.candidate.first_name }} {{ hc.candidate.last_name }}
                               {% else %}
@@ -312,10 +313,11 @@
 
                         <div class="min-w-0">
                           <div class="fw-semibold text-truncate">
-                            <a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                               class="user-link js-open-candidate"
-                               data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-                               data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+<a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+   class="user-link js-open-candidate"
+   data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+   data-candidate-id="{{ inv.candidate.id }}"
+   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
                               {% if inv.candidate.first_name or inv.candidate.last_name %}
                                 {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
                               {% else %}

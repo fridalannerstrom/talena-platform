@@ -3,6 +3,59 @@
 
 {% block content %}
 
+<style>
+  .candidate-test-overview {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.candidate-test-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-width: 42px;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.45rem;
+  background: #f8f9fa;
+  color: #6c757d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.candidate-test-status.is-completed {
+  border-color: #b7dfc5;
+  background: #edf9f1;
+  color: #198754;
+}
+
+.candidate-test-status.is-pending {
+  border-color: #f2d69b;
+  background: #fff8e7;
+  color: #a66a00;
+}
+
+.candidate-test-status.is-not_sent {
+  border-color: #e2e5e8;
+  background: #f8f9fa;
+  color: #adb5bd;
+}
+
+.candidate-test-label {
+  letter-spacing: 0.02em;
+}
+
+.candidate-test-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+}
+</style>
+
 <div class="container-fluid py-4">
 
   <div class="d-flex justify-content-between align-items-start mb-4">
@@ -74,6 +127,7 @@
               <th>Candidate</th>
               <th>Teams</th>
               <th>Processes</th>
+              <th>Tests</th>
               <th>Latest activity</th>
               <th class="text-end">Actions</th>
             </tr>
@@ -110,24 +164,64 @@
                 </td>
 
                 <td>
-                  {% if candidate.latest_live_activity %}
-                    <span class="small">
-                      {{ candidate.latest_live_activity|date:"Y-m-d" }}
-                    </span>
-                  {% else %}
-                    <span class="text-muted small">—</span>
-                  {% endif %}
-                </td>
+  <div class="candidate-test-overview">
+    {% for test in candidate.test_overview %}
+      <span
+        class="candidate-test-status is-{{ test.status }}"
+        title="{{ test.name }}: {% if test.status == 'completed' %}Completed{% elif test.status == 'pending' %}Sent or started{% else %}Not sent{% endif %}"
+      >
+        <span class="candidate-test-label">
+          {{ test.label }}
+        </span>
+
+        <span class="candidate-test-icon">
+          {% if test.status == "completed" %}
+            <i class="fa-solid fa-check"></i>
+
+          {% elif test.status == "pending" %}
+            <i class="fa-regular fa-clock"></i>
+
+          {% else %}
+            <i class="fa-solid fa-minus"></i>
+          {% endif %}
+        </span>
+      </span>
+    {% endfor %}
+  </div>
+</td>
+
+<td>
+  {% if candidate.latest_activity %}
+    <span class="small">
+      {{ candidate.latest_activity|date:"Y-m-d" }}
+    </span>
+  {% else %}
+    <span class="text-muted small">—</span>
+  {% endif %}
+</td>
 
                 <td class="text-end">
-                  <button class="btn btn-sm btn-outline-secondary" disabled>
-                    View
-                  </button>
-                </td>
+  {% if candidate.latest_process_id %}
+    <a
+      href="{% url 'processes:process_detail' candidate.latest_process_id %}?open_candidate={{ candidate.id }}"
+      class="btn btn-sm btn-outline-secondary"
+    >
+      View
+    </a>
+  {% else %}
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-secondary"
+      disabled
+    >
+      View
+    </button>
+  {% endif %}
+</td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="5" class="text-center text-muted py-5">
+                <td colspan="6" class="text-center text-muted py-5">
                   No candidates found.
                 </td>
               </tr>
