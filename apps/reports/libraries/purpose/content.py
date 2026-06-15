@@ -1,17 +1,24 @@
 PURPOSE_TO_REPORT_MODE = {
-    "hiring": "recruitment",
-    "internal_role_match": "recruitment",
+    # General insights
+    "flexible": "general",
+    "unsure": "general",
 
-    "leadership_potential": "development",
+    # Recruitment
+    "recruitment": "recruitment",
+    "role_match": "recruitment",
+
+    # Development, coaching and career
     "career_path": "development",
     "onboarding": "development",
     "employee_development": "development",
-    "leader_development": "development",
 
+    # Leadership
+    "leadership_potential": "leadership",
+    "leader_development": "leadership",
+
+    # Team and organisation
     "team_development": "team",
     "reorganisation": "team",
-
-    "unsure": "general",
 }
 
 
@@ -87,6 +94,43 @@ REPORT_MODE_CONTENT = {
             "Explore which work conditions increase energy, focus and motivation.",
             "Turn possible development areas into practical experiments or coaching goals.",
             "Use the results as a conversation starter rather than a fixed description of the person.",
+        ],
+    },
+
+    "leadership": {
+        "key": "leadership",
+        "label": "Leadership",
+        "title": "Leadership-focused result view",
+        "intro": (
+            "Use this view to understand leadership-related strengths, development "
+            "areas and the conditions that may support effective leadership."
+        ),
+        "summary_title": "Leadership overview",
+        "summary_description": (
+            "This section highlights leadership-related patterns, possible strengths "
+            "and areas that may benefit from further exploration."
+        ),
+        "personality_title": "Personality patterns in leadership",
+        "personality_description": (
+            "These traits can help explain how the person may lead, communicate, "
+            "influence others and respond to pressure or change."
+        ),
+        "motivation_title": "Leadership motivation and drivers",
+        "motivation_description": (
+            "These motivators can help clarify what may energise the person in a "
+            "leadership role and which conditions may support sustained performance."
+        ),
+        "ability_title": "Ability results in leadership context",
+        "ability_description": (
+            "Use cognitive ability results as one part of understanding how the "
+            "person may process complexity, solve problems and make decisions."
+        ),
+        "followup_title": "Suggested leadership focus",
+        "followup_items": [
+            "Explore how the person creates direction and gains commitment from others.",
+            "Discuss how they respond to pressure, uncertainty and competing priorities.",
+            "Identify leadership strengths that can be used more intentionally.",
+            "Use the results as development support rather than a fixed judgement.",
         ],
     },
 

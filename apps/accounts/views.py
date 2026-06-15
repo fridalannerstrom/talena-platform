@@ -31,6 +31,11 @@ from apps.processes.models import (
     HistoricalProcessCandidate,
 )
 
+from apps.reports.services.candidate_insights import (
+    build_general_insight_input,
+    generate_general_candidate_insights,
+)
+
 from apps.processes.services.historical_assessment_import import (
     import_historical_assessment_file,
 )
@@ -948,7 +953,116 @@ def build_candidate_detail_context(process, invitation):
     if has_personality_results:
         available_reports_count += 11
 
+    # ------------------------------------------------------------
+    # Overall result availability
+    # ------------------------------------------------------------
+    has_any_results = (
+        has_ability_results
+        or has_motivation_results
+        or has_personality_results
+    )
+
+    all_assessments_completed = (
+        activity_count > 0
+        and tests_completed_count >= activity_count
+    )
+
+    # ------------------------------------------------------------
+    # Build structured input for general AI insights
+    # ------------------------------------------------------------
+    general_insight_input = build_general_insight_input(
+        personality_competencies=personality_competencies,
+        motivation_competencies=mq_competencies,
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
+
+    # ------------------------------------------------------------
+    # Safe fallback if AI does not run or fails
+    # ------------------------------------------------------------
+    candidate_insights = {
+        "summary": {
+            "headline": "General assessment insights",
+            "body": (
+                "The available assessment results provide a general view "
+                "of the candidate's likely work-related preferences and behaviours."
+            ),
+            "bullets": [],
+        },
+        "overall_interpretation": {
+            "title": "Overall profile interpretation",
+            "label": "General interpretation",
+            "confidence": "Medium",
+            "body": "",
+            "reasoning": [],
+            "suggested_next_step": "",
+        },
+        "key_strengths": [],
+        "areas_to_explore": [],
+        "questions": [],
+        "motivation_environment": {
+            "summary": "",
+            "top_motivators": [],
+            "possible_demotivators": [],
+            "best_environment": [],
+            "manager_tips": [],
+            "context_implications": "",
+        },
+        "work_style": {
+            "summary": "",
+            "items": [],
+            "footer_note": "",
+        },
+        "next_steps": [],
+        "fit": None,
+    }
+
+    candidate_insights_mode = "general"
+    report_mode = "general"
+
+    print("=== FLEXIBLE INSIGHTS DEBUG ===")
+    print("PROCESS PURPOSE:", process.purpose)
+    print("HAS ANY RESULTS:", has_any_results)
+    print("CANDIDATE:", candidate.id, candidate.email)
+    print("GENERAL INPUT:", general_insight_input)
+
+    # ------------------------------------------------------------
+    # Flexible process: generate real general AI insights
+    # ------------------------------------------------------------
+    print("BEFORE FLEXIBLE AI BLOCK")
+    print("PURPOSE:", process.purpose)
+    print("HAS RESULTS:", has_any_results)
+
+    if process.purpose == "flexible" and has_any_results:
+        print("ENTERED FLEXIBLE AI BLOCK")
+
+        try:
+            generated_insights = generate_general_candidate_insights(
+                candidate_name=(
+                    f"{candidate.first_name} {candidate.last_name}"
+                ).strip(),
+                insight_input=general_insight_input,
+            )
+
+            candidate_insights = generated_insights
+
+            print("AI INSIGHTS GENERATED SUCCESSFULLY")
+            print(json.dumps(
+                generated_insights,
+                indent=2,
+                ensure_ascii=False,
+                default=str,
+            ))
+
+        except Exception as exc:
+            print("GENERAL CANDIDATE INSIGHTS ERROR")
+            print(repr(exc))
+
+    print("AFTER FLEXIBLE AI BLOCK")
+
     return {
+
         "company": process.company,
         "process": process,
         "invitation": invitation,
@@ -991,6 +1105,14 @@ def build_candidate_detail_context(process, invitation):
         "personality_reports": personality_reports,
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
+
+        "has_any_results": has_any_results,
+        "all_assessments_completed": all_assessments_completed,
+
+        "candidate_insights": candidate_insights,
+        "candidate_insights_mode": candidate_insights_mode,
+        "report_mode": report_mode,
+        "general_insight_input": general_insight_input,
     }
 
 def build_invite_link(request, user):

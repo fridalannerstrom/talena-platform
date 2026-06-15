@@ -11,6 +11,10 @@ from .models import (
     ProcessLabel,
     HistoricalProcessCandidate,
 )
+from apps.reports.services.candidate_insights import (
+    build_general_insight_input,
+    generate_general_candidate_insights,
+)
 from apps.processes.services.historical_assessment_import import import_historical_assessment_file
 from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
@@ -489,6 +493,23 @@ def build_candidate_detail_context(process, invitation):
         or has_logical_results
         or has_numerical_results
     )
+
+    general_insight_input = build_general_insight_input(
+        personality_competencies=personality_competencies,
+        motivation_competencies=mq_competencies,
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
+
+    print("=== GENERAL INSIGHT INPUT ===")
+    print(json.dumps(
+        general_insight_input,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    ))
+    print("=== /GENERAL INSIGHT INPUT ===")
 
     ability_reports_for_ui = {
         "overview": [],
@@ -1390,6 +1411,43 @@ def build_candidate_detail_context(process, invitation):
             
         }
 
+    print("=== FLEXIBLE AI CONDITION DEBUG ===")
+    print("PROCESS PURPOSE:", repr(process.purpose))
+    print("PURPOSE IS FLEXIBLE:", process.purpose == "flexible")
+    print("HAS ANY RESULTS:", has_any_results)
+    print("HAS PERSONALITY RESULTS:", has_personality_results)
+    print("HAS MOTIVATION RESULTS:", has_motivation_results)
+    print("HAS ABILITY RESULTS:", has_ability_results)
+    print("=== /FLEXIBLE AI CONDITION DEBUG ===")
+
+    # ------------------------------------------------------------
+    # Flexible process: real AI-generated general insights
+    # ------------------------------------------------------------
+    if process.purpose in {"flexible", "unsure"} and has_any_results:
+        print("FLEXIBLE AI BLOCK ENTERED")
+
+        try:
+            candidate_insights = generate_general_candidate_insights(
+                candidate_name=(
+                    f"{candidate.first_name} {candidate.last_name}"
+                ).strip(),
+                insight_input=general_insight_input,
+            )
+
+            candidate_insights_mode = "general"
+            report_mode = "general"
+
+            print("AI INSIGHTS GENERATED SUCCESSFULLY")
+
+        except Exception as exc:
+            print(
+                "GENERAL CANDIDATE INSIGHTS ERROR:",
+                repr(exc),
+            )
+
+    else:
+        print("FLEXIBLE AI BLOCK SKIPPED")
+
     return {
         "company": process.company,
         "process": process,
@@ -1443,10 +1501,11 @@ def build_candidate_detail_context(process, invitation):
         "purpose_report": purpose_report,
         "purpose_report_key": purpose_report_key,
 
-        # New Candidate Insights mode
-        "report_mode": candidate_insights_mode,
-        "candidate_insights_mode": candidate_insights_mode,
+        # Candidate insights
         "candidate_insights": candidate_insights,
+        "candidate_insights_mode": candidate_insights_mode,
+        "report_mode": report_mode,
+        "general_insight_input": general_insight_input,
 
         # Purpose context
         "purpose_context": purpose_context_obj,
@@ -1454,19 +1513,11 @@ def build_candidate_detail_context(process, invitation):
         "context_config": context_config,
         "show_context_prompt": show_context_prompt,
 
-        # Backwards-compatible role context names
+        # Backwards-compatible names
         "role_context": role_context_obj,
         "has_role_context": has_role_context,
         "show_role_context_prompt": show_role_context_prompt,
 
-        # Competency tab logic
-        "critical_competencies_active": critical_competencies_active,
-        "competency_overview_active": competency_overview_active,
-        "critical_competencies_enabled": has_purpose_context,
-
-        "candidate_insights": candidate_insights,
-        "report_mode": report_mode,
-        "purpose_context": purpose_context_obj,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
@@ -3450,6 +3501,24 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         or has_numerical_results
     )
 
+    general_insight_input = build_general_insight_input(
+        personality_competencies=personality_competencies,
+        motivation_competencies=mq_competencies,
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
+
+    print("=== GENERAL INSIGHT INPUT ===")
+    print(json.dumps(
+        general_insight_input,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    ))
+    print("=== /GENERAL INSIGHT INPUT ===")
+    
+
     has_any_results = (
         has_motivation_results
         or has_personality_results
@@ -3631,6 +3700,23 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         },
     ]
 
+    if process.purpose in {"flexible", "unsure"} and has_any_results:
+        try:
+            candidate_insights = generate_general_candidate_insights(
+                candidate_name=(
+                    f"{candidate.first_name} {candidate.last_name}"
+                ).strip(),
+                insight_input=general_insight_input,
+            )
+
+            print("HISTORICAL AI INSIGHTS GENERATED SUCCESSFULLY")
+
+        except Exception as exc:
+            print(
+                "HISTORICAL GENERAL CANDIDATE INSIGHTS ERROR:",
+                repr(exc),
+            )
+
     return {
         "company": process.company,
         "process": process,
@@ -3686,6 +3772,7 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         "all_assessments_completed": all_assessments_completed,
 
         "candidate_insights": candidate_insights,
+        "general_insight_input": general_insight_input,
         "purpose_report": None,
         "report_mode": "general",
         "context_config": {},
