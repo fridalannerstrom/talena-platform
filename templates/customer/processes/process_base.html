@@ -495,27 +495,71 @@ if (candidateIdToOpen) {
   }
 
   // ------------------------------------------------------------
-  // AI summary stream
-  // ------------------------------------------------------------
+// AI candidate summary
+// ------------------------------------------------------------
 
-  async function initCandidateSummaryStream(container = document) {
-    const summaryEl = container.querySelector("#aiSummaryContent");
+async function initCandidateSummaryStream(container = document) {
+  const summaryEl = container.querySelector("#aiSummaryContent");
+  const regenerateButton = container.querySelector(
+    ".js-regenerate-summary"
+  );
 
-    if (!summaryEl) {
+  if (!summaryEl) {
+    return;
+  }
+
+  const setButtonLoading = (isLoading) => {
+    if (!regenerateButton) {
       return;
     }
 
-    const hasSummary = summaryEl.dataset.hasSummary === "true";
-    const summaryStatus = summaryEl.dataset.summaryStatus || "not_started";
-    const streamUrl = summaryEl.dataset.streamUrl;
+    regenerateButton.disabled = isLoading;
 
-    if (!streamUrl || hasSummary || summaryStatus === "completed" || summaryStatus === "generating") {
+    regenerateButton.innerHTML = isLoading
+      ? `
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true">
+        </span>
+      `
+      : `<i data-feather="refresh-cw"></i>`;
+
+    if (window.feather) {
+      window.feather.replace();
+    }
+  };
+
+
+  const showGeneratingState = () => {
+    summaryEl.innerHTML = `
+      <div class="d-flex align-items-center gap-2 text-muted">
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true">
+        </span>
+
+        <span>
+          Generating candidate summary...
+        </span>
+      </div>
+    `;
+  };
+
+
+  const streamSummary = async (streamUrl) => {
+    if (!streamUrl) {
       return;
     }
+
+    showGeneratingState();
+    setButtonLoading(true);
+
+    summaryEl.dataset.hasSummary = "false";
+    summaryEl.dataset.summaryStatus = "generating";
 
     try {
-      summaryEl.innerHTML = '<span class="text-muted">Generating summary...</span>';
-
       const response = await fetch(streamUrl, {
         method: "GET",
         headers: {
@@ -524,17 +568,43 @@ if (candidateIdToOpen) {
       });
 
       if (!response.ok) {
-        const text = await response.text();
-        summaryEl.innerHTML = '<span class="text-danger">Could not generate summary.</span>';
-        console.error("AI summary stream failed:", response.status, text);
+        const responseText = await response.text();
+
+        summaryEl.innerHTML = `
+          <div class="alert alert-light border mb-0">
+            <div class="fw-semibold mb-1">
+              The summary could not be generated
+            </div>
+
+            <div class="small text-muted">
+              Use the refresh button to try again.
+            </div>
+          </div>
+        `;
+
+        summaryEl.dataset.summaryStatus = "failed";
+
+        console.error(
+          "AI summary stream failed:",
+          response.status,
+          responseText
+        );
+
         return;
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "The browser did not receive a response stream."
+        );
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
+
       let fullText = "";
 
-      summaryEl.innerHTML = "";
+      summaryEl.textContent = "";
 
       while (true) {
         const { value, done } = await reader.read();
@@ -543,22 +613,152 @@ if (candidateIdToOpen) {
           break;
         }
 
-        const chunk = decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, {
+          stream: true
+        });
+
         fullText += chunk;
-        summaryEl.innerHTML = fullText.replace(/\n/g, "<br>");
+        summaryEl.textContent = fullText;
       }
 
+      fullText += decoder.decode();
+
       if (!fullText.trim()) {
-        summaryEl.innerHTML = '<span class="text-muted">No summary was generated.</span>';
-      } else {
-        summaryEl.dataset.hasSummary = "true";
-        summaryEl.dataset.summaryStatus = "completed";
+        summaryEl.innerHTML = `
+          <div class="text-muted">
+            No summary was generated.
+          </div>
+        `;
+
+        summaryEl.dataset.summaryStatus = "failed";
+        return;
       }
+
+      summaryEl.textContent = fullText.trim();
+      summaryEl.dataset.hasSummary = "true";
+      summaryEl.dataset.summaryStatus = "completed";
+
     } catch (error) {
-      summaryEl.innerHTML = '<span class="text-danger">An error occurred while generating the summary.</span>';
-      console.error("AI summary stream error:", error);
+      summaryEl.innerHTML = `
+        <div class="alert alert-light border mb-0">
+          <div class="fw-semibold mb-1">
+            An error occurred while generating the summary
+          </div>
+
+          <div class="small text-muted">
+            Use the refresh button to try again.
+          </div>
+        </div>
+      `;
+
+      summaryEl.dataset.summaryStatus = "failed";
+
+      console.error(
+        "AI candidate summary error:",
+        error
+      );
+
+    } finally {
+      setButtonLoading(false);
     }
+  };
+
+
+  // ----------------------------------------------------------
+  // Generate automatically only when no saved summary exists
+  // ----------------------------------------------------------
+  const hasSummary =
+    summaryEl.dataset.hasSummary === "true";
+
+  const summaryStatus =
+    summaryEl.dataset.summaryStatus || "not_started";
+
+  const streamUrl =
+    summaryEl.dataset.streamUrl;
+
+  if (
+    !hasSummary &&
+    summaryStatus !== "completed" &&
+    summaryStatus !== "generating"
+  ) {
+    await streamSummary(streamUrl);
   }
+
+
+  // ----------------------------------------------------------
+  // Manual regeneration
+  // ----------------------------------------------------------
+  if (regenerateButton) {
+    regenerateButton.addEventListener("click", async () => {
+      const regenerateUrl =
+        regenerateButton.dataset.regenerateUrl;
+
+      if (!regenerateUrl) {
+        return;
+      }
+
+      const confirmed = window.confirm(
+        "Generate a new summary? The current summary will be replaced."
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setButtonLoading(true);
+
+      try {
+        const response = await fetch(regenerateUrl, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({})
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text();
+
+          console.error(
+            "Summary regeneration failed:",
+            response.status,
+            responseText
+          );
+
+          window.alert(
+            "The summary could not be regenerated."
+          );
+
+          return;
+        }
+
+        const data = await response.json();
+
+        summaryEl.dataset.hasSummary = "false";
+        summaryEl.dataset.summaryStatus = "not_started";
+
+        await streamSummary(
+          data.stream_url || summaryEl.dataset.streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          "Summary regeneration error:",
+          error
+        );
+
+        window.alert(
+          "An error occurred while regenerating the summary."
+        );
+
+      } finally {
+        setButtonLoading(false);
+      }
+    });
+  }
+}
 
   // ------------------------------------------------------------
   // Status polling

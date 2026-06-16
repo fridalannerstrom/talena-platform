@@ -11,24 +11,44 @@ from apps.core.ai.openai_client import (
     get_chat_model,
 )
 
+from django.forms.models import model_to_dict
+
 
 def build_candidate_prompt(invitation) -> str:
+    """
+    Build the AI prompt for the candidate insight summary.
+
+    The summary is based on:
+    - completed assessment data
+    - the selected process purpose
+    - any added process context
+    """
+
     activities = invitation.sova_activities or []
     candidate = invitation.candidate
+    process = invitation.process
 
-    lines = []
+    # ------------------------------------------------------------
+    # Assessment results
+    # ------------------------------------------------------------
+    assessment_lines = []
 
-    for act in activities:
-        name = act.get("activity")
-        comps = act.get("competencies") or []
+    for activity in activities:
+        activity_name = activity.get("activity") or "Assessment"
+        competencies = activity.get("competencies") or []
 
-        lines.append(f"\n{name}:")
+        result_lines = []
 
-        for c in comps:
-            comp_name = c.get("competency")
-            sten = c.get("sten_rounded")
-            stive = c.get("stive_rounded")
-            percentile = c.get("percentile")
+        for competency in competencies:
+            competency_name = (
+                competency.get("competency")
+                or competency.get("name")
+                or "Unnamed competency"
+            )
+
+            sten = competency.get("sten_rounded")
+            stive = competency.get("stive_rounded")
+            percentile = competency.get("percentile")
 
             score_parts = []
 
@@ -41,58 +61,152 @@ def build_candidate_prompt(invitation) -> str:
             if percentile is not None:
                 score_parts.append(f"percentile {percentile}")
 
-            score_text = ", ".join(score_parts) if score_parts else "no score available"
+            if not score_parts:
+                continue
 
-            lines.append(f"- {comp_name}: {score_text}")
+            result_lines.append(
+                f"- {competency_name}: {', '.join(score_parts)}"
+            )
 
-    test_data = "\n".join(lines)
+        if result_lines:
+            assessment_lines.append(
+                f"{activity_name}:\n" + "\n".join(result_lines)
+            )
 
-    prompt = f"""
-You are generating the first section of a candidate assessment report in Talena.
+    assessment_text = (
+        "\n\n".join(assessment_lines)
+        if assessment_lines
+        else "No completed assessment scores were available."
+    )
 
-This section is called: Insight summary.
+    # ------------------------------------------------------------
+    # Process purpose
+    # ------------------------------------------------------------
+    purpose_value = (process.purpose or "").strip()
 
-Important:
-- This is GENERAL MODE.
-- No role, job, team, leadership or development context has been added.
-- Do not assess whether the candidate fits a specific role.
-- Do not make hiring recommendations.
-- Do not use a match score.
-- Do not overstate certainty.
-- Write in professional, clear English.
-- Keep it concise and useful for a recruiter, hiring manager or HR professional.
-- Interpret the assessment results. Do not list raw numbers in the final answer.
-- Write about the candidate as a person, but avoid sounding absolute or deterministic.
-- Use cautious language such as "may indicate", "suggests", "appears to", "could be useful to explore".
+    purpose_labels = {
+        "flexible": "Flexible process / general insights",
+        "unsure": "Flexible process / general insights",
+        "recruitment": "Recruitment",
+        "role_match": "Role matching",
+        "career_path": "Career development",
+        "onboarding": "Onboarding",
+        "employee_development": "Employee development",
+        "leadership_potential": "Leadership potential",
+        "leader_development": "Leadership development",
+        "team_development": "Team development",
+        "reorganisation": "Reorganisation",
+    }
 
-Use this structure exactly:
+    purpose_label = purpose_labels.get(
+        purpose_value,
+        purpose_value or "No specific purpose selected",
+    )
 
-Overall summary
-Write 1–2 short sentences summarising the candidate's general assessment profile.
+    # ------------------------------------------------------------
+    # Optional process context
+    # ------------------------------------------------------------
+    process_context = getattr(process, "role_context", None)
+    context_lines = []
 
-Most important interpretation
-- Write exactly 3 bullet points.
-- Each bullet should highlight one important general insight from the assessment results.
-- Include both strengths and possible areas to validate where relevant.
+    if process_context and process_context.has_content():
+        context_data = model_to_dict(process_context)
 
-Confidence / context level
-Write 1 short sentence explaining that confidence is limited because no process context has been added.
+        excluded_fields = {
+            "id",
+            "process",
+            "created_at",
+            "updated_at",
+        }
 
-What this report is based on
-Write 1 short sentence explaining which completed assessment data this summary is based on.
+        for field_name, value in context_data.items():
+            if field_name in excluded_fields:
+                continue
 
-Do not include any markdown tables.
-Do not include headings other than the four headings above.
-Do not include the candidate's raw scores.
+            if value in (None, "", [], {}):
+                continue
 
-Candidate:
-- Name: {candidate.first_name} {candidate.last_name}
+            readable_name = field_name.replace("_", " ").title()
 
-Candidate test data:
-{test_data}
+            context_lines.append(
+                f"- {readable_name}: {value}"
+            )
+
+    context_text = (
+        "\n".join(context_lines)
+        if context_lines
+        else "No additional process context has been added."
+    )
+
+    has_added_context = bool(context_lines)
+
+    # ------------------------------------------------------------
+    # Prompt behaviour
+    # ------------------------------------------------------------
+    if has_added_context:
+        interpretation_instruction = """
+Use the selected purpose and the added process context to make the
+summary more relevant. Explain how the candidate's assessment profile
+may relate to the supplied context, but do not make a final decision
+or treat the assessment results as absolute facts.
+""".strip()
+    else:
+        interpretation_instruction = """
+Provide a general interpretation based only on the available assessment
+results and selected process purpose. Do not assess fit for a specific
+role, team or situation when no such context has been supplied.
 """.strip()
 
-    return prompt
+    return f"""
+You are generating the Insight summary section of a candidate
+assessment report in Talena.
+
+CANDIDATE
+Name: {candidate.first_name} {candidate.last_name}
+
+PROCESS PURPOSE
+{purpose_label}
+
+ADDED PROCESS CONTEXT
+{context_text}
+
+ASSESSMENT RESULTS
+{assessment_text}
+
+INTERPRETATION INSTRUCTION
+{interpretation_instruction}
+
+WRITING RULES
+- Write in professional, clear English.
+- Write about the candidate as a person.
+- Interpret the results rather than listing raw scores.
+- Do not include raw score numbers in the final response.
+- Do not diagnose the candidate.
+- Do not overstate certainty.
+- Do not make a final hiring recommendation.
+- Do not produce a match percentage.
+- Use cautious language such as:
+  "may indicate", "suggests", "appears to" and
+  "could be useful to explore".
+- Keep the summary useful and reasonably concise.
+
+STRUCTURE
+
+Overall summary
+
+Write one concise paragraph of approximately 100–160 words.
+
+The paragraph should:
+- describe the most important overall profile themes
+- highlight likely strengths
+- mention one or two useful areas to explore
+- reflect the process purpose
+- use added context when available
+- clearly remain an assessment-based interpretation
+
+Do not include any other headings.
+Do not use markdown tables.
+""".strip()
 
 def save_candidate_summary(invitation, full_text: str):
     invitation.ai_summary = full_text

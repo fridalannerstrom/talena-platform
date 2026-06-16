@@ -27,10 +27,15 @@ urlpatterns = [
     path("<int:pk>/archive/", views.process_archive, name="process_archive"),
     path("<int:pk>/unarchive/", views.process_unarchive, name="process_unarchive"),
     path(
-    "<int:process_id>/candidate/<int:candidate_id>/summary-stream/",
-    views.process_candidate_summary_stream,
-    name="process_candidate_summary_stream",
+        "<int:process_id>/candidates/<int:candidate_id>/summary/stream/",
+        views.process_candidate_summary_stream,
+        name="process_candidate_summary_stream",
     ),
     path("create-v2/", views.process_create_v2, name="process_create_v2"),
     path("<int:pk>/role-context/", views.process_role_context, name="process_role_context"),
+    path(
+        "<int:process_id>/candidates/<int:candidate_id>/summary/regenerate/",
+        views.process_candidate_summary_regenerate,
+        name="process_candidate_summary_regenerate",
+    ),
 ]

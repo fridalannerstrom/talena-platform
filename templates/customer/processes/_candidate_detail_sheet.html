@@ -403,6 +403,165 @@
           </div>
         {% endif %}
 
+<!-- ======================================================
+     AI CANDIDATE SUMMARY
+======================================================= -->
+
+{% if not is_historical and all_assessments_completed %}
+
+  <section class="card mb-4 insight-summary-card">
+
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+
+        <div>
+          <div class="insight-summary-kicker">
+            Candidate Insights
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            AI assessment summary
+          </h2>
+
+          <div class="text-muted small">
+            Based on the candidate’s assessment results
+            {% if has_purpose_context %}
+              and the added process context.
+            {% else %}
+              and the selected process purpose.
+            {% endif %}
+          </div>
+        </div>
+
+
+        <!-- REGENERATE BUTTON -->
+        <button
+          type="button"
+          class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
+          data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
+          data-bs-toggle="tooltip"
+          data-bs-placement="left"
+          title="Generate a new summary"
+          aria-label="Generate a new summary"
+          style="width: 38px; height: 38px;"
+        >
+          <i data-feather="refresh-cw"></i>
+        </button>
+
+      </div>
+
+
+      <!-- SUMMARY CONTENT -->
+      <div
+        id="aiSummaryContent"
+        class="insight-summary-content"
+        data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+        data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
+        data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
+        style="white-space: pre-line;"
+      >
+
+        {% if invitation.ai_summary %}
+
+          {{ invitation.ai_summary }}
+
+        {% elif invitation.ai_summary_status == "generating" %}
+
+          <div class="d-flex align-items-center gap-2 text-muted">
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true">
+            </span>
+
+            <span>
+              Generating candidate summary...
+            </span>
+          </div>
+
+        {% elif invitation.ai_summary_status == "failed" %}
+
+          <div class="alert alert-light border mb-0">
+            <div class="fw-semibold mb-1">
+              The summary could not be generated
+            </div>
+
+            <div class="small text-muted">
+              Use the refresh button to try again.
+            </div>
+          </div>
+
+        {% else %}
+
+          <div class="d-flex align-items-center gap-2 text-muted">
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true">
+            </span>
+
+            <span>
+              Preparing candidate summary...
+            </span>
+          </div>
+
+        {% endif %}
+
+      </div>
+
+
+      <!-- FOOTER -->
+      <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
+
+        <div class="text-primary flex-shrink-0 mt-1">
+          <i data-feather="info" style="width: 16px; height: 16px;"></i>
+        </div>
+
+        <div class="small text-muted">
+          This summary is based on assessment evidence and should be used
+          as decision support. Use the refresh button if the process purpose,
+          context or assessment information has changed.
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+{% elif not is_historical %}
+
+  <!-- ASSESSMENTS NOT YET COMPLETED -->
+  <section class="card mb-4 insight-summary-card">
+
+    <div class="card-body">
+
+      <div class="insight-summary-kicker">
+        Candidate Insights
+      </div>
+
+      <h2 class="insight-summary-title mb-2">
+        AI assessment summary
+      </h2>
+
+      <div class="text-muted">
+        The summary will be generated when the candidate has completed
+        all assessments in this process.
+      </div>
+
+    </div>
+
+  </section>
+
+{% endif %}
+
+<!-- ======================================================
+     /AI CANDIDATE SUMMARY
+======================================================= -->
+
+
          <!-- ======================================================
              CANDIDATE INSIGHT SUMMARY
              Flexible uses AI-generated general insights.

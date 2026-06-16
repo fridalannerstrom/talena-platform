@@ -1420,34 +1420,6 @@ def build_candidate_detail_context(process, invitation):
     print("HAS ABILITY RESULTS:", has_ability_results)
     print("=== /FLEXIBLE AI CONDITION DEBUG ===")
 
-    # ------------------------------------------------------------
-    # Flexible process: real AI-generated general insights
-    # ------------------------------------------------------------
-    if process.purpose in {"flexible", "unsure"} and has_any_results:
-        print("FLEXIBLE AI BLOCK ENTERED")
-
-        try:
-            candidate_insights = generate_general_candidate_insights(
-                candidate_name=(
-                    f"{candidate.first_name} {candidate.last_name}"
-                ).strip(),
-                insight_input=general_insight_input,
-            )
-
-            candidate_insights_mode = "general"
-            report_mode = "general"
-
-            print("AI INSIGHTS GENERATED SUCCESSFULLY")
-
-        except Exception as exc:
-            print(
-                "GENERAL CANDIDATE INSIGHTS ERROR:",
-                repr(exc),
-            )
-
-    else:
-        print("FLEXIBLE AI BLOCK SKIPPED")
-
     return {
         "company": process.company,
         "process": process,
@@ -3700,22 +3672,6 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         },
     ]
 
-    if process.purpose in {"flexible", "unsure"} and has_any_results:
-        try:
-            candidate_insights = generate_general_candidate_insights(
-                candidate_name=(
-                    f"{candidate.first_name} {candidate.last_name}"
-                ).strip(),
-                insight_input=general_insight_input,
-            )
-
-            print("HISTORICAL AI INSIGHTS GENERATED SUCCESSFULLY")
-
-        except Exception as exc:
-            print(
-                "HISTORICAL GENERAL CANDIDATE INSIGHTS ERROR:",
-                repr(exc),
-            )
 
     return {
         "company": process.company,
@@ -3778,3 +3734,47 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         "context_config": {},
         "show_context_prompt": False,
     }
+
+@login_required
+@require_POST
+def process_candidate_summary_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related("candidate"),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_summary = ""
+    invitation.ai_summary_status = "not_started"
+    invitation.ai_summary_generated_at = None
+
+    invitation.save(update_fields=[
+        "ai_summary",
+        "ai_summary_status",
+        "ai_summary_generated_at",
+    ])
+
+    return JsonResponse({
+        "ok": True,
+        "stream_url": reverse(
+            "processes:process_candidate_summary_stream",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": invitation.candidate_id,
+            },
+        ),
+    })
