@@ -256,6 +256,26 @@ class ProcessRoleContextForm(forms.ModelForm):
                 if help_text:
                     self.fields[field_name].help_text = help_text
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Preserve existing values for fields that were not included
+        # in the submitted form.
+        #
+        # This is important when different process purposes display
+        # different context fields. Hidden or omitted fields should
+        # not be overwritten with empty values.
+        if self.is_bound and self.instance and self.instance.pk:
+            for field_name in self.Meta.fields:
+                if field_name not in self.data:
+                    cleaned_data[field_name] = getattr(
+                        self.instance,
+                        field_name,
+                        "",
+                    )
+
+        return cleaned_data
+
 
 class HistoricalTestProcessForm(forms.ModelForm):
     TEST_CHOICES = (

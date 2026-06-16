@@ -7,6 +7,8 @@ from apps.accounts.models import OrgUnit, Company
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 import os
+from .purpose_context_config import normalize_purpose_key
+from .purpose_utils import normalize_purpose_key
 
 
 class TestProcess(models.Model):
@@ -155,6 +157,7 @@ class TestInvitation(models.Model):
         ("completed", "Completed"),
         ("expired", "Expired"),
         ("failed", "Failed"),
+        ("outdated", "Needs update"),
     ]
 
     SOURCE_CHOICES = [
@@ -287,7 +290,7 @@ class ProcessRoleContext(models.Model):
     process = models.OneToOneField(
         TestProcess,
         on_delete=models.CASCADE,
-        related_name="role_context"
+        related_name="role_context",
     )
 
     role_title = models.CharField(max_length=255, blank=True)
@@ -300,24 +303,75 @@ class ProcessRoleContext(models.Model):
     priorities = models.TextField(blank=True)
     interview_notes = models.TextField(blank=True)
 
+    # Stores a separate version of the context for each purpose.
+    purpose_data = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    CONTEXT_FIELDS = (
+        "role_title",
+        "job_advertisement",
+        "requirements_profile",
+        "competency_profile",
+        "must_haves",
+        "nice_to_haves",
+        "priorities",
+        "interview_notes",
+    )
+
+    def get_current_context_data(self):
+        return {
+            field_name: getattr(self, field_name, "") or ""
+            for field_name in self.CONTEXT_FIELDS
+        }
+
+    def get_context_for_purpose(self, purpose):
+        purpose_key = normalize_purpose_key(purpose)
+        saved_data = (self.purpose_data or {}).get(purpose_key)
+
+        if isinstance(saved_data, dict):
+            return {
+                field_name: saved_data.get(field_name, "") or ""
+                for field_name in self.CONTEXT_FIELDS
+            }
+
+        return None
+
+    def save_context_for_purpose(self, purpose, context_data=None):
+        purpose_key = normalize_purpose_key(purpose)
+
+        data = dict(self.purpose_data or {})
+
+        if context_data is None:
+            context_data = self.get_current_context_data()
+
+        data[purpose_key] = {
+            field_name: context_data.get(field_name, "") or ""
+            for field_name in self.CONTEXT_FIELDS
+        }
+
+        self.purpose_data = data
+
+    def apply_context_data(self, context_data):
+        for field_name in self.CONTEXT_FIELDS:
+            setattr(
+                self,
+                field_name,
+                context_data.get(field_name, "") or "",
+            )
+
     def has_content(self):
-        return any([
-            self.role_title.strip(),
-            self.job_advertisement.strip(),
-            self.requirements_profile.strip(),
-            self.competency_profile.strip(),
-            self.must_haves.strip(),
-            self.nice_to_haves.strip(),
-            self.priorities.strip(),
-            self.interview_notes.strip(),
-        ])
+        return any(
+            (getattr(self, field_name, "") or "").strip()
+            for field_name in self.CONTEXT_FIELDS
+        )
 
     def __str__(self):
-        return f"Role context for {self.process}"
-    
+        return f"Process context for {self.process}"
 
 
 def historical_candidate_report_upload_path(instance, filename):

@@ -403,6 +403,7 @@
           </div>
         {% endif %}
 
+
 <!-- ======================================================
      AI CANDIDATE SUMMARY
 ======================================================= -->
@@ -410,7 +411,6 @@
 {% if not is_historical and all_assessments_completed %}
 
   <section class="card mb-4 insight-summary-card">
-
     <div class="card-body">
 
       <!-- HEADER -->
@@ -436,21 +436,55 @@
         </div>
 
 
-        <!-- REGENERATE BUTTON -->
-        <button
-          type="button"
-          class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
-          data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
-          data-bs-toggle="tooltip"
-          data-bs-placement="left"
-          title="Generate a new summary"
-          aria-label="Generate a new summary"
-          style="width: 38px; height: 38px;"
-        >
-          <i data-feather="refresh-cw"></i>
-        </button>
+        <!-- STATUS + REFRESH BUTTON -->
+        <div class="d-flex align-items-center gap-2">
+
+          {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
+            <span
+              class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
+              title="The process purpose or context has changed since this summary was generated."
+            >
+              <i
+                data-feather="alert-circle"
+                class="me-1"
+                style="width: 13px; height: 13px;"
+              ></i>
+              Needs update
+            </span>
+
+          {% elif invitation.ai_summary and invitation.ai_summary_status == "completed" %}
+            <span
+              class="badge rounded-pill bg-light text-muted border"
+              title="This summary is saved."
+            >
+              <i
+                data-feather="check"
+                class="me-1"
+                style="width: 13px; height: 13px;"
+              ></i>
+              Saved
+            </span>
+          {% endif %}
+
+
+          <button
+            type="button"
+            class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
+            data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
+            data-bs-toggle="tooltip"
+            data-bs-placement="left"
+            title="{% if invitation.ai_summary_status == 'outdated' %}Update summary using the current purpose and context{% else %}Generate a new summary{% endif %}"
+            aria-label="Generate a new summary"
+            style="width: 38px; height: 38px;"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        </div>
+        <!-- /STATUS + REFRESH BUTTON -->
 
       </div>
+      <!-- /HEADER -->
 
 
       <!-- SUMMARY CONTENT -->
@@ -510,13 +544,47 @@
         {% endif %}
 
       </div>
+      <!-- /SUMMARY CONTENT -->
+
+
+      <!-- OUTDATED SUMMARY WARNING -->
+      {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
+        <div class="alert alert-warning mt-3 mb-0">
+          <div class="d-flex align-items-start gap-2">
+
+            <div class="flex-shrink-0 mt-1">
+              <i
+                data-feather="alert-circle"
+                style="width: 17px; height: 17px;"
+              ></i>
+            </div>
+
+            <div>
+              <div class="fw-semibold small mb-1">
+                This summary may need updating
+              </div>
+
+              <div class="small">
+                The process purpose or context has changed since this
+                summary was generated. The existing summary has been kept.
+                Use the refresh button to generate an updated version.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      {% endif %}
+      <!-- /OUTDATED SUMMARY WARNING -->
 
 
       <!-- FOOTER -->
       <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
 
         <div class="text-primary flex-shrink-0 mt-1">
-          <i data-feather="info" style="width: 16px; height: 16px;"></i>
+          <i
+            data-feather="info"
+            style="width: 16px; height: 16px;"
+          ></i>
         </div>
 
         <div class="small text-muted">
@@ -526,16 +594,16 @@
         </div>
 
       </div>
+      <!-- /FOOTER -->
 
     </div>
-
   </section>
+
 
 {% elif not is_historical %}
 
   <!-- ASSESSMENTS NOT YET COMPLETED -->
   <section class="card mb-4 insight-summary-card">
-
     <div class="card-body">
 
       <div class="insight-summary-kicker">
@@ -552,7 +620,6 @@
       </div>
 
     </div>
-
   </section>
 
 {% endif %}
@@ -560,6 +627,8 @@
 <!-- ======================================================
      /AI CANDIDATE SUMMARY
 ======================================================= -->
+
+
 
 
          <!-- ======================================================

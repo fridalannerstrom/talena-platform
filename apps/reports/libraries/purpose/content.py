@@ -5,11 +5,15 @@ PURPOSE_TO_REPORT_MODE = {
 
     # Recruitment
     "recruitment": "recruitment",
+    "hiring": "recruitment",
     "role_match": "recruitment",
+    "internal_role_match": "recruitment",
 
     # Development, coaching and career
     "career_path": "development",
     "onboarding": "development",
+    "new_hire": "development",
+    "onboarding_new_hire": "development",
     "employee_development": "development",
 
     # Leadership
@@ -63,36 +67,44 @@ REPORT_MODE_CONTENT = {
     "development": {
         "key": "development",
         "label": "Development",
-        "title": "Leadership-focused result view",
+        "title": "Development-focused result view",
         "intro": (
-            "Use this view to support reflection, coaching and individual development. "
-            "The focus is on strengths, growth areas and the conditions that help the person thrive."
+            "Use this view to support onboarding, reflection, coaching and "
+            "individual development. The focus is on strengths, growth areas "
+            "and the conditions that may help the person perform and develop."
         ),
+
         "summary_title": "Development overview",
         "summary_description": (
-            "This section highlights strengths to build on, areas to reflect on and practical themes "
-            "for development conversations."
+            "This section highlights strengths to build on, areas to reflect on "
+            "and practical themes for onboarding or development conversations."
         ),
+
         "personality_title": "Personality patterns for development",
         "personality_description": (
-            "These traits can help the person understand their natural working style, strengths "
-            "and possible behaviours to adapt in different situations."
+            "These traits may help explain the person’s natural working style, "
+            "strengths and behaviours that could be developed or adapted."
         ),
+
         "motivation_title": "Motivation and energy drivers",
         "motivation_description": (
-            "These motivators can help clarify what gives energy, what may reduce engagement "
-            "and what type of environment supports sustainable development."
+            "These results may help clarify what gives the person energy, "
+            "what may reduce engagement and which conditions may support "
+            "sustainable performance."
         ),
+
         "ability_title": "Ability results as learning context",
         "ability_description": (
-            "Use cognitive ability results as context for learning, problem-solving style and development needs, "
+            "Use cognitive ability results as context for learning, "
+            "problem-solving style and potential development needs, "
             "not as a standalone judgement."
         ),
+
         "followup_title": "Suggested development focus",
         "followup_items": [
             "Discuss which strengths the person wants to use more intentionally.",
-            "Explore which work conditions increase energy, focus and motivation.",
-            "Turn possible development areas into practical experiments or coaching goals.",
+            "Explore which work conditions may increase energy, focus and motivation.",
+            "Turn relevant development areas into practical experiments, support actions or coaching goals.",
             "Use the results as a conversation starter rather than a fixed description of the person.",
         ],
     },

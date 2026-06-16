@@ -11,6 +11,7 @@ from .models import (
     ProcessLabel,
     HistoricalProcessCandidate,
 )
+from .purpose_utils import normalize_purpose_key
 from apps.reports.services.candidate_insights import (
     build_general_insight_input,
     generate_general_candidate_insights,
@@ -745,6 +746,11 @@ def build_candidate_detail_context(process, invitation):
     )
 
     purpose_report = get_report_mode_content(process.purpose)
+
+    print("=== PURPOSE REPORT DEBUG ===")
+    print("PROCESS PURPOSE:", repr(process.purpose))
+    print("PURPOSE REPORT:", purpose_report)
+    print("=== /PURPOSE REPORT DEBUG ===")
 
     # ------------------------------------------------------------
     # Purpose context / report mode
@@ -1879,6 +1885,18 @@ def process_create(request):
         "accounts_count": len(accounts),
     })
 
+def mark_candidate_summaries_outdated(process):
+    """
+    Keep existing AI summaries, but mark them as needing regeneration.
+    """
+
+    return (
+        TestInvitation.objects
+        .filter(process=process)
+        .exclude(ai_summary="")
+        .update(ai_summary_status="outdated")
+    )
+
 
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
@@ -1899,6 +1917,7 @@ def process_update(request, pk):
     old_acc = (obj.account_code or "").strip()
     old_proj = (obj.project_code or "").strip()
     locked = obj.is_template_locked()
+    old_purpose = obj.purpose
 
     client = SovaClient()
     error = None
@@ -2034,6 +2053,22 @@ def process_update(request, pk):
                 )
                 label_objs.append(lab)
 
+            # Preserve the currently active context under the old purpose
+            # before switching the process to a new purpose.
+            if old_purpose != purpose:
+                existing_context = getattr(obj, "role_context", None)
+
+                if existing_context and existing_context.has_content():
+                    existing_context.save_context_for_purpose(
+                        old_purpose,
+                        existing_context.get_current_context_data(),
+                    )
+
+                    existing_context.save(update_fields=[
+                        "purpose_data",
+                        "updated_at",
+                    ])
+
             # --------------------------------------------------
             # Purpose får alltid ändras.
             # Tester och Sova-projekt låses efter första utskicket.
@@ -2088,6 +2123,9 @@ def process_update(request, pk):
             # --------------------------------------------------
             obj.save()
             obj.labels.set(label_objs)
+
+            if old_purpose != obj.purpose:
+                mark_candidate_summaries_outdated(obj)
 
             messages.success(
                 request,
@@ -2165,18 +2203,31 @@ def process_role_context(request, pk):
     process = get_object_or_404(TestProcess, pk=pk)
 
     if process.is_historical:
-        return HttpResponseForbidden("Historical processes are read-only.")
+        return HttpResponseForbidden(
+            "Historical processes are read-only."
+        )
 
     if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
 
     context_config = get_purpose_context_config(process.purpose)
+    purpose_key = normalize_purpose_key(process.purpose)
 
     role_context, created = ProcessRoleContext.objects.get_or_create(
         process=process
     )
 
     if request.method == "POST":
+        # IMPORTANT:
+        # Capture the saved database values before ModelForm validation,
+        # because form.is_valid() may update the model instance in memory.
+        previous_context_data = {
+            field_name: getattr(role_context, field_name, "") or ""
+            for field_name in ProcessRoleContext.CONTEXT_FIELDS
+        }
+
         form = ProcessRoleContextForm(
             request.POST,
             instance=role_context,
@@ -2184,12 +2235,59 @@ def process_role_context(request, pk):
         )
 
         if form.is_valid():
-            form.save()
-            return redirect("processes:process_detail", pk=process.pk)
+            submitted_data = {
+                field_name: form.cleaned_data.get(field_name, "") or ""
+                for field_name in ProcessRoleContext.CONTEXT_FIELDS
+            }
+
+            context_changed = previous_context_data != submitted_data
+
+            role_context = form.save(commit=False)
+
+            role_context.save_context_for_purpose(
+                purpose=purpose_key,
+                context_data=submitted_data,
+            )
+
+            role_context.apply_context_data(submitted_data)
+            role_context.save()
+
+            if context_changed:
+                updated_count = mark_candidate_summaries_outdated(
+                    process
+                )
+
+                print("=== CONTEXT CHANGED ===")
+                print("PROCESS:", process.id)
+                print("SUMMARIES MARKED OUTDATED:", updated_count)
+
+            messages.success(
+                request,
+                "The process context was saved."
+            )
+
+            return redirect(
+                "processes:process_detail",
+                pk=process.pk,
+            )
 
     else:
+        saved_purpose_context = role_context.get_context_for_purpose(
+            purpose_key
+        )
+
+        if saved_purpose_context is not None:
+            initial_data = saved_purpose_context
+            using_previous_purpose_as_start = False
+        else:
+            # No saved version for this purpose yet.
+            # Reuse the active context as a helpful starting point.
+            initial_data = role_context.get_current_context_data()
+            using_previous_purpose_as_start = role_context.has_content()
+
         form = ProcessRoleContextForm(
             instance=role_context,
+            initial=initial_data,
             context_config=context_config,
         )
 
@@ -2206,7 +2304,11 @@ def process_role_context(request, pk):
     process_purpose = purpose_lookup.get(process.purpose)
 
     company = process.company
-    can_edit = user_can_edit_process(request.user, company, process)
+    can_edit = user_can_edit_process(
+        request.user,
+        company,
+        process,
+    )
 
     return render(
         request,
@@ -2217,8 +2319,15 @@ def process_role_context(request, pk):
             "role_context": role_context,
             "purpose_context": role_context,
             "context_config": context_config,
+            "purpose_key": purpose_key,
 
-            # Header/base template stuff
+            "using_previous_purpose_as_start": (
+                using_previous_purpose_as_start
+                if request.method != "POST"
+                else False
+            ),
+
+            # Header/base template
             "meta": meta,
             "process_purpose": process_purpose,
             "can_edit": can_edit,
@@ -3774,7 +3883,7 @@ def process_candidate_summary_regenerate(
             "processes:process_candidate_summary_stream",
             kwargs={
                 "process_id": process.id,
-                "candidate_id": invitation.candidate_id,
+                "candidate_id": candidate_id,
             },
         ),
     })
