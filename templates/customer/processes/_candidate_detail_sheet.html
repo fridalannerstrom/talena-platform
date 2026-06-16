@@ -453,17 +453,6 @@
             </span>
 
           {% elif invitation.ai_summary and invitation.ai_summary_status == "completed" %}
-            <span
-              class="badge rounded-pill bg-light text-muted border"
-              title="This summary is saved."
-            >
-              <i
-                data-feather="check"
-                class="me-1"
-                style="width: 13px; height: 13px;"
-              ></i>
-              Saved
-            </span>
           {% endif %}
 
 
@@ -488,63 +477,46 @@
 
 
       <!-- SUMMARY CONTENT -->
-      <div
-        id="aiSummaryContent"
-        class="insight-summary-content"
-        data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-        data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
-        data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
-        style="white-space: pre-line;"
-      >
+<div
+  id="aiSummaryContent"
+  class="insight-summary-content"
+  data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+  data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
+  data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
+>
+  {% if invitation.ai_summary %}<div class="ai-summary-text">{{ invitation.ai_summary }}</div>{% elif invitation.ai_summary_status == "generating" %}
+    <div class="d-flex align-items-center gap-2 text-muted">
+      <span
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true">
+      </span>
 
-        {% if invitation.ai_summary %}
-
-          {{ invitation.ai_summary }}
-
-        {% elif invitation.ai_summary_status == "generating" %}
-
-          <div class="d-flex align-items-center gap-2 text-muted">
-            <span
-              class="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true">
-            </span>
-
-            <span>
-              Generating candidate summary...
-            </span>
-          </div>
-
-        {% elif invitation.ai_summary_status == "failed" %}
-
-          <div class="alert alert-light border mb-0">
-            <div class="fw-semibold mb-1">
-              The summary could not be generated
-            </div>
-
-            <div class="small text-muted">
-              Use the refresh button to try again.
-            </div>
-          </div>
-
-        {% else %}
-
-          <div class="d-flex align-items-center gap-2 text-muted">
-            <span
-              class="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true">
-            </span>
-
-            <span>
-              Preparing candidate summary...
-            </span>
-          </div>
-
-        {% endif %}
-
+      <span>Generating candidate summary...</span>
+    </div>
+  {% elif invitation.ai_summary_status == "failed" %}
+    <div class="alert alert-light border mb-0">
+      <div class="fw-semibold mb-1">
+        The summary could not be generated
       </div>
-      <!-- /SUMMARY CONTENT -->
+
+      <div class="small text-muted">
+        Use the refresh button to try again.
+      </div>
+    </div>
+  {% else %}
+    <div class="d-flex align-items-center gap-2 text-muted">
+      <span
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true">
+      </span>
+
+      <span>Preparing candidate summary...</span>
+    </div>
+  {% endif %}
+</div>
+<!-- /SUMMARY CONTENT -->
 
 
       <!-- OUTDATED SUMMARY WARNING -->

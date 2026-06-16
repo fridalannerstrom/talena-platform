@@ -214,14 +214,21 @@
 }
 
 .insight-summary-content {
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  padding: 1.1rem;
-  color: #111827;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  min-height: 120px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    color: #111827;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    min-height: 0;
+    height: auto;
+    display: block;
+}
+
+.ai-summary-text {
+    margin: 0;
+    white-space: normal;
 }
 
 .insight-summary-content strong,
