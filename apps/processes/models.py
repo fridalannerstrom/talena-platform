@@ -157,7 +157,6 @@ class TestInvitation(models.Model):
         ("completed", "Completed"),
         ("expired", "Expired"),
         ("failed", "Failed"),
-        ("outdated", "Needs update"),
     ]
 
     SOURCE_CHOICES = [
@@ -209,6 +208,33 @@ class TestInvitation(models.Model):
     ai_summary = models.TextField(blank=True, default="")
     ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
     ai_summary_status = models.CharField(max_length=30, blank=True, default="not_started")
+
+    # ------------------------------------------------------------
+    # AI purpose fit
+    # ------------------------------------------------------------
+    ai_purpose_fit = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_purpose_fit_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+    )
+
+    ai_purpose_fit_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_purpose_fit_purpose = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+    )
+
+
     is_historical = models.BooleanField(default=False, db_index=True)
 
     historical_report_file = models.FileField(

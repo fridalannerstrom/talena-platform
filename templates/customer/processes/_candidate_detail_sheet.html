@@ -600,6 +600,288 @@
      /AI CANDIDATE SUMMARY
 ======================================================= -->
 
+{% if not is_historical and all_assessments_completed %}
+  {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
+
+    <section
+      class="card mb-4 purpose-fit-card"
+      id="purposeFitCard"
+    >
+      <div class="card-body">
+
+        <!-- HEADER -->
+        <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+
+          <div>
+            <div class="insight-summary-kicker">
+              Purpose-based insight
+            </div>
+
+            <h2
+              class="insight-summary-title mb-1"
+              id="purposeFitTitle"
+            >
+              {% if invitation.ai_purpose_fit.title %}
+                {{ invitation.ai_purpose_fit.title }}
+              {% else %}
+                Purpose fit
+              {% endif %}
+            </h2>
+
+            <div class="text-muted small">
+              Assessment-based interpretation connected to the selected purpose and process context.
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+
+            <span
+              id="purposeFitStatusBadge"
+              class="badge rounded-pill
+                {% if invitation.ai_purpose_fit_status == 'outdated' %}
+                  bg-warning-subtle text-warning-emphasis
+                {% elif invitation.ai_purpose_fit_status == 'completed' %}
+                  bg-success-subtle text-success-emphasis
+                {% else %}
+                  bg-light text-muted
+                {% endif %}
+              "
+            >
+              {% if invitation.ai_purpose_fit_status == "outdated" %}
+                Needs update
+              {% elif invitation.ai_purpose_fit_status == "completed" %}
+                Saved
+              {% elif invitation.ai_purpose_fit_status == "failed" %}
+                Failed
+              {% else %}
+                Preparing
+              {% endif %}
+            </span>
+
+            <button
+              type="button"
+              class="btn btn-icon btn-light js-regenerate-purpose-fit"
+              data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
+              title="Regenerate purpose fit"
+              aria-label="Regenerate purpose fit"
+            >
+              <i data-feather="refresh-cw"></i>
+            </button>
+
+          </div>
+        </div>
+
+
+        <!-- OUTDATED WARNING -->
+        {% if invitation.ai_purpose_fit and invitation.ai_purpose_fit_status == "outdated" %}
+          <div
+            class="alert alert-warning d-flex align-items-start gap-2 mb-4"
+            id="purposeFitOutdatedWarning"
+          >
+            <i data-feather="alert-circle"></i>
+
+            <div>
+              <div class="fw-semibold">
+                The process information has changed
+              </div>
+
+              <div class="small">
+                This interpretation is based on an earlier purpose or process context.
+                Refresh it when you want Talena to include the latest information.
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div
+            class="alert alert-warning d-none mb-4"
+            id="purposeFitOutdatedWarning"
+          ></div>
+        {% endif %}
+
+
+        <!-- LOADING -->
+        <div
+          id="purposeFitLoading"
+          class="{% if invitation.ai_purpose_fit %}d-none{% endif %}"
+        >
+          <div class="purpose-fit-loading">
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+
+            <span id="purposeFitLoadingText">
+              Analysing assessment results and process context...
+            </span>
+          </div>
+        </div>
+
+
+        <!-- RESULT -->
+        <div
+          id="purposeFitResult"
+          class="{% if not invitation.ai_purpose_fit %}d-none{% endif %}"
+          data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
+          data-has-fit="{% if invitation.ai_purpose_fit %}true{% else %}false{% endif %}"
+          data-fit-status="{{ invitation.ai_purpose_fit_status|default:'not_started' }}"
+        >
+
+          <!-- RECOMMENDATION -->
+          <div class="purpose-fit-verdict mb-4">
+
+            <div>
+              <div class="purpose-fit-label">
+                Assessment
+              </div>
+
+              <div
+                class="purpose-fit-recommendation"
+                id="purposeFitRecommendation"
+              >
+                {{ invitation.ai_purpose_fit.recommendation }}
+              </div>
+            </div>
+
+            <div class="purpose-fit-confidence">
+              <span class="purpose-fit-label">
+                Confidence
+              </span>
+
+              <span
+                class="badge rounded-pill bg-light text-dark border"
+                id="purposeFitConfidence"
+              >
+                {{ invitation.ai_purpose_fit.confidence }}
+              </span>
+            </div>
+
+          </div>
+
+
+          <!-- SUMMARY -->
+          <div class="purpose-fit-section mb-4">
+            <div class="purpose-fit-section-title">
+              Interpretation
+            </div>
+
+            <div
+              class="purpose-fit-summary"
+              id="purposeFitSummary"
+            >{{ invitation.ai_purpose_fit.summary }}</div>
+          </div>
+
+
+          <!-- ALIGNMENT + VERIFY -->
+          <div class="row g-3 mb-4">
+
+            <div class="col-lg-6">
+              <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
+
+                <div class="purpose-fit-section-title">
+                  Key alignment
+                </div>
+
+                <ul
+                  class="purpose-fit-list"
+                  id="purposeFitAlignment"
+                >
+                  {% for item in invitation.ai_purpose_fit.key_alignment %}
+                    <li>
+                      <span class="purpose-fit-list-icon">
+                        <i data-feather="check"></i>
+                      </span>
+
+                      <span>{{ item }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
+
+                <div class="purpose-fit-section-title">
+                  Areas to verify
+                </div>
+
+                <ul
+                  class="purpose-fit-list"
+                  id="purposeFitVerify"
+                >
+                  {% for item in invitation.ai_purpose_fit.areas_to_verify %}
+                    <li>
+                      <span class="purpose-fit-list-icon">
+                        <i data-feather="search"></i>
+                      </span>
+
+                      <span>{{ item }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- NEXT STEP -->
+          <div class="purpose-fit-next-step mb-3">
+
+            <div class="purpose-fit-next-step-icon">
+              <i data-feather="arrow-right"></i>
+            </div>
+
+            <div>
+              <div class="purpose-fit-section-title mb-1">
+                Suggested next step
+              </div>
+
+              <div id="purposeFitNextStep">
+                {{ invitation.ai_purpose_fit.suggested_next_step }}
+              </div>
+            </div>
+
+          </div>
+
+
+          <!-- CONTEXT NOTE -->
+          <div
+            class="purpose-fit-context-note"
+            id="purposeFitContextNote"
+          >
+            {{ invitation.ai_purpose_fit.context_note }}
+          </div>
+
+        </div>
+
+
+        <!-- ERROR -->
+        <div
+          class="alert alert-danger d-none mb-0"
+          id="purposeFitError"
+        >
+          The purpose-fit interpretation could not be generated.
+          Use the refresh button to try again.
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="small text-muted border-top pt-3 mt-4">
+          This interpretation is assessment-based decision support and should be combined with interviews, experience and other relevant evidence.
+        </div>
+
+      </div>
+    </section>
+
+  {% endif %}
+{% endif %}
+
+
+
 
 
 
@@ -1810,6 +2092,378 @@
       }, 1400);
     }
   }
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const card = document.getElementById("purposeFitCard");
+    const result = document.getElementById("purposeFitResult");
+
+    if (!card || !result) {
+        return;
+    }
+
+    const loading = document.getElementById("purposeFitLoading");
+    const loadingText = document.getElementById("purposeFitLoadingText");
+    const errorBox = document.getElementById("purposeFitError");
+    const statusBadge = document.getElementById("purposeFitStatusBadge");
+    const outdatedWarning = document.getElementById(
+        "purposeFitOutdatedWarning"
+    );
+
+    const title = document.getElementById("purposeFitTitle");
+    const recommendation = document.getElementById(
+        "purposeFitRecommendation"
+    );
+    const confidence = document.getElementById(
+        "purposeFitConfidence"
+    );
+    const summary = document.getElementById("purposeFitSummary");
+    const alignmentList = document.getElementById(
+        "purposeFitAlignment"
+    );
+    const verifyList = document.getElementById(
+        "purposeFitVerify"
+    );
+    const nextStep = document.getElementById(
+        "purposeFitNextStep"
+    );
+    const contextNote = document.getElementById(
+        "purposeFitContextNote"
+    );
+
+    const refreshButton = card.querySelector(
+        ".js-regenerate-purpose-fit"
+    );
+
+    let isStreaming = false;
+
+    function getCookie(name) {
+        const cookieValue = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(`${name}=`));
+
+        return cookieValue
+            ? decodeURIComponent(cookieValue.split("=")[1])
+            : null;
+    }
+
+    function refreshIcons() {
+        if (window.feather) {
+            window.feather.replace();
+        }
+    }
+
+    function setStatus(text, type = "neutral") {
+        statusBadge.textContent = text;
+
+        statusBadge.className = "badge rounded-pill";
+
+        if (type === "success") {
+            statusBadge.classList.add(
+                "bg-success-subtle",
+                "text-success-emphasis"
+            );
+        } else if (type === "warning") {
+            statusBadge.classList.add(
+                "bg-warning-subtle",
+                "text-warning-emphasis"
+            );
+        } else if (type === "danger") {
+            statusBadge.classList.add(
+                "bg-danger-subtle",
+                "text-danger-emphasis"
+            );
+        } else {
+            statusBadge.classList.add(
+                "bg-light",
+                "text-muted"
+            );
+        }
+    }
+
+    function resetPurposeFit() {
+        title.textContent = "Purpose fit";
+        recommendation.textContent = "";
+        confidence.textContent = "";
+        summary.textContent = "";
+        alignmentList.innerHTML = "";
+        verifyList.innerHTML = "";
+        nextStep.textContent = "";
+        contextNote.textContent = "";
+
+        result.classList.add("d-none");
+        errorBox.classList.add("d-none");
+
+        if (outdatedWarning) {
+            outdatedWarning.classList.add("d-none");
+        }
+    }
+
+    function renderList(listElement, items, iconName) {
+        listElement.innerHTML = "";
+
+        items.forEach((item) => {
+            const listItem = document.createElement("li");
+
+            const iconWrapper = document.createElement("span");
+            iconWrapper.className = "purpose-fit-list-icon";
+            iconWrapper.innerHTML = `<i data-feather="${iconName}"></i>`;
+
+            const text = document.createElement("span");
+            text.textContent = item;
+
+            listItem.appendChild(iconWrapper);
+            listItem.appendChild(text);
+            listElement.appendChild(listItem);
+        });
+
+        refreshIcons();
+    }
+
+    function applySavedResult(data) {
+        title.textContent = data.title || "Purpose fit";
+        recommendation.textContent =
+            data.recommendation || "Insufficient context";
+        confidence.textContent = data.confidence || "Low";
+        summary.textContent = data.summary || "";
+
+        renderList(
+            alignmentList,
+            data.key_alignment || [],
+            "check"
+        );
+
+        renderList(
+            verifyList,
+            data.areas_to_verify || [],
+            "search"
+        );
+
+        nextStep.textContent =
+            data.suggested_next_step || "";
+
+        contextNote.textContent =
+            data.context_note || "";
+
+        loading.classList.add("d-none");
+        result.classList.remove("d-none");
+    }
+
+    function applyStreamEvent(event) {
+        switch (event.type) {
+            case "saved_result":
+                applySavedResult(event.data || {});
+
+                if (event.status === "outdated") {
+                    setStatus("Needs update", "warning");
+                } else {
+                    setStatus("Saved", "success");
+                }
+                break;
+
+            case "meta":
+                title.textContent =
+                    event.title || "Purpose fit";
+
+                recommendation.textContent =
+                    event.recommendation || "";
+
+                confidence.textContent =
+                    event.confidence || "";
+
+                loading.classList.add("d-none");
+                result.classList.remove("d-none");
+                break;
+
+            case "summary_delta":
+                summary.textContent += event.text || "";
+                break;
+
+            case "key_alignment":
+                renderList(
+                    alignmentList,
+                    event.items || [],
+                    "check"
+                );
+                break;
+
+            case "areas_to_verify":
+                renderList(
+                    verifyList,
+                    event.items || [],
+                    "search"
+                );
+                break;
+
+            case "suggested_next_step":
+                nextStep.textContent = event.text || "";
+                break;
+
+            case "context_note":
+                contextNote.textContent = event.text || "";
+                break;
+
+            case "done":
+                setStatus("Saved", "success");
+                loading.classList.add("d-none");
+                result.classList.remove("d-none");
+                break;
+
+            case "error":
+                throw new Error(
+                    event.message ||
+                    "Purpose-fit generation failed."
+                );
+        }
+    }
+
+    async function streamPurposeFit(streamUrl) {
+        if (isStreaming) {
+            return;
+        }
+
+        isStreaming = true;
+
+        resetPurposeFit();
+
+        loading.classList.remove("d-none");
+        loadingText.textContent =
+            "Analysing assessment results and process context...";
+
+        setStatus("Generating", "neutral");
+
+        refreshButton.disabled = true;
+
+        try {
+            const response = await fetch(streamUrl, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+
+                throw new Error(
+                    errorData.error ||
+                    "Could not generate purpose fit."
+                );
+            }
+
+            if (!response.body) {
+                throw new Error(
+                    "Streaming is not supported by the browser."
+                );
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            let buffer = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+
+                if (done) {
+                    break;
+                }
+
+                buffer += decoder.decode(value, {
+                    stream: true,
+                });
+
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+
+                    if (!trimmedLine) {
+                        continue;
+                    }
+
+                    const event = JSON.parse(trimmedLine);
+                    applyStreamEvent(event);
+                }
+            }
+
+            if (buffer.trim()) {
+                const finalEvent = JSON.parse(buffer.trim());
+                applyStreamEvent(finalEvent);
+            }
+
+        } catch (error) {
+            console.error("Purpose fit error:", error);
+
+            loading.classList.add("d-none");
+            errorBox.classList.remove("d-none");
+
+            setStatus("Failed", "danger");
+        } finally {
+            isStreaming = false;
+            refreshButton.disabled = false;
+            refreshIcons();
+        }
+    }
+
+    refreshButton.addEventListener("click", async () => {
+        if (isStreaming) {
+            return;
+        }
+
+        const regenerateUrl =
+            refreshButton.dataset.regenerateUrl;
+
+        refreshButton.disabled = true;
+
+        try {
+            const response = await fetch(regenerateUrl, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Could not regenerate purpose fit."
+                );
+            }
+
+            await streamPurposeFit(data.stream_url);
+
+        } catch (error) {
+            console.error(
+                "Purpose fit regeneration error:",
+                error
+            );
+
+            errorBox.classList.remove("d-none");
+            setStatus("Failed", "danger");
+        } finally {
+            refreshButton.disabled = false;
+        }
+    });
+
+    const hasFit =
+        result.dataset.hasFit === "true";
+
+    if (!hasFit) {
+        streamPurposeFit(
+            result.dataset.streamUrl
+        );
+    }
+
+    refreshIcons();
+});
+
 </script>
 
 <style>

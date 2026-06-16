@@ -226,13 +226,18 @@
           return;
         }
 
-        sheetBody.innerHTML = await response.text();
+const candidateHtml = await response.text();
 
-        initCandidateSheetInteractions(sheetBody);
-        initGlobalEmailModal(sheetBody);
-        initIconsAndTooltips(sheetBody);
+sheetBody.innerHTML = candidateHtml;
 
-        await initCandidateSummaryStream(sheetBody);
+initCandidateSheetInteractions(sheetBody);
+initGlobalEmailModal(sheetBody);
+initIconsAndTooltips(sheetBody);
+
+await initCandidateSummaryStream(sheetBody);
+await initCandidatePurposeFitStream(sheetBody);
+
+
       } catch (error) {
         sheetBody.innerHTML = `
           <div class="alert alert-danger mb-0">
@@ -1126,6 +1131,414 @@ ${userMessage}
   }
 
 })();
+</script>
+
+
+<script>
+async function initCandidatePurposeFitStream(container = document) {
+    const card = container.querySelector("#purposeFitCard");
+    const result = container.querySelector("#purposeFitResult");
+
+    if (!card || !result) {
+        console.log("[PURPOSE FIT] No purpose fit card found");
+        return;
+    }
+
+    if (card.dataset.purposeFitInitialized === "true") {
+        return;
+    }
+
+    card.dataset.purposeFitInitialized = "true";
+
+    console.log("[PURPOSE FIT] Initialising");
+    console.log(
+        "[PURPOSE FIT] Stream URL:",
+        result.dataset.streamUrl
+    );
+
+    const loading = container.querySelector(
+        "#purposeFitLoading"
+    );
+
+    const loadingText = container.querySelector(
+        "#purposeFitLoadingText"
+    );
+
+    const errorBox = container.querySelector(
+        "#purposeFitError"
+    );
+
+    const statusBadge = container.querySelector(
+        "#purposeFitStatusBadge"
+    );
+
+    const outdatedWarning = container.querySelector(
+        "#purposeFitOutdatedWarning"
+    );
+
+    const title = container.querySelector(
+        "#purposeFitTitle"
+    );
+
+    const recommendation = container.querySelector(
+        "#purposeFitRecommendation"
+    );
+
+    const confidence = container.querySelector(
+        "#purposeFitConfidence"
+    );
+
+    const summary = container.querySelector(
+        "#purposeFitSummary"
+    );
+
+    const alignmentList = container.querySelector(
+        "#purposeFitAlignment"
+    );
+
+    const verifyList = container.querySelector(
+        "#purposeFitVerify"
+    );
+
+    const nextStep = container.querySelector(
+        "#purposeFitNextStep"
+    );
+
+    const contextNote = container.querySelector(
+        "#purposeFitContextNote"
+    );
+
+    const refreshButton = card.querySelector(
+        ".js-regenerate-purpose-fit"
+    );
+
+    let isStreaming = false;
+
+    function getCookie(name) {
+        const cookieValue = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(`${name}=`));
+
+        return cookieValue
+            ? decodeURIComponent(cookieValue.split("=")[1])
+            : null;
+    }
+
+    function refreshIcons() {
+        if (window.feather) {
+            window.feather.replace();
+        }
+    }
+
+    function setStatus(text, type = "neutral") {
+        statusBadge.textContent = text;
+
+        statusBadge.className = "badge rounded-pill";
+
+        if (type === "success") {
+            statusBadge.classList.add(
+                "bg-success-subtle",
+                "text-success-emphasis"
+            );
+        } else if (type === "warning") {
+            statusBadge.classList.add(
+                "bg-warning-subtle",
+                "text-warning-emphasis"
+            );
+        } else if (type === "danger") {
+            statusBadge.classList.add(
+                "bg-danger-subtle",
+                "text-danger-emphasis"
+            );
+        } else {
+            statusBadge.classList.add(
+                "bg-light",
+                "text-muted"
+            );
+        }
+    }
+
+    function resetPurposeFit() {
+        title.textContent = "Purpose fit";
+        recommendation.textContent = "";
+        confidence.textContent = "";
+        summary.textContent = "";
+        alignmentList.innerHTML = "";
+        verifyList.innerHTML = "";
+        nextStep.textContent = "";
+        contextNote.textContent = "";
+
+        result.classList.add("d-none");
+        errorBox.classList.add("d-none");
+
+        if (outdatedWarning) {
+            outdatedWarning.classList.add("d-none");
+        }
+    }
+
+    function renderList(listElement, items, iconName) {
+        listElement.innerHTML = "";
+
+        items.forEach((item) => {
+            const listItem = document.createElement("li");
+
+            const iconWrapper = document.createElement("span");
+            iconWrapper.className = "purpose-fit-list-icon";
+            iconWrapper.innerHTML = `<i data-feather="${iconName}"></i>`;
+
+            const text = document.createElement("span");
+            text.textContent = item;
+
+            listItem.appendChild(iconWrapper);
+            listItem.appendChild(text);
+            listElement.appendChild(listItem);
+        });
+
+        refreshIcons();
+    }
+
+    function applySavedResult(data) {
+        title.textContent = data.title || "Purpose fit";
+        recommendation.textContent =
+            data.recommendation || "Insufficient context";
+        confidence.textContent = data.confidence || "Low";
+        summary.textContent = data.summary || "";
+
+        renderList(
+            alignmentList,
+            data.key_alignment || [],
+            "check"
+        );
+
+        renderList(
+            verifyList,
+            data.areas_to_verify || [],
+            "search"
+        );
+
+        nextStep.textContent =
+            data.suggested_next_step || "";
+
+        contextNote.textContent =
+            data.context_note || "";
+
+        loading.classList.add("d-none");
+        result.classList.remove("d-none");
+    }
+
+    function applyStreamEvent(event) {
+        switch (event.type) {
+            case "saved_result":
+                applySavedResult(event.data || {});
+
+                if (event.status === "outdated") {
+                    setStatus("Needs update", "warning");
+                } else {
+                    setStatus("Saved", "success");
+                }
+                break;
+
+            case "meta":
+                title.textContent =
+                    event.title || "Purpose fit";
+
+                recommendation.textContent =
+                    event.recommendation || "";
+
+                confidence.textContent =
+                    event.confidence || "";
+
+                loading.classList.add("d-none");
+                result.classList.remove("d-none");
+                break;
+
+            case "summary_delta":
+                summary.textContent += event.text || "";
+                break;
+
+            case "key_alignment":
+                renderList(
+                    alignmentList,
+                    event.items || [],
+                    "check"
+                );
+                break;
+
+            case "areas_to_verify":
+                renderList(
+                    verifyList,
+                    event.items || [],
+                    "search"
+                );
+                break;
+
+            case "suggested_next_step":
+                nextStep.textContent = event.text || "";
+                break;
+
+            case "context_note":
+                contextNote.textContent = event.text || "";
+                break;
+
+            case "done":
+                setStatus("Saved", "success");
+                loading.classList.add("d-none");
+                result.classList.remove("d-none");
+                break;
+
+            case "error":
+                throw new Error(
+                    event.message ||
+                    "Purpose-fit generation failed."
+                );
+        }
+    }
+
+    async function streamPurposeFit(streamUrl) {
+        if (isStreaming) {
+            return;
+        }
+
+        isStreaming = true;
+
+        resetPurposeFit();
+
+        loading.classList.remove("d-none");
+        loadingText.textContent =
+            "Analysing assessment results and process context...";
+
+        setStatus("Generating", "neutral");
+
+        refreshButton.disabled = true;
+
+        try {
+            const response = await fetch(streamUrl, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+
+                throw new Error(
+                    errorData.error ||
+                    "Could not generate purpose fit."
+                );
+            }
+
+            if (!response.body) {
+                throw new Error(
+                    "Streaming is not supported by the browser."
+                );
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            let buffer = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+
+                if (done) {
+                    break;
+                }
+
+                buffer += decoder.decode(value, {
+                    stream: true,
+                });
+
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || "";
+
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+
+                    if (!trimmedLine) {
+                        continue;
+                    }
+
+                    const event = JSON.parse(trimmedLine);
+                    applyStreamEvent(event);
+                }
+            }
+
+            if (buffer.trim()) {
+                const finalEvent = JSON.parse(buffer.trim());
+                applyStreamEvent(finalEvent);
+            }
+
+        } catch (error) {
+            console.error("Purpose fit error:", error);
+
+            loading.classList.add("d-none");
+            errorBox.classList.remove("d-none");
+
+            setStatus("Failed", "danger");
+        } finally {
+            isStreaming = false;
+            refreshButton.disabled = false;
+            refreshIcons();
+        }
+    }
+
+    refreshButton.addEventListener("click", async () => {
+        if (isStreaming) {
+            return;
+        }
+
+        const regenerateUrl =
+            refreshButton.dataset.regenerateUrl;
+
+        refreshButton.disabled = true;
+
+        try {
+            const response = await fetch(regenerateUrl, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Could not regenerate purpose fit."
+                );
+            }
+
+            await streamPurposeFit(data.stream_url);
+
+        } catch (error) {
+            console.error(
+                "Purpose fit regeneration error:",
+                error
+            );
+
+            errorBox.classList.remove("d-none");
+            setStatus("Failed", "danger");
+        } finally {
+            refreshButton.disabled = false;
+        }
+    });
+
+    const hasFit =
+        result.dataset.hasFit === "true";
+
+    if (!hasFit) {
+        streamPurposeFit(
+            result.dataset.streamUrl
+        );
+    }
+
+    refreshIcons();
+}
+
 </script>
 
 {% endblock %}

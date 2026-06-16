@@ -16,6 +16,15 @@ from apps.reports.services.candidate_insights import (
     build_general_insight_input,
     generate_general_candidate_insights,
 )
+
+from apps.core.ai.purpose_fit import (
+    purpose_supports_fit,
+    create_empty_purpose_fit,
+    apply_purpose_fit_event,
+    stream_candidate_purpose_fit,
+    save_candidate_purpose_fit,
+)
+
 from apps.processes.services.historical_assessment_import import import_historical_assessment_file
 from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
@@ -1885,17 +1894,31 @@ def process_create(request):
         "accounts_count": len(accounts),
     })
 
-def mark_candidate_summaries_outdated(process):
+def mark_candidate_ai_content_outdated(process):
     """
-    Keep existing AI summaries, but mark them as needing regeneration.
+    Keep existing AI content, but mark it as needing regeneration.
     """
 
-    return (
-        TestInvitation.objects
-        .filter(process=process)
+    invitations = TestInvitation.objects.filter(
+        process=process,
+    )
+
+    summary_count = (
+        invitations
         .exclude(ai_summary="")
         .update(ai_summary_status="outdated")
     )
+
+    purpose_fit_count = (
+        invitations
+        .exclude(ai_purpose_fit={})
+        .update(ai_purpose_fit_status="outdated")
+    )
+
+    return {
+        "summaries": summary_count,
+        "purpose_fits": purpose_fit_count,
+    }
 
 
 def process_update(request, pk):
@@ -2125,7 +2148,12 @@ def process_update(request, pk):
             obj.labels.set(label_objs)
 
             if old_purpose != obj.purpose:
-                mark_candidate_summaries_outdated(obj)
+                result = mark_candidate_ai_content_outdated(obj)
+
+                print(
+                    "AI CONTENT MARKED OUTDATED:",
+                    result,
+                )
 
             messages.success(
                 request,
@@ -2136,11 +2164,6 @@ def process_update(request, pk):
                 "processes:process_update",
                 pk=obj.pk,
             )
-        
-        messages.error(
-            request,
-            "Could not save. Please check the fields."
-        )
 
     # --------------------------------------------------
     # 5. GET: fyll edit-formuläret med befintliga värden
@@ -2253,13 +2276,13 @@ def process_role_context(request, pk):
             role_context.save()
 
             if context_changed:
-                updated_count = mark_candidate_summaries_outdated(
+                result = mark_candidate_ai_content_outdated(
                     process
                 )
 
                 print("=== CONTEXT CHANGED ===")
                 print("PROCESS:", process.id)
-                print("SUMMARIES MARKED OUTDATED:", updated_count)
+                print("AI CONTENT MARKED OUTDATED:", result)
 
             messages.success(
                 request,
@@ -3159,7 +3182,289 @@ def process_candidate_summary_stream(request, process_id, candidate_id):
     resp["X-Accel-Buffering"] = "no"
     return resp
 
+@login_required
+def process_candidate_purpose_fit_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    print(
+        f"[PURPOSE FIT] Stream requested "
+        f"process={process_id}, candidate={candidate_id}",
+        flush=True,
+    )
 
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    print(
+        f"[PURPOSE FIT] Process found: "
+        f"{process.id}, purpose={process.purpose}",
+        flush=True,
+    )
+
+    if not user_can_access_process(request.user, process):
+        print(
+            "[PURPOSE FIT] Access denied",
+            flush=True,
+        )
+
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if not purpose_supports_fit(process):
+        print(
+            "[PURPOSE FIT] Purpose does not support fit",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "Flexible processes do not support "
+                    "purpose-fit analysis."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    print(
+        f"[PURPOSE FIT] Invitation found: "
+        f"id={invitation.id}, "
+        f"status={invitation.status}, "
+        f"fit_status={invitation.ai_purpose_fit_status}, "
+        f"has_saved_fit={bool(invitation.ai_purpose_fit)}",
+        flush=True,
+    )
+
+    if invitation.status != "completed":
+        print(
+            "[PURPOSE FIT] Candidate not completed",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "Candidate assessments are not completed yet."
+                )
+            },
+            status=400,
+        )
+
+    if invitation.ai_purpose_fit:
+        print(
+            "[PURPOSE FIT] Returning saved result",
+            flush=True,
+        )
+
+        def existing_generator():
+            yield json.dumps({
+                "type": "saved_result",
+                "data": invitation.ai_purpose_fit,
+                "status": invitation.ai_purpose_fit_status,
+            }) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type="application/x-ndjson; charset=utf-8",
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if invitation.ai_purpose_fit_status == "generating":
+        print(
+            "[PURPOSE FIT] Already marked as generating",
+            flush=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "Purpose-fit analysis is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_purpose_fit_status = "generating"
+    invitation.save(update_fields=[
+        "ai_purpose_fit_status",
+    ])
+
+    print(
+        "[PURPOSE FIT] Status changed to generating",
+        flush=True,
+    )
+
+    def generator():
+        purpose_fit = create_empty_purpose_fit(
+            invitation
+        )
+
+        received_done_event = False
+
+        try:
+            print(
+                "[PURPOSE FIT] Starting OpenAI stream",
+                flush=True,
+            )
+
+            for event in stream_candidate_purpose_fit(
+                invitation
+            ):
+                print(
+                    "[PURPOSE FIT] Event received:",
+                    event,
+                    flush=True,
+                )
+
+                purpose_fit = apply_purpose_fit_event(
+                    purpose_fit,
+                    event,
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            print(
+                "[PURPOSE FIT] OpenAI stream finished",
+                flush=True,
+            )
+
+            if not received_done_event:
+                print(
+                    "[PURPOSE FIT] Adding missing done event",
+                    flush=True,
+                )
+
+                yield json.dumps({
+                    "type": "done",
+                }) + "\n"
+
+            save_candidate_purpose_fit(
+                invitation,
+                purpose_fit,
+            )
+
+            print(
+                "[PURPOSE FIT] Result saved successfully",
+                flush=True,
+            )
+
+        except Exception as exc:
+            print(
+                "[PURPOSE FIT] ERROR:",
+                repr(exc),
+                flush=True,
+            )
+
+            invitation.ai_purpose_fit_status = "failed"
+            invitation.save(update_fields=[
+                "ai_purpose_fit_status",
+            ])
+
+            yield json.dumps({
+                "type": "error",
+                "message": str(exc),
+            }, ensure_ascii=False) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type="application/x-ndjson; charset=utf-8",
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    print(
+        "[PURPOSE FIT] Streaming response created",
+        flush=True,
+    )
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_purpose_fit_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if not purpose_supports_fit(process):
+        return JsonResponse(
+            {
+                "error": (
+                    "Flexible processes do not support "
+                    "purpose-fit analysis."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_purpose_fit = {}
+    invitation.ai_purpose_fit_status = "not_started"
+    invitation.ai_purpose_fit_generated_at = None
+    invitation.ai_purpose_fit_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_purpose_fit",
+            "ai_purpose_fit_status",
+            "ai_purpose_fit_generated_at",
+            "ai_purpose_fit_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                "processes:process_candidate_purpose_fit_stream",
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
 
 @login_required
 def process_create_v2(request):

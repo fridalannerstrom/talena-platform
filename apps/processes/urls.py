@@ -38,4 +38,15 @@ urlpatterns = [
         views.process_candidate_summary_regenerate,
         name="process_candidate_summary_regenerate",
     ),
+    path(
+    "processes/<int:process_id>/candidates/<int:candidate_id>/purpose-fit/stream/",
+    views.process_candidate_purpose_fit_stream,
+    name="process_candidate_purpose_fit_stream",
+    ),
+
+    path(
+        "processes/<int:process_id>/candidates/<int:candidate_id>/purpose-fit/regenerate/",
+        views.process_candidate_purpose_fit_regenerate,
+        name="process_candidate_purpose_fit_regenerate",
+    ),
 ]
