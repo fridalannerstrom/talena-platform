@@ -163,6 +163,7 @@ if os.environ.get("WEBSITE_INSTANCE_ID"):
         "169.254.129.2",
         "169.254.129.3",
         "169.254.129.4",
+        "169.254.130.5",
     ]
 
 CSRF_TRUSTED_ORIGINS = [
