@@ -17,6 +17,24 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from apps.processes.services.candidate_insights import (
+    build_candidate_insights,
+)
+
+from apps.processes.services.candidate_profile import (
+    build_historical_candidate_profile,
+)
+
+from apps.processes.models import (
+    HistoricalProcessCandidate,
+    TestInvitation,
+    TestProcess,
+)
+
+from apps.processes.services.historical_candidate_summary import (
+    stream_historical_candidate_summary,
+)
+
 from apps.core.ai.purpose_fit import (
     purpose_supports_fit,
     create_empty_purpose_fit,
@@ -101,6 +119,8 @@ from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 
 from .models import ProcessRoleContext
 from .forms import ProcessRoleContextForm
+
+
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
@@ -818,613 +838,16 @@ def build_candidate_detail_context(process, invitation):
     # Temporary dummy data for Candidate Insights
     # Later this can be replaced by structured AI JSON output.
     # ------------------------------------------------------------
-    if candidate_insights_mode == "context":
-        candidate_insights = {
-            "summary": {
-                "headline": "Potential fit for a structured Business Controller role",
-                "body": (
-                    "The candidate shows a profile that may support structured analysis, reliable delivery and careful business follow-up. "
-                    "For this Business Controller context, the strongest signal is the combination of analytical thinking, planning and quality focus. "
-                    "The main areas to validate are stakeholder communication, pace when priorities change and the ability to turn analysis into practical recommendations."
-                ),
-                "bullets": [
-                    {
-                        "label": "Most important interpretation",
-                        "text": "The candidate appears well aligned with work that requires structure, accuracy and thoughtful analysis, but the interview should validate how this translates into stakeholder-facing business support.",
-                    },
-                    {
-                        "label": "Confidence / context level",
-                        "text": "Medium confidence. The interpretation uses completed assessment data and the added Business Controller role context, but should be combined with interview evidence.",
-                    },
-                    {
-                        "label": "What this report is based on",
-                        "text": "Assessment results, personality and motivation indicators, cognitive reasoning data, and the added role context covering requirements, priorities and interview focus.",
-                    },
-                ],
-            },
-            "fit": {
-                "title": "Role match verdict",
-                "label": "Potential match",
-                "confidence": "Medium",
-                "summary": (
-                    "Talena sees a promising match for the Business Controller role, mainly because the candidate shows strong "
-                    "indicators for structure, analytical thinking and reliable delivery."
-                ),
-                "body": (
-                    "Talena sees a promising match for the Business Controller role, mainly because the candidate shows strong "
-                    "indicators for structure, analytical thinking and reliable delivery."
-                ),
-                "reasoning": [
-                    "The role requires structured analysis and careful follow-up, which appears aligned with the candidate’s strengths in planning, quality focus and analytical thinking.",
-                    "The candidate may be well suited to work that requires accuracy, ownership and thoughtful decision support.",
-                    "The match is not yet strong enough to confirm without interview validation, especially around stakeholder-facing business support.",
-                ],
-                "watch_points": [
-                    "Stakeholder communication",
-                    "Pace under ambiguity",
-                    "Commercial judgement",
-                ],
-                "suggested_next_step": "Proceed with a structured interview focused on stakeholder communication, changing priorities and business impact.",
-                "decision_note": (
-                    "This is a decision-support recommendation, not a final hiring decision. Combine it with interview evidence, experience and role requirements."
-                ),
-            },
-            "key_strengths": [
-                {
-                    "title": "Structured business analysis",
-                    "body": "The candidate appears likely to bring structure and clarity to analytical work.",
-                    "how_it_may_show": "May organise information, compare alternatives and create a clear basis for business decisions.",
-                    "why_it_matters": "This is relevant for a Business Controller role where managers need clear financial insights and practical recommendations.",
-                    "evidence": ["Analytical Thinking", "Planning", "Quality Focus"],
-                },
-                {
-                    "title": "Reliable delivery",
-                    "body": "The profile suggests a preference for accuracy, follow-through and doing work properly.",
-                    "how_it_may_show": "May take deadlines and reporting quality seriously, especially when expectations are clear.",
-                    "why_it_matters": "This can support recurring financial follow-up, reporting cycles and dependable stakeholder support.",
-                    "evidence": ["Reliability", "Quality Focus", "Self-discipline"],
-                },
-                {
-                    "title": "Thoughtful decision support",
-                    "body": "The candidate may be comfortable working with information before reaching conclusions.",
-                    "how_it_may_show": "May ask clarifying questions, analyse patterns and avoid rushing into unsupported recommendations.",
-                    "why_it_matters": "This is useful when the role requires sound judgement and the ability to translate data into business insight.",
-                    "evidence": ["Analytical Thinking", "Logical reasoning"],
-                },
-                {
-                    "title": "Ownership with clarity",
-                    "body": "The candidate may perform well when given clear goals and responsibility for defined tasks.",
-                    "how_it_may_show": "May take ownership of agreed deliverables and work independently when priorities are understood.",
-                    "why_it_matters": "This can support a role where the person needs to manage recurring analysis, deadlines and stakeholder requests.",
-                    "evidence": ["Autonomy", "Achievement", "Planning"],
-                },
-            ],
-            "areas_to_explore": [
-                {
-                    "title": "Stakeholder influence",
-                    "body": "It may be useful to understand how the candidate communicates financial insights and gains buy-in from non-finance stakeholders.",
-                    "explore_through": "Ask about a time when they had to explain complex information to a manager or influence a business decision.",
-                    "what_to_listen_for": "Look for clarity, confidence, ability to adapt the message and understanding of the stakeholder’s perspective.",
-                    "evidence": ["Influencing", "Communication"],
-                },
-                {
-                    "title": "Pace under ambiguity",
-                    "body": "It may be useful to explore how the candidate handles changing priorities, incomplete information or urgent deadlines.",
-                    "explore_through": "Ask about a situation where they had to deliver analysis despite unclear or changing requirements.",
-                    "what_to_listen_for": "Look for how they balance accuracy with practical progress and whether they can prioritise effectively.",
-                    "evidence": ["Adaptability", "Decision-making"],
-                },
-                {
-                    "title": "Commercial confidence",
-                    "body": "It may be useful to understand how confidently the candidate connects analysis to business impact.",
-                    "explore_through": "Ask for an example where their analysis led to a recommendation, decision or improvement.",
-                    "what_to_listen_for": "Look for business understanding, practical judgement and ability to move from numbers to action.",
-                    "evidence": ["Business understanding", "Analytical Thinking"],
-                },
-                {
-                    "title": "Collaboration with managers",
-                    "body": "It may be useful to explore how the candidate builds working relationships with managers and stakeholders.",
-                    "explore_through": "Ask what helps them collaborate well with people who have different priorities or limited finance knowledge.",
-                    "what_to_listen_for": "Look for patience, service mindset, clarity and ability to create trust over time.",
-                    "evidence": ["Teamwork", "Listening"],
-                },
-            ],
-            "questions": [
-                {
-                    "category": "strengths",
-                    "category_label": "Strengths",
-                    "question": "Tell me about a time when you used financial or business analysis to support an important decision.",
-                    "why": "Helps validate analytical problem-solving and ability to turn data into practical recommendations.",
-                    "listen_for": "Look for clear reasoning, business understanding, accuracy and impact on the decision.",
-                },
-                {
-                    "category": "explore",
-                    "category_label": "Explore",
-                    "question": "Can you describe a situation where you had to explain complex financial information to someone without a finance background?",
-                    "why": "Explores stakeholder communication and ability to make analysis understandable.",
-                    "listen_for": "Look for clarity, adaptation to the audience and ability to connect numbers to business reality.",
-                },
-                {
-                    "category": "explore",
-                    "category_label": "Explore",
-                    "question": "Tell me about a time when priorities changed close to a deadline. How did you handle it?",
-                    "why": "Helps understand pace, flexibility and prioritisation under pressure.",
-                    "listen_for": "Look for structure, calmness, communication and practical decision-making.",
-                },
-                {
-                    "category": "motivation",
-                    "category_label": "Motivation",
-                    "question": "What type of financial or analytical work gives you the most energy?",
-                    "why": "Explores motivation fit with the role’s recurring tasks and stakeholder support.",
-                    "listen_for": "Look for alignment with analysis, quality, ownership and business impact.",
-                },
-                {
-                    "category": "work_style",
-                    "category_label": "Work style",
-                    "question": "How do you prefer to work with managers who need support but may not know exactly what analysis they need?",
-                    "why": "Explores consulting style, communication and ability to clarify needs.",
-                    "listen_for": "Look for curiosity, structure, patience and ability to guide stakeholders.",
-                },
-            ],
-            "motivation_environment": {
-                "summary": (
-                    "In this Business Controller context, the candidate’s likely motivation for quality, autonomy and meaningful contribution "
-                    "may support independent delivery and careful analysis. Engagement may be strongest when expectations are clear and the work "
-                    "has visible business value."
-                ),
-                "top_motivators": [
-                    {
-                        "title": "Quality",
-                        "body": "May be motivated by accurate, reliable work and high standards.",
-                    },
-                    {
-                        "title": "Autonomy",
-                        "body": "May value ownership over tasks and freedom to decide how to approach analysis.",
-                    },
-                    {
-                        "title": "Making a difference",
-                        "body": "May gain energy from seeing that their work improves decisions or creates business value.",
-                    },
-                ],
-                "possible_demotivators": [
-                    {
-                        "title": "Unclear priorities",
-                        "body": "May lose energy if goals, responsibilities or decision-making authority remain vague.",
-                    },
-                    {
-                        "title": "Low-quality shortcuts",
-                        "body": "May become frustrated if speed is repeatedly prioritised over accuracy.",
-                    },
-                    {
-                        "title": "Limited ownership",
-                        "body": "May find it less engaging if there is little room to influence how work is done.",
-                    },
-                ],
-                "best_environment": [
-                    {
-                        "title": "Clear expectations",
-                        "body": "Clear priorities and success criteria may help the candidate focus effectively.",
-                    },
-                    {
-                        "title": "Trust and responsibility",
-                        "body": "The candidate may perform well when trusted to own analysis and follow through.",
-                    },
-                    {
-                        "title": "Business-oriented dialogue",
-                        "body": "Regular dialogue with managers can help connect analysis to practical decisions.",
-                    },
-                    {
-                        "title": "Constructive feedback",
-                        "body": "Feedback on usefulness and business impact may help maintain motivation.",
-                    },
-                ],
-                "manager_tips": [
-                    {
-                        "title": "Clarify the business question",
-                        "body": "Explain what decision the analysis should support before asking for numbers or reports.",
-                    },
-                    {
-                        "title": "Agree on priorities",
-                        "body": "Be clear about what is urgent, what can wait and what level of detail is needed.",
-                    },
-                    {
-                        "title": "Give ownership",
-                        "body": "Let the candidate own recurring analysis while agreeing on checkpoints and deadlines.",
-                    },
-                    {
-                        "title": "Connect work to impact",
-                        "body": "Show how their analysis contributes to decisions, improvements or financial control.",
-                    },
-                ],
-                "context_implications": (
-                    "For this role, the motivation profile may support careful and independent delivery. "
-                    "The main thing to watch is whether the role provides enough clarity, ownership and connection to business impact."
-                ),
-            },
-            "work_style": {
-                "summary": (
-                    "The candidate appears likely to work best with clarity, structure and enough space to think things through. "
-                    "In this role context, that may support reliable analysis, careful financial follow-up and considered business recommendations."
-                ),
-                "items": [
-                    {
-                        "title": "How they work",
-                        "subtitle": "Structure, pace and task approach",
-                        "body": "May prefer clear expectations, organised work and time to understand the task before moving into action.",
-                        "practical_tip": "Provide clear priorities and agree on what good delivery looks like early in the process.",
-                        "evidence": ["Planning", "Reliability", "Quality Focus"],
-                        "icon": "work",
-                        "icon_class": "",
-                    },
-                    {
-                        "title": "How they communicate",
-                        "subtitle": "Information sharing and stakeholder dialogue",
-                        "body": "May communicate most effectively when there is a clear purpose and enough context to form a considered view.",
-                        "practical_tip": "Invite them to explain their reasoning and connect analysis to practical business consequences.",
-                        "evidence": ["Communication", "Analytical Thinking"],
-                        "icon": "communicate",
-                        "icon_class": "is-blue",
-                    },
-                    {
-                        "title": "How they handle change",
-                        "subtitle": "Changing priorities and business needs",
-                        "body": "May adapt well when changes are explained clearly, but may need clarity around priorities if several things change at once.",
-                        "practical_tip": "When priorities shift, clarify what changed, what stays the same and what should be handled first.",
-                        "evidence": ["Adaptability", "Decision-making"],
-                        "icon": "change",
-                        "icon_class": "is-green",
-                    },
-                    {
-                        "title": "How they handle pressure",
-                        "subtitle": "Deadlines and workload",
-                        "body": "May perform best when pressure is paired with structure, realistic priorities and clear expectations.",
-                        "practical_tip": "Use short check-ins during intense reporting periods to remove blockers and keep priorities visible.",
-                        "evidence": ["Resilience", "Emotional Control"],
-                        "icon": "pressure",
-                        "icon_class": "is-orange",
-                    },
-                    {
-                        "title": "How they prefer to be managed",
-                        "subtitle": "Support, autonomy and feedback",
-                        "body": "May respond well to a management style that combines trust and autonomy with clear goals and constructive feedback.",
-                        "practical_tip": "Give ownership, but agree on checkpoints and make expectations explicit.",
-                        "evidence": ["Autonomy", "Quality", "Achievement"],
-                        "icon": "managed",
-                        "icon_class": "is-pink",
-                    },
-                ],
-                "footer_note": (
-                    "This section translates personality and motivation indicators into practical behaviours for the current role context. "
-                    "Full trait-level results can be reviewed further down as evidence."
-                ),
-            },
-            "next_steps": [
-                {
-                    "label": "Recommended action",
-                    "title": "Proceed with a structured interview",
-                    "body": "Use the report to guide a focused interview rather than as a standalone decision.",
-                    "focus": "Validate stakeholder communication, commercial judgement and pace under ambiguity.",
-                },
-                {
-                    "label": "Interview focus",
-                    "title": "Ask evidence-based follow-up questions",
-                    "body": "Use behavioural questions to understand how the candidate applies analysis and structure in real work situations.",
-                    "focus": "Ask for examples involving financial analysis, deadlines, prioritisation and influencing decisions.",
-                },
-                {
-                    "label": "Decision support",
-                    "title": "Combine assessment insights with interview evidence",
-                    "body": "Use the assessment results together with interview notes, experience and role requirements.",
-                    "focus": "Avoid making a decision from assessment data alone.",
-                },
-            ],
-        }
 
-    else:
-        candidate_insights = {
-            "summary": {
-                "headline": (
-                    "General assessment summary"
-                    if candidate_insights_mode == "general"
-                    else "Contextual candidate insight summary"
-                ),
-                "body": (
-                    "The candidate’s assessment profile suggests a structured and analytical work style, with strong indicators around planning, quality focus and working with complex information. "
-                    "This may support roles or situations where careful follow-up, accuracy and thoughtful problem-solving are important. "
-                    "At the same time, the results should be explored further through conversation, especially around stakeholder influence, decision-making pace and how the candidate handles changing priorities. "
-                    "Add role or process context to make this interpretation more specific."
-                ),
-            },
-            "fit": {
-                "label": (
-                    "Insufficient context"
-                    if candidate_insights_mode == "general"
-                    else "Potential fit"
-                ),
-                "confidence": (
-                    "Low"
-                    if candidate_insights_mode == "general"
-                    else "Medium"
-                ),
-                "suggested_next_step": (
-                    "Add context"
-                    if candidate_insights_mode == "general"
-                    else "Structured follow-up"
-                ),
-                "body": (
-                    "No process context has been added yet, so this section does not assess "
-                    "fit for a specific role, team, leadership situation or development goal."
-                    if candidate_insights_mode == "general"
-                    else
-                    "Based on the added context, the candidate appears to show several relevant "
-                    "indicators. Some areas should be explored further before making a decision."
-                ),
-            },
-                "key_strengths": [
-                    {
-                        "title": "Structured approach",
-                        "body": "Likely to value clarity, order and follow-through in work situations.",
-                        "how_it_may_show": "May create structure, keep track of details and prefer clear expectations before moving into action.",
-                        "why_it_matters": "This can support consistency, planning and dependable delivery in day-to-day work.",
-                        "evidence": ["Reliability", "Planning", "Task focus"],
-                    },
-                    {
-                        "title": "Analytical problem solving",
-                        "body": "May be comfortable working with information, patterns and conclusions.",
-                        "how_it_may_show": "May identify patterns, compare options and use information to support decisions.",
-                        "why_it_matters": "This can support work that requires prioritisation, judgement and problem-solving.",
-                        "evidence": ["Analytical Thinking", "Logical reasoning"],
-                    },
-                    {
-                        "title": "Reliable ownership",
-                        "body": "May take commitments seriously and show a preference for doing things properly.",
-                        "how_it_may_show": "May follow through on agreed responsibilities and aim to deliver work to a consistent standard.",
-                        "why_it_matters": "This can be useful where trust, accountability and reliable execution are important.",
-                        "evidence": ["Quality Focus", "Self-discipline"],
-                    },
-                    {
-                        "title": "Thoughtful decision-making",
-                        "body": "May prefer to consider information carefully before reaching conclusions.",
-                        "how_it_may_show": "May ask clarifying questions, weigh alternatives and avoid rushing decisions without enough information.",
-                        "why_it_matters": "This can support sound judgement, especially in situations where decisions have practical consequences.",
-                        "evidence": ["Analytical Thinking", "Complex Thinking"],
-                    },
-                ],
-            "areas_to_explore": [
-                {
-                    "title": "Stakeholder influence",
-                    "body": "It may be useful to understand how the candidate communicates ideas, gains buy-in and handles situations where others have different views.",
-                    "explore_through": "Ask about a time when they needed to influence a decision or create agreement without having full authority.",
-                    "what_to_listen_for": "Look for clarity, confidence, listening, adaptability and ability to connect their message to others’ needs.",
-                    "evidence": ["Influencing", "Communication"],
-                },
-                {
-                    "title": "Pace under ambiguity",
-                    "body": "It may be useful to explore how the candidate handles situations where information is incomplete, priorities change or decisions need to be made quickly.",
-                    "explore_through": "Ask about a situation where they had to move forward without having all the information they wanted.",
-                    "what_to_listen_for": "Look for how they balance careful thinking with practical action, and whether they can adjust when conditions change.",
-                    "evidence": ["Adaptability", "Decision-making"],
-                },
-                {
-                    "title": "Collaboration style",
-                    "body": "It may be useful to understand what type of collaboration helps the candidate perform at their best, especially in teams with different working styles.",
-                    "explore_through": "Ask what they need from colleagues and managers to collaborate well, and what others usually appreciate about working with them.",
-                    "what_to_listen_for": "Look for self-awareness, openness to feedback and ability to adapt communication to different people.",
-                    "evidence": ["Teamwork", "Listening"],
-                },
-                {
-                    "title": "Energy and motivation fit",
-                    "body": "It may be useful to explore what gives the candidate energy at work and which conditions may reduce engagement over time.",
-                    "explore_through": "Ask what types of tasks, environments or goals tend to bring out their best contribution.",
-                    "what_to_listen_for": "Look for alignment between the person’s drivers and the realities of the role, team or development context.",
-                    "evidence": ["Motivation", "Work preferences"],
-                },
-            ],
-            "questions": [
-                {
-                    "question": "Tell me about a time when you used analysis to influence a decision.",
-                    "why": "Validates analytical thinking and communication in a practical situation.",
-                },
-                {
-                    "question": "How do you handle situations where priorities change quickly?",
-                    "why": "Explores adaptability, structure and decision-making under pressure.",
-                },
-                {
-                    "question": "What type of work environment helps you perform at your best?",
-                    "why": "Connects motivation and work style to the candidate’s preferred conditions.",
-                },
-            ],
-            "motivation_environment": {
-                "summary": (
-                    "The candidate appears likely to be energised by quality, autonomy and meaningful contribution. "
-                    "They may perform best in an environment with clear expectations, room for ownership and opportunities to do work properly."
-                ),
-                "top_motivators": [
-                    {
-                        "title": "Quality",
-                        "body": "May be motivated by doing work to a high standard and feeling that the result is accurate and reliable.",
-                    },
-                    {
-                        "title": "Autonomy",
-                        "body": "May value having ownership over tasks and enough freedom to decide how work should be approached.",
-                    },
-                    {
-                        "title": "Making a difference",
-                        "body": "May gain energy from seeing that their work contributes to something meaningful or useful.",
-                    },
-                ],
-                "possible_demotivators": [
-                    {
-                        "title": "Unclear expectations",
-                        "body": "May lose energy if goals, responsibilities or decision-making authority are vague for too long.",
-                    },
-                    {
-                        "title": "Low-quality shortcuts",
-                        "body": "May become frustrated if speed is consistently prioritised over accuracy or thoughtful delivery.",
-                    },
-                    {
-                        "title": "Limited ownership",
-                        "body": "May find it less engaging if there is little room to take responsibility or influence how work is done.",
-                    },
-                ],
-                "best_environment": [
-                    {
-                        "title": "Clear goals",
-                        "body": "An environment with clear priorities and expectations may help the candidate focus their energy effectively.",
-                    },
-                    {
-                        "title": "Trust and ownership",
-                        "body": "They may perform well when trusted to take responsibility and manage tasks with a degree of independence.",
-                    },
-                    {
-                        "title": "Quality-focused culture",
-                        "body": "A culture that values accuracy, improvement and thoughtful work may support engagement.",
-                    },
-                    {
-                        "title": "Constructive feedback",
-                        "body": "Regular feedback and clear dialogue may help maintain motivation and alignment.",
-                    },
-                ],
-                "manager_tips": [
-                    {
-                        "title": "Clarify expectations early",
-                        "body": "Be clear about what success looks like and which priorities matter most.",
-                    },
-                    {
-                        "title": "Give ownership with boundaries",
-                        "body": "Allow independence while agreeing on checkpoints, timelines and decision areas.",
-                    },
-                    {
-                        "title": "Connect work to purpose",
-                        "body": "Explain why tasks matter and how they contribute to wider goals or customer value.",
-                    },
-                    {
-                        "title": "Avoid unnecessary ambiguity",
-                        "body": "When things are changing, communicate what is known, what is uncertain and when decisions will be made.",
-                    },
-                ],
-                "context_implications": (
-                    "Without added process context, these insights should be read as general motivation themes. "
-                    "If this report is used for a specific role, onboarding plan or development purpose, the motivation profile should be interpreted against that situation."
-                ),
-            },
-            "work_style": {
-                "summary": (
-                    "The candidate appears likely to work best with clarity, structure and enough space to think things through. "
-                    "Their profile may suggest a thoughtful and reliable working style, with a preference for quality and considered decisions."
-                ),
-                "items": [
-                    {
-                        "title": "How they work",
-                        "subtitle": "Structure, pace and task approach",
-                        "body": "The candidate may prefer clear expectations, organised work and time to understand the task before moving into action.",
-                        "practical_tip": "Provide clear priorities and agree on what good delivery looks like early in the process.",
-                        "evidence": ["Planning", "Reliability", "Quality Focus"],
-                        "icon": "work",
-                        "icon_class": "",
-                    },
-                    {
-                        "title": "How they communicate",
-                        "subtitle": "Information sharing and collaboration",
-                        "body": "They may communicate most effectively when there is a clear purpose and enough context to form a considered view.",
-                        "practical_tip": "Invite them to explain their reasoning and give space for questions, especially in complex discussions.",
-                        "evidence": ["Communication", "Analytical Thinking"],
-                        "icon": "communicate",
-                        "icon_class": "is-blue",
-                    },
-                    {
-                        "title": "How they handle change",
-                        "subtitle": "Adaptability and shifting priorities",
-                        "body": "They may adapt well when changes are explained clearly, but may need clarity around priorities if several things change at once.",
-                        "practical_tip": "When priorities shift, clarify what has changed, what stays the same and what should be handled first.",
-                        "evidence": ["Adaptability", "Decision-making"],
-                        "icon": "change",
-                        "icon_class": "is-green",
-                    },
-                    {
-                        "title": "How they handle pressure",
-                        "subtitle": "Pressure response and workload",
-                        "body": "The candidate may perform best when pressure is paired with structure, realistic priorities and clear expectations.",
-                        "practical_tip": "Use regular check-ins during intense periods to remove blockers and keep priorities visible.",
-                        "evidence": ["Resilience", "Emotional Control"],
-                        "icon": "pressure",
-                        "icon_class": "is-orange",
-                    },
-                    {
-                        "title": "How they prefer to be managed",
-                        "subtitle": "Support, autonomy and feedback",
-                        "body": "They may respond well to a management style that combines trust and autonomy with clear goals and constructive feedback.",
-                        "practical_tip": "Give ownership, but agree on checkpoints and make expectations explicit.",
-                        "evidence": ["Autonomy", "Quality", "Achievement"],
-                        "icon": "managed",
-                        "icon_class": "is-pink",
-                    },
-                ],
-                "footer_note": (
-                    "This section translates personality and work style indicators into practical behaviours. "
-                    "Full trait-level results can be reviewed further down as evidence."
-                ),
-            },
-            "next_steps": [
-                {
-                    "label": "Recommended action",
-                    "title": "Use a structured follow-up conversation",
-                    "body": "Use the insights as a starting point for a structured conversation rather than as a final conclusion.",
-                    "focus": "Focus on examples from real work situations, especially where the candidate had to apply their strengths in practice.",
-                },
-                {
-                    "label": "Validate through examples",
-                    "title": "Explore the most relevant follow-up themes",
-                    "body": "Ask targeted questions around the areas that would benefit from more context before making decisions or recommendations.",
-                    "focus": "Prioritise stakeholder influence, pace under ambiguity and collaboration style.",
-                },
-                {
-                    "label": "Connect insights to context",
-                    "title": "Add process context for sharper recommendations",
-                    "body": "If this report will be used for a specific role, team, onboarding plan or development purpose, add context to make the next steps more precise.",
-                    "focus": "Add role, team, leadership or onboarding context to tailor the interpretation.",
-                },
-            ],
+    candidate_insights = build_candidate_insights(
+        mode=candidate_insights_mode,
+        general_insight_input=general_insight_input,
+    )
 
-            "questions": [
-                {
-                    "category": "strengths",
-                    "category_label": "Strengths",
-                    "question": "Tell me about a situation where you used structure or analysis to solve a work-related problem.",
-                    "why": "Helps validate how the candidate applies analytical and structured strengths in real situations.",
-                    "listen_for": "Look for clear reasoning, practical action, follow-through and ability to explain the outcome.",
-                },
-                {
-                    "category": "explore",
-                    "category_label": "Explore",
-                    "question": "Can you describe a time when you needed to influence someone who had a different opinion from you?",
-                    "why": "Explores how the candidate gains buy-in and handles different perspectives.",
-                    "listen_for": "Look for listening, clarity, adaptability, confidence and respect for other viewpoints.",
-                },
-                {
-                    "category": "explore",
-                    "category_label": "Explore",
-                    "question": "Tell me about a situation where you had to make progress without having all the information you wanted.",
-                    "why": "Helps understand how the candidate handles ambiguity and changing priorities.",
-                    "listen_for": "Look for balance between careful thinking and practical action.",
-                },
-                {
-                    "category": "motivation",
-                    "category_label": "Motivation",
-                    "question": "What type of work tends to give you the most energy, and what tends to drain your energy over time?",
-                    "why": "Explores motivation fit and the conditions that may support sustained performance.",
-                    "listen_for": "Look for alignment between the candidate’s drivers and the realities of the role or context.",
-                },
-                {
-                    "category": "work_style",
-                    "category_label": "Work style",
-                    "question": "How do you prefer to receive goals, feedback and follow-up from a manager?",
-                    "why": "Helps understand what management style may support the candidate’s performance.",
-                    "listen_for": "Look for self-awareness, clarity around support needs and ability to work with expectations.",
-                },
-            ],
-            
-        }
+    candidate_insights = build_candidate_insights(
+        mode="general",
+        general_insight_input=general_insight_input,
+    )
 
     print("=== FLEXIBLE AI CONDITION DEBUG ===")
     print("PROCESS PURPOSE:", repr(process.purpose))
@@ -1504,6 +927,8 @@ def build_candidate_detail_context(process, invitation):
         "role_context": role_context_obj,
         "has_role_context": has_role_context,
         "show_role_context_prompt": show_role_context_prompt,
+
+        "summary_owner": invitation,
 
     }
 
@@ -2989,7 +2414,11 @@ def process_candidate_detail(request, process_id, candidate_id):
     if process.is_historical:
         historical_candidate = get_object_or_404(
             HistoricalProcessCandidate.objects
-            .select_related("candidate", "process", "created_by")
+            .select_related(
+                "candidate",
+                "process",
+                "created_by",
+            )
             .prefetch_related(
                 "reports",
                 "assessment_results__scores",
@@ -3129,58 +2558,160 @@ def process_unarchive(request, pk):
 
 
 @login_required
-def process_candidate_summary_stream(request, process_id, candidate_id):
-    process = get_object_or_404(TestProcess, pk=process_id)
-
-    if not user_can_access_process(request.user, process):
-        return HttpResponseForbidden("You do not have access to this process.")
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate"),
-        process=process,
-        candidate_id=candidate_id
+def process_candidate_summary_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
     )
 
-    # Bara generera summary för färdiga tester
-    if invitation.status != "completed":
-        return JsonResponse({"error": "Candidate is not completed yet."}, status=400)
+    if not user_can_access_process(request.user, process):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
 
-    # Om summary redan finns, streama tillbaka den direkt
-    if invitation.ai_summary:
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+    if process.is_historical:
+        summary_owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related("candidate", "process")
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = True
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+    else:
+        summary_owner = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+        is_historical = False
+
+        # Active candidates must have completed all assessments.
+        if summary_owner.status != "completed":
+            return JsonResponse(
+                {
+                    "error": (
+                        "Candidate has not completed "
+                        "the assessments yet."
+                    )
+                },
+                status=400,
+            )
+
+    # ---------------------------------------------------------
+    # RETURN EXISTING SUMMARY
+    # ---------------------------------------------------------
+    if summary_owner.ai_summary:
         def existing_generator():
-            yield invitation.ai_summary
+            yield summary_owner.ai_summary
 
-        resp = StreamingHttpResponse(existing_generator(), content_type="text/plain; charset=utf-8")
-        resp["Cache-Control"] = "no-cache"
-        resp["X-Accel-Buffering"] = "no"
-        return resp
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type="text/plain; charset=utf-8",
+        )
 
-    # Om någon annan generering redan pågår
-    if invitation.ai_summary_status == "generating":
-        return JsonResponse({"error": "Summary is already being generated."}, status=409)
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
 
-    invitation.ai_summary_status = "generating"
-    invitation.save(update_fields=["ai_summary_status"])
+        return response
 
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+    if summary_owner.ai_summary_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Summary is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    summary_owner.ai_summary_status = "generating"
+    summary_owner.save(
+        update_fields=["ai_summary_status"]
+    )
+
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
     def generator():
         full_text = ""
 
         try:
-            for chunk in stream_candidate_summary(invitation):
+            if is_historical:
+                stream = stream_historical_candidate_summary(
+                    process=process,
+                    historical_candidate=summary_owner,
+                )
+            else:
+                stream = stream_candidate_summary(
+                    summary_owner
+                )
+
+            for chunk in stream:
                 full_text += chunk
                 yield chunk
 
-            save_candidate_summary(invitation, full_text)
+            if is_historical:
+                summary_owner.ai_summary = full_text
+                summary_owner.ai_summary_status = "completed"
+                summary_owner.ai_summary_generated_at = timezone.now()
 
-        except Exception as e:
-            invitation.ai_summary_status = "failed"
-            invitation.save(update_fields=["ai_summary_status"])
-            yield f"\n\n[Error: {str(e)}]"
+                summary_owner.save(
+                    update_fields=[
+                        "ai_summary",
+                        "ai_summary_status",
+                        "ai_summary_generated_at",
+                    ]
+                )
 
-    resp = StreamingHttpResponse(generator(), content_type="text/plain; charset=utf-8")
-    resp["Cache-Control"] = "no-cache"
-    resp["X-Accel-Buffering"] = "no"
-    return resp
+            else:
+                save_candidate_summary(
+                    summary_owner,
+                    full_text,
+                )
+
+        except Exception as error:
+            summary_owner.ai_summary_status = "failed"
+
+            summary_owner.save(
+                update_fields=[
+                    "ai_summary_status",
+                ]
+            )
+
+            yield f"\n\n[Error: {str(error)}]"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type="text/plain; charset=utf-8",
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
 
 @login_required
 def process_candidate_purpose_fit_stream(
@@ -3722,142 +3253,183 @@ def process_create_v2(request):
     })
 
 
-def build_historical_candidate_detail_context(process, historical_candidate):
+def build_historical_candidate_detail_context(
+    process,
+    historical_candidate,
+):
     """
-    Builds the same kind of context as build_candidate_detail_context,
-    but from imported historical Excel extract data instead of live SOVA API data.
+    Build candidate sheet context for a historical candidate.
+
+    Historical assessment data is normalised through
+    build_historical_candidate_profile() and then exposed using the same
+    context keys as the regular candidate sheet.
+
+    Historical candidates always use general insight mode because no
+    original process purpose or context is available.
     """
     candidate = historical_candidate.candidate
 
-    assessment_results = (
-        historical_candidate.assessment_results
-        .prefetch_related("scores", "import_file")
-        .all()
-        .order_by("assessment_type", "scale", "-created_at")
+    profile = build_historical_candidate_profile(
+        historical_candidate
     )
 
-    all_scores = []
+    assessment_results = profile["assessment_results"]
+
+    motivation_competencies = profile["motivation_competencies"]
+    personality_competencies = profile["personality_competencies"]
+    team_style_scores = profile["team_style_scores"]
+    ability_results = profile["ability_results"]
+
+    has_motivation_results = profile["has_motivation_results"]
+    has_personality_results = profile["has_personality_results"]
+    has_ability_results = profile["has_ability_results"]
+    has_any_results = profile["has_any_results"]
+
+    # Historical extracts contain completed result data.
+    all_assessments_completed = has_any_results
+
+    verbal_result = ability_results.get("verbal")
+    logical_result = ability_results.get("logical")
+    numerical_result = ability_results.get("numerical")
+
+    verbal_percentile = (
+        verbal_result.get("value")
+        if verbal_result
+        else None
+    )
+
+    logical_percentile = (
+        logical_result.get("value")
+        if logical_result
+        else None
+    )
+
+    numerical_percentile = (
+        numerical_result.get("value")
+        if numerical_result
+        else None
+    )
+
+    has_verbal_results = verbal_result is not None
+    has_logical_results = logical_result is not None
+    has_numerical_results = numerical_result is not None
+
+    # -------------------------------------------------------------------------
+    # Convert the common profile into structures already used by the template
+    # -------------------------------------------------------------------------
 
     motivation_results = []
     mq_competencies = []
 
-    personality_competencies = []
-    team_style_scores = []
+    for item in motivation_competencies:
+        score_value = item.get("score")
 
-    verbal_percentile = None
-    logical_percentile = None
-    numerical_percentile = None
+        motivation_results.append({
+            "activity": "Motivation Questionnaire",
+            "competency": item.get("competency") or item.get("name"),
+            "score": score_value,
+            "stive": item.get("stive", score_value),
+            "stive_rounded": item.get(
+                "stive_rounded",
+                round(score_value) if score_value is not None else None,
+            ),
+            "sten": item.get("sten"),
+            "sten_rounded": item.get("sten_rounded"),
+            "percentile": item.get("percentile"),
+            "assessment_centre": None,
+            "source": "historical_import",
+        })
 
-    has_motivation_results = False
-    has_personality_results = False
-    has_verbal_results = False
-    has_logical_results = False
-    has_numerical_results = False
+        mq_competencies.append({
+            "competency": item.get("competency") or item.get("name"),
+            "score": score_value,
+            "stive": item.get("stive", score_value),
+            "stive_rounded": item.get(
+                "stive_rounded",
+                round(score_value) if score_value is not None else None,
+            ),
+            "sten": item.get("sten"),
+            "sten_rounded": item.get("sten_rounded"),
+            "percentile": item.get("percentile"),
+            "source": "historical_import",
+        })
 
-    for result in assessment_results:
-        for score in result.scores.all():
-            score_row = {
-                "activity": result.assessment_type,
-                "competency": score.name,
-                "score": score.score,
-                "stive_rounded": score.score,
-                "stive": score.score,
-                "sten_rounded": score.score,
-                "sten": score.score,
-                "percentile": score.percentile,
-                "category": score.category,
-                "scale": score.scale,
-            }
+    normalised_personality_competencies = []
 
-            all_scores.append(score_row)
+    for item in personality_competencies:
+        normalised_personality_competencies.append({
+            "competency": item.get("competency") or item.get("name"),
+            "score": item.get("score"),
+            "sten": item.get("sten"),
+            "sten_rounded": item.get("sten_rounded"),
+            "percentile": item.get("percentile"),
+            "category": item.get("category"),
+            "source": "historical_import",
+        })
 
-            if result.assessment_type == "motivation":
-                has_motivation_results = True
+    normalised_team_style_scores = []
 
-                motivation_results.append({
-                    "activity": "Motivation Questionnaire",
-                    "competency": score.name,
-                    "stive": score.score,
-                    "stive_rounded": score.score,
-                    "sten": score.score,
-                    "sten_rounded": score.score,
-                    "percentile": score.percentile,
-                    "assessment_centre": None,
-                })
-
-                mq_competencies.append({
-                    "competency": score.name,
-                    "score": score.score,
-                    "stive_rounded": score.score,
-                    "stive": score.score,
-                    "sten_rounded": score.score,
-                    "sten": score.score,
-                    "percentile": score.percentile,
-                })
-
-            elif result.assessment_type == "personality":
-                has_personality_results = True
-
-                item = {
-                    "competency": score.name,
-                    "sten_rounded": score.score,
-                    "sten": score.score,
-                    "percentile": score.percentile,
-                    "category": score.category,
-                }
-
-                if score.category == "team_style":
-                    team_style_scores.append(item)
-                else:
-                    personality_competencies.append(item)
-
-            elif result.assessment_type == "verbal":
-                if score.percentile is not None:
-                    verbal_percentile = score.percentile
-                    has_verbal_results = True
-                elif score.score is not None:
-                    verbal_percentile = score.score
-                    has_verbal_results = True
-
-            elif result.assessment_type == "logical":
-                if score.percentile is not None:
-                    logical_percentile = score.percentile
-                    has_logical_results = True
-                elif score.score is not None:
-                    logical_percentile = score.score
-                    has_logical_results = True
-
-            elif result.assessment_type == "numerical":
-                if score.percentile is not None:
-                    numerical_percentile = score.percentile
-                    has_numerical_results = True
-                elif score.score is not None:
-                    numerical_percentile = score.score
-                    has_numerical_results = True
-
-    personality_competencies = sorted(
-        personality_competencies,
-        key=lambda x: (x.get("competency") or "").lower()
-    )
+    for item in team_style_scores:
+        normalised_team_style_scores.append({
+            "competency": item.get("competency") or item.get("name"),
+            "score": item.get("score"),
+            "sten": item.get("sten"),
+            "sten_rounded": item.get("sten_rounded"),
+            "percentile": item.get("percentile"),
+            "category": "team_style",
+            "source": "historical_import",
+        })
 
     motivation_results = sorted(
         motivation_results,
-        key=lambda x: (x.get("competency") or "").lower()
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
     )
 
     mq_competencies = sorted(
         mq_competencies,
-        key=lambda x: (x.get("competency") or "").lower()
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
     )
 
+    normalised_personality_competencies = sorted(
+        normalised_personality_competencies,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    normalised_team_style_scores = sorted(
+        normalised_team_style_scores,
+        key=lambda item: (
+            item.get("competency") or ""
+        ).lower(),
+    )
+
+    # -------------------------------------------------------------------------
+    # Shared score helpers
+    # -------------------------------------------------------------------------
+
     def safe_score(item):
-        value = (
-            item.get("score")
-            or item.get("sten_rounded")
-            or item.get("stive_rounded")
-            or item.get("percentile")
-        )
-        return value if value is not None else -1
+        """
+        Return the first available numeric value.
+
+        Explicit None checks are used so a legitimate value of 0 is not lost.
+        """
+        for key in (
+            "score",
+            "sten_rounded",
+            "stive_rounded",
+            "percentile",
+        ):
+            value = item.get(key)
+
+            if value is not None:
+                return value
+
+        return -1
 
     top_motivations = sorted(
         mq_competencies,
@@ -3865,8 +3437,13 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         reverse=True,
     )[:3]
 
+    combined_personality_scores = (
+        normalised_personality_competencies
+        + normalised_team_style_scores
+    )
+
     top_personality_traits = sorted(
-        personality_competencies + team_style_scores,
+        combined_personality_scores,
         key=safe_score,
         reverse=True,
     )[:3]
@@ -3877,58 +3454,63 @@ def build_historical_candidate_detail_context(process, historical_candidate):
     )[:2]
 
     personality_development_areas = sorted(
-        personality_competencies + team_style_scores,
+        combined_personality_scores,
         key=safe_score,
     )[:2]
 
-    has_ability_results = (
-        has_verbal_results
-        or has_logical_results
-        or has_numerical_results
-    )
+    # -------------------------------------------------------------------------
+    # Data supplied to the general insight engine
+    # -------------------------------------------------------------------------
 
     general_insight_input = build_general_insight_input(
-        personality_competencies=personality_competencies,
+        personality_competencies=normalised_personality_competencies,
         motivation_competencies=mq_competencies,
         verbal_percentile=verbal_percentile,
         logical_percentile=logical_percentile,
         numerical_percentile=numerical_percentile,
     )
 
-    print("=== GENERAL INSIGHT INPUT ===")
+    # Temporary development logging.
+    # Remove these prints once imported profiles have been verified.
+    print("=== HISTORICAL GENERAL INSIGHT INPUT ===")
     print(json.dumps(
         general_insight_input,
         indent=2,
         ensure_ascii=False,
         default=str,
     ))
-    print("=== /GENERAL INSIGHT INPUT ===")
-    
+    print("=== /HISTORICAL GENERAL INSIGHT INPUT ===")
 
-    has_any_results = (
-        has_motivation_results
-        or has_personality_results
-        or has_ability_results
-    )
-
-    all_assessments_completed = has_any_results
+    # -------------------------------------------------------------------------
+    # Ability reports
+    # -------------------------------------------------------------------------
 
     ability_reports_for_ui = {
         "overview": [],
-        "verbal": build_cognitive_reports_for_test(
-            test_key="verbal",
-            percentile=verbal_percentile,
-        ) if verbal_percentile is not None else None,
-
-        "logical": build_cognitive_reports_for_test(
-            test_key="logical",
-            percentile=logical_percentile,
-        ) if logical_percentile is not None else None,
-
-        "numerical": build_cognitive_reports_for_test(
-            test_key="numerical",
-            percentile=numerical_percentile,
-        ) if numerical_percentile is not None else None,
+        "verbal": (
+            build_cognitive_reports_for_test(
+                test_key="verbal",
+                percentile=verbal_percentile,
+            )
+            if verbal_percentile is not None
+            else None
+        ),
+        "logical": (
+            build_cognitive_reports_for_test(
+                test_key="logical",
+                percentile=logical_percentile,
+            )
+            if logical_percentile is not None
+            else None
+        ),
+        "numerical": (
+            build_cognitive_reports_for_test(
+                test_key="numerical",
+                percentile=numerical_percentile,
+            )
+            if numerical_percentile is not None
+            else None
+        ),
     }
 
     if ability_reports_for_ui["verbal"]:
@@ -3952,30 +3534,35 @@ def build_historical_candidate_detail_context(process, historical_candidate):
             "percentile": numerical_percentile,
         })
 
-    motivation_scores = build_scores_by_competency(mq_competencies)
+    # -------------------------------------------------------------------------
+    # Motivation reports
+    # -------------------------------------------------------------------------
 
-    practitioner_report = build_practitioner_report(
-        competencies=mq_competencies,
+    motivation_scores = build_scores_by_competency(
+        mq_competencies
     )
 
-    manager_report = build_manager_report(
-        competencies=mq_competencies,
-    )
+    motivation_reports_for_ui = []
 
-    candidate_report = build_candidate_report(
-        competencies=mq_competencies,
-    )
+    if has_motivation_results:
+        motivation_reports_for_ui = [
+            build_practitioner_report(
+                competencies=mq_competencies,
+            ),
+            build_manager_report(
+                competencies=mq_competencies,
+            ),
+            build_motivation_coaching_report(
+                competencies=mq_competencies,
+            ),
+            build_candidate_report(
+                competencies=mq_competencies,
+            ),
+        ]
 
-    coaching_report = build_motivation_coaching_report(
-        competencies=mq_competencies,
-    )
-
-    motivation_reports_for_ui = [
-        practitioner_report,
-        manager_report,
-        coaching_report,
-        candidate_report,
-    ] if has_motivation_results else []
+    # -------------------------------------------------------------------------
+    # Personality report placeholders
+    # -------------------------------------------------------------------------
 
     personality_reports = []
 
@@ -3983,11 +3570,15 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         personality_reports = [
             {
                 "report_name": "Personality overview",
-                "description": "Generated from imported historical personality scores.",
+                "description": (
+                    "Generated from imported historical personality scores."
+                ),
             },
             {
                 "report_name": "Team style overview",
-                "description": "Generated from imported team style scores.",
+                "description": (
+                    "Generated from imported historical team style scores."
+                ),
             },
         ]
 
@@ -4003,151 +3594,288 @@ def build_historical_candidate_detail_context(process, historical_candidate):
         available_reports_count += 2
 
     if has_motivation_results:
-        available_reports_count += 4
+        available_reports_count += len(
+            motivation_reports_for_ui
+        )
 
     if has_personality_results:
-        available_reports_count += 2
+        available_reports_count += len(
+            personality_reports
+        )
+
+    # -------------------------------------------------------------------------
+    # General candidate insights
+    #
+    # This is the temporary deterministic fallback. Later, replace this block
+    # with the exact same insight generator used by active general-mode profiles.
+    # -------------------------------------------------------------------------
 
     candidate_insights = {
-        "summary": {
-            "body": "This candidate has imported historical SOVA assessment data. The profile below is generated from structured raw scores rather than PDF reports."
-        },
+        "summary": None,
         "key_strengths": [],
         "areas_to_explore": [],
         "questions": [],
         "fit": None,
     }
 
+    if has_any_results:
+        candidate_insights["summary"] = {
+            "body": (
+                "This candidate profile is based on structured historical "
+                "SOVA assessment data. The insights are presented in general "
+                "mode because no original process purpose or role context is "
+                "available."
+            )
+        }
+
     for item in top_personality_traits[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
         candidate_insights["key_strengths"].append({
-            "title": item.get("competency"),
-            "body": "This is one of the candidate’s higher imported personality or team style scores.",
-            "how_it_may_show": "This may show up as a recurring behavioural tendency in work-related situations.",
-            "why_it_matters": "This can be useful when understanding the candidate’s general work style.",
+            "title": competency,
+            "body": (
+                "This is one of the candidate's higher imported personality "
+                "or team style scores."
+            ),
+            "how_it_may_show": (
+                "This may appear as a recurring behavioural preference in "
+                "relevant work situations."
+            ),
+            "why_it_matters": (
+                "This theme may be useful when considering the candidate's "
+                "general work style and contribution."
+            ),
             "evidence": [
-                f"{item.get('competency')}: {safe_score(item)}"
+                f"{competency}: {value}"
             ],
         })
 
     for item in top_motivations[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
         candidate_insights["key_strengths"].append({
-            "title": item.get("competency"),
-            "body": "This is one of the candidate’s higher imported motivation scores.",
-            "how_it_may_show": "This may indicate what tends to energise or engage the candidate.",
-            "why_it_matters": "Motivational drivers can be important for role fit, leadership and retention.",
+            "title": competency,
+            "body": (
+                "This is one of the candidate's higher imported motivation "
+                "scores."
+            ),
+            "how_it_may_show": (
+                "This may indicate the conditions or activities that tend "
+                "to energise and engage the candidate."
+            ),
+            "why_it_matters": (
+                "Motivational drivers can affect engagement, satisfaction "
+                "and longer-term retention."
+            ),
             "evidence": [
-                f"{item.get('competency')}: {safe_score(item)}"
+                f"{competency}: {value}"
             ],
         })
 
     for item in personality_development_areas[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
         candidate_insights["areas_to_explore"].append({
-            "title": item.get("competency"),
-            "body": "This is one of the lower imported personality or team style scores.",
-            "explore_through": "Ask for examples of when this behaviour is more or less natural for the candidate.",
-            "what_to_listen_for": "Listen for context, self-awareness and compensating strategies.",
+            "title": competency,
+            "body": (
+                "This is one of the candidate's lower imported personality "
+                "or team style scores."
+            ),
+            "explore_through": (
+                "Ask for examples of situations where this behaviour is more "
+                "or less natural for the candidate."
+            ),
+            "what_to_listen_for": (
+                "Listen for context, self-awareness and strategies the "
+                "candidate uses to adapt."
+            ),
             "evidence": [
-                f"{item.get('competency')}: {safe_score(item)}"
+                f"{competency}: {value}"
             ],
         })
 
     for item in motivation_development_areas[:2]:
+        competency = item.get("competency")
+        value = safe_score(item)
+
         candidate_insights["areas_to_explore"].append({
-            "title": item.get("competency"),
-            "body": "This is one of the lower imported motivation scores.",
-            "explore_through": "Ask what type of work situations tend to reduce energy or engagement.",
-            "what_to_listen_for": "Listen for what the candidate needs from role, manager and environment.",
+            "title": competency,
+            "body": (
+                "This is one of the candidate's lower imported motivation "
+                "scores."
+            ),
+            "explore_through": (
+                "Ask which types of work situations tend to reduce energy, "
+                "interest or engagement."
+            ),
+            "what_to_listen_for": (
+                "Listen for what the candidate needs from the role, manager "
+                "and working environment."
+            ),
             "evidence": [
-                f"{item.get('competency')}: {safe_score(item)}"
+                f"{competency}: {value}"
             ],
         })
 
-    candidate_insights["questions"] = [
-        {
-            "category": "strengths",
-            "category_label": "Strength",
-            "question": "Which parts of your work tend to bring out your strongest qualities?",
-            "why": "This helps validate whether the imported assessment profile matches the candidate’s own experience.",
-            "listen_for": "Concrete examples and consistency with the strongest assessment themes.",
-        },
-        {
-            "category": "explore",
-            "category_label": "Explore",
-            "question": "Are there situations where your usual work style becomes less effective?",
-            "why": "This helps understand potential development areas without treating lower scores as weaknesses.",
-            "listen_for": "Self-awareness, nuance and practical strategies.",
-        },
-        {
-            "category": "motivation",
-            "category_label": "Motivation",
-            "question": "What type of work environment gives you the most energy over time?",
-            "why": "This helps connect motivation scores to real workplace conditions.",
-            "listen_for": "Drivers, demotivators and fit with the role environment.",
-        },
-    ]
+    if has_any_results:
+        candidate_insights["questions"] = [
+            {
+                "category": "strengths",
+                "category_label": "Strength",
+                "question": (
+                    "Which parts of your work tend to bring out your "
+                    "strongest qualities?"
+                ),
+                "why": (
+                    "This helps validate whether the imported assessment "
+                    "profile matches the candidate's own experience."
+                ),
+                "listen_for": (
+                    "Concrete examples and consistency with the strongest "
+                    "assessment themes."
+                ),
+            },
+            {
+                "category": "explore",
+                "category_label": "Explore",
+                "question": (
+                    "Are there situations where your usual working style "
+                    "becomes less effective?"
+                ),
+                "why": (
+                    "This helps add context to lower or less preferred scores "
+                    "without treating them automatically as weaknesses."
+                ),
+                "listen_for": (
+                    "Self-awareness, nuance and practical adaptation "
+                    "strategies."
+                ),
+            },
+            {
+                "category": "motivation",
+                "category_label": "Motivation",
+                "question": (
+                    "What type of working environment gives you the most "
+                    "energy over time?"
+                ),
+                "why": (
+                    "This helps connect imported motivation scores to actual "
+                    "working conditions."
+                ),
+                "listen_for": (
+                    "Drivers, demotivators and environmental preferences."
+                ),
+            },
+        ]
 
+    # -------------------------------------------------------------------------
+    # Header assessment/activity information
+    # -------------------------------------------------------------------------
+
+    sent_assessments = []
+
+    for result in assessment_results:
+        sent_assessments.append({
+            "activity": result.assessment_type.title(),
+            "status": (
+                (result.status or "completed")
+                .strip()
+                .lower()
+            ),
+        })
+
+    all_competencies = (
+        mq_competencies
+        + normalised_personality_competencies
+        + normalised_team_style_scores
+    )
 
     return {
         "company": process.company,
         "process": process,
         "candidate": candidate,
-        "historical_candidate": historical_candidate,
-        "is_historical": True,
 
+        "historical_candidate": historical_candidate,
         "historical_reports": historical_candidate.reports.all(),
         "assessment_results": assessment_results,
 
+        "is_historical": True,
+
+        # Historical candidates have no live invitation.
         "invitation": None,
         "inv": None,
+        "assessment_url": None,
         "activity_events": [],
+        "email_logs_by_id": {},
 
+        # Header information.
+        "sent_assessments": sent_assessments,
+        "tests_sent_count": assessment_results.count(),
+        "tests_completed_count": assessment_results.count(),
+
+        # Shared result flags.
+        "has_motivation_results": has_motivation_results,
+        "has_personality_results": has_personality_results,
+        "has_ability_results": has_ability_results,
+        "has_verbal_results": has_verbal_results,
+        "has_logical_results": has_logical_results,
+        "has_numerical_results": has_numerical_results,
+        "has_any_results": has_any_results,
+        "all_assessments_completed": all_assessments_completed,
+
+        # Normalised assessment data.
+        "motivation_results": motivation_results,
+        "mq_competencies": mq_competencies,
+        "personality_competencies": (
+            normalised_personality_competencies
+        ),
+        "team_style_scores": normalised_team_style_scores,
+        "all_competencies": all_competencies,
+        "ability_results": ability_results,
+
+        "verbal_percentile": verbal_percentile,
+        "logical_percentile": logical_percentile,
+        "numerical_percentile": numerical_percentile,
+
+        # Existing report builders.
+        "motivation_scores": motivation_scores,
+        "motivation_reports_for_ui": motivation_reports_for_ui,
+        "ability_reports_for_ui": ability_reports_for_ui,
+        "personality_reports": personality_reports,
+        "available_reports_count": available_reports_count,
+
+        # General insight data.
+        "candidate_insights": candidate_insights,
+        "general_insight_input": general_insight_input,
+
+        "top_motivations": top_motivations,
+        "top_personality_traits": top_personality_traits,
+        "motivation_development_areas": (
+            motivation_development_areas
+        ),
+        "personality_development_areas": (
+            personality_development_areas
+        ),
+
+        # Historical candidates always use general mode.
+        "purpose_report": None,
+        "report_mode": "general",
+        "context_config": {},
+        "show_context_prompt": False,
+        "summary_owner": historical_candidate,
+
+        # Compatibility keys expected elsewhere in the template.
         "activities": [],
         "project_results": {},
         "project_scores": [],
         "competency_scores": [],
         "overall_score": None,
         "reports": [],
-
-        "ability_results": [],
-        "motivation_results": motivation_results,
-        "all_competencies": all_scores,
-
-        "numerical_percentile": numerical_percentile,
-        "logical_percentile": logical_percentile,
-        "verbal_percentile": verbal_percentile,
-        "has_ability_results": has_ability_results,
-
-        "mq_competencies": mq_competencies,
-        "personality_competencies": personality_competencies,
-        "team_style_scores": team_style_scores,
-
-        "tests_sent_count": assessment_results.count(),
-        "tests_completed_count": assessment_results.count(),
-        "available_reports_count": available_reports_count,
-        "email_logs_by_id": {},
-
-        "top_motivations": top_motivations,
-        "top_personality_traits": top_personality_traits,
-        "motivation_development_areas": motivation_development_areas,
-        "personality_development_areas": personality_development_areas,
-
-        "motivation_scores": motivation_scores,
-        "motivation_reports_for_ui": motivation_reports_for_ui,
-        "ability_reports_for_ui": ability_reports_for_ui,
-        "personality_reports": personality_reports,
-
-        "has_motivation_results": has_motivation_results,
-        "has_personality_results": has_personality_results,
-        "has_any_results": has_any_results,
-        "all_assessments_completed": all_assessments_completed,
-
-        "candidate_insights": candidate_insights,
-        "general_insight_input": general_insight_input,
-        "purpose_report": None,
-        "report_mode": "general",
-        "context_config": {},
-        "show_context_prompt": False,
     }
+
 
 @login_required
 @require_POST
@@ -4166,21 +3894,31 @@ def process_candidate_summary_regenerate(
             "You do not have access to this process."
         )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related("candidate"),
-        process=process,
-        candidate_id=candidate_id,
+    if process.is_historical:
+        summary_owner = get_object_or_404(
+            HistoricalProcessCandidate.objects,
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    else:
+        summary_owner = get_object_or_404(
+            TestInvitation.objects,
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    summary_owner.ai_summary = ""
+    summary_owner.ai_summary_status = "not_started"
+    summary_owner.ai_summary_generated_at = None
+
+    summary_owner.save(
+        update_fields=[
+            "ai_summary",
+            "ai_summary_status",
+            "ai_summary_generated_at",
+        ]
     )
-
-    invitation.ai_summary = ""
-    invitation.ai_summary_status = "not_started"
-    invitation.ai_summary_generated_at = None
-
-    invitation.save(update_fields=[
-        "ai_summary",
-        "ai_summary_status",
-        "ai_summary_generated_at",
-    ])
 
     return JsonResponse({
         "ok": True,

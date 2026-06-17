@@ -965,103 +965,122 @@ async function initCandidateSummaryStream(container = document) {
   // ------------------------------------------------------------
 
   function initCandidateAiChat() {
-    document.addEventListener("submit", async function (event) {
-      const form = event.target.closest(".js-candidate-ai-form");
+document.addEventListener("submit", async function (event) {
+  const form = event.target.closest(".js-candidate-ai-form");
 
-      if (!form) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const aiCard = form.closest(".candidate-ai-card");
-      const sidebar = form.closest(".candidate-sheet-sidebar");
-      const sheetLayout = form.closest(".candidate-sheet-layout");
-
-      if (!aiCard || !sidebar || !sheetLayout) {
-        console.error("AI chat: could not find required layout elements.");
-        return;
-      }
-
-      const input = form.querySelector(".js-candidate-ai-input");
-      const submitButton = form.querySelector(".js-candidate-ai-submit");
-      const messages = sidebar.querySelector(".js-candidate-ai-messages");
-      const streamUrl = aiCard.dataset.chatStreamUrl;
-
-      if (!input || !submitButton || !messages || !streamUrl) {
-        console.error("AI chat: missing required elements.", {
-          input,
-          submitButton,
-          messages,
-          streamUrl
-        });
-        return;
-      }
-
-      const userMessage = input.value.trim();
-
-      if (!userMessage) {
-        return;
-      }
-
-      input.value = "";
-      submitButton.disabled = true;
-      submitButton.textContent = "Responding...";
-
-      addCandidateAiMessage(messages, "user", userMessage);
-      const assistantBubble = addCandidateAiMessage(messages, "assistant", "");
-
-      try {
-        const response = await fetch(streamUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-          },
-          body: JSON.stringify({
-            message: buildCandidateAiPrompt(sheetLayout, userMessage),
-            scope: "base"
-          })
-        });
-
-        if (!response.ok) {
-          assistantBubble.textContent = "Something went wrong while generating the AI response.";
-          console.error("AI chat response error:", response.status, response.statusText);
-          return;
-        }
-
-        if (!response.body) {
-          assistantBubble.textContent = "The AI response did not include streaming data.";
-          return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-
-        while (true) {
-          const { value, done } = await reader.read();
-
-          if (done) {
-            break;
-          }
-
-          if (value) {
-            const chunk = decoder.decode(value, { stream: true });
-            assistantBubble.textContent += chunk;
-            scrollCandidateAiMessages(messages);
-          }
-        }
-      } catch (error) {
-        assistantBubble.textContent = "Could not connect to the AI chat.";
-        console.error("AI chat fetch error:", error);
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = "Send";
-        input.focus();
-      }
-    });
+  if (!form) {
+    return;
   }
+
+  event.preventDefault();
+
+  const card = form.closest(".candidate-ai-card");
+  const input = form.querySelector(".js-candidate-ai-input");
+  const submitButton = form.querySelector(".js-candidate-ai-submit");
+  const messages = card.querySelector(".js-candidate-ai-messages");
+
+  const message = input.value.trim();
+
+  if (!message) {
+    return;
+  }
+
+  const streamUrl = card.dataset.chatStreamUrl;
+  const processId = card.dataset.processId;
+  const candidateId = card.dataset.candidateId;
+  const isHistorical = card.dataset.isHistorical === "true";
+
+  appendCandidateChatMessage(messages, "user", message);
+
+  input.value = "";
+  submitButton.disabled = true;
+
+  const assistantMessage = appendCandidateChatMessage(
+    messages,
+    "assistant",
+    ""
+  );
+
+  try {
+    const response = await fetch(streamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        message: message,
+        process_id: processId,
+        candidate_id: candidateId,
+        is_historical: isHistorical,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Chat request failed: ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error("Streaming response body is missing.");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let fullText = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      fullText += decoder.decode(value, { stream: true });
+      assistantMessage.innerHTML = marked.parse(fullText);
+    }
+  } catch (error) {
+    console.error(error);
+
+    assistantMessage.textContent =
+      "Something went wrong while generating the response.";
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+  }
+
+  function appendCandidateChatMessage(container, role, text) {
+  const emptyState = container.querySelector(".candidate-ai-empty");
+
+  if (emptyState) {
+    emptyState.remove();
+  }
+
+  const message = document.createElement("div");
+
+  message.className =
+    role === "user"
+      ? "candidate-ai-message is-user"
+      : "candidate-ai-message is-assistant";
+
+  message.textContent = text;
+
+  container.appendChild(message);
+  container.scrollTop = container.scrollHeight;
+
+  return message;
+}
+
+function getCookie(name) {
+  const cookieValue = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`));
+
+  return cookieValue
+    ? decodeURIComponent(cookieValue.split("=")[1])
+    : null;
+}
 
   function getCandidateVisibleContext(sheetLayout) {
     const main = sheetLayout.querySelector(".candidate-sheet-main");

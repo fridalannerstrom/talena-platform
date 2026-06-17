@@ -463,6 +463,28 @@ class HistoricalProcessCandidate(models.Model):
         related_name="created_historical_process_candidates",
     )
 
+    ai_summary = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    ai_summary_status = models.CharField(
+        max_length=20,
+        default="not_started",
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_summary_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

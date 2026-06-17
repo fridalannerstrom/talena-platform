@@ -1,7 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="container-fluid px-2 px-md-3">
-
   <div class="candidate-sheet-layout">
 
     <!-- MAIN CONTENT -->
@@ -11,11 +8,9 @@
       <div class="card candidate-profile-header mb-4">
         <div class="candidate-profile-shell">
 
-          <!-- TOP HERO -->
           <div class="candidate-profile-top">
             <div class="candidate-profile-main">
 
-              <!-- LEFT -->
               <div class="candidate-profile-left">
                 <div class="candidate-profile-avatar user-initials user-initials-purple user-initials-lg">
                   {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
@@ -39,17 +34,7 @@
 
                     {% if is_historical %}
                       <span class="candidate-status-badge is-muted">Historical</span>
-
-                      {% if historical_candidate.status == "completed" %}
-                        <span class="candidate-status-badge is-success">Completed</span>
-                      {% elif historical_candidate.status == "started" %}
-                        <span class="candidate-status-badge is-info">Started</span>
-                      {% else %}
-                        <span class="candidate-status-badge is-muted">
-                          {{ historical_candidate.status|default:"Imported" }}
-                        </span>
-                      {% endif %}
-
+                      <span class="candidate-status-badge is-success">Completed</span>
                     {% elif invitation.status == "completed" %}
                       <span class="candidate-status-badge is-success">Completed</span>
                     {% elif invitation.status == "started" %}
@@ -59,7 +44,9 @@
                     {% elif invitation.status == "created" %}
                       <span class="candidate-status-badge is-muted">Not sent</span>
                     {% else %}
-                      <span class="candidate-status-badge is-muted">{{ invitation.status|default:"—" }}</span>
+                      <span class="candidate-status-badge is-muted">
+                        {{ invitation.status|default:"—" }}
+                      </span>
                     {% endif %}
                   </div>
 
@@ -69,12 +56,9 @@
                 </div>
               </div>
 
-              <!-- RIGHT -->
               <div class="candidate-profile-actions">
                 {% if is_historical %}
-                  <span class="candidate-status-badge is-muted">
-                    Imported SOVA data
-                  </span>
+                  <span class="candidate-status-badge is-muted">Imported SOVA data</span>
                 {% endif %}
               </div>
 
@@ -82,7 +66,6 @@
           </div>
 
           {% if not is_historical %}
-
             <!-- ACTIVE CANDIDATE HEADER TABS -->
             <div class="candidate-profile-tabs-wrap">
               <div class="candidate-profile-tabs" role="tablist" aria-label="Candidate header tabs">
@@ -132,10 +115,8 @@
               </div>
             </div>
 
-            <!-- ACTIVE CANDIDATE HEADER TAB PANELS -->
             <div class="candidate-profile-tab-panels">
 
-              <!-- OVERVIEW -->
               <div
                 class="candidate-tab-panel is-active"
                 data-tab-group="candidate-main-tabs"
@@ -167,29 +148,22 @@
 
                   <div class="candidate-overview-card">
                     <div class="candidate-overview-label">Assessments sent</div>
-                    <div class="candidate-overview-value">
-                      {{ tests_sent_count }}
-                    </div>
+                    <div class="candidate-overview-value">{{ tests_sent_count }}</div>
                   </div>
 
                   <div class="candidate-overview-card">
                     <div class="candidate-overview-label">Assessments completed</div>
-                    <div class="candidate-overview-value">
-                      {{ tests_completed_count }}
-                    </div>
+                    <div class="candidate-overview-value">{{ tests_completed_count }}</div>
                   </div>
 
                   <div class="candidate-overview-card">
                     <div class="candidate-overview-label">Available reports</div>
-                    <div class="candidate-overview-value">
-                      {{ available_reports_count }}
-                    </div>
+                    <div class="candidate-overview-value">{{ available_reports_count }}</div>
                   </div>
 
                 </div>
               </div>
 
-              <!-- SENT TESTS -->
               <div
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
@@ -201,9 +175,7 @@
                       <div class="candidate-inline-item">
                         <div>
                           <div class="candidate-inline-title">{{ item.activity|default:"-" }}</div>
-                          <div class="candidate-inline-meta">
-                            Assessment included in this test process
-                          </div>
+                          <div class="candidate-inline-meta">Assessment included in this test process</div>
                         </div>
 
                         {% if item.status == "completed" %}
@@ -217,9 +189,7 @@
                         {% elif item.status == "created" %}
                           <span class="candidate-status-badge is-muted">Not sent</span>
                         {% else %}
-                          <span class="candidate-status-badge is-muted">
-                            {{ item.status|default:"-" }}
-                          </span>
+                          <span class="candidate-status-badge is-muted">{{ item.status|default:"-" }}</span>
                         {% endif %}
                       </div>
                     {% endfor %}
@@ -229,7 +199,6 @@
                 {% endif %}
               </div>
 
-              <!-- LINK -->
               <div
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
@@ -239,9 +208,7 @@
                   <div class="candidate-link-panel">
                     <div class="candidate-link-panel-text">
                       <div class="candidate-inline-title">Assessment link</div>
-                      <div class="candidate-inline-meta">
-                        Click to highlight the link, or press "Copy".
-                      </div>
+                      <div class="candidate-inline-meta">Click to highlight the link, or press Copy.</div>
                     </div>
 
                     <div class="candidate-link-field">
@@ -251,8 +218,8 @@
                         id="candidateAssessmentUrl"
                         value="{{ invitation.assessment_url }}"
                         readonly
-                        onclick="this.select()"
-                      >
+                        onclick="this.select()">
+
                       <button
                         class="btn btn-primary"
                         type="button"
@@ -266,18 +233,17 @@
                 {% endif %}
               </div>
 
-              <!-- ACTIVITY -->
               <div
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
                 data-tab-panel="activity"
                 role="tabpanel">
                 <div class="activity-timeline">
-
                   {% for event in activity_events %}
                     <div class="activity-item">
                       <div class="activity-line"></div>
-                      <div class="activity-dot 
+
+                      <div class="activity-dot
                         {% if event.verb == 'invite_sent' %}is-invite
                         {% elif event.verb == 'status_changed' %}is-status
                         {% elif event.verb == 'candidate_added' %}is-added
@@ -309,19 +275,20 @@
                   {% empty %}
                     <div class="activity-empty">
                       <div class="activity-empty-title">No activity yet</div>
-                      <div class="activity-empty-text">Events will appear here when invitations are sent and assessments are started or completed.</div>
+                      <div class="activity-empty-text">
+                        Events will appear here when invitations are sent and assessments are started or completed.
+                      </div>
                     </div>
                   {% endfor %}
-
                 </div>
               </div>
 
             </div>
-
           {% endif %}
 
         </div>
       </div>
+      <!-- /HERO -->
 
       {% if show_context_prompt %}
         <div class="card mb-4 role-context-prompt-card">
@@ -333,13 +300,9 @@
 
               <div class="role-context-prompt__content">
                 <div class="text-muted small mb-1">Improve candidate insights</div>
-
-                <h2 class="h5 mb-2">
-                  Add {{ context_config.tab_label|default:"context"|lower }}
-                </h2>
-
+                <h2 class="h5 mb-2">Add {{ context_config.tab_label|default:"context"|lower }}</h2>
                 <p class="text-muted mb-0">
-                  Add context now to make the candidate insights more relevant once the assessment results are available.
+                  Add context to make the candidate insights more relevant to this process.
                 </p>
               </div>
 
@@ -356,22 +319,20 @@
       {% endif %}
 
       {% if not has_any_results %}
-        <div class="card mb-3">
+        <div class="card mb-4">
           <div class="card-body empty-results">
             <div class="d-flex align-items-start gap-3">
               <div class="empty-icon">!</div>
               <div>
                 <div class="fw-semibold mb-1">No results yet</div>
                 <div class="text-muted small">
-                  Results will appear here as soon as at least one assessment has been completed.
+                  Results will appear here when assessment data is available.
                 </div>
               </div>
             </div>
           </div>
         </div>
-      {% endif %}
-
-      {% if has_any_results and not all_assessments_completed %}
+      {% elif not all_assessments_completed %}
         <div class="card mb-4">
           <div class="card-body empty-results">
             <div class="d-flex align-items-start gap-3">
@@ -379,226 +340,251 @@
               <div>
                 <div class="fw-semibold mb-1">Candidate insights are not available yet</div>
                 <div class="text-muted small">
-                  Nothing to see here yet.
+                  The report will appear when all assessments in the process are completed.
                 </div>
               </div>
             </div>
           </div>
         </div>
-      {% endif %}
+      {% else %}
 
-      {% if all_assessments_completed %}
-
-        {% if purpose_report %}
-          <div class="card mb-4 purpose-report-hero purpose-report-{{ report_mode }}">
+        {% if purpose_report and report_mode == "context" %}
+          <div class="card mb-4 purpose-report-hero purpose-report-{{ purpose_report_key|default:report_mode }}">
             <div class="card-body">
-              <div class="d-flex align-items-start justify-content-between gap-3">
-                <div>
-                  <div class="text-muted small mb-1">Report focus</div>
-                  <h2 class="h5 mb-2">{{ purpose_report.title }}</h2>
-                  <p class="text-muted mb-0">{{ purpose_report.intro }}</p>
-                </div>
-              </div>
+              <div class="text-muted small mb-1">Report focus</div>
+              <h2 class="h5 mb-2">{{ purpose_report.title }}</h2>
+              {% if purpose_report.intro %}
+                <p class="text-muted mb-0">{{ purpose_report.intro }}</p>
+              {% endif %}
             </div>
           </div>
         {% endif %}
 
 
-<!-- ======================================================
-     AI CANDIDATE SUMMARY
-======================================================= -->
+        <!-- ======================================================
+             AI ASSESSMENT SUMMARY
+             Uses TestInvitation for active candidates and
+             HistoricalProcessCandidate for historical candidates.
+        ======================================================= -->
+        <section class="card mb-4 insight-summary-card">
+          <div class="card-body">
 
-{% if not is_historical and all_assessments_completed %}
+            <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+              <div>
+                <div class="insight-summary-kicker">Candidate Insights</div>
 
-  <section class="card mb-4 insight-summary-card">
-    <div class="card-body">
+                <h2 class="insight-summary-title mb-1">
+                  AI assessment summary
+                </h2>
 
-      <!-- HEADER -->
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                <div class="text-muted small">
+                  {% if is_historical %}
+                    Based on imported assessment results in general insight mode.
+                  {% elif has_purpose_context %}
+                    Based on the candidate’s assessment results and the added process context.
+                  {% else %}
+                    Based on the candidate’s assessment results and selected process purpose.
+                  {% endif %}
+                </div>
+              </div>
 
-        <div>
-          <div class="insight-summary-kicker">
-            Candidate Insights
-          </div>
+              <div class="d-flex align-items-center gap-2">
 
-          <h2 class="insight-summary-title mb-1">
-            AI assessment summary
-          </h2>
+                {% if is_historical %}
+                  {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
+                    <span
+                      class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
+                      title="The assessment data has changed since this summary was generated.">
+                      <i
+                        data-feather="alert-circle"
+                        class="me-1"
+                        style="width: 13px; height: 13px;">
+                      </i>
+                      Needs update
+                    </span>
+                  {% endif %}
+                {% else %}
+                  {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
+                    <span
+                      class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
+                      title="The process purpose or context has changed since this summary was generated.">
+                      <i
+                        data-feather="alert-circle"
+                        class="me-1"
+                        style="width: 13px; height: 13px;">
+                      </i>
+                      Needs update
+                    </span>
+                  {% endif %}
+                {% endif %}
 
-          <div class="text-muted small">
-            Based on the candidate’s assessment results
-            {% if has_purpose_context %}
-              and the added process context.
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
+                  data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="left"
+                  title="Generate a new summary"
+                  aria-label="Generate a new summary"
+                  style="width: 38px; height: 38px;">
+                  <i data-feather="refresh-cw"></i>
+                </button>
+
+              </div>
+            </div>
+
+            <div
+              id="aiSummaryContent"
+              class="insight-summary-content"
+              data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
+              data-has-summary="{% if is_historical %}{% if historical_candidate.ai_summary %}true{% else %}false{% endif %}{% else %}{% if invitation.ai_summary %}true{% else %}false{% endif %}{% endif %}"
+              data-summary-status="{% if is_historical %}{{ historical_candidate.ai_summary_status|default:'not_started' }}{% else %}{{ invitation.ai_summary_status|default:'not_started' }}{% endif %}">
+
+              {% if is_historical %}
+
+                {% if historical_candidate.ai_summary %}
+                  <div class="ai-summary-text">
+                    {{ historical_candidate.ai_summary }}
+                  </div>
+
+                {% elif historical_candidate.ai_summary_status == "generating" %}
+                  <div class="d-flex align-items-center gap-2 text-muted">
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true">
+                    </span>
+                    <span>Generating candidate summary...</span>
+                  </div>
+
+                {% elif historical_candidate.ai_summary_status == "failed" %}
+                  <div class="alert alert-light border mb-0">
+                    <div class="fw-semibold mb-1">
+                      The summary could not be generated
+                    </div>
+                    <div class="small text-muted">
+                      Use the refresh button to try again.
+                    </div>
+                  </div>
+
+                {% else %}
+                  <div class="d-flex align-items-center gap-2 text-muted">
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true">
+                    </span>
+                    <span>Preparing candidate summary...</span>
+                  </div>
+                {% endif %}
+
+              {% else %}
+
+                {% if invitation.ai_summary %}
+                  <div class="ai-summary-text">
+                    {{ invitation.ai_summary }}
+                  </div>
+
+                {% elif invitation.ai_summary_status == "generating" %}
+                  <div class="d-flex align-items-center gap-2 text-muted">
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true">
+                    </span>
+                    <span>Generating candidate summary...</span>
+                  </div>
+
+                {% elif invitation.ai_summary_status == "failed" %}
+                  <div class="alert alert-light border mb-0">
+                    <div class="fw-semibold mb-1">
+                      The summary could not be generated
+                    </div>
+                    <div class="small text-muted">
+                      Use the refresh button to try again.
+                    </div>
+                  </div>
+
+                {% else %}
+                  <div class="d-flex align-items-center gap-2 text-muted">
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      role="status"
+                      aria-hidden="true">
+                    </span>
+                    <span>Preparing candidate summary...</span>
+                  </div>
+                {% endif %}
+
+              {% endif %}
+            </div>
+
+            {% if is_historical %}
+              {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
+                <div class="alert alert-warning mt-3 mb-0">
+                  <div class="d-flex align-items-start gap-2">
+                    <div class="flex-shrink-0 mt-1">
+                      <i
+                        data-feather="alert-circle"
+                        style="width: 17px; height: 17px;">
+                      </i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold small mb-1">
+                        This summary may need updating
+                      </div>
+                      <div class="small">
+                        The imported assessment data has changed since this summary was generated.
+                        Use the refresh button to create an updated summary.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
             {% else %}
-              and the selected process purpose.
+              {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
+                <div class="alert alert-warning mt-3 mb-0">
+                  <div class="d-flex align-items-start gap-2">
+                    <div class="flex-shrink-0 mt-1">
+                      <i
+                        data-feather="alert-circle"
+                        style="width: 17px; height: 17px;">
+                      </i>
+                    </div>
+                    <div>
+                      <div class="fw-semibold small mb-1">
+                        This summary may need updating
+                      </div>
+                      <div class="small">
+                        The process purpose or context has changed since this summary was generated.
+                        The existing summary has been kept. Use the refresh button to generate an updated version.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
             {% endif %}
-          </div>
-        </div>
 
-
-        <!-- STATUS + REFRESH BUTTON -->
-        <div class="d-flex align-items-center gap-2">
-
-          {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-            <span
-              class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
-              title="The process purpose or context has changed since this summary was generated."
-            >
-              <i
-                data-feather="alert-circle"
-                class="me-1"
-                style="width: 13px; height: 13px;"
-              ></i>
-              Needs update
-            </span>
-
-          {% elif invitation.ai_summary and invitation.ai_summary_status == "completed" %}
-          {% endif %}
-
-
-          <button
-            type="button"
-            class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
-            data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="left"
-            title="{% if invitation.ai_summary_status == 'outdated' %}Update summary using the current purpose and context{% else %}Generate a new summary{% endif %}"
-            aria-label="Generate a new summary"
-            style="width: 38px; height: 38px;"
-          >
-            <i data-feather="refresh-cw"></i>
-          </button>
-
-        </div>
-        <!-- /STATUS + REFRESH BUTTON -->
-
-      </div>
-      <!-- /HEADER -->
-
-
-      <!-- SUMMARY CONTENT -->
-<div
-  id="aiSummaryContent"
-  class="insight-summary-content"
-  data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-  data-has-summary="{% if invitation.ai_summary %}true{% else %}false{% endif %}"
-  data-summary-status="{{ invitation.ai_summary_status|default:'not_started' }}"
->
-  {% if invitation.ai_summary %}<div class="ai-summary-text">{{ invitation.ai_summary }}</div>{% elif invitation.ai_summary_status == "generating" %}
-    <div class="d-flex align-items-center gap-2 text-muted">
-      <span
-        class="spinner-border spinner-border-sm"
-        role="status"
-        aria-hidden="true">
-      </span>
-
-      <span>Generating candidate summary...</span>
-    </div>
-  {% elif invitation.ai_summary_status == "failed" %}
-    <div class="alert alert-light border mb-0">
-      <div class="fw-semibold mb-1">
-        The summary could not be generated
-      </div>
-
-      <div class="small text-muted">
-        Use the refresh button to try again.
-      </div>
-    </div>
-  {% else %}
-    <div class="d-flex align-items-center gap-2 text-muted">
-      <span
-        class="spinner-border spinner-border-sm"
-        role="status"
-        aria-hidden="true">
-      </span>
-
-      <span>Preparing candidate summary...</span>
-    </div>
-  {% endif %}
-</div>
-<!-- /SUMMARY CONTENT -->
-
-
-      <!-- OUTDATED SUMMARY WARNING -->
-      {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-        <div class="alert alert-warning mt-3 mb-0">
-          <div class="d-flex align-items-start gap-2">
-
-            <div class="flex-shrink-0 mt-1">
-              <i
-                data-feather="alert-circle"
-                style="width: 17px; height: 17px;"
-              ></i>
-            </div>
-
-            <div>
-              <div class="fw-semibold small mb-1">
-                This summary may need updating
+            <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
+              <div class="text-primary flex-shrink-0 mt-1">
+                <i
+                  data-feather="info"
+                  style="width: 16px; height: 16px;">
+                </i>
               </div>
 
-              <div class="small">
-                The process purpose or context has changed since this
-                summary was generated. The existing summary has been kept.
-                Use the refresh button to generate an updated version.
+              <div class="small text-muted">
+                {% if is_historical %}
+                  This summary is based on imported assessment evidence and uses general insight mode because no original process context is available.
+                {% else %}
+                  This summary is based on assessment evidence and should be used as decision support. Refresh it if the purpose, context or assessment information changes.
+                {% endif %}
               </div>
             </div>
 
           </div>
-        </div>
-      {% endif %}
-      <!-- /OUTDATED SUMMARY WARNING -->
-
-
-      <!-- FOOTER -->
-      <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
-
-        <div class="text-primary flex-shrink-0 mt-1">
-          <i
-            data-feather="info"
-            style="width: 16px; height: 16px;"
-          ></i>
-        </div>
-
-        <div class="small text-muted">
-          This summary is based on assessment evidence and should be used
-          as decision support. Use the refresh button if the process purpose,
-          context or assessment information has changed.
-        </div>
-
-      </div>
-      <!-- /FOOTER -->
-
-    </div>
-  </section>
-
-
-{% elif not is_historical %}
-
-  <!-- ASSESSMENTS NOT YET COMPLETED -->
-  <section class="card mb-4 insight-summary-card">
-    <div class="card-body">
-
-      <div class="insight-summary-kicker">
-        Candidate Insights
-      </div>
-
-      <h2 class="insight-summary-title mb-2">
-        AI assessment summary
-      </h2>
-
-      <div class="text-muted">
-        The summary will be generated when the candidate has completed
-        all assessments in this process.
-      </div>
-
-    </div>
-  </section>
-
-{% endif %}
-
-<!-- ======================================================
-     /AI CANDIDATE SUMMARY
-======================================================= -->
+        </section>
+        <!-- /AI ASSESSMENT SUMMARY -->
 
 {% if not is_historical and all_assessments_completed %}
   {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
@@ -882,576 +868,126 @@
 
 
 
-
-
-
-         <!-- ======================================================
-             CANDIDATE INSIGHT SUMMARY
-             Flexible uses AI-generated general insights.
-             Other purposes keep the existing summary structure.
-        ======================================================= -->
-
-        {% if process.purpose == "flexible" %}
-
-          <!-- FLEXIBLE: AI-GENERATED INSIGHT SUMMARY -->
+        <!-- INSIGHT SUMMARY -->
+        {% if candidate_insights.summary %}
           <section class="card mb-4 insight-summary-card">
             <div class="card-body">
 
               <div class="insight-summary-header">
                 <div>
-                  <div class="insight-summary-kicker">
-                    Candidate Insights
-                  </div>
-
+                  <div class="insight-summary-kicker">Candidate Insights</div>
                   <h2 class="insight-summary-title">
-                    {{ candidate_insights.summary.headline|default:"General assessment insights" }}
+                    {{ candidate_insights.summary.headline|default:"Assessment summary" }}
                   </h2>
                 </div>
               </div>
 
-              <div class="insight-summary-content">
-                {% if candidate_insights.summary.body %}
-                  <p class="mb-0">
-                    {{ candidate_insights.summary.body }}
-                  </p>
-                {% else %}
-                  <div class="insight-summary-loading">
-                    Candidate insight summary is not available yet.
-                  </div>
-                {% endif %}
-              </div>
-
-              {% if candidate_insights.summary.bullets %}
-                <div class="row g-3 mt-2">
-
-                  {% for item in candidate_insights.summary.bullets %}
-                    <div class="col-12">
-                      <div class="border rounded-3 p-3 h-100">
-
-                        {% if item.label %}
-                          <div class="fw-semibold mb-1">
-                            {{ item.label }}
-                          </div>
-                        {% endif %}
-
-                        {% if item.text %}
-                          <div class="text-muted small">
-                            {{ item.text }}
-                          </div>
-                        {% endif %}
-
-                      </div>
-                    </div>
-                  {% endfor %}
-
+              {% if candidate_insights.summary.body %}
+                <div class="insight-summary-content">
+                  <p class="mb-0">{{ candidate_insights.summary.body }}</p>
                 </div>
               {% endif %}
 
-            </div>
-          </section>
-          <!-- /FLEXIBLE: AI-GENERATED INSIGHT SUMMARY -->
-
-
-          <!-- FLEXIBLE: OVERALL INTERPRETATION -->
-          {% if candidate_insights.overall_interpretation %}
-            {% with interpretation=candidate_insights.overall_interpretation %}
-
-              <section class="card mb-4 role-match-card">
-
-                <div class="card-header role-match-header bg-white">
-                  <div>
-                    <div class="role-match-kicker">
-                      Candidate Insights
-                    </div>
-
-                    <h2 class="role-match-title">
-                      {{ interpretation.title|default:"Overall profile interpretation" }}
-                    </h2>
-
-                    <p class="role-match-intro">
-                      A general interpretation of the candidate’s assessment profile.
-                    </p>
-                  </div>
-                </div>
-
-                <div class="card-body">
-
-                  <div class="role-match-verdict">
-
-                    <div class="role-match-score">
-                      <div class="role-match-score__label">
-                        Interpretation type
-                      </div>
-
-                      <div class="role-match-score__value">
-                        {{ interpretation.label|default:"General interpretation" }}
-                      </div>
-
-                      {% if interpretation.confidence %}
-                        <div class="role-match-score__confidence">
-                          Confidence: {{ interpretation.confidence }}
-                        </div>
-                      {% endif %}
-                    </div>
-
-                    <div class="role-match-summary">
-                      <div class="role-match-summary__label">
-                        Talena’s interpretation
-                      </div>
-
-                      {% if interpretation.body %}
-                        <p class="role-match-summary__text">
-                          {{ interpretation.body }}
-                        </p>
-                      {% endif %}
-                    </div>
-
-                  </div>
-
-
-                  {% if interpretation.reasoning %}
-                    <div class="role-match-section mt-3">
-
-                      <div class="role-match-section__label">
-                        Important themes in the assessment profile
-                      </div>
-
-                      <div class="role-match-reasons">
-
-                        {% for item in interpretation.reasoning %}
-                          <div class="role-match-reason">
-
-                            <div class="role-match-reason__icon">
-                              <i data-feather="check"></i>
-                            </div>
-
-                            <div class="role-match-reason__text">
-                              {{ item }}
-                            </div>
-
-                          </div>
-                        {% endfor %}
-
-                      </div>
-                    </div>
-                  {% endif %}
-
-
-                  {% if interpretation.suggested_next_step %}
-                    <div class="role-match-next-step mt-3">
-
-                      <div class="role-match-next-step__label">
-                        Suggested next step
-                      </div>
-
-                      <div class="role-match-next-step__text">
-                        {{ interpretation.suggested_next_step }}
-                      </div>
-
-                    </div>
-                  {% endif %}
-
-
-                  <div class="role-match-note mt-3">
-
-                    <div class="role-match-note__icon">
-                      <i data-feather="info"></i>
-                    </div>
-
-                    <div class="role-match-note__text">
-                      This is a general assessment interpretation. No specific
-                      role, team, leadership or development context has been
-                      included.
-                    </div>
-
-                  </div>
-
-                </div>
-              </section>
-
-            {% endwith %}
-          {% endif %}
-          <!-- /FLEXIBLE: OVERALL INTERPRETATION -->
-
-
-        {% else %}
-
-          <!-- OTHER PURPOSES: EXISTING INSIGHT SUMMARY -->
-          <section class="card mb-4 insight-summary-card">
-            <div class="card-body">
-
-              <div class="insight-summary-header">
-                <div>
-                  <div class="insight-summary-kicker">
-                    Candidate Insights
-                  </div>
-
-                  <h2 class="insight-summary-title">
-                    {{ candidate_insights.summary.headline|default:"Insight summary" }}
-                  </h2>
-                </div>
-              </div>
-
-              <div class="insight-summary-content">
-                {% if candidate_insights.summary %}
-                  <p class="mb-0">
-                    {{ candidate_insights.summary.body }}
-                  </p>
-                {% else %}
-                  <div class="insight-summary-loading">
-                    Candidate insight summary is not available yet.
-                  </div>
-                {% endif %}
-              </div>
-
               {% if candidate_insights.summary.bullets %}
                 <div class="row g-3 mt-2">
-
                   {% for item in candidate_insights.summary.bullets %}
                     <div class="col-12">
                       <div class="border rounded-3 p-3">
-
-                        <div class="fw-semibold mb-1">
-                          {{ item.label }}
-                        </div>
-
-                        <div class="text-muted small">
-                          {{ item.text }}
-                        </div>
-
+                        {% if item.label %}
+                          <div class="fw-semibold mb-1">{{ item.label }}</div>
+                        {% endif %}
+                        {% if item.text %}
+                          <div class="text-muted small">{{ item.text }}</div>
+                        {% endif %}
                       </div>
                     </div>
                   {% endfor %}
+                </div>
+              {% endif %}
 
+              {% if is_historical %}
+                <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
+                  <div class="text-primary flex-shrink-0 mt-1">
+                    <i data-feather="info" style="width: 16px; height: 16px;"></i>
+                  </div>
+                  <div class="small text-muted">
+                    These are general insights based on imported assessment data. No original process context has been included.
+                  </div>
                 </div>
               {% endif %}
 
             </div>
           </section>
-          <!-- /OTHER PURPOSES: EXISTING INSIGHT SUMMARY -->
-
-
-          <!-- OTHER PURPOSES: CONTEXT / PURPOSE FIT -->
-          {% if report_mode == "context" and candidate_insights.fit %}
-            <section class="card mb-4 role-match-card">
-
-              <div class="card-header role-match-header bg-white">
-                <div>
-                  <div class="role-match-kicker">
-                    Candidate Insights
-                  </div>
-
-                  <h2 class="role-match-title">
-                    {{ candidate_insights.fit.title|default:"Role match verdict" }}
-                  </h2>
-
-                  <p class="role-match-intro">
-                    How Talena interprets the candidate’s fit for the added process context.
-                  </p>
-                </div>
-              </div>
-
-              <div class="card-body">
-
-                <div class="role-match-verdict">
-
-                  <div class="role-match-score">
-                    <div class="role-match-score__label">
-                      Match level
-                    </div>
-
-                    <div class="role-match-score__value">
-                      {{ candidate_insights.fit.label|default:"Potential match" }}
-                    </div>
-
-                    <div class="role-match-score__confidence">
-                      Confidence: {{ candidate_insights.fit.confidence|default:"Medium" }}
-                    </div>
-                  </div>
-
-                  <div class="role-match-summary">
-                    <div class="role-match-summary__label">
-                      Talena’s interpretation
-                    </div>
-
-                    <p class="role-match-summary__text">
-                      {{ candidate_insights.fit.summary|default:candidate_insights.fit.body }}
-                    </p>
-                  </div>
-
-                </div>
-
-
-                {% if candidate_insights.fit.reasoning %}
-                  <div class="role-match-section mt-3">
-
-                    <div class="role-match-section__label">
-                      Why this looks like a potential match
-                    </div>
-
-                    <div class="role-match-reasons">
-
-                      {% for item in candidate_insights.fit.reasoning %}
-                        <div class="role-match-reason">
-
-                          <div class="role-match-reason__icon">
-                            <i data-feather="check"></i>
-                          </div>
-
-                          <div class="role-match-reason__text">
-                            {{ item }}
-                          </div>
-
-                        </div>
-                      {% endfor %}
-
-                    </div>
-                  </div>
-                {% endif %}
-
-
-                {% if candidate_insights.fit.watch_points %}
-                  <div class="role-match-section mt-3">
-
-                    <div class="role-match-section__label">
-                      Look closer at before deciding
-                    </div>
-
-                    <div class="role-match-watch-grid">
-
-                      {% for item in candidate_insights.fit.watch_points %}
-                        <div class="role-match-watch-item">
-                          <i data-feather="search"></i>
-                          <span>{{ item }}</span>
-                        </div>
-                      {% endfor %}
-
-                    </div>
-                  </div>
-                {% endif %}
-
-
-                {% if candidate_insights.fit.suggested_next_step %}
-                  <div class="role-match-next-step mt-3">
-
-                    <div class="role-match-next-step__label">
-                      Suggested next step
-                    </div>
-
-                    <div class="role-match-next-step__text">
-                      {{ candidate_insights.fit.suggested_next_step }}
-                    </div>
-
-                  </div>
-                {% endif %}
-
-
-                {% if candidate_insights.fit.decision_note %}
-                  <div class="role-match-note mt-3">
-
-                    <div class="role-match-note__icon">
-                      <i data-feather="info"></i>
-                    </div>
-
-                    <div class="role-match-note__text">
-                      {{ candidate_insights.fit.decision_note }}
-                    </div>
-
-                  </div>
-                {% endif %}
-
-              </div>
-            </section>
-          {% endif %}
-          <!-- /OTHER PURPOSES: CONTEXT / PURPOSE FIT -->
-
         {% endif %}
+        <!-- /INSIGHT SUMMARY -->
 
-        <!-- ======================================================
-             /CANDIDATE INSIGHT SUMMARY
-        ======================================================= -->
-        {% if report_mode == "context" and candidate_insights.fit %}
-          <section class="card mb-4 role-match-card">
 
-            <div class="card-header role-match-header bg-white">
+
+        <!-- KEY STRENGTHS -->
+        {% if candidate_insights.key_strengths %}
+          <section class="card mb-4 key-strengths-card">
+            <div class="card-header key-strengths-header bg-white">
               <div>
-                <div class="role-match-kicker">Candidate Insights</div>
-                <h2 class="role-match-title">
-                  {{ candidate_insights.fit.title|default:"Role match verdict" }}
-                </h2>
-                <p class="role-match-intro">
-                  How Talena interprets the candidate’s fit for the added role context.
+                <div class="key-strengths-kicker">Candidate Insights</div>
+                <h2 class="key-strengths-title">Key strengths</h2>
+                <p class="key-strengths-intro">
+                  {% if report_mode == "context" %}
+                    Strengths that appear most relevant to this process context.
+                  {% else %}
+                    The strongest themes identified in the candidate’s assessment profile.
+                  {% endif %}
                 </p>
               </div>
             </div>
 
             <div class="card-body">
-
-              <div class="role-match-verdict">
-
-                <div class="role-match-score">
-                  <div class="role-match-score__label">Match level</div>
-                  <div class="role-match-score__value">
-                    {{ candidate_insights.fit.label|default:"Potential match" }}
-                  </div>
-                  <div class="role-match-score__confidence">
-                    Confidence: {{ candidate_insights.fit.confidence|default:"Medium" }}
-                  </div>
-                </div>
-
-                <div class="role-match-summary">
-                  <div class="role-match-summary__label">Talena’s interpretation</div>
-                  <p class="role-match-summary__text">
-                    {{ candidate_insights.fit.summary|default:candidate_insights.fit.body }}
-                  </p>
-                </div>
-
-              </div>
-
-              {% if candidate_insights.fit.reasoning %}
-                <div class="role-match-section mt-3">
-                  <div class="role-match-section__label">Why this looks like a potential match</div>
-
-                  <div class="role-match-reasons">
-                    {% for item in candidate_insights.fit.reasoning %}
-                      <div class="role-match-reason">
-                        <div class="role-match-reason__icon">
-                          <i data-feather="check"></i>
-                        </div>
-                        <div class="role-match-reason__text">
-                          {{ item }}
-                        </div>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
-
-              {% if candidate_insights.fit.watch_points %}
-                <div class="role-match-section mt-3">
-                  <div class="role-match-section__label">Look closer at before deciding</div>
-
-                  <div class="role-match-watch-grid">
-                    {% for item in candidate_insights.fit.watch_points %}
-                      <div class="role-match-watch-item">
-                        <i data-feather="search"></i>
-                        <span>{{ item }}</span>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
-
-              {% if candidate_insights.fit.suggested_next_step %}
-                <div class="role-match-next-step mt-3">
-                  <div class="role-match-next-step__label">Suggested next step</div>
-                  <div class="role-match-next-step__text">
-                    {{ candidate_insights.fit.suggested_next_step }}
-                  </div>
-                </div>
-              {% endif %}
-
-              {% if candidate_insights.fit.decision_note %}
-                <div class="role-match-note mt-3">
-                  <div class="role-match-note__icon">
-                    <i data-feather="info"></i>
-                  </div>
-                  <div class="role-match-note__text">
-                    {{ candidate_insights.fit.decision_note }}
-                  </div>
-                </div>
-              {% endif %}
-
-            </div>
-          </section>
-        {% endif %}
-        <!-- /CONTEXT / PURPOSE FIT -->
-
-        <!-- KEY STRENGTHS -->
-        {% if candidate_insights.key_strengths %}
-          <section class="card mb-4 key-strengths-card">
-
-            <div class="card-header key-strengths-header bg-white">
-              <div>
-                <div class="key-strengths-kicker">Candidate Insights</div>
-                <h2 class="key-strengths-title">Key strengths</h2>
-
-                {% if report_mode == "context" %}
-                  <p class="key-strengths-intro">
-                    Strengths that appear most relevant to this process context.
-                  </p>
-                {% else %}
-                  <p class="key-strengths-intro">
-                    The strongest themes identified in the candidate’s assessment profile.
-                  </p>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="card-body">
               <div class="key-strengths-grid">
-
                 {% for strength in candidate_insights.key_strengths|slice:":4" %}
                   <article class="key-strength-card">
-
                     <div class="key-strength-card__top">
                       <div class="key-strength-icon">
                         <i data-feather="check"></i>
                       </div>
 
                       <div>
-                        <h3 class="key-strength-card__title">
-                          {{ strength.title }}
-                        </h3>
-
-                        <p class="key-strength-card__body">
-                          {{ strength.body }}
-                        </p>
+                        <h3 class="key-strength-card__title">{{ strength.title }}</h3>
+                        {% if strength.body %}
+                          <p class="key-strength-card__body">{{ strength.body }}</p>
+                        {% endif %}
                       </div>
                     </div>
 
-                    <div class="key-strength-detail-list">
+                    {% if strength.how_it_may_show or strength.why_it_matters %}
+                      <div class="key-strength-detail-list">
+                        {% if strength.how_it_may_show %}
+                          <div class="key-strength-detail">
+                            <div class="key-strength-detail__label">How this may show up</div>
+                            <div class="key-strength-detail__text">{{ strength.how_it_may_show }}</div>
+                          </div>
+                        {% endif %}
 
-                      <div class="key-strength-detail">
-                        <div class="key-strength-detail__label">
-                          How this may show up
-                        </div>
-                        <div class="key-strength-detail__text">
-                          {{ strength.how_it_may_show|default:"May show up as a consistent behavioural tendency in relevant work situations." }}
-                        </div>
+                        {% if strength.why_it_matters %}
+                          <div class="key-strength-detail">
+                            <div class="key-strength-detail__label">
+                              {% if report_mode == "context" %}Why this matters here{% else %}Why this may matter{% endif %}
+                            </div>
+                            <div class="key-strength-detail__text">{{ strength.why_it_matters }}</div>
+                          </div>
+                        {% endif %}
                       </div>
-
-                      <div class="key-strength-detail">
-                        <div class="key-strength-detail__label">
-                          {% if report_mode == "context" %}
-                            Why this matters here
-                          {% else %}
-                            Why this may matter
-                          {% endif %}
-                        </div>
-                        <div class="key-strength-detail__text">
-                          {{ strength.why_it_matters|default:"This may be useful to consider when interpreting the candidate’s overall profile." }}
-                        </div>
-                      </div>
-
-                    </div>
+                    {% endif %}
 
                     {% if strength.evidence %}
                       <div class="key-strength-evidence">
                         {% for item in strength.evidence %}
-                          <span class="key-strength-evidence-pill">
-                            {{ item }}
-                          </span>
+                          <span class="key-strength-evidence-pill">{{ item }}</span>
                         {% endfor %}
                       </div>
                     {% endif %}
-
                   </article>
                 {% endfor %}
-
               </div>
             </div>
-
           </section>
         {% endif %}
         <!-- /KEY STRENGTHS -->
@@ -1459,134 +995,189 @@
         <!-- AREAS TO EXPLORE -->
         {% if candidate_insights.areas_to_explore %}
           <section class="card mb-4 areas-explore-card">
-
             <div class="card-header areas-explore-header bg-white">
               <div>
                 <div class="areas-explore-kicker">Candidate Insights</div>
                 <h2 class="areas-explore-title">Areas to explore</h2>
-
-                {% if report_mode == "context" %}
-                  <p class="areas-explore-intro">
-                    Useful themes to validate in relation to this process context. These are not weaknesses, but areas where follow-up can add important context.
-                  </p>
-                {% else %}
-                  <p class="areas-explore-intro">
-                    Useful themes to explore further. These are not conclusions or concerns, but areas where more context may help interpretation.
-                  </p>
-                {% endif %}
+                <p class="areas-explore-intro">
+                  {% if report_mode == "context" %}
+                    Themes to validate in relation to this process context.
+                  {% else %}
+                    Themes where additional context may support a more complete interpretation.
+                  {% endif %}
+                </p>
               </div>
             </div>
 
             <div class="card-body">
               <div class="areas-explore-grid">
-
                 {% for area in candidate_insights.areas_to_explore|slice:":4" %}
                   <article class="area-explore-card">
-
                     <div class="area-explore-card__top">
                       <div class="area-explore-icon">
                         <i data-feather="help-circle"></i>
                       </div>
 
                       <div>
-                        <h3 class="area-explore-card__title">
-                          {{ area.title }}
-                        </h3>
-
-                        <p class="area-explore-card__body">
-                          {{ area.body }}
-                        </p>
+                        <h3 class="area-explore-card__title">{{ area.title }}</h3>
+                        {% if area.body %}
+                          <p class="area-explore-card__body">{{ area.body }}</p>
+                        {% endif %}
                       </div>
                     </div>
 
-                    <div class="area-explore-detail-list">
+                    {% if area.explore_through or area.what_to_listen_for %}
+                      <div class="area-explore-detail-list">
+                        {% if area.explore_through %}
+                          <div class="area-explore-detail">
+                            <div class="area-explore-detail__label">Explore through</div>
+                            <div class="area-explore-detail__text">{{ area.explore_through }}</div>
+                          </div>
+                        {% endif %}
 
-                      <div class="area-explore-detail">
-                        <div class="area-explore-detail__label">
-                          Explore through
-                        </div>
-                        <div class="area-explore-detail__text">
-                          {{ area.explore_through|default:"Ask for a concrete example from a real work situation where this theme was relevant." }}
-                        </div>
+                        {% if area.what_to_listen_for %}
+                          <div class="area-explore-detail">
+                            <div class="area-explore-detail__label">What to listen for</div>
+                            <div class="area-explore-detail__text">{{ area.what_to_listen_for }}</div>
+                          </div>
+                        {% endif %}
                       </div>
-
-                      <div class="area-explore-detail">
-                        <div class="area-explore-detail__label">
-                          What to listen for
-                        </div>
-                        <div class="area-explore-detail__text">
-                          {{ area.what_to_listen_for|default:"Look for self-awareness, practical examples and how the candidate adapts their behaviour depending on the situation." }}
-                        </div>
-                      </div>
-
-                    </div>
+                    {% endif %}
 
                     {% if area.evidence %}
                       <div class="area-explore-tags">
                         {% for item in area.evidence %}
-                          <span class="area-explore-tag">
-                            {{ item }}
-                          </span>
+                          <span class="area-explore-tag">{{ item }}</span>
                         {% endfor %}
                       </div>
                     {% endif %}
-
                   </article>
                 {% endfor %}
-
               </div>
             </div>
-
           </section>
         {% endif %}
         <!-- /AREAS TO EXPLORE -->
 
-        <!-- QUESTIONS TO ASK -->
+        <!-- MOTIVATION & ENVIRONMENT -->
+        {% if candidate_insights.motivation_environment %}
+          {% with section=candidate_insights.motivation_environment %}
+            <section class="card mb-4">
+              <div class="card-header bg-white">
+                <div class="insight-summary-kicker">Candidate Insights</div>
+                <h2 class="h5 mb-1">Motivation and environment</h2>
+                {% if section.summary %}
+                  <p class="text-muted mb-0">{{ section.summary }}</p>
+                {% endif %}
+              </div>
+
+              <div class="card-body">
+                <div class="row g-3">
+                  {% if section.top_motivators %}
+                    <div class="col-lg-6">
+                      <div class="border rounded-3 p-3 h-100">
+                        <h3 class="h6 mb-3">Likely motivators</h3>
+                        {% for item in section.top_motivators %}
+                          <div class="mb-3">
+                            <div class="fw-semibold">{{ item.title }}</div>
+                            {% if item.body %}<div class="text-muted small">{{ item.body }}</div>{% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  {% if section.possible_demotivators %}
+                    <div class="col-lg-6">
+                      <div class="border rounded-3 p-3 h-100">
+                        <h3 class="h6 mb-3">Possible demotivators</h3>
+                        {% for item in section.possible_demotivators %}
+                          <div class="mb-3">
+                            <div class="fw-semibold">{{ item.title }}</div>
+                            {% if item.body %}<div class="text-muted small">{{ item.body }}</div>{% endif %}
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </section>
+          {% endwith %}
+        {% endif %}
+        <!-- /MOTIVATION & ENVIRONMENT -->
+
+        <!-- WORK STYLE -->
+        {% if candidate_insights.work_style %}
+          {% with section=candidate_insights.work_style %}
+            <section class="card mb-4">
+              <div class="card-header bg-white">
+                <div class="insight-summary-kicker">Candidate Insights</div>
+                <h2 class="h5 mb-1">Work style</h2>
+                {% if section.summary %}
+                  <p class="text-muted mb-0">{{ section.summary }}</p>
+                {% endif %}
+              </div>
+
+              {% if section.items %}
+                <div class="card-body">
+                  <div class="row g-3">
+                    {% for item in section.items %}
+                      <div class="col-lg-6">
+                        <div class="border rounded-3 p-3 h-100">
+                          <h3 class="h6 mb-1">{{ item.title }}</h3>
+                          {% if item.subtitle %}
+                            <div class="text-muted small mb-2">{{ item.subtitle }}</div>
+                          {% endif %}
+                          {% if item.body %}
+                            <p class="mb-2">{{ item.body }}</p>
+                          {% endif %}
+                          {% if item.practical_tip %}
+                            <div class="small">
+                              <span class="fw-semibold">Practical tip:</span>
+                              {{ item.practical_tip }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </section>
+          {% endwith %}
+        {% endif %}
+        <!-- /WORK STYLE -->
+
+        <!-- QUESTIONS -->
         {% if candidate_insights.questions %}
           <section class="card mb-4 questions-card">
-
             <div class="card-header questions-header bg-white">
               <div>
                 <div class="questions-kicker">Candidate Insights</div>
-
                 <h2 class="questions-title">
                   {{ context_config.questions_title|default:"Questions to ask" }}
                 </h2>
-
-                {% if report_mode == "context" %}
-                  <p class="questions-intro">
+                <p class="questions-intro">
+                  {% if report_mode == "context" %}
                     Suggested follow-up questions tailored to this process context.
-                  </p>
-                {% else %}
-                  <p class="questions-intro">
-                    Suggested follow-up questions based on the completed assessments. Add context to make them more specific.
-                  </p>
-                {% endif %}
+                  {% else %}
+                    Suggested follow-up questions based on the completed assessments.
+                  {% endif %}
+                </p>
               </div>
             </div>
 
             <div class="card-body">
-
               <div class="questions-filter-bar" aria-label="Question filters">
-                <button type="button" class="questions-filter is-active" data-question-filter="all">
-                  All
-                </button>
-                <button type="button" class="questions-filter" data-question-filter="strengths">
-                  Strengths
-                </button>
-                <button type="button" class="questions-filter" data-question-filter="explore">
-                  Explore
-                </button>
-                <button type="button" class="questions-filter" data-question-filter="motivation">
-                  Motivation
-                </button>
-                <button type="button" class="questions-filter" data-question-filter="work_style">
-                  Work style
-                </button>
+                <button type="button" class="questions-filter is-active" data-question-filter="all">All</button>
+                <button type="button" class="questions-filter" data-question-filter="strengths">Strengths</button>
+                <button type="button" class="questions-filter" data-question-filter="explore">Explore</button>
+                <button type="button" class="questions-filter" data-question-filter="motivation">Motivation</button>
+                <button type="button" class="questions-filter" data-question-filter="work_style">Work style</button>
               </div>
 
               <div class="questions-list mt-3">
-
                 {% for item in candidate_insights.questions %}
                   <article
                     class="question-card"
@@ -1601,48 +1192,68 @@
                         <div class="question-card__meta">
                           {{ item.category_label|default:"Follow-up question" }}
                         </div>
-
-                        <h3 class="question-card__question">
-                          {{ item.question }}
-                        </h3>
+                        <h3 class="question-card__question">{{ item.question }}</h3>
                       </div>
                     </div>
 
                     {% if item.why %}
                       <div class="question-card__section">
                         <div class="question-card__label">Why ask this?</div>
-                        <div class="question-card__text">
-                          {{ item.why }}
-                        </div>
+                        <div class="question-card__text">{{ item.why }}</div>
                       </div>
                     {% endif %}
 
                     {% if item.listen_for %}
                       <div class="question-card__section">
                         <div class="question-card__label">What to listen for</div>
-                        <div class="question-card__text">
-                          {{ item.listen_for }}
-                        </div>
+                        <div class="question-card__text">{{ item.listen_for }}</div>
                       </div>
                     {% endif %}
-
                   </article>
                 {% endfor %}
-
               </div>
-
             </div>
-
           </section>
         {% endif %}
-        <!-- /QUESTIONS TO ASK -->
+        <!-- /QUESTIONS -->
+
+        <!-- NEXT STEPS -->
+        {% if candidate_insights.next_steps %}
+          <section class="card mb-4">
+            <div class="card-header bg-white">
+              <div class="insight-summary-kicker">Candidate Insights</div>
+              <h2 class="h5 mb-0">Recommended next steps</h2>
+            </div>
+
+            <div class="card-body">
+              <div class="row g-3">
+                {% for item in candidate_insights.next_steps %}
+                  <div class="col-lg-4">
+                    <div class="border rounded-3 p-3 h-100">
+                      {% if item.label %}
+                        <div class="text-muted small mb-1">{{ item.label }}</div>
+                      {% endif %}
+                      <h3 class="h6 mb-2">{{ item.title }}</h3>
+                      {% if item.body %}<p class="mb-2">{{ item.body }}</p>{% endif %}
+                      {% if item.focus %}
+                        <div class="small">
+                          <span class="fw-semibold">Focus:</span> {{ item.focus }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </section>
+        {% endif %}
+        <!-- /NEXT STEPS -->
 
         <!-- REPORTS -->
         {% if has_any_results %}
-          <div class="card mb-3">
+          <div class="card mb-4">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
               <span>Reports</span>
-
               {% if available_reports_count %}
                 <span class="badge rounded-pill text-bg-light border">
                   {{ available_reports_count }} available
@@ -1653,96 +1264,41 @@
             <div class="card-body">
               <div class="list-group list-group-flush">
 
-                {% if ability_reports_for_ui.verbal %}
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.verbal.practitioner_report.title|default:"Verbal Practitioner Report" }}
+                {% for report_key, report_data in ability_reports_for_ui.items %}
+                  {% if report_key != "overview" and report_data %}
+                    {% if report_data.practitioner_report %}
+                      <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                        <div>
+                          <div class="fw-semibold">{{ report_data.practitioner_report.title }}</div>
+                          <div class="small text-muted text-capitalize">{{ report_key }} reasoning · Abilities</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                          PDF coming soon
+                        </button>
                       </div>
-                      <div class="small text-muted">Verbal Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
+                    {% endif %}
 
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.verbal.candidate_report.title|default:"Verbal Candidate Report" }}
+                    {% if report_data.candidate_report %}
+                      <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                        <div>
+                          <div class="fw-semibold">{{ report_data.candidate_report.title }}</div>
+                          <div class="small text-muted text-capitalize">{{ report_key }} reasoning · Abilities</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
+                          PDF coming soon
+                        </button>
                       </div>
-                      <div class="small text-muted">Verbal Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
-                {% endif %}
-
-                {% if ability_reports_for_ui.logical %}
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.logical.practitioner_report.title|default:"Logical Practitioner Report" }}
-                      </div>
-                      <div class="small text-muted">Logical Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
-
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.logical.candidate_report.title|default:"Logical Candidate Report" }}
-                      </div>
-                      <div class="small text-muted">Logical Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
-                {% endif %}
-
-                {% if ability_reports_for_ui.numerical %}
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.numerical.practitioner_report.title|default:"Numerical Practitioner Report" }}
-                      </div>
-                      <div class="small text-muted">Numerical Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
-
-                  <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                    <div>
-                      <div class="fw-semibold">
-                        {{ ability_reports_for_ui.numerical.candidate_report.title|default:"Numerical Candidate Report" }}
-                      </div>
-                      <div class="small text-muted">Numerical Reasoning · Abilities</div>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                      PDF coming soon
-                    </button>
-                  </div>
-                {% endif %}
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
 
                 {% if has_motivation_results %}
                   {% for report in motivation_reports_for_ui %}
                     <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
                       <div>
-                        <div class="fw-semibold">
-                          {{ report.title }}
-                        </div>
-                        <div class="small text-muted">
-                          Motivation Questionnaire · Motivation
-                        </div>
+                        <div class="fw-semibold">{{ report.title }}</div>
+                        <div class="small text-muted">Motivation Questionnaire · Motivation</div>
                       </div>
-
                       <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
                         PDF coming soon
                       </button>
@@ -1754,14 +1310,9 @@
                   {% for report in personality_reports %}
                     <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
                       <div>
-                        <div class="fw-semibold">
-                          {{ report.report_name }}
-                        </div>
-                        <div class="small text-muted">
-                          Personality Assessment · Personality
-                        </div>
+                        <div class="fw-semibold">{{ report.report_name }}</div>
+                        <div class="small text-muted">Personality Assessment · Personality</div>
                       </div>
-
                       <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
                         PDF coming soon
                       </button>
@@ -1776,16 +1327,14 @@
                         <div class="fw-semibold">
                           {{ report.title|default:report.original_filename }}
                         </div>
-                        <div class="small text-muted">
-                          Original uploaded historical PDF report
-                        </div>
+                        <div class="small text-muted">Original uploaded historical PDF report</div>
                       </div>
 
                       <a
                         href="{{ report.file.url }}"
                         target="_blank"
-                        class="btn btn-sm btn-outline-dark"
-                      >
+                        rel="noopener"
+                        class="btn btn-sm btn-outline-dark">
                         Open PDF
                       </a>
                     </div>
@@ -1798,12 +1347,11 @@
         {% endif %}
         <!-- /REPORTS -->
 
-        <!-- RAW IMPORTED DATA, TEMPORARY DEV VIEW -->
+        <!-- TEMPORARY RAW HISTORICAL DATA -->
         {% if is_historical and assessment_results %}
           <div class="card mb-4">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
               <span>Raw imported assessment data</span>
-
               <span class="badge rounded-pill text-bg-light border">
                 {{ assessment_results|length }} result{% if assessment_results|length != 1 %}s{% endif %}
               </span>
@@ -1811,7 +1359,6 @@
 
             <div class="card-body">
               <div class="accordion" id="historicalRawDataAccordion">
-
                 {% for result in assessment_results %}
                   <div class="accordion-item border rounded mb-2">
                     <h2 class="accordion-header" id="rawHeading{{ result.id }}">
@@ -1821,16 +1368,15 @@
                         data-bs-toggle="collapse"
                         data-bs-target="#rawCollapse{{ result.id }}"
                         aria-expanded="false"
-                        aria-controls="rawCollapse{{ result.id }}"
-                      >
+                        aria-controls="rawCollapse{{ result.id }}">
+
                         <div class="w-100 d-flex justify-content-between align-items-center gap-3 pe-3">
                           <div>
                             <div class="fw-semibold text-capitalize">
                               {{ result.assessment_type }} · {{ result.scale|upper }}
                             </div>
-
                             <div class="text-muted small">
-                              SOVA Candidate ID: {{ result.sova_candidate_id|default:"—" }}
+                              SOVA candidate ID: {{ result.sova_candidate_id|default:"—" }}
                               · Result ID: {{ result.sova_result_id|default:"—" }}
                             </div>
                           </div>
@@ -1846,10 +1392,9 @@
                       id="rawCollapse{{ result.id }}"
                       class="accordion-collapse collapse"
                       aria-labelledby="rawHeading{{ result.id }}"
-                      data-bs-parent="#historicalRawDataAccordion"
-                    >
-                      <div class="accordion-body">
+                      data-bs-parent="#historicalRawDataAccordion">
 
+                      <div class="accordion-body">
                         <div class="row g-3 mb-4">
                           <div class="col-md-3">
                             <div class="small text-muted">Status</div>
@@ -1884,85 +1429,71 @@
                           </div>
                         </div>
 
-                        {% if result.scores.all %}
-                          {% regroup result.scores.all by category as score_groups %}
+                        {% regroup result.scores.all by category as score_groups %}
 
-                          {% for group in score_groups %}
-                            <div class="mb-4">
-                              <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h3 class="h6 mb-0 text-capitalize">
-                                  {{ group.grouper|default:"Scores"|cut:"_" }}
-                                </h3>
-
-                                <span class="text-muted small">
-                                  {{ group.list|length }} item{% if group.list|length != 1 %}s{% endif %}
-                                </span>
-                              </div>
-
-                              <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0">
-                                  <thead>
-                                    <tr>
-                                      <th>Score</th>
-                                      <th style="width: 140px;">Value</th>
-                                      <th style="width: 140px;">Percentile</th>
-                                      <th style="width: 140px;">Scale</th>
-                                    </tr>
-                                  </thead>
-
-                                  <tbody>
-                                    {% for score in group.list %}
-                                      <tr>
-                                        <td>
-                                          <span class="fw-semibold">
-                                            {{ score.name }}
-                                          </span>
-                                        </td>
-
-                                        <td>
-                                          {% if score.score is not None %}
-                                            {{ score.score|floatformat:0 }}
-                                          {% else %}
-                                            <span class="text-muted">—</span>
-                                          {% endif %}
-                                        </td>
-
-                                        <td>
-                                          {% if score.percentile is not None %}
-                                            {{ score.percentile|floatformat:0 }}
-                                          {% else %}
-                                            <span class="text-muted">—</span>
-                                          {% endif %}
-                                        </td>
-
-                                        <td>
-                                          <span class="badge bg-light text-dark border">
-                                            {{ score.scale|upper }}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    {% endfor %}
-                                  </tbody>
-                                </table>
-                              </div>
+                        {% for group in score_groups %}
+                          <div class="mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                              <h3 class="h6 mb-0 text-capitalize">
+                                {{ group.grouper|default:"Scores"|cut:"_" }}
+                              </h3>
+                              <span class="text-muted small">
+                                {{ group.list|length }} item{% if group.list|length != 1 %}s{% endif %}
+                              </span>
                             </div>
-                          {% endfor %}
-                        {% else %}
-                          <div class="text-muted small">
-                            This assessment result has no saved scores yet.
-                          </div>
-                        {% endif %}
 
+                            <div class="table-responsive">
+                              <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                  <tr>
+                                    <th>Score</th>
+                                    <th style="width: 140px;">Value</th>
+                                    <th style="width: 140px;">Percentile</th>
+                                    <th style="width: 140px;">Scale</th>
+                                  </tr>
+                                </thead>
+
+                                <tbody>
+                                  {% for score in group.list %}
+                                    <tr>
+                                      <td><span class="fw-semibold">{{ score.name }}</span></td>
+                                      <td>
+                                        {% if score.score is not None %}
+                                          {{ score.score|floatformat:1 }}
+                                        {% else %}
+                                          <span class="text-muted">—</span>
+                                        {% endif %}
+                                      </td>
+                                      <td>
+                                        {% if score.percentile is not None %}
+                                          {{ score.percentile|floatformat:0 }}
+                                        {% else %}
+                                          <span class="text-muted">—</span>
+                                        {% endif %}
+                                      </td>
+                                      <td>
+                                        <span class="badge bg-light text-dark border">
+                                          {{ score.scale|upper }}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  {% endfor %}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        {% empty %}
+                          <div class="text-muted small">No scores saved for this result.</div>
+                        {% endfor %}
                       </div>
                     </div>
                   </div>
                 {% endfor %}
-
               </div>
             </div>
           </div>
         {% endif %}
-        <!-- /RAW IMPORTED DATA -->
+        <!-- /TEMPORARY RAW HISTORICAL DATA -->
 
       {% endif %}
 
@@ -1973,60 +1504,42 @@
     <aside class="candidate-sheet-sidebar">
       <div class="candidate-sidebar-sticky">
 
-        {% if is_historical %}
-
-          <div class="card candidate-ai-card is-disabled">
-            <div class="card-header fw-semibold">AI assistant</div>
-
-            <div class="card-body candidate-ai-card-body">
-              <div class="candidate-ai-disabled">
-                <div class="candidate-ai-disabled__icon">
-                  <i data-feather="database"></i>
-                </div>
-
-                <div class="fw-semibold mb-1">
-                  Imported data insight mode
-                </div>
-
-                <div class="text-muted small">
-                  This candidate belongs to an imported historical test process. Talena can display insights from the structured SOVA data. AI chat for imported profiles can be enabled later.
-                </div>
-              </div>
-            </div>
-          </div>
-
-        {% else %}
-
+        {% if has_any_results %}
           <div
             class="card candidate-ai-card"
             data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
-          >
+            data-process-id="{{ process.id }}"
+            data-candidate-id="{{ candidate.id }}"
+            data-is-historical="{% if is_historical %}true{% else %}false{% endif %}">
+
             <div class="card-header fw-semibold">AI assistant</div>
 
             <div class="card-body candidate-ai-card-body">
-
               <div class="small text-muted">
-                Chat about the candidate’s assessment results, reports and summary.
+                Chat about the candidate’s assessment results, reports and insights.
               </div>
+
+              {% if is_historical %}
+                <div class="alert alert-light border small mt-3 mb-0">
+                  The assistant uses imported assessment data and general insight mode.
+                </div>
+              {% endif %}
 
               <div class="candidate-ai-messages border rounded-3 p-3 js-candidate-ai-messages">
                 <div class="candidate-ai-empty text-muted small">
-                  Ask a question about the candidate, such as strengths, risks or interview questions.
+                  Ask a question about strengths, areas to explore or interview questions.
                 </div>
               </div>
 
               <form class="candidate-ai-form js-candidate-ai-form">
                 {% csrf_token %}
 
-                <label class="form-label small text-muted">
-                  Ask AI about the candidate
-                </label>
+                <label class="form-label small text-muted">Ask AI about the candidate</label>
 
                 <textarea
                   class="form-control js-candidate-ai-input"
                   rows="4"
-                  placeholder="E.g. What risks or strengths do you see in the candidate’s profile?"
-                ></textarea>
+                  placeholder="E.g. What should I explore further in an interview?"></textarea>
 
                 <button
                   type="submit"
@@ -2034,14 +1547,28 @@
                   Send
                 </button>
               </form>
-
             </div>
           </div>
-
+        {% else %}
+          <div class="card candidate-ai-card is-disabled">
+            <div class="card-header fw-semibold">AI assistant</div>
+            <div class="card-body candidate-ai-card-body">
+              <div class="candidate-ai-disabled">
+                <div class="candidate-ai-disabled__icon">
+                  <i data-feather="lock"></i>
+                </div>
+                <div class="fw-semibold mb-1">No assessment data available</div>
+                <div class="text-muted small">
+                  The assistant becomes available when assessment results exist.
+                </div>
+              </div>
+            </div>
+          </div>
         {% endif %}
 
       </div>
     </aside>
+    <!-- /SIDEBAR -->
 
   </div>
 </div>
@@ -2053,18 +1580,17 @@
 
     const originalText = buttonEl.innerText;
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(input.value).then(() => {
-        buttonEl.innerText = "Copied!";
-        buttonEl.classList.remove("btn-outline-dark");
-        buttonEl.classList.add("btn-dark");
+    const showCopiedState = () => {
+      buttonEl.innerText = "Copied!";
+      setTimeout(() => {
+        buttonEl.innerText = originalText;
+      }, 1400);
+    };
 
-        setTimeout(() => {
-          buttonEl.innerText = originalText;
-          buttonEl.classList.remove("btn-dark");
-          buttonEl.classList.add("btn-outline-dark");
-        }, 1400);
-      }).catch(() => fallbackCopyCandidateUrl(input, buttonEl, originalText));
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(input.value)
+        .then(showCopiedState)
+        .catch(() => fallbackCopyCandidateUrl(input, buttonEl, originalText));
     } else {
       fallbackCopyCandidateUrl(input, buttonEl, originalText);
     }
@@ -2077,23 +1603,15 @@
     try {
       document.execCommand("copy");
       buttonEl.innerText = "Copied!";
-      buttonEl.classList.remove("btn-outline-dark");
-      buttonEl.classList.add("btn-dark");
-
-      setTimeout(() => {
-        buttonEl.innerText = originalText;
-        buttonEl.classList.remove("btn-dark");
-        buttonEl.classList.add("btn-outline-dark");
-      }, 1400);
-    } catch (e) {
+    } catch (error) {
       buttonEl.innerText = "Could not copy";
-      setTimeout(() => {
-        buttonEl.innerText = originalText;
-      }, 1400);
     }
+
+    setTimeout(() => {
+      buttonEl.innerText = originalText;
+    }, 1400);
   }
 </script>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -2468,7 +1986,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <style>
   .candidate-ai-card.is-disabled {
-    opacity: 0.9;
+    opacity: 0.8;
   }
 
   .candidate-ai-disabled {
@@ -2492,18 +2010,6 @@ document.addEventListener("DOMContentLoaded", () => {
     color: #6b7280;
   }
 
-  .report-file-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    background: #f5f3ff;
-    color: #6d28d9;
-    flex: 0 0 auto;
-  }
-
-  .report-file-icon svg,
   .candidate-ai-disabled__icon svg {
     width: 18px;
     height: 18px;
