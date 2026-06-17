@@ -1,4 +1,5 @@
 import json
+import secrets
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -28,22 +29,30 @@ def sova_ingest(request):
     print("🚨 sova_ingest CALLED!")
     print("="*80)
     
-    logger.warning("WEBHOOK headers: %s", dict(request.headers))
-    logger.warning("Expected secret set? %s", bool(getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", "")))
-    logger.info("✅ sova_ingest HIT")
-    
+    logger.info(
+        "SOVA webhook received: path=%s secret_present=%s",
+        request.path,
+        bool(request.headers.get("X-Talena-Webhook-Secret")),
+    )
+
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
 
-    # ✅ Enkel auth: shared secret i header
-    secret = request.headers.get("X-Talena-Webhook-Secret")
+    secret = request.headers.get("X-Talena-Webhook-Secret", "")
     expected_secret = getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", "")
-    
-    print(f"🔐 Received secret: {secret}")
-    print(f"🔐 Expected secret: {expected_secret}")
-    
-    if not secret or secret != expected_secret:
-        print("❌ SECRET MISMATCH!")
+
+    logger.info(
+        "SOVA webhook authentication: received=%s configured=%s",
+        bool(secret),
+        bool(expected_secret),
+    )
+
+    if (
+        not secret
+        or not expected_secret
+        or not secrets.compare_digest(secret, expected_secret)
+    ):
+        logger.warning("SOVA webhook authentication failed")
         return JsonResponse({"error": "unauthorized"}, status=401)
 
     try:
