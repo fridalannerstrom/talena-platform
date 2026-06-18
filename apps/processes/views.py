@@ -124,7 +124,13 @@ from .forms import ProcessRoleContextForm
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
-    activities = invitation.sova_activities or []
+    payload = invitation.sova_payload or {}
+
+    activities = invitation.sova_activities or payload.get("activities") or []
+
+    if not activities:
+        for phase in payload.get("phases") or []:
+            activities.extend(phase.get("activities") or [])
 
     def get_assessment_key(name):
         """
@@ -581,7 +587,7 @@ def build_candidate_detail_context(process, invitation):
         })
 
     project_results = invitation.project_results or {}
-    reports = invitation.sova_reports or []
+    reports = invitation.sova_reports or payload.get("reports") or []
 
     project_scores = (
         project_results.get("project_scores", [])

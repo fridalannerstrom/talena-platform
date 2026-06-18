@@ -93,31 +93,61 @@ def sova_ingest(request):
         "current_phase_code": current_phase_code,
         "current_phase_idx": current_phase_idx,
     })
-
+    
     # ✅ Hitta invitation
     invitation = None
+
     if request_id:
-        invitation = TestInvitation.objects.filter(request_id=request_id).first()
+        invitation = TestInvitation.objects.filter(
+            request_id=request_id
+        ).first()
+
     if not invitation and sova_inv_id:
-        invitation = TestInvitation.objects.filter(sova_invitation_id=str(sova_inv_id)).first()
+        invitation = TestInvitation.objects.filter(
+            sova_invitation_id=str(sova_inv_id)
+        ).first()
+
     if not invitation and talena_process_id and talena_candidate_id:
         invitation = TestInvitation.objects.filter(
             process_id=talena_process_id,
-            candidate_id=talena_candidate_id
+            candidate_id=talena_candidate_id,
         ).first()
 
     if not invitation:
         print("⚠️ No matching invitation found")
-        return JsonResponse({"status": "ignored", "reason": "invitation not found"}, status=200)
+        return JsonResponse(
+            {
+                "status": "ignored",
+                "reason": "invitation not found",
+            },
+            status=200,
+        )
 
     print(f"✅ Found invitation: {invitation.id}")
 
     old_status = invitation.status
 
-    # ✅ Spara payload
-    invitation.sova_payload = payload
-    invitation.save(update_fields=["sova_payload"])
+    # ✅ Extract activities from either top level or phases
+    activities = list(payload.get("activities") or [])
 
+    if not activities:
+        for phase in payload.get("phases") or []:
+            activities.extend(phase.get("activities") or [])
+
+    reports = payload.get("reports") or []
+
+    # ✅ Save the complete payload and UI-specific fields
+    invitation.sova_payload = payload
+    invitation.sova_activities = activities
+    invitation.sova_reports = reports
+
+    invitation.save(
+        update_fields=[
+            "sova_payload",
+            "sova_activities",
+            "sova_reports",
+        ]
+    )
     # ✅ Spara overall_status och andra SOVA-fält
     if overall_raw:
         invitation.sova_overall_status = overall_raw.strip()
