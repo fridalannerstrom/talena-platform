@@ -43,7 +43,20 @@ MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
-SOVA_WEBHOOK_SHARED_SECRET = os.getenv("SOVA_WEBHOOK_SHARED_SECRET", "")
+SOVA_WEBHOOK_SHARED_SECRET = os.getenv(
+    "SOVA_WEBHOOK_SHARED_SECRET",
+    "",
+)
+
+SOVA_WEBHOOK_TEST_SECRET = os.getenv(
+    "SOVA_WEBHOOK_TEST_SECRET",
+    "",
+)
+
+SOVA_WEBHOOK_PROD_SECRET = os.getenv(
+    "SOVA_WEBHOOK_PROD_SECRET",
+    "",
+)
 
 # --- Database --- #
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()

@@ -25,10 +25,10 @@ def _norm(s: str) -> str:
 @csrf_exempt
 def sova_ingest(request):
     print("🚨🚨🚨 INGEST HIT 🚨🚨🚨", request.path)
-    print("="*80)
+    print("=" * 80)
     print("🚨 sova_ingest CALLED!")
-    print("="*80)
-    
+    print("=" * 80)
+
     logger.info(
         "SOVA webhook received: path=%s secret_present=%s",
         request.path,
@@ -36,22 +36,43 @@ def sova_ingest(request):
     )
 
     if request.method != "POST":
-        return JsonResponse({"error": "method not allowed"}, status=405)
+        return JsonResponse(
+            {"error": "method not allowed"},
+            status=405,
+        )
 
     secret = request.headers.get("X-Talena-Webhook-Secret", "")
-    expected_secret = getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", "")
+
+    # Accept separate secrets for Sova test and production.
+    # The old shared secret is kept temporarily for backwards compatibility.
+    configured_secrets = [
+        getattr(settings, "SOVA_WEBHOOK_TEST_SECRET", ""),
+        getattr(settings, "SOVA_WEBHOOK_PROD_SECRET", ""),
+        getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", ""),
+    ]
+
+    # Remove empty values and accidental duplicates.
+    allowed_secrets = list({
+        configured_secret
+        for configured_secret in configured_secrets
+        if configured_secret
+    })
 
     logger.info(
-        "SOVA webhook authentication: received=%s configured=%s",
+        "SOVA webhook authentication: received=%s configured_secret_count=%s",
         bool(secret),
-        bool(expected_secret),
+        len(allowed_secrets),
     )
 
-    if (
-        not secret
-        or not expected_secret
-        or not secrets.compare_digest(secret, expected_secret)
-    ):
+    is_authorized = (
+        bool(secret)
+        and any(
+            secrets.compare_digest(secret, allowed_secret)
+            for allowed_secret in allowed_secrets
+        )
+    )
+
+    if not is_authorized:
         logger.warning("SOVA webhook authentication failed")
         return JsonResponse({"error": "unauthorized"}, status=401)
 
