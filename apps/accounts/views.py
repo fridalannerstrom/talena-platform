@@ -54,7 +54,7 @@ from apps.processes.services.process_recommendations import (
     PROCESS_PURPOSES,
     AVAILABLE_TESTS,
     PURPOSE_RECOMMENDED_TESTS,
-    resolve_dev_sova_template,
+    resolve_sova_template,
     build_default_process_name,
 )
 

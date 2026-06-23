@@ -214,23 +214,29 @@
   {% endfor %}
 </div>
 
-            <!-- DEV / CURRENT SETUP INFO -->
-            <div class="dev-template-box mt-4">
-              <div class="d-flex gap-3 align-items-start">
-                <div class="dev-template-icon">
-                  <i class="fa-solid fa-flask"></i>
-                </div>
+<!-- SELECTED SOVA SETUP -->
+<div class="dev-template-box mt-4">
+  <div class="d-flex gap-3 align-items-start">
+    <div class="dev-template-icon">
+      <i class="fa-solid fa-layer-group"></i>
+    </div>
 
-                <div>
-                  <div class="small text-muted mb-1">Current Sova setup</div>
-                  <strong id="currentSovaSetupLabel">Select Personality or Motivation</strong>
-                  <p class="mb-0 text-muted small">
-                    In the current development environment, Talena maps your selection to one available Sova project.
-                    The full flexible test setup will be connected later.
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div>
+      <div class="small text-muted mb-1">
+        Selected assessment setup
+      </div>
+
+      <strong id="currentSovaSetupLabel">
+        No tests selected
+      </strong>
+
+      <p class="mb-0 text-muted small">
+        Talena will automatically connect this test combination
+        to the corresponding Sova project.
+      </p>
+    </div>
+  </div>
+</div>
 
             <div class="wizard-actions mt-4">
               <button type="button" class="btn btn-outline-secondary" data-prev-step>

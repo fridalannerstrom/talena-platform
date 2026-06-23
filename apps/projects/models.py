@@ -9,7 +9,7 @@ class ProjectMeta(models.Model):
 
     # Din egna info
     intern_name = models.TextField(blank=True, default="")
-    tests = models.TextField(blank=True, default="")      # ["Personlighet", "Kognitivt"]
+    tests = models.TextField(blank=True, default="")      # Example: personality,motivation,logical
     languages = models.TextField(blank=True, default="")   # ["sv", "en"]
     notes = models.TextField(blank=True, default="")
 

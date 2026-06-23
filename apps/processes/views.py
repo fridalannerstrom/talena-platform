@@ -111,7 +111,7 @@ from apps.processes.services.process_recommendations import (
     PROCESS_PURPOSES,
     AVAILABLE_TESTS,
     PURPOSE_RECOMMENDED_TESTS,
-    resolve_dev_sova_template,
+    resolve_sova_template,
     build_default_process_name,
 )
 
@@ -3104,15 +3104,43 @@ def process_create_v2(request):
                 )
 
             # --------------------------------------------------
-            # 5. Tillfällig dev-mapping:
-            # selected_tests -> Sova account/project
+            # 5. Matcha valda tester mot rätt Sova-projekt
             # --------------------------------------------------
-            resolved_template = resolve_dev_sova_template(selected_tests)
+            try:
+                resolved_template = resolve_sova_template(
+                    selected_tests=selected_tests,
+                    template_cards=template_cards,
+                )
+            except ValueError as exc:
+                form.add_error("selected_tests", str(exc))
+
+                return render(request, "customer/processes/process_create_v2.html", {
+                    "form": form,
+                    "error": error,
+                    "process_purposes": PROCESS_PURPOSES,
+                    "available_tests": AVAILABLE_TESTS,
+                    "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
+                    "template_cards": template_cards,
+                    "templates_count": len(template_cards),
+                    "accounts_count": len(accounts),
+                })
 
             if not resolved_template:
+                selected_labels = [
+                    test["label"]
+                    for test in AVAILABLE_TESTS
+                    if test["key"] in selected_tests
+                ]
+
+                selected_label = " + ".join(selected_labels) or "the selected tests"
+
                 form.add_error(
                     "selected_tests",
-                    "Please select at least Personality or Motivation in the current development environment."
+                    (
+                        f"No matching Sova project was found for {selected_label}. "
+                        "Please check that the project exists and that its ProjectMeta "
+                        "record contains the correct tests."
+                    ),
                 )
 
                 return render(request, "customer/processes/process_create_v2.html", {
@@ -3128,7 +3156,7 @@ def process_create_v2(request):
 
             acc = resolved_template["account_code"]
             proj = resolved_template["project_code"]
-            value = f"{acc}|{proj}"
+            value = resolved_template["value"]
 
             # --------------------------------------------------
             # 6. Hämta org unit
@@ -3182,12 +3210,10 @@ def process_create_v2(request):
             if meta and getattr(meta, "intern_name", None):
                 obj.project_name_snapshot = meta.intern_name
             else:
-                match = next(
-                    (t for t in template_cards if t["value"] == value),
-                    None
-                )
                 obj.project_name_snapshot = (
-                    match["sova_name"] if match else proj
+                    resolved_template.get("sova_name")
+                    or resolved_template.get("title")
+                    or proj
                 )
 
             obj.save()
