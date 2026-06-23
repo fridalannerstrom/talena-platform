@@ -1128,17 +1128,15 @@ function applyRecommendedTests() {
   updateSuggestedName();
 }
 
-    function getDevSovaSetupLabel(selectedTests) {
-      if (selectedTests.includes("personality")) {
-        return "Personality setup";
-      }
+function getSovaSetupLabel(selectedTests) {
+  if (!selectedTests.length) {
+    return "No tests selected";
+  }
 
-      if (selectedTests.includes("motivation")) {
-        return "Motivation setup";
-      }
-
-      return "Select Personality or Motivation";
-    }
+  return selectedTests
+    .map((key) => testLabelMap[key] || key)
+    .join(" + ");
+}
 
 function updateSummary() {
   const purpose = getSelectedPurpose();
@@ -1156,7 +1154,7 @@ function updateSummary() {
       : "Not selected";
   }
 
-  const sovaSetup = getDevSovaSetupLabel(selectedTests);
+  const sovaSetup = getSovaSetupLabel(selectedTests);
 
   if (summarySovaSetup) {
     summarySovaSetup.textContent = sovaSetup;
@@ -1264,12 +1262,6 @@ testInputs.forEach((input) => {
         showStep(2);
         alert("Please select at least one test.");
         return;
-      }
-
-      if (!selectedTests.includes("personality") && !selectedTests.includes("motivation")) {
-        event.preventDefault();
-        showStep(2);
-        alert("In the current development environment, please select Personality or Motivation.");
       }
     });
 
