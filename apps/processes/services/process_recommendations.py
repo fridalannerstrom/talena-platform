@@ -110,6 +110,23 @@ TEST_ORDER = (
     "numerical",
 )
 
+def extract_tests_from_project_name(project_name):
+    """
+    Extract Talena test keys from a Sova project name.
+
+    Example:
+    'Personality + Motivation + Logical'
+    becomes:
+    ['personality', 'motivation', 'logical']
+    """
+    name = str(project_name or "").lower()
+
+    return [
+        test_key
+        for test_key in TEST_ORDER
+        if test_key in name
+    ]
+
 
 TEST_ALIASES = {
     # English

@@ -17,6 +17,15 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from .services.process_recommendations import (
+    PROCESS_PURPOSES,
+    PURPOSE_RECOMMENDED_TESTS,
+    AVAILABLE_TESTS,
+    build_default_process_name,
+    resolve_sova_template,
+    extract_tests_from_project_name,
+)
+
 from apps.processes.services.candidate_insights import (
     build_candidate_insights,
 )
@@ -3047,12 +3056,28 @@ def process_create_v2(request):
                 description = (getattr(meta, "notes", None) or "").strip()
 
                 tests_raw = (getattr(meta, "tests", None) or "").strip()
+
                 if tests_raw:
-                    tests = [t.strip() for t in tests_raw.split(",") if t.strip()]
+                    tests = [
+                        test.strip().lower()
+                        for test in tests_raw.split(",")
+                        if test.strip()
+                    ]
 
                 languages_raw = (getattr(meta, "languages", None) or "").strip()
+
                 if languages_raw:
-                    languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+                    languages = [
+                        language.strip()
+                        for language in languages_raw.split(",")
+                        if language.strip()
+                    ]
+
+            # Fallback:
+            # Om ProjectMeta saknar tester läser Talena kombinationen
+            # direkt från Sova-projektets namn.
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
 
             template_cards.append({
                 "value": value,
@@ -3153,6 +3178,9 @@ def process_create_v2(request):
                     "templates_count": len(template_cards),
                     "accounts_count": len(accounts),
                 })
+            
+            
+
 
             acc = resolved_template["account_code"]
             proj = resolved_template["project_code"]
@@ -3264,6 +3292,10 @@ def process_create_v2(request):
 
             messages.success(request, "Testprocessen skapades.")
             return redirect("processes:process_detail", pk=obj.pk)
+        
+        else:
+            print("PROCESS CREATE FORM ERRORS:", form.errors.as_json())
+            print("POST DATA:", request.POST)
 
         messages.error(request, "The process could not be created. Please check the fields.")
 

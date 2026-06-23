@@ -806,28 +806,28 @@
     });
 
     const TEST_GUIDANCE_BY_PURPOSE = {
-  hiring: {
-    personality: {
-      recommended: "Helps assess behavioural style, strengths, risks and role fit in a selection context.",
-      optional: "Add Personality if you want deeper insight into behavioural style, strengths and potential role fit."
+    hiring: {
+      personality: {
+        recommended: "Helps assess behavioural style, strengths, risks and role fit in a selection context.",
+        optional: "Add Personality if you want deeper insight into behavioural style, strengths and potential role fit."
+      },
+      motivation: {
+        recommended: "Shows what drives the candidate and what kind of work environment supports performance and retention.",
+        optional: "Add Motivation if you want to understand what will keep the candidate engaged and performing over time."
+      },
+      verbal: {
+        recommended: "Adds insight into how the candidate understands, interprets and communicates written information.",
+        optional: "Add Verbal if the role requires reading, interpreting or communicating complex written information."
+      },
+      logical: {
+        recommended: "Adds insight into problem-solving, structure and analytical thinking relevant to the role.",
+        optional: "Add Logical if the role requires problem-solving, structure, analysis or complex decision-making."
+      },
+      numerical: {
+        recommended: "Adds insight into how the candidate handles numbers, data, finance, reporting or analysis.",
+        optional: "Add Numerical if the role involves numbers, data, finance, reporting, KPIs or analysis."
+      }
     },
-    motivation: {
-      recommended: "Shows what drives the candidate and what kind of work environment supports performance and retention.",
-      optional: "Add Motivation if you want to understand what will keep the candidate engaged and performing over time."
-    },
-    verbal: {
-      recommended: "Adds insight into how the candidate understands, interprets and communicates written information.",
-      optional: "Add Verbal if the role requires reading, interpreting or communicating complex written information."
-    },
-    logical: {
-      recommended: "Adds insight into problem-solving, structure and analytical thinking relevant to the role.",
-      optional: "Add Logical if the role requires problem-solving, structure, analysis or complex decision-making."
-    },
-    numerical: {
-      recommended: "Adds insight into how the candidate handles numbers, data, finance, reporting or analysis.",
-      optional: "Add Numerical if the role involves numbers, data, finance, reporting, KPIs or analysis."
-    }
-  },
 
   internal_role_match: {
     personality: {
@@ -1034,7 +1034,9 @@
       recommended: "Adds insight into working with numbers, data and reports.",
       optional: "Add Numerical if numbers, data, reports or KPIs are relevant."
     }
+    
   }
+  
 };
 
 function updateTestGuidance() {
@@ -1066,7 +1068,11 @@ function updateTestGuidance() {
   });
 }
 
-    let currentStep = 1;
+    const initialStepElement = document.getElementById("wizardInitialStep");
+
+let currentStep = initialStepElement
+  ? Number(JSON.parse(initialStepElement.textContent))
+  : 1;
 
     const panels = document.querySelectorAll(".wizard-panel");
     const indicators = document.querySelectorAll(".wizard-progress-step");
@@ -1268,8 +1274,18 @@ testInputs.forEach((input) => {
 updateTestGuidance();
 updateSummary();
 updateSuggestedName();
-showStep(1);
+showStep(currentStep);
   });
+</script>
+
+<script id="wizardInitialStep" type="application/json">
+  {% if form.selected_tests.errors %}
+    2
+  {% elif form.name.errors or form.labels_text.errors %}
+    3
+  {% else %}
+    1
+  {% endif %}
 </script>
 
 {% endblock %}
