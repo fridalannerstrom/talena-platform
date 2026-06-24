@@ -7,6 +7,25 @@ import re
 
 InsightMode = Literal["general", "context"]
 
+# Indicators that may be highly significant, but where a high score
+# should not automatically be presented as a strength.
+DOUBLE_EDGED_INDICATORS = {
+    "stubborn",
+    "rigid",
+    "casual",
+    "dramatic",
+    "unpredictable",
+    "dependent",
+    "dependence",
+    "vulnerability",
+    "over sensitive",
+    "over-sensitive",
+    "volatility",
+    "impulsiveness",
+    "hesitant",
+    "detached",
+}
+
 
 INSIGHT_THEMES = {
     "structured_delivery": {
@@ -21,7 +40,13 @@ INSIGHT_THEMES = {
             "attention to detail",
             "task focus",
             "keeping promises",
+            "meticulous",
+            "structured",
+            "order",
+            "perfectionism",
         },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
         "strength_body": (
             "The candidate may bring structure, accuracy and dependable "
             "follow-through to their work."
@@ -39,6 +64,7 @@ INSIGHT_THEMES = {
             "or responsibility for recurring delivery."
         ),
     },
+
     "analytical_problem_solving": {
         "title": "Analytical problem solving",
         "indicator_keys": {
@@ -46,50 +72,184 @@ INSIGHT_THEMES = {
             "analytical",
             "analysing problems",
             "analyzing problems",
-            "complex thinking",
+            "analytical orientation",
+            "analytical approach",
+            "analyst",
             "evaluating",
+            "using the facts",
+            "data focus",
             "logical reasoning",
             "numerical reasoning",
             "verbal reasoning",
-            "data focus",
         },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
         "strength_body": (
-            "The candidate may be comfortable working with information, "
-            "patterns and conclusions."
+            "The candidate may be comfortable examining information, "
+            "identifying patterns and reaching evidence-based conclusions."
         ),
         "strength_show": (
-            "May compare alternatives, identify patterns and use evidence "
-            "to support decisions."
+            "May compare alternatives, question assumptions and use relevant "
+            "information to support decisions."
         ),
         "explore_body": (
             "It may be useful to explore how confidently the candidate works "
-            "with complex information and reaches sound conclusions."
+            "with information and reaches sound conclusions."
         ),
         "explore_through": (
             "Ask for an example of analysing a difficult problem and explain "
             "how the conclusion was reached."
         ),
     },
+
+    "strategic_complex_thinking": {
+        "title": "Strategic and complex thinking",
+        "indicator_keys": {
+            "strategic thinking",
+            "strategic insight",
+            "strategic focus",
+            "complex thinking",
+            "conceptual",
+            "architect",
+            "creates the vision",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may be comfortable considering broader patterns, "
+            "longer-term implications and complex information."
+        ),
+        "strength_show": (
+            "May connect different pieces of information, consider several "
+            "perspectives and think beyond immediate operational details."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate translates "
+            "strategic thinking into practical action."
+        ),
+        "explore_through": (
+            "Ask for an example of turning a complex issue into a clear "
+            "decision or course of action."
+        ),
+    },
+
+    "innovation_originality": {
+        "title": "Innovation and original thinking",
+        "indicator_keys": {
+            "innovating",
+            "innovation",
+            "thinking innovatively",
+            "creativity",
+            "generating ideas",
+            "generates solutions",
+            "unconventional",
+            "curiosity",
+            "experimenting",
+            "catalyst",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may contribute original perspectives and be open "
+            "to alternative ways of approaching challenges."
+        ),
+        "strength_show": (
+            "May question established approaches, explore possibilities and "
+            "suggest new ways forward."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate balances original "
+            "thinking with practical requirements."
+        ),
+        "explore_through": (
+            "Ask for an example where the candidate introduced a new approach "
+            "and evaluated whether it would work."
+        ),
+    },
+
+    "learning_orientation": {
+        "title": "Learning orientation",
+        "indicator_keys": {
+            "learning mindset",
+            "curiosity",
+            "inquisitiveness",
+            "openness to experience",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may show an active interest in learning, developing "
+            "their knowledge and understanding unfamiliar topics."
+        ),
+        "strength_show": (
+            "May seek information, ask questions and engage actively with "
+            "new knowledge or experiences."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate develops and "
+            "applies new knowledge."
+        ),
+        "explore_through": (
+            "Ask about something the candidate recently needed to learn and "
+            "how they approached it."
+        ),
+    },
+
+    "network_building": {
+        "title": "Network building",
+        "indicator_keys": {
+            "building networks",
+            "building strong networks",
+            "connecting",
+            "connector",
+            "builds alliances",
+            "keeping in touch",
+            "initiating contact",
+            "sociability",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may be comfortable establishing and maintaining "
+            "useful professional relationships."
+        ),
+        "strength_show": (
+            "May connect with relevant people and develop relationships "
+            "across teams or professional networks."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate establishes and "
+            "maintains professional relationships."
+        ),
+        "explore_through": (
+            "Ask for an example of building a relationship that supported "
+            "a work-related outcome."
+        ),
+    },
+
     "collaboration": {
         "title": "Collaborative working style",
         "indicator_keys": {
             "teamwork",
             "cooperative",
             "cooperation",
+            "collective",
             "listening",
             "empathy",
             "helpfulness",
             "supporting",
-            "sociability",
+            "service focus",
             "open communication",
+            "builds alliances",
         },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
         "strength_body": (
             "The candidate may contribute positively to collaboration and "
-            "working relationships."
+            "shared ways of working."
         ),
         "strength_show": (
-            "May listen, support colleagues and adapt their contribution to "
-            "shared goals."
+            "May listen, support colleagues and contribute toward shared goals."
         ),
         "explore_body": (
             "It may be useful to explore how the candidate collaborates with "
@@ -97,23 +257,66 @@ INSIGHT_THEMES = {
         ),
         "explore_through": (
             "Ask about a situation involving disagreement, feedback or the "
-            "need to build cooperation."
+            "need to establish cooperation."
         ),
     },
-    "adaptability_and_pressure": {
+
+    "supporting_others": {
+        "title": "Supporting and developing others",
+        "indicator_keys": {
+            "developing others",
+            "nurtures talent",
+            "coaching and developing",
+            "coaching developing",
+            "supporting",
+            "helpfulness",
+            "compassion",
+            "altruism",
+            "looking out for others",
+            "considerate",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may be motivated to support others and contribute "
+            "to their development or wellbeing."
+        ),
+        "strength_show": (
+            "May offer support, share knowledge and take an interest in the "
+            "needs or development of colleagues."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate supports and "
+            "develops others in practice."
+        ),
+        "explore_through": (
+            "Ask for an example of helping another person improve, learn or "
+            "manage a difficult situation."
+        ),
+    },
+
+    "adaptability_pressure": {
         "title": "Adaptability under pressure",
         "indicator_keys": {
             "adaptability",
             "adapting to change",
+            "openness to change",
+            "change oriented",
+            "dealing with the changes",
             "flexible",
+            "flexibility",
             "variety",
             "resilience",
+            "recovering",
+            "staying strong",
             "emotional control",
             "controlling stress",
             "calm",
             "composed",
             "optimistic",
         },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
         "strength_body": (
             "The candidate may remain adaptable and composed when demands "
             "or circumstances change."
@@ -131,35 +334,171 @@ INSIGHT_THEMES = {
             "changing demands at once."
         ),
     },
-    "drive_and_ownership": {
+
+    "drive_ownership": {
         "title": "Drive and ownership",
         "indicator_keys": {
             "achievement",
+            "achievement striving",
+            "drive to achieve",
+            "drive and motivation",
             "goal focused",
             "competitive",
             "challenge",
-            "autonomy",
             "independence",
             "self reliant",
             "thinking independently",
-            "desire to lead",
-            "assertive",
+            "entrepreneurial",
+            "drives momentum",
         },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
         "strength_body": (
-            "The candidate may show ownership, personal drive and a willingness "
-            "to take responsibility."
+            "The candidate may show personal drive, initiative and a "
+            "willingness to take responsibility for outcomes."
         ),
         "strength_show": (
-            "May work independently, pursue goals and take responsibility for "
-            "defined outcomes."
+            "May pursue objectives, act independently and maintain ownership "
+            "of agreed responsibilities."
         ),
         "explore_body": (
-            "It may be useful to explore how the candidate takes ownership, "
-            "maintains drive and acts independently."
+            "It may be useful to explore how the candidate takes ownership "
+            "and maintains momentum."
         ),
         "explore_through": (
-            "Ask about a situation where they had to take initiative without "
-            "detailed guidance."
+            "Ask about a situation where they needed to take initiative "
+            "without detailed guidance."
+        ),
+    },
+
+    "leadership_influence": {
+        "title": "Leadership and influence",
+        "indicator_keys": {
+            "desire to lead",
+            "taking the lead",
+            "leading and influencing",
+            "leads by example",
+            "director",
+            "assertive",
+            "assertiveness",
+            "persuading",
+            "influential",
+            "influencing",
+            "inspiring others",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may be comfortable influencing direction, "
+            "expressing a position and taking a visible role."
+        ),
+        "strength_show": (
+            "May communicate a clear point of view, influence others and "
+            "step forward when direction is needed."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate influences others "
+            "and adapts their leadership approach."
+        ),
+        "explore_through": (
+            "Ask for an example of gaining support for an idea or providing "
+            "direction to others."
+        ),
+    },
+
+    "communication_engagement": {
+        "title": "Communication and engagement",
+        "indicator_keys": {
+            "effective communication",
+            "open communication",
+            "candid",
+            "straightforward",
+            "enthusiastic",
+            "warmth",
+            "initiating contact",
+            "sociability",
+            "connecting",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may communicate with energy and engage readily "
+            "with other people."
+        ),
+        "strength_show": (
+            "May express ideas openly, create engagement and establish contact "
+            "with others."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate adjusts their "
+            "communication to different audiences."
+        ),
+        "explore_through": (
+            "Ask for an example of communicating a difficult message or "
+            "engaging an initially unreceptive audience."
+        ),
+    },
+
+    "integrity_sincerity": {
+        "title": "Integrity and sincerity",
+        "indicator_keys": {
+            "honesty",
+            "earnest",
+            "straightforward",
+            "candid",
+            "modest",
+            "modesty",
+            "humility",
+            "humble",
+            "being open and modest",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may value honesty, sincerity and an open approach "
+            "in their interactions."
+        ),
+        "strength_show": (
+            "May communicate sincerely, avoid unnecessary self-promotion and "
+            "seek to behave consistently with stated values."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate handles situations "
+            "where openness and diplomacy need to be balanced."
+        ),
+        "explore_through": (
+            "Ask about a situation where the candidate needed to communicate "
+            "an uncomfortable truth constructively."
+        ),
+    },
+
+    "energy_momentum": {
+        "title": "Energy and momentum",
+        "indicator_keys": {
+            "energetic",
+            "dynamic",
+            "enthusiastic",
+            "energiser",
+            "drives momentum",
+            "intense",
+            "catalyst",
+        },
+        "minimum_strong": 2,
+        "allow_single_from": 8,
+        "strength_body": (
+            "The candidate may bring energy and momentum to tasks, discussions "
+            "or collaborative activity."
+        ),
+        "strength_show": (
+            "May create pace, communicate enthusiasm and encourage progress."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate maintains energy "
+            "over longer or less stimulating assignments."
+        ),
+        "explore_through": (
+            "Ask about a lengthy assignment where motivation or momentum was "
+            "difficult to sustain."
         ),
     },
 }
@@ -370,11 +709,12 @@ def normalize_assessment_indicators(
         })
 
     return indicators
-
 def build_evidence_themes(
     indicators: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     strengths: list[dict[str, Any]] = []
+
+    # We will build Areas to explore separately later.
     explore_areas: list[dict[str, Any]] = []
 
     for theme_key, theme in INSIGHT_THEMES.items():
@@ -392,105 +732,104 @@ def build_evidence_themes(
             reverse=True,
         )
 
+        # Only clearly elevated results may support a Key strength.
         strong_indicators = [
             item
             for item in matched
             if item["normalized_score"] >= 7
         ]
 
-        lower_indicators = [
+        # Key strengths must be anchored in personality data.
+        # Double-edged indicators are excluded from automatic strengths.
+        strong_personality_indicators = [
             item
-            for item in matched
-            if item["normalized_score"] <= 4
+            for item in strong_indicators
+            if (
+                item.get("source") == "personality"
+                and item.get("key") not in DOUBLE_EDGED_INDICATORS
+            )
         ]
 
-        if strong_indicators:
-            selected = strong_indicators[:4]
+        minimum_strong = theme.get(
+            "minimum_strong",
+            2,
+        )
 
-            level = round(
-                sum(
-                    item["normalized_score"]
-                    for item in selected
-                ) / len(selected),
-                1,
-            )
+        allow_single_from = theme.get(
+            "allow_single_from",
+            8,
+        )
 
-            level_label = (
-                "Very strong evidence"
-                if level >= 8.5
-                else "Strong evidence"
-                if level >= 7
-                else "Moderate evidence"
-            )
+        has_multiple_strong_indicators = (
+            len(strong_personality_indicators)
+            >= minimum_strong
+        )
 
+        has_one_very_strong_indicator = (
+            len(strong_personality_indicators) == 1
+            and strong_personality_indicators[0][
+                "normalized_score"
+            ] >= allow_single_from
+        )
+
+        is_supported_strength = (
+            has_multiple_strong_indicators
+            or has_one_very_strong_indicator
+        )
+
+        if not is_supported_strength:
+            continue
+
+        selected = strong_personality_indicators[:4]
+
+        level = round(
+            sum(
+                item["normalized_score"]
+                for item in selected
+            ) / len(selected),
+            1,
+        )
+
+        if level >= 8.5:
+            level_label = "Very strong evidence"
+        elif level >= 7:
+            level_label = "Strong evidence"
+        else:
+            level_label = "Moderate evidence"
+
+        if len(selected) == 1:
             explanation = (
-                f"This theme was identified from "
-                f"{len(selected)} supporting assessment indicator"
-                f"{'s' if len(selected) != 1 else ''}. "
-                f"Only clearly elevated results were used."
+                "This theme was identified from one particularly "
+                "elevated personality result. The displayed level "
+                "is a visual summary, not a separate assessment score."
             )
-
-            strengths.append({
-                "theme_key": theme_key,
-                "title": theme["title"],
-                "body": theme["strength_body"],
-                "how_it_may_show": theme["strength_show"],
-                "why_it_matters": (
-                    "This theme may be relevant where the process requires "
-                    "these behaviours or capabilities."
-                ),
-                "level": level,
-                "level_rounded": round(level),
-                "level_label": level_label,
-                "explanation": explanation,
-                "supporting_indicators": selected,
-                "evidence": [
-                    item["name"]
-                    for item in selected
-                ],
-            })
-
-        if lower_indicators:
-            selected = sorted(
-                lower_indicators,
-                key=lambda item: item["normalized_score"],
-            )[:4]
-
-            level = round(
-                sum(
-                    item["normalized_score"]
-                    for item in selected
-                ) / len(selected),
-                1,
-            )
-
+        else:
             explanation = (
-                f"This theme was selected because "
-                f"{len(selected)} assessment indicator"
-                f"{'s were' if len(selected) != 1 else ' was'} "
-                f"in the lower part of the relevant scale. "
-                f"It should be explored, not treated as a confirmed weakness."
+                f"This theme was identified from {len(selected)} "
+                f"clearly elevated personality results. The displayed "
+                f"level is their combined visual level, not a separate "
+                f"assessment score."
             )
 
-            explore_areas.append({
-                "theme_key": theme_key,
-                "title": theme["title"],
-                "body": theme["explore_body"],
-                "explore_through": theme["explore_through"],
-                "what_to_listen_for": (
-                    "Listen for context, self-awareness and practical "
-                    "strategies the candidate uses to adapt."
-                ),
-                "level": level,
-                "level_rounded": round(level),
-                "level_label": "Explore further",
-                "explanation": explanation,
-                "supporting_indicators": selected,
-                "evidence": [
-                    item["name"]
-                    for item in selected
-                ],
-            })
+        strengths.append({
+            "theme_key": theme_key,
+            "title": theme["title"],
+            "body": theme["strength_body"],
+            "how_it_may_show": theme["strength_show"],
+            "why_it_matters": (
+                "This theme may be relevant where the process requires "
+                "these behaviours or capabilities."
+            ),
+            "level": level,
+            "level_rounded": round(level),
+            "level_label": level_label,
+            "explanation": explanation,
+            "supporting_indicators": selected,
+            "evidence": [
+                item["name"]
+                for item in selected
+            ],
+        })
 
     strengths.sort(
         key=lambda item: (
@@ -500,14 +839,8 @@ def build_evidence_themes(
         reverse=True,
     )
 
-    explore_areas.sort(
-        key=lambda item: (
-            item["level"],
-            -len(item["supporting_indicators"]),
-        ),
-    )
+    return strengths[:4], explore_areas
 
-    return strengths[:4], explore_areas[:4]
 
 def build_candidate_insights(
     *,
@@ -529,9 +862,27 @@ def build_candidate_insights(
         general_insight_input
     )
 
-    evidence_strengths, evidence_explore_areas = (
-        build_evidence_themes(assessment_indicators)
+    has_personality_indicators = any(
+        indicator.get("source") == "personality"
+        for indicator in assessment_indicators
     )
+
+    if has_personality_indicators:
+        evidence_strengths, evidence_explore_areas = (
+            build_evidence_themes(assessment_indicators)
+        )
+    else:
+        evidence_strengths = []
+        evidence_explore_areas = []
+
+    if has_personality_indicators:
+        evidence_strengths, _ = build_evidence_themes(
+            assessment_indicators
+        )
+    else:
+        evidence_strengths = []
+
+    evidence_explore_areas = []
 
     if candidate_insights_mode == "context":
         candidate_insights = {
@@ -817,66 +1168,8 @@ def build_candidate_insights(
                     "indicators. Some areas should be explored further before making a decision."
                 ),
             },
-                "key_strengths": [
-                    {
-                        "title": "Structured approach",
-                        "body": "Likely to value clarity, order and follow-through in work situations.",
-                        "how_it_may_show": "May create structure, keep track of details and prefer clear expectations before moving into action.",
-                        "why_it_matters": "This can support consistency, planning and dependable delivery in day-to-day work.",
-                        "evidence": ["Reliability", "Planning", "Task focus"],
-                    },
-                    {
-                        "title": "Analytical problem solving",
-                        "body": "May be comfortable working with information, patterns and conclusions.",
-                        "how_it_may_show": "May identify patterns, compare options and use information to support decisions.",
-                        "why_it_matters": "This can support work that requires prioritisation, judgement and problem-solving.",
-                        "evidence": ["Analytical Thinking", "Logical reasoning"],
-                    },
-                    {
-                        "title": "Reliable ownership",
-                        "body": "May take commitments seriously and show a preference for doing things properly.",
-                        "how_it_may_show": "May follow through on agreed responsibilities and aim to deliver work to a consistent standard.",
-                        "why_it_matters": "This can be useful where trust, accountability and reliable execution are important.",
-                        "evidence": ["Quality Focus", "Self-discipline"],
-                    },
-                    {
-                        "title": "Thoughtful decision-making",
-                        "body": "May prefer to consider information carefully before reaching conclusions.",
-                        "how_it_may_show": "May ask clarifying questions, weigh alternatives and avoid rushing decisions without enough information.",
-                        "why_it_matters": "This can support sound judgement, especially in situations where decisions have practical consequences.",
-                        "evidence": ["Analytical Thinking", "Complex Thinking"],
-                    },
-                ],
-            "areas_to_explore": [
-                {
-                    "title": "Stakeholder influence",
-                    "body": "It may be useful to understand how the candidate communicates ideas, gains buy-in and handles situations where others have different views.",
-                    "explore_through": "Ask about a time when they needed to influence a decision or create agreement without having full authority.",
-                    "what_to_listen_for": "Look for clarity, confidence, listening, adaptability and ability to connect their message to others’ needs.",
-                    "evidence": ["Influencing", "Communication"],
-                },
-                {
-                    "title": "Pace under ambiguity",
-                    "body": "It may be useful to explore how the candidate handles situations where information is incomplete, priorities change or decisions need to be made quickly.",
-                    "explore_through": "Ask about a situation where they had to move forward without having all the information they wanted.",
-                    "what_to_listen_for": "Look for how they balance careful thinking with practical action, and whether they can adjust when conditions change.",
-                    "evidence": ["Adaptability", "Decision-making"],
-                },
-                {
-                    "title": "Collaboration style",
-                    "body": "It may be useful to understand what type of collaboration helps the candidate perform at their best, especially in teams with different working styles.",
-                    "explore_through": "Ask what they need from colleagues and managers to collaborate well, and what others usually appreciate about working with them.",
-                    "what_to_listen_for": "Look for self-awareness, openness to feedback and ability to adapt communication to different people.",
-                    "evidence": ["Teamwork", "Listening"],
-                },
-                {
-                    "title": "Energy and motivation fit",
-                    "body": "It may be useful to explore what gives the candidate energy at work and which conditions may reduce engagement over time.",
-                    "explore_through": "Ask what types of tasks, environments or goals tend to bring out their best contribution.",
-                    "what_to_listen_for": "Look for alignment between the person’s drivers and the realities of the role, team or development context.",
-                    "evidence": ["Motivation", "Work preferences"],
-                },
-            ],
+                "key_strengths": evidence_strengths,
+            "areas_to_explore": evidence_explore_areas,
             "questions": [
                 {
                     "question": "Tell me about a time when you used analysis to influence a decision.",
