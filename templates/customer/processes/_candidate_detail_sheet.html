@@ -1080,74 +1080,188 @@
   </section>
 {% endif %}
 <!-- /KEY STRENGTHS -->
- 
 
-        <!-- AREAS TO EXPLORE -->
-        {% if candidate_insights.areas_to_explore %}
-          <section class="card mb-4 areas-explore-card">
-            <div class="card-header areas-explore-header bg-white">
-              <div>
-                <div class="areas-explore-kicker">Candidate Insights</div>
-                <h2 class="areas-explore-title">Areas to explore</h2>
-                <p class="areas-explore-intro">
-                  {% if report_mode == "context" %}
-                    Themes to validate in relation to this process context.
-                  {% else %}
-                    Themes where additional context may support a more complete interpretation.
+
+ <!-- AREAS TO EXPLORE -->
+{% if candidate_insights.areas_to_explore %}
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
+
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+          <div class="insight-summary-kicker">
+            Candidate Insights
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Areas to explore
+          </h2>
+
+          <div class="text-muted small">
+            Topics suggested by the assessment results that may be useful
+            to explore further in interview or follow-up conversations.
+          </div>
+        </div>
+      </div>
+
+      <div class="key-strengths-grid">
+
+        {% for area in candidate_insights.areas_to_explore|slice:":4" %}
+          <article class="key-strength-card">
+
+            <div class="key-strength-card__top">
+              <div class="key-strength-card__heading">
+
+                <div class="key-strength-card__content">
+                  <h3 class="key-strength-card__title">
+                    {{ area.title }}
+                  </h3>
+
+                  {% if area.body %}
+                    <p class="key-strength-card__body">
+                      {{ area.body }}
+                    </p>
                   {% endif %}
-                </p>
-              </div>
-            </div>
+                </div>
 
-            <div class="card-body">
-              <div class="areas-explore-grid">
-                {% for area in candidate_insights.areas_to_explore|slice:":4" %}
-                  <article class="area-explore-card">
-                    <div class="area-explore-card__top">
-                      <div class="area-explore-icon">
-                        <i data-feather="help-circle"></i>
+                {% if area.level_rounded %}
+                  <div
+                    class="strength-score"
+                    aria-label="Exploration priority {{ area.level_rounded }} out of 10"
+                  >
+                    <div class="d-flex align-items-center justify-content-end gap-1">
+
+                      <div class="strength-score__value">
+                        {{ area.level_rounded }}<span>/10</span>
                       </div>
 
-                      <div>
-                        <h3 class="area-explore-card__title">{{ area.title }}</h3>
-                        {% if area.body %}
-                          <p class="area-explore-card__body">{{ area.body }}</p>
-                        {% endif %}
-                      </div>
+                      {% if area.explanation %}
+                        <button
+                          type="button"
+                          class="insight-evidence-info"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="{{ area.explanation }}"
+                          aria-label="Why this area was identified"
+                        >
+                          <i data-feather="info"></i>
+                        </button>
+                      {% endif %}
+
                     </div>
 
-                    {% if area.explore_through or area.what_to_listen_for %}
-                      <div class="area-explore-detail-list">
-                        {% if area.explore_through %}
-                          <div class="area-explore-detail">
-                            <div class="area-explore-detail__label">Explore through</div>
-                            <div class="area-explore-detail__text">{{ area.explore_through }}</div>
-                          </div>
-                        {% endif %}
+                    <div class="strength-score__dots" aria-hidden="true">
+                      {% for number in "1234567890" %}
+                        <span
+                          class="strength-score__dot
+                            {% if forloop.counter <= area.level_rounded %}
+                              is-active
+                            {% endif %}
+                          "
+                        ></span>
+                      {% endfor %}
+                    </div>
 
-                        {% if area.what_to_listen_for %}
-                          <div class="area-explore-detail">
-                            <div class="area-explore-detail__label">What to listen for</div>
-                            <div class="area-explore-detail__text">{{ area.what_to_listen_for }}</div>
-                          </div>
-                        {% endif %}
+                    {% if area.level_label %}
+                      <div class="strength-score__label">
+                        {{ area.level_label }}
                       </div>
                     {% endif %}
+                  </div>
+                {% endif %}
 
-                    {% if area.evidence %}
-                      <div class="area-explore-tags">
-                        {% for item in area.evidence %}
-                          <span class="area-explore-tag">{{ item }}</span>
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                  </article>
-                {% endfor %}
               </div>
             </div>
-          </section>
-        {% endif %}
-        <!-- /AREAS TO EXPLORE -->
+
+            {% if area.explore_through %}
+              <div class="key-strength-detail-list">
+                <div class="key-strength-detail">
+                  <div class="key-strength-detail__label">
+                    Explore through
+                  </div>
+
+                  <div class="key-strength-detail__text">
+                    {{ area.explore_through }}
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            {% if area.what_to_listen_for %}
+              <div class="key-strength-detail">
+                <div class="key-strength-detail__label">
+                  What to listen for
+                </div>
+
+                <div class="key-strength-detail__text">
+                  {{ area.what_to_listen_for }}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if area.supporting_indicators %}
+              <div class="strength-evidence-section">
+
+                <div class="strength-evidence-section__title">
+                  Supporting assessment indicators
+                </div>
+
+                <div class="strength-indicator-list">
+                  {% for indicator in area.supporting_indicators %}
+                    <div class="strength-indicator">
+
+                      <div class="strength-indicator__main">
+                        <div class="strength-indicator__name">
+                          {{ indicator.name }}
+                        </div>
+
+                        <div class="strength-indicator__source">
+                          {{ indicator.source_label }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="strength-indicator__score"
+                        {% if indicator.tooltip %}
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="{{ indicator.tooltip }}"
+                        {% endif %}
+                      >
+                        {{ indicator.display_score }}
+                      </div>
+
+                    </div>
+                  {% endfor %}
+                </div>
+
+              </div>
+
+            {% elif area.evidence %}
+              <div class="key-strength-evidence">
+                {% for item in area.evidence %}
+                  <span class="key-strength-evidence-pill">
+                    {{ item }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+      <div class="small text-muted border-top pt-3 mt-4">
+        These areas are hypotheses to explore, not confirmed weaknesses.
+        They should be considered together with interview evidence and other
+        relevant information.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /AREAS TO EXPLORE -->
 
         <!-- MOTIVATION & ENVIRONMENT -->
         {% if candidate_insights.motivation_environment %}

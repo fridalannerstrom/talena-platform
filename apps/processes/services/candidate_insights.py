@@ -26,6 +26,133 @@ DOUBLE_EDGED_INDICATORS = {
     "detached",
 }
 
+EXPLORE_COMBINATION_RULES = {
+    "flexibility_when_challenged": {
+        "title": "Flexibility when challenged",
+        "high_any": {
+            "stubborn",
+            "rigid",
+        },
+        "low_any": {
+            "flexibility",
+            "flexible",
+            "adaptability",
+            "adapting to change",
+            "openness to change",
+            "change oriented",
+            "dealing with the changes",
+        },
+        "high_threshold": 8,
+        "low_threshold": 4,
+        "body": (
+            "The candidate may show strong persistence and conviction, "
+            "but could find it difficult to reconsider an established "
+            "position or adapt quickly when circumstances change."
+        ),
+        "explore_through": (
+            "Ask about a situation where the candidate needed to abandon "
+            "an original plan, accept another person’s approach or adjust "
+            "quickly to unexpected change."
+        ),
+        "what_to_listen_for": (
+            "Listen for self-awareness, openness to new information and "
+            "practical strategies for adapting without losing determination."
+        ),
+    },
+
+    "structure_and_follow_through": {
+        "title": "Structure and follow-through",
+        "high_any": {
+            "casual",
+        },
+        "low_any": {
+            "self discipline",
+            "keeping promises",
+            "attention to detail",
+            "meticulous",
+            "order",
+            "structured",
+            "planning and organising",
+            "planning and organizing",
+        },
+        "high_threshold": 8,
+        "low_threshold": 4,
+        "body": (
+            "The candidate may prefer an informal or flexible approach, "
+            "which could make consistent structure and detailed follow-through "
+            "more demanding in some situations."
+        ),
+        "explore_through": (
+            "Ask for an example involving detailed planning, recurring "
+            "deadlines or responsibility for completing precise work."
+        ),
+        "what_to_listen_for": (
+            "Listen for practical systems, checking routines and examples "
+            "of maintaining reliability over time."
+        ),
+    },
+
+    "independence_and_reassurance": {
+        "title": "Independent decision-making",
+        "high_any": {
+            "dependent",
+            "dependence",
+        },
+        "low_any": {
+            "independence",
+            "self reliant",
+            "thinking independently",
+        },
+        "high_threshold": 7,
+        "low_threshold": 4,
+        "body": (
+            "The candidate may value guidance, reassurance or close alignment "
+            "with others when making decisions."
+        ),
+        "explore_through": (
+            "Ask about a situation where the candidate needed to make an "
+            "important decision without immediate support or detailed guidance."
+        ),
+        "what_to_listen_for": (
+            "Listen for confidence in personal judgement, appropriate use "
+            "of support and the ability to act independently when required."
+        ),
+    },
+
+    "emotional_response_under_pressure": {
+        "title": "Emotional response under pressure",
+        "high_any": {
+            "vulnerability",
+            "over sensitive",
+            "over-sensitive",
+            "volatility",
+        },
+        "low_any": {
+            "emotional control",
+            "controlling stress",
+            "calm",
+            "composed",
+            "recovering",
+            "resilience",
+        },
+        "high_threshold": 7,
+        "low_threshold": 4,
+        "body": (
+            "The candidate may experience demanding or uncertain situations "
+            "more intensely and may need effective strategies for maintaining "
+            "balance under pressure."
+        ),
+        "explore_through": (
+            "Ask about a demanding period involving criticism, uncertainty "
+            "or sustained pressure and how the candidate managed it."
+        ),
+        "what_to_listen_for": (
+            "Listen for emotional self-awareness, recovery strategies and "
+            "the ability to continue functioning effectively under pressure."
+        ),
+    },
+}
+
 
 INSIGHT_THEMES = {
     "structured_delivery": {
@@ -709,6 +836,213 @@ def normalize_assessment_indicators(
         })
 
     return indicators
+
+def build_combination_explore_areas(
+    indicators: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    explore_areas: list[dict[str, Any]] = []
+
+    personality_indicators = [
+        item
+        for item in indicators
+        if item.get("source") == "personality"
+    ]
+
+    for rule_key, rule in EXPLORE_COMBINATION_RULES.items():
+        high_matches = [
+            item
+            for item in personality_indicators
+            if (
+                item.get("key") in rule["high_any"]
+                and item["normalized_score"]
+                >= rule.get("high_threshold", 8)
+            )
+        ]
+
+        low_matches = [
+            item
+            for item in personality_indicators
+            if (
+                item.get("key") in rule["low_any"]
+                and item["normalized_score"]
+                <= rule.get("low_threshold", 4)
+            )
+        ]
+
+        if not high_matches or not low_matches:
+            continue
+
+        high_matches.sort(
+            key=lambda item: item["normalized_score"],
+            reverse=True,
+        )
+
+        low_matches.sort(
+            key=lambda item: item["normalized_score"],
+        )
+
+        selected = (
+            high_matches[:2]
+            + low_matches[:3]
+        )
+
+        high_strength = max(
+            item["normalized_score"]
+            for item in high_matches
+        )
+
+        low_strength = max(
+            1,
+            11 - min(
+                item["normalized_score"]
+                for item in low_matches
+            ),
+        )
+
+        level = round(
+            (high_strength + low_strength) / 2,
+            1,
+        )
+
+        explanation = (
+            "This area was identified from a combination of one or more "
+            "elevated double-edged indicators and related lower assessment "
+            "results. It is intended as a topic to verify, not a confirmed "
+            "weakness."
+        )
+
+        explore_areas.append({
+            "theme_key": rule_key,
+            "title": rule["title"],
+            "body": rule["body"],
+            "explore_through": rule["explore_through"],
+            "what_to_listen_for": rule["what_to_listen_for"],
+            "level": level,
+            "level_rounded": round(level),
+            "level_label": "Priority to explore",
+            "explanation": explanation,
+            "supporting_indicators": selected,
+            "evidence": [
+                item["name"]
+                for item in selected
+            ],
+            "area_type": "combination",
+        })
+
+    return explore_areas
+
+def build_low_score_explore_areas(
+    indicators: list[dict[str, Any]],
+    excluded_theme_keys: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    explore_areas: list[dict[str, Any]] = []
+    excluded_theme_keys = excluded_theme_keys or set()
+
+    for theme_key, theme in INSIGHT_THEMES.items():
+        if theme_key in excluded_theme_keys:
+            continue
+
+        matched = [
+            indicator
+            for indicator in indicators
+            if (
+                indicator.get("source") == "personality"
+                and indicator.get("key")
+                in theme["indicator_keys"]
+            )
+        ]
+
+        if not matched:
+            continue
+
+        lower_indicators = [
+            item
+            for item in matched
+            if item["normalized_score"] <= 4
+        ]
+
+        lower_indicators.sort(
+            key=lambda item: item["normalized_score"],
+        )
+
+        has_multiple_low_indicators = (
+            len(lower_indicators) >= 2
+        )
+
+        has_one_extremely_low_indicator = (
+            len(lower_indicators) == 1
+            and lower_indicators[0]["normalized_score"] <= 2
+        )
+
+        is_supported_explore_area = (
+            has_multiple_low_indicators
+            or has_one_extremely_low_indicator
+        )
+
+        if not is_supported_explore_area:
+            continue
+
+        selected = lower_indicators[:4]
+
+        average_score = (
+            sum(
+                item["normalized_score"]
+                for item in selected
+            )
+            / len(selected)
+        )
+
+        # A lower raw result creates a higher exploration priority.
+        level = round(
+            max(1, min(10, 11 - average_score)),
+            1,
+        )
+
+        if level >= 8.5:
+            level_label = "High priority to explore"
+        elif level >= 7:
+            level_label = "Explore further"
+        else:
+            level_label = "Consider exploring"
+
+        if len(selected) == 1:
+            explanation = (
+                "This area was identified from one particularly low "
+                "personality result. It should be explored and verified, "
+                "not treated as a confirmed weakness."
+            )
+        else:
+            explanation = (
+                f"This area was identified from {len(selected)} related "
+                f"personality results in the lower part of the scale. "
+                f"It should be explored and verified, not treated as a "
+                f"confirmed weakness."
+            )
+
+        explore_areas.append({
+            "theme_key": theme_key,
+            "title": theme["title"],
+            "body": theme["explore_body"],
+            "explore_through": theme["explore_through"],
+            "what_to_listen_for": (
+                "Listen for relevant context, self-awareness and practical "
+                "strategies the candidate uses to manage this area."
+            ),
+            "level": level,
+            "level_rounded": round(level),
+            "level_label": level_label,
+            "explanation": explanation,
+            "supporting_indicators": selected,
+            "evidence": [
+                item["name"]
+                for item in selected
+            ],
+            "area_type": "low_scores",
+        })
+
+    return explore_areas
+
+
 def build_evidence_themes(
     indicators: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -839,8 +1173,44 @@ def build_evidence_themes(
         reverse=True,
     )
 
-    return strengths[:4], explore_areas
+    strength_theme_keys = {
+        item["theme_key"]
+        for item in strengths
+    }
 
+    combination_explore_areas = (
+        build_combination_explore_areas(indicators)
+    )
+
+    combination_theme_keys = {
+        item["theme_key"]
+        for item in combination_explore_areas
+    }
+
+    low_score_explore_areas = (
+        build_low_score_explore_areas(
+            indicators,
+            excluded_theme_keys=(
+                strength_theme_keys
+                | combination_theme_keys
+            ),
+        )
+    )
+
+    explore_areas = (
+        combination_explore_areas
+        + low_score_explore_areas
+    )
+
+    explore_areas.sort(
+        key=lambda item: (
+            item["level"],
+            len(item["supporting_indicators"]),
+        ),
+        reverse=True,
+    )
+
+    return strengths[:4], explore_areas[:4]
 
 def build_candidate_insights(
     *,
@@ -875,14 +1245,6 @@ def build_candidate_insights(
         evidence_strengths = []
         evidence_explore_areas = []
 
-    if has_personality_indicators:
-        evidence_strengths, _ = build_evidence_themes(
-            assessment_indicators
-        )
-    else:
-        evidence_strengths = []
-
-    evidence_explore_areas = []
 
     if candidate_insights_mode == "context":
         candidate_insights = {
@@ -1376,5 +1738,13 @@ def build_candidate_insights(
 
         }
 
+    print(
+        "AREAS TO EXPLORE:",
+        candidate_insights.get("areas_to_explore"),
+        flush=True,
+    )
+
 
     return candidate_insights
+
+

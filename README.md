@@ -468,6 +468,542 @@ It should not be used as:
 
 Assessment results should always be interpreted in context and together with other available information.
 
+---
+
+## Areas to Explore: assessment-based insight logic
+
+The **Areas to Explore** section is designed to identify assessment patterns that may benefit from further investigation in an interview, feedback conversation or development discussion.
+
+The purpose is not to label weaknesses or make fixed conclusions about a candidate. Instead, the system highlights combinations of results that may warrant follow-up and presents them as hypotheses to verify.
+
+The current implementation is deterministic and rule-based. All rules, thresholds and theme mappings can be reviewed and adjusted by behavioural scientists and psychometric specialists.
+
+---
+
+### 1. Purpose of the section
+
+Areas to Explore are intended to help users answer questions such as:
+
+- Which assessment patterns may require additional context?
+- Which topics should be explored through behavioural interview questions?
+- Where might a candidate use compensating strategies?
+- Which results should not be interpreted in isolation?
+- Which patterns may be relevant to role fit, onboarding or development?
+
+An Area to Explore is not:
+
+- a confirmed weakness
+- a diagnosis
+- a prediction of failure
+- a standalone selection decision
+- a substitute for trained interpretation
+
+The wording should remain cautious and exploratory.
+
+Preferred phrases include:
+
+- “may be useful to explore”
+- “could indicate”
+- “may require further context”
+- “should be verified through examples”
+- “may become more demanding in some situations”
+
+---
+
+### 2. Data source
+
+The current Areas to Explore logic is anchored in personality assessment data.
+
+Personality results are used because the section describes broader behavioural tendencies and possible risk patterns.
+
+The current behaviour is:
+
+- Personality only: Areas to Explore can be generated
+- Personality and motivation: Areas to Explore can be generated
+- Personality and cognitive ability: Areas to Explore can be generated
+- Personality, motivation and cognitive ability: Areas to Explore can be generated
+- Motivation only: the section is not shown
+- Cognitive ability only: the section is not shown
+- Motivation and cognitive ability without personality: the section is not shown
+
+Motivation and cognitive results may later be used to add context, but they do not currently create Areas to Explore independently.
+
+---
+
+### 3. Two types of exploration logic
+
+The system currently creates Areas to Explore in two ways:
+
+1. **Combination rules**
+2. **Low-score theme rules**
+
+These two approaches capture different kinds of evidence.
+
+---
+
+## 4. Combination rules
+
+Combination rules identify patterns where:
+
+- one or more double-edged indicators are clearly elevated, and
+- one or more related indicators are clearly low
+
+This allows the system to interpret a result in context rather than treating a single high score as automatically positive or negative.
+
+Example:
+
+```text
+Stubborn: STEN 10
+Flexibility: STEN 2
+Adaptability: STEN 2
+Adapting to Change: STEN 1
+```
+
+This combination may create:
+
+```text
+Flexibility when challenged
+```
+
+The interpretation is not that the candidate is “bad” or “inflexible”. The pattern suggests that strong persistence or conviction may sometimes make it harder to reconsider a position or change direction quickly.
+
+---
+
+### 4.1 Structure of a combination rule
+
+A combination rule contains:
+
+```python
+"flexibility_when_challenged": {
+    "title": "Flexibility when challenged",
+    "high_any": {
+        "stubborn",
+        "rigid",
+    },
+    "low_any": {
+        "flexibility",
+        "adaptability",
+        "adapting to change",
+        "openness to change",
+    },
+    "high_threshold": 8,
+    "low_threshold": 4,
+}
+```
+
+The rule is triggered when:
+
+- at least one indicator in `high_any` reaches the high threshold, and
+- at least one indicator in `low_any` reaches the low threshold
+
+The default interpretation principle is:
+
+```text
+high double-edged indicator + related low indicator = topic to explore
+```
+
+---
+
+### 4.2 Current combination themes
+
+Current examples include:
+
+- Flexibility when challenged
+- Structure and follow-through
+- Independent decision-making
+- Emotional response under pressure
+
+These rules may use patterns such as:
+
+```text
+Stubborn high + Flexibility low
+Casual high + Self-Discipline low
+Dependence high + Independence low
+Vulnerability high + Emotional Control low
+```
+
+---
+
+### 5. Low-score theme rules
+
+The system also identifies Areas to Explore when several related personality indicators are clearly low.
+
+Example:
+
+```text
+Analysing Problems: STEN 1
+Analyst: STEN 2
+Using the Facts: STEN 2
+Analytical Thinking: STEN 3
+```
+
+This may create:
+
+```text
+Analytical problem solving
+```
+
+The result does not prove that the candidate lacks analytical ability. It indicates that the personality assessment provides a pattern worth exploring through examples and other evidence.
+
+---
+
+### 5.1 Thresholds for low-score themes
+
+The current default threshold is:
+
+```text
+Normalised score <= 4
+```
+
+A theme is displayed when either:
+
+1. at least two related indicators are low, or
+2. one indicator is extremely low
+
+The current extremely low threshold is:
+
+```text
+Normalised score <= 2
+```
+
+This allows both broader patterns and unusually strong single signals to be identified.
+
+---
+
+### 6. Double-edged indicators
+
+Some indicators are considered highly significant but unsuitable for automatic interpretation as strengths.
+
+Examples include:
+
+- Stubborn
+- Rigid
+- Casual
+- Dramatic
+- Unpredictable
+- Dependence
+- Vulnerability
+- Volatility
+- Impulsiveness
+- Hesitant
+- Detached
+
+These indicators are stored in a controlled list:
+
+```python
+DOUBLE_EDGED_INDICATORS = {
+    "stubborn",
+    "rigid",
+    "casual",
+    "dramatic",
+    "unpredictable",
+    "dependent",
+    "dependence",
+    "vulnerability",
+    "volatility",
+    "impulsiveness",
+    "hesitant",
+    "detached",
+}
+```
+
+A high value on one of these indicators should not be interpreted alone.
+
+For example:
+
+```text
+Stubborn: STEN 10
+```
+
+may reflect:
+
+- persistence
+- conviction
+- resilience in the face of opposition
+- resistance to influence
+- difficulty reconsidering a position
+- difficulty adapting
+
+The wider profile determines which interpretation is most plausible and what should be explored.
+
+---
+
+### 7. Priority level
+
+Each Area to Explore receives a visual priority level.
+
+For combination rules, the level is based on:
+
+- the strongest elevated double-edged indicator
+- the strongest related low-score signal
+
+For low-score themes, the level is based on the inverse of the average score.
+
+Example:
+
+```text
+Adapting to Change: 1
+Openness to Change: 1
+Adaptability: 2
+```
+
+Average:
+
+```text
+1.3
+```
+
+Visual exploration priority:
+
+```text
+approximately 10/10
+```
+
+This priority level is a UI summary.
+
+It is not:
+
+- a validated psychometric score
+- a probability
+- a diagnosis
+- a prediction of performance
+- an official assessment scale
+
+It should be described as an exploration priority only.
+
+---
+
+### 8. Supporting indicators
+
+Each displayed area includes the assessment indicators that triggered it.
+
+Example:
+
+```text
+Flexibility when challenged
+
+Supporting indicators:
+- Stubborn: STEN 10
+- Adapting to Change: STEN 1
+- Openness to Change: STEN 1
+- Flexibility: STEN 2
+```
+
+This helps users understand:
+
+- why the area was generated
+- which indicators contributed
+- whether the pattern includes high, low or mixed evidence
+- which original scores and scales were used
+
+The system should avoid unexplained conclusions.
+
+---
+
+### 9. Interview guidance
+
+Each Area to Explore includes:
+
+- a description
+- an “Explore through” question
+- a “What to listen for” prompt
+- supporting assessment indicators
+- a tooltip explaining the selection logic
+
+Example:
+
+```text
+Explore through:
+Ask about a situation where the candidate needed to abandon an original plan,
+accept another person’s approach or adjust quickly to unexpected change.
+
+What to listen for:
+Listen for self-awareness, openness to new information and practical strategies
+for adapting without losing determination.
+```
+
+The goal is to turn assessment results into structured follow-up, rather than static labels.
+
+---
+
+### 10. Maximum number of areas
+
+The system currently displays a maximum of four Areas to Explore.
+
+Areas are sorted by:
+
+1. exploration priority
+2. number of supporting indicators
+
+This keeps the report focused on the strongest and most relevant patterns.
+
+---
+
+### 11. Overlap between areas
+
+Some indicators may support more than one Area to Explore.
+
+Example:
+
+```text
+Adapting to Change: STEN 1
+Openness to Change: STEN 1
+Adaptability: STEN 2
+```
+
+may contribute to both:
+
+- Flexibility when challenged
+- Adaptability under pressure
+
+This can be conceptually valid, but excessive overlap may make the report repetitive.
+
+A future implementation should consider:
+
+- prioritising combination rules over generic low-score themes
+- preventing the same indicator from appearing in several similar areas
+- merging closely related areas
+- calculating overlap between themes
+- limiting repeated evidence
+
+---
+
+### 12. Duplicate indicators
+
+Assessment data may contain repeated indicator names.
+
+The current normalisation logic removes exact duplicate names and keeps the first occurrence.
+
+This avoids accidentally counting the same name twice, but it may also hide meaningful differences if repeated names represent:
+
+- different competency frameworks
+- different report sections
+- different source constructs
+- different score interpretations
+
+A future version should use stable indicator IDs instead of relying only on text labels.
+
+---
+
+### 13. Interpretation principles
+
+The Areas to Explore section follows these principles:
+
+1. Low scores are not automatically weaknesses.
+2. High scores are not automatically strengths.
+3. Double-edged traits require contextual interpretation.
+4. Patterns are more useful than isolated results.
+5. Results should be verified through behavioural examples.
+6. Supporting indicators should remain visible.
+7. Original scales should be retained.
+8. Priority levels are descriptive UI summaries only.
+9. Wording should remain probabilistic and cautious.
+10. Human professional judgement remains essential.
+
+---
+
+### 14. Current limitations
+
+The current implementation is an early rule-based version.
+
+Known limitations include:
+
+- Combination rules have not yet been formally validated.
+- Theme mappings have not yet been psychometrically reviewed.
+- Thresholds are configurable but not empirically calibrated.
+- Some indicators may belong to several themes.
+- Similar areas may reuse the same supporting evidence.
+- Duplicate names are handled simplistically.
+- Some constructs may be bipolar or context-dependent.
+- The system does not yet account for norm groups.
+- Cultural and language differences are not yet included.
+- Role context does not yet fully affect prioritisation.
+- Motivation and cognitive results are not yet deeply integrated.
+- Priority scores are not validated composite measures.
+
+---
+
+### 15. Areas for psychometric review
+
+Behavioural scientists and psychometric specialists are invited to review:
+
+#### Combination validity
+
+- Are the high-low combinations conceptually defensible?
+- Are any rules too broad?
+- Are any rules too deterministic?
+- Should more than one high or low indicator be required?
+
+#### Thresholds
+
+- Is STEN 8 appropriate for elevated double-edged indicators?
+- Is STEN 4 appropriate for low supporting evidence?
+- Should STEN 1–2 be treated differently?
+- Should thresholds vary by construct?
+
+#### Direction of interpretation
+
+- Which indicators are problematic when high?
+- Which indicators are problematic when low?
+- Which are genuinely double-edged?
+- Which should only be interpreted together with related constructs?
+
+#### Overlap
+
+- Should the same indicator support several areas?
+- Should combination rules override generic theme rules?
+- Should similar areas be merged automatically?
+
+#### Language
+
+- Are descriptions appropriately cautious?
+- Do the texts distinguish preference, behaviour and capability?
+- Could any wording be interpreted as diagnostic or deterministic?
+
+#### Interview use
+
+- Are the follow-up questions valid and useful?
+- Do “What to listen for” prompts risk confirmation bias?
+- Should prompts also include alternative explanations?
+
+---
+
+### 16. Future development
+
+Planned improvements may include:
+
+- psychometrically reviewed combination rules
+- stable indicator IDs
+- construct-specific thresholds
+- better handling of bipolar traits
+- contradiction detection
+- overlap reduction
+- alternative explanations
+- confidence ratings
+- role-context prioritisation
+- motivation and ability integration
+- automated tests using known assessment profiles
+- rule versioning
+- psychometric review status per theme
+- audit logging of why an area was generated
+
+---
+
+### 17. Important disclaimer
+
+The Areas to Explore section is intended as structured decision support.
+
+It should not be used as:
+
+- a standalone selection decision
+- a diagnosis
+- proof of a weakness
+- a definitive statement about behaviour
+- a replacement for trained interpretation
+- a substitute for interviews, references or other evidence
+
+Assessment results should always be interpreted in context and together with other relevant information.
+
 
 ---
 
