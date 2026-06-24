@@ -343,17 +343,40 @@
         </div>
       {% else %}
 
-        {% if purpose_report and report_mode == "context" %}
-          <div class="card mb-4 purpose-report-hero purpose-report-{{ purpose_report_key|default:report_mode }}">
-            <div class="card-body">
-              <div class="text-muted small mb-1">Report focus</div>
-              <h2 class="h5 mb-2">{{ purpose_report.title }}</h2>
-              {% if purpose_report.intro %}
-                <p class="text-muted mb-0">{{ purpose_report.intro }}</p>
-              {% endif %}
-            </div>
+{% if purpose_report and report_mode == "context" %}
+  <div class="card mb-4 purpose-report-hero purpose-report-{{ purpose_report_key|default:report_mode }}">
+    <div class="card-body">
+
+      <div class="d-flex align-items-start justify-content-between gap-3">
+
+        <div>
+          <div class="text-muted small mb-1">
+            Report focus
           </div>
-        {% endif %}
+
+          <h2 class="h5 mb-2">
+            {{ purpose_report.title }}
+          </h2>
+
+          {% if purpose_report.intro %}
+            <p class="text-muted mb-0">
+              {{ purpose_report.intro }}
+            </p>
+          {% endif %}
+        </div>
+
+        <a
+          href="{% url 'processes:process_update' process.id %}"
+          class="btn btn-sm btn-outline-secondary flex-shrink-0">
+          <i data-feather="settings" class="me-1"></i>
+          Change view
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+{% endif %}
 
 
         <!-- ======================================================
@@ -852,73 +875,212 @@
 {% endif %}
 
 
+<!-- KEY STRENGTHS -->
+{% if candidate_insights.key_strengths %}
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
 
-        <!-- KEY STRENGTHS -->
-        {% if candidate_insights.key_strengths %}
-          <section class="card card-body mb-4 key-strengths-card">
-              <div>
-                <div class="insight-summary-kicker">Candidate Insights</div>
-                <h2 class="insight-summary-title mb-2">Key strengths</h2>
-                <p class="text-muted small">
-                  {% if report_mode == "context" %}
-                    Strengths that appear most relevant to this process context.
-                  {% else %}
-                    The strongest themes identified in the candidate’s assessment profile.
+      <!-- HEADER -->
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+          <div class="insight-summary-kicker">
+            Candidate Insights
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Key strengths
+          </h2>
+
+          <div class="text-muted small">
+            {% if report_mode == "context" %}
+              Strengths supported by elevated assessment results and prioritised for this process context.
+            {% else %}
+              Strengths supported by elevated results across the candidate’s assessment profile.
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- STRENGTH CARDS -->
+      <div class="key-strengths-grid">
+
+        {% for strength in candidate_insights.key_strengths|slice:":4" %}
+          <article class="key-strength-card">
+
+            <!-- TOP -->
+            <div class="key-strength-card__top">
+              <div class="key-strength-card__heading">
+
+                <!-- TITLE + DESCRIPTION -->
+                <div class="key-strength-card__content">
+                  <h3 class="key-strength-card__title">
+                    {{ strength.title }}
+                  </h3>
+
+                  {% if strength.body %}
+                    <p class="key-strength-card__body">
+                      {{ strength.body }}
+                    </p>
                   {% endif %}
-                </p>
-              </div>
+                </div>
 
-            <div class="card-body">
-              <div class="key-strengths-grid">
-                {% for strength in candidate_insights.key_strengths|slice:":4" %}
-                  <article class="key-strength-card">
-                    <div class="key-strength-card__top">
-                      <div class="key-strength-icon">
-                        <i data-feather="check"></i>
+                <!-- COMBINED LEVEL -->
+                {% if strength.level_rounded %}
+                  <div
+                    class="strength-score"
+                    aria-label="Combined evidence level {{ strength.level_rounded }} out of 10"
+                  >
+
+                    <div class="d-flex align-items-center justify-content-end gap-1">
+
+                      <div class="strength-score__value">
+                        {{ strength.level_rounded }}<span>/10</span>
                       </div>
 
-                      <div>
-                        <h3 class="key-strength-card__title">{{ strength.title }}</h3>
-                        {% if strength.body %}
-                          <p class="key-strength-card__body">{{ strength.body }}</p>
-                        {% endif %}
-                      </div>
+                      {% if strength.explanation %}
+                        <button
+                          type="button"
+                          class="insight-evidence-info"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="{{ strength.explanation }}"
+                          aria-label="Why this strength was identified"
+                        >
+                          <i data-feather="info"></i>
+                        </button>
+                      {% endif %}
+
                     </div>
 
-                    {% if strength.how_it_may_show or strength.why_it_matters %}
-                      <div class="key-strength-detail-list">
-                        {% if strength.how_it_may_show %}
-                          <div class="key-strength-detail">
-                            <div class="key-strength-detail__label">How this may show up</div>
-                            <div class="key-strength-detail__text">{{ strength.how_it_may_show }}</div>
-                          </div>
-                        {% endif %}
+                    <div class="strength-score__dots" aria-hidden="true">
+                      {% for number in "1234567890" %}
+                        <span
+                          class="strength-score__dot
+                            {% if forloop.counter <= strength.level_rounded %}
+                              is-active
+                            {% endif %}
+                          "
+                        ></span>
+                      {% endfor %}
+                    </div>
 
-                        {% if strength.why_it_matters %}
-                          <div class="key-strength-detail">
-                            <div class="key-strength-detail__label">
-                              {% if report_mode == "context" %}Why this matters here{% else %}Why this may matter{% endif %}
-                            </div>
-                            <div class="key-strength-detail__text">{{ strength.why_it_matters }}</div>
-                          </div>
-                        {% endif %}
+                    {% if strength.level_label %}
+                      <div class="strength-score__label">
+                        {{ strength.level_label }}
                       </div>
                     {% endif %}
 
-                    {% if strength.evidence %}
-                      <div class="key-strength-evidence">
-                        {% for item in strength.evidence %}
-                          <span class="key-strength-evidence-pill">{{ item }}</span>
-                        {% endfor %}
-                      </div>
-                    {% endif %}
-                  </article>
-                {% endfor %}
+                  </div>
+                {% endif %}
+
               </div>
             </div>
-          </section>
-        {% endif %}
-        <!-- /KEY STRENGTHS -->
+
+            <!-- HOW IT MAY SHOW -->
+            {% if strength.how_it_may_show %}
+              <div class="key-strength-detail-list">
+                <div class="key-strength-detail">
+
+                  <div class="key-strength-detail__label">
+                    How this may show up
+                  </div>
+
+                  <div class="key-strength-detail__text">
+                    {{ strength.how_it_may_show }}
+                  </div>
+
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- WHY IT MATTERS -->
+            {% if strength.why_it_matters %}
+              <div class="key-strength-detail">
+
+                <div class="key-strength-detail__label">
+                  {% if report_mode == "context" %}
+                    Why this matters here
+                  {% else %}
+                    Why this may matter
+                  {% endif %}
+                </div>
+
+                <div class="key-strength-detail__text">
+                  {{ strength.why_it_matters }}
+                </div>
+
+              </div>
+            {% endif %}
+
+            <!-- SUPPORTING INDICATORS -->
+            {% if strength.supporting_indicators %}
+              <div class="strength-evidence-section">
+
+                <div class="strength-evidence-section__title">
+                  Supporting assessment indicators
+                </div>
+
+                <div class="strength-indicator-list">
+
+                  {% for indicator in strength.supporting_indicators %}
+                    <div class="strength-indicator">
+
+                      <div class="strength-indicator__main">
+                        <div class="strength-indicator__name">
+                          {{ indicator.name }}
+                        </div>
+
+                        <div class="strength-indicator__source">
+                          {{ indicator.source_label }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="strength-indicator__score"
+                        {% if indicator.tooltip %}
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="{{ indicator.tooltip }}"
+                        {% endif %}
+                      >
+                        {{ indicator.display_score }}
+                      </div>
+
+                    </div>
+                  {% endfor %}
+
+                </div>
+
+              </div>
+
+            {% elif strength.evidence %}
+
+              <!-- FALLBACK FOR OLD DATA -->
+              <div class="key-strength-evidence">
+                {% for item in strength.evidence %}
+                  <span class="key-strength-evidence-pill">
+                    {{ item }}
+                  </span>
+                {% endfor %}
+              </div>
+
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-top pt-3 mt-4">
+        These themes are based on elevated assessment indicators. The combined level is a visual summary and is not a separate assessment score.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /KEY STRENGTHS -->
+ 
 
         <!-- AREAS TO EXPLORE -->
         {% if candidate_insights.areas_to_explore %}
@@ -1423,9 +1585,240 @@
         {% endif %}
         <!-- /TEMPORARY RAW HISTORICAL DATA -->
 
+        <!-- RAW ASSESSMENT DATA -->
+{% if not is_historical and activities %}
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+          <div class="insight-summary-kicker">
+            Assessment data
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Raw assessment data
+          </h2>
+
+          <div class="text-muted small">
+            Detailed assessment values received from SOVA.
+          </div>
+        </div>
+
+        <span class="badge rounded-pill bg-light text-dark border">
+          {{ activities|length }}
+          assessment{% if activities|length != 1 %}s{% endif %}
+        </span>
+      </div>
+
+      <!-- ASSESSMENT ACCORDION -->
+      <div
+        class="accordion raw-assessment-accordion"
+        id="rawAssessmentAccordion"
+      >
+        {% for activity in activities %}
+          <div class="accordion-item border rounded-3 mb-3">
+
+            <h3
+              class="accordion-header"
+              id="rawAssessmentHeading{{ forloop.counter }}"
+            >
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#rawAssessmentCollapse{{ forloop.counter }}"
+                aria-expanded="false"
+                aria-controls="rawAssessmentCollapse{{ forloop.counter }}"
+              >
+                <div class="w-100 d-flex align-items-center justify-content-between gap-3 pe-3">
+
+                  <div>
+                    <div class="fw-semibold">
+                      {{ activity.activity|default:"Assessment" }}
+                    </div>
+
+                    <div class="small text-muted mt-1">
+                      Status:
+                      {{ activity.status|default:"—"|title }}
+                    </div>
+                  </div>
+
+                  <span class="badge rounded-pill bg-light text-dark border flex-shrink-0">
+                    {{ activity.competencies|length }}
+                    score{% if activity.competencies|length != 1 %}s{% endif %}
+                  </span>
+
+                </div>
+              </button>
+            </h3>
+
+            <div
+              id="rawAssessmentCollapse{{ forloop.counter }}"
+              class="accordion-collapse collapse"
+              aria-labelledby="rawAssessmentHeading{{ forloop.counter }}"
+              data-bs-parent="#rawAssessmentAccordion"
+            >
+              <div class="accordion-body">
+
+                <!-- ASSESSMENT OVERVIEW -->
+                <div class="row g-3 mb-4">
+
+                  <div class="col-sm-6 col-lg-3">
+                    <div class="small text-muted">
+                      Assessment
+                    </div>
+
+                    <div class="fw-semibold">
+                      {{ activity.activity|default:"—" }}
+                    </div>
+                  </div>
+
+                  <div class="col-sm-6 col-lg-3">
+                    <div class="small text-muted">
+                      Status
+                    </div>
+
+                    <div class="fw-semibold text-capitalize">
+                      {{ activity.status|default:"—" }}
+                    </div>
+                  </div>
+
+                  <div class="col-sm-6 col-lg-3">
+                    <div class="small text-muted">
+                      Assessment score
+                    </div>
+
+                    <div class="fw-semibold">
+                      {% if activity.score is not None %}
+                        {{ activity.score|floatformat:1 }}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="col-sm-6 col-lg-3">
+                    <div class="small text-muted">
+                      Competencies
+                    </div>
+
+                    <div class="fw-semibold">
+                      {{ activity.competencies|length }}
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- COMPETENCY SCORES -->
+                {% if activity.competencies %}
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 raw-assessment-table">
+
+                      <thead>
+                        <tr>
+                          <th>Competency</th>
+                          <th>STIVE</th>
+                          <th>STIVE rounded</th>
+                          <th>STEN</th>
+                          <th>STEN rounded</th>
+                          <th>Percentile</th>
+                          <th>Assessment centre</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {% for competency in activity.competencies %}
+                          <tr>
+                            <td>
+                              <span class="fw-semibold">
+                                {{ competency.competency|default:"—" }}
+                              </span>
+                            </td>
+
+                            <td>
+                              {% if competency.stive is not None %}
+                                {{ competency.stive|floatformat:2 }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+
+                            <td>
+                              {% if competency.stive_rounded is not None %}
+                                {{ competency.stive_rounded|floatformat:0 }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+
+                            <td>
+                              {% if competency.sten is not None %}
+                                {{ competency.sten|floatformat:2 }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+
+                            <td>
+                              {% if competency.sten_rounded is not None %}
+                                {{ competency.sten_rounded|floatformat:0 }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+
+                            <td>
+                              {% if competency.percentile is not None %}
+                                {{ competency.percentile|floatformat:0 }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+
+                            <td>
+                              {% if competency.assessment_centre %}
+                                {{ competency.assessment_centre }}
+                              {% else %}
+                                <span class="text-muted">—</span>
+                              {% endif %}
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+
+                    </table>
+                  </div>
+                {% else %}
+                  <div class="text-muted small">
+                    No competency values were included for this assessment.
+                  </div>
+                {% endif %}
+
+              </div>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-top pt-3 mt-4">
+        This section shows the underlying assessment values used to create
+        the candidate insights and reports.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /RAW ASSESSMENT DATA -->
+
       {% endif %}
 
     </div>
+
+    
     <!-- /MAIN CONTENT -->
 
     <!-- SIDEBAR -->
@@ -1640,6 +2033,10 @@ function setStatus(text, type = "neutral") {
         if (outdatedWarning) {
             outdatedWarning.classList.add("d-none");
         }
+
+          if (statusBadge) {
+        statusBadge.classList.add("d-none");
+    }
     }
 
     function renderList(listElement, items, iconName) {
@@ -1694,15 +2091,15 @@ function setStatus(text, type = "neutral") {
 
     function applyStreamEvent(event) {
         switch (event.type) {
-            case "saved_result":
-                applySavedResult(event.data || {});
+case "saved_result":
+    applySavedResult(event.data || {});
 
-                if (event.status === "outdated") {
-                    setStatus("Needs update", "warning");
-                } else {
-                    setStatus("Saved", "success");
-                }
-                break;
+    if (event.status === "outdated") {
+        setStatus("Needs update", "warning");
+    } else {
+        statusBadge.classList.add("d-none");
+    }
+    break;
 
             case "meta":
                 title.textContent =
@@ -1746,11 +2143,11 @@ function setStatus(text, type = "neutral") {
                 contextNote.textContent = event.text || "";
                 break;
 
-            case "done":
-                setStatus("Saved", "success");
-                loading.classList.add("d-none");
-                result.classList.remove("d-none");
-                break;
+case "done":
+    statusBadge.classList.add("d-none");
+    loading.classList.add("d-none");
+    result.classList.remove("d-none");
+    break;
 
             case "error":
                 throw new Error(
@@ -1773,7 +2170,6 @@ function setStatus(text, type = "neutral") {
         loadingText.textContent =
             "Analysing assessment results and process context...";
 
-        setStatus("Generating", "neutral");
 
         refreshButton.disabled = true;
 
@@ -1905,6 +2301,38 @@ function setStatus(text, type = "neutral") {
     refreshIcons();
 });
 
+</script>
+
+<script>
+function initStrengthScores(container = document) {
+    const scoreElements = container.querySelectorAll(
+        "[data-strength-score]"
+    );
+
+    scoreElements.forEach((scoreElement) => {
+        const rawScore = Number(
+            scoreElement.dataset.strengthScore
+        );
+
+        const score = Math.max(
+            0,
+            Math.min(10, Math.round(rawScore))
+        );
+
+        const dots = scoreElement.querySelectorAll(
+            ".strength-score__dot"
+        );
+
+        dots.forEach((dot, index) => {
+            dot.classList.toggle(
+                "is-active",
+                index < score
+            );
+        });
+    });
+}
+
+initStrengthScores();
 </script>
 
 <style>

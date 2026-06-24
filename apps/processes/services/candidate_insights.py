@@ -3,9 +3,511 @@
 from __future__ import annotations
 
 from typing import Any, Literal
+import re
 
 InsightMode = Literal["general", "context"]
 
+
+INSIGHT_THEMES = {
+    "structured_delivery": {
+        "title": "Structured and reliable delivery",
+        "indicator_keys": {
+            "planning",
+            "planning and organising",
+            "planning and organizing",
+            "quality focus",
+            "reliability",
+            "self discipline",
+            "attention to detail",
+            "task focus",
+            "keeping promises",
+        },
+        "strength_body": (
+            "The candidate may bring structure, accuracy and dependable "
+            "follow-through to their work."
+        ),
+        "strength_show": (
+            "May organise work clearly, maintain quality and follow agreed "
+            "tasks through to completion."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate maintains "
+            "structure, accuracy and follow-through in demanding situations."
+        ),
+        "explore_through": (
+            "Ask for an example involving competing deadlines, detailed work "
+            "or responsibility for recurring delivery."
+        ),
+    },
+    "analytical_problem_solving": {
+        "title": "Analytical problem solving",
+        "indicator_keys": {
+            "analytical thinking",
+            "analytical",
+            "analysing problems",
+            "analyzing problems",
+            "complex thinking",
+            "evaluating",
+            "logical reasoning",
+            "numerical reasoning",
+            "verbal reasoning",
+            "data focus",
+        },
+        "strength_body": (
+            "The candidate may be comfortable working with information, "
+            "patterns and conclusions."
+        ),
+        "strength_show": (
+            "May compare alternatives, identify patterns and use evidence "
+            "to support decisions."
+        ),
+        "explore_body": (
+            "It may be useful to explore how confidently the candidate works "
+            "with complex information and reaches sound conclusions."
+        ),
+        "explore_through": (
+            "Ask for an example of analysing a difficult problem and explain "
+            "how the conclusion was reached."
+        ),
+    },
+    "collaboration": {
+        "title": "Collaborative working style",
+        "indicator_keys": {
+            "teamwork",
+            "cooperative",
+            "cooperation",
+            "listening",
+            "empathy",
+            "helpfulness",
+            "supporting",
+            "sociability",
+            "open communication",
+        },
+        "strength_body": (
+            "The candidate may contribute positively to collaboration and "
+            "working relationships."
+        ),
+        "strength_show": (
+            "May listen, support colleagues and adapt their contribution to "
+            "shared goals."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate collaborates with "
+            "different personalities and working styles."
+        ),
+        "explore_through": (
+            "Ask about a situation involving disagreement, feedback or the "
+            "need to build cooperation."
+        ),
+    },
+    "adaptability_and_pressure": {
+        "title": "Adaptability under pressure",
+        "indicator_keys": {
+            "adaptability",
+            "adapting to change",
+            "flexible",
+            "variety",
+            "resilience",
+            "emotional control",
+            "controlling stress",
+            "calm",
+            "composed",
+            "optimistic",
+        },
+        "strength_body": (
+            "The candidate may remain adaptable and composed when demands "
+            "or circumstances change."
+        ),
+        "strength_show": (
+            "May adjust priorities, recover from setbacks and continue "
+            "working effectively under pressure."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate responds when "
+            "priorities shift or pressure increases."
+        ),
+        "explore_through": (
+            "Ask for an example involving uncertainty, stress or several "
+            "changing demands at once."
+        ),
+    },
+    "drive_and_ownership": {
+        "title": "Drive and ownership",
+        "indicator_keys": {
+            "achievement",
+            "goal focused",
+            "competitive",
+            "challenge",
+            "autonomy",
+            "independence",
+            "self reliant",
+            "thinking independently",
+            "desire to lead",
+            "assertive",
+        },
+        "strength_body": (
+            "The candidate may show ownership, personal drive and a willingness "
+            "to take responsibility."
+        ),
+        "strength_show": (
+            "May work independently, pursue goals and take responsibility for "
+            "defined outcomes."
+        ),
+        "explore_body": (
+            "It may be useful to explore how the candidate takes ownership, "
+            "maintains drive and acts independently."
+        ),
+        "explore_through": (
+            "Ask about a situation where they had to take initiative without "
+            "detailed guidance."
+        ),
+    },
+}
+
+def normalize_indicator_key(value: Any) -> str:
+    text = str(value or "").strip().lower()
+
+    text = text.replace("&", " and ")
+    text = text.replace("_", " ")
+    text = text.replace("-", " ")
+
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def ordinal_percentile(value: float) -> str:
+    rounded = int(round(value))
+
+    if 10 <= rounded % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {
+            1: "st",
+            2: "nd",
+            3: "rd",
+        }.get(rounded % 10, "th")
+
+    return f"{rounded}{suffix} percentile"
+
+
+def safe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def normalize_assessment_indicators(
+    general_insight_input: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    source = general_insight_input or {}
+    indicators: list[dict[str, Any]] = []
+
+    personality_data = source.get("personality") or {}
+    motivation_data = source.get("motivation") or {}
+    ability_data = source.get("ability") or {}
+    ability_results = ability_data.get("results") or {}
+
+    personality_items = (
+        personality_data.get("all_scores")
+        or []
+    )
+
+    motivation_items = (
+        motivation_data.get("all_scores")
+        or []
+    )
+
+    # --------------------------------------------------
+    # Personality
+    # Input format:
+    # {"name": "Adaptability", "score": 2}
+    # Scores are already on a 1–10 scale.
+    # --------------------------------------------------
+    seen_personality = set()
+
+    for item in personality_items:
+        name = item.get("name")
+        score = safe_float(item.get("score"))
+
+        if not name or score is None:
+            continue
+
+        key = normalize_indicator_key(name)
+
+        # The input currently contains some duplicate names.
+        # Keep only one instance of each indicator.
+        if key in seen_personality:
+            continue
+
+        seen_personality.add(key)
+
+        normalized_score = max(
+            1.0,
+            min(10.0, score),
+        )
+
+        indicators.append({
+            "key": key,
+            "name": str(name),
+            "source": "personality",
+            "source_label": "Personality assessment",
+            "raw_score": score,
+            "scale": "sten",
+            "normalized_score": normalized_score,
+            "display_score": f"{score:g}/10",
+            "tooltip": (
+                f"Personality assessment · "
+                f"STEN score {score:g} of 10."
+            ),
+        })
+
+    # --------------------------------------------------
+    # Motivation
+    # Input format is expected to be:
+    # {"name": "...", "score": ...}
+    #
+    # Your example currently contains no motivation
+    # results, so this part will simply add nothing.
+    # --------------------------------------------------
+    seen_motivation = set()
+
+    for item in motivation_items:
+        name = item.get("name")
+        score = safe_float(item.get("score"))
+
+        if not name or score is None:
+            continue
+
+        key = normalize_indicator_key(name)
+
+        if key in seen_motivation:
+            continue
+
+        seen_motivation.add(key)
+
+        # Adjust this if the input later proves to use
+        # another motivation scale.
+        normalized_score = max(
+            1.0,
+            min(10.0, score * 2),
+        )
+
+        indicators.append({
+            "key": key,
+            "name": str(name),
+            "source": "motivation",
+            "source_label": "Motivation questionnaire",
+            "raw_score": score,
+            "scale": "five_point",
+            "normalized_score": normalized_score,
+            "display_score": f"{score:g}/5",
+            "tooltip": (
+                f"Motivation questionnaire · "
+                f"score {score:g} of 5."
+            ),
+        })
+
+    # --------------------------------------------------
+    # Cognitive abilities
+    # Input format:
+    # ability.results.numerical_percentile
+    # ability.results.logical_percentile
+    # ability.results.verbal_percentile
+    # --------------------------------------------------
+    cognitive_results = [
+        {
+            "name": "Verbal reasoning",
+            "value": ability_results.get(
+                "verbal_percentile"
+            ),
+        },
+        {
+            "name": "Logical reasoning",
+            "value": ability_results.get(
+                "logical_percentile"
+            ),
+        },
+        {
+            "name": "Numerical reasoning",
+            "value": ability_results.get(
+                "numerical_percentile"
+            ),
+        },
+    ]
+
+    for cognitive_result in cognitive_results:
+        name = cognitive_result["name"]
+        percentile = safe_float(
+            cognitive_result["value"]
+        )
+
+        if percentile is None:
+            continue
+
+        normalized_score = max(
+            1.0,
+            min(10.0, percentile / 10),
+        )
+
+        indicators.append({
+            "key": normalize_indicator_key(name),
+            "name": name,
+            "source": "cognitive",
+            "source_label": "Cognitive assessment",
+            "raw_score": percentile,
+            "scale": "percentile",
+            "normalized_score": normalized_score,
+            "display_score": ordinal_percentile(
+                percentile
+            ),
+            "tooltip": (
+                f"Cognitive assessment · "
+                f"{ordinal_percentile(percentile)}."
+            ),
+        })
+
+    return indicators
+
+def build_evidence_themes(
+    indicators: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    strengths: list[dict[str, Any]] = []
+    explore_areas: list[dict[str, Any]] = []
+
+    for theme_key, theme in INSIGHT_THEMES.items():
+        matched = [
+            indicator
+            for indicator in indicators
+            if indicator["key"] in theme["indicator_keys"]
+        ]
+
+        if not matched:
+            continue
+
+        matched.sort(
+            key=lambda item: item["normalized_score"],
+            reverse=True,
+        )
+
+        strong_indicators = [
+            item
+            for item in matched
+            if item["normalized_score"] >= 7
+        ]
+
+        lower_indicators = [
+            item
+            for item in matched
+            if item["normalized_score"] <= 4
+        ]
+
+        if strong_indicators:
+            selected = strong_indicators[:4]
+
+            level = round(
+                sum(
+                    item["normalized_score"]
+                    for item in selected
+                ) / len(selected),
+                1,
+            )
+
+            level_label = (
+                "Very strong evidence"
+                if level >= 8.5
+                else "Strong evidence"
+                if level >= 7
+                else "Moderate evidence"
+            )
+
+            explanation = (
+                f"This theme was identified from "
+                f"{len(selected)} supporting assessment indicator"
+                f"{'s' if len(selected) != 1 else ''}. "
+                f"Only clearly elevated results were used."
+            )
+
+            strengths.append({
+                "theme_key": theme_key,
+                "title": theme["title"],
+                "body": theme["strength_body"],
+                "how_it_may_show": theme["strength_show"],
+                "why_it_matters": (
+                    "This theme may be relevant where the process requires "
+                    "these behaviours or capabilities."
+                ),
+                "level": level,
+                "level_rounded": round(level),
+                "level_label": level_label,
+                "explanation": explanation,
+                "supporting_indicators": selected,
+                "evidence": [
+                    item["name"]
+                    for item in selected
+                ],
+            })
+
+        if lower_indicators:
+            selected = sorted(
+                lower_indicators,
+                key=lambda item: item["normalized_score"],
+            )[:4]
+
+            level = round(
+                sum(
+                    item["normalized_score"]
+                    for item in selected
+                ) / len(selected),
+                1,
+            )
+
+            explanation = (
+                f"This theme was selected because "
+                f"{len(selected)} assessment indicator"
+                f"{'s were' if len(selected) != 1 else ' was'} "
+                f"in the lower part of the relevant scale. "
+                f"It should be explored, not treated as a confirmed weakness."
+            )
+
+            explore_areas.append({
+                "theme_key": theme_key,
+                "title": theme["title"],
+                "body": theme["explore_body"],
+                "explore_through": theme["explore_through"],
+                "what_to_listen_for": (
+                    "Listen for context, self-awareness and practical "
+                    "strategies the candidate uses to adapt."
+                ),
+                "level": level,
+                "level_rounded": round(level),
+                "level_label": "Explore further",
+                "explanation": explanation,
+                "supporting_indicators": selected,
+                "evidence": [
+                    item["name"]
+                    for item in selected
+                ],
+            })
+
+    strengths.sort(
+        key=lambda item: (
+            item["level"],
+            len(item["supporting_indicators"]),
+        ),
+        reverse=True,
+    )
+
+    explore_areas.sort(
+        key=lambda item: (
+            item["level"],
+            -len(item["supporting_indicators"]),
+        ),
+    )
+
+    return strengths[:4], explore_areas[:4]
 
 def build_candidate_insights(
     *,
@@ -18,9 +520,17 @@ def build_candidate_insights(
     candidate flows use the same API. The current implementation still returns
     the deterministic content that previously lived in views.py.
     """
-    _ = general_insight_input
+
     candidate_insights_mode: InsightMode = (
         "context" if mode == "context" else "general"
+    )
+
+    assessment_indicators = normalize_assessment_indicators(
+        general_insight_input
+    )
+
+    evidence_strengths, evidence_explore_areas = (
+        build_evidence_themes(assessment_indicators)
     )
 
     if candidate_insights_mode == "context":
@@ -74,66 +584,8 @@ def build_candidate_insights(
                     "This is a decision-support recommendation, not a final hiring decision. Combine it with interview evidence, experience and role requirements."
                 ),
             },
-            "key_strengths": [
-                {
-                    "title": "Structured business analysis",
-                    "body": "The candidate appears likely to bring structure and clarity to analytical work.",
-                    "how_it_may_show": "May organise information, compare alternatives and create a clear basis for business decisions.",
-                    "why_it_matters": "This is relevant for a Business Controller role where managers need clear financial insights and practical recommendations.",
-                    "evidence": ["Analytical Thinking", "Planning", "Quality Focus"],
-                },
-                {
-                    "title": "Reliable delivery",
-                    "body": "The profile suggests a preference for accuracy, follow-through and doing work properly.",
-                    "how_it_may_show": "May take deadlines and reporting quality seriously, especially when expectations are clear.",
-                    "why_it_matters": "This can support recurring financial follow-up, reporting cycles and dependable stakeholder support.",
-                    "evidence": ["Reliability", "Quality Focus", "Self-discipline"],
-                },
-                {
-                    "title": "Thoughtful decision support",
-                    "body": "The candidate may be comfortable working with information before reaching conclusions.",
-                    "how_it_may_show": "May ask clarifying questions, analyse patterns and avoid rushing into unsupported recommendations.",
-                    "why_it_matters": "This is useful when the role requires sound judgement and the ability to translate data into business insight.",
-                    "evidence": ["Analytical Thinking", "Logical reasoning"],
-                },
-                {
-                    "title": "Ownership with clarity",
-                    "body": "The candidate may perform well when given clear goals and responsibility for defined tasks.",
-                    "how_it_may_show": "May take ownership of agreed deliverables and work independently when priorities are understood.",
-                    "why_it_matters": "This can support a role where the person needs to manage recurring analysis, deadlines and stakeholder requests.",
-                    "evidence": ["Autonomy", "Achievement", "Planning"],
-                },
-            ],
-            "areas_to_explore": [
-                {
-                    "title": "Stakeholder influence",
-                    "body": "It may be useful to understand how the candidate communicates financial insights and gains buy-in from non-finance stakeholders.",
-                    "explore_through": "Ask about a time when they had to explain complex information to a manager or influence a business decision.",
-                    "what_to_listen_for": "Look for clarity, confidence, ability to adapt the message and understanding of the stakeholder’s perspective.",
-                    "evidence": ["Influencing", "Communication"],
-                },
-                {
-                    "title": "Pace under ambiguity",
-                    "body": "It may be useful to explore how the candidate handles changing priorities, incomplete information or urgent deadlines.",
-                    "explore_through": "Ask about a situation where they had to deliver analysis despite unclear or changing requirements.",
-                    "what_to_listen_for": "Look for how they balance accuracy with practical progress and whether they can prioritise effectively.",
-                    "evidence": ["Adaptability", "Decision-making"],
-                },
-                {
-                    "title": "Commercial confidence",
-                    "body": "It may be useful to understand how confidently the candidate connects analysis to business impact.",
-                    "explore_through": "Ask for an example where their analysis led to a recommendation, decision or improvement.",
-                    "what_to_listen_for": "Look for business understanding, practical judgement and ability to move from numbers to action.",
-                    "evidence": ["Business understanding", "Analytical Thinking"],
-                },
-                {
-                    "title": "Collaboration with managers",
-                    "body": "It may be useful to explore how the candidate builds working relationships with managers and stakeholders.",
-                    "explore_through": "Ask what helps them collaborate well with people who have different priorities or limited finance knowledge.",
-                    "what_to_listen_for": "Look for patience, service mindset, clarity and ability to create trust over time.",
-                    "evidence": ["Teamwork", "Listening"],
-                },
-            ],
+            "key_strengths": evidence_strengths,
+            "areas_to_explore": evidence_explore_areas,
             "questions": [
                 {
                     "category": "strengths",

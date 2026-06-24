@@ -859,11 +859,6 @@ def build_candidate_detail_context(process, invitation):
         general_insight_input=general_insight_input,
     )
 
-    candidate_insights = build_candidate_insights(
-        mode="general",
-        general_insight_input=general_insight_input,
-    )
-
     print("=== FLEXIBLE AI CONDITION DEBUG ===")
     print("PROCESS PURPOSE:", repr(process.purpose))
     print("PURPOSE IS FLEXIBLE:", process.purpose == "flexible")
