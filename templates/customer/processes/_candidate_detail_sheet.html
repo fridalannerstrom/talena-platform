@@ -156,11 +156,6 @@
                     <div class="candidate-overview-value">{{ tests_completed_count }}</div>
                   </div>
 
-                  <div class="candidate-overview-card">
-                    <div class="candidate-overview-label">Available reports</div>
-                    <div class="candidate-overview-value">{{ available_reports_count }}</div>
-                  </div>
-
                 </div>
               </div>
 
@@ -295,12 +290,12 @@
           <div class="card-body">
             <div class="role-context-prompt">
               <div class="role-context-prompt__icon">
-                <i data-feather="target"></i>
+                <i data-feather="zap"></i>
               </div>
 
               <div class="role-context-prompt__content">
                 <div class="text-muted small mb-1">Improve candidate insights</div>
-                <h2 class="h5 mb-2">Add {{ context_config.tab_label|default:"context"|lower }}</h2>
+                <h2 class="h5 mb-1">Add {{ context_config.tab_label|default:"context"|lower }}</h2>
                 <p class="text-muted mb-0">
                   Add context to make the candidate insights more relevant to this process.
                 </p>
@@ -392,29 +387,21 @@
 
                 {% if is_historical %}
                   {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
-                    <span
-                      class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
-                      title="The assessment data has changed since this summary was generated.">
-                      <i
-                        data-feather="alert-circle"
-                        class="me-1"
-                        style="width: 13px; height: 13px;">
-                      </i>
-                      Needs update
-                    </span>
+<span
+  id="aiSummaryStatusBadge"
+  class="badge rounded-pill bg-warning-subtle"
+  title="The assessment data has changed since this summary was generated.">
+  Needs update
+</span>
                   {% endif %}
                 {% else %}
                   {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-                    <span
-                      class="badge rounded-pill bg-warning-subtle text-warning-emphasis border"
-                      title="The process purpose or context has changed since this summary was generated.">
-                      <i
-                        data-feather="alert-circle"
-                        class="me-1"
-                        style="width: 13px; height: 13px;">
-                      </i>
-                      Needs update
-                    </span>
+<span
+  id="aiSummaryStatusBadge"
+  class="badge rounded-pill bg-warning-subtle"
+  title="The process purpose or context has changed since this summary was generated.">
+  Needs update
+</span>
                   {% endif %}
                 {% endif %}
 
@@ -423,7 +410,7 @@
                   class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
                   data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
                   data-bs-toggle="tooltip"
-                  data-bs-placement="left"
+                  data-bs-placement="top"
                   title="Generate a new summary"
                   aria-label="Generate a new summary"
                   style="width: 38px; height: 38px;">
@@ -521,7 +508,9 @@
 
             {% if is_historical %}
               {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
-                <div class="alert alert-warning mt-3 mb-0">
+                <div
+  id="aiSummaryOutdatedWarning"
+  class="alert alert-warning mt-3 mb-0">
                   <div class="d-flex align-items-start gap-2">
                     <div class="flex-shrink-0 mt-1">
                       <i
@@ -543,7 +532,9 @@
               {% endif %}
             {% else %}
               {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-                <div class="alert alert-warning mt-3 mb-0">
+                <div
+  id="aiSummaryOutdatedWarning"
+  class="alert alert-warning mt-3 mb-0">
                   <div class="d-flex align-items-start gap-2">
                     <div class="flex-shrink-0 mt-1">
                       <i
@@ -621,38 +612,32 @@
 
           <div class="d-flex align-items-center gap-2 flex-shrink-0">
 
-            <span
-              id="purposeFitStatusBadge"
-              class="badge rounded-pill
-                {% if invitation.ai_purpose_fit_status == 'outdated' %}
-                  bg-warning-subtle text-warning-emphasis
-                {% elif invitation.ai_purpose_fit_status == 'completed' %}
-                  bg-success-subtle text-success-emphasis
-                {% else %}
-                  bg-light text-muted
-                {% endif %}
-              "
-            >
-              {% if invitation.ai_purpose_fit_status == "outdated" %}
-                Needs update
-              {% elif invitation.ai_purpose_fit_status == "completed" %}
-                Saved
-              {% elif invitation.ai_purpose_fit_status == "failed" %}
-                Failed
-              {% else %}
-                Preparing
-              {% endif %}
+<span
+  id="purposeFitStatusBadge"
+  class="badge rounded-pill
+    {% if invitation.ai_purpose_fit_status == 'outdated' %}
+      bg-warning-subtle text-warning-emphasis
+    {% else %}
+      d-none
+    {% endif %}
+  "
+>
+{% if invitation.ai_purpose_fit_status == "outdated" %}
+  Needs update
+{% endif %}
             </span>
 
-            <button
-              type="button"
-              class="btn btn-icon btn-light js-regenerate-purpose-fit"
-              data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
-              title="Regenerate purpose fit"
-              aria-label="Regenerate purpose fit"
-            >
-              <i data-feather="refresh-cw"></i>
-            </button>
+<button
+  type="button"
+  class="btn btn-icon btn-light js-regenerate-purpose-fit"
+  data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
+  data-bs-toggle="tooltip"
+  data-bs-placement="top"
+  title="Generate a new role fit"
+  aria-label="Generate a new role fit"
+>
+  <i data-feather="refresh-cw"></i>
+</button>
 
           </div>
         </div>
@@ -667,7 +652,7 @@
             <i data-feather="alert-circle"></i>
 
             <div>
-              <div class="fw-semibold">
+              <div class="fw-semibold small mb-1">
                 The process information has changed
               </div>
 
@@ -868,69 +853,13 @@
 
 
 
-        <!-- INSIGHT SUMMARY -->
-        {% if candidate_insights.summary %}
-          <section class="card mb-4 insight-summary-card">
-            <div class="card-body">
-
-              <div class="insight-summary-header">
-                <div>
-                  <div class="insight-summary-kicker">Candidate Insights</div>
-                  <h2 class="insight-summary-title">
-                    {{ candidate_insights.summary.headline|default:"Assessment summary" }}
-                  </h2>
-                </div>
-              </div>
-
-              {% if candidate_insights.summary.body %}
-                <div class="insight-summary-content">
-                  <p class="mb-0">{{ candidate_insights.summary.body }}</p>
-                </div>
-              {% endif %}
-
-              {% if candidate_insights.summary.bullets %}
-                <div class="row g-3 mt-2">
-                  {% for item in candidate_insights.summary.bullets %}
-                    <div class="col-12">
-                      <div class="border rounded-3 p-3">
-                        {% if item.label %}
-                          <div class="fw-semibold mb-1">{{ item.label }}</div>
-                        {% endif %}
-                        {% if item.text %}
-                          <div class="text-muted small">{{ item.text }}</div>
-                        {% endif %}
-                      </div>
-                    </div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-
-              {% if is_historical %}
-                <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
-                  <div class="text-primary flex-shrink-0 mt-1">
-                    <i data-feather="info" style="width: 16px; height: 16px;"></i>
-                  </div>
-                  <div class="small text-muted">
-                    These are general insights based on imported assessment data. No original process context has been included.
-                  </div>
-                </div>
-              {% endif %}
-
-            </div>
-          </section>
-        {% endif %}
-        <!-- /INSIGHT SUMMARY -->
-
-
-
         <!-- KEY STRENGTHS -->
         {% if candidate_insights.key_strengths %}
-          <section class="card mb-4 key-strengths-card">
-            <div class="card-header key-strengths-header bg-white">
+          <section class="card card-body mb-4 key-strengths-card">
               <div>
-                <div class="key-strengths-kicker">Candidate Insights</div>
-                <h2 class="key-strengths-title">Key strengths</h2>
-                <p class="key-strengths-intro">
+                <div class="insight-summary-kicker">Candidate Insights</div>
+                <h2 class="insight-summary-title mb-2">Key strengths</h2>
+                <p class="text-muted small">
                   {% if report_mode == "context" %}
                     Strengths that appear most relevant to this process context.
                   {% else %}
@@ -938,7 +867,6 @@
                   {% endif %}
                 </p>
               </div>
-            </div>
 
             <div class="card-body">
               <div class="key-strengths-grid">
@@ -1673,33 +1601,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function setStatus(text, type = "neutral") {
-        statusBadge.textContent = text;
-
-        statusBadge.className = "badge rounded-pill";
-
-        if (type === "success") {
-            statusBadge.classList.add(
-                "bg-success-subtle",
-                "text-success-emphasis"
-            );
-        } else if (type === "warning") {
-            statusBadge.classList.add(
-                "bg-warning-subtle",
-                "text-warning-emphasis"
-            );
-        } else if (type === "danger") {
-            statusBadge.classList.add(
-                "bg-danger-subtle",
-                "text-danger-emphasis"
-            );
-        } else {
-            statusBadge.classList.add(
-                "bg-light",
-                "text-muted"
-            );
-        }
+function setStatus(text, type = "neutral") {
+    if (!statusBadge) {
+        return;
     }
+
+    statusBadge.textContent = text;
+    statusBadge.className = "badge rounded-pill";
+
+    if (type === "warning") {
+        statusBadge.classList.add(
+            "bg-warning-subtle",
+            "text-warning-emphasis"
+        );
+    } else if (type === "danger") {
+        statusBadge.classList.add(
+            "bg-danger-subtle",
+            "text-danger-emphasis"
+        );
+    } else {
+        statusBadge.classList.add("d-none");
+    }
+}
 
     function resetPurposeFit() {
         title.textContent = "Purpose fit";
