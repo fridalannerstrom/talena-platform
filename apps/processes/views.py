@@ -731,6 +731,160 @@ def build_motivation_insight_section(mq_competencies):
     }
 
 
+def build_sova_reports_for_ui(reports):
+    """
+    Prepare all reports received from the Sova webhook for the UI.
+
+    Every report with a valid URL is included.
+    Known report codes receive cleaner display names.
+    Unknown reports fall back to the title supplied by Sova.
+    """
+
+    title_map = {
+        # Cognitive candidate reports
+        "TQ_CANDIDATE_LOGICAL_REASONING": (
+            "Logical Reasoning – Candidate Report"
+        ),
+        "TQ_CANDIDATE_NUMERICAL_REASONING": (
+            "Numerical Reasoning – Candidate Report"
+        ),
+        "TQ_CANDIDATE_VERBAL_REASONING": (
+            "Verbal Reasoning – Candidate Report"
+        ),
+
+        # Cognitive practitioner reports
+        "TQ_PRACTITIONER_LOGICAL_REASONING": (
+            "Logical Reasoning – Practitioner Report"
+        ),
+        "TQ_PRACTITIONER_NUMERICAL_REASONING": (
+            "Numerical Reasoning – Practitioner Report"
+        ),
+        "TQ_PRACTITIONER_VERBAL_REASONING": (
+            "Verbal Reasoning – Practitioner Report"
+        ),
+
+        # Personality reports
+        "TQ_SOVA_PQ_CANDIDATE_TRAIT": (
+            "Personality Trait Report – Candidate"
+        ),
+        "SOVA_PQ_Team_TQ_Nordics": (
+            "Team Profile"
+        ),
+        "TQ_PQ38_Recruitment_Report": (
+            "Competency Report and Interview Guide"
+        ),
+        "TQ_Sova_PQ_Career_report": (
+            "Career Report"
+        ),
+        "TQ_Sova_PQ_Derailment": (
+            "Derailment Report"
+        ),
+        "SOVA_PQ_FULL_TRAIT_PROFILE_TQ_Nordics": (
+            "Full Personality Trait Profile"
+        ),
+        "TQ_Sova_PQ_Leadership": (
+            "Leadership Report"
+        ),
+        "Sova_PQ_Leadership_Manager_TQ_Nordics_Only": (
+            "Leadership Report – Manager Version"
+        ),
+        "TQ_Sova_PQ_Potential_DNA": (
+            "Potential DNA Report"
+        ),
+        "TQ_PQ_Practitioner_Sales_Report": (
+            "Sales Profile – Practitioner Report"
+        ),
+        "TQ_SOVA_PQ_SUBTRAIT_REPORT": (
+            "Trait and Indicator Profile"
+        ),
+        "TQ_PQ_Team_Composite": (
+            "Team Composite Report"
+        ),
+    }
+
+    def get_category(code, title):
+        text = f"{code} {title}".lower()
+
+        if "logical" in text:
+            return "Logical reasoning"
+
+        if "numerical" in text:
+            return "Numerical reasoning"
+
+        if "verbal" in text:
+            return "Verbal reasoning"
+
+        if any(word in text for word in (
+            "personality",
+            "pq",
+            "trait",
+            "leadership",
+            "career",
+            "derailment",
+            "potential",
+            "sales",
+            "team",
+        )):
+            return "Personality"
+
+        if "motivation" in text or "mq" in text:
+            return "Motivation"
+
+        return "Assessment report"
+
+    result = []
+
+    for report in reports or []:
+        if not isinstance(report, dict):
+            continue
+
+        url = (report.get("url") or "").strip()
+
+        if not url or not _is_safe_external_url(url):
+            continue
+
+        code = (report.get("code") or "").strip()
+        original_title = (report.get("title") or "").strip()
+
+        display_title = (
+            title_map.get(code)
+            or original_title
+            or code
+            or "Assessment report"
+        )
+
+        is_candidate_report = bool(
+            report.get("is_candidate_report")
+        )
+
+        result.append({
+            "code": code,
+            "url": url,
+            "title": display_title,
+            "original_title": original_title,
+            "category": get_category(
+                code=code,
+                title=original_title,
+            ),
+            "audience": (
+                "Candidate report"
+                if is_candidate_report
+                else "Practitioner report"
+            ),
+            "is_candidate_report": is_candidate_report,
+        })
+
+    # Candidate reports first, then practitioner reports.
+    return sorted(
+        result,
+        key=lambda item: (
+            not item["is_candidate_report"],
+            item["category"].lower(),
+            item["title"].lower(),
+        ),
+    )
+
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
@@ -1219,6 +1373,10 @@ def build_candidate_detail_context(process, invitation):
     project_results = invitation.project_results or {}
     reports = invitation.sova_reports or payload.get("reports") or []
 
+    sova_reports_for_ui = build_sova_reports_for_ui(
+        reports
+    )
+
     project_scores = (
         project_results.get("project_scores", [])
         if isinstance(project_results, dict)
@@ -1528,8 +1686,10 @@ def build_candidate_detail_context(process, invitation):
 
         "tests_sent_count": activity_count,
         "tests_completed_count": tests_completed_count,
-        "available_reports_count": available_reports_count,
+        "available_reports_count": len(sova_reports_for_ui),
         "email_logs_by_id": email_logs_by_id,
+        "sova_reports_for_ui": sova_reports_for_ui,
+        "available_reports_count": len(sova_reports_for_ui),
 
         "has_any_results": has_any_results,
         "has_any_completed_assessment": has_any_completed_assessment,

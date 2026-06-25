@@ -1703,104 +1703,107 @@
     </div>
   </section>
 
-  
-        <!-- REPORTS -->
-        {% if has_any_results %}
-          <div class="card mb-4">
-            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-              <span>Reports</span>
-              {% if available_reports_count %}
-                <span class="badge rounded-pill text-bg-light border">
-                  {{ available_reports_count }} available
-                </span>
-              {% endif %}
-            </div>
+  <!-- REPORTS -->
+{% if is_historical and historical_reports or not is_historical and sova_reports_for_ui %}
 
-            <div class="card-body">
-              <div class="list-group list-group-flush">
+  <div class="card mb-4">
 
-                {% for report_key, report_data in ability_reports_for_ui.items %}
-                  {% if report_key != "overview" and report_data %}
-                    {% if report_data.practitioner_report %}
-                      <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                        <div>
-                          <div class="fw-semibold">{{ report_data.practitioner_report.title }}</div>
-                          <div class="small text-muted text-capitalize">{{ report_key }} reasoning · Abilities</div>
-                        </div>
-                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                          PDF coming soon
-                        </button>
-                      </div>
-                    {% endif %}
+    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+      <span>Reports</span>
 
-                    {% if report_data.candidate_report %}
-                      <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                        <div>
-                          <div class="fw-semibold">{{ report_data.candidate_report.title }}</div>
-                          <div class="small text-muted text-capitalize">{{ report_key }} reasoning · Abilities</div>
-                        </div>
-                        <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                          PDF coming soon
-                        </button>
-                      </div>
-                    {% endif %}
-                  {% endif %}
-                {% endfor %}
-
-                {% if has_motivation_results %}
-                  {% for report in motivation_reports_for_ui %}
-                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                      <div>
-                        <div class="fw-semibold">{{ report.title }}</div>
-                        <div class="small text-muted">Motivation Questionnaire · Motivation</div>
-                      </div>
-                      <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                        PDF coming soon
-                      </button>
-                    </div>
-                  {% endfor %}
-                {% endif %}
-
-                {% if has_personality_results %}
-                  {% for report in personality_reports %}
-                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                      <div>
-                        <div class="fw-semibold">{{ report.report_name }}</div>
-                        <div class="small text-muted">Personality Assessment · Personality</div>
-                      </div>
-                      <button class="btn btn-sm btn-outline-secondary" type="button" disabled>
-                        PDF coming soon
-                      </button>
-                    </div>
-                  {% endfor %}
-                {% endif %}
-
-                {% if is_historical and historical_reports %}
-                  {% for report in historical_reports %}
-                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-                      <div>
-                        <div class="fw-semibold">
-                          {{ report.title|default:report.original_filename }}
-                        </div>
-                        <div class="small text-muted">Original uploaded historical PDF report</div>
-                      </div>
-
-                      <a
-                        href="{{ report.file.url }}"
-                        target="_blank"
-                        rel="noopener"
-                        class="btn btn-sm btn-outline-dark">
-                        Open PDF
-                      </a>
-                    </div>
-                  {% endfor %}
-                {% endif %}
-
-              </div>
-            </div>
-          </div>
+      {% if is_historical %}
+        {% if historical_reports %}
+          <span class="badge rounded-pill text-bg-light border">
+            {{ historical_reports|length }} available
+          </span>
         {% endif %}
-        <!-- /REPORTS -->
+      {% else %}
+        {% if sova_reports_for_ui %}
+          <span class="badge rounded-pill text-bg-light border">
+            {{ sova_reports_for_ui|length }} available
+          </span>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="card-body">
+      <div class="list-group list-group-flush">
+
+        {% if is_historical %}
+
+          <!-- HISTORICAL UPLOADED REPORTS -->
+          {% for report in historical_reports %}
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+
+              <div class="min-w-0">
+                <div class="fw-semibold">
+                  {{ report.title|default:report.original_filename }}
+                </div>
+
+                <div class="small text-muted">
+                  Uploaded historical assessment report
+                </div>
+              </div>
+
+              {% if report.file %}
+                <a
+                  href="{{ report.file.url }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-sm btn-outline-dark flex-shrink-0"
+                >
+                  Open report
+                </a>
+              {% endif %}
+
+            </div>
+          {% empty %}
+            <div class="text-muted small py-3">
+              No historical reports have been uploaded.
+            </div>
+          {% endfor %}
+
+        {% else %}
+
+          <!-- LIVE SOVA WEBHOOK REPORTS -->
+          {% for report in sova_reports_for_ui %}
+            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+
+              <div class="min-w-0">
+                <div class="fw-semibold">
+                  {{ report.title }}
+                </div>
+
+                <div class="small text-muted">
+                  {{ report.category }} · {{ report.audience }}
+                </div>
+              </div>
+
+              <a
+                href="{{ report.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-sm btn-outline-dark flex-shrink-0"
+              >
+                Open report
+              </a>
+
+            </div>
+          {% empty %}
+            <div class="text-muted small py-3">
+              No assessment reports are currently available.
+            </div>
+          {% endfor %}
+
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+
+{% endif %}
+<!-- /REPORTS -->
 
         <!-- TEMPORARY RAW HISTORICAL DATA -->
         {% if is_historical and assessment_results %}
