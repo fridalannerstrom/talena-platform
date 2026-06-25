@@ -129,6 +129,157 @@ from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 from .models import ProcessRoleContext
 from .forms import ProcessRoleContextForm
 
+def build_cognitive_insight_results(
+    verbal_percentile=None,
+    logical_percentile=None,
+    numerical_percentile=None,
+):
+    """
+    Build the three cognitive result cards used in Candidate Insights.
+
+    All three assessment types are always returned so the template can show
+    a grey placeholder when an assessment has not been completed.
+    """
+
+    def normalise_percentile(value):
+        if value is None:
+            return None
+
+        try:
+            return int(round(float(value)))
+        except (TypeError, ValueError):
+            return None
+
+    def get_level(percentile):
+        """
+        Translate a percentile result into a display level and interpretation.
+        Adjust the thresholds later if Sova uses different norm bands.
+        """
+
+        if percentile is None:
+            return {
+                "completed": False,
+                "level_key": "missing",
+                "level_label": "Not completed",
+            }
+
+        if percentile <= 9:
+            return {
+                "completed": True,
+                "level_key": "very-low",
+                "level_label": "Very low",
+            }
+
+        if percentile <= 24:
+            return {
+                "completed": True,
+                "level_key": "low",
+                "level_label": "Low",
+            }
+
+        if percentile <= 74:
+            return {
+                "completed": True,
+                "level_key": "average",
+                "level_label": "Typical",
+            }
+
+        if percentile <= 90:
+            return {
+                "completed": True,
+                "level_key": "high",
+                "level_label": "High",
+            }
+
+        return {
+            "completed": True,
+            "level_key": "very-high",
+            "level_label": "Very high",
+        }
+
+    def get_interpretation(test_key, percentile):
+        if percentile is None:
+            return "This candidate has not completed this assessment."
+
+        ability_labels = {
+            "verbal": "understand and evaluate written information",
+            "logical": "identify patterns and reach logical conclusions",
+            "numerical": "understand and work with numerical information",
+        }
+
+        ability_text = ability_labels[test_key]
+
+        if percentile <= 9:
+            return (
+                f"The candidate may find it considerably more difficult than "
+                f"most people in the reference group to {ability_text}."
+            )
+
+        if percentile <= 24:
+            return (
+                f"The candidate may find it more difficult than many others "
+                f"in the reference group to {ability_text}."
+            )
+
+        if percentile <= 74:
+            return (
+                f"The candidate is likely to find it about as easy as most "
+                f"people in the reference group to {ability_text}."
+            )
+
+        if percentile <= 90:
+            return (
+                f"The candidate may find it easier than many others in the "
+                f"reference group to {ability_text}."
+            )
+
+        return (
+            f"The candidate may find it considerably easier than most people "
+            f"in the reference group to {ability_text}."
+        )
+
+    test_config = [
+        {
+            "key": "logical",
+            "title": "Logical reasoning",
+            "measure_label": "Logical reasoning ability",
+            "percentile": normalise_percentile(logical_percentile),
+        },
+        {
+            "key": "numerical",
+            "title": "Numerical reasoning",
+            "measure_label": "Numerical reasoning ability",
+            "percentile": normalise_percentile(numerical_percentile),
+        },
+        {
+            "key": "verbal",
+            "title": "Verbal reasoning",
+            "measure_label": "Verbal reasoning ability",
+            "percentile": normalise_percentile(verbal_percentile),
+        },
+    ]
+
+    results = []
+
+    for test in test_config:
+        percentile = test["percentile"]
+        level = get_level(percentile)
+
+        results.append({
+            "key": test["key"],
+            "title": test["title"],
+            "measure_label": test["measure_label"],
+            "percentile": percentile,
+            "completed": level["completed"],
+            "level_key": level["level_key"],
+            "level_label": level["level_label"],
+            "interpretation": get_interpretation(
+                test_key=test["key"],
+                percentile=percentile,
+            ),
+        })
+
+    return results
 
 
 def build_candidate_detail_context(process, invitation):
@@ -513,25 +664,24 @@ def build_candidate_detail_context(process, invitation):
 
     for item in activities:
         activity_name = item.get("activity", "")
+        activity_key = get_assessment_key(activity_name)
+
         competencies = item.get("competencies", []) or []
         first_comp = competencies[0] if competencies else {}
 
         percentile = first_comp.get("percentile")
 
-        if activity_name == "Sova Numerical Reasoning Assessment":
+        if activity_key == "numerical":
             numerical_percentile = percentile
-            if percentile is not None:
-                has_numerical_results = True
+            has_numerical_results = percentile is not None
 
-        elif activity_name == "Sova Logical Reasoning Assessment":
+        elif activity_key == "logical":
             logical_percentile = percentile
-            if percentile is not None:
-                has_logical_results = True
+            has_logical_results = percentile is not None
 
-        elif activity_name == "Sova Verbal Reasoning Assessment":
+        elif activity_key == "verbal":
             verbal_percentile = percentile
-            if percentile is not None:
-                has_verbal_results = True
+            has_verbal_results = percentile is not None
 
     has_ability_results = (
         has_verbal_results
@@ -858,6 +1008,14 @@ def build_candidate_detail_context(process, invitation):
         mode=candidate_insights_mode,
         general_insight_input=general_insight_input,
         process_purpose=process.purpose,
+    )
+
+    candidate_insights["cognitive_results"] = (
+        build_cognitive_insight_results(
+            verbal_percentile=verbal_percentile,
+            logical_percentile=logical_percentile,
+            numerical_percentile=numerical_percentile,
+        )
     )
 
     print("=== FLEXIBLE AI CONDITION DEBUG ===")
@@ -3676,6 +3834,11 @@ def build_historical_candidate_detail_context(
         "areas_to_explore": [],
         "questions": [],
         "fit": None,
+        "cognitive_results": build_cognitive_insight_results(
+            verbal_percentile=verbal_percentile,
+            logical_percentile=logical_percentile,
+            numerical_percentile=numerical_percentile,
+        ),
     }
 
     if has_any_results:
