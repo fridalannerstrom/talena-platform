@@ -424,6 +424,313 @@ def build_response_style_results(personality_competencies):
     return response_styles
 
 
+def build_motivation_insight_section(mq_competencies):
+    """
+    Build motivation insight content from Sova motivation competencies.
+
+    Uses the three highest scores as likely motivators and the three lowest
+    scores as possible demotivators.
+    """
+
+    def get_score(item):
+        for key in (
+            "stive_rounded",
+            "stive",
+            "sten_rounded",
+            "sten",
+            "percentile",
+        ):
+            value = item.get(key)
+
+            if value is not None:
+                return value
+
+        return None
+
+    valid_items = [
+        item
+        for item in mq_competencies
+        if get_score(item) is not None
+        and item.get("competency")
+    ]
+
+    if not valid_items:
+        return None
+
+    sorted_desc = sorted(
+        valid_items,
+        key=get_score,
+        reverse=True,
+    )
+
+    sorted_asc = sorted(
+        valid_items,
+        key=get_score,
+    )
+
+    top_items = sorted_desc[:3]
+    low_items = sorted_asc[:3]
+
+    descriptions = {
+        "quality": {
+            "motivator": (
+                "May be energised by doing work to a high standard and "
+                "feeling that the result is accurate and reliable."
+            ),
+            "demotivator": (
+                "May become less engaged when quality is consistently "
+                "sacrificed for speed or convenience."
+            ),
+        },
+        "autonomy": {
+            "motivator": (
+                "May value ownership, independence and enough freedom to "
+                "decide how work should be approached."
+            ),
+            "demotivator": (
+                "May lose energy in environments with limited ownership or "
+                "little influence over how work is carried out."
+            ),
+        },
+        "making a difference": {
+            "motivator": (
+                "May gain energy from seeing that their work contributes to "
+                "something useful or meaningful."
+            ),
+            "demotivator": (
+                "May find work less engaging when its purpose or impact is "
+                "unclear."
+            ),
+        },
+        "learning": {
+            "motivator": (
+                "May be motivated by opportunities to develop, learn and "
+                "build new capability."
+            ),
+            "demotivator": (
+                "May become less engaged when work feels repetitive or offers "
+                "limited opportunities to grow."
+            ),
+        },
+        "variety": {
+            "motivator": (
+                "May enjoy change, different tasks and a working environment "
+                "with regular variation."
+            ),
+            "demotivator": (
+                "May lose energy when work becomes highly repetitive or "
+                "predictable for long periods."
+            ),
+        },
+        "commercial value": {
+            "motivator": (
+                "May be energised by visible business value, measurable impact "
+                "and commercially meaningful outcomes."
+            ),
+            "demotivator": (
+                "May find work less motivating when its value or contribution "
+                "to the organisation is difficult to see."
+            ),
+        },
+        "affiliation": {
+            "motivator": (
+                "May value belonging, connection and positive relationships "
+                "with colleagues."
+            ),
+            "demotivator": (
+                "May lose energy in isolated environments with limited social "
+                "connection."
+            ),
+        },
+        "recognition": {
+            "motivator": (
+                "May appreciate acknowledgement and visible recognition for "
+                "their contribution."
+            ),
+            "demotivator": (
+                "May become less engaged when effort and contribution go "
+                "unnoticed for long periods."
+            ),
+        },
+        "achievement": {
+            "motivator": (
+                "May be motivated by ambitious goals, progress and a clear "
+                "sense of accomplishment."
+            ),
+            "demotivator": (
+                "May lose energy when goals are vague or when progress is "
+                "difficult to measure."
+            ),
+        },
+        "stability": {
+            "motivator": (
+                "May value predictability, continuity and a stable working "
+                "environment."
+            ),
+            "demotivator": (
+                "May find frequent uncertainty or constant change more "
+                "demanding."
+            ),
+        },
+        "risk": {
+            "motivator": (
+                "May be energised by challenge, uncertainty and situations "
+                "that involve calculated risk."
+            ),
+            "demotivator": (
+                "May lose energy in environments that are highly cautious or "
+                "offer little room for bold decisions."
+            ),
+        },
+        "people development": {
+            "motivator": (
+                "May gain energy from helping others grow, learn and develop."
+            ),
+            "demotivator": (
+                "May find roles less engaging when there is little opportunity "
+                "to support or develop others."
+            ),
+        },
+        "creativity": {
+            "motivator": (
+                "May value opportunities to generate ideas, experiment and "
+                "find new ways of working."
+            ),
+            "demotivator": (
+                "May lose energy in highly rigid environments with limited room "
+                "for new ideas."
+            ),
+        },
+        "work-life balance": {
+            "motivator": (
+                "May value a sustainable pace and enough space to balance work "
+                "with life outside work."
+            ),
+            "demotivator": (
+                "May become less engaged when workload and expectations remain "
+                "difficult to balance over time."
+            ),
+        },
+        "enjoyment": {
+            "motivator": (
+                "May be energised by work that feels enjoyable, engaging and "
+                "personally satisfying."
+            ),
+            "demotivator": (
+                "May lose energy when work feels consistently dull or lacking "
+                "in enjoyment."
+            ),
+        },
+        "ethics": {
+            "motivator": (
+                "May value fairness, ethical standards and alignment with "
+                "personal principles."
+            ),
+            "demotivator": (
+                "May find environments less motivating when decisions feel "
+                "misaligned with their values."
+            ),
+        },
+        "customer service": {
+            "motivator": (
+                "May gain energy from helping customers and delivering a useful "
+                "service."
+            ),
+            "demotivator": (
+                "May lose energy when there is little opportunity to create "
+                "value for customers."
+            ),
+        },
+        "authority": {
+            "motivator": (
+                "May value influence, decision-making responsibility and the "
+                "ability to shape direction."
+            ),
+            "demotivator": (
+                "May become less engaged when there is very little influence or "
+                "decision-making scope."
+            ),
+        },
+        "acquisition": {
+            "motivator": (
+                "May be energised by gaining resources, rewards or tangible "
+                "outcomes."
+            ),
+            "demotivator": (
+                "May find roles less motivating when rewards or tangible gains "
+                "are limited."
+            ),
+        },
+    }
+
+    def make_item(item, item_type):
+        name = (item.get("competency") or "").strip()
+        lookup_key = name.lower()
+
+        fallback = (
+            "This appears to be one of the candidate's stronger motivational "
+            "drivers."
+            if item_type == "motivator"
+            else (
+                "This appears to be a less prominent motivational driver and "
+                "may offer less energy over time."
+            )
+        )
+
+        description = (
+            descriptions.get(lookup_key, {}).get(item_type)
+            or fallback
+        )
+
+        return {
+            "name": name,
+            "description": description,
+            "score": get_score(item),
+            "percentile": item.get("percentile"),
+        }
+
+    motivators = [
+        make_item(item, "motivator")
+        for item in top_items
+    ]
+
+    demotivators = [
+        make_item(item, "demotivator")
+        for item in low_items
+    ]
+
+    top_names = [
+        item["name"].lower()
+        for item in motivators
+    ]
+
+    if top_names:
+        if len(top_names) == 1:
+            joined_names = top_names[0]
+        elif len(top_names) == 2:
+            joined_names = " and ".join(top_names)
+        else:
+            joined_names = (
+                f"{top_names[0]}, {top_names[1]} and {top_names[2]}"
+            )
+
+        summary = (
+            f"The candidate appears most likely to be energised by "
+            f"{joined_names}. These drivers may be especially relevant when "
+            f"considering role design, working environment and longer-term "
+            f"engagement."
+        )
+    else:
+        summary = ""
+
+    return {
+        "title": "Motivation and environment",
+        "summary": summary,
+        "motivators": motivators,
+        "demotivators": demotivators,
+    }
+
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
@@ -746,6 +1053,10 @@ def build_candidate_detail_context(process, invitation):
     )   
 
     motivation_scores = build_scores_by_competency(mq_competencies)
+
+    motivation_insights = build_motivation_insight_section(
+        mq_competencies
+    )
 
     practitioner_report = build_practitioner_report(
         competencies=mq_competencies,
@@ -1263,6 +1574,7 @@ def build_candidate_detail_context(process, invitation):
 
         "response_styles": response_styles,
         "response_style_segments": range(1, 11),
+        "motivation_insights": motivation_insights,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):

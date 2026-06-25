@@ -1497,163 +1497,127 @@
 {% endif %}
 <!-- /RESPONSE STYLES -->
 
-        <!-- MOTIVATION & ENVIRONMENT -->
-        {% if candidate_insights.motivation_environment %}
-          {% with section=candidate_insights.motivation_environment %}
-            <section class="card mb-4">
-              <div class="card-header bg-white">
-                <div class="insight-summary-kicker">Candidate Insights</div>
-                <h2 class="h5 mb-1">Motivation and environment</h2>
-                {% if section.summary %}
-                  <p class="text-muted mb-0">{{ section.summary }}</p>
-                {% endif %}
-              </div>
+  <!-- MOTIVATION AND ENVIRONMENT -->
+{% if has_motivation_results and motivation_insights %}
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
 
-              <div class="card-body">
-                <div class="row g-3">
-                  {% if section.top_motivators %}
-                    <div class="col-lg-6">
-                      <div class="border rounded-3 p-3 h-100">
-                        <h3 class="h6 mb-3">Likely motivators</h3>
-                        {% for item in section.top_motivators %}
-                          <div class="mb-3">
-                            <div class="fw-semibold">{{ item.title }}</div>
-                            {% if item.body %}<div class="text-muted small">{{ item.body }}</div>{% endif %}
-                          </div>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  {% endif %}
+      <div class="mb-4">
+        <div class="insight-summary-kicker">
+          Candidate Insights
+        </div>
 
-                  {% if section.possible_demotivators %}
-                    <div class="col-lg-6">
-                      <div class="border rounded-3 p-3 h-100">
-                        <h3 class="h6 mb-3">Possible demotivators</h3>
-                        {% for item in section.possible_demotivators %}
-                          <div class="mb-3">
-                            <div class="fw-semibold">{{ item.title }}</div>
-                            {% if item.body %}<div class="text-muted small">{{ item.body }}</div>{% endif %}
-                          </div>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  {% endif %}
-                </div>
-              </div>
-            </section>
-          {% endwith %}
+        <h2 class="insight-summary-title mb-1">
+          {{ motivation_insights.title }}
+        </h2>
+
+        {% if motivation_insights.summary %}
+          <div class="text-muted">
+            {{ motivation_insights.summary }}
+          </div>
         {% endif %}
-        <!-- /MOTIVATION & ENVIRONMENT -->
+      </div>
 
-        <!-- WORK STYLE -->
-        {% if candidate_insights.work_style %}
-          {% with section=candidate_insights.work_style %}
-            <section class="card mb-4">
-              <div class="card-header bg-white">
-                <div class="insight-summary-kicker">Candidate Insights</div>
-                <h2 class="h5 mb-1">Work style</h2>
-                {% if section.summary %}
-                  <p class="text-muted mb-0">{{ section.summary }}</p>
-                {% endif %}
+      <div class="motivation-insights-grid">
+
+        <!-- LIKELY MOTIVATORS -->
+        <article class="motivation-insight-card">
+
+          <div class="motivation-insight-card__header">
+            <div>
+              <h3 class="motivation-insight-card__title">
+                Likely motivators
+              </h3>
+
+              <div class="motivation-insight-card__subtitle">
+                Factors most likely to provide energy and engagement
               </div>
+            </div>
+          </div>
 
-              {% if section.items %}
-                <div class="card-body">
-                  <div class="row g-3">
-                    {% for item in section.items %}
-                      <div class="col-lg-6">
-                        <div class="border rounded-3 p-3 h-100">
-                          <h3 class="h6 mb-1">{{ item.title }}</h3>
-                          {% if item.subtitle %}
-                            <div class="text-muted small mb-2">{{ item.subtitle }}</div>
-                          {% endif %}
-                          {% if item.body %}
-                            <p class="mb-2">{{ item.body }}</p>
-                          {% endif %}
-                          {% if item.practical_tip %}
-                            <div class="small">
-                              <span class="fw-semibold">Practical tip:</span>
-                              {{ item.practical_tip }}
-                            </div>
-                          {% endif %}
-                        </div>
-                      </div>
-                    {% endfor %}
+          <div class="motivation-insight-list">
+
+            {% for item in motivation_insights.motivators %}
+              <div class="motivation-insight-item">
+
+                <div class="motivation-insight-item__top">
+                  <div class="motivation-insight-item__name">
+                    {{ item.name }}
                   </div>
-                </div>
-              {% endif %}
-            </section>
-          {% endwith %}
-        {% endif %}
-        <!-- /WORK STYLE -->
 
-        <!-- QUESTIONS -->
-        {% if candidate_insights.questions %}
-          <section class="card mb-4 questions-card">
-            <div class="card-header questions-header bg-white">
-              <div>
-                <div class="questions-kicker">Candidate Insights</div>
-                <h2 class="questions-title">
-                  {{ context_config.questions_title|default:"Questions to ask" }}
-                </h2>
-                <p class="questions-intro">
-                  {% if report_mode == "context" %}
-                    Suggested follow-up questions tailored to this process context.
-                  {% else %}
-                    Suggested follow-up questions based on the completed assessments.
-                  {% endif %}
-                </p>
-              </div>
-            </div>
-
-            <div class="card-body">
-              <div class="questions-filter-bar" aria-label="Question filters">
-                <button type="button" class="questions-filter is-active" data-question-filter="all">All</button>
-                <button type="button" class="questions-filter" data-question-filter="strengths">Strengths</button>
-                <button type="button" class="questions-filter" data-question-filter="explore">Explore</button>
-                <button type="button" class="questions-filter" data-question-filter="motivation">Motivation</button>
-                <button type="button" class="questions-filter" data-question-filter="work_style">Work style</button>
-              </div>
-
-              <div class="questions-list mt-3">
-                {% for item in candidate_insights.questions %}
-                  <article
-                    class="question-card"
-                    data-question-category="{{ item.category|default:'all' }}">
-
-                    <div class="question-card__top">
-                      <div class="question-card__icon">
-                        <i data-feather="message-circle"></i>
-                      </div>
-
-                      <div>
-                        <div class="question-card__meta">
-                          {{ item.category_label|default:"Follow-up question" }}
-                        </div>
-                        <h3 class="question-card__question">{{ item.question }}</h3>
-                      </div>
+                  {% if item.score is not None %}
+                    <div class="motivation-insight-item__score">
+                      {{ item.score }}/5
                     </div>
+                  {% endif %}
+                </div>
 
-                    {% if item.why %}
-                      <div class="question-card__section">
-                        <div class="question-card__label">Why ask this?</div>
-                        <div class="question-card__text">{{ item.why }}</div>
-                      </div>
-                    {% endif %}
+                <div class="motivation-insight-item__description">
+                  {{ item.description }}
+                </div>
 
-                    {% if item.listen_for %}
-                      <div class="question-card__section">
-                        <div class="question-card__label">What to listen for</div>
-                        <div class="question-card__text">{{ item.listen_for }}</div>
-                      </div>
-                    {% endif %}
-                  </article>
-                {% endfor %}
+              </div>
+            {% endfor %}
+
+          </div>
+
+        </article>
+
+        <!-- POSSIBLE DEMOTIVATORS -->
+        <article class="motivation-insight-card">
+
+          <div class="motivation-insight-card__header">
+            <div>
+              <h3 class="motivation-insight-card__title">
+                Possible demotivators
+              </h3>
+
+              <div class="motivation-insight-card__subtitle">
+                Conditions that may provide less energy over time
               </div>
             </div>
-          </section>
-        {% endif %}
-        <!-- /QUESTIONS -->
+          </div>
+
+          <div class="motivation-insight-list">
+
+            {% for item in motivation_insights.demotivators %}
+              <div class="motivation-insight-item">
+
+                <div class="motivation-insight-item__top">
+                  <div class="motivation-insight-item__name">
+                    {{ item.name }}
+                  </div>
+
+                  {% if item.score is not None %}
+                    <div class="motivation-insight-item__score">
+                      {{ item.score }}/5
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="motivation-insight-item__description">
+                  {{ item.description }}
+                </div>
+
+              </div>
+            {% endfor %}
+
+          </div>
+
+        </article>
+
+      </div>
+
+      <div class="small text-muted border-top pt-3 mt-4">
+        Motivation results indicate likely sources of energy and preference.
+        They should be considered together with role context, interview evidence
+        and the candidate’s own reflections.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /MOTIVATION AND ENVIRONMENT -->
 
   <section class="card mb-4 purpose-fit-card sova-debug-card">
     <div class="card-body">
@@ -1739,38 +1703,7 @@
     </div>
   </section>
 
-        <!-- NEXT STEPS -->
-        {% if candidate_insights.next_steps %}
-          <section class="card mb-4">
-            <div class="card-header bg-white">
-              <div class="insight-summary-kicker">Candidate Insights</div>
-              <h2 class="h5 mb-0">Recommended next steps</h2>
-            </div>
-
-            <div class="card-body">
-              <div class="row g-3">
-                {% for item in candidate_insights.next_steps %}
-                  <div class="col-lg-4">
-                    <div class="border rounded-3 p-3 h-100">
-                      {% if item.label %}
-                        <div class="text-muted small mb-1">{{ item.label }}</div>
-                      {% endif %}
-                      <h3 class="h6 mb-2">{{ item.title }}</h3>
-                      {% if item.body %}<p class="mb-2">{{ item.body }}</p>{% endif %}
-                      {% if item.focus %}
-                        <div class="small">
-                          <span class="fw-semibold">Focus:</span> {{ item.focus }}
-                        </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </section>
-        {% endif %}
-        <!-- /NEXT STEPS -->
-
+  
         <!-- REPORTS -->
         {% if has_any_results %}
           <div class="card mb-4">
