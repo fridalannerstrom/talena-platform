@@ -1353,6 +1353,150 @@
 {% endif %}
 <!-- /COGNITIVE ASSESSMENT RESULTS -->
 
+<!-- RESPONSE STYLES -->
+{% if has_personality_results and response_styles %}
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+          <div class="insight-summary-kicker">
+            Candidate Insights
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Response styles
+          </h2>
+
+          <div class="text-muted small">
+            These indicators describe how the candidate used the questionnaire
+            response scale. They provide context for interpreting the personality
+            profile and are not personality traits themselves.
+          </div>
+        </div>
+      </div>
+
+      <!-- RESPONSE STYLE CARD -->
+      <div class="response-style-card">
+
+        {% for style in response_styles %}
+          <article
+            class="
+              response-style-item
+              {% if not style.available %}
+                response-style-item--missing
+              {% endif %}
+            "
+          >
+
+            <!-- TITLE AND VALUE -->
+            <div class="response-style-item__header">
+
+              <div>
+                <h3 class="response-style-item__title">
+                  {{ style.title }}
+                </h3>
+
+                <div class="response-style-item__subtitle">
+                  Questionnaire response pattern
+                </div>
+              </div>
+
+              {% if style.available %}
+                <div class="response-style-item__result">
+                  <span class="response-style-item__value">
+                    {{ style.value }}/10
+                  </span>
+
+                  <span
+                    class="
+                      response-style-item__badge
+                      response-style-item__badge--{{ style.band_key }}
+                    "
+                  >
+                    {{ style.band_label }}
+                  </span>
+                </div>
+              {% else %}
+                <span
+                  class="
+                    response-style-item__badge
+                    response-style-item__badge--missing
+                  "
+                >
+                  Not available
+                </span>
+              {% endif %}
+
+            </div>
+
+            {% if style.available %}
+
+              <!-- SCALE -->
+              <div
+                class="response-style-scale"
+                role="img"
+                aria-label="{{ style.title }}: {{ style.value }} out of 10"
+              >
+
+                <div class="response-style-scale__segments">
+                  {% for segment in response_style_segments %}
+                    <span
+                      class="
+                        response-style-scale__segment
+
+                        {% if segment == style.value %}
+                          response-style-scale__segment--marker
+                        {% endif %}
+
+                        {% if segment <= style.value %}
+                          response-style-scale__segment--filled
+                        {% endif %}
+                      "
+                    ></span>
+                  {% endfor %}
+                </div>
+
+                <div class="response-style-scale__labels">
+                  <span>Low</span>
+                  <span>Typical</span>
+                  <span>High</span>
+                </div>
+
+              </div>
+
+            {% endif %}
+
+            <!-- INTERPRETATION -->
+            <div class="response-style-item__interpretation">
+
+              <div class="response-style-item__interpretation-label">
+                What this may indicate
+              </div>
+
+              <p>
+                {{ style.interpretation }}
+              </p>
+
+            </div>
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-top pt-3 mt-4">
+        Response-style indicators should be used as interpretive context rather
+        than as measures of ability, suitability or honesty.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /RESPONSE STYLES -->
+
         <!-- MOTIVATION & ENVIRONMENT -->
         {% if candidate_insights.motivation_environment %}
           {% with section=candidate_insights.motivation_environment %}

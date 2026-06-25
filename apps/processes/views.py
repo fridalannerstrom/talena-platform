@@ -282,6 +282,148 @@ def build_cognitive_insight_results(
     return results
 
 
+def build_response_style_results(personality_competencies):
+    """
+    Build response-style results from Sova personality competencies.
+
+    Sova/API mapping:
+    - Social Desirability -> Social Desirability
+    - Fillers -> Profile Spread
+    - Reliability -> Ratings Spread
+
+    Values are displayed using rounded STEN scores from 1 to 10.
+    """
+
+    competency_lookup = {
+        (item.get("competency") or "").strip().lower(): item
+        for item in personality_competencies
+    }
+
+    style_config = [
+        {
+            "key": "social_desirability",
+            "title": "Social Desirability",
+            "source_name": "social desirability",
+            "low_text": (
+                "The response pattern suggests a relatively self-critical "
+                "presentation. Some preferences may be more pronounced than "
+                "the results indicate."
+            ),
+            "middle_text": (
+                "The response pattern appears reasonably balanced, with no "
+                "clear tendency towards either self-critical or overly "
+                "positive self-presentation."
+            ),
+            "high_text": (
+                "The response pattern suggests a positive self-presentation. "
+                "Some preferences may be less pronounced than the results "
+                "indicate."
+            ),
+        },
+        {
+            "key": "profile_spread",
+            "title": "Profile Spread",
+            "source_name": "fillers",
+            "low_text": (
+                "The responses show less differentiation across personality "
+                "traits. This may reflect a more general response pattern or "
+                "less consistency between related responses."
+            ),
+            "middle_text": (
+                "The profile contains a mixture of differentiated and less "
+                "differentiated responses. The candidate is likely to recognise "
+                "some parts of the profile more strongly than others."
+            ),
+            "high_text": (
+                "The responses show clear differentiation across personality "
+                "traits, producing a profile with distinct strengths and areas "
+                "that may be more demanding."
+            ),
+        },
+        {
+            "key": "ratings_spread",
+            "title": "Ratings Spread",
+            "source_name": "reliability",
+            "low_text": (
+                "The candidate used fewer extreme response options and tended "
+                "to select a relatively narrow range of ratings."
+            ),
+            "middle_text": (
+                "The candidate appears to have used the full response scale "
+                "without a strong preference for either middle or extreme "
+                "response options."
+            ),
+            "high_text": (
+                "The candidate used a wide range of response options, with "
+                "greater use of the extreme ends of the rating scale."
+            ),
+        },
+    ]
+
+    response_styles = []
+
+    for config in style_config:
+        source = competency_lookup.get(config["source_name"])
+
+        raw_value = (
+            source.get("sten_rounded")
+            if source
+            else None
+        )
+
+        try:
+            value = int(raw_value) if raw_value is not None else None
+        except (TypeError, ValueError):
+            value = None
+
+        if value is not None:
+            value = max(1, min(10, value))
+
+        if value is None:
+            band_key = "missing"
+            band_label = "Not available"
+            interpretation = (
+                "No response-style result is available for this assessment."
+            )
+
+        elif value <= 3:
+            band_key = "low"
+            band_label = "Low"
+            interpretation = config["low_text"]
+
+        elif value <= 7:
+            band_key = "middle"
+            band_label = "Typical"
+            interpretation = config["middle_text"]
+
+        else:
+            band_key = "high"
+            band_label = "High"
+            interpretation = config["high_text"]
+
+        response_styles.append({
+            "key": config["key"],
+            "title": config["title"],
+            "value": value,
+            "available": value is not None,
+            "band_key": band_key,
+            "band_label": band_label,
+            "interpretation": interpretation,
+            "source_name": (
+                source.get("competency")
+                if source
+                else None
+            ),
+            "percentile": (
+                source.get("percentile")
+                if source
+                else None
+            ),
+        })
+
+    return response_styles
+
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
@@ -598,6 +740,10 @@ def build_candidate_detail_context(process, invitation):
         personality_competencies,
         key=lambda x: (x.get("competency") or "").lower()
     )
+
+    response_styles = build_response_style_results(
+        personality_competencies
+    )   
 
     motivation_scores = build_scores_by_competency(mq_competencies)
 
@@ -1114,6 +1260,9 @@ def build_candidate_detail_context(process, invitation):
         "summary_owner": invitation,
         "raw_sova_payload_json": raw_sova_payload_json,
         "raw_sova_activities_json": raw_sova_activities_json,
+
+        "response_styles": response_styles,
+        "response_style_segments": range(1, 11),
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
