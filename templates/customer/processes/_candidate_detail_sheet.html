@@ -905,7 +905,7 @@
       </div>
 
       <!-- STRENGTH CARDS -->
-      <div class="key-strengths-grid">
+      <div class="key-strengths-grid key-strengths-grid--single">
 
         {% for strength in candidate_insights.key_strengths|slice:":4" %}
           <article class="key-strength-card">
@@ -1060,7 +1060,7 @@
         </div>
       </div>
 
-      <div class="key-strengths-grid">
+      <div class="key-strengths-grid key-strengths-grid--single">
 
         {% for area in candidate_insights.areas_to_explore|slice:":4" %}
           <article class="key-strength-card">

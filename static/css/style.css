@@ -23223,9 +23223,6 @@ color: #6E63E3;
   position: relative;
   border: 1px solid rgba(123, 87, 209, .14);
   border-radius: 10px;
-  background:
-    radial-gradient(520px 180px at 10% 0%, rgba(245, 243, 255, .95), transparent 55%),
-    #fff;
   padding: 1.5rem;
   min-height: 100%;
   transition:
@@ -23399,6 +23396,55 @@ color: #6E63E3;
   }
 }
 
+/* =========================================================
+   CANDIDATE INSIGHTS – SINGLE COLUMN LAYOUT
+   ========================================================= */
+
+.key-strengths-grid--single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Make cards feel more spacious in the single-column layout */
+.key-strengths-grid--single .key-strength-card {
+  padding: 1.75rem;
+}
+
+/* Keep text comfortably readable */
+.key-strengths-grid--single .key-strength-card__content {
+  max-width: 720px;
+}
+
+/* Display supporting indicators in two columns on larger screens */
+.key-strengths-grid--single .strength-indicator-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+/* Remove any margins added by the old stacked indicator layout */
+.key-strengths-grid--single .strength-indicator {
+  margin: 0;
+}
+
+/* Tablet and mobile */
+@media (max-width: 767.98px) {
+  .key-strengths-grid--single {
+    max-width: 100%;
+    gap: 1rem;
+  }
+
+  .key-strengths-grid--single .key-strength-card {
+    padding: 1.25rem;
+  }
+
+  .key-strengths-grid--single .strength-indicator-list {
+    grid-template-columns: 1fr;
+  }
+}
 
 .raw-assessment-accordion .accordion-item {
   overflow: hidden;
