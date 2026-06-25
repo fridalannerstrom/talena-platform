@@ -857,6 +857,7 @@ def build_candidate_detail_context(process, invitation):
     candidate_insights = build_candidate_insights(
         mode=candidate_insights_mode,
         general_insight_input=general_insight_input,
+        process_purpose=process.purpose,
     )
 
     print("=== FLEXIBLE AI CONDITION DEBUG ===")

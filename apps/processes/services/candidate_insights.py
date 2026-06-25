@@ -182,6 +182,32 @@ INSIGHT_THEMES = {
             "May organise work clearly, maintain quality and follow agreed "
             "tasks through to completion."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where accuracy, planning and "
+                "dependable follow-through are important."
+            ),
+            "hiring": (
+                "This may support roles that require reliable delivery, clear "
+                "planning, accuracy and consistent follow-through."
+            ),
+            "leadership": (
+                "This may help the candidate create clarity, maintain standards "
+                "and follow through on agreed priorities."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for taking on "
+                "greater responsibility, coordinating work and improving consistency."
+            ),
+            "team": (
+                "This may help the team maintain structure, coordinate responsibilities "
+                "and deliver work consistently."
+            ),
+            "internal_role_match": (
+                "This may support an internal role that requires planning, accuracy, "
+                "dependable execution or responsibility for recurring delivery."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate maintains "
             "structure, accuracy and follow-through in demanding situations."
@@ -219,6 +245,32 @@ INSIGHT_THEMES = {
             "May compare alternatives, question assumptions and use relevant "
             "information to support decisions."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where information needs to be examined, "
+                "compared and translated into well-supported conclusions."
+            ),
+            "hiring": (
+                "This may support roles that require problem-solving, evidence-based "
+                "decisions or the ability to work with complex information."
+            ),
+            "leadership": (
+                "This may help the candidate assess situations carefully, challenge "
+                "assumptions and make decisions based on relevant evidence."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing sound "
+                "judgement, problem-solving and confidence in complex decisions."
+            ),
+            "team": (
+                "This may help the team examine problems carefully, compare options "
+                "and avoid conclusions that are not supported by evidence."
+            ),
+            "internal_role_match": (
+                "This may support an internal role involving analysis, problem-solving, "
+                "evaluation or responsibility for evidence-based decisions."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how confidently the candidate works "
             "with information and reaches sound conclusions."
@@ -250,6 +302,32 @@ INSIGHT_THEMES = {
             "May connect different pieces of information, consider several "
             "perspectives and think beyond immediate operational details."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where broader patterns, complexity and "
+                "longer-term implications need to be considered."
+            ),
+            "hiring": (
+                "This may support roles that require the candidate to understand complex "
+                "information, consider long-term consequences and make thoughtful decisions."
+            ),
+            "leadership": (
+                "This may help the candidate connect operational decisions to broader goals "
+                "and consider the longer-term impact of leadership choices."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing strategic "
+                "judgement and handling increasingly complex responsibilities."
+            ),
+            "team": (
+                "This may help the team connect detailed information to broader priorities "
+                "and consider several perspectives before deciding."
+            ),
+            "internal_role_match": (
+                "This may support an internal role involving strategic planning, complex "
+                "decisions or responsibility beyond immediate operational tasks."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate translates "
             "strategic thinking into practical action."
@@ -284,6 +362,32 @@ INSIGHT_THEMES = {
             "May question established approaches, explore possibilities and "
             "suggest new ways forward."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where new perspectives and alternative "
+                "approaches are valued."
+            ),
+            "hiring": (
+                "This may support roles where the candidate needs to challenge "
+                "established approaches, solve unfamiliar problems or contribute new ideas."
+            ),
+            "leadership": (
+                "This may help the candidate encourage new thinking, challenge established "
+                "assumptions and create space for improvement."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing greater "
+                "innovation, experimentation and confidence in proposing new approaches."
+            ),
+            "team": (
+                "This may help the team consider alternative perspectives and avoid "
+                "becoming overly dependent on familiar solutions."
+            ),
+            "internal_role_match": (
+                "This may be relevant for an internal role involving change, improvement, "
+                "innovation or unfamiliar challenges."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate balances original "
             "thinking with practical requirements."
@@ -312,6 +416,32 @@ INSIGHT_THEMES = {
             "May seek information, ask questions and engage actively with "
             "new knowledge or experiences."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where continuous learning, curiosity "
+                "and the ability to engage with unfamiliar topics are important."
+            ),
+            "hiring": (
+                "This may support roles where the candidate needs to learn quickly, "
+                "build new knowledge or adapt to unfamiliar subject areas."
+            ),
+            "leadership": (
+                "This may help the candidate remain curious, learn from experience "
+                "and encourage development within the wider team."
+            ),
+            "development": (
+                "This may provide a strong foundation for learning new skills, "
+                "seeking feedback and applying new knowledge in practice."
+            ),
+            "team": (
+                "This may help the team stay curious, share learning and remain "
+                "open to new information or approaches."
+            ),
+            "internal_role_match": (
+                "This may support an internal move into a role that requires rapid "
+                "learning, new subject knowledge or broader responsibilities."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate develops and "
             "applies new knowledge."
@@ -344,6 +474,32 @@ INSIGHT_THEMES = {
             "May connect with relevant people and develop relationships "
             "across teams or professional networks."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful in situations where relationships, "
+                "collaboration and access to relevant people are important."
+            ),
+            "hiring": (
+                "This may support roles where the candidate needs to build "
+                "relationships, collaborate across teams or develop external contacts."
+            ),
+            "leadership": (
+                "This may help the candidate build trust, create useful connections "
+                "and maintain relationships across teams or stakeholder groups."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for expanding influence, "
+                "collaboration and access to wider professional networks."
+            ),
+            "team": (
+                "This may help the candidate connect people, strengthen cooperation "
+                "and build relationships across the team."
+            ),
+            "internal_role_match": (
+                "This may support a move into an internal role that requires broader "
+                "collaboration, stakeholder relationships or cross-functional contact."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate establishes and "
             "maintains professional relationships."
@@ -378,6 +534,32 @@ INSIGHT_THEMES = {
         "strength_show": (
             "May listen, support colleagues and contribute toward shared goals."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where cooperation, shared responsibility "
+                "and constructive working relationships are important."
+            ),
+            "hiring": (
+                "This may support roles that require close collaboration, shared "
+                "delivery or regular cooperation with different people."
+            ),
+            "leadership": (
+                "This may help the candidate involve others, build cooperation and "
+                "create a working environment based on shared responsibility."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing broader "
+                "collaboration skills and working effectively with different styles."
+            ),
+            "team": (
+                "This may contribute to trust, cooperation and a stronger focus on "
+                "shared goals within the team."
+            ),
+            "internal_role_match": (
+                "This may support an internal role that depends on cross-functional "
+                "cooperation, teamwork or shared responsibility for outcomes."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate collaborates with "
             "different personalities and working styles."
@@ -412,6 +594,32 @@ INSIGHT_THEMES = {
             "May offer support, share knowledge and take an interest in the "
             "needs or development of colleagues."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where supporting, guiding or developing "
+                "other people is important."
+            ),
+            "hiring": (
+                "This may support roles that involve collaboration, service, coaching "
+                "or responsibility for helping others succeed."
+            ),
+            "leadership": (
+                "This may help the candidate build trust, support employee development "
+                "and create conditions in which others can perform well."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for taking greater "
+                "responsibility for coaching, feedback or employee development."
+            ),
+            "team": (
+                "This may contribute to a supportive team climate where colleagues share "
+                "knowledge and help one another develop."
+            ),
+            "internal_role_match": (
+                "This may be relevant for an internal role involving mentoring, onboarding, "
+                "people support or development responsibility."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate supports and "
             "develops others in practice."
@@ -452,6 +660,32 @@ INSIGHT_THEMES = {
             "May adjust priorities, recover from setbacks and continue "
             "working effectively under pressure."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where priorities change, pressure rises "
+                "or the individual needs to adjust to new circumstances."
+            ),
+            "hiring": (
+                "This may support roles that involve changing demands, uncertainty, "
+                "tight deadlines or the need to recover quickly from setbacks."
+            ),
+            "leadership": (
+                "This may help the candidate remain composed, adjust direction and "
+                "provide stability when circumstances or priorities change."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for taking on more "
+                "complex, uncertain or demanding responsibilities."
+            ),
+            "team": (
+                "This may help the team maintain momentum, adapt to changing demands "
+                "and respond constructively under pressure."
+            ),
+            "internal_role_match": (
+                "This may support an internal role involving change, uncertainty, "
+                "competing priorities or increased pressure."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate responds when "
             "priorities shift or pressure increases."
@@ -488,6 +722,32 @@ INSIGHT_THEMES = {
             "May pursue objectives, act independently and maintain ownership "
             "of agreed responsibilities."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where initiative, personal responsibility "
+                "and sustained effort are important."
+            ),
+            "hiring": (
+                "This may support roles where the candidate needs to take ownership, "
+                "work independently and maintain progress toward clear objectives."
+            ),
+            "leadership": (
+                "This may help the candidate take responsibility, create momentum "
+                "and follow through on decisions or commitments."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for taking on greater "
+                "ownership, broader responsibility and more demanding goals."
+            ),
+            "team": (
+                "This may help the team maintain momentum and benefit from a colleague "
+                "who takes responsibility for agreed outcomes."
+            ),
+            "internal_role_match": (
+                "This may support an internal role that requires initiative, autonomy, "
+                "ownership or responsibility for driving work forward."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate takes ownership "
             "and maintains momentum."
@@ -523,6 +783,32 @@ INSIGHT_THEMES = {
             "May communicate a clear point of view, influence others and "
             "step forward when direction is needed."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where direction, influence and the ability "
+                "to gain support from others are important."
+            ),
+            "hiring": (
+                "This may support roles where the candidate needs to influence others, "
+                "communicate a clear position or take responsibility for direction."
+            ),
+            "leadership": (
+                "This may help the candidate provide direction, gain commitment and "
+                "influence how people approach shared goals."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing greater "
+                "leadership responsibility, influence and confidence in visible roles."
+            ),
+            "team": (
+                "This may help the team create direction, move discussions forward "
+                "and build support for decisions or priorities."
+            ),
+            "internal_role_match": (
+                "This may support an internal role involving leadership, stakeholder "
+                "influence, visible responsibility or ownership of direction."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate influences others "
             "and adapts their leadership approach."
@@ -556,6 +842,32 @@ INSIGHT_THEMES = {
             "May express ideas openly, create engagement and establish contact "
             "with others."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where ideas need to be communicated "
+                "clearly and other people need to be engaged."
+            ),
+            "hiring": (
+                "This may support roles that require regular communication, stakeholder "
+                "engagement or the ability to make messages understandable."
+            ),
+            "leadership": (
+                "This may help the candidate communicate direction, create engagement "
+                "and maintain open dialogue with others."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing broader "
+                "influence, presentation skills and communication across audiences."
+            ),
+            "team": (
+                "This may help the team share information openly, maintain dialogue "
+                "and create engagement around shared work."
+            ),
+            "internal_role_match": (
+                "This may support an internal role requiring stakeholder communication, "
+                "presentation, coordination or regular interaction with others."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate adjusts their "
             "communication to different audiences."
@@ -589,6 +901,32 @@ INSIGHT_THEMES = {
             "May communicate sincerely, avoid unnecessary self-promotion and "
             "seek to behave consistently with stated values."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where trust, honesty and consistency "
+                "between words and actions are important."
+            ),
+            "hiring": (
+                "This may support roles where credibility, responsible judgement "
+                "and open communication are particularly important."
+            ),
+            "leadership": (
+                "This may help the candidate build trust, communicate honestly and "
+                "create consistency between stated expectations and personal behaviour."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for developing trusted "
+                "relationships and handling increasingly sensitive responsibilities."
+            ),
+            "team": (
+                "This may contribute to trust, openness and a working environment "
+                "where colleagues can communicate honestly with one another."
+            ),
+            "internal_role_match": (
+                "This may support an internal role involving trust, confidentiality, "
+                "responsible judgement or sensitive stakeholder relationships."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate handles situations "
             "where openness and diplomacy need to be balanced."
@@ -619,6 +957,32 @@ INSIGHT_THEMES = {
         "strength_show": (
             "May create pace, communicate enthusiasm and encourage progress."
         ),
+        "why_it_matters_by_purpose": {
+            "default": (
+                "This strength may be useful where energy, pace and the ability to "
+                "encourage progress are important."
+            ),
+            "hiring": (
+                "This may support roles that require visible energy, sustained activity "
+                "or the ability to help move work forward."
+            ),
+            "leadership": (
+                "This may help the candidate create momentum, communicate enthusiasm "
+                "and encourage others to maintain progress."
+            ),
+            "development": (
+                "This strength may provide a useful foundation for taking on work "
+                "that requires greater visibility, pace or responsibility for momentum."
+            ),
+            "team": (
+                "This may contribute energy to the team and help maintain pace, "
+                "engagement and forward movement."
+            ),
+            "internal_role_match": (
+                "This may support an internal role that requires pace, visible energy, "
+                "initiative or responsibility for driving activity forward."
+            ),
+        },
         "explore_body": (
             "It may be useful to explore how the candidate maintains energy "
             "over longer or less stimulating assignments."
@@ -629,6 +993,7 @@ INSIGHT_THEMES = {
         ),
     },
 }
+
 
 def normalize_indicator_key(value: Any) -> str:
     text = str(value or "").strip().lower()
@@ -1042,9 +1407,32 @@ def build_low_score_explore_areas(
 
     return explore_areas
 
+def get_theme_why_it_matters(
+    theme: dict[str, Any],
+    process_purpose: str | None,
+) -> str:
+    purpose_texts = (
+        theme.get("why_it_matters_by_purpose")
+        or {}
+    )
+
+    normalized_purpose = str(
+        process_purpose or "default"
+    ).strip().lower()
+
+    return (
+        purpose_texts.get(normalized_purpose)
+        or purpose_texts.get("default")
+        or (
+            "This theme may be relevant where the process requires "
+            "these behaviours or capabilities."
+        )
+    )
+
 
 def build_evidence_themes(
     indicators: list[dict[str, Any]],
+    process_purpose: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     strengths: list[dict[str, Any]] = []
 
@@ -1150,9 +1538,9 @@ def build_evidence_themes(
             "title": theme["title"],
             "body": theme["strength_body"],
             "how_it_may_show": theme["strength_show"],
-            "why_it_matters": (
-                "This theme may be relevant where the process requires "
-                "these behaviours or capabilities."
+            "why_it_matters": get_theme_why_it_matters(
+                theme,
+                process_purpose,
             ),
             "level": level,
             "level_rounded": round(level),
@@ -1216,6 +1604,7 @@ def build_candidate_insights(
     *,
     mode: InsightMode = "general",
     general_insight_input: dict[str, Any] | None = None,
+    process_purpose: str | None = None,
 ) -> dict[str, Any]:
     """Return the candidate insight structure used by the candidate sheet.
 
@@ -1239,7 +1628,10 @@ def build_candidate_insights(
 
     if has_personality_indicators:
         evidence_strengths, evidence_explore_areas = (
-            build_evidence_themes(assessment_indicators)
+            build_evidence_themes(
+                assessment_indicators,
+                process_purpose=process_purpose,
+            )
         )
     else:
         evidence_strengths = []

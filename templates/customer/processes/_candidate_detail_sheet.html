@@ -285,7 +285,7 @@
       </div>
       <!-- /HERO -->
 
-      {% if show_context_prompt %}
+  {% if show_context_prompt %}
         <div class="card mb-4 role-context-prompt-card">
           <div class="card-body">
             <div class="role-context-prompt">
@@ -343,6 +343,8 @@
         </div>
       {% else %}
 
+       <!--  
+
 {% if purpose_report and report_mode == "context" %}
   <div class="card mb-4 purpose-report-hero purpose-report-{{ purpose_report_key|default:report_mode }}">
     <div class="card-body">
@@ -377,6 +379,7 @@
     </div>
   </div>
 {% endif %}
+-->
 
 
         <!-- ======================================================
