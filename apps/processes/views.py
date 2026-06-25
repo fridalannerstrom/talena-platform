@@ -286,11 +286,25 @@ def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
 
+    raw_sova_payload_json = json.dumps(
+        payload,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    )
+
     activities = invitation.sova_activities or payload.get("activities") or []
 
     if not activities:
         for phase in payload.get("phases") or []:
             activities.extend(phase.get("activities") or [])
+
+    raw_sova_activities_json = json.dumps(
+        activities,
+        indent=2,
+        ensure_ascii=False,
+        default=str,
+    )        
 
     def get_assessment_key(name):
         """
@@ -1098,7 +1112,8 @@ def build_candidate_detail_context(process, invitation):
         "show_role_context_prompt": show_role_context_prompt,
 
         "summary_owner": invitation,
-
+        "raw_sova_payload_json": raw_sova_payload_json,
+        "raw_sova_activities_json": raw_sova_activities_json,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
