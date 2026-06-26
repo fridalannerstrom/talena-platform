@@ -62,17 +62,23 @@
   // Shared helpers
   // ------------------------------------------------------------
 
-  function initIconsAndTooltips(scope = document) {
-    if (window.feather) {
+function initIconsAndTooltips(scope = document) {
+  if (window.feather) {
+    try {
       window.feather.replace();
-    }
-
-    if (window.bootstrap) {
-      scope.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
-        bootstrap.Tooltip.getOrCreateInstance(el);
-      });
+    } catch (error) {
+      console.error("Feather icon error:", error);
     }
   }
+
+  if (window.bootstrap) {
+    scope
+      .querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach((el) => {
+        bootstrap.Tooltip.getOrCreateInstance(el);
+      });
+  }
+}
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -239,13 +245,17 @@ await initCandidatePurposeFitStream(sheetBody);
 
 
       } catch (error) {
-        sheetBody.innerHTML = `
-          <div class="alert alert-danger mb-0">
-            Network error while loading candidate details.
-          </div>
-        `;
-        console.error("Candidate sheet load error:", error);
-      }
+  console.error("Candidate sheet load error:", error);
+
+  sheetBody.innerHTML = `
+    <div class="alert alert-danger mb-0">
+      Could not load candidate details.
+      <div class="small mt-2">
+        ${error.message || "An unexpected error occurred."}
+      </div>
+    </div>
+  `;
+}
     }
 
     function updateCandidateSheetNav() {
@@ -316,10 +326,33 @@ if (candidateIdToOpen) {
       }
     });
 
-    sheetEl.addEventListener("hidden.bs.offcanvas", () => {
-      currentIndex = -1;
-      updateCandidateSheetNav();
-    });
+sheetEl.addEventListener("hidden.bs.offcanvas", () => {
+  currentIndex = -1;
+  updateCandidateSheetNav();
+
+  const widget = sheetBody.querySelector(
+    "[data-candidate-ai-widget]"
+  );
+
+  const panel = widget?.querySelector(
+    "[data-candidate-ai-panel]"
+  );
+
+  const launcher = widget?.querySelector(
+    "[data-candidate-ai-launcher]"
+  );
+
+  widget?.classList.remove("is-open");
+
+  if (panel) {
+    panel.hidden = true;
+  }
+
+  launcher?.setAttribute(
+    "aria-expanded",
+    "false"
+  );
+});
   }
 
   function initCandidateSheetInteractions(container) {
@@ -977,91 +1010,274 @@ hideOutdatedState();
   // Candidate AI chat
   // ------------------------------------------------------------
 
-  function initCandidateAiChat() {
-document.addEventListener("submit", async function (event) {
-  const form = event.target.closest(".js-candidate-ai-form");
+ function initCandidateAiChat() {
+  document.addEventListener("click", function (event) {
+    const launcher = event.target.closest(
+      "[data-candidate-ai-launcher]"
+    );
 
-  if (!form) {
-    return;
-  }
+    if (launcher) {
+      const widget = launcher.closest(
+        "[data-candidate-ai-widget]"
+      );
 
-  event.preventDefault();
+      const panel = widget?.querySelector(
+        "[data-candidate-ai-panel]"
+      );
 
-  const card = form.closest(".candidate-ai-card");
-  const input = form.querySelector(".js-candidate-ai-input");
-  const submitButton = form.querySelector(".js-candidate-ai-submit");
-  const messages = card.querySelector(".js-candidate-ai-messages");
-
-  const message = input.value.trim();
-
-  if (!message) {
-    return;
-  }
-
-  const streamUrl = card.dataset.chatStreamUrl;
-  const processId = card.dataset.processId;
-  const candidateId = card.dataset.candidateId;
-  const isHistorical = card.dataset.isHistorical === "true";
-
-  appendCandidateChatMessage(messages, "user", message);
-
-  input.value = "";
-  submitButton.disabled = true;
-
-  const assistantMessage = appendCandidateChatMessage(
-    messages,
-    "assistant",
-    ""
-  );
-
-  try {
-    const response = await fetch(streamUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-      body: JSON.stringify({
-        message: message,
-        process_id: processId,
-        candidate_id: candidateId,
-        is_historical: isHistorical,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Chat request failed: ${response.status}`);
-    }
-
-    if (!response.body) {
-      throw new Error("Streaming response body is missing.");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    let fullText = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-
-      if (done) {
-        break;
+      if (!widget || !panel) {
+        return;
       }
 
-      fullText += decoder.decode(value, { stream: true });
-      assistantMessage.innerHTML = marked.parse(fullText);
-    }
-  } catch (error) {
-    console.error(error);
+      const isOpen = widget.classList.contains("is-open");
 
-    assistantMessage.textContent =
-      "Something went wrong while generating the response.";
-  } finally {
-    submitButton.disabled = false;
-  }
-});
-  }
+      widget.classList.toggle("is-open", !isOpen);
+      panel.hidden = isOpen;
+
+      launcher.setAttribute(
+        "aria-expanded",
+        String(!isOpen)
+      );
+
+      if (!isOpen) {
+        const input = widget.querySelector(
+          ".js-candidate-ai-input"
+        );
+
+        window.setTimeout(() => {
+          input?.focus();
+        }, 50);
+      }
+
+      initIconsAndTooltips(widget);
+      return;
+    }
+
+    const closeButton = event.target.closest(
+      "[data-candidate-ai-close]"
+    );
+
+    if (closeButton) {
+      const widget = closeButton.closest(
+        "[data-candidate-ai-widget]"
+      );
+
+      const panel = widget?.querySelector(
+        "[data-candidate-ai-panel]"
+      );
+
+      const launcher = widget?.querySelector(
+        "[data-candidate-ai-launcher]"
+      );
+
+      if (!widget || !panel) {
+        return;
+      }
+
+      widget.classList.remove("is-open");
+      panel.hidden = true;
+
+      launcher?.setAttribute(
+        "aria-expanded",
+        "false"
+      );
+    }
+  });
+
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") {
+      return;
+    }
+
+    const openWidget = document.querySelector(
+      "[data-candidate-ai-widget].is-open"
+    );
+
+    if (!openWidget) {
+      return;
+    }
+
+    const panel = openWidget.querySelector(
+      "[data-candidate-ai-panel]"
+    );
+
+    const launcher = openWidget.querySelector(
+      "[data-candidate-ai-launcher]"
+    );
+
+    openWidget.classList.remove("is-open");
+
+    if (panel) {
+      panel.hidden = true;
+    }
+
+    launcher?.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+  });
+
+
+  document.addEventListener("submit", async function (event) {
+    const form = event.target.closest(
+      ".js-candidate-ai-form"
+    );
+
+    if (!form) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const card = form.closest(".candidate-ai-card");
+    const input = form.querySelector(
+      ".js-candidate-ai-input"
+    );
+
+    const submitButton = form.querySelector(
+      ".js-candidate-ai-submit"
+    );
+
+    const messages = card?.querySelector(
+      ".js-candidate-ai-messages"
+    );
+
+    if (!card || !input || !submitButton || !messages) {
+      return;
+    }
+
+    const message = input.value.trim();
+
+    if (!message) {
+      return;
+    }
+
+    const streamUrl = card.dataset.chatStreamUrl;
+    const processId = card.dataset.processId;
+    const candidateId = card.dataset.candidateId;
+    const isHistorical =
+      card.dataset.isHistorical === "true";
+
+    appendCandidateChatMessage(
+      messages,
+      "user",
+      message
+    );
+
+    input.value = "";
+    submitButton.disabled = true;
+
+    const assistantMessage =
+      appendCandidateChatMessage(
+        messages,
+        "assistant",
+        ""
+      );
+
+    try {
+      const response = await fetch(streamUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({
+          message: message,
+          process_id: processId,
+          candidate_id: candidateId,
+          is_historical: isHistorical
+        })
+      });
+
+      if (!response.ok) {
+        const responseText =
+          await response.text();
+
+        throw new Error(
+          `Chat request failed: ${response.status} ${responseText}`
+        );
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "Streaming response body is missing."
+        );
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let fullText = "";
+
+      while (true) {
+        const { value, done } =
+          await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        fullText += decoder.decode(value, {
+          stream: true
+        });
+
+        assistantMessage.innerHTML =
+          window.marked
+            ? marked.parse(fullText)
+            : fullText;
+
+        messages.scrollTop =
+          messages.scrollHeight;
+      }
+
+      fullText += decoder.decode();
+
+      assistantMessage.innerHTML =
+        window.marked
+          ? marked.parse(fullText)
+          : fullText;
+
+    } catch (error) {
+      console.error(
+        "Candidate AI chat error:",
+        error
+      );
+
+      assistantMessage.textContent =
+        "Something went wrong while generating the response.";
+
+    } finally {
+      submitButton.disabled = false;
+      input.focus();
+    }
+  });
+
+
+  document.addEventListener("keydown", function (event) {
+    const input = event.target.closest(
+      ".js-candidate-ai-input"
+    );
+
+    if (!input) {
+      return;
+    }
+
+    if (
+      event.key === "Enter"
+      && !event.shiftKey
+    ) {
+      event.preventDefault();
+
+      const form = input.closest(
+        ".js-candidate-ai-form"
+      );
+
+      form?.requestSubmit();
+    }
+  });
+}
 
   function appendCandidateChatMessage(container, role, text) {
   const emptyState = container.querySelector(".candidate-ai-empty");

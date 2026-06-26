@@ -20,7 +20,16 @@ from apps.ai_chat.services.candidate_chat_context import (
     serialize_candidate_chat_context,
 )
 
+from apps.accounts.utils.org_access import (
+    get_company_for_user,
+    user_can_view_process,
+)
 
+from apps.processes.models import (
+    HistoricalProcessCandidate,
+    TestInvitation,
+    TestProcess,
+)
 
 
 @login_required
@@ -52,8 +61,10 @@ def chat_api(request):
 @require_POST
 def chat_stream_api(request):
     try:
-        payload = json.loads(request.body or "{}")
-    except json.JSONDecodeError:
+        payload = json.loads(
+            request.body.decode("utf-8") or "{}"
+        )
+    except (json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse(
             {"error": "Invalid JSON payload."},
             status=400,
@@ -80,10 +91,29 @@ def chat_stream_api(request):
         )
 
     process = get_object_or_404(
-        TestProcess,
+        TestProcess.objects.select_related("company"),
         id=process_id,
-        company=request.user.company,
     )
+
+    company = get_company_for_user(request.user)
+
+    if (
+        not company
+        or process.company_id != company.id
+        or not user_can_view_process(
+            request.user,
+            company,
+            process,
+        )
+    ):
+        return JsonResponse(
+            {
+                "error": (
+                    "You do not have access to this process."
+                )
+            },
+            status=403,
+        )
 
     try:
         chat_context = build_candidate_chat_context(
@@ -140,9 +170,19 @@ User question:
 {message}
 """.strip()
 
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY")
-    )
+    api_key = os.environ.get("OPENAI_API_KEY")
+
+    if not api_key:
+        return JsonResponse(
+            {
+                "error": (
+                    "OPENAI_API_KEY is not configured."
+                )
+            },
+            status=500,
+        )
+
+    client = OpenAI(api_key=api_key)
 
     def stream_response():
         try:
@@ -163,7 +203,13 @@ User question:
                 ):
                     yield event.delta
 
-        except Exception:
+        except Exception as error:
+            print(
+                "CANDIDATE CHAT STREAM ERROR:",
+                repr(error),
+                flush=True,
+            )
+
             yield (
                 "\n\nThe AI response could not be "
                 "generated right now."

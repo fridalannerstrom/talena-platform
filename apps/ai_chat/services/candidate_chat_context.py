@@ -9,30 +9,59 @@ from apps.processes.services.candidate_profile import (
 )
 
 
+def get_candidate_display_name(candidate):
+    """
+    Return a safe display name for a candidate.
+
+    Falls back to email and finally "Candidate" when no name exists.
+    """
+    first_name = (candidate.first_name or "").strip()
+    last_name = (candidate.last_name or "").strip()
+
+    full_name = " ".join(
+        part
+        for part in (first_name, last_name)
+        if part
+    )
+
+    return (
+        full_name
+        or candidate.email
+        or "Candidate"
+    )
+
+
 def build_live_candidate_profile(invitation):
     """
-    Convert live SOVA activity data into a compact structure for AI chat.
+    Convert live SOVA assessment data into a compact structure
+    that can be included in the AI chat context.
     """
-    activities = invitation.sova_activities or []
+    candidate = invitation.candidate
 
     return {
         "source": "live_sova_api",
         "candidate": {
-            "id": invitation.candidate_id,
-            "name": invitation.candidate.full_name,
-            "email": invitation.candidate.email,
+            "id": candidate.id,
+            "name": get_candidate_display_name(candidate),
+            "email": candidate.email or "",
         },
-        "assessment_activities": activities,
-        "project_results": invitation.project_results or {},
+        "assessment_activities": (
+            invitation.sova_activities or []
+        ),
+        "project_results": (
+            invitation.project_results or {}
+        ),
         "overall_score": invitation.overall_score,
     }
 
 
 def build_historical_chat_profile(historical_candidate):
     """
-    Convert imported historical assessment data into the same kind
-    of compact structure used by AI chat.
+    Convert imported historical assessment data into a compact
+    structure matching the live candidate chat context.
     """
+    candidate = historical_candidate.candidate
+
     profile = build_historical_candidate_profile(
         historical_candidate
     )
@@ -40,29 +69,63 @@ def build_historical_chat_profile(historical_candidate):
     return {
         "source": "historical_import",
         "candidate": {
-            "id": historical_candidate.candidate_id,
-            "name": f"{historical_candidate.candidate.first_name} {historical_candidate.candidate.last_name}".strip(),
-            "email": historical_candidate.candidate.email,
+            "id": candidate.id,
+            "name": get_candidate_display_name(candidate),
+            "email": candidate.email or "",
         },
-        "motivation_competencies": profile[
-            "motivation_competencies"
-        ],
-        "personality_competencies": profile[
-            "personality_competencies"
-        ],
-        "team_style_scores": profile[
-            "team_style_scores"
-        ],
-        "ability_results": profile["ability_results"],
-        "has_motivation_results": profile[
-            "has_motivation_results"
-        ],
-        "has_personality_results": profile[
-            "has_personality_results"
-        ],
-        "has_ability_results": profile[
-            "has_ability_results"
-        ],
+        "motivation_competencies": profile.get(
+            "motivation_competencies",
+            [],
+        ),
+        "personality_competencies": profile.get(
+            "personality_competencies",
+            [],
+        ),
+        "team_style_scores": profile.get(
+            "team_style_scores",
+            [],
+        ),
+        "ability_results": profile.get(
+            "ability_results",
+            {},
+        ),
+        "has_motivation_results": profile.get(
+            "has_motivation_results",
+            False,
+        ),
+        "has_personality_results": profile.get(
+            "has_personality_results",
+            False,
+        ),
+        "has_ability_results": profile.get(
+            "has_ability_results",
+            False,
+        ),
+    }
+
+
+def build_process_context(process):
+    """
+    Build the process context used by the AI assistant.
+
+    Uses the ProcessRoleContext helper methods so the chat stays
+    aligned with the fields defined on that model.
+    """
+    purpose_context = getattr(
+        process,
+        "role_context",
+        None,
+    )
+
+    if (
+        not purpose_context
+        or not purpose_context.has_content()
+    ):
+        return None
+
+    return {
+        "purpose": process.purpose or "",
+        **purpose_context.get_current_context_data(),
     }
 
 
@@ -72,12 +135,15 @@ def build_candidate_chat_context(
     candidate_id,
 ):
     """
-    Return AI context for either a live or historical candidate.
+    Return AI chat context for either a live or historical candidate.
     """
     if process.is_historical:
         historical_candidate = (
             HistoricalProcessCandidate.objects
-            .select_related("candidate", "process")
+            .select_related(
+                "candidate",
+                "process",
+            )
             .prefetch_related(
                 "assessment_results__scores",
                 "assessment_results__import_file",
@@ -88,7 +154,7 @@ def build_candidate_chat_context(
             )
         )
 
-        profile = build_historical_chat_profile(
+        candidate_profile = build_historical_chat_profile(
             historical_candidate
         )
 
@@ -98,63 +164,48 @@ def build_candidate_chat_context(
     else:
         invitation = (
             TestInvitation.objects
-            .select_related("candidate", "process")
+            .select_related(
+                "candidate",
+                "process",
+            )
             .get(
                 process=process,
                 candidate_id=candidate_id,
             )
         )
 
-        profile = build_live_candidate_profile(
+        candidate_profile = build_live_candidate_profile(
             invitation
         )
 
-        purpose_context = getattr(
-            process,
-            "role_context",
-            None,
+        process_context = build_process_context(
+            process
         )
 
-        has_context = (
-            purpose_context
-            and purpose_context.has_content()
+        mode = (
+            "context"
+            if process_context
+            else "general"
         )
-
-        process_context = (
-            {
-                "purpose": process.purpose,
-                "role_title": purpose_context.role_title,
-                "job_advertisement": (
-                    purpose_context.job_advertisement
-                ),
-                "requirements": (
-                    purpose_context.requirements
-                ),
-                "priorities": purpose_context.priorities,
-                "interview_focus": (
-                    purpose_context.interview_focus
-                ),
-            }
-            if has_context
-            else None
-        )
-
-        mode = "context" if has_context else "general"
 
     return {
         "mode": mode,
         "process": {
             "id": process.id,
-            "name": process.name,
-            "purpose": process.purpose,
+            "name": process.name or "",
+            "purpose": process.purpose or "",
             "is_historical": process.is_historical,
         },
         "process_context": process_context,
-        "candidate_profile": profile,
+        "candidate_profile": candidate_profile,
     }
 
 
 def serialize_candidate_chat_context(context):
+    """
+    Serialize the candidate context into readable JSON
+    for the OpenAI prompt.
+    """
     return json.dumps(
         context,
         ensure_ascii=False,

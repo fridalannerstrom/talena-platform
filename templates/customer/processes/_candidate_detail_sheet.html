@@ -1,5 +1,5 @@
 <div class="container-fluid px-2 px-md-3">
-  <div class="candidate-sheet-layout">
+  <div class="candidate-sheet-layout candidate-sheet-layout--floating-ai">
 
     <!-- MAIN CONTENT -->
     <div class="candidate-sheet-main">
@@ -2198,75 +2198,136 @@
     
     <!-- /MAIN CONTENT -->
 
-    <!-- SIDEBAR -->
-    <aside class="candidate-sheet-sidebar">
-      <div class="candidate-sidebar-sticky">
+   {% if has_any_results %}
+  <div
+    class="candidate-ai-widget"
+    data-candidate-ai-widget
+  >
 
-        {% if has_any_results %}
-          <div
-            class="card candidate-ai-card"
-            data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
-            data-process-id="{{ process.id }}"
-            data-candidate-id="{{ candidate.id }}"
-            data-is-historical="{% if is_historical %}true{% else %}false{% endif %}">
+    <div
+      class="candidate-ai-floating-panel"
+      data-candidate-ai-panel
+      hidden
+    >
 
-            <div class="card-header fw-semibold">AI assistant</div>
-
-            <div class="card-body candidate-ai-card-body">
-              <div class="small text-muted">
-                Chat about the candidate’s assessment results, reports and insights.
-              </div>
-
-              {% if is_historical %}
-                <div class="alert alert-light border small mt-3 mb-0">
-                  The assistant uses imported assessment data and general insight mode.
-                </div>
-              {% endif %}
-
-              <div class="candidate-ai-messages border rounded-3 p-3 js-candidate-ai-messages">
-                <div class="candidate-ai-empty text-muted small">
-                  Ask a question about strengths, areas to explore or interview questions.
-                </div>
-              </div>
-
-              <form class="candidate-ai-form js-candidate-ai-form">
-                {% csrf_token %}
-
-                <label class="form-label small text-muted">Ask AI about the candidate</label>
-
-                <textarea
-                  class="form-control js-candidate-ai-input"
-                  rows="4"
-                  placeholder="E.g. What should I explore further in an interview?"></textarea>
-
-                <button
-                  type="submit"
-                  class="btn btn-primary w-100 mt-2 js-candidate-ai-submit">
-                  Send
-                </button>
-              </form>
-            </div>
+      <div class="candidate-ai-floating-header">
+        <div>
+          <div class="candidate-ai-floating-title">
+            Talena AI
           </div>
-        {% else %}
-          <div class="card candidate-ai-card is-disabled">
-            <div class="card-header fw-semibold">AI assistant</div>
-            <div class="card-body candidate-ai-card-body">
-              <div class="candidate-ai-disabled">
-                <div class="candidate-ai-disabled__icon">
-                  <i data-feather="lock"></i>
-                </div>
-                <div class="fw-semibold mb-1">No assessment data available</div>
-                <div class="text-muted small">
-                  The assistant becomes available when assessment results exist.
-                </div>
-              </div>
-            </div>
+
+          <div class="candidate-ai-floating-subtitle">
+            Ask about
+            {% if candidate.first_name %}
+              {{ candidate.first_name }}
+            {% else %}
+              this candidate
+            {% endif %}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="candidate-ai-floating-close"
+          data-candidate-ai-close
+          aria-label="Close Talena AI"
+        >
+          <i data-feather="x"></i>
+        </button>
+      </div>
+
+      <div
+        class="candidate-ai-card"
+        data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
+        data-process-id="{{ process.id }}"
+        data-candidate-id="{{ candidate.id }}"
+        data-is-historical="{% if is_historical %}true{% else %}false{% endif %}"
+      >
+
+        <div class="candidate-ai-floating-intro">
+          Chat about the candidate’s assessment results, reports and insights.
+        </div>
+
+        {% if is_historical %}
+          <div class="alert alert-light border small mb-3">
+            The assistant uses imported assessment data and general insight mode.
           </div>
         {% endif %}
 
+        <div
+          class="candidate-ai-messages js-candidate-ai-messages"
+        >
+          <div class="candidate-ai-empty">
+            <div class="candidate-ai-empty__icon">
+              <i data-feather="zap"></i>
+            </div>
+
+            <div class="candidate-ai-empty__title">
+              Ask Talena AI
+            </div>
+
+            <div class="candidate-ai-empty__text">
+              Ask about strengths, areas to explore or interview questions.
+            </div>
+          </div>
+        </div>
+
+        <form class="candidate-ai-form js-candidate-ai-form">
+          {% csrf_token %}
+
+          <label
+            class="visually-hidden"
+            for="candidateAiInput-{{ candidate.id }}"
+          >
+            Ask Talena AI about the candidate
+          </label>
+
+          <div class="candidate-ai-floating-input-wrap">
+            <textarea
+              id="candidateAiInput-{{ candidate.id }}"
+              class="form-control js-candidate-ai-input"
+              rows="3"
+              placeholder="Ask a question about this candidate..."
+            ></textarea>
+
+            <button
+              type="submit"
+              class="candidate-ai-floating-send js-candidate-ai-submit"
+              aria-label="Send question"
+            >
+              <i data-feather="arrow-up"></i>
+            </button>
+          </div>
+        </form>
+
       </div>
-    </aside>
-    <!-- /SIDEBAR -->
+    </div>
+
+    <div
+      class="candidate-ai-floating-hint"
+      data-candidate-ai-hint
+    >
+      Chat with Talena AI about this candidate
+    </div>
+
+    <button
+      type="button"
+      class="candidate-ai-floating-launcher"
+      data-candidate-ai-launcher
+      aria-expanded="false"
+      aria-label="Open Talena AI"
+    >
+      <span class="candidate-ai-floating-launcher__icon">
+        <i data-feather="message-circle"></i>
+      </span>
+
+      <span class="candidate-ai-floating-launcher__label">
+        Ask Talena AI
+      </span>
+    </button>
+
+  </div>
+{% endif %}
 
   </div>
 </div>
