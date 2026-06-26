@@ -1805,6 +1805,15 @@
 {% endif %}
 <!-- /REPORTS -->
 
+
+{% if has_personality_results %}
+  <div class="candidate-result-section">
+
+    {% include "customer/processes/partials/_personality_profile.html" %}
+
+  </div>
+{% endif %}
+
         <!-- TEMPORARY RAW HISTORICAL DATA -->
         {% if is_historical and assessment_results %}
           <div class="card mb-4">

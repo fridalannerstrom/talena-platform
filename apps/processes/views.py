@@ -110,6 +110,10 @@ from apps.core.ai.candidate_summary import (
 )
 
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
+from apps.reports.libraries.personality.builder import (
+    build_profile_from_resolved_report,
+)
+
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
 from .forms import TestProcessWizardCreateForm
@@ -1545,6 +1549,30 @@ def build_candidate_detail_context(process, invitation):
         library_status_lookup=library_status_lookup,
     )
 
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+        library_status_lookup=library_status_lookup,
+    )
+
+    personality_profile_report = next(
+        (
+            report
+            for report in personality_reports
+            if report.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+
+    personality_profile = (
+        build_profile_from_resolved_report(
+            resolved_report=personality_profile_report,
+            language="sv",
+            include_missing_traits=False,
+        )
+        if personality_profile_report
+        else None
+    )
+
     available_reports_count = 0
 
     if has_verbal_results:
@@ -1704,6 +1732,7 @@ def build_candidate_detail_context(process, invitation):
         "motivation_reports_for_ui": motivation_reports_for_ui,
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
+        "personality_profile": personality_profile,
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
 
@@ -4414,27 +4443,46 @@ def build_historical_candidate_detail_context(
             ),
         ]
 
-    # -------------------------------------------------------------------------
-    # Personality report placeholders
-    # -------------------------------------------------------------------------
+        # -------------------------------------------------------------------------
+        # Personality reports and profile
+        # -------------------------------------------------------------------------
 
-    personality_reports = []
+        personality_reports = []
+        personality_profile = None
 
-    if has_personality_results:
-        personality_reports = [
-            {
-                "report_name": "Personality overview",
-                "description": (
-                    "Generated from imported historical personality scores."
+        if has_personality_results:
+            historical_personality_competencies = (
+                normalised_personality_competencies
+                + normalised_team_style_scores
+            )
+
+            historical_personality_activities = [
+                {
+                    "activity": "Personality Assessment",
+                    "status": "completed",
+                    "competencies": historical_personality_competencies,
+                }
+            ]
+
+            personality_reports = build_personality_reports_for_candidate(
+                sova_activities=historical_personality_activities,
+            )
+
+            personality_profile_report = next(
+                (
+                    report
+                    for report in personality_reports
+                    if report.get("report_id") == "trait_indicator_profile"
                 ),
-            },
-            {
-                "report_name": "Team style overview",
-                "description": (
-                    "Generated from imported historical team style scores."
-                ),
-            },
-        ]
+                None,
+            )
+
+            if personality_profile_report:
+                personality_profile = build_profile_from_resolved_report(
+                    resolved_report=personality_profile_report,
+                    language="sv",
+                    include_missing_traits=False,
+                )
 
     available_reports_count = 0
 
@@ -4704,6 +4752,7 @@ def build_historical_candidate_detail_context(
         "motivation_reports_for_ui": motivation_reports_for_ui,
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
+        "personality_profile": personality_profile,
         "available_reports_count": available_reports_count,
 
         # General insight data.

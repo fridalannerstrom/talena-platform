@@ -1578,4 +1578,142 @@ refreshButton.disabled = true;
 
 </script>
 
+<script>
+document.addEventListener("click", function (event) {
+  const indicatorButton = event.target.closest(
+    "[data-indicator-toggle]"
+  );
+
+  if (indicatorButton) {
+    const panelId = indicatorButton.getAttribute("aria-controls");
+    const panel = document.getElementById(panelId);
+
+    if (!panel) {
+      console.warn(
+        "Indicator panel was not found:",
+        panelId
+      );
+      return;
+    }
+
+    const isExpanded =
+      indicatorButton.getAttribute("aria-expanded") === "true";
+
+    const shouldExpand = !isExpanded;
+
+    indicatorButton.setAttribute(
+      "aria-expanded",
+      String(shouldExpand)
+    );
+
+    panel.hidden = !shouldExpand;
+
+    const label = indicatorButton.querySelector(
+      ".personality-trait-card__indicator-toggle-label"
+    );
+
+    if (label) {
+      label.textContent = shouldExpand
+        ? "Hide indicators"
+        : "Show indicators";
+    }
+
+    updatePersonalityGlobalToggle();
+    return;
+  }
+
+  const toggleAllButton = event.target.closest(
+    "#toggle-all-personality-indicators"
+  );
+
+  if (toggleAllButton) {
+    const shouldExpand =
+      toggleAllButton.dataset.expanded !== "true";
+
+    const profileContainer = toggleAllButton.closest(
+      ".personality-profile"
+    );
+
+    if (!profileContainer) {
+      return;
+    }
+
+    const buttons = profileContainer.querySelectorAll(
+      "[data-indicator-toggle]"
+    );
+
+    buttons.forEach(function (button) {
+      const panelId = button.getAttribute("aria-controls");
+      const panel = document.getElementById(panelId);
+
+      button.setAttribute(
+        "aria-expanded",
+        String(shouldExpand)
+      );
+
+      if (panel) {
+        panel.hidden = !shouldExpand;
+      }
+
+      const label = button.querySelector(
+        ".personality-trait-card__indicator-toggle-label"
+      );
+
+      if (label) {
+        label.textContent = shouldExpand
+          ? "Hide indicators"
+          : "Show indicators";
+      }
+    });
+
+    toggleAllButton.dataset.expanded =
+      String(shouldExpand);
+
+    toggleAllButton.textContent = shouldExpand
+      ? "Hide all indicators"
+      : "Show all indicators";
+  }
+});
+
+
+function updatePersonalityGlobalToggle() {
+  const profileContainers = document.querySelectorAll(
+    ".personality-profile"
+  );
+
+  profileContainers.forEach(function (profileContainer) {
+    const toggleAllButton = profileContainer.querySelector(
+      "#toggle-all-personality-indicators"
+    );
+
+    if (!toggleAllButton) {
+      return;
+    }
+
+    const indicatorButtons = Array.from(
+      profileContainer.querySelectorAll(
+        "[data-indicator-toggle]"
+      )
+    );
+
+    if (!indicatorButtons.length) {
+      toggleAllButton.dataset.expanded = "false";
+      toggleAllButton.textContent = "Show all indicators";
+      return;
+    }
+
+    const allExpanded = indicatorButtons.every(function (button) {
+      return button.getAttribute("aria-expanded") === "true";
+    });
+
+    toggleAllButton.dataset.expanded =
+      String(allExpanded);
+
+    toggleAllButton.textContent = allExpanded
+      ? "Hide all indicators"
+      : "Show all indicators";
+  });
+}
+</script>
+
 {% endblock %}

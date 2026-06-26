@@ -1,0 +1,297 @@
+{% if personality_profile and personality_profile.sections %}
+
+  <div class="personality-profile">
+
+    <div class="personality-profile__header">
+  <div>
+    <h3>Personality profile</h3>
+    <p class="text-muted">
+      Rounded STEN results across the personality traits.
+    </p>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-sm btn-outline-secondary"
+    id="toggle-all-personality-indicators"
+    data-expanded="false"
+  >
+    Show all indicators
+  </button>
+</div>
+
+    {% for section in personality_profile.sections %}
+
+      <section class="personality-profile-section mb-5">
+
+        <div class="personality-profile-section__header">
+          <h4 class="personality-profile-section__title">
+            {{ section.section_name }}
+          </h4>
+        </div>
+
+        <div class="personality-profile-section__traits">
+
+          {% for trait in section.traits %}
+
+            <article class="personality-trait-card">
+
+              <div class="personality-trait-card__header">
+
+                <div>
+                  <h5 class="personality-trait-card__title">
+                    {{ trait.label }}
+                  </h5>
+
+                  {% if trait.name != trait.label %}
+                    <div class="personality-trait-card__original-name">
+                      {{ trait.name }}
+                    </div>
+                  {% endif %}
+                </div>
+
+                {% if trait.sten %}
+                  <span class="personality-trait-card__score">
+                    STEN {{ trait.sten }}
+                  </span>
+                {% endif %}
+
+              </div>
+
+              <div class="personality-trait-card__main">
+
+                <div class="personality-trait-card__pole">
+
+                  <div class="personality-trait-card__pole-label">
+                    Lower score
+                  </div>
+
+                  {% if trait.low_pole %}
+                    <p>
+                      {{ trait.low_pole }}
+                    </p>
+                  {% else %}
+                    <p class="text-muted">
+                      Description is not yet available.
+                    </p>
+                  {% endif %}
+
+                </div>
+
+                <div class="personality-graph">
+
+                  <div class="personality-graph__bars">
+
+                    {% for segment in trait.graph_segments %}
+
+                      <div
+                        class="
+                          personality-graph__segment
+                          {% if segment.selected %}
+                            personality-graph__segment--selected
+                          {% endif %}
+                        "
+                        style="height: {{ segment.height }}px;"
+                        aria-label="STEN {{ segment.score }}"
+                      >
+
+                        {% if segment.selected %}
+                          <span class="personality-graph__marker">
+                            {{ segment.score }}
+                          </span>
+                        {% endif %}
+
+                      </div>
+
+                    {% endfor %}
+
+                  </div>
+
+                  <div class="personality-graph__axis">
+                    <span>1</span>
+                    <span>Average</span>
+                    <span>10</span>
+                  </div>
+
+                </div>
+
+                <div class="
+                  personality-trait-card__pole
+                  personality-trait-card__pole--right
+                ">
+
+                  <div class="personality-trait-card__pole-label">
+                    Higher score
+                  </div>
+
+                  {% if trait.high_pole %}
+                    <p>
+                      {{ trait.high_pole }}
+                    </p>
+                  {% else %}
+                    <p class="text-muted">
+                      Description is not yet available.
+                    </p>
+                  {% endif %}
+
+                </div>
+
+              </div>
+
+{% if trait.summary %}
+  <div class="personality-trait-card__summary">
+    {{ trait.summary }}
+  </div>
+{% endif %}
+
+{% if trait.indicators %}
+  <div class="personality-trait-card__indicator-toggle-wrap">
+
+    <button
+      type="button"
+      class="personality-trait-card__indicator-toggle"
+      data-indicator-toggle
+      aria-expanded="false"
+      aria-controls="trait-indicators-{{ trait.canonical_key }}"
+    >
+      <span class="personality-trait-card__indicator-toggle-label">
+        Show indicators
+      </span>
+
+      <span class="personality-trait-card__indicator-count">
+        {{ trait.indicators|length }}
+      </span>
+
+      <i class="fa-solid fa-chevron-down"></i>
+    </button>
+
+  </div>
+
+  <div
+    id="trait-indicators-{{ trait.canonical_key }}"
+    class="personality-trait-card__indicator-panel"
+    data-indicator-panel
+    hidden
+  >
+
+    <div class="personality-trait-card__indicator-panel-header">
+      <div>
+        <h6>Indicators behind {{ trait.label }}</h6>
+        <p>
+          These results contribute to the overall trait score.
+        </p>
+      </div>
+    </div>
+
+    <div class="personality-indicator-list">
+
+      {% for indicator in trait.indicators %}
+
+       <div class="personality-indicator-row">
+
+  <div class="personality-indicator-row__header">
+
+    <div class="personality-indicator-row__name">
+      {{ indicator.label }}
+
+      {% if indicator.name != indicator.label %}
+        <span class="personality-indicator-row__original-name">
+          {{ indicator.name }}
+        </span>
+      {% endif %}
+    </div>
+
+    {% if indicator.sten %}
+      <span class="personality-indicator-row__score">
+        STEN {{ indicator.sten }}
+      </span>
+    {% endif %}
+
+  </div>
+
+  <div class="personality-indicator-row__profile">
+
+    <div class="personality-indicator-row__pole">
+
+      <span class="personality-indicator-row__pole-label">
+        Lower score
+      </span>
+
+      <p>
+        {{ indicator.low_pole }}
+      </p>
+
+    </div>
+
+    <div class="personality-indicator-row__scale-wrap">
+
+      <div
+        class="personality-indicator-scale"
+        aria-label="{{ indicator.label }}: STEN {{ indicator.sten }}"
+      >
+        {% for score in "1234567890" %}
+          {% with score_value=forloop.counter %}
+            <span
+              class="
+                personality-indicator-scale__segment
+                {% if score_value == indicator.sten %}
+                  personality-indicator-scale__segment--selected
+                {% endif %}
+              "
+            ></span>
+          {% endwith %}
+        {% endfor %}
+      </div>
+
+      <div class="personality-indicator-scale__labels">
+        <span>1</span>
+        <span>10</span>
+      </div>
+
+    </div>
+
+    <div class="
+      personality-indicator-row__pole
+      personality-indicator-row__pole--right
+    ">
+
+      <span class="personality-indicator-row__pole-label">
+        Higher score
+      </span>
+
+      <p>
+        {{ indicator.high_pole }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+{% endif %}
+
+            </article>
+
+          {% endfor %}
+
+        </div>
+
+      </section>
+
+    {% endfor %}
+
+  </div>
+
+{% elif has_personality_results %}
+
+  <div class="alert alert-light border">
+    Personality results exist, but the personality profile could not be built.
+  </div>
+
+{% endif %}
