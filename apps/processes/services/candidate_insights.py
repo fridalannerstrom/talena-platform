@@ -995,6 +995,24 @@ INSIGHT_THEMES = {
 }
 
 
+THEME_ICON_MAP = {
+    "structured_delivery": "structure",
+    "analytical_problem_solving": "analysis",
+    "strategic_complex_thinking": "analysis",
+    "innovation_originality": "idea",
+    "learning_orientation": "idea",
+    "network_building": "network",
+    "collaboration": "network",
+    "supporting_others": "support",
+    "adaptability_pressure": "resilience",
+    "drive_ownership": "leadership",
+    "leadership_influence": "leadership",
+    "communication_engagement": "communication",
+    "integrity_sincerity": "support",
+    "energy_momentum": "spark",
+}
+
+
 def normalize_indicator_key(value: Any) -> str:
     text = str(value or "").strip().lower()
 
@@ -1053,31 +1071,83 @@ def normalize_assessment_indicators(
 
     # --------------------------------------------------
     # Personality
-    # Input format:
-    # {"name": "Adaptability", "score": 2}
-    # Scores are already on a 1–10 scale.
+    #
+    # Supports both Talena's current normalised format:
+    # {"name": "Adaptability", "score": 7}
+    #
+    # and the original Sova format:
+    # {
+    #     "competency": "Thinking Independently",
+    #     "sten": 5.23,
+    #     "sten_rounded": 5,
+    # }
     # --------------------------------------------------
     seen_personality = set()
 
     for item in personality_items:
-        name = item.get("name")
-        score = safe_float(item.get("score"))
+        name = (
+            item.get("name")
+            or item.get("competency")
+        )
+
+        # Prefer the original STEN value when it is available.
+        score = safe_float(item.get("sten"))
+
+        if score is None:
+            score = safe_float(item.get("score"))
+
+        # Prefer Sova's own rounded STEN result.
+        sten_rounded = safe_float(
+            item.get("sten_rounded")
+        )
+
+        # Optional compatibility with other prepared data.
+        if sten_rounded is None:
+            sten_rounded = safe_float(
+                item.get("score_rounded")
+            )
+
+        # Some prepared data may contain only the rounded score.
+        if score is None and sten_rounded is not None:
+            score = sten_rounded
 
         if not name or score is None:
             continue
 
         key = normalize_indicator_key(name)
 
-        # The input currently contains some duplicate names.
-        # Keep only one instance of each indicator.
+        # Avoid duplicate personality traits.
         if key in seen_personality:
             continue
 
         seen_personality.add(key)
 
+        # Keep the underlying result for identifying and
+        # prioritising themes.
         normalized_score = max(
             1.0,
             min(10.0, score),
+        )
+
+        # Use Sova's rounded result for presentation.
+        if sten_rounded is not None:
+            sten_value = int(sten_rounded)
+        else:
+            # STEN values are always positive, so this gives
+            # conventional rounding rather than Python's
+            # round-to-even behaviour.
+            sten_value = int(normalized_score + 0.5)
+
+        sten_value = max(
+            1,
+            min(10, sten_value),
+        )
+
+        # Position on a scale where STEN 1 is the left endpoint
+        # and STEN 10 is the right endpoint.
+        sten_position = round(
+            ((sten_value - 1) / 9) * 100,
+            2,
         )
 
         indicators.append({
@@ -1085,13 +1155,19 @@ def normalize_assessment_indicators(
             "name": str(name),
             "source": "personality",
             "source_label": "Personality assessment",
+
             "raw_score": score,
             "scale": "sten",
             "normalized_score": normalized_score,
-            "display_score": f"{score:g}/10",
+
+            # Used by the visual STEN graph.
+            "sten_value": sten_value,
+            "sten_position": sten_position,
+
+            "display_score": f"STEN {sten_value}",
             "tooltip": (
                 f"Personality assessment · "
-                f"STEN score {score:g} of 10."
+                f"STEN {sten_value} on a scale from 1 to 10."
             ),
         })
 
@@ -1522,19 +1598,22 @@ def build_evidence_themes(
         if len(selected) == 1:
             explanation = (
                 "This theme was identified from one particularly "
-                "elevated personality result. The displayed level "
-                "is a visual summary, not a separate assessment score."
+                "elevated personality result. The individual result "
+                "is shown below as supporting assessment evidence."
             )
         else:
             explanation = (
                 f"This theme was identified from {len(selected)} "
-                f"clearly elevated personality results. The displayed "
-                f"level is their combined visual level, not a separate "
-                f"assessment score."
+                f"clearly elevated personality results. The individual "
+                f"results are shown below as supporting assessment evidence."
             )
 
         strengths.append({
             "theme_key": theme_key,
+            "icon_key": THEME_ICON_MAP.get(
+                theme_key,
+                "spark",
+            ),
             "title": theme["title"],
             "body": theme["strength_body"],
             "how_it_may_show": theme["strength_show"],

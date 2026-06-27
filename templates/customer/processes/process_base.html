@@ -1168,12 +1168,10 @@ hideOutdatedState();
     input.value = "";
     submitButton.disabled = true;
 
-    const assistantMessage =
-      appendCandidateChatMessage(
-        messages,
-        "assistant",
-        ""
-      );
+const assistantMessage =
+  appendCandidateThinkingMessage(messages);
+
+let hasReceivedText = false;
 
     try {
       const response = await fetch(streamUrl, {
@@ -1219,25 +1217,64 @@ hideOutdatedState();
           break;
         }
 
-        fullText += decoder.decode(value, {
-          stream: true
-        });
+const chunk = decoder.decode(value, {
+  stream: true
+});
 
-        assistantMessage.innerHTML =
-          window.marked
-            ? marked.parse(fullText)
-            : fullText;
+if (!chunk) {
+  continue;
+}
 
-        messages.scrollTop =
-          messages.scrollHeight;
+if (!hasReceivedText) {
+  hasReceivedText = true;
+
+  assistantMessage.classList.remove(
+    "is-thinking"
+  );
+
+  assistantMessage.innerHTML = "";
+}
+
+fullText += chunk;
+
+assistantMessage.innerHTML =
+  window.marked
+    ? marked.parse(fullText)
+    : fullText;
+
+messages.scrollTop =
+  messages.scrollHeight;
       }
 
-      fullText += decoder.decode();
+const finalChunk = decoder.decode();
 
-      assistantMessage.innerHTML =
-        window.marked
-          ? marked.parse(fullText)
-          : fullText;
+if (finalChunk) {
+  if (!hasReceivedText) {
+    hasReceivedText = true;
+
+    assistantMessage.classList.remove(
+      "is-thinking"
+    );
+
+    assistantMessage.innerHTML = "";
+  }
+
+  fullText += finalChunk;
+}
+
+if (hasReceivedText) {
+  assistantMessage.innerHTML =
+    window.marked
+      ? marked.parse(fullText)
+      : fullText;
+} else {
+  assistantMessage.classList.remove(
+    "is-thinking"
+  );
+
+  assistantMessage.textContent =
+    "Talena AI could not generate a response.";
+}
 
     } catch (error) {
       console.error(
@@ -1245,8 +1282,12 @@ hideOutdatedState();
         error
       );
 
-      assistantMessage.textContent =
-        "Something went wrong while generating the response.";
+assistantMessage.classList.remove(
+  "is-thinking"
+);
+
+assistantMessage.textContent =
+  "Something went wrong while generating the response.";
 
     } finally {
       submitButton.disabled = false;
@@ -1294,6 +1335,37 @@ hideOutdatedState();
       : "candidate-ai-message is-assistant";
 
   message.textContent = text;
+
+  container.appendChild(message);
+  container.scrollTop = container.scrollHeight;
+
+  return message;
+}
+
+function appendCandidateThinkingMessage(container) {
+  const emptyState = container.querySelector(
+    ".candidate-ai-empty"
+  );
+
+  if (emptyState) {
+    emptyState.remove();
+  }
+
+  const message = document.createElement("div");
+
+  message.className =
+    "candidate-ai-message is-assistant is-thinking";
+
+  message.innerHTML = `
+    <div
+      class="candidate-ai-thinking"
+      aria-label="Talena AI is thinking"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  `;
 
   container.appendChild(message);
   container.scrollTop = container.scrollHeight;

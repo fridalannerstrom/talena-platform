@@ -551,3 +551,179 @@ def generate_general_candidate_insights(
     print("=== GENERAL CANDIDATE INSIGHTS COMPLETED ===")
 
     return result
+
+
+def infer_strength_icon_key(strength):
+    """
+    Returns a visual icon category based on the strength title,
+    description and supporting assessment indicators.
+    """
+
+    supporting_indicators = strength.get("supporting_indicators") or []
+
+    indicator_names = [
+        indicator.get("name", "")
+        for indicator in supporting_indicators
+    ]
+
+    searchable_text = " ".join(
+        [
+            strength.get("title", ""),
+            strength.get("body", ""),
+            strength.get("how_it_may_show", ""),
+            *indicator_names,
+        ]
+    ).lower()
+
+    icon_rules = (
+        (
+            "network",
+            (
+                "network",
+                "relationship",
+                "relationships",
+                "collaboration",
+                "connect",
+                "stakeholder",
+            ),
+        ),
+        (
+            "support",
+            (
+                "support",
+                "developing others",
+                "development of others",
+                "coach",
+                "coaching",
+                "wellbeing",
+                "empathy",
+                "helping others",
+            ),
+        ),
+        (
+            "idea",
+            (
+                "innovation",
+                "innovative",
+                "creative",
+                "creativity",
+                "original",
+                "thinking independently",
+                "curious",
+                "curiosity",
+            ),
+        ),
+        (
+            "structure",
+            (
+                "structure",
+                "organising",
+                "organizing",
+                "planning",
+                "methodical",
+                "detail",
+                "reliable",
+                "quality",
+                "accuracy",
+            ),
+        ),
+        (
+            "leadership",
+            (
+                "leadership",
+                "leading",
+                "influence",
+                "influencing",
+                "decisive",
+                "decision making",
+                "direction",
+                "ownership",
+            ),
+        ),
+        (
+            "resilience",
+            (
+                "resilience",
+                "resilient",
+                "adaptability",
+                "adaptable",
+                "pressure",
+                "stress",
+                "composure",
+                "emotional control",
+            ),
+        ),
+        (
+            "communication",
+            (
+                "communication",
+                "communicating",
+                "presenting",
+                "listening",
+                "persuading",
+                "verbal",
+            ),
+        ),
+        (
+            "analysis",
+            (
+                "analytical",
+                "analysis",
+                "logical",
+                "numerical",
+                "critical thinking",
+                "problem solving",
+            ),
+        ),
+    )
+
+    for icon_key, keywords in icon_rules:
+        if any(keyword in searchable_text for keyword in keywords):
+            return icon_key
+
+    return "spark"
+
+
+def decorate_key_strengths(candidate_insights):
+    """
+    Adds presentation data used by the key-strength template.
+
+    The STEN position is calculated so:
+    STEN 1 = 0%
+    STEN 10 = 100%
+    """
+
+    strengths = candidate_insights.get("key_strengths") or []
+
+    for strength in strengths:
+        strength["icon_key"] = infer_strength_icon_key(strength)
+
+        supporting_indicators = (
+            strength.get("supporting_indicators") or []
+        )
+
+        for indicator in supporting_indicators:
+            raw_sten = indicator.get("sten_rounded")
+
+            # Optional fallback if you already store it under this name.
+            if raw_sten is None:
+                raw_sten = indicator.get("sten_value")
+
+            if raw_sten is None:
+                continue
+
+            try:
+                sten_value = int(round(float(raw_sten)))
+            except (TypeError, ValueError):
+                continue
+
+            sten_value = max(1, min(10, sten_value))
+
+            indicator["sten_value"] = sten_value
+            indicator["sten_position"] = round(
+                ((sten_value - 1) / 9) * 100,
+                1,
+            )
+            indicator["display_score"] = f"STEN {sten_value}"
+
+    return candidate_insights

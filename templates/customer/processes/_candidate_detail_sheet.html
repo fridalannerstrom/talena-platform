@@ -877,96 +877,96 @@
   {% endif %}
 {% endif %}
 
-
 <!-- KEY STRENGTHS -->
 {% if candidate_insights.key_strengths %}
-  <section class="card mb-4 purpose-fit-card">
+  <section class="card mb-4 purpose-fit-card key-strengths-section">
     <div class="card-body">
 
-      <!-- HEADER -->
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-          <div class="insight-summary-kicker">
-            Candidate Insights
-          </div>
-
-          <h2 class="insight-summary-title mb-1">
-            Key strengths
-          </h2>
-
-          <div class="text-muted small">
-            {% if report_mode == "context" %}
-              Strengths supported by elevated assessment results and prioritised for this process context.
-            {% else %}
-              Strengths supported by elevated results across the candidate’s assessment profile.
-            {% endif %}
-          </div>
+      <!-- SECTION HEADER -->
+      <header class="key-strengths-section__header">
+        <div class="insight-summary-kicker">
+          Candidate Insights
         </div>
-      </div>
 
-      <!-- STRENGTH CARDS -->
-      <div class="key-strengths-grid key-strengths-grid--single">
+        <h2 class="insight-summary-title mb-1">
+          Key strengths
+        </h2>
+
+        <p class="key-strengths-section__intro">
+          {% if report_mode == "context" %}
+            Strengths supported by elevated assessment results and prioritised for this process context.
+          {% else %}
+            Strengths supported by elevated results across the candidate’s assessment profile.
+          {% endif %}
+        </p>
+      </header>
+
+      <!-- STRENGTHS -->
+      <div class="key-strengths-list">
 
         {% for strength in candidate_insights.key_strengths|slice:":4" %}
-          <article class="key-strength-card">
+          <article
+            class="key-strength-card"
+            data-strength-theme="{{ strength.icon_key|default:'spark' }}"
+          >
 
-            <!-- TOP -->
-            <div class="key-strength-card__top">
-              <div class="key-strength-card__heading">
+            <!-- THEME SUMMARY -->
+            <div class="key-strength-card__summary">
 
-                <!-- TITLE + DESCRIPTION -->
-                <div class="key-strength-card__content">
-                  <h3 class="key-strength-card__title">
-                    {{ strength.title }}
-                  </h3>
+              <div
+                class="key-strength-card__icon"
+                aria-hidden="true"
+              >
+                {% include "customer/processes/partials/_strength_icon.html" with icon_key=strength.icon_key only %}
+              </div>
 
-                  {% if strength.body %}
-                    <p class="key-strength-card__body">
-                      {{ strength.body }}
-                    </p>
-                  {% endif %}
-                </div>
+              <div class="key-strength-card__content">
 
+                <h3 class="key-strength-card__title">
+                  {{ strength.title }}
+                </h3>
 
+                {% if strength.body %}
+                  <p class="key-strength-card__body">
+                    {{ strength.body }}
+                  </p>
+                {% endif %}
+
+                {% if strength.how_it_may_show or strength.why_it_matters %}
+                  <p class="key-strength-card__interpretation">
+
+                    {% if strength.how_it_may_show %}
+                      <span class="key-strength-card__inline-label">
+                        How this may show up:
+                      </span>
+
+                      {{ strength.how_it_may_show }}
+                    {% endif %}
+
+                    {% if strength.why_it_matters %}
+                      {% if strength.how_it_may_show %}
+                        <span class="key-strength-card__separator">
+                          ·
+                        </span>
+                      {% endif %}
+
+                      <span class="key-strength-card__inline-label">
+                        {% if report_mode == "context" %}
+                          Why this matters here:
+                        {% else %}
+                          Why this may matter:
+                        {% endif %}
+                      </span>
+
+                      {{ strength.why_it_matters }}
+                    {% endif %}
+
+                  </p>
+                {% endif %}
 
               </div>
+
             </div>
-
-            <!-- HOW IT MAY SHOW -->
-            {% if strength.how_it_may_show %}
-              <div class="key-strength-detail-list">
-                <div class="key-strength-detail">
-
-                  <div class="key-strength-detail__label">
-                    How this may show up
-                  </div>
-
-                  <div class="key-strength-detail__text">
-                    {{ strength.how_it_may_show }}
-                  </div>
-
-                </div>
-              </div>
-            {% endif %}
-
-            <!-- WHY IT MATTERS -->
-            {% if strength.why_it_matters %}
-              <div class="key-strength-detail">
-
-                <div class="key-strength-detail__label">
-                  {% if report_mode == "context" %}
-                    Why this matters here
-                  {% else %}
-                    Why this may matter
-                  {% endif %}
-                </div>
-
-                <div class="key-strength-detail__text">
-                  {{ strength.why_it_matters }}
-                </div>
-
-              </div>
-            {% endif %}
 
             <!-- SUPPORTING INDICATORS -->
             {% if strength.supporting_indicators %}
@@ -986,21 +986,54 @@
                           {{ indicator.name }}
                         </div>
 
-                        <div class="strength-indicator__source">
-                          {{ indicator.source_label }}
-                        </div>
+                        {% if indicator.source_label %}
+                          <div class="strength-indicator__source">
+                            {{ indicator.source_label }}
+                          </div>
+                        {% endif %}
                       </div>
 
-                      <div
-                        class="strength-indicator__score"
-                        {% if indicator.tooltip %}
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title="{{ indicator.tooltip }}"
-                        {% endif %}
-                      >
-                        {{ indicator.display_score }}
-                      </div>
+                      {% if indicator.sten_value %}
+                        <div
+                          class="strength-sten-dots"
+                          role="meter"
+                          aria-label="{{ indicator.name }}: STEN {{ indicator.sten_value }} out of 10"
+                          aria-valuemin="1"
+                          aria-valuemax="10"
+                          aria-valuenow="{{ indicator.sten_value }}"
+                          {% if indicator.tooltip %}
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="{{ indicator.tooltip }}"
+                          {% else %}
+                            title="STEN {{ indicator.sten_value }} of 10"
+                          {% endif %}
+                        >
+
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 1 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 2 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 3 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 4 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 5 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 6 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 7 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 8 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 9 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 10 %}is-active{% endif %}"></span>
+
+                          <span class="visually-hidden">
+                            STEN {{ indicator.sten_value }} out of 10
+                          </span>
+
+                        </div>
+
+                      {% else %}
+
+                        <div class="strength-indicator__score">
+                          {{ indicator.display_score }}
+                        </div>
+
+                      {% endif %}
 
                     </div>
                   {% endfor %}
@@ -1011,7 +1044,6 @@
 
             {% elif strength.evidence %}
 
-              <!-- FALLBACK FOR OLD DATA -->
               <div class="key-strength-evidence">
                 {% for item in strength.evidence %}
                   <span class="key-strength-evidence-pill">
@@ -1027,10 +1059,11 @@
 
       </div>
 
-      <!-- FOOTER -->
-      <div class="small text-muted border-top pt-3 mt-4">
-        These themes are based on elevated assessment indicators. The combined level is a visual summary and is not a separate assessment score.
-      </div>
+      <footer class="key-strengths-section__footer">
+        These themes are interpretive summaries supported by the individual
+        assessment indicators shown beneath each theme. STEN values relate
+        to the supporting indicators, not to the theme as a whole.
+      </footer>
 
     </div>
   </section>

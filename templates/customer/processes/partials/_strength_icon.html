@@ -1,0 +1,89 @@
+{% if icon_key == "network" %}
+
+  <!-- NETWORK -->
+  <svg viewBox="0 0 24 24">
+    <circle cx="6" cy="7" r="2.5" />
+    <circle cx="18" cy="7" r="2.5" />
+    <circle cx="12" cy="17" r="2.5" />
+    <path d="M8.2 8.2 10.8 15M15.8 8.2 13.2 15M8.5 7h7" />
+  </svg>
+
+{% elif icon_key == "support" %}
+
+  <!-- SUPPORTING OTHERS -->
+  <svg viewBox="0 0 24 24">
+    <path
+      d="M12 20s-7-4.2-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.8-7 10-7 10Z"
+    />
+    <path d="M8 13.5c1.3 1 2.7 1.5 4 1.5s2.7-.5 4-1.5" />
+  </svg>
+
+{% elif icon_key == "idea" %}
+
+  <!-- IDEAS / INNOVATION -->
+  <svg viewBox="0 0 24 24">
+    <path d="M9 18h6M10 21h4" />
+    <path
+      d="M8.4 14.8A7 7 0 1 1 15.6 14.8C14.7 15.6 14 16.4 14 18h-4c0-1.6-.7-2.4-1.6-3.2Z"
+    />
+    <path d="M12 2V1M4.9 4.9 4.2 4.2M19.1 4.9l.7-.7" />
+  </svg>
+
+{% elif icon_key == "structure" %}
+
+  <!-- STRUCTURE -->
+  <svg viewBox="0 0 24 24">
+    <rect x="5" y="3" width="14" height="18" rx="2" />
+    <path
+      d="m8 8 1.2 1.2L11.5 7M13 8h3M8 13l1.2 1.2 2.3-2.2M13 13h3M8 18h8"
+    />
+  </svg>
+
+{% elif icon_key == "leadership" %}
+
+  <!-- LEADERSHIP -->
+  <svg viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" />
+    <path d="m15.5 8.5-2 5-5 2 2-5 5-2Z" />
+    <circle cx="12" cy="12" r="1" />
+  </svg>
+
+{% elif icon_key == "resilience" %}
+
+  <!-- RESILIENCE -->
+  <svg viewBox="0 0 24 24">
+    <path
+      d="M12 2 20 5v6c0 5.2-3.3 9-8 11-4.7-2-8-5.8-8-11V5l8-3Z"
+    />
+    <path d="m8.5 12 2.2 2.2 4.8-5" />
+  </svg>
+
+{% elif icon_key == "communication" %}
+
+  <!-- COMMUNICATION -->
+  <svg viewBox="0 0 24 24">
+    <path d="M4 5h16v11H9l-5 4V5Z" />
+    <path d="M8 9h8M8 12h5" />
+  </svg>
+
+{% elif icon_key == "analysis" %}
+
+  <!-- ANALYSIS -->
+  <svg viewBox="0 0 24 24">
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    <path d="m4 7 6-4 6 6 5-5" />
+  </svg>
+
+{% else %}
+
+  <!-- DEFAULT / ENERGY -->
+  <svg viewBox="0 0 24 24">
+    <path
+      d="m12 2 1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7L12 2Z"
+    />
+    <path
+      d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"
+    />
+  </svg>
+
+{% endif %}
