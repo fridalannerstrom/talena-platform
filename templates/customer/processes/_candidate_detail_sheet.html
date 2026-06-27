@@ -2243,11 +2243,6 @@
         data-candidate-id="{{ candidate.id }}"
         data-is-historical="{% if is_historical %}true{% else %}false{% endif %}"
       >
-
-        <div class="candidate-ai-floating-intro">
-          Chat about the candidate’s assessment results, reports and insights.
-        </div>
-
         {% if is_historical %}
           <div class="alert alert-light border small mb-3">
             The assistant uses imported assessment data and general insight mode.
@@ -2301,13 +2296,6 @@
         </form>
 
       </div>
-    </div>
-
-    <div
-      class="candidate-ai-floating-hint"
-      data-candidate-ai-hint
-    >
-      Chat with Talena AI about this candidate
     </div>
 
     <button

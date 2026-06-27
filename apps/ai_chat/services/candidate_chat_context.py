@@ -8,6 +8,73 @@ from apps.processes.services.candidate_profile import (
     build_historical_candidate_profile,
 )
 
+def build_chat_assessment_activities(activities):
+    """
+    Build a compact AI-friendly version of live SOVA activities.
+
+    Personality competencies use STEN rounded as the primary score.
+    Percentiles are kept only for cognitive ability assessments.
+    """
+    compact_activities = []
+
+    for activity in activities or []:
+        activity_name = (
+            activity.get("activity")
+            or activity.get("name")
+            or "Assessment"
+        )
+
+        activity_name_lower = activity_name.lower()
+
+        is_cognitive = any(
+            keyword in activity_name_lower
+            for keyword in (
+                "verbal",
+                "logical",
+                "numerical",
+                "ability",
+                "cognitive",
+            )
+        )
+
+        compact_competencies = []
+
+        for competency in activity.get("competencies", []) or []:
+            item = {
+                "name": (
+                    competency.get("competency")
+                    or competency.get("name")
+                    or ""
+                ),
+            }
+
+            if is_cognitive:
+                item["percentile"] = competency.get(
+                    "percentile"
+                )
+
+            else:
+                item["sten_rounded"] = competency.get(
+                    "sten_rounded"
+                )
+
+            compact_competencies.append(item)
+
+        compact_activities.append(
+            {
+                "assessment": activity_name,
+                "status": activity.get("status"),
+                "assessment_type": (
+                    "cognitive"
+                    if is_cognitive
+                    else "personality_or_motivation"
+                ),
+                "competencies": compact_competencies,
+            }
+        )
+
+    return compact_activities
+
 
 def get_candidate_display_name(candidate):
     """
@@ -46,8 +113,19 @@ def build_live_candidate_profile(invitation):
             "email": candidate.email or "",
         },
         "assessment_activities": (
-            invitation.sova_activities or []
+            build_chat_assessment_activities(
+                invitation.sova_activities or []
+            )
         ),
+        "interpretation_guide": {
+            "personality_score": "STEN rounded",
+            "personality_bands": {
+                "1_3": "lower",
+                "4_7": "typical or moderate",
+                "8_10": "higher",
+            },
+            "cognitive_score": "percentile",
+        },
         "project_results": (
             invitation.project_results or {}
         ),
