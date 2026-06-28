@@ -179,6 +179,15 @@
   margin-bottom: 0.75rem;
 }
 
+.explore_title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #a58bc9;
+  margin-top: 13px;
+}
+
 .insight-summary-title {
   font-size: 1.35rem;
   font-weight: 800;
@@ -20608,13 +20617,9 @@ body {
   padding: 28px;
 
   border: 1px solid #ebe8f1;
-  border-radius: 18px;
+  border-radius: 10px;
 
   background: #ffffff;
-
-  box-shadow:
-    0 1px 2px rgba(16, 24, 40, 0.02),
-    0 8px 24px rgba(41, 31, 67, 0.025);
 }
 
 .key-strength-card__summary {
@@ -20677,11 +20682,10 @@ body {
 
 .key-strength-card__interpretation {
   max-width: 1050px;
-  margin: 12px 0 0;
 
   color: #667085;
 
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.65;
 }
 
@@ -20690,12 +20694,6 @@ body {
   font-weight: 650;
 }
 
-.key-strength-card__separator {
-  display: inline-block;
-  margin: 0 5px;
-
-  color: #b0b5c0;
-}
 
 
 /* =========================================================
@@ -20733,7 +20731,7 @@ body {
   min-height: 68px;
   padding: 15px 20px;
 
-  border: 1px solid #e2dfe9;
+  border: 1px solid #edeaf3;
   border-radius: 11px;
 
   background: #faf9fd;
@@ -20780,8 +20778,8 @@ body {
   display: block;
   flex: 0 0 auto;
 
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 
   border: 1.5px solid transparent;
   border-radius: 50%;
@@ -20790,62 +20788,12 @@ body {
 }
 
 .strength-sten-dot.is-active {
-  border-color: #696272;
+  border-color: #fff;
   background: var(--strength-accent);
 
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.12),
     0 1px 2px rgba(16, 24, 40, 0.08);
-}
-
-
-/* =========================================================
-   OPTIONAL THEME COLOURS
-   ========================================================= */
-
-.key-strength-card[data-strength-theme="network"] {
-  --strength-accent: #785de9;
-  --strength-soft: #f1edff;
-}
-
-.key-strength-card[data-strength-theme="support"] {
-  --strength-accent: #c6507e;
-  --strength-soft: #fff0f6;
-}
-
-.key-strength-card[data-strength-theme="idea"] {
-  --strength-accent: #b87514;
-  --strength-soft: #fff7e6;
-}
-
-.key-strength-card[data-strength-theme="structure"] {
-  --strength-accent: #3872b7;
-  --strength-soft: #edf5ff;
-}
-
-.key-strength-card[data-strength-theme="leadership"] {
-  --strength-accent: #278069;
-  --strength-soft: #edf9f5;
-}
-
-.key-strength-card[data-strength-theme="resilience"] {
-  --strength-accent: #317d8c;
-  --strength-soft: #edf8fa;
-}
-
-.key-strength-card[data-strength-theme="communication"] {
-  --strength-accent: #5c68b8;
-  --strength-soft: #f0f2ff;
-}
-
-.key-strength-card[data-strength-theme="analysis"] {
-  --strength-accent: #376e8b;
-  --strength-soft: #edf7fb;
-}
-
-.key-strength-card[data-strength-theme="spark"] {
-  --strength-accent: #a35db3;
-  --strength-soft: #faf0fc;
 }
 
 
@@ -20887,6 +20835,23 @@ body {
   font-size: 0.8rem;
   font-weight: 650;
 }
+
+
+.key-strength-card__perspective {
+  margin-top: 16px;
+}
+
+.key-strength-card__perspective-label {
+
+  color: #785de9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
 
 
 /* =========================================================
@@ -25653,16 +25618,6 @@ color: #6E63E3;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.strength-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 0.7rem;
-  border-radius: 10px;
-  background: #f8f7fc;
 }
 
 .strength-indicator__main {

@@ -892,7 +892,7 @@
           Key strengths
         </h2>
 
-        <p class="key-strengths-section__intro">
+        <p class="text-muted small">
           {% if report_mode == "context" %}
             Strengths supported by elevated assessment results and prioritised for this process context.
           {% else %}
@@ -932,37 +932,19 @@
                   </p>
                 {% endif %}
 
-                {% if strength.how_it_may_show or strength.why_it_matters %}
-                  <p class="key-strength-card__interpretation">
+{% if strength.how_it_may_show %}
+  <div class="key-strength-card__perspective">
 
-                    {% if strength.how_it_may_show %}
-                      <span class="key-strength-card__inline-label">
-                        How this may show up:
-                      </span>
+    <div class="explore_title">
+      {{ strength.purpose_label|default:"How this strength may show" }}
+    </div>
 
-                      {{ strength.how_it_may_show }}
-                    {% endif %}
+    <p class="key-strength-card__interpretation">
+      {{ strength.how_it_may_show }}
+    </p>
 
-                    {% if strength.why_it_matters %}
-                      {% if strength.how_it_may_show %}
-                        <span class="key-strength-card__separator">
-                          ·
-                        </span>
-                      {% endif %}
-
-                      <span class="key-strength-card__inline-label">
-                        {% if report_mode == "context" %}
-                          Why this matters here:
-                        {% else %}
-                          Why this may matter:
-                        {% endif %}
-                      </span>
-
-                      {{ strength.why_it_matters }}
-                    {% endif %}
-
-                  </p>
-                {% endif %}
+  </div>
+{% endif %}
 
               </div>
 
@@ -1059,91 +1041,108 @@
 
       </div>
 
-      <footer class="key-strengths-section__footer">
-        These themes are interpretive summaries supported by the individual
-        assessment indicators shown beneath each theme. STEN values relate
-        to the supporting indicators, not to the theme as a whole.
-      </footer>
+<footer class="key-strengths-section__footer">
+  These themes are interpretive summaries supported by personality,
+  motivation and cognitive assessment indicators. Individual scores relate
+  to the supporting indicators, not to the theme as a whole.
+</footer>
 
     </div>
   </section>
 {% endif %}
 <!-- /KEY STRENGTHS -->
 
-
- <!-- AREAS TO EXPLORE -->
+<!-- AREAS TO EXPLORE -->
 {% if candidate_insights.areas_to_explore %}
-  <section class="card mb-4 purpose-fit-card">
+  <section class="card mb-4 purpose-fit-card key-strengths-section areas-to-explore-section">
     <div class="card-body">
 
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-          <div class="insight-summary-kicker">
-            Candidate Insights
-          </div>
-
-          <h2 class="insight-summary-title mb-1">
-            Areas to explore
-          </h2>
-
-          <div class="text-muted small">
-            Topics suggested by the assessment results that may be useful
-            to explore further in interview or follow-up conversations.
-          </div>
+      <!-- SECTION HEADER -->
+      <header class="key-strengths-section__header">
+        <div class="insight-summary-kicker">
+          Candidate Insights
         </div>
-      </div>
 
-      <div class="key-strengths-grid key-strengths-grid--single">
+        <h2 class="insight-summary-title mb-1">
+          Areas to explore
+        </h2>
+
+        <p class="text-muted small">
+          Topics suggested by the assessment results that may be useful
+          to explore further in interview or follow-up conversations.
+        </p>
+      </header>
+
+      <!-- AREAS -->
+      <div class="key-strengths-list">
 
         {% for area in candidate_insights.areas_to_explore|slice:":4" %}
-          <article class="key-strength-card">
+          <article
+            class="key-strength-card area-to-explore-card"
+            data-strength-theme="{{ area.icon_key|default:'spark' }}"
+          >
 
-            <div class="key-strength-card__top">
-              <div class="key-strength-card__heading">
+            <!-- AREA SUMMARY -->
+            <div class="key-strength-card__summary">
 
-                <div class="key-strength-card__content">
-                  <h3 class="key-strength-card__title">
-                    {{ area.title }}
-                  </h3>
+              <div
+                class="key-strength-card__icon"
+                aria-hidden="true"
+              >
+                {% include "customer/processes/partials/_strength_icon.html" with icon_key=area.icon_key|default:"spark" only %}
+              </div>
 
-                  {% if area.body %}
-                    <p class="key-strength-card__body">
-                      {{ area.body }}
-                    </p>
-                  {% endif %}
-                </div>
+              <div class="key-strength-card__content">
 
-               
+                <h3 class="key-strength-card__title">
+                  {{ area.title }}
+                </h3>
+
+                {% if area.body %}
+                  <p class="key-strength-card__body">
+                    {{ area.body }}
+                  </p>
+                {% endif %}
+
+                {% if area.explore_through or area.what_to_listen_for %}
+                  <div class="area-explore-guidance">
+
+                    {% if area.explore_through %}
+                      <div class="area-explore-guidance__item">
+
+                        <div class="explore_title">
+                          Explore through
+                        </div>
+
+                        <p class="key-strength-card__interpretation">
+                          {{ area.explore_through }}
+                        </p>
+
+                      </div>
+                    {% endif %}
+
+                    {% if area.what_to_listen_for %}
+                      <div class="area-explore-guidance__item">
+
+                        <div class="explore_title">
+                          What to listen for
+                        </div>
+
+                        <p class="key-strength-card__interpretation">
+                          {{ area.what_to_listen_for }}
+                        </p>
+
+                      </div>
+                    {% endif %}
+
+                  </div>
+                {% endif %}
 
               </div>
+
             </div>
 
-            {% if area.explore_through %}
-              <div class="key-strength-detail-list">
-                <div class="key-strength-detail">
-                  <div class="key-strength-detail__label">
-                    Explore through
-                  </div>
-
-                  <div class="key-strength-detail__text">
-                    {{ area.explore_through }}
-                  </div>
-                </div>
-              </div>
-            {% endif %}
-
-            {% if area.what_to_listen_for %}
-              <div class="key-strength-detail">
-                <div class="key-strength-detail__label">
-                  What to listen for
-                </div>
-
-                <div class="key-strength-detail__text">
-                  {{ area.what_to_listen_for }}
-                </div>
-              </div>
-            {% endif %}
-
+            <!-- SUPPORTING INDICATORS -->
             {% if area.supporting_indicators %}
               <div class="strength-evidence-section">
 
@@ -1152,37 +1151,83 @@
                 </div>
 
                 <div class="strength-indicator-list">
+
                   {% for indicator in area.supporting_indicators %}
                     <div class="strength-indicator">
 
                       <div class="strength-indicator__main">
+
                         <div class="strength-indicator__name">
                           {{ indicator.name }}
                         </div>
 
-                        <div class="strength-indicator__source">
-                          {{ indicator.source_label }}
-                        </div>
+                        {% if indicator.source_label %}
+                          <div class="strength-indicator__source">
+                            {{ indicator.source_label }}
+                          </div>
+                        {% endif %}
+
                       </div>
 
-                      <div
-                        class="strength-indicator__score"
-                        {% if indicator.tooltip %}
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          title="{{ indicator.tooltip }}"
-                        {% endif %}
-                      >
-                        {{ indicator.display_score }}
-                      </div>
+                      {% if indicator.sten_value %}
+
+                        <div
+                          class="strength-sten-dots"
+                          role="meter"
+                          aria-label="{{ indicator.name }}: STEN {{ indicator.sten_value }} out of 10"
+                          aria-valuemin="1"
+                          aria-valuemax="10"
+                          aria-valuenow="{{ indicator.sten_value }}"
+                          {% if indicator.tooltip %}
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="{{ indicator.tooltip }}"
+                          {% else %}
+                            title="STEN {{ indicator.sten_value }} of 10"
+                          {% endif %}
+                        >
+
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 1 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 2 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 3 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 4 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 5 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 6 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 7 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 8 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 9 %}is-active{% endif %}"></span>
+                          <span class="strength-sten-dot {% if indicator.sten_value >= 10 %}is-active{% endif %}"></span>
+
+                          <span class="visually-hidden">
+                            STEN {{ indicator.sten_value }} out of 10
+                          </span>
+
+                        </div>
+
+                      {% else %}
+
+                        <div
+                          class="strength-indicator__score"
+                          {% if indicator.tooltip %}
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="{{ indicator.tooltip }}"
+                          {% endif %}
+                        >
+                          {{ indicator.display_score }}
+                        </div>
+
+                      {% endif %}
 
                     </div>
                   {% endfor %}
+
                 </div>
 
               </div>
 
             {% elif area.evidence %}
+
               <div class="key-strength-evidence">
                 {% for item in area.evidence %}
                   <span class="key-strength-evidence-pill">
@@ -1190,6 +1235,7 @@
                   </span>
                 {% endfor %}
               </div>
+
             {% endif %}
 
           </article>
@@ -1197,11 +1243,11 @@
 
       </div>
 
-      <div class="small text-muted border-top pt-3 mt-4">
+      <footer class="key-strengths-section__footer">
         These areas are hypotheses to explore, not confirmed weaknesses.
         They should be considered together with interview evidence and other
         relevant information.
-      </div>
+      </footer>
 
     </div>
   </section>

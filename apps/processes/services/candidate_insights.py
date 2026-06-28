@@ -454,6 +454,7 @@ INSIGHT_THEMES = {
 
     "network_building": {
         "title": "Network building",
+
         "indicator_keys": {
             "building networks",
             "building strong networks",
@@ -464,109 +465,67 @@ INSIGHT_THEMES = {
             "initiating contact",
             "sociability",
         },
+
         "minimum_strong": 2,
         "allow_single_from": 8,
+
         "strength_body": (
             "The candidate may be comfortable establishing and maintaining "
             "useful professional relationships."
         ),
+
+        # General fallback
         "strength_show": (
-            "May connect with relevant people and develop relationships "
-            "across teams or professional networks."
+            "May establish contact with relevant people, maintain professional "
+            "relationships and create useful connections over time."
         ),
-        "why_it_matters_by_purpose": {
+
+        # Purpose-adapted expression
+        "strength_show_by_purpose": {
             "default": (
-                "This strength may be useful in situations where relationships, "
-                "collaboration and access to relevant people are important."
+                "May establish contact with relevant people, maintain professional "
+                "relationships and create useful connections over time."
             ),
+
             "hiring": (
-                "This may support roles where the candidate needs to build "
-                "relationships, collaborate across teams or develop external contacts."
+                "In a recruitment context, this may show as readily establishing "
+                "contact with colleagues, stakeholders or external partners and "
+                "maintaining useful working relationships."
             ),
+
             "leadership": (
-                "This may help the candidate build trust, create useful connections "
-                "and maintain relationships across teams or stakeholder groups."
+                "In a leadership context, this may show as building trust across "
+                "teams, maintaining key stakeholder relationships and connecting "
+                "people who may benefit from working more closely together."
             ),
+
             "development": (
-                "This strength may provide a useful foundation for expanding influence, "
-                "collaboration and access to wider professional networks."
+                "In a development context, this may show as using professional "
+                "relationships to exchange knowledge, seek perspectives and broaden "
+                "collaboration."
             ),
+
             "team": (
-                "This may help the candidate connect people, strengthen cooperation "
-                "and build relationships across the team."
+                "In a team context, this may show as connecting colleagues, "
+                "maintaining dialogue and strengthening cooperation across group "
+                "or functional boundaries."
             ),
+
             "internal_role_match": (
-                "This may support a move into an internal role that requires broader "
-                "collaboration, stakeholder relationships or cross-functional contact."
+                "In an internal role context, this may show as building relationships "
+                "outside the immediate team and establishing the contacts needed to "
+                "work effectively across the organisation."
             ),
         },
+
         "explore_body": (
             "It may be useful to explore how the candidate establishes and "
             "maintains professional relationships."
         ),
+
         "explore_through": (
             "Ask for an example of building a relationship that supported "
             "a work-related outcome."
-        ),
-    },
-
-    "collaboration": {
-        "title": "Collaborative working style",
-        "indicator_keys": {
-            "teamwork",
-            "cooperative",
-            "cooperation",
-            "collective",
-            "listening",
-            "empathy",
-            "helpfulness",
-            "supporting",
-            "service focus",
-            "open communication",
-            "builds alliances",
-        },
-        "minimum_strong": 2,
-        "allow_single_from": 8,
-        "strength_body": (
-            "The candidate may contribute positively to collaboration and "
-            "shared ways of working."
-        ),
-        "strength_show": (
-            "May listen, support colleagues and contribute toward shared goals."
-        ),
-        "why_it_matters_by_purpose": {
-            "default": (
-                "This strength may be useful where cooperation, shared responsibility "
-                "and constructive working relationships are important."
-            ),
-            "hiring": (
-                "This may support roles that require close collaboration, shared "
-                "delivery or regular cooperation with different people."
-            ),
-            "leadership": (
-                "This may help the candidate involve others, build cooperation and "
-                "create a working environment based on shared responsibility."
-            ),
-            "development": (
-                "This strength may provide a useful foundation for developing broader "
-                "collaboration skills and working effectively with different styles."
-            ),
-            "team": (
-                "This may contribute to trust, cooperation and a stronger focus on "
-                "shared goals within the team."
-            ),
-            "internal_role_match": (
-                "This may support an internal role that depends on cross-functional "
-                "cooperation, teamwork or shared responsibility for outcomes."
-            ),
-        },
-        "explore_body": (
-            "It may be useful to explore how the candidate collaborates with "
-            "different personalities and working styles."
-        ),
-        "explore_through": (
-            "Ask about a situation involving disagreement, feedback or the "
-            "need to establish cooperation."
         ),
     },
 
@@ -1013,6 +972,644 @@ THEME_ICON_MAP = {
 }
 
 
+STRENGTH_EXPRESSIONS_BY_THEME = {
+    "structured_delivery": {
+        "default": (
+            "May organise work clearly, maintain quality and follow agreed "
+            "tasks through to completion."
+        ),
+        "hiring": (
+            "May be well suited to responsibilities that require careful planning, "
+            "consistent quality and reliable follow-through."
+        ),
+        "leadership": (
+            "May bring clarity to leadership responsibilities by translating goals "
+            "into plans, setting expectations and maintaining consistent standards."
+        ),
+        "development": (
+            "May apply feedback systematically, build effective routines and gradually "
+            "take responsibility for more complex delivery."
+        ),
+        "team": (
+            "May help the team clarify responsibilities, coordinate shared work and "
+            "maintain dependable delivery."
+        ),
+        "internal_role_match": (
+            "May bring structure to new responsibilities and establish reliable "
+            "working routines when moving into a different role."
+        ),
+    },
+
+    "analytical_problem_solving": {
+        "default": (
+            "May examine information carefully, compare alternatives and use "
+            "relevant evidence to support conclusions."
+        ),
+        "hiring": (
+            "May be particularly effective in roles that require complex problems "
+            "to be broken down, alternatives compared and conclusions clearly explained."
+        ),
+        "leadership": (
+            "May support sound leadership decisions by examining situations carefully, "
+            "testing assumptions and drawing on relevant evidence."
+        ),
+        "development": (
+            "May identify patterns in experience, reflect carefully on outcomes and "
+            "translate lessons into practical improvements."
+        ),
+        "team": (
+            "May help the team clarify complex problems, introduce relevant evidence "
+            "and challenge conclusions that are not well supported."
+        ),
+        "internal_role_match": (
+            "May quickly understand complex issues in a new area and contribute "
+            "well-reasoned conclusions."
+        ),
+    },
+
+    "strategic_complex_thinking": {
+        "default": (
+            "May connect different pieces of information, consider several "
+            "perspectives and think beyond immediate operational details."
+        ),
+        "hiring": (
+            "May suit roles where the individual needs to look beyond immediate tasks "
+            "and consider broader implications, dependencies and longer-term consequences."
+        ),
+        "leadership": (
+            "May connect day-to-day decisions with broader direction and anticipate "
+            "how current choices could affect future priorities."
+        ),
+        "development": (
+            "May increasingly move beyond detailed task considerations to recognise "
+            "broader systems, patterns and longer-term implications."
+        ),
+        "team": (
+            "May help colleagues connect daily activity with wider priorities and "
+            "consider several perspectives before reaching a decision."
+        ),
+        "internal_role_match": (
+            "May recognise how a new area connects with wider organisational priorities "
+            "and longer-term objectives."
+        ),
+    },
+
+    "innovation_originality": {
+        "default": (
+            "May question established approaches, explore possibilities and "
+            "suggest alternative ways forward."
+        ),
+        "hiring": (
+            "May add value in roles that involve unfamiliar challenges, continuous "
+            "improvement or the need to generate alternative solutions."
+        ),
+        "leadership": (
+            "May encourage new ideas, challenge familiar assumptions and create space "
+            "for practical experimentation and improvement."
+        ),
+        "development": (
+            "May be willing to test new approaches, learn from the outcome and build "
+            "confidence in proposing alternatives."
+        ),
+        "team": (
+            "May introduce fresh perspectives, encourage experimentation and help the "
+            "group avoid relying only on familiar solutions."
+        ),
+        "internal_role_match": (
+            "May spot opportunities for improvement in a new area and suggest "
+            "alternative approaches to established ways of working."
+        ),
+    },
+
+    "learning_orientation": {
+        "default": (
+            "May seek information, ask questions and engage actively with "
+            "new knowledge or experiences."
+        ),
+        "hiring": (
+            "May adapt well to roles that require rapid learning, unfamiliar subject "
+            "matter and an active willingness to ask relevant questions."
+        ),
+        "leadership": (
+            "May remain open to new information, learn from feedback and encourage "
+            "curiosity and continuous learning in others."
+        ),
+        "development": (
+            "May engage actively with feedback, practise new skills and seek "
+            "opportunities that extend current capability."
+        ),
+        "team": (
+            "May share knowledge, ask useful questions and encourage colleagues to "
+            "remain open to new information and perspectives."
+        ),
+        "internal_role_match": (
+            "May actively build knowledge in a new function while applying relevant "
+            "learning from previous experience."
+        ),
+    },
+
+    "network_building": {
+        "default": (
+            "May establish contact with relevant people, maintain professional "
+            "relationships and create useful connections over time."
+        ),
+        "hiring": (
+            "May suit roles that depend on establishing contact readily and maintaining "
+            "productive relationships with colleagues, stakeholders or external partners."
+        ),
+        "leadership": (
+            "May build trust across teams, maintain important stakeholder relationships "
+            "and connect people who would benefit from working more closely together."
+        ),
+        "development": (
+            "May use professional relationships to exchange knowledge, seek new "
+            "perspectives and broaden opportunities for collaboration."
+        ),
+        "team": (
+            "May connect colleagues, maintain dialogue and strengthen cooperation "
+            "across group or functional boundaries."
+        ),
+        "internal_role_match": (
+            "May build relationships beyond the immediate team and establish the "
+            "contacts needed to work effectively in a new part of the organisation."
+        ),
+    },
+
+    "collaboration": {
+        "default": (
+            "May listen to others, share relevant information and contribute "
+            "constructively toward shared objectives."
+        ),
+        "hiring": (
+            "May be well suited to roles that depend on close cooperation, shared "
+            "delivery and effective coordination with different people."
+        ),
+        "leadership": (
+            "May involve others in decisions, build shared ownership and encourage "
+            "cooperation around common goals."
+        ),
+        "development": (
+            "May actively seek input, work across different interpersonal styles and "
+            "strengthen the way they collaborate with others."
+        ),
+        "team": (
+            "May support open dialogue, shared responsibility and constructive ways "
+            "of working through differences."
+        ),
+        "internal_role_match": (
+            "May establish effective working relationships with unfamiliar colleagues "
+            "and stakeholder groups when moving into a new role."
+        ),
+    },
+
+    "supporting_others": {
+        "default": (
+            "May offer support, share knowledge and take an interest in the "
+            "needs or development of other people."
+        ),
+        "hiring": (
+            "May contribute strongly in roles that involve helping colleagues, "
+            "supporting customers or enabling other people to succeed."
+        ),
+        "leadership": (
+            "May provide guidance, offer constructive feedback and create conditions "
+            "in which other people can develop and perform effectively."
+        ),
+        "development": (
+            "May be ready to take greater responsibility for mentoring, coaching or "
+            "supporting the learning of others."
+        ),
+        "team": (
+            "May notice when colleagues need support, share expertise and help others "
+            "manage challenges."
+        ),
+        "internal_role_match": (
+            "May support onboarding, knowledge transfer and colleague development "
+            "within a new area of responsibility."
+        ),
+    },
+
+    "adaptability_pressure": {
+        "default": (
+            "May adjust priorities, recover from setbacks and continue working "
+            "effectively when circumstances change."
+        ),
+        "hiring": (
+            "May be well suited to roles involving changing demands, shifting "
+            "deadlines or regular exposure to unfamiliar situations."
+        ),
+        "leadership": (
+            "May remain composed when circumstances change, adjust direction when "
+            "necessary and provide stability to others."
+        ),
+        "development": (
+            "May stretch into unfamiliar situations, learn from setbacks and adapt "
+            "their approach in response to experience."
+        ),
+        "team": (
+            "May help the group remain flexible, maintain perspective and continue "
+            "making progress when priorities change."
+        ),
+        "internal_role_match": (
+            "May adapt constructively to new routines, stakeholders and expectations "
+            "while maintaining effective delivery."
+        ),
+    },
+
+    "drive_ownership": {
+        "default": (
+            "May pursue objectives, act independently and maintain ownership "
+            "of agreed responsibilities."
+        ),
+        "hiring": (
+            "May suit roles that require initiative, personal responsibility and "
+            "the ability to maintain progress without extensive guidance."
+        ),
+        "leadership": (
+            "May create momentum, take responsibility for decisions and follow "
+            "through consistently on commitments."
+        ),
+        "development": (
+            "May pursue stretching goals, seek greater responsibility and sustain "
+            "effort when challenges arise."
+        ),
+        "team": (
+            "May take clear ownership of agreed actions and help maintain momentum "
+            "toward shared goals."
+        ),
+        "internal_role_match": (
+            "May step proactively into new responsibilities and take ownership while "
+            "building knowledge of the role."
+        ),
+    },
+
+    "leadership_influence": {
+        "default": (
+            "May communicate a clear position, influence others and step forward "
+            "when direction is needed."
+        ),
+        "hiring": (
+            "May be effective in roles that require visible responsibility, persuasive "
+            "communication and the ability to gain support for a course of action."
+        ),
+        "leadership": (
+            "May provide clear direction, build commitment and adapt their approach "
+            "when influencing different people."
+        ),
+        "development": (
+            "May be ready to practise more visible leadership, strengthen persuasive "
+            "communication and build confidence when guiding others."
+        ),
+        "team": (
+            "May move discussions forward, help the group reach decisions and build "
+            "support around shared priorities."
+        ),
+        "internal_role_match": (
+            "May establish credibility, communicate a clear position and influence "
+            "stakeholders within a new area of responsibility."
+        ),
+    },
+
+    "communication_engagement": {
+        "default": (
+            "May express ideas openly, create engagement and establish constructive "
+            "dialogue with other people."
+        ),
+        "hiring": (
+            "May suit roles that require ideas to be explained clearly, relevant "
+            "questions to be asked and different stakeholders to be engaged."
+        ),
+        "leadership": (
+            "May communicate direction clearly, invite dialogue and help others "
+            "understand priorities and decisions."
+        ),
+        "development": (
+            "May refine their communication for different audiences, seek feedback "
+            "and build confidence in more visible situations."
+        ),
+        "team": (
+            "May keep information flowing, encourage open exchange and help colleagues "
+            "remain engaged in shared work."
+        ),
+        "internal_role_match": (
+            "May build understanding with new stakeholders and adapt their communication "
+            "to unfamiliar audiences."
+        ),
+    },
+
+    "integrity_sincerity": {
+        "default": (
+            "May communicate sincerely, avoid unnecessary self-promotion and "
+            "seek consistency between stated values and behaviour."
+        ),
+        "hiring": (
+            "May be well suited to responsibilities where credibility, responsible "
+            "judgement and candid communication are particularly important."
+        ),
+        "leadership": (
+            "May communicate transparently, demonstrate personal credibility and "
+            "maintain consistency between words and actions."
+        ),
+        "development": (
+            "May receive feedback openly, acknowledge limitations and take personal "
+            "responsibility for improvement."
+        ),
+        "team": (
+            "May keep commitments, communicate openly and contribute to working "
+            "relationships built on trust."
+        ),
+        "internal_role_match": (
+            "May handle sensitive information responsibly and build trust with new "
+            "colleagues or stakeholders."
+        ),
+    },
+
+    "energy_momentum": {
+        "default": (
+            "May create pace, communicate enthusiasm and encourage continued progress."
+        ),
+        "hiring": (
+            "May bring visible energy to roles that require sustained activity, "
+            "initiative and a strong focus on forward movement."
+        ),
+        "leadership": (
+            "May mobilise others, communicate enthusiasm and help maintain momentum "
+            "through demanding periods."
+        ),
+        "development": (
+            "May approach stretching assignments with initiative and remain actively "
+            "engaged while building new capability."
+        ),
+        "team": (
+            "May raise energy, encourage action and help the group regain momentum "
+            "when progress slows."
+        ),
+        "internal_role_match": (
+            "May bring visible drive to new responsibilities while actively building "
+            "knowledge and confidence in the area."
+        ),
+    },
+
+    # Cognitive strengths
+
+    "cognitive_verbal_reasoning": {
+        "default": (
+            "May quickly understand written information, identify relevant points "
+            "and communicate well-supported conclusions."
+        ),
+        "hiring": (
+            "May be well suited to roles involving complex written information, "
+            "detailed instructions, reports or evidence-based communication."
+        ),
+        "leadership": (
+            "May absorb complex written material, compare different viewpoints and "
+            "communicate a clear, well-supported rationale."
+        ),
+        "development": (
+            "May learn effectively from written resources and articulate newly "
+            "developed understanding with clarity."
+        ),
+        "team": (
+            "May summarise written information and make complex material easier for "
+            "colleagues to understand."
+        ),
+        "internal_role_match": (
+            "May quickly navigate new documentation, policies and written subject "
+            "matter when moving into a different role."
+        ),
+    },
+
+    "cognitive_logical_reasoning": {
+        "default": (
+            "May quickly identify patterns, apply logical rules and reason "
+            "through unfamiliar or abstract problems."
+        ),
+        "hiring": (
+            "May be particularly effective in roles involving unfamiliar problems, "
+            "complex systems or the need to identify patterns and test solutions."
+        ),
+        "leadership": (
+            "May bring structure to ambiguous situations, test assumptions and "
+            "compare possible courses of action."
+        ),
+        "development": (
+            "May learn from complex challenges and refine the approach used to solve "
+            "unfamiliar problems."
+        ),
+        "team": (
+            "May clarify complex issues and help colleagues identify structured routes "
+            "toward a solution."
+        ),
+        "internal_role_match": (
+            "May quickly understand unfamiliar systems, processes and relationships "
+            "within a new area."
+        ),
+    },
+
+    "cognitive_numerical_reasoning": {
+        "default": (
+            "May quickly interpret numerical information, identify relevant "
+            "relationships and reach accurate quantitative conclusions."
+        ),
+        "hiring": (
+            "May be well suited to roles involving figures, metrics, financial "
+            "information or decisions based on quantitative evidence."
+        ),
+        "leadership": (
+            "May use numerical evidence to monitor performance, compare outcomes "
+            "and support well-informed decisions."
+        ),
+        "development": (
+            "May draw useful insight from metrics and use quantitative feedback "
+            "to guide improvement."
+        ),
+        "team": (
+            "May interpret figures accurately and translate numerical information "
+            "into clear shared understanding."
+        ),
+        "internal_role_match": (
+            "May quickly understand role-specific metrics, financial information "
+            "and quantitative reporting in a new area."
+        ),
+    },
+}
+
+COGNITIVE_STRENGTH_PERCENTILE = 90
+COGNITIVE_EXPLORE_PERCENTILE = 10
+
+
+COGNITIVE_INSIGHT_CONFIG = {
+    "verbal reasoning": {
+        "theme_key": "cognitive_verbal_reasoning",
+        "title": "Verbal reasoning",
+        "strength_body": (
+            "The candidate shows a particularly strong ability to understand, "
+            "evaluate and draw conclusions from written information."
+        ),
+        "strength_show": (
+            "May quickly identify relevant information, understand complex written "
+            "material and reach well-supported verbal conclusions."
+        ),
+        "why_it_matters": (
+            "This may be useful in work involving written information, instructions, "
+            "reports, communication or evidence-based conclusions."
+        ),
+        "explore_body": (
+            "The candidate’s result suggests that tasks involving complex written "
+            "information may require more time, structure or support."
+        ),
+        "explore_through": (
+            "Explore how the candidate approaches lengthy instructions, unfamiliar "
+            "written material and situations requiring conclusions from text."
+        ),
+        "what_to_listen_for": (
+            "Listen for practical strategies such as summarising information, asking "
+            "clarifying questions, checking understanding and allowing sufficient time."
+        ),
+    },
+
+    "logical reasoning": {
+        "theme_key": "cognitive_logical_reasoning",
+        "title": "Logical reasoning",
+        "strength_body": (
+            "The candidate shows a particularly strong ability to identify patterns, "
+            "apply logical rules and solve unfamiliar problems."
+        ),
+        "strength_show": (
+            "May quickly recognise relationships, test possible solutions and reason "
+            "through new or abstract information."
+        ),
+        "why_it_matters": (
+            "This may be useful in work involving unfamiliar problems, systems, "
+            "patterns, diagnosis or complex decision-making."
+        ),
+        "explore_body": (
+            "The candidate’s result suggests that unfamiliar logical or abstract "
+            "problems may require more time, structure or support."
+        ),
+        "explore_through": (
+            "Explore how the candidate approaches unfamiliar problems where the rules "
+            "or solution are not immediately clear."
+        ),
+        "what_to_listen_for": (
+            "Listen for structured problem-solving, willingness to test alternatives, "
+            "use of available information and strategies for checking conclusions."
+        ),
+    },
+
+    "numerical reasoning": {
+        "theme_key": "cognitive_numerical_reasoning",
+        "title": "Numerical reasoning",
+        "strength_body": (
+            "The candidate shows a particularly strong ability to understand, "
+            "evaluate and draw conclusions from numerical information."
+        ),
+        "strength_show": (
+            "May quickly interpret numerical data, identify relevant relationships "
+            "and reach accurate conclusions from figures."
+        ),
+        "why_it_matters": (
+            "This may be useful in work involving numerical data, calculations, "
+            "financial information, metrics or quantitative decisions."
+        ),
+        "explore_body": (
+            "The candidate’s result suggests that tasks involving numerical "
+            "information may require more time, structure or support."
+        ),
+        "explore_through": (
+            "Explore how the candidate handles calculations, numerical reports, "
+            "percentages and decisions based on quantitative information."
+        ),
+        "what_to_listen_for": (
+            "Listen for checking routines, use of tools, attention to accuracy and "
+            "strategies for working carefully with numerical information."
+        ),
+    },
+}
+
+STRENGTH_ANCHOR_SOURCES = {
+    "personality",
+    "cognitive",
+}
+
+EXPLORE_ANCHOR_SOURCES = {
+    "personality",
+    "cognitive",
+}
+
+EVIDENCE_SOURCES = {
+    "personality",
+    "motivation",
+    "cognitive",
+}
+
+
+def indicator_can_support_strength(
+    indicator: dict[str, Any],
+) -> bool:
+    """
+    Personality, motivation and cognitive indicators may support
+    a strength.
+
+    Double-edged personality indicators should not automatically
+    be presented as strengths.
+    """
+    is_double_edged_personality = (
+        indicator.get("source") == "personality"
+        and indicator.get("key") in DOUBLE_EDGED_INDICATORS
+    )
+
+    return not is_double_edged_personality
+
+
+def select_diverse_supporting_indicators(
+    indicators: list[dict[str, Any]],
+    limit: int = 4,
+) -> list[dict[str, Any]]:
+    """
+    Select supporting indicators while trying to represent
+    different assessment sources.
+
+    This prevents four personality indicators from always pushing
+    motivation and cognitive evidence out of the result.
+    """
+    ordered = sorted(
+        indicators,
+        key=lambda item: item.get("normalized_score", 0),
+        reverse=True,
+    )
+
+    selected: list[dict[str, Any]] = []
+
+    # First include the strongest result from each available source.
+    for source in (
+        "personality",
+        "cognitive",
+        "motivation",
+    ):
+        source_match = next(
+            (
+                item
+                for item in ordered
+                if item.get("source") == source
+            ),
+            None,
+        )
+
+        if source_match is not None:
+            selected.append(source_match)
+
+    # Then fill the remaining spaces with the strongest results overall.
+    for item in ordered:
+        if len(selected) >= limit:
+            break
+
+        if item not in selected:
+            selected.append(item)
+
+    return selected[:limit]
+
+
 def normalize_indicator_key(value: Any) -> str:
     text = str(value or "").strip().lower()
 
@@ -1278,6 +1875,152 @@ def normalize_assessment_indicators(
 
     return indicators
 
+def build_cognitive_insights(
+    indicators: list[dict[str, Any]],
+    process_purpose: str | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    strengths: list[dict[str, Any]] = []
+    explore_areas: list[dict[str, Any]] = []
+
+    cognitive_indicators = [
+        indicator
+        for indicator in indicators
+        if indicator.get("source") == "cognitive"
+    ]
+
+    for indicator in cognitive_indicators:
+        key = indicator.get("key")
+        config = COGNITIVE_INSIGHT_CONFIG.get(key)
+
+        if not config:
+            continue
+
+        percentile = safe_float(
+            indicator.get("raw_score")
+        )
+
+        if percentile is None:
+            continue
+
+        # --------------------------------------------
+        # Very high cognitive result
+        # --------------------------------------------
+        if percentile >= COGNITIVE_STRENGTH_PERCENTILE:
+            level = round(
+                max(
+                    1,
+                    min(
+                        10,
+                        percentile / 10,
+                    ),
+                ),
+                1,
+            )
+
+            strengths.append({
+                "theme_key": config["theme_key"],
+                "icon_key": "analysis",
+                "title": config["title"],
+                "body": config["strength_body"],
+                "how_it_may_show": get_theme_strength_expression(
+                    config["theme_key"],
+                    config,
+                    process_purpose,
+                ),
+                "purpose_label": get_process_purpose_label(
+                    process_purpose
+                ),
+                "level": level,
+                "level_rounded": round(level),
+                "level_label": "Very high cognitive result",
+                "explanation": (
+                    f"This strength was identified from a result at the "
+                    f"{ordinal_percentile(percentile)} in the cognitive assessment."
+                ),
+                "supporting_indicators": [indicator],
+                "evidence": [
+                    indicator["name"],
+                ],
+                "insight_type": "cognitive",
+            })
+
+        # --------------------------------------------
+        # Very low cognitive result
+        # --------------------------------------------
+        elif percentile <= COGNITIVE_EXPLORE_PERCENTILE:
+            normalized_score = max(
+                1,
+                min(
+                    10,
+                    percentile / 10,
+                ),
+            )
+
+            level = round(
+                11 - normalized_score,
+                1,
+            )
+
+            explore_areas.append({
+                "theme_key": config["theme_key"],
+                "icon_key": "analysis",
+                "title": config["title"],
+                "body": config["explore_body"],
+                "explore_through": config["explore_through"],
+                "what_to_listen_for": config[
+                    "what_to_listen_for"
+                ],
+                "level": level,
+                "level_rounded": round(level),
+                "level_label": "High priority to explore",
+                "explanation": (
+                    f"This area was identified from a result at the "
+                    f"{ordinal_percentile(percentile)} in the cognitive assessment. "
+                    f"It should be considered in relation to the requirements of the "
+                    f"role and verified alongside other evidence."
+                ),
+                "supporting_indicators": [indicator],
+                "evidence": [
+                    indicator["name"],
+                ],
+                "area_type": "cognitive",
+            })
+
+    strengths.sort(
+        key=lambda item: item["level"],
+        reverse=True,
+    )
+
+    explore_areas.sort(
+        key=lambda item: item["level"],
+        reverse=True,
+    )
+
+    return strengths, explore_areas
+
+PURPOSE_PERSPECTIVE_LABELS = {
+    "default": "How this strength may show",
+    "hiring": "Recruitment perspective",
+    "leadership": "Leadership perspective",
+    "development": "Development perspective",
+    "team": "Team perspective",
+    "internal_role_match": "Internal role perspective",
+}
+
+
+def get_process_purpose_label(
+    process_purpose: str | None,
+) -> str:
+    purpose_key = normalize_process_purpose_key(
+        process_purpose
+    )
+
+    return PURPOSE_PERSPECTIVE_LABELS.get(
+        purpose_key,
+        PURPOSE_PERSPECTIVE_LABELS["default"],
+    )
+
+
 def build_combination_explore_areas(
     indicators: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
@@ -1387,7 +2130,7 @@ def build_low_score_explore_areas(
             indicator
             for indicator in indicators
             if (
-                indicator.get("source") == "personality"
+                indicator.get("source") in EVIDENCE_SOURCES
                 and indicator.get("key")
                 in theme["indicator_keys"]
             )
@@ -1396,46 +2139,96 @@ def build_low_score_explore_areas(
         if not matched:
             continue
 
-        lower_indicators = [
+        # Personality and cognitive results may anchor an area
+        # to explore.
+        lower_anchor_indicators = [
             item
             for item in matched
-            if item["normalized_score"] <= 4
+            if (
+                item.get("source") in EXPLORE_ANCHOR_SOURCES
+                and item["normalized_score"] <= 4
+            )
         ]
 
-        lower_indicators.sort(
+        lower_anchor_indicators.sort(
             key=lambda item: item["normalized_score"],
         )
 
-        has_multiple_low_indicators = (
-            len(lower_indicators) >= 2
+        # Lower motivation may add useful context, but should not
+        # independently be described as a weakness.
+        related_lower_motivation = [
+            item
+            for item in matched
+            if (
+                item.get("source") == "motivation"
+                and item["normalized_score"] <= 4
+            )
+        ]
+
+        related_lower_motivation.sort(
+            key=lambda item: item["normalized_score"],
         )
 
-        has_one_extremely_low_indicator = (
-            len(lower_indicators) == 1
-            and lower_indicators[0]["normalized_score"] <= 2
+        has_multiple_lower_anchors = (
+            len(lower_anchor_indicators) >= 2
+        )
+
+        has_one_extremely_low_anchor = (
+            len(lower_anchor_indicators) == 1
+            and lower_anchor_indicators[0][
+                "normalized_score"
+            ] <= 2
+        )
+
+        # One clearly lower cognitive result may be relevant enough
+        # to explore, even when only one cognitive test was completed.
+        has_one_clearly_low_cognitive_result = (
+            len(lower_anchor_indicators) == 1
+            and lower_anchor_indicators[0].get(
+                "source"
+            ) == "cognitive"
+            and lower_anchor_indicators[0][
+                "normalized_score"
+            ] <= 3
         )
 
         is_supported_explore_area = (
-            has_multiple_low_indicators
-            or has_one_extremely_low_indicator
+            has_multiple_lower_anchors
+            or has_one_extremely_low_anchor
+            or has_one_clearly_low_cognitive_result
         )
 
         if not is_supported_explore_area:
             continue
 
-        selected = lower_indicators[:4]
-
-        average_score = (
-            sum(
-                item["normalized_score"]
-                for item in selected
-            )
-            / len(selected)
+        supporting_pool = (
+            lower_anchor_indicators
+            + related_lower_motivation
         )
 
-        # A lower raw result creates a higher exploration priority.
+        selected = select_diverse_supporting_indicators(
+            supporting_pool,
+            limit=4,
+        )
+
+        # Exploration priority should be based on capability or
+        # behavioural evidence, not on motivation alone.
+        average_anchor_score = (
+            sum(
+                item["normalized_score"]
+                for item in lower_anchor_indicators
+            )
+            / len(lower_anchor_indicators)
+        )
+
         level = round(
-            max(1, min(10, 11 - average_score)),
+            max(
+                1,
+                min(
+                    10,
+                    11 - average_anchor_score,
+                ),
+            ),
             1,
         )
 
@@ -1446,22 +2239,46 @@ def build_low_score_explore_areas(
         else:
             level_label = "Consider exploring"
 
-        if len(selected) == 1:
+        source_labels = list(
+            dict.fromkeys(
+                item["source_label"]
+                for item in selected
+            )
+        )
+
+        source_text = ", ".join(source_labels)
+
+        if len(lower_anchor_indicators) == 1:
             explanation = (
-                "This area was identified from one particularly low "
-                "personality result. It should be explored and verified, "
+                "This area was identified from one clearly lower "
+                "assessment result. It should be explored and verified, "
                 "not treated as a confirmed weakness."
             )
         else:
             explanation = (
-                f"This area was identified from {len(selected)} related "
-                f"personality results in the lower part of the scale. "
-                f"It should be explored and verified, not treated as a "
-                f"confirmed weakness."
+                f"This area was identified from "
+                f"{len(lower_anchor_indicators)} related lower "
+                f"assessment results. It should be explored and "
+                f"verified, not treated as a confirmed weakness."
             )
+
+        if related_lower_motivation:
+            explanation += (
+                " Related motivation results are included as contextual "
+                "evidence about where the candidate may experience less "
+                "energy or engagement."
+            )
+
+        explanation += (
+            f" Supporting evidence is drawn from: {source_text}."
+        )
 
         explore_areas.append({
             "theme_key": theme_key,
+            "icon_key": THEME_ICON_MAP.get(
+                theme_key,
+                "spark",
+            ),
             "title": theme["title"],
             "body": theme["explore_body"],
             "explore_through": theme["explore_through"],
@@ -1482,6 +2299,7 @@ def build_low_score_explore_areas(
         })
 
     return explore_areas
+
 
 def get_theme_why_it_matters(
     theme: dict[str, Any],
@@ -1505,6 +2323,69 @@ def get_theme_why_it_matters(
         )
     )
 
+PURPOSE_KEY_ALIASES = {
+    # Recruitment
+    "hiring": "hiring",
+    "recruitment": "hiring",
+
+    # Leadership
+    "leadership": "leadership",
+    "leadership potential": "leadership",
+    "leadership development": "leadership",
+
+    # Development
+    "development": "development",
+    "employee development": "development",
+
+    # Team
+    "team": "team",
+    "team development": "team",
+
+    # Internal role match
+    "internal role match": "internal_role_match",
+    "role match": "internal_role_match",
+}
+
+
+def normalize_process_purpose_key(
+    process_purpose: Any,
+) -> str:
+    normalized = normalize_indicator_key(
+        process_purpose or "default"
+    )
+
+    return PURPOSE_KEY_ALIASES.get(
+        normalized,
+        normalized.replace(" ", "_"),
+    )
+
+
+def get_theme_strength_expression(
+    theme_key: str,
+    theme: dict[str, Any],
+    process_purpose: str | None,
+) -> str:
+    purpose_key = normalize_process_purpose_key(
+        process_purpose
+    )
+
+    purpose_texts = (
+        STRENGTH_EXPRESSIONS_BY_THEME.get(
+            theme_key,
+            {},
+        )
+    )
+
+    return (
+        purpose_texts.get(purpose_key)
+        or purpose_texts.get("default")
+        or theme.get("strength_show")
+        or (
+            "This strength may influence how the candidate approaches "
+            "relevant tasks and working relationships."
+        )
+    )
+
 
 def build_evidence_themes(
     indicators: list[dict[str, Any]],
@@ -1512,14 +2393,15 @@ def build_evidence_themes(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     strengths: list[dict[str, Any]] = []
 
-    # We will build Areas to explore separately later.
-    explore_areas: list[dict[str, Any]] = []
-
     for theme_key, theme in INSIGHT_THEMES.items():
         matched = [
             indicator
             for indicator in indicators
-            if indicator["key"] in theme["indicator_keys"]
+            if (
+                indicator.get("source") in EVIDENCE_SOURCES
+                and indicator.get("key")
+                in theme["indicator_keys"]
+            )
         ]
 
         if not matched:
@@ -1530,22 +2412,27 @@ def build_evidence_themes(
             reverse=True,
         )
 
-        # Only clearly elevated results may support a Key strength.
+        # All clearly elevated assessment results that may support
+        # this particular theme.
         strong_indicators = [
             item
             for item in matched
-            if item["normalized_score"] >= 7
+            if (
+                item["normalized_score"] >= 7
+                and indicator_can_support_strength(item)
+            )
         ]
 
-        # Key strengths must be anchored in personality data.
-        # Double-edged indicators are excluded from automatic strengths.
-        strong_personality_indicators = [
+        if not strong_indicators:
+            continue
+
+        # A strength should have at least one capability or behavioural
+        # anchor. Motivation may reinforce a strength, but should not
+        # independently prove that the person is skilled in the area.
+        anchor_indicators = [
             item
             for item in strong_indicators
-            if (
-                item.get("source") == "personality"
-                and item.get("key") not in DOUBLE_EDGED_INDICATORS
-            )
+            if item.get("source") in STRENGTH_ANCHOR_SOURCES
         ]
 
         minimum_strong = theme.get(
@@ -1559,26 +2446,27 @@ def build_evidence_themes(
         )
 
         has_multiple_strong_indicators = (
-            len(strong_personality_indicators)
-            >= minimum_strong
+            len(strong_indicators) >= minimum_strong
+            and bool(anchor_indicators)
         )
 
-        has_one_very_strong_indicator = (
-            len(strong_personality_indicators) == 1
-            and strong_personality_indicators[0][
-                "normalized_score"
-            ] >= allow_single_from
+        has_one_very_strong_anchor = any(
+            item["normalized_score"] >= allow_single_from
+            for item in anchor_indicators
         )
 
         is_supported_strength = (
             has_multiple_strong_indicators
-            or has_one_very_strong_indicator
+            or has_one_very_strong_anchor
         )
 
         if not is_supported_strength:
             continue
 
-        selected = strong_personality_indicators[:4]
+        selected = select_diverse_supporting_indicators(
+            strong_indicators,
+            limit=4,
+        )
 
         level = round(
             sum(
@@ -1595,17 +2483,27 @@ def build_evidence_themes(
         else:
             level_label = "Moderate evidence"
 
+        source_labels = list(
+            dict.fromkeys(
+                item["source_label"]
+                for item in selected
+            )
+        )
+
+        source_text = ", ".join(source_labels)
+
         if len(selected) == 1:
             explanation = (
                 "This theme was identified from one particularly "
-                "elevated personality result. The individual result "
+                "elevated assessment result. The individual result "
                 "is shown below as supporting assessment evidence."
             )
         else:
             explanation = (
                 f"This theme was identified from {len(selected)} "
-                f"clearly elevated personality results. The individual "
-                f"results are shown below as supporting assessment evidence."
+                f"elevated assessment indicators across: "
+                f"{source_text}. The individual results are shown "
+                f"below as supporting assessment evidence."
             )
 
         strengths.append({
@@ -1616,10 +2514,13 @@ def build_evidence_themes(
             ),
             "title": theme["title"],
             "body": theme["strength_body"],
-            "how_it_may_show": theme["strength_show"],
-            "why_it_matters": get_theme_why_it_matters(
+            "how_it_may_show": get_theme_strength_expression(
+                theme_key,
                 theme,
                 process_purpose,
+            ),
+            "purpose_label": get_process_purpose_label(
+                process_purpose
             ),
             "level": level,
             "level_rounded": round(level),
@@ -1645,6 +2546,8 @@ def build_evidence_themes(
         for item in strengths
     }
 
+    # These rules deliberately remain personality-based because
+    # they describe specific combinations of personality traits.
     combination_explore_areas = (
         build_combination_explore_areas(indicators)
     )
@@ -1700,21 +2603,59 @@ def build_candidate_insights(
         general_insight_input
     )
 
-    has_personality_indicators = any(
-        indicator.get("source") == "personality"
-        for indicator in assessment_indicators
+    print(
+        "PROCESS PURPOSE:",
+        {
+            "raw": process_purpose,
+            "normalized": normalize_process_purpose_key(
+                process_purpose
+            ),
+        },
+        flush=True,
     )
 
-    if has_personality_indicators:
-        evidence_strengths, evidence_explore_areas = (
-            build_evidence_themes(
-                assessment_indicators,
-                process_purpose=process_purpose,
-            )
+    evidence_strengths, evidence_explore_areas = (
+        build_evidence_themes(
+            assessment_indicators,
+            process_purpose=process_purpose,
         )
-    else:
-        evidence_strengths = []
-        evidence_explore_areas = []
+    )
+
+    cognitive_strengths, cognitive_explore_areas = (
+        build_cognitive_insights(
+            assessment_indicators,
+            process_purpose=process_purpose,
+        )
+    )
+
+    evidence_strengths = (
+        cognitive_strengths
+        + evidence_strengths
+    )
+
+    evidence_explore_areas = (
+        cognitive_explore_areas
+        + evidence_explore_areas
+    )
+
+    evidence_strengths.sort(
+        key=lambda item: (
+            item.get("level", 0),
+            len(item.get("supporting_indicators", [])),
+        ),
+        reverse=True,
+    )
+
+    evidence_explore_areas.sort(
+        key=lambda item: (
+            item.get("level", 0),
+            len(item.get("supporting_indicators", [])),
+        ),
+        reverse=True,
+    )
+
+    evidence_strengths = evidence_strengths[:4]
+    evidence_explore_areas = evidence_explore_areas[:4]
 
 
     if candidate_insights_mode == "context":
