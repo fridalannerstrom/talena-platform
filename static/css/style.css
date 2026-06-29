@@ -3316,6 +3316,214 @@ color: #6CACCB;
   }
 }
 
+/* =========================================================
+   PERSONALITY PROFILE SHELL
+   One outer card, flat categories and traits inside
+========================================================= */
+
+.personality-profile-shell {
+  overflow: hidden;
+}
+
+.personality-profile-shell > .card-body {
+  padding: 30px;
+}
+
+.personality-profile {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   MAIN HEADER
+========================================================= */
+
+.personality-profile__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding-bottom: 28px;
+  border-bottom: 1px solid #e4e7ee;
+}
+
+.personality-profile__header > div {
+  min-width: 0;
+}
+
+.personality-profile__toggle-all {
+  flex-shrink: 0;
+  margin-top: 4px;
+
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+
+
+/* =========================================================
+   PROFILE CATEGORIES
+========================================================= */
+
+.personality-profile-section {
+  margin: 0;
+  padding-top: 30px;
+}
+
+.personality-profile-section + .personality-profile-section {
+  margin-top: 12px;
+  padding-top: 34px;
+  border-top: 1px solid #dfe3ea;
+}
+
+.personality-profile-section__header {
+  margin-bottom: 0;
+}
+
+.personality-profile-section__title {
+  margin: 0;
+
+  color: #202536;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.personality-profile-section__traits {
+  display: block;
+}
+
+
+/* =========================================================
+   FLAT TRAIT LAYOUT
+   Removes the card-inside-card appearance
+========================================================= */
+
+.personality-profile-shell .personality-trait-card {
+  margin: 0;
+  padding: 28px 0;
+
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.personality-profile-shell
+  .personality-trait-card
+  + .personality-trait-card {
+  border-top: 1px solid #edf0f5;
+}
+
+.personality-profile-shell
+  .personality-profile-section__traits
+  .personality-trait-card:first-child {
+  padding-top: 24px;
+}
+
+.personality-profile-shell
+  .personality-profile-section__traits
+  .personality-trait-card:last-child {
+  padding-bottom: 8px;
+}
+
+
+/* Ensure old card styles do not survive */
+
+.personality-profile-shell .personality-trait-card.card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.personality-profile-shell .personality-trait-card > .card-body {
+  padding: 0;
+}
+
+
+/* =========================================================
+   TRAIT HEADER
+========================================================= */
+
+.personality-profile-shell .personality-trait-card__header {
+  margin-bottom: 28px;
+}
+
+.personality-profile-shell .personality-trait-card__title {
+  margin-bottom: 4px;
+}
+
+.personality-profile-shell .personality-trait-card__score {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SUMMARY AND INDICATOR AREA
+========================================================= */
+
+.personality-profile-shell .personality-trait-card__summary {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid #edf0f5;
+}
+
+.personality-profile-shell
+  .personality-trait-card__indicator-toggle-wrap {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #edf0f5;
+}
+
+.personality-profile-shell
+  .personality-trait-card__indicator-panel {
+  margin-top: 18px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 767.98px) {
+  .personality-profile-shell > .card-body {
+    padding: 22px 18px;
+  }
+
+  .personality-profile__header {
+    flex-direction: column;
+    gap: 18px;
+    padding-bottom: 24px;
+  }
+
+  .personality-profile__toggle-all {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+
+  .personality-profile-section {
+    padding-top: 26px;
+  }
+
+  .personality-profile-section + .personality-profile-section {
+    margin-top: 8px;
+    padding-top: 30px;
+  }
+
+  .personality-profile-section__title {
+    font-size: 0.9rem;
+  }
+
+  .personality-profile-shell .personality-trait-card {
+    padding: 24px 0;
+  }
+}
+
+
 /* admin dashboard latest test process */ 
 
 .process-rows {

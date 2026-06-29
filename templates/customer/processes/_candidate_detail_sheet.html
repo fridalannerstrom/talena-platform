@@ -395,7 +395,7 @@
                 <div class="insight-summary-kicker">Candidate Insights</div>
 
                 <h2 class="insight-summary-title mb-1">
-                  AI assessment summary
+                  AI Summary
                 </h2>
 
                 <div class="text-muted small">
@@ -1885,13 +1885,17 @@
 <!-- /REPORTS -->
 
 
+<!-- PERSONALITY PROFILE -->
 {% if has_personality_results %}
-  <div class="candidate-result-section">
+  <section class="card mb-4 purpose-fit-card personality-profile-shell">
+    <div class="card-body">
 
-    {% include "customer/processes/partials/_personality_profile.html" %}
+      {% include "customer/processes/partials/_personality_profile.html" %}
 
-  </div>
+    </div>
+  </section>
 {% endif %}
+<!-- /PERSONALITY PROFILE -->
 
         <!-- TEMPORARY RAW HISTORICAL DATA -->
         {% if is_historical and assessment_results %}

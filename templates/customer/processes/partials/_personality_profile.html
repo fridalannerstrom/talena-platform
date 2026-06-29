@@ -2,27 +2,36 @@
 
   <div class="personality-profile">
 
-    <div class="personality-profile__header">
+<div class="personality-profile__header">
+
   <div>
-    <h3>Personality profile</h3>
-    <p class="text-muted">
+    <div class="insight-summary-kicker">
+      Assessment results
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Personality profile
+    </h2>
+
+    <p class="text-muted small mb-0">
       Rounded STEN results across the personality traits.
     </p>
   </div>
 
   <button
     type="button"
-    class="btn btn-sm btn-outline-secondary"
+    class="btn btn-sm btn-outline-secondary personality-profile__toggle-all"
     id="toggle-all-personality-indicators"
     data-expanded="false"
   >
     Show all indicators
   </button>
+
 </div>
 
     {% for section in personality_profile.sections %}
 
-      <section class="personality-profile-section mb-5">
+      <section class="personality-profile-section">
 
         <div class="personality-profile-section__header">
           <h4 class="personality-profile-section__title">
