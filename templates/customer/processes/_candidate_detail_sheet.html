@@ -392,7 +392,7 @@
 
             <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
               <div>
-                <div class="insight-summary-kicker">Candidate Insights</div>
+                <div class="insight-summary-kicker">✨ AI-generated insight</div>
 
                 <h2 class="insight-summary-title mb-1">
                   AI Summary
@@ -583,12 +583,6 @@
             {% endif %}
 
             <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
-              <div class="text-primary flex-shrink-0 mt-1">
-                <i
-                  data-feather="info"
-                  style="width: 16px; height: 16px;">
-                </i>
-              </div>
 
               <div class="small text-muted">
                 {% if is_historical %}
@@ -612,61 +606,62 @@
     >
       <div class="card-body">
 
-        <!-- HEADER -->
-        <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+<!-- HEADER -->
+<div class="d-flex align-items-start justify-content-between gap-3 mb-3">
 
-          <div>
-            <div class="insight-summary-kicker">
-              Purpose-based insight
-            </div>
+  <div>
+    <div class="insight-summary-kicker">
+      ✨ AI-generated insight
+    </div>
 
-            <h2
-              class="insight-summary-title mb-1"
-              id="purposeFitTitle"
-            >
-              {% if invitation.ai_purpose_fit.title %}
-                {{ invitation.ai_purpose_fit.title }}
-              {% else %}
-                Purpose fit
-              {% endif %}
-            </h2>
+    <h2
+      class="insight-summary-title mb-1"
+      id="purposeFitTitle"
+    >
+      {% if invitation.ai_purpose_fit.title %}
+        {{ invitation.ai_purpose_fit.title }}
+      {% else %}
+        Purpose fit
+      {% endif %}
+    </h2>
 
-            <div class="text-muted small">
-              Assessment-based interpretation connected to the selected purpose and process context.
-            </div>
-          </div>
+    <div class="text-muted small">
+      Talena AI has compared the candidate’s assessment results with the
+      selected purpose and available process context.
+    </div>
+  </div>
 
-          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+  <div class="d-flex align-items-center gap-2 flex-shrink-0">
 
-<span
-  id="purposeFitStatusBadge"
-  class="badge rounded-pill
-    {% if invitation.ai_purpose_fit_status == 'outdated' %}
-      bg-warning-subtle text-warning-emphasis
-    {% else %}
-      d-none
-    {% endif %}
-  "
->
-{% if invitation.ai_purpose_fit_status == "outdated" %}
-  Needs update
-{% endif %}
-            </span>
+    <span
+      id="purposeFitStatusBadge"
+      class="badge rounded-pill
+        {% if invitation.ai_purpose_fit_status == 'outdated' %}
+          bg-warning-subtle text-warning-emphasis
+        {% else %}
+          d-none
+        {% endif %}
+      "
+    >
+      {% if invitation.ai_purpose_fit_status == "outdated" %}
+        Needs update
+      {% endif %}
+    </span>
 
-<button
-  type="button"
-  class="btn btn-icon btn-light js-regenerate-purpose-fit"
-  data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
-  data-bs-toggle="tooltip"
-  data-bs-placement="top"
-  title="Generate a new role fit"
-  aria-label="Generate a new role fit"
->
-  <i data-feather="refresh-cw"></i>
-</button>
+    <button
+      type="button"
+      class="btn btn-icon btn-light js-regenerate-purpose-fit"
+      data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
+      data-bs-toggle="tooltip"
+      data-bs-placement="top"
+      title="Generate a new interpretation using the latest assessment results, purpose and process context."
+      aria-label="Generate a new purpose-fit interpretation"
+    >
+      <i data-feather="refresh-cw"></i>
+    </button>
 
-          </div>
-        </div>
+  </div>
+</div>
 
 
         <!-- OUTDATED WARNING -->
@@ -681,6 +676,8 @@
               <div class="fw-semibold small mb-1">
                 The process information has changed
               </div>
+
+              
 
               <div class="small">
                 This interpretation is based on an earlier purpose or process context.
@@ -724,43 +721,73 @@
           data-fit-status="{{ invitation.ai_purpose_fit_status|default:'not_started' }}"
         >
 
-          <!-- RECOMMENDATION -->
-          <div class="purpose-fit-verdict mb-4">
+          <!-- OVERALL INDICATION -->
+<div class="purpose-fit-verdict mb-4">
 
-            <div>
-              <div class="purpose-fit-label">
-                Assessment
-              </div>
+  <div>
+    <div class="purpose-fit-label purpose-fit-label--with-help">
 
-              <div
-                class="purpose-fit-recommendation"
-                id="purposeFitRecommendation"
-              >
-                {{ invitation.ai_purpose_fit.recommendation }}
-              </div>
-            </div>
+      <span>Overall indication</span>
 
-            <div class="purpose-fit-confidence">
-              <span class="purpose-fit-label">
-                Confidence
-              </span>
+      <button
+        type="button"
+        class="purpose-fit-help"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="A summary of how the available assessment evidence aligns with the selected purpose and process context."
+        aria-label="What does overall indication mean?"
+      >
+        <i data-feather="info"></i>
+      </button>
 
-              <span
-                class="badge rounded-pill bg-light text-dark border"
-                id="purposeFitConfidence"
-              >
-                {{ invitation.ai_purpose_fit.confidence }}
-              </span>
-            </div>
+    </div>
 
-          </div>
+    <div
+      class="purpose-fit-recommendation"
+      id="purposeFitRecommendation"
+    >
+      {{ invitation.ai_purpose_fit.recommendation }}
+    </div>
+  </div>
+
+  <div class="purpose-fit-confidence">
+
+    <div class="purpose-fit-label purpose-fit-label--with-help">
+
+      <span>Evidence confidence</span>
+
+      <button
+        type="button"
+        class="purpose-fit-help"
+        data-bs-toggle="tooltip"
+        data-bs-placement="left"
+        title="Indicates how strongly the available assessment evidence and process information support this interpretation. It is not a probability that the candidate will succeed."
+        aria-label="What does evidence confidence mean?"
+      >
+        <i data-feather="info"></i>
+      </button>
+
+    </div>
+
+    <span
+      class="badge rounded-pill bg-light text-dark border"
+      id="purposeFitConfidence"
+    >
+      {{ invitation.ai_purpose_fit.confidence }}
+    </span>
+
+  </div>
+
+</div>
 
 
           <!-- SUMMARY -->
           <div class="purpose-fit-section mb-4">
-            <div class="purpose-fit-section-title">
-              Interpretation
-            </div>
+<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
+
+  <span>How Talena interpreted the results</span>
+
+</div>
 
             <div
               class="purpose-fit-summary"
@@ -774,10 +801,22 @@
 
             <div class="col-lg-6">
               <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
+<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
 
-                <div class="purpose-fit-section-title">
-                  Key alignment
-                </div>
+  <span>What supports the alignment</span>
+
+  <button
+    type="button"
+    class="purpose-fit-help"
+    data-bs-toggle="tooltip"
+    data-bs-placement="top"
+    title="Assessment patterns that may support the selected purpose. These are not guarantees of performance."
+    aria-label="More information about evidence supporting alignment"
+  >
+    <i data-feather="info"></i>
+  </button>
+
+</div>
 
                 <ul
                   class="purpose-fit-list"
@@ -800,9 +839,22 @@
             <div class="col-lg-6">
               <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
 
-                <div class="purpose-fit-section-title">
-                  Areas to verify
-                </div>
+<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
+
+  <span>What to explore further</span>
+
+  <button
+    type="button"
+    class="purpose-fit-help"
+    data-bs-toggle="tooltip"
+    data-bs-placement="top"
+    title="Topics that should be explored through interviews or other evidence. They are not confirmed weaknesses."
+    aria-label="More information about evidence to validate"
+  >
+    <i data-feather="info"></i>
+  </button>
+
+</div>
 
                 <ul
                   class="purpose-fit-list"
@@ -844,15 +896,6 @@
 
           </div>
 
-
-          <!-- CONTEXT NOTE -->
-          <div
-            class="purpose-fit-context-note"
-            id="purposeFitContextNote"
-          >
-            {{ invitation.ai_purpose_fit.context_note }}
-          </div>
-
         </div>
 
 
@@ -867,9 +910,75 @@
 
 
         <!-- FOOTER -->
-        <div class="small text-muted border-top pt-3 mt-4">
-          This interpretation is assessment-based decision support and should be combined with interviews, experience and other relevant evidence.
-        </div>
+
+        
+<!-- HOW THIS INSIGHT WAS CREATED -->
+<div class="purpose-fit-explainer mb-4 mt-4">
+
+  <div class="purpose-fit-explainer__content">
+
+    <div class="purpose-fit-explainer__title">
+      How Talena created this insight
+    </div>
+
+    <div class="purpose-fit-explainer__text">
+          <!-- CONTEXT NOTE -->
+          <div
+            class="purpose-fit-context-note"
+            id="purposeFitContextNote"
+          >
+            {{ invitation.ai_purpose_fit.context_note }}
+          </div>
+    </div>
+
+    <div class="purpose-fit-inputs">
+
+      <span class="purpose-fit-inputs__label">
+        Based on
+      </span>
+
+      <span class="purpose-fit-input-pill">
+        Assessment results
+      </span>
+
+      <span class="purpose-fit-input-pill">
+        {{ process.get_purpose_display|default:"Selected purpose" }}
+      </span>
+
+      {% if has_purpose_context %}
+        <span class="purpose-fit-input-pill">
+          Process context
+        </span>
+      {% else %}
+        <span
+          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="No additional role, team or development context has been added."
+        >
+          Purpose only
+        </span>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+
+  
+  <i data-feather="info"></i>
+
+  <div>
+    This is an AI-generated interpretation of assessment evidence, not a final
+    decision or prediction of job performance. Combine it with structured
+    interviews, relevant experience and other available evidence.
+  </div>
+
+</div>
 
       </div>
     </section>
@@ -1255,6 +1364,8 @@
 <!-- /AREAS TO EXPLORE -->
 
 
+
+
 <!-- COGNITIVE ASSESSMENT RESULTS -->
 {% if candidate_insights.cognitive_results %}
   <section class="card mb-4 purpose-fit-card">
@@ -1432,6 +1543,20 @@
 {% endif %}
 <!-- /COGNITIVE ASSESSMENT RESULTS -->
 
+
+
+<!-- PERSONALITY PROFILE -->
+{% if has_personality_results %}
+  <section class="card mb-4 purpose-fit-card personality-profile-shell">
+    <div class="card-body">
+
+      {% include "customer/processes/partials/_personality_profile.html" %}
+
+    </div>
+  </section>
+{% endif %}
+<!-- /PERSONALITY PROFILE -->
+
 <!-- RESPONSE STYLES -->
 {% if has_personality_results and response_styles %}
   <section class="card mb-4 purpose-fit-card">
@@ -1512,40 +1637,80 @@
 
             {% if style.available %}
 
-              <!-- SCALE -->
-              <div
-                class="response-style-scale"
-                role="img"
-                aria-label="{{ style.title }}: {{ style.value }} out of 10"
-              >
+  <!-- SCALE WITH POLE DESCRIPTIONS -->
+  <div class="response-style-profile">
 
-                <div class="response-style-scale__segments">
-                  {% for segment in response_style_segments %}
-                    <span
-                      class="
-                        response-style-scale__segment
+    <!-- LOWER SCORE -->
+    <div class="response-style-profile__pole">
 
-                        {% if segment == style.value %}
-                          response-style-scale__segment--marker
-                        {% endif %}
+      <div class="response-style-profile__pole-label">
+        Lower score may indicate
+      </div>
 
-                        {% if segment <= style.value %}
-                          response-style-scale__segment--filled
-                        {% endif %}
-                      "
-                    ></span>
-                  {% endfor %}
-                </div>
+      <p class="response-style-profile__pole-text">
+        {{ style.low_pole }}
+      </p>
 
-                <div class="response-style-scale__labels">
-                  <span>Low</span>
-                  <span>Typical</span>
-                  <span>High</span>
-                </div>
+    </div>
 
-              </div>
 
-            {% endif %}
+    <!-- SCALE -->
+    <div
+      class="response-style-scale response-style-profile__scale"
+      role="img"
+      aria-label="{{ style.title }}: {{ style.value }} out of 10"
+    >
+
+      <div class="response-style-scale__segments">
+
+        {% for segment in response_style_segments %}
+          <span
+            class="
+              response-style-scale__segment
+
+              {% if segment == style.value %}
+                response-style-scale__segment--marker
+              {% endif %}
+
+              {% if segment <= style.value %}
+                response-style-scale__segment--filled
+              {% endif %}
+            "
+          ></span>
+        {% endfor %}
+
+      </div>
+
+      <div class="response-style-scale__labels">
+        <span>Low</span>
+        <span>Typical</span>
+        <span>High</span>
+      </div>
+
+    </div>
+
+
+    <!-- HIGHER SCORE -->
+    <div
+      class="
+        response-style-profile__pole
+        response-style-profile__pole--right
+      "
+    >
+
+      <div class="response-style-profile__pole-label">
+        Higher score may indicate
+      </div>
+
+      <p class="response-style-profile__pole-text">
+        {{ style.high_pole }}
+      </p>
+
+    </div>
+
+  </div>
+
+{% endif %}
 
             <!-- INTERPRETATION -->
             <div class="response-style-item__interpretation">
@@ -1884,18 +2049,6 @@
 {% endif %}
 <!-- /REPORTS -->
 
-
-<!-- PERSONALITY PROFILE -->
-{% if has_personality_results %}
-  <section class="card mb-4 purpose-fit-card personality-profile-shell">
-    <div class="card-body">
-
-      {% include "customer/processes/partials/_personality_profile.html" %}
-
-    </div>
-  </section>
-{% endif %}
-<!-- /PERSONALITY PROFILE -->
 
         <!-- TEMPORARY RAW HISTORICAL DATA -->
         {% if is_historical and assessment_results %}

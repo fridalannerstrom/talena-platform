@@ -285,7 +285,6 @@ def build_cognitive_insight_results(
 
     return results
 
-
 def build_response_style_results(personality_competencies):
     """
     Build response-style results from Sova personality competencies.
@@ -296,6 +295,10 @@ def build_response_style_results(personality_competencies):
     - Reliability -> Ratings Spread
 
     Values are displayed using rounded STEN scores from 1 to 10.
+
+    The low_pole and high_pole texts explain what each side of the
+    response-style scale represents. The interpretation describes
+    what the candidate's specific result may indicate.
     """
 
     competency_lookup = {
@@ -308,6 +311,16 @@ def build_response_style_results(personality_competencies):
             "key": "social_desirability",
             "title": "Social Desirability",
             "source_name": "social desirability",
+
+            "low_pole": (
+                "Tends to respond in a self-critical way. "
+                "May have clearer preferences than the results suggest."
+            ),
+            "high_pole": (
+                "Presented themselves in a positive way. "
+                "Some preferences may be less distinct than the results suggest."
+            ),
+
             "low_text": (
                 "The response pattern suggests a relatively self-critical "
                 "presentation. Some preferences may be more pronounced than "
@@ -328,6 +341,17 @@ def build_response_style_results(personality_competencies):
             "key": "profile_spread",
             "title": "Profile Spread",
             "source_name": "fillers",
+
+            "low_pole": (
+                "The responses show less differentiation between personality "
+                "traits. This may reflect less consistency or limited "
+                "self-insight."
+            ),
+            "high_pole": (
+                "The responses show clear strengths and development needs, "
+                "with a broad spread of scores across personality traits."
+            ),
+
             "low_text": (
                 "The responses show less differentiation across personality "
                 "traits. This may reflect a more general response pattern or "
@@ -348,6 +372,16 @@ def build_response_style_results(personality_competencies):
             "key": "ratings_spread",
             "title": "Ratings Spread",
             "source_name": "reliability",
+
+            "low_pole": (
+                "The questionnaire responses show less use of extreme options "
+                "and a tendency to choose from a relatively narrow range of ratings."
+            ),
+            "high_pole": (
+                "The questionnaire responses show clear differentiation, "
+                "with greater use of extreme response options."
+            ),
+
             "low_text": (
                 "The candidate used fewer extreme response options and tended "
                 "to select a relatively narrow range of ratings."
@@ -376,7 +410,11 @@ def build_response_style_results(personality_competencies):
         )
 
         try:
-            value = int(raw_value) if raw_value is not None else None
+            value = (
+                int(raw_value)
+                if raw_value is not None
+                else None
+            )
         except (TypeError, ValueError):
             value = None
 
@@ -408,11 +446,19 @@ def build_response_style_results(personality_competencies):
         response_styles.append({
             "key": config["key"],
             "title": config["title"],
+
+            # Static descriptions of both sides of the scale.
+            "low_pole": config["low_pole"],
+            "high_pole": config["high_pole"],
+
+            # Candidate-specific result.
             "value": value,
             "available": value is not None,
             "band_key": band_key,
             "band_label": band_label,
             "interpretation": interpretation,
+
+            # Original Sova information.
             "source_name": (
                 source.get("competency")
                 if source

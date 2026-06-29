@@ -154,6 +154,384 @@ EXPLORE_COMBINATION_RULES = {
 }
 
 
+TRAIT_CORRELATION_LOW_MAX = 3
+TRAIT_CORRELATION_HIGH_MIN = 8
+
+
+TRAIT_CORRELATION_RULES = {
+    "empathy_and_supporting": {
+        "traits": (
+            "empathy",
+            "supporting",
+        ),
+        "icon_key": "support",
+        "suppresses_theme_keys": {
+            "supporting_others",
+        },
+        "patterns": [
+            {
+                "directions": ("high", "high"),
+                "target": "strength",
+                "title": "Empathy and support for others",
+                "body": (
+                    "The candidate may combine an empathetic approach "
+                    "with a strong willingness to support other people."
+                ),
+                "how_it_may_show": (
+                    "May build warm relationships, remain attentive to "
+                    "other people’s feelings and provide support that "
+                    "helps others develop and grow."
+                ),
+            },
+            {
+                "directions": ("low", "low"),
+                "target": "explore",
+                "title": "Empathy and support for others",
+                "body": (
+                    "The candidate may take longer to understand other "
+                    "perspectives and may prefer other people to develop "
+                    "or resolve difficulties independently."
+                ),
+                "explore_through": (
+                    "Ask about a situation where another person needed "
+                    "patience, support or understanding beyond the "
+                    "candidate’s initial expectations."
+                ),
+                "what_to_listen_for": (
+                    "Listen for tolerance, perspective-taking and the "
+                    "ability to adapt support to another person’s needs."
+                ),
+            },
+        ],
+    },
+
+    "empathy_and_cooperation": {
+        "traits": (
+            "empathy",
+            "cooperative",
+        ),
+        "icon_key": "support",
+        "suppresses_theme_keys": set(),
+        "patterns": [
+            {
+                "directions": ("high", "high"),
+                "target": "strength",
+                "title": "Empathy and collaboration",
+                "body": (
+                    "The candidate may combine cooperation with an "
+                    "empathetic and considerate approach to others."
+                ),
+                "how_it_may_show": (
+                    "May listen to others, take their feelings into "
+                    "account and contribute to warm and collaborative "
+                    "working relationships."
+                ),
+            },
+            {
+                "directions": ("low", "low"),
+                "target": "explore",
+                "title": "Empathy and collaboration",
+                "body": (
+                    "The candidate may prefer to work independently, "
+                    "express disagreement directly and place less weight "
+                    "on other people’s feelings when making decisions."
+                ),
+                "explore_through": (
+                    "Ask about a situation where the candidate needed "
+                    "to cooperate closely with someone whose priorities "
+                    "or perspective differed from their own."
+                ),
+                "what_to_listen_for": (
+                    "Listen for the ability to balance personal priorities "
+                    "with consideration for other people and shared outcomes."
+                ),
+            },
+        ],
+    },
+
+    "resilience_and_emotional_control": {
+        "traits": (
+            "resilience",
+            "emotional control",
+        ),
+        "icon_key": "resilience",
+        "suppresses_theme_keys": {
+            "adaptability_pressure",
+        },
+        "patterns": [
+            {
+                "directions": ("high", "high"),
+                "target": "strength",
+                "title": "Resilience and emotional stability",
+                "body": (
+                    "The candidate may respond constructively to setbacks "
+                    "while remaining composed under pressure."
+                ),
+                "how_it_may_show": (
+                    "May recover quickly, move on from criticism and "
+                    "maintain emotional control in demanding situations."
+                ),
+            },
+            {
+                "directions": ("low", "low"),
+                "target": "explore",
+                "title": "Resilience and emotional stability",
+                "body": (
+                    "The candidate may experience setbacks and pressure "
+                    "more intensely, need more time to recover and show "
+                    "emotions more readily."
+                ),
+                "explore_through": (
+                    "Ask about a demanding period involving criticism, "
+                    "setbacks or sustained pressure and how the candidate "
+                    "managed the situation."
+                ),
+                "what_to_listen_for": (
+                    "Listen for emotional self-awareness, recovery "
+                    "strategies and appropriate use of support."
+                ),
+            },
+        ],
+    },
+
+    "dynamic_and_influential": {
+        "traits": (
+            "dynamic",
+            "influential",
+        ),
+        "icon_key": "leadership",
+        "suppresses_theme_keys": {
+            "energy_momentum",
+            "leadership_influence",
+        },
+        "patterns": [
+            {
+                "directions": ("high", "high"),
+                "target": "strength",
+                "title": "Drive and influence",
+                "body": (
+                    "The candidate may combine energy and quick action "
+                    "with a willingness to lead and influence others."
+                ),
+                "how_it_may_show": (
+                    "May seek new challenges, make decisions quickly and "
+                    "step forward to shape direction."
+                ),
+            },
+            {
+                "directions": ("low", "low"),
+                "target": "explore",
+                "title": "Drive and influence",
+                "body": (
+                    "The candidate may prefer a steadier pace, feel more "
+                    "comfortable following established direction and avoid "
+                    "pressing personal views on others."
+                ),
+                "explore_through": (
+                    "Ask about a situation requiring quick decisions, "
+                    "visible initiative or the need to influence direction."
+                ),
+                "what_to_listen_for": (
+                    "Listen for the ability to create momentum, express "
+                    "a clear position and act when demands increase."
+                ),
+            },
+        ],
+    },
+
+    "goal_focus_and_influence": {
+        "traits": (
+            "goal focused",
+            "influential",
+        ),
+        "icon_key": "leadership",
+        "suppresses_theme_keys": {
+            "drive_ownership",
+            "leadership_influence",
+        },
+        "patterns": [
+            {
+                "directions": ("high", "high"),
+                "target": "strength",
+                "title": "Goal focus and influence",
+                "body": (
+                    "The candidate may combine ambition and self-discipline "
+                    "with a preference for leading and influencing others."
+                ),
+                "how_it_may_show": (
+                    "May pursue challenging goals, compete for strong "
+                    "outcomes and gain support for a chosen direction."
+                ),
+            },
+            {
+                "directions": ("low", "low"),
+                "target": "explore",
+                "title": "Goal focus and influence",
+                "body": (
+                    "The candidate may prefer to take things as they come, "
+                    "avoid strong competition and feel more comfortable "
+                    "following rather than setting direction."
+                ),
+                "explore_through": (
+                    "Ask about a situation requiring a challenging goal, "
+                    "sustained self-discipline and influence over others."
+                ),
+                "what_to_listen_for": (
+                    "Listen for motivation to pursue defined outcomes, "
+                    "personal initiative and confidence in gaining support."
+                ),
+            },
+        ],
+    },
+
+    "modesty_and_influence": {
+        "traits": (
+            "modesty",
+            "influential",
+        ),
+        "icon_key": "leadership",
+        "suppresses_theme_keys": {
+            "integrity_sincerity",
+            "leadership_influence",
+        },
+        "patterns": [
+            {
+                "directions": ("low", "high"),
+                "target": "explore",
+                "title": "Visibility and influence",
+                "body": (
+                    "The candidate may enjoy leading, influencing others "
+                    "and making personal achievements visible."
+                ),
+                "explore_through": (
+                    "Ask about situations where personal visibility or "
+                    "self-promotion helped, or risked overshadowing other people."
+                ),
+                "what_to_listen_for": (
+                    "Listen for self-awareness, appropriate credit-sharing "
+                    "and the ability to adapt personal visibility to the situation."
+                ),
+            },
+            {
+                "directions": ("high", "low"),
+                "target": "explore",
+                "title": "Visibility and influence",
+                "body": (
+                    "The candidate may prefer a modest, low-profile approach "
+                    "and may be more comfortable following than taking visible influence."
+                ),
+                "explore_through": (
+                    "Ask about a situation where the candidate needed to "
+                    "step forward, communicate achievements or influence direction."
+                ),
+                "what_to_listen_for": (
+                    "Listen for confidence in visible situations, willingness "
+                    "to take credit appropriately and readiness to lead when needed."
+                ),
+            },
+        ],
+    },
+
+    "cooperation_and_independence": {
+        "traits": (
+            "cooperative",
+            "independence",
+        ),
+        "icon_key": "network",
+        "suppresses_theme_keys": {
+            "drive_ownership",
+        },
+        "patterns": [
+            {
+                "directions": ("high", "low"),
+                "target": "explore",
+                "title": "Collaboration and independent judgement",
+                "body": (
+                    "The candidate may be highly cooperative and attentive "
+                    "to others, while being more inclined to seek support or "
+                    "input before acting independently."
+                ),
+                "explore_through": (
+                    "Ask about an important decision the candidate needed "
+                    "to make without immediate support or reassurance."
+                ),
+                "what_to_listen_for": (
+                    "Listen for an appropriate balance between seeking input "
+                    "and trusting personal judgement."
+                ),
+            },
+            {
+                "directions": ("low", "high"),
+                "target": "explore",
+                "title": "Collaboration and independent judgement",
+                "body": (
+                    "The candidate may prefer working independently, rely "
+                    "on personal judgement and express disagreement when "
+                    "others see things differently."
+                ),
+                "explore_through": (
+                    "Ask about a situation requiring close collaboration, "
+                    "shared ownership or adjustment to another person’s approach."
+                ),
+                "what_to_listen_for": (
+                    "Listen for willingness to involve others, consider their "
+                    "needs and adapt when cooperation is important."
+                ),
+            },
+        ],
+    },
+
+    "goal_focus_and_supporting": {
+        "traits": (
+            "goal focused",
+            "supporting",
+        ),
+        "icon_key": "support",
+        "suppresses_theme_keys": {
+            "drive_ownership",
+            "supporting_others",
+        },
+        "patterns": [
+            {
+                "directions": ("low", "high"),
+                "target": "explore",
+                "title": "Achievement focus and support for others",
+                "body": (
+                    "The candidate may prioritise helping other people "
+                    "develop over competition and individual achievement."
+                ),
+                "explore_through": (
+                    "Ask how the candidate balances helping others with "
+                    "maintaining targets, accountability and delivery."
+                ),
+                "what_to_listen_for": (
+                    "Listen for the ability to support development while "
+                    "still setting expectations and maintaining performance."
+                ),
+            },
+            {
+                "directions": ("high", "low"),
+                "target": "explore",
+                "title": "Achievement focus and support for others",
+                "body": (
+                    "The candidate may be strongly motivated by challenging "
+                    "goals and competition while expecting others to manage "
+                    "their own development and difficulties."
+                ),
+                "explore_through": (
+                    "Ask about a situation where a colleague needed support "
+                    "while the candidate was under pressure to achieve a goal."
+                ),
+                "what_to_listen_for": (
+                    "Listen for empathy, appropriate support and the ability "
+                    "to balance performance demands with other people’s needs."
+                ),
+            },
+        ],
+    },
+}
+
+
 INSIGHT_THEMES = {
     "structured_delivery": {
         "title": "Structured and reliable delivery",
@@ -1875,6 +2253,215 @@ def normalize_assessment_indicators(
 
     return indicators
 
+
+def get_trait_sten(
+    indicator: dict[str, Any],
+) -> int | None:
+    """
+    Return the rounded STEN value used for interpreting
+    left/right trait relationships.
+    """
+    sten_value = safe_float(
+        indicator.get("sten_value")
+    )
+
+    if sten_value is None:
+        sten_value = safe_float(
+            indicator.get("normalized_score")
+        )
+
+    if sten_value is None:
+        return None
+
+    rounded = int(sten_value + 0.5)
+
+    return max(
+        1,
+        min(10, rounded),
+    )
+
+
+def get_trait_direction(
+    indicator: dict[str, Any],
+) -> str:
+    """
+    Certification thresholds:
+
+    STEN 1–3  = far left
+    STEN 4–7  = middle range
+    STEN 8–10 = far right
+    """
+    sten_value = get_trait_sten(indicator)
+
+    if sten_value is None:
+        return "missing"
+
+    if sten_value <= TRAIT_CORRELATION_LOW_MAX:
+        return "low"
+
+    if sten_value >= TRAIT_CORRELATION_HIGH_MIN:
+        return "high"
+
+    return "middle"
+
+
+def get_trait_extremity(
+    indicator: dict[str, Any],
+    direction: str,
+) -> float:
+    sten_value = get_trait_sten(indicator)
+
+    if sten_value is None:
+        return 1.0
+
+    if direction == "low":
+        return float(11 - sten_value)
+
+    return float(sten_value)
+
+
+def build_trait_correlation_insights(
+    indicators: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """
+    Build insights from the specific trait relationships used
+    in the certification material.
+
+    These rules use overall personality traits, not the
+    underlying indicators.
+    """
+    strengths: list[dict[str, Any]] = []
+    explore_areas: list[dict[str, Any]] = []
+
+    trait_lookup = {
+        item["key"]: item
+        for item in indicators
+        if item.get("source") == "personality"
+    }
+
+    for rule_key, rule in TRAIT_CORRELATION_RULES.items():
+        first_key, second_key = rule["traits"]
+
+        first_trait = trait_lookup.get(first_key)
+        second_trait = trait_lookup.get(second_key)
+
+        if not first_trait or not second_trait:
+            continue
+
+        actual_directions = (
+            get_trait_direction(first_trait),
+            get_trait_direction(second_trait),
+        )
+
+        matched_pattern = next(
+            (
+                pattern
+                for pattern in rule["patterns"]
+                if tuple(pattern["directions"])
+                == actual_directions
+            ),
+            None,
+        )
+
+        if not matched_pattern:
+            continue
+
+        selected_traits = [
+            first_trait,
+            second_trait,
+        ]
+
+        extremity_values = [
+            get_trait_extremity(
+                first_trait,
+                actual_directions[0],
+            ),
+            get_trait_extremity(
+                second_trait,
+                actual_directions[1],
+            ),
+        ]
+
+        level = round(
+            sum(extremity_values)
+            / len(extremity_values),
+            1,
+        )
+
+        common_data = {
+            "theme_key": f"trait_correlation_{rule_key}",
+            "icon_key": rule.get(
+                "icon_key",
+                "spark",
+            ),
+            "title": matched_pattern["title"],
+            "body": matched_pattern["body"],
+            "level": level,
+            "level_rounded": round(level),
+            "supporting_indicators": selected_traits,
+            "evidence": [
+                item["name"]
+                for item in selected_traits
+            ],
+            "insight_priority": 2,
+            "suppresses_theme_keys": set(
+                rule.get(
+                    "suppresses_theme_keys",
+                    set(),
+                )
+            ),
+        }
+
+        if matched_pattern["target"] == "strength":
+            strengths.append({
+                **common_data,
+                "how_it_may_show": matched_pattern[
+                    "how_it_may_show"
+                ],
+                "purpose_label": "Trait relationship",
+                "level_label": (
+                    "Strong combined trait pattern"
+                ),
+                "explanation": (
+                    "This strength was identified from a specific "
+                    "relationship between two elevated personality traits."
+                ),
+                "insight_type": "trait_correlation",
+            })
+
+        else:
+            explore_areas.append({
+                **common_data,
+                "explore_through": matched_pattern[
+                    "explore_through"
+                ],
+                "what_to_listen_for": matched_pattern[
+                    "what_to_listen_for"
+                ],
+                "level_label": (
+                    "Trait relationship to explore"
+                ),
+                "explanation": (
+                    "This area was identified from a specific relationship "
+                    "between two personality traits. It is intended as a "
+                    "topic to verify, not as a confirmed weakness."
+                ),
+                "area_type": "trait_correlation",
+            })
+
+    strengths.sort(
+        key=lambda item: item["level"],
+        reverse=True,
+    )
+
+    explore_areas.sort(
+        key=lambda item: item["level"],
+        reverse=True,
+    )
+
+    return strengths, explore_areas
+
+
 def build_cognitive_insights(
     indicators: list[dict[str, Any]],
     process_purpose: str | None = None,
@@ -2580,7 +3167,7 @@ def build_evidence_themes(
         reverse=True,
     )
 
-    return strengths[:4], explore_areas[:4]
+    return strengths, explore_areas
 
 def build_candidate_insights(
     *,
@@ -2601,6 +3188,12 @@ def build_candidate_insights(
 
     assessment_indicators = normalize_assessment_indicators(
         general_insight_input
+    )
+
+    trait_correlation_strengths, trait_correlation_explore_areas = (
+        build_trait_correlation_insights(
+            assessment_indicators
+        )
     )
 
     print(
@@ -2628,18 +3221,57 @@ def build_candidate_insights(
         )
     )
 
+    suppressed_strength_theme_keys = {
+        theme_key
+        for item in trait_correlation_strengths
+        for theme_key in item.get(
+            "suppresses_theme_keys",
+            set(),
+        )
+    }
+
+    suppressed_explore_theme_keys = {
+        theme_key
+        for item in trait_correlation_explore_areas
+        for theme_key in item.get(
+            "suppresses_theme_keys",
+            set(),
+        )
+    }
+
+
+    # Remove broader themes when a more specific certified
+    # trait relationship describes the same evidence.
+    evidence_strengths = [
+        item
+        for item in evidence_strengths
+        if item.get("theme_key")
+        not in suppressed_strength_theme_keys
+    ]
+
+    evidence_explore_areas = [
+        item
+        for item in evidence_explore_areas
+        if item.get("theme_key")
+        not in suppressed_explore_theme_keys
+    ]
+
+
     evidence_strengths = (
-        cognitive_strengths
+        trait_correlation_strengths
+        + cognitive_strengths
         + evidence_strengths
     )
 
     evidence_explore_areas = (
-        cognitive_explore_areas
+        trait_correlation_explore_areas
+        + cognitive_explore_areas
         + evidence_explore_areas
     )
 
     evidence_strengths.sort(
         key=lambda item: (
+            item.get("insight_priority", 0),
             item.get("level", 0),
             len(item.get("supporting_indicators", [])),
         ),
@@ -2648,6 +3280,7 @@ def build_candidate_insights(
 
     evidence_explore_areas.sort(
         key=lambda item: (
+            item.get("insight_priority", 0),
             item.get("level", 0),
             len(item.get("supporting_indicators", [])),
         ),

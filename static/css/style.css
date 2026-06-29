@@ -221,8 +221,8 @@
 
 .insight-summary-content {
     border-radius: 14px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: #f8f9fc;
+    border: 1px solid #edf0f4;
     padding: 1.5rem;
     color: #111827;
     font-size: 0.8rem;
@@ -309,9 +309,9 @@
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.4rem 1.5rem;
-    border: 1px solid #e4e0fb;
+    border: 1px solid #edf0f4;
     border-radius: 10px;
-    background: #F7F5FE;
+    background: #f8f9fc;
 }
 
 .purpose-fit-label {
@@ -338,10 +338,8 @@
 .purpose-fit-section-title {
     margin-bottom: 0.75rem;
     color: #111827;
-    font-size: 0.82rem;
+    font-size: 0.875rem;
     font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
 }
 
 .purpose-fit-summary {
@@ -415,6 +413,7 @@
     padding: 1.2rem 1.3rem;
     border-radius: 14px;
     background: #f8f9fc;
+    border: 1px solid #edeaf3;
 }
 
 .purpose-fit-next-step-icon {
@@ -3611,6 +3610,176 @@ color: #6CACCB;
 .process-info-text {
   font-weight: 600;
   color: #505050;
+}
+
+/* =========================================================
+   PURPOSE FIT EXPLANATION
+========================================================= */
+
+.purpose-fit-explainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.purpose-fit-explainer__icon {
+  flex: 0 0 auto;
+
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  color: #7158e8;
+  background: #ece8ff;
+  border-radius: 10px;
+}
+
+.purpose-fit-explainer__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.purpose-fit-explainer__content {
+  min-width: 0;
+}
+
+.purpose-fit-explainer__title {
+  margin-bottom: 3px;
+
+  color: #171c2b;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.purpose-fit-explainer__text {
+  color: #626a7d;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+
+/* Inputs used by the AI interpretation
+--------------------------------------------------------- */
+
+.purpose-fit-inputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 11px;
+}
+
+.purpose-fit-inputs__label {
+  margin-right: 2px;
+
+  color: #7a8191;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.purpose-fit-input-pill {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 25px;
+  padding: 4px 9px;
+
+  color: #51458f;
+  background: #ffffff;
+  border: 1px solid #ded8fa;
+  border-radius: 999px;
+
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.purpose-fit-input-pill--muted {
+  color: #777d8b;
+  background: #f5f5f7;
+  border-color: #e4e5e9;
+}
+
+
+/* Help icons
+--------------------------------------------------------- */
+
+.purpose-fit-label--with-help,
+.purpose-fit-section-title--with-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.purpose-fit-help {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+
+  display: inline-grid;
+  place-items: center;
+
+  color: #858b99;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+
+  cursor: help;
+}
+
+.purpose-fit-help:hover,
+.purpose-fit-help:focus-visible {
+  color: #6651d8;
+  background: #efecff;
+}
+
+.purpose-fit-help svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+/* Disclaimer
+--------------------------------------------------------- */
+
+.purpose-fit-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  color: #707684;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.purpose-fit-disclaimer svg {
+  flex: 0 0 auto;
+
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+}
+
+
+/* Mobile
+--------------------------------------------------------- */
+
+@media (max-width: 767.98px) {
+  .purpose-fit-explainer {
+    padding: 14px;
+  }
+
+  .purpose-fit-inputs {
+    align-items: flex-start;
+  }
+
+  .purpose-fit-verdict {
+    gap: 18px;
+  }
 }
 
 .process-labels {
@@ -24324,10 +24493,113 @@ color: #6E63E3;
   max-width: 760px;
   margin: 0;
   color: #565f72;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
+
+/* =========================================================
+   RESPONSE STYLE PROFILE
+   Low pole + scale + high pole
+========================================================= */
+
+.response-style-profile {
+  display: grid;
+  grid-template-columns:
+    minmax(190px, 1fr)
+    minmax(280px, 420px)
+    minmax(190px, 1fr);
+  align-items: center;
+  gap: 24px;
+
+  margin-top: 24px;
+}
+
+
+/* Pole descriptions
+--------------------------------------------------------- */
+
+.response-style-profile__pole {
+  min-width: 0;
+}
+
+.response-style-profile__pole-label {
+  margin-bottom: 7px;
+
+  color: #6757de;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.response-style-profile__pole-text {
+  margin: 0;
+
+  color: #525b6d;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+
+/* Right side
+--------------------------------------------------------- */
+
+.response-style-profile__pole--right {
+  text-align: left;
+}
+
+
+/* Scale
+--------------------------------------------------------- */
+
+.response-style-profile__scale {
+  min-width: 0;
+  margin: 0;
+}
+
+
+/* Candidate-specific interpretation
+--------------------------------------------------------- */
+
+.response-style-profile
+  + .response-style-item__interpretation {
+  margin-top: 24px;
+}
+
+
+/* Responsive
+--------------------------------------------------------- */
+
+@media (max-width: 991.98px) {
+  .response-style-profile {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .response-style-profile__scale {
+    order: 1;
+  }
+
+  .response-style-profile__pole {
+    order: 2;
+  }
+
+  .response-style-profile__pole--right {
+    order: 3;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .response-style-profile__pole {
+    padding: 14px;
+  }
+
+  .response-style-profile__pole-text {
+    font-size: 0.82rem;
+  }
+}
 
 /* ---------------------------------------------------------
    MISSING RESULT
