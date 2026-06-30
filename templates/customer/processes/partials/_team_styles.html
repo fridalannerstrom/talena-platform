@@ -5,7 +5,7 @@
       <!-- HEADER -->
       <header class="team-styles-header mb-4">
         <div class="insight-summary-kicker">
-          Assessment results
+          Candidate Insights
         </div>
 
         <h2 class="insight-summary-title mb-1">
@@ -20,26 +20,8 @@
 
       <!-- FULL-WIDTH RADAR CHART -->
 <div class="team-style-chart-card">
-  <div class="team-style-chart-heading">
-    <h3 class="team-style-chart-title">
-      Team role profile
-    </h3>
-
-    <p class="team-style-chart-subtitle mb-0">
-      Each slice shows one team style. Larger slices reflect stronger
-      underlying results on Sova’s five-point team-style scale.
-    </p>
-  </div>
-
   <div class="team-style-polar-wrap">
     <canvas id="teamStylePolarChart" aria-label="Team role profile chart"></canvas>
-  </div>
-
-  <div class="team-style-chart-legend">
-    <span class="team-style-chart-legend__item is-explore">Explore</span>
-    <span class="team-style-chart-legend__item is-lead">Lead</span>
-    <span class="team-style-chart-legend__item is-deliver">Deliver</span>
-    <span class="team-style-chart-legend__item is-review">Critically review</span>
   </div>
 </div>
 
@@ -49,7 +31,7 @@
 {{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
 
       <!-- ALL TEAM STYLES, RANKED -->
-      <section class="team-style-ranked-section mt-4">
+      <section class="team-style-ranked-section mt-4 key-strength-card">
 
         <div class="team-style-subsection-header">
           <h3 class="team-style-subsection-title">
@@ -67,8 +49,7 @@
 
           {% for style in team_style_profile.styles %}
             <article
-              class="response-style-item team-style-ranked-item"
-              data-quadrant="{{ style.quadrant_key }}"
+              class="insight-summary-content mb-4"
             >
 
               <!-- STYLE HEADER -->
@@ -84,71 +65,206 @@
                   </div>
                 </div>
 
-                <div class="response-style-item__result">
-                  <span class="response-style-item__value">
-                    {{ style.display_value }}/5
-                  </span>
-                </div>
-
               </div>
 
               <!-- CONTRIBUTION + SCALE + COMMUNICATION -->
-              <div class="response-style-profile team-style-ranked-profile">
+<!-- RESULT SCALE -->
 
-                <div class="response-style-profile__pole">
-                  <div class="personality-trait-card__pole-label">
-                    Possible contribution
-                  </div>
 
-                  <p class="response-style-profile__pole-text">
-                    {{ style.contribution }}
-                  </p>
-                </div>
 
-                <div
-                  class="response-style-scale response-style-profile__scale"
-                  role="meter"
-                  aria-label="{{ style.title }}: {{ style.display_value }} out of 5"
-                  aria-valuemin="1"
-                  aria-valuemax="5"
-                  aria-valuenow="{{ style.display_value }}"
-                >
+<!-- RESULT -->
+<div class="team-style-result">
 
-                  <div class="response-style-scale__segments">
-                    {% for segment in style.scale_segments %}
-                      <span
-                        class="
-                          response-style-scale__segment
-                          {% if segment == style.display_value %}
-                            response-style-scale__segment--marker
-                          {% endif %}
-                          {% if segment <= style.display_value %}
-                            response-style-scale__segment--filled
-                          {% endif %}
-                        "
-                      ></span>
-                    {% endfor %}
-                  </div>
+  <div class="team-style-result__header">
+    <div>
+      <div class="team-style-result__label">
+        Team style result
+      </div>
 
-                  <div class="response-style-scale__labels">
-                    <span>Less likely</span>
-                    <span>Typical</span>
-                    <span>More likely</span>
-                  </div>
+      <p class="team-style-result__description">
+        Indicates how likely this candidate may be to adopt this
+        team style compared with the other styles in the profile.
+      </p>
+    </div>
 
-                </div>
+    <div class="team-style-result__value">
+      {{ style.display_value }}/5
+    </div>
+  </div>
 
-                <div class="response-style-profile__pole response-style-profile__pole--right">
-                  <div class="personality-trait-card__pole-label align-right">
-                    Communication style
-                  </div>
+  <div
+    class="response-style-scale team-style-result__scale"
+    role="meter"
+    aria-label="{{ style.title }}: {{ style.display_value }} out of 5"
+    aria-valuemin="1"
+    aria-valuemax="5"
+    aria-valuenow="{{ style.display_value }}"
+  >
 
-                  <p class="response-style-profile__pole-text align-right">
-                    {{ style.communication_tendency }}
-                  </p>
-                </div>
+    <div class="response-style-scale__segments">
 
-              </div>
+      {% for segment in style.scale_segments %}
+        <span
+          class="
+            response-style-scale__segment
+
+            {% if segment == style.display_value %}
+              response-style-scale__segment--marker
+            {% endif %}
+
+            {% if segment <= style.display_value %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+
+    </div>
+
+    <div class="response-style-scale__labels">
+      <span>Less likely</span>
+      <span>Typical</span>
+      <span>More likely</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- TEAM STYLE DESCRIPTION -->
+<div class="team-style-description">
+
+  <div>
+    <div class="team-style-description__label">
+      About this team style
+    </div>
+
+    <p class="team-style-description__text">
+      {{ style.contribution }}
+    </p>
+  </div>
+
+</div>
+
+
+
+
+<!-- PRACTICAL GUIDANCE -->
+<div class="team-style-guidance">
+
+  <div class="team-style-guidance__header">
+    <div class="team-style-guidance__label">
+      Practical guidance
+    </div>
+
+    <p>
+      Points to consider when working and communicating with this candidate.
+    </p>
+  </div>
+
+  <div class="team-style-guidance__grid">
+
+    <div class="team-style-guidance__item">
+
+      <div class="team-style-guidance__item-header">
+        <i data-feather="message-circle" aria-hidden="true"></i>
+        <span>Communication style</span>
+      </div>
+
+      <p>
+        {{ style.communication_tendency }}
+      </p>
+
+    </div>
+
+
+    <div class="team-style-guidance__item">
+
+      <div class="team-style-guidance__item-header">
+        <i data-feather="alert-circle" aria-hidden="true"></i>
+        <span>Possible limitations</span>
+      </div>
+
+      <p>
+        {{ style.possible_overuse }}
+      </p>
+
+    </div>
+
+
+    <div class="team-style-guidance__item">
+
+      <div class="team-style-guidance__item-header">
+        <i data-feather="shield" aria-hidden="true"></i>
+        <span>Build trust by</span>
+      </div>
+
+      <p>
+        {{ style.build_trust }}
+      </p>
+
+    </div>
+
+
+    <div class="team-style-guidance__item">
+
+      <div class="team-style-guidance__item-header">
+        <i data-feather="x-circle" aria-hidden="true"></i>
+        <span>Try to avoid</span>
+      </div>
+
+      <p>
+        {{ style.avoid }}
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ROLE OVERVIEW -->
+<div class="team-style-overview-grid">
+
+  <div class="team-style-overview-item">
+
+    <div class="team-style-overview-item__icon" aria-hidden="true">
+      <i data-feather="users"></i>
+    </div>
+
+    <div>
+      <div class="personality-trait-card__pole-label">
+        Possible contribution
+      </div>
+
+      <p>
+        {{ style.contribution }}
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="team-style-overview-item">
+
+    <div class="team-style-overview-item__icon" aria-hidden="true">
+      <i data-feather="message-circle"></i>
+    </div>
+
+    <div>
+      <div class="personality-trait-card__pole-label">
+        Communication style
+      </div>
+
+      <p>
+        {{ style.communication_tendency }}
+      </p>
+    </div>
+
+  </div>
+
+</div>
 
               <!-- PRACTICAL GUIDANCE -->
               <div class="response-style-item__interpretation team-style-guidance-box">

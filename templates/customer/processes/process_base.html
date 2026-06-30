@@ -39,6 +39,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
+<script>
+  window.TeamStyleChartJS = window.Chart;
+</script>
+
 <!-- Self registration modal -->
 <script>
 (function () {
@@ -362,6 +366,67 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
 });
   }
 
+  const teamStyleThemeLabelsPlugin = {
+  id: "teamStyleThemeLabels",
+
+  afterDraw(chart) {
+    const { ctx, chartArea } = chart;
+
+    if (!chartArea) {
+      return;
+    }
+
+    const centerX = (chartArea.left + chartArea.right) / 2;
+    const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+    const offsetX = (chartArea.right - chartArea.left) / 2 + 42;
+    const offsetY = (chartArea.bottom - chartArea.top) / 2 + 34;
+
+    ctx.save();
+
+    ctx.textBaseline = "middle";
+    ctx.font = "700 16px Inter, system-ui, sans-serif";
+
+    // Explore
+    ctx.fillStyle = "#b11778";
+    ctx.textAlign = "left";
+    ctx.fillText(
+      "Explore",
+      centerX - offsetX,
+      centerY - offsetY
+    );
+
+    // Lead
+    ctx.fillStyle = "#3e8ee6";
+    ctx.textAlign = "right";
+    ctx.fillText(
+      "Lead",
+      centerX + offsetX,
+      centerY - offsetY
+    );
+
+    // Deliver
+    ctx.fillStyle = "#2337b4";
+    ctx.textAlign = "right";
+    ctx.fillText(
+      "Deliver",
+      centerX + offsetX,
+      centerY + offsetY
+    );
+
+    // Critically review
+    ctx.fillStyle = "#6f3cb7";
+    ctx.textAlign = "left";
+    ctx.fillText(
+      "Critically review",
+      centerX - offsetX,
+      centerY + offsetY
+    );
+
+    ctx.restore();
+  }
+};
+
 async function initTeamStyleChart(container) {
   if (!container) {
     return;
@@ -373,12 +438,13 @@ async function initTeamStyleChart(container) {
     return;
   }
 
-  if (typeof window.Chart === "undefined") {
+  if (typeof window.TeamStyleChartJS === "undefined") {
     console.error(
       "[TEAM STYLE CHART] Chart.js has not been loaded."
     );
     return;
   }
+
 
   const labelsElement = container.querySelector(
     "#team-style-chart-labels"
@@ -469,15 +535,13 @@ const numericValues = values.map((value) => {
     ? parsedValue
     : 0;
 });
-
-const chartInstance = new window.Chart(
+const chartInstance = new window.TeamStyleChartJS(
   canvas.getContext("2d"),
   {
     type: "polarArea",
 
     data: {
       labels: labels,
-
       datasets: [
         {
           data: numericValues,
@@ -495,10 +559,10 @@ const chartInstance = new window.Chart(
 
       layout: {
         padding: {
-          top: 24,
-          right: 36,
-          bottom: 24,
-          left: 36,
+          top: 70,
+          right: 70,
+          bottom: 70,
+          left: 70,
         },
       },
 
@@ -535,15 +599,7 @@ const chartInstance = new window.Chart(
           },
 
           pointLabels: {
-            display: true,
-            centerPointLabels: true,
-            color: "#4c5365",
-            padding: 16,
-
-            font: {
-              size: 13,
-              weight: "600",
-            },
+            display: false,
           },
         },
       },
@@ -560,11 +616,8 @@ const chartInstance = new window.Chart(
             title(context) {
               return context[0]?.label || "Team style";
             },
-
             label(context) {
-              const value = Number(context.raw || 0);
-
-              return `Underlying result: ${value.toFixed(2)} / 5`;
+              return `Result: ${context.raw} / 5`;
             },
           },
         },
@@ -574,6 +627,10 @@ const chartInstance = new window.Chart(
         duration: 650,
       },
     },
+
+    plugins: [
+      teamStyleThemeLabelsPlugin,
+    ],
   }
 );
 
@@ -582,7 +639,7 @@ canvas._teamStyleChartInstance = chartInstance;
 console.log(
   "[TEAM STYLE CHART] Initialised",
   {
-    chartVersion: window.Chart.version,
+    chartVersion: window.TeamStyleChartJS.version,
     labels,
     values: numericValues,
   }

@@ -526,7 +526,11 @@ def build_team_style_profile(personality_competencies):
         })
 
         chart_labels = [style["title"] for style in chart_styles if style["available"]]
-        chart_values = [style["raw_value"] for style in chart_styles if style["available"]]
+        chart_values = [
+            style["display_value"]
+            for style in chart_styles
+            if style["available"]
+        ]
         chart_backgrounds = []
         chart_border_colors = []
 
