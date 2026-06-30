@@ -1548,26 +1548,18 @@
 <!-- PERSONALITY PROFILE -->
 {% if has_personality_results %}
   <section class="card mb-4 purpose-fit-card personality-profile-shell">
-    <div class="card-body">
+    <div class="card-body p-4">
 
       {% include "customer/processes/partials/_personality_profile.html" %}
 
-    </div>
-  </section>
-{% endif %}
-<!-- /PERSONALITY PROFILE -->
-
-<!-- RESPONSE STYLES -->
+      <!-- RESPONSE STYLES -->
 {% if has_personality_results and response_styles %}
-  <section class="card mb-4 purpose-fit-card">
+  <section class="card mb-4 purpose-fit-card mt-4">
     <div class="card-body">
 
       <!-- HEADER -->
       <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
         <div>
-          <div class="insight-summary-kicker">
-            Candidate Insights
-          </div>
 
           <h2 class="insight-summary-title mb-1">
             Response styles
@@ -1643,8 +1635,8 @@
     <!-- LOWER SCORE -->
     <div class="response-style-profile__pole">
 
-      <div class="response-style-profile__pole-label">
-        Lower score may indicate
+      <div class="personality-trait-card__pole-label">
+        Lower score
       </div>
 
       <p class="response-style-profile__pole-text">
@@ -1698,11 +1690,11 @@
       "
     >
 
-      <div class="response-style-profile__pole-label">
-        Higher score may indicate
+      <div class="personality-trait-card__pole-label align-right">
+        Higher score
       </div>
 
-      <p class="response-style-profile__pole-text">
+      <p class="response-style-profile__pole-text align-right">
         {{ style.high_pole }}
       </p>
 
@@ -1740,6 +1732,13 @@
   </section>
 {% endif %}
 <!-- /RESPONSE STYLES -->
+
+    </div>
+  </section>
+{% endif %}
+<!-- /PERSONALITY PROFILE -->
+
+
 
   <!-- MOTIVATION AND ENVIRONMENT -->
 {% if has_motivation_results and motivation_insights %}

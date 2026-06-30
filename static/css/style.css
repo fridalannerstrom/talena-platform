@@ -24330,8 +24330,6 @@ color: #6E63E3;
 
 .response-style-card {
   overflow: hidden;
-  border: 1px solid #e7dcff;
-  border-radius: 14px;
   background: #ffffff;
 }
 
@@ -24341,12 +24339,11 @@ color: #6E63E3;
    --------------------------------------------------------- */
 
 .response-style-item {
-  padding: 1.75rem 2rem;
+  border-top: 1px solid #e8e9ef;
+  padding: 2rem 0rem;
 }
 
-.response-style-item + .response-style-item {
-  border-top: 1px solid #e8e9ef;
-}
+
 
 .response-style-item__header {
   display: flex;
@@ -24476,8 +24473,10 @@ color: #6E63E3;
 
 .response-style-item__interpretation {
   margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ececf1;
+  padding: 1.25rem;
+  border: 1px solid #edf0f4;
+  background: #fafbfc;
+  border-radius: 14px;
 }
 
 .response-style-item__interpretation-label {
@@ -24538,7 +24537,7 @@ color: #6E63E3;
   margin: 0;
 
   color: #525b6d;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
@@ -24838,7 +24837,7 @@ color: #6E63E3;
   min-width: 0;
 }
 
-.align_right {
+.align-right {
   text-align: right;
 }
 
