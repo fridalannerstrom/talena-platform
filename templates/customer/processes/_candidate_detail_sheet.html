@@ -1604,15 +1604,6 @@
                   <span class="response-style-item__value">
                     {{ style.value }}/10
                   </span>
-
-                  <span
-                    class="
-                      response-style-item__badge
-                      response-style-item__badge--{{ style.band_key }}
-                    "
-                  >
-                    {{ style.band_label }}
-                  </span>
                 </div>
               {% else %}
                 <span
@@ -1636,7 +1627,7 @@
     <div class="response-style-profile__pole">
 
       <div class="personality-trait-card__pole-label">
-        Lower score
+        Left Score
       </div>
 
       <p class="response-style-profile__pole-text">
@@ -1674,9 +1665,9 @@
       </div>
 
       <div class="response-style-scale__labels">
-        <span>Low</span>
+        <span>Left</span>
         <span>Typical</span>
-        <span>High</span>
+        <span>Right</span>
       </div>
 
     </div>
@@ -1691,7 +1682,7 @@
     >
 
       <div class="personality-trait-card__pole-label align-right">
-        Higher score
+        Right Score
       </div>
 
       <p class="response-style-profile__pole-text align-right">
@@ -1740,7 +1731,7 @@
 
 
 <!-- TEAM STYLES -->
- 
+
 {% include "customer/processes/partials/_team_styles.html" %}
 
 <!-- /TEAM STYLES -->

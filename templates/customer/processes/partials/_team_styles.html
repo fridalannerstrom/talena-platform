@@ -19,7 +19,7 @@
       </header>
 
       <!-- FULL-WIDTH RADAR CHART -->
-<div class="team-style-chart-card">
+<div class="team-style-chart-card mb-4">
   <div class="team-style-polar-wrap">
     <canvas id="teamStylePolarChart" aria-label="Team role profile chart"></canvas>
   </div>
@@ -31,19 +31,7 @@
 {{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
 
       <!-- ALL TEAM STYLES, RANKED -->
-      <section class="team-style-ranked-section mt-4 key-strength-card">
 
-        <div class="team-style-subsection-header">
-          <h3 class="team-style-subsection-title">
-            Team styles in profile order
-          </h3>
-
-          <p class="team-style-subsection-description mb-0">
-            All eight styles are shown from the highest to the lowest underlying
-            Sova result. The visible score is rounded to the nearest point on
-            the five-point scale.
-          </p>
-        </div>
 
         <div class="response-style-card team-style-ranked-list">
 
@@ -224,90 +212,10 @@
 </div>
 
 
-<!-- ROLE OVERVIEW -->
-<div class="team-style-overview-grid">
-
-  <div class="team-style-overview-item">
-
-    <div class="team-style-overview-item__icon" aria-hidden="true">
-      <i data-feather="users"></i>
-    </div>
-
-    <div>
-      <div class="personality-trait-card__pole-label">
-        Possible contribution
-      </div>
-
-      <p>
-        {{ style.contribution }}
-      </p>
-    </div>
-
-  </div>
-
-
-  <div class="team-style-overview-item">
-
-    <div class="team-style-overview-item__icon" aria-hidden="true">
-      <i data-feather="message-circle"></i>
-    </div>
-
-    <div>
-      <div class="personality-trait-card__pole-label">
-        Communication style
-      </div>
-
-      <p>
-        {{ style.communication_tendency }}
-      </p>
-    </div>
-
-  </div>
-
-</div>
-
-              <!-- PRACTICAL GUIDANCE -->
-              <div class="response-style-item__interpretation team-style-guidance-box">
-                <div class="team-style-guidance-grid">
-
-                  <div>
-                    <div class="response-style-item__interpretation-label">
-                      Possible limitations
-                    </div>
-
-                    <p>
-                      {{ style.possible_overuse }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div class="response-style-item__interpretation-label">
-                      Build trust by
-                    </div>
-
-                    <p>
-                      {{ style.build_trust }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div class="response-style-item__interpretation-label">
-                      Try to avoid
-                    </div>
-
-                    <p>
-                      {{ style.avoid }}
-                    </p>
-                  </div>
-
-                </div>
-              </div>
-
             </article>
           {% endfor %}
 
         </div>
-      </section>
 
       <footer class="team-styles-footer">
         Team-style results describe likely preferences rather than fixed
