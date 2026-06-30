@@ -17,6 +17,10 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from apps.processes.services.team_styles import (
+    build_team_style_profile,
+)
+
 from .services.process_recommendations import (
     PROCESS_PURPOSES,
     PURPOSE_RECOMMENDED_TESTS,
@@ -1242,8 +1246,15 @@ def build_candidate_detail_context(process, invitation):
             for comp in competencies:
                 personality_competencies.append({
                     "competency": comp.get("competency"),
-                    "sten_rounded": comp.get("sten_rounded"),
+
+                    # Team styles use Sova's five-point STIVE scale.
+                    "stive": comp.get("stive"),
+                    "stive_rounded": comp.get("stive_rounded"),
+
+                    # Ordinary personality traits and response styles use STEN.
                     "sten": comp.get("sten"),
+                    "sten_rounded": comp.get("sten_rounded"),
+
                     "percentile": comp.get("percentile"),
                 })
 
@@ -1255,6 +1266,10 @@ def build_candidate_detail_context(process, invitation):
     response_styles = build_response_style_results(
         personality_competencies
     )   
+
+    team_style_profile = build_team_style_profile(
+        personality_competencies
+    )
 
     motivation_scores = build_scores_by_competency(mq_competencies)
 
@@ -1810,6 +1825,8 @@ def build_candidate_detail_context(process, invitation):
         "response_styles": response_styles,
         "response_style_segments": range(1, 11),
         "motivation_insights": motivation_insights,
+
+        "team_style_profile": team_style_profile,
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
@@ -4299,12 +4316,34 @@ def build_historical_candidate_detail_context(
     normalised_team_style_scores = []
 
     for item in team_style_scores:
+        score_value = item.get("score")
+
         normalised_team_style_scores.append({
-            "competency": item.get("competency") or item.get("name"),
-            "score": item.get("score"),
+            "competency": (
+                item.get("competency")
+                or item.get("name")
+            ),
+
+            "score": score_value,
+
+            "stive": item.get(
+                "stive",
+                score_value,
+            ),
+
+            "stive_rounded": item.get(
+                "stive_rounded",
+                (
+                    round(score_value)
+                    if score_value is not None
+                    else None
+                ),
+            ),
+
             "sten": item.get("sten"),
             "sten_rounded": item.get("sten_rounded"),
             "percentile": item.get("percentile"),
+
             "category": "team_style",
             "source": "historical_import",
         })

@@ -37,6 +37,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 <!-- Self registration modal -->
 <script>
@@ -240,6 +241,12 @@ initCandidateSheetInteractions(sheetBody);
 initGlobalEmailModal(sheetBody);
 initIconsAndTooltips(sheetBody);
 
+/*
+ * The candidate sheet is loaded through AJAX, so charts must be
+ * initialised after the returned HTML has been inserted into the DOM.
+ */
+await initTeamStyleChart(sheetBody);
+
 await initCandidateSummaryStream(sheetBody);
 await initCandidatePurposeFitStream(sheetBody);
 
@@ -354,6 +361,234 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
   );
 });
   }
+
+async function initTeamStyleChart(container) {
+  if (!container) {
+    return;
+  }
+
+  const canvas = container.querySelector("#teamStylePolarChart");
+
+  if (!canvas) {
+    return;
+  }
+
+  if (typeof window.Chart === "undefined") {
+    console.error(
+      "[TEAM STYLE CHART] Chart.js has not been loaded."
+    );
+    return;
+  }
+
+  const labelsElement = container.querySelector(
+    "#team-style-chart-labels"
+  );
+
+  const valuesElement = container.querySelector(
+    "#team-style-chart-values"
+  );
+
+  const backgroundsElement = container.querySelector(
+    "#team-style-chart-backgrounds"
+  );
+
+  const bordersElement = container.querySelector(
+    "#team-style-chart-borders"
+  );
+
+  if (
+    !labelsElement ||
+    !valuesElement ||
+    !backgroundsElement ||
+    !bordersElement
+  ) {
+    console.error(
+      "[TEAM STYLE CHART] One or more chart data elements are missing."
+    );
+    return;
+  }
+
+  let labels;
+  let values;
+  let backgrounds;
+  let borderColors;
+
+  try {
+    labels = JSON.parse(labelsElement.textContent);
+    values = JSON.parse(valuesElement.textContent);
+    backgrounds = JSON.parse(
+      backgroundsElement.textContent
+    );
+    borderColors = JSON.parse(
+      bordersElement.textContent
+    );
+  } catch (error) {
+    console.error(
+      "[TEAM STYLE CHART] Could not parse chart data:",
+      error
+    );
+    return;
+  }
+
+  if (
+    !Array.isArray(labels) ||
+    !Array.isArray(values) ||
+    values.length === 0
+  ) {
+    console.warn(
+      "[TEAM STYLE CHART] No usable team-style results were found."
+    );
+    return;
+  }
+
+  /*
+   * Let the offcanvas and canvas finish calculating their dimensions
+   * before Chart.js measures the available space.
+   */
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
+
+  const existingChart = canvas._teamStyleChartInstance;
+
+if (
+  existingChart &&
+  typeof existingChart.destroy === "function"
+) {
+  existingChart.destroy();
+}
+
+canvas._teamStyleChartInstance = null;
+
+const numericValues = values.map((value) => {
+  const parsedValue = Number(value);
+
+  return Number.isFinite(parsedValue)
+    ? parsedValue
+    : 0;
+});
+
+const chartInstance = new window.Chart(
+  canvas.getContext("2d"),
+  {
+    type: "polarArea",
+
+    data: {
+      labels: labels,
+
+      datasets: [
+        {
+          data: numericValues,
+          backgroundColor: backgrounds,
+          borderColor: borderColors,
+          borderWidth: 2,
+          hoverBorderWidth: 3,
+        },
+      ],
+    },
+
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+
+      layout: {
+        padding: {
+          top: 24,
+          right: 36,
+          bottom: 24,
+          left: 36,
+        },
+      },
+
+      scales: {
+        r: {
+          beginAtZero: true,
+          min: 0,
+          max: 5,
+          startAngle: -22.5,
+
+          ticks: {
+            display: true,
+            stepSize: 1,
+            color: "#8b92a3",
+            backdropColor: "transparent",
+
+            font: {
+              size: 11,
+            },
+
+            callback(value) {
+              return value === 0 ? "" : value;
+            },
+          },
+
+          grid: {
+            circular: true,
+            color: "rgba(80, 87, 102, 0.14)",
+          },
+
+          angleLines: {
+            display: true,
+            color: "rgba(80, 87, 102, 0.14)",
+          },
+
+          pointLabels: {
+            display: true,
+            centerPointLabels: true,
+            color: "#4c5365",
+            padding: 16,
+
+            font: {
+              size: 13,
+              weight: "600",
+            },
+          },
+        },
+      },
+
+      plugins: {
+        legend: {
+          display: false,
+        },
+
+        tooltip: {
+          displayColors: false,
+
+          callbacks: {
+            title(context) {
+              return context[0]?.label || "Team style";
+            },
+
+            label(context) {
+              const value = Number(context.raw || 0);
+
+              return `Underlying result: ${value.toFixed(2)} / 5`;
+            },
+          },
+        },
+      },
+
+      animation: {
+        duration: 650,
+      },
+    },
+  }
+);
+
+canvas._teamStyleChartInstance = chartInstance;
+
+console.log(
+  "[TEAM STYLE CHART] Initialised",
+  {
+    chartVersion: window.Chart.version,
+    labels,
+    values: numericValues,
+  }
+);
+}
+
 
   function initCandidateSheetInteractions(container) {
     if (!container) {
@@ -2003,5 +2238,7 @@ function updatePersonalityGlobalToggle() {
   });
 }
 </script>
+
+
 
 {% endblock %}

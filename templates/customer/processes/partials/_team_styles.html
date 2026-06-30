@@ -1,0 +1,205 @@
+{% if team_style_profile.available %}
+  <section class="card mb-4 purpose-fit-card team-styles-section">
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <header class="team-styles-header mb-4">
+        <div class="insight-summary-kicker">
+          Assessment results
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Team styles
+        </h2>
+
+        <p class="text-muted small mb-0">
+          The profile shows how the candidate may approach eight roles commonly
+          observed in teams. Results use Sova's five-point team-style scale.
+        </p>
+      </header>
+
+      <!-- FULL-WIDTH RADAR CHART -->
+<div class="team-style-chart-card">
+  <div class="team-style-chart-heading">
+    <h3 class="team-style-chart-title">
+      Team role profile
+    </h3>
+
+    <p class="team-style-chart-subtitle mb-0">
+      Each slice shows one team style. Larger slices reflect stronger
+      underlying results on Sova’s five-point team-style scale.
+    </p>
+  </div>
+
+  <div class="team-style-polar-wrap">
+    <canvas id="teamStylePolarChart" aria-label="Team role profile chart"></canvas>
+  </div>
+
+  <div class="team-style-chart-legend">
+    <span class="team-style-chart-legend__item is-explore">Explore</span>
+    <span class="team-style-chart-legend__item is-lead">Lead</span>
+    <span class="team-style-chart-legend__item is-deliver">Deliver</span>
+    <span class="team-style-chart-legend__item is-review">Critically review</span>
+  </div>
+</div>
+
+{{ team_style_profile.chart.labels|json_script:"team-style-chart-labels" }}
+{{ team_style_profile.chart.values|json_script:"team-style-chart-values" }}
+{{ team_style_profile.chart.backgrounds|json_script:"team-style-chart-backgrounds" }}
+{{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
+
+      <!-- ALL TEAM STYLES, RANKED -->
+      <section class="team-style-ranked-section mt-4">
+
+        <div class="team-style-subsection-header">
+          <h3 class="team-style-subsection-title">
+            Team styles in profile order
+          </h3>
+
+          <p class="team-style-subsection-description mb-0">
+            All eight styles are shown from the highest to the lowest underlying
+            Sova result. The visible score is rounded to the nearest point on
+            the five-point scale.
+          </p>
+        </div>
+
+        <div class="response-style-card team-style-ranked-list">
+
+          {% for style in team_style_profile.styles %}
+            <article
+              class="response-style-item team-style-ranked-item"
+              data-quadrant="{{ style.quadrant_key }}"
+            >
+
+              <!-- STYLE HEADER -->
+              <div class="response-style-item__header">
+
+                <div>
+                  <h4 class="response-style-item__title">
+                    {{ style.title }}
+                  </h4>
+
+                  <div class="response-style-item__subtitle">
+                    {{ style.quadrant_label }} team style
+                  </div>
+                </div>
+
+                <div class="response-style-item__result">
+                  <span class="response-style-item__value">
+                    {{ style.display_value }}/5
+                  </span>
+                </div>
+
+              </div>
+
+              <!-- CONTRIBUTION + SCALE + COMMUNICATION -->
+              <div class="response-style-profile team-style-ranked-profile">
+
+                <div class="response-style-profile__pole">
+                  <div class="personality-trait-card__pole-label">
+                    Possible contribution
+                  </div>
+
+                  <p class="response-style-profile__pole-text">
+                    {{ style.contribution }}
+                  </p>
+                </div>
+
+                <div
+                  class="response-style-scale response-style-profile__scale"
+                  role="meter"
+                  aria-label="{{ style.title }}: {{ style.display_value }} out of 5"
+                  aria-valuemin="1"
+                  aria-valuemax="5"
+                  aria-valuenow="{{ style.display_value }}"
+                >
+
+                  <div class="response-style-scale__segments">
+                    {% for segment in style.scale_segments %}
+                      <span
+                        class="
+                          response-style-scale__segment
+                          {% if segment == style.display_value %}
+                            response-style-scale__segment--marker
+                          {% endif %}
+                          {% if segment <= style.display_value %}
+                            response-style-scale__segment--filled
+                          {% endif %}
+                        "
+                      ></span>
+                    {% endfor %}
+                  </div>
+
+                  <div class="response-style-scale__labels">
+                    <span>Less likely</span>
+                    <span>Typical</span>
+                    <span>More likely</span>
+                  </div>
+
+                </div>
+
+                <div class="response-style-profile__pole response-style-profile__pole--right">
+                  <div class="personality-trait-card__pole-label align-right">
+                    Communication style
+                  </div>
+
+                  <p class="response-style-profile__pole-text align-right">
+                    {{ style.communication_tendency }}
+                  </p>
+                </div>
+
+              </div>
+
+              <!-- PRACTICAL GUIDANCE -->
+              <div class="response-style-item__interpretation team-style-guidance-box">
+                <div class="team-style-guidance-grid">
+
+                  <div>
+                    <div class="response-style-item__interpretation-label">
+                      Possible limitations
+                    </div>
+
+                    <p>
+                      {{ style.possible_overuse }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="response-style-item__interpretation-label">
+                      Build trust by
+                    </div>
+
+                    <p>
+                      {{ style.build_trust }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div class="response-style-item__interpretation-label">
+                      Try to avoid
+                    </div>
+
+                    <p>
+                      {{ style.avoid }}
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            </article>
+          {% endfor %}
+
+        </div>
+      </section>
+
+      <footer class="team-styles-footer">
+        Team-style results describe likely preferences rather than fixed
+        behaviour or ability. Ordering uses the underlying Sova result, while
+        the displayed values are rounded. Small score differences should not be
+        overinterpreted.
+      </footer>
+
+    </div>
+  </section>
+{% endif %}
