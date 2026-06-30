@@ -480,308 +480,597 @@ def build_response_style_results(personality_competencies):
 
 def build_motivation_insight_section(mq_competencies):
     """
-    Build motivation insight content from Sova motivation competencies.
+    Build the complete motivation profile used in Candidate Insights.
 
-    Uses the three highest scores as likely motivators and the three lowest
-    scores as possible demotivators.
+    Motivation results are displayed using rounded STIVE scores from 1 to 5.
+
+    The profile:
+    - preserves Sova's four motivation areas
+    - shows all available motivation factors
+    - identifies more prominent and less central drivers
+    - does not interpret low scores as weaknesses or automatic demotivators
     """
 
+    def normalise_name(value):
+        text = str(value or "").strip().lower()
+
+        replacements = {
+            "_": " ",
+            "-": " ",
+            "–": " ",
+            "/": " ",
+            "&": " and ",
+        }
+
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+
+        return " ".join(text.split())
+
     def get_score(item):
+        """
+        Motivation uses Sova's five-point STIVE scale.
+
+        Do not fall back to percentile or STEN here, because those values
+        must not be presented as scores out of five.
+        """
+
         for key in (
             "stive_rounded",
+            "score",
             "stive",
-            "sten_rounded",
-            "sten",
-            "percentile",
         ):
             value = item.get(key)
 
-            if value is not None:
-                return value
+            if value is None:
+                continue
+
+            try:
+                score = int(round(float(value)))
+            except (TypeError, ValueError):
+                continue
+
+            return max(1, min(5, score))
 
         return None
 
-    valid_items = [
-        item
-        for item in mq_competencies
-        if get_score(item) is not None
-        and item.get("competency")
+    motivation_model = [
+        {
+            "key": "belonging",
+            "title": "Belonging",
+            "subtitle": (
+                "Social connection, support and a sense of belonging at work"
+            ),
+            "icon_class": "fa-solid fa-people-group",
+            "factors": [
+                {
+                    "key": "attachment",
+                    "name": "Attachment",
+                    "aliases": [
+                        "attachment",
+                        "affiliation",
+                    ],
+                    "description": (
+                        "Social interaction, support and working as part "
+                        "of a team."
+                    ),
+                },
+                {
+                    "key": "customer_service",
+                    "name": "Customer Service",
+                    "aliases": [
+                        "customer service",
+                        "customer focus",
+                    ],
+                    "description": (
+                        "Understanding customer needs and providing "
+                        "helpful service."
+                    ),
+                },
+                {
+                    "key": "work_life_balance",
+                    "name": "Work-life Balance",
+                    "aliases": [
+                        "work life balance",
+                        "work-life balance",
+                    ],
+                    "description": (
+                        "Maintaining a sustainable balance between work "
+                        "and life outside work."
+                    ),
+                },
+                {
+                    "key": "people_development",
+                    "name": "People Development",
+                    "aliases": [
+                        "people development",
+                        "developing people",
+                    ],
+                    "description": (
+                        "Helping other people learn, grow and develop."
+                    ),
+                },
+                {
+                    "key": "stability",
+                    "name": "Stability",
+                    "aliases": [
+                        "stability",
+                        "security",
+                    ],
+                    "description": (
+                        "Predictability, continuity and security in the "
+                        "working environment."
+                    ),
+                },
+            ],
+        },
+        {
+            "key": "influence",
+            "title": "Influence",
+            "subtitle": (
+                "Independence, recognition and opportunities to shape outcomes"
+            ),
+            "icon_class": "fa-solid fa-hand-pointer",
+            "factors": [
+                {
+                    "key": "authority",
+                    "name": "Authority",
+                    "aliases": [
+                        "authority",
+                    ],
+                    "description": (
+                        "Status, seniority and the opportunity to influence "
+                        "or lead others."
+                    ),
+                },
+                {
+                    "key": "independence",
+                    "name": "Independence",
+                    "aliases": [
+                        "independence",
+                        "autonomy",
+                        "self determination",
+                        "self direction",
+                    ],
+                    "description": (
+                        "Freedom to make decisions and shape how work "
+                        "is carried out."
+                    ),
+                },
+                {
+                    "key": "recognition",
+                    "name": "Recognition",
+                    "aliases": [
+                        "recognition",
+                    ],
+                    "description": (
+                        "Visibility, praise and acknowledgement for "
+                        "personal contribution."
+                    ),
+                },
+                {
+                    "key": "making_a_difference",
+                    "name": "Making a Difference",
+                    "aliases": [
+                        "making a difference",
+                        "make a difference",
+                        "purpose",
+                    ],
+                    "description": (
+                        "Contributing to a wider purpose or creating "
+                        "positive impact."
+                    ),
+                },
+                {
+                    "key": "acquisition",
+                    "name": "Acquisition",
+                    "aliases": [
+                        "acquisition",
+                        "reward",
+                        "financial reward",
+                    ],
+                    "description": (
+                        "Financial reward, resources and tangible gain."
+                    ),
+                },
+            ],
+        },
+        {
+            "key": "growth",
+            "title": "Growth",
+            "subtitle": (
+                "Achievement, quality, development and meaningful standards"
+            ),
+            "icon_class": "fa-solid fa-arrow-trend-up",
+            "factors": [
+                {
+                    "key": "achievement",
+                    "name": "Achievement",
+                    "aliases": [
+                        "achievement",
+                        "performance",
+                    ],
+                    "description": (
+                        "Clear goals, challenge and a visible sense of progress."
+                    ),
+                },
+                {
+                    "key": "quality",
+                    "name": "Quality",
+                    "aliases": [
+                        "quality",
+                    ],
+                    "description": (
+                        "Producing accurate and reliable work to a high standard."
+                    ),
+                },
+                {
+                    "key": "learning",
+                    "name": "Learning",
+                    "aliases": [
+                        "learning",
+                        "development",
+                    ],
+                    "description": (
+                        "Developing knowledge, capability and new skills."
+                    ),
+                },
+                {
+                    "key": "ethics",
+                    "name": "Ethics",
+                    "aliases": [
+                        "ethics",
+                        "ethical standards",
+                    ],
+                    "description": (
+                        "Acting in line with clear principles and "
+                        "ethical standards."
+                    ),
+                },
+                {
+                    "key": "commercial_focus",
+                    "name": "Commercial Focus",
+                    "aliases": [
+                        "commercial focus",
+                        "commercial value",
+                        "commercially focused",
+                    ],
+                    "description": (
+                        "Creating measurable commercial value and "
+                        "business results."
+                    ),
+                },
+            ],
+        },
+        {
+            "key": "interest",
+            "title": "Interest",
+            "subtitle": (
+                "Exploration, creativity, enjoyment, variety and risk"
+            ),
+            "icon_class": "fa-solid fa-lightbulb",
+            "factors": [
+                {
+                    "key": "curiosity",
+                    "name": "Curiosity",
+                    "aliases": [
+                        "curiosity",
+                    ],
+                    "description": (
+                        "Exploring new information, questions and "
+                        "unfamiliar problems."
+                    ),
+                },
+                {
+                    "key": "creativity",
+                    "name": "Creativity",
+                    "aliases": [
+                        "creativity",
+                    ],
+                    "description": (
+                        "Generating new ideas and finding original approaches."
+                    ),
+                },
+                {
+                    "key": "enjoyment",
+                    "name": "Enjoyment",
+                    "aliases": [
+                        "enjoyment",
+                        "joy",
+                        "fun",
+                    ],
+                    "description": (
+                        "Positive energy and enjoyment in day-to-day work."
+                    ),
+                },
+                {
+                    "key": "variety",
+                    "name": "Variety",
+                    "aliases": [
+                        "variety",
+                        "variation",
+                    ],
+                    "description": (
+                        "Change, different tasks and varied ways of working."
+                    ),
+                },
+                {
+                    "key": "risk",
+                    "name": "Risk",
+                    "aliases": [
+                        "risk",
+                        "risk taking",
+                    ],
+                    "description": (
+                        "Taking calculated risks and acting despite uncertainty."
+                    ),
+                },
+            ],
+        },
     ]
 
-    if not valid_items:
+    source_lookup = {}
+
+    for item in mq_competencies or []:
+        competency_name = normalise_name(
+            item.get("competency")
+        )
+
+        if competency_name:
+            source_lookup[competency_name] = item
+
+    def find_source(factor):
+        for alias in factor.get("aliases", []):
+            source = source_lookup.get(
+                normalise_name(alias)
+            )
+
+            if source:
+                return source
+
+        return None
+
+    def get_band(score):
+        if score is None:
+            return {
+                "key": "missing",
+                "label": "Not available",
+            }
+
+        if score <= 2:
+            return {
+                "key": "lower",
+                "label": "Lower",
+            }
+
+        if score == 3:
+            return {
+                "key": "mid",
+                "label": "Mid-range",
+            }
+
+        return {
+            "key": "higher",
+            "label": "Higher",
+        }
+
+    def build_segments(score):
+        return [
+            {
+                "number": number,
+                "filled": (
+                    score is not None
+                    and number <= score
+                ),
+            }
+            for number in range(1, 6)
+        ]
+
+    used_source_ids = set()
+    domains = []
+    all_items = []
+    item_order = 0
+
+    for domain_config in motivation_model:
+        domain_items = []
+
+        for factor in domain_config["factors"]:
+            source = find_source(factor)
+            score = get_score(source) if source else None
+            band = get_band(score)
+
+            if source:
+                used_source_ids.add(id(source))
+
+            item = {
+                "key": factor["key"],
+                "name": factor["name"],
+                "description": factor["description"],
+                "score": score,
+                "available": score is not None,
+                "segments": build_segments(score),
+                "band_key": band["key"],
+                "band_label": band["label"],
+                "percentile": (
+                    source.get("percentile")
+                    if source
+                    else None
+                ),
+                "source_name": (
+                    source.get("competency")
+                    if source
+                    else None
+                ),
+                "order": item_order,
+            }
+
+            item_order += 1
+            domain_items.append(item)
+            all_items.append(item)
+
+        domains.append({
+            "key": domain_config["key"],
+            "title": domain_config["title"],
+            "subtitle": domain_config["subtitle"],
+            "icon_class": domain_config["icon_class"],
+            "items": domain_items,
+        })
+
+    # Safety net:
+    # Show any result returned by Sova that was not matched by the model above.
+    unmatched_items = []
+
+    for source in mq_competencies or []:
+        if id(source) in used_source_ids:
+            continue
+
+        score = get_score(source)
+        source_name = (
+            source.get("competency") or ""
+        ).strip()
+
+        if score is None or not source_name:
+            continue
+
+        band = get_band(score)
+
+        item = {
+            "key": normalise_name(source_name).replace(" ", "_"),
+            "name": source_name,
+            "description": (
+                "An additional motivation factor returned by the "
+                "assessment provider."
+            ),
+            "score": score,
+            "available": True,
+            "segments": build_segments(score),
+            "band_key": band["key"],
+            "band_label": band["label"],
+            "percentile": source.get("percentile"),
+            "source_name": source_name,
+            "order": item_order,
+        }
+
+        item_order += 1
+        unmatched_items.append(item)
+        all_items.append(item)
+
+    if unmatched_items:
+        domains.append({
+            "key": "other",
+            "title": "Other Results",
+            "subtitle": (
+                "Additional factors returned by the assessment"
+            ),
+            "icon_class": "fa-solid fa-circle-nodes",
+            "items": unmatched_items,
+        })
+
+    available_items = [
+        item
+        for item in all_items
+        if item["available"]
+    ]
+
+    if not available_items:
         return None
 
     sorted_desc = sorted(
-        valid_items,
-        key=get_score,
-        reverse=True,
+        available_items,
+        key=lambda item: (
+            -item["score"],
+            item["order"],
+        ),
     )
 
     sorted_asc = sorted(
-        valid_items,
-        key=get_score,
+        available_items,
+        key=lambda item: (
+            item["score"],
+            item["order"],
+        ),
     )
 
-    top_items = sorted_desc[:3]
-    low_items = sorted_asc[:3]
+    highest_score = max(
+        item["score"]
+        for item in available_items
+    )
 
-    descriptions = {
-        "quality": {
-            "motivator": (
-                "May be energised by doing work to a high standard and "
-                "feeling that the result is accurate and reliable."
-            ),
-            "demotivator": (
-                "May become less engaged when quality is consistently "
-                "sacrificed for speed or convenience."
-            ),
-        },
-        "autonomy": {
-            "motivator": (
-                "May value ownership, independence and enough freedom to "
-                "decide how work should be approached."
-            ),
-            "demotivator": (
-                "May lose energy in environments with limited ownership or "
-                "little influence over how work is carried out."
-            ),
-        },
-        "making a difference": {
-            "motivator": (
-                "May gain energy from seeing that their work contributes to "
-                "something useful or meaningful."
-            ),
-            "demotivator": (
-                "May find work less engaging when its purpose or impact is "
-                "unclear."
-            ),
-        },
-        "learning": {
-            "motivator": (
-                "May be motivated by opportunities to develop, learn and "
-                "build new capability."
-            ),
-            "demotivator": (
-                "May become less engaged when work feels repetitive or offers "
-                "limited opportunities to grow."
-            ),
-        },
-        "variety": {
-            "motivator": (
-                "May enjoy change, different tasks and a working environment "
-                "with regular variation."
-            ),
-            "demotivator": (
-                "May lose energy when work becomes highly repetitive or "
-                "predictable for long periods."
-            ),
-        },
-        "commercial value": {
-            "motivator": (
-                "May be energised by visible business value, measurable impact "
-                "and commercially meaningful outcomes."
-            ),
-            "demotivator": (
-                "May find work less motivating when its value or contribution "
-                "to the organisation is difficult to see."
-            ),
-        },
-        "affiliation": {
-            "motivator": (
-                "May value belonging, connection and positive relationships "
-                "with colleagues."
-            ),
-            "demotivator": (
-                "May lose energy in isolated environments with limited social "
-                "connection."
-            ),
-        },
-        "recognition": {
-            "motivator": (
-                "May appreciate acknowledgement and visible recognition for "
-                "their contribution."
-            ),
-            "demotivator": (
-                "May become less engaged when effort and contribution go "
-                "unnoticed for long periods."
-            ),
-        },
-        "achievement": {
-            "motivator": (
-                "May be motivated by ambitious goals, progress and a clear "
-                "sense of accomplishment."
-            ),
-            "demotivator": (
-                "May lose energy when goals are vague or when progress is "
-                "difficult to measure."
-            ),
-        },
-        "stability": {
-            "motivator": (
-                "May value predictability, continuity and a stable working "
-                "environment."
-            ),
-            "demotivator": (
-                "May find frequent uncertainty or constant change more "
-                "demanding."
-            ),
-        },
-        "risk": {
-            "motivator": (
-                "May be energised by challenge, uncertainty and situations "
-                "that involve calculated risk."
-            ),
-            "demotivator": (
-                "May lose energy in environments that are highly cautious or "
-                "offer little room for bold decisions."
-            ),
-        },
-        "people development": {
-            "motivator": (
-                "May gain energy from helping others grow, learn and develop."
-            ),
-            "demotivator": (
-                "May find roles less engaging when there is little opportunity "
-                "to support or develop others."
-            ),
-        },
-        "creativity": {
-            "motivator": (
-                "May value opportunities to generate ideas, experiment and "
-                "find new ways of working."
-            ),
-            "demotivator": (
-                "May lose energy in highly rigid environments with limited room "
-                "for new ideas."
-            ),
-        },
-        "work-life balance": {
-            "motivator": (
-                "May value a sustainable pace and enough space to balance work "
-                "with life outside work."
-            ),
-            "demotivator": (
-                "May become less engaged when workload and expectations remain "
-                "difficult to balance over time."
-            ),
-        },
-        "enjoyment": {
-            "motivator": (
-                "May be energised by work that feels enjoyable, engaging and "
-                "personally satisfying."
-            ),
-            "demotivator": (
-                "May lose energy when work feels consistently dull or lacking "
-                "in enjoyment."
-            ),
-        },
-        "ethics": {
-            "motivator": (
-                "May value fairness, ethical standards and alignment with "
-                "personal principles."
-            ),
-            "demotivator": (
-                "May find environments less motivating when decisions feel "
-                "misaligned with their values."
-            ),
-        },
-        "customer service": {
-            "motivator": (
-                "May gain energy from helping customers and delivering a useful "
-                "service."
-            ),
-            "demotivator": (
-                "May lose energy when there is little opportunity to create "
-                "value for customers."
-            ),
-        },
-        "authority": {
-            "motivator": (
-                "May value influence, decision-making responsibility and the "
-                "ability to shape direction."
-            ),
-            "demotivator": (
-                "May become less engaged when there is very little influence or "
-                "decision-making scope."
-            ),
-        },
-        "acquisition": {
-            "motivator": (
-                "May be energised by gaining resources, rewards or tangible "
-                "outcomes."
-            ),
-            "demotivator": (
-                "May find roles less motivating when rewards or tangible gains "
-                "are limited."
-            ),
-        },
-    }
+    lowest_score = min(
+        item["score"]
+        for item in available_items
+    )
 
-    def make_item(item, item_type):
-        name = (item.get("competency") or "").strip()
-        lookup_key = name.lower()
+    has_profile_difference = (
+        highest_score != lowest_score
+    )
 
-        fallback = (
-            "This appears to be one of the candidate's stronger motivational "
-            "drivers."
-            if item_type == "motivator"
-            else (
-                "This appears to be a less prominent motivational driver and "
-                "may offer less energy over time."
-            )
+    if has_profile_difference:
+        motivators = sorted_desc[:3]
+        less_central_drivers = sorted_asc[:3]
+    else:
+        motivators = []
+        less_central_drivers = []
+
+    def join_names(items):
+        names = [
+            item["name"]
+            for item in items
+        ]
+
+        if not names:
+            return ""
+
+        if len(names) == 1:
+            return names[0]
+
+        if len(names) == 2:
+            return " and ".join(names)
+
+        return (
+            f"{', '.join(names[:-1])} and {names[-1]}"
         )
 
-        description = (
-            descriptions.get(lookup_key, {}).get(item_type)
-            or fallback
+    for item in motivators:
+        item["interpretation"] = (
+            f"{item['description']} This appears to be one of the "
+            f"candidate's more prominent motivational drivers."
         )
 
-        return {
-            "name": name,
-            "description": description,
-            "score": get_score(item),
-            "percentile": item.get("percentile"),
-        }
+    for item in less_central_drivers:
+        item["interpretation"] = (
+            f"{item['description']} This appears to be a less central "
+            f"source of energy for the candidate."
+        )
 
-    motivators = [
-        make_item(item, "motivator")
-        for item in top_items
-    ]
-
-    demotivators = [
-        make_item(item, "demotivator")
-        for item in low_items
-    ]
-
-    top_names = [
-        item["name"].lower()
-        for item in motivators
-    ]
-
-    if top_names:
-        if len(top_names) == 1:
-            joined_names = top_names[0]
-        elif len(top_names) == 2:
-            joined_names = " and ".join(top_names)
-        else:
-            joined_names = (
-                f"{top_names[0]}, {top_names[1]} and {top_names[2]}"
-            )
-
+    if motivators:
         summary = (
-            f"The candidate appears most likely to be energised by "
-            f"{joined_names}. These drivers may be especially relevant when "
-            f"considering role design, working environment and longer-term "
-            f"engagement."
+            f"{join_names(motivators)} are among the candidate's more "
+            f"prominent motivational drivers. The complete profile below "
+            f"shows how these results sit alongside the candidate's other "
+            f"sources of energy and preference."
         )
     else:
-        summary = ""
+        summary = (
+            "The candidate's motivation profile is relatively even, with "
+            "no clear separation between higher and lower motivational "
+            "drivers."
+        )
 
     return {
-        "title": "Motivation and environment",
+        "title": "Motivation profile",
         "summary": summary,
+        "domains": domains,
         "motivators": motivators,
-        "demotivators": demotivators,
+        "less_central_drivers": less_central_drivers,
+
+        # Temporary compatibility with the previous template/data structure.
+        "demotivators": less_central_drivers,
+
+        "available_count": len(available_items),
+        "highest_score": highest_score,
+        "lowest_score": lowest_score,
+        "has_profile_difference": has_profile_difference,
     }
 
 
@@ -4510,6 +4799,10 @@ def build_historical_candidate_detail_context(
         mq_competencies
     )
 
+    motivation_insights = build_motivation_insight_section(
+        mq_competencies
+    )
+
     motivation_reports_for_ui = []
 
     if has_motivation_results:
@@ -4834,6 +5127,7 @@ def build_historical_candidate_detail_context(
 
         # Existing report builders.
         "motivation_scores": motivation_scores,
+        "motivation_insights": motivation_insights,
         "motivation_reports_for_ui": motivation_reports_for_ui,
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,

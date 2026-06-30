@@ -1735,128 +1735,278 @@
 {% include "customer/processes/partials/_team_styles.html" %}
 
 <!-- /TEAM STYLES -->
-
-  <!-- MOTIVATION AND ENVIRONMENT -->
+<!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
-  <section class="card mb-4 purpose-fit-card">
+  <section class="card mb-4 purpose-fit-card motivation-profile-card">
     <div class="card-body">
 
-      <div class="mb-4">
-        <div class="insight-summary-kicker">
-          Candidate Insights
+      <!-- HEADER -->
+      <div class="motivation-profile-header">
+        <div>
+          <div class="insight-summary-kicker">
+            Candidate Insights
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            {{ motivation_insights.title }}
+          </h2>
+
+          {% if motivation_insights.summary %}
+            <div class="text-muted motivation-profile-summary">
+              {{ motivation_insights.summary }}
+            </div>
+          {% endif %}
         </div>
 
-        <h2 class="insight-summary-title mb-1">
-          {{ motivation_insights.title }}
-        </h2>
+        <div class="motivation-profile-scale-note">
+          <span class="motivation-profile-scale-note__label">
+            Rounded STIVE score
+          </span>
 
-        {% if motivation_insights.summary %}
-          <div class="text-muted">
-            {{ motivation_insights.summary }}
-          </div>
-        {% endif %}
+          <span class="motivation-profile-scale-note__value">
+            1–5
+          </span>
+        </div>
       </div>
 
-      <div class="motivation-insights-grid">
 
-        <!-- LIKELY MOTIVATORS -->
-        <article class="motivation-insight-card">
+      <!-- FULL PROFILE -->
+      <div class="motivation-profile-section-heading">
+        <div>
+          <h3 class="motivation-profile-section-heading__title">
+            Full motivation profile
+          </h3>
 
-          <div class="motivation-insight-card__header">
+          <div class="motivation-profile-section-heading__subtitle">
+            All available factors grouped according to the motivation model
+          </div>
+        </div>
+
+        <div class="motivation-profile-result-count">
+          {{ motivation_insights.available_count }}
+          factor{{ motivation_insights.available_count|pluralize }}
+        </div>
+      </div>
+
+
+      <div class="motivation-domain-grid">
+
+        {% for domain in motivation_insights.domains %}
+          <article class="motivation-domain-card motivation-domain-card--{{ domain.key }}">
+
+            <header class="motivation-domain-card__header">
+
+              <div class="motivation-domain-card__icon">
+                <i class="{{ domain.icon_class }}"></i>
+              </div>
+
+              <div>
+                <h4 class="motivation-domain-card__title">
+                  {{ domain.title }}
+                </h4>
+
+                <div class="motivation-domain-card__subtitle">
+                  {{ domain.subtitle }}
+                </div>
+              </div>
+
+            </header>
+
+
+            <div class="motivation-domain-card__body">
+
+              {% for item in domain.items %}
+                <div class="motivation-factor-row {% if not item.available %}is-missing{% endif %}">
+
+                  <div class="motivation-factor-row__top">
+
+                    <div class="motivation-factor-row__content">
+                      <div class="motivation-factor-row__name">
+                        {{ item.name }}
+                      </div>
+
+                      <div class="motivation-factor-row__description">
+                        {{ item.description }}
+                      </div>
+                    </div>
+
+                    <div class="motivation-factor-row__result">
+
+                      {% if item.score is not None %}
+                        <span class="motivation-factor-row__score">
+                          {{ item.score }}/5
+                        </span>
+                      {% else %}
+                        <span class="motivation-factor-row__missing">
+                          N/A
+                        </span>
+                      {% endif %}
+
+                    </div>
+
+                  </div>
+
+
+                  {% if item.score is not None %}
+                    <div
+                      class="motivation-factor-scale"
+                      aria-label="{{ item.name }}: {{ item.score }} out of 5"
+                    >
+                      {% for segment in item.segments %}
+                        <span
+                          class="
+                            motivation-factor-scale__segment
+                            {% if segment.filled %}is-filled{% endif %}
+                          "
+                        ></span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                </div>
+              {% endfor %}
+
+            </div>
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+
+      <!-- PROFILE INTERPRETATION -->
+      {% if motivation_insights.has_profile_difference %}
+        <div class="motivation-profile-interpretation">
+
+          <div class="motivation-profile-section-heading motivation-profile-section-heading--interpretation">
             <div>
-              <h3 class="motivation-insight-card__title">
-                Likely motivators
+              <h3 class="motivation-profile-section-heading__title">
+                Profile interpretation
               </h3>
 
-              <div class="motivation-insight-card__subtitle">
-                Factors most likely to provide energy and engagement
+              <div class="motivation-profile-section-heading__subtitle">
+                The strongest contrasts within the candidate's own profile
               </div>
             </div>
           </div>
 
-          <div class="motivation-insight-list">
 
-            {% for item in motivation_insights.motivators %}
-              <div class="motivation-insight-item">
+          <div class="motivation-interpretation-grid">
 
-                <div class="motivation-insight-item__top">
-                  <div class="motivation-insight-item__name">
-                    {{ item.name }}
+            <!-- MORE PROMINENT DRIVERS -->
+            <article class="motivation-interpretation-card">
+
+              <header class="motivation-interpretation-card__header">
+                <div class="motivation-interpretation-card__icon">
+                  <i class="fa-solid fa-bolt"></i>
+                </div>
+
+                <div>
+                  <h4 class="motivation-interpretation-card__title">
+                    More prominent drivers
+                  </h4>
+
+                  <div class="motivation-interpretation-card__subtitle">
+                    Factors more likely to provide energy and engagement
                   </div>
+                </div>
+              </header>
 
-                  {% if item.score is not None %}
-                    <div class="motivation-insight-item__score">
-                      {{ item.score }}/5
+
+              <div class="motivation-interpretation-list">
+
+                {% for item in motivation_insights.motivators %}
+                  <div class="motivation-interpretation-item">
+
+                    <div class="motivation-interpretation-item__top">
+                      <div class="motivation-interpretation-item__name">
+                        {{ item.name }}
+                      </div>
+
+                      <div class="motivation-interpretation-item__score">
+                        {{ item.score }}/5
+                      </div>
                     </div>
-                  {% endif %}
-                </div>
 
-                <div class="motivation-insight-item__description">
-                  {{ item.description }}
-                </div>
+                    <div class="motivation-interpretation-item__description">
+                      {{ item.interpretation }}
+                    </div>
 
-              </div>
-            {% endfor %}
-
-          </div>
-
-        </article>
-
-        <!-- POSSIBLE DEMOTIVATORS -->
-        <article class="motivation-insight-card">
-
-          <div class="motivation-insight-card__header">
-            <div>
-              <h3 class="motivation-insight-card__title">
-                Possible demotivators
-              </h3>
-
-              <div class="motivation-insight-card__subtitle">
-                Conditions that may provide less energy over time
-              </div>
-            </div>
-          </div>
-
-          <div class="motivation-insight-list">
-
-            {% for item in motivation_insights.demotivators %}
-              <div class="motivation-insight-item">
-
-                <div class="motivation-insight-item__top">
-                  <div class="motivation-insight-item__name">
-                    {{ item.name }}
                   </div>
-
-                  {% if item.score is not None %}
-                    <div class="motivation-insight-item__score">
-                      {{ item.score }}/5
-                    </div>
-                  {% endif %}
-                </div>
-
-                <div class="motivation-insight-item__description">
-                  {{ item.description }}
-                </div>
+                {% endfor %}
 
               </div>
-            {% endfor %}
+
+            </article>
+
+
+            <!-- LESS CENTRAL DRIVERS -->
+            <article class="motivation-interpretation-card">
+
+              <header class="motivation-interpretation-card__header">
+                <div class="motivation-interpretation-card__icon">
+                  <i class="fa-regular fa-circle"></i>
+                </div>
+
+                <div>
+                  <h4 class="motivation-interpretation-card__title">
+                    Less central drivers
+                  </h4>
+
+                  <div class="motivation-interpretation-card__subtitle">
+                    Factors less likely to be primary sources of energy
+                  </div>
+                </div>
+              </header>
+
+
+              <div class="motivation-interpretation-list">
+
+                {% for item in motivation_insights.less_central_drivers %}
+                  <div class="motivation-interpretation-item">
+
+                    <div class="motivation-interpretation-item__top">
+                      <div class="motivation-interpretation-item__name">
+                        {{ item.name }}
+                      </div>
+
+                      <div class="motivation-interpretation-item__score">
+                        {{ item.score }}/5
+                      </div>
+                    </div>
+
+                    <div class="motivation-interpretation-item__description">
+                      {{ item.interpretation }}
+                    </div>
+
+                  </div>
+                {% endfor %}
+
+              </div>
+
+            </article>
 
           </div>
+        </div>
+      {% endif %}
 
-        </article>
 
-      </div>
+      <!-- DISCLAIMER -->
+      <div class="motivation-profile-disclaimer">
+        <i class="fa-regular fa-circle-info"></i>
 
-      <div class="small text-muted border-top pt-3 mt-4">
-        Motivation results indicate likely sources of energy and preference.
-        They should be considered together with role context, interview evidence
-        and the candidate’s own reflections.
+        <span>
+          Motivation scores describe relative sources of energy and preference.
+          Lower scores do not indicate poor performance, weak values or limited
+          capability. Results should be considered alongside role context,
+          interview evidence and the candidate's own reflections.
+        </span>
       </div>
 
     </div>
   </section>
 {% endif %}
-<!-- /MOTIVATION AND ENVIRONMENT -->
+<!-- /MOTIVATION PROFILE -->
 
   <section class="card mb-4 purpose-fit-card sova-debug-card">
     <div class="card-body">
