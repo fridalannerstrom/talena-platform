@@ -478,7 +478,10 @@ def build_response_style_results(personality_competencies):
     return response_styles
 
 
-def build_motivation_insight_section(mq_competencies):
+def build_motivation_insight_section(
+    mq_competencies,
+    candidate_name="",
+):
     """
     Build the complete motivation profile used in Candidate Insights.
 
@@ -490,6 +493,10 @@ def build_motivation_insight_section(mq_competencies):
     - identifies more prominent and less central drivers
     - does not interpret low scores as weaknesses or automatic demotivators
     """
+    candidate_label = (
+        (candidate_name or "").strip()
+        or "The candidate"
+    )
 
     def normalise_name(value):
         text = str(value or "").strip().lower()
@@ -533,6 +540,298 @@ def build_motivation_insight_section(mq_competencies):
             return max(1, min(5, score))
 
         return None
+    
+    factor_interpretations = {
+        "attachment": {
+            "summary_phrase": (
+                "close working relationships and a clear sense of belonging"
+            ),
+            "support_phrase": (
+                "regular collaboration, mutual support and trusted relationships"
+            ),
+            "top_text": (
+                "{name} is likely to gain energy from close working relationships, "
+                "collaboration and a clear sense of belonging. Regular interaction, "
+                "mutual support and opportunities to build strong connections with "
+                "colleagues may contribute to engagement over time."
+            ),
+        },
+
+        "customer_service": {
+            "summary_phrase": (
+                "helping customers and understanding their needs"
+            ),
+            "support_phrase": (
+                "regular customer contact and opportunities to provide useful service"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by understanding customer needs "
+                "and providing helpful service. They may gain energy from building "
+                "strong customer relationships, solving customer problems and seeing "
+                "that their work creates a positive customer experience."
+            ),
+        },
+
+        "work_life_balance": {
+            "summary_phrase": (
+                "a sustainable balance between work and life outside work"
+            ),
+            "support_phrase": (
+                "clear boundaries, a manageable workload and a sustainable pace"
+            ),
+            "top_text": (
+                "{name} is likely to value a sustainable balance between work and "
+                "life outside work. Clear expectations, reasonable boundaries and "
+                "enough flexibility to manage personal commitments may help maintain "
+                "energy and engagement over time."
+            ),
+        },
+
+        "people_development": {
+            "summary_phrase": (
+                "helping other people learn and develop"
+            ),
+            "support_phrase": (
+                "opportunities to coach, support and develop others"
+            ),
+            "top_text": (
+                "{name} is likely to gain energy from helping other people grow and "
+                "develop. They may enjoy coaching, sharing knowledge and providing "
+                "support that enables colleagues or team members to strengthen their "
+                "skills and confidence."
+            ),
+        },
+
+        "stability": {
+            "summary_phrase": (
+                "continuity, predictability and a sense of security"
+            ),
+            "support_phrase": (
+                "clear structures, continuity and a predictable working environment"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by continuity, predictability and "
+                "a sense of security at work. Clear structures, dependable conditions "
+                "and confidence about what lies ahead may support sustained engagement."
+            ),
+        },
+
+        "authority": {
+            "summary_phrase": (
+                "influence, responsibility and opportunities to lead"
+            ),
+            "support_phrase": (
+                "decision-making responsibility and scope to shape direction"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by having influence and meaningful "
+                "responsibility. They may gain energy from leading others, shaping "
+                "direction and being trusted to make decisions that affect outcomes."
+            ),
+        },
+
+        "independence": {
+            "summary_phrase": (
+                "freedom to make decisions and shape how work is carried out"
+            ),
+            "support_phrase": (
+                "trust, personal ownership and freedom from unnecessary control"
+            ),
+            "top_text": (
+                "{name} is likely to value freedom in how work is planned and carried "
+                "out. They may be most engaged when trusted to make decisions, organise "
+                "their own workload and use their judgement without unnecessary control."
+            ),
+        },
+
+        "recognition": {
+            "summary_phrase": (
+                "recognition and visible appreciation for personal contribution"
+            ),
+            "support_phrase": (
+                "clear feedback and acknowledgement of effort and results"
+            ),
+            "top_text": (
+                "{name} is likely to appreciate visible recognition for their work "
+                "and contribution. Clear feedback, praise and acknowledgement of "
+                "successful performance may reinforce motivation and engagement."
+            ),
+        },
+
+        "making_a_difference": {
+            "summary_phrase": (
+                "creating a meaningful and positive impact"
+            ),
+            "support_phrase": (
+                "a clear purpose and visible connection between work and wider impact"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by seeing that their work contributes "
+                "to something meaningful. They may gain energy from roles where the "
+                "purpose is clear and where their contribution creates a visible "
+                "positive impact for others or the wider organisation."
+            ),
+        },
+
+        "acquisition": {
+            "summary_phrase": (
+                "financial reward and tangible outcomes"
+            ),
+            "support_phrase": (
+                "clear rewards and a visible connection between contribution and gain"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by tangible rewards and financial "
+                "outcomes. They may respond positively when strong contribution is "
+                "connected to clear benefits, incentives or opportunities for material gain."
+            ),
+        },
+
+        "achievement": {
+            "summary_phrase": (
+                "challenging goals, visible progress and achievement"
+            ),
+            "support_phrase": (
+                "clear targets, stretching objectives and visible measures of success"
+            ),
+            "top_text": (
+                "{name} is likely to gain energy from clear and challenging goals. "
+                "They may enjoy overcoming difficulties, measuring progress and seeing "
+                "that sustained effort has led to a meaningful achievement."
+            ),
+        },
+
+        "quality": {
+            "summary_phrase": (
+                "producing accurate and high-quality work"
+            ),
+            "support_phrase": (
+                "high standards and enough time to deliver reliable results"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by producing work of a consistently "
+                "high standard. They may take pride in accuracy, reliability and "
+                "ensuring that the final result meets both expectations and agreed commitments."
+            ),
+        },
+
+        "learning": {
+            "summary_phrase": (
+                "learning, development and building new capability"
+            ),
+            "support_phrase": (
+                "regular opportunities to develop knowledge and learn new skills"
+            ),
+            "top_text": (
+                "{name} is likely to gain energy from learning and developing new "
+                "capabilities. Opportunities to expand their knowledge, practise new "
+                "skills and continue progressing may be important for longer-term engagement."
+            ),
+        },
+
+        "ethics": {
+            "summary_phrase": (
+                "clear ethical principles and alignment with personal values"
+            ),
+            "support_phrase": (
+                "transparent decisions and organisational standards that align with their values"
+            ),
+            "top_text": (
+                "{name} is likely to place considerable importance on ethical standards "
+                "and personal principles. They may be most engaged in environments where "
+                "decisions are transparent and organisational practices align with what "
+                "they consider fair and responsible."
+            ),
+        },
+
+        "commercial_focus": {
+            "summary_phrase": (
+                "commercial impact and measurable business value"
+            ),
+            "support_phrase": (
+                "visible business outcomes and a clear connection between work and commercial results"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by creating visible commercial value. "
+                "They may gain energy from understanding how their work contributes to "
+                "revenue, growth or other measurable business outcomes."
+            ),
+        },
+
+        "curiosity": {
+            "summary_phrase": (
+                "exploring new information and unfamiliar questions"
+            ),
+            "support_phrase": (
+                "opportunities to investigate, discover and solve unfamiliar problems"
+            ),
+            "top_text": (
+                "{name} is likely to gain energy from exploring new information and "
+                "understanding unfamiliar topics. They may enjoy investigating questions, "
+                "discovering new perspectives and solving problems that stimulate their interest."
+            ),
+        },
+
+        "creativity": {
+            "summary_phrase": (
+                "generating ideas and finding original solutions"
+            ),
+            "support_phrase": (
+                "room to experiment, challenge established approaches and develop new ideas"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by opportunities to generate ideas "
+                "and find original solutions. They may gain energy from experimentation, "
+                "creative problem-solving and work that allows established approaches "
+                "to be reconsidered."
+            ),
+        },
+
+        "enjoyment": {
+            "summary_phrase": (
+                "an enjoyable and positive working atmosphere"
+            ),
+            "support_phrase": (
+                "positive relationships, humour and an engaging day-to-day environment"
+            ),
+            "top_text": (
+                "{name} is likely to value an enjoyable and positive atmosphere at work. "
+                "They may gain energy from friendly relationships, humour and a working "
+                "environment where day-to-day activities feel engaging and personally satisfying."
+            ),
+        },
+
+        "variety": {
+            "summary_phrase": (
+                "variety, change and different types of work"
+            ),
+            "support_phrase": (
+                "a changing mix of tasks, challenges and ways of working"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by variety and change in their work. "
+                "They may gain energy from moving between different tasks, encountering "
+                "new challenges and using a broad range of skills rather than following "
+                "the same routine for long periods."
+            ),
+        },
+
+        "risk": {
+            "summary_phrase": (
+                "challenge, uncertainty and calculated risk"
+            ),
+            "support_phrase": (
+                "room to make considered decisions when outcomes are not fully known"
+            ),
+            "top_text": (
+                "{name} is likely to be motivated by situations where the outcome is "
+                "not fully known and where calculated risk is part of the work. They "
+                "may be comfortable making decisions without complete certainty and "
+                "may gain energy from roles that offer challenge, pace and the opportunity "
+                "to see whether a bold course of action pays off."
+            ),
+        },
+    }
 
     motivation_model = [
         {
@@ -811,7 +1110,7 @@ def build_motivation_insight_section(mq_competencies):
 
     source_lookup = {}
 
-    for item in mq_competencies or []:
+    for item in mq_competencies or []:   
         competency_name = normalise_name(
             item.get("competency")
         )
@@ -879,6 +1178,11 @@ def build_motivation_insight_section(mq_competencies):
             score = get_score(source) if source else None
             band = get_band(score)
 
+            interpretation_config = factor_interpretations.get(
+                factor["key"],
+                {},
+            )
+
             if source:
                 used_source_ids.add(id(source))
 
@@ -902,6 +1206,26 @@ def build_motivation_insight_section(mq_competencies):
                     else None
                 ),
                 "order": item_order,
+                "summary_phrase": interpretation_config.get(
+                    "summary_phrase",
+                    factor["name"].lower(),
+                ),
+
+                "support_phrase": interpretation_config.get(
+                    "support_phrase",
+                    factor["description"].lower(),
+                ),
+
+                "top_interpretation": (
+                    interpretation_config.get("top_text", "").format(
+                        name=candidate_label,
+                    )
+                    if interpretation_config.get("top_text")
+                    else (
+                        f"{candidate_label} appears to be particularly motivated "
+                        f"by this aspect of the working environment."
+                    )
+                ),
             }
 
             item_order += 1
@@ -1012,6 +1336,26 @@ def build_motivation_insight_section(mq_competencies):
         motivators = []
         less_central_drivers = []
 
+    def join_text(values):
+        values = [
+            value
+            for value in values
+            if value
+        ]
+
+        if not values:
+            return ""
+
+        if len(values) == 1:
+            return values[0]
+
+        if len(values) == 2:
+            return " and ".join(values)
+
+        return (
+            f"{', '.join(values[:-1])} and {values[-1]}"
+        )
+
     def join_names(items):
         names = [
             item["name"]
@@ -1032,10 +1376,7 @@ def build_motivation_insight_section(mq_competencies):
         )
 
     for item in motivators:
-        item["interpretation"] = (
-            f"{item['description']} This appears to be one of the "
-            f"candidate's more prominent motivational drivers."
-        )
+        item["interpretation"] = item["top_interpretation"]
 
     for item in less_central_drivers:
         item["interpretation"] = (
@@ -1044,17 +1385,27 @@ def build_motivation_insight_section(mq_competencies):
         )
 
     if motivators:
+        motivational_themes = join_text([
+            item["summary_phrase"]
+            for item in motivators
+        ])
+
+        supportive_conditions = join_text([
+            item["support_phrase"]
+            for item in motivators
+        ])
+
         summary = (
-            f"{join_names(motivators)} are among the candidate's more "
-            f"prominent motivational drivers. The complete profile below "
-            f"shows how these results sit alongside the candidate's other "
-            f"sources of energy and preference."
+            f"{candidate_label} is likely to be energised by "
+            f"{motivational_themes}. A working environment that offers "
+            f"{supportive_conditions} may therefore support sustained "
+            f"engagement."
         )
     else:
         summary = (
-            "The candidate's motivation profile is relatively even, with "
-            "no clear separation between higher and lower motivational "
-            "drivers."
+            f"{candidate_label}'s motivation profile is relatively even, "
+            f"with no clear separation between more prominent and less "
+            f"central motivational drivers."
         )
 
     return {
@@ -1563,7 +1914,8 @@ def build_candidate_detail_context(process, invitation):
     motivation_scores = build_scores_by_competency(mq_competencies)
 
     motivation_insights = build_motivation_insight_section(
-        mq_competencies
+        mq_competencies,
+        candidate_name=candidate.first_name,
     )
 
     practitioner_report = build_practitioner_report(
@@ -4800,7 +5152,8 @@ def build_historical_candidate_detail_context(
     )
 
     motivation_insights = build_motivation_insight_section(
-        mq_competencies
+        mq_competencies,
+        candidate_name=candidate.first_name,
     )
 
     motivation_reports_for_ui = []
