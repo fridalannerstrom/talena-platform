@@ -1232,6 +1232,15 @@ def build_motivation_insight_section(
             domain_items.append(item)
             all_items.append(item)
 
+        domain_items = sorted(
+            domain_items,
+            key=lambda item: (
+                item["score"] is None,
+                -(item["score"] or 0),
+                item["order"],
+            ),
+        )
+
         domains.append({
             "key": domain_config["key"],
             "title": domain_config["title"],

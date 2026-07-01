@@ -1770,9 +1770,9 @@
             <div class="response-style-item__header">
 
               <div>
-                <h4 class="response-style-item__title">
-                  More prominent drivers
-                </h4>
+<h4 class="response-style-item__title">
+  {{ candidate.first_name|default:"The candidate" }}’s most prominent drivers
+</h4>
 
                 <div class="response-style-item__subtitle">
                   Factors more likely to provide energy and engagement
@@ -1804,43 +1804,8 @@
                       </p>
                     </div>
 
-                    <div class="team-style-result__value motivation-summary-item__value">
-                      {{ item.score }}/5
-                    </div>
-
                   </div>
 
-
-                  <div
-                    class="response-style-scale motivation-summary-item__scale"
-                    role="meter"
-                    aria-label="{{ item.name }}: {{ item.score }} out of 5"
-                    aria-valuemin="1"
-                    aria-valuemax="5"
-                    aria-valuenow="{{ item.score }}"
-                  >
-
-                    <div class="response-style-scale__segments">
-
-                      {% for segment in item.segments %}
-                        <span
-                          class="
-                            response-style-scale__segment
-
-                            {% if segment.number == item.score %}
-                              response-style-scale__segment--marker
-                            {% endif %}
-
-                            {% if segment.filled %}
-                              response-style-scale__segment--filled
-                            {% endif %}
-                          "
-                        ></span>
-                      {% endfor %}
-
-                    </div>
-
-                  </div>
 
                 </div>
 
@@ -1858,7 +1823,7 @@
       <div class="motivation-full-profile-heading">
 
         <div>
-          <div class="team-style-result__label">
+          <div class="insight-summary-kicker">
             Full profile
           </div>
 
@@ -1872,16 +1837,11 @@
           </p>
         </div>
 
-        <div class="motivation-profile-result-count">
-          {{ motivation_insights.available_count }}
-          factor{{ motivation_insights.available_count|pluralize }}
-        </div>
-
       </div>
 
 
       <!-- COMPLETE PROFILE -->
-      <div class="response-style-card team-style-ranked-list motivation-full-profile">
+
 
         {% for domain in motivation_insights.domains %}
 
@@ -1921,9 +1881,6 @@
                   <div class="team-style-result__header motivation-factor-result__header">
 
                     <div>
-                      <div class="team-style-result__label">
-                        Motivation factor
-                      </div>
 
                       <h5 class="motivation-factor-result__name">
                         {{ item.name }}
@@ -1999,7 +1956,6 @@
 
         {% endfor %}
 
-      </div>
 
 
       <!-- FOOTER -->
