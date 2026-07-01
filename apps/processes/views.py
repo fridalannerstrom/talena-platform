@@ -17,6 +17,13 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from apps.core.ai.response_style_guidance import (
+    create_empty_response_style_guidance,
+    apply_response_style_guidance_event,
+    stream_response_style_guidance,
+    save_response_style_guidance,
+)
+
 from apps.processes.services.team_styles import (
     build_team_style_profile,
 )
@@ -476,6 +483,111 @@ def build_response_style_results(personality_competencies):
         })
 
     return response_styles
+
+def build_response_styles_for_guidance_owner(
+    guidance_owner,
+):
+    """
+    Build response-style results for either:
+
+    - TestInvitation
+    - HistoricalProcessCandidate
+
+    The AI endpoint uses this helper so it does not need to build the
+    entire candidate detail context before generating guidance.
+    """
+
+    process = guidance_owner.process
+
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+    if getattr(process, "is_historical", False):
+        profile = build_historical_candidate_profile(
+            guidance_owner
+        )
+
+        historical_competencies = (
+            profile.get("personality_competencies")
+            or []
+        )
+
+        personality_competencies = []
+
+        for item in historical_competencies:
+            personality_competencies.append({
+                "competency": (
+                    item.get("competency")
+                    or item.get("name")
+                ),
+                "sten": item.get("sten"),
+                "sten_rounded": item.get(
+                    "sten_rounded"
+                ),
+                "percentile": item.get("percentile"),
+                "source": "historical_import",
+            })
+
+        return build_response_style_results(
+            personality_competencies
+        )
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+    payload = guidance_owner.sova_payload or {}
+
+    activities = list(
+        guidance_owner.sova_activities
+        or payload.get("activities")
+        or []
+    )
+
+    if not activities:
+        for phase in payload.get("phases") or []:
+            activities.extend(
+                phase.get("activities") or []
+            )
+
+    personality_competencies = []
+
+    for activity in activities:
+        activity_name = (
+            activity.get("activity")
+            or ""
+        ).strip().lower()
+
+        is_personality_activity = (
+            activity_name == "personality assessment"
+            or activity_name == (
+                "sova personality questionnaire"
+            )
+            or "personality" in activity_name
+        )
+
+        if not is_personality_activity:
+            continue
+
+        for competency in (
+            activity.get("competencies")
+            or []
+        ):
+            personality_competencies.append({
+                "competency": competency.get(
+                    "competency"
+                ),
+                "sten": competency.get("sten"),
+                "sten_rounded": competency.get(
+                    "sten_rounded"
+                ),
+                "percentile": competency.get(
+                    "percentile"
+                ),
+            })
+
+    return build_response_style_results(
+        personality_competencies
+    )
 
 
 def build_motivation_insight_section(
@@ -2474,6 +2586,27 @@ def build_candidate_detail_context(process, invitation):
 
         "response_styles": response_styles,
         "response_style_segments": range(1, 11),
+
+        "response_style_guidance": (
+            invitation.ai_response_style_guidance
+            or {}
+        ),
+
+        "response_style_guidance_status": (
+            invitation.ai_response_style_guidance_status
+        ),
+
+        "response_style_guidance_stream_url": reverse(
+            (
+                "processes:process_candidate_"
+                "response_style_guidance_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
         "motivation_insights": motivation_insights,
 
         "team_style_profile": team_style_profile,
@@ -2869,6 +3002,9 @@ def process_create(request):
 def mark_candidate_ai_content_outdated(process):
     """
     Keep existing AI content, but mark it as needing regeneration.
+
+    Existing content remains saved until a replacement has been
+    generated successfully.
     """
 
     invitations = TestInvitation.objects.filter(
@@ -2887,11 +3023,21 @@ def mark_candidate_ai_content_outdated(process):
         .update(ai_purpose_fit_status="outdated")
     )
 
+    response_style_guidance_count = (
+        invitations
+        .exclude(ai_response_style_guidance={})
+        .update(
+            ai_response_style_guidance_status="outdated"
+        )
+    )
+
     return {
         "summaries": summary_count,
         "purpose_fits": purpose_fit_count,
+        "response_style_guidance": (
+            response_style_guidance_count
+        ),
     }
-
 
 def process_update(request, pk):
     obj = get_object_or_404(TestProcess, pk=pk)
@@ -4260,6 +4406,262 @@ def process_candidate_summary_stream(
 
     return response
 
+
+@login_required
+def process_candidate_response_style_guidance_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save AI-supported response-style guidance.
+
+    Existing completed guidance is returned without making a new
+    OpenAI request.
+
+    Guidance is regenerated when its status is:
+    - not_started
+    - outdated
+    - failed
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    # ---------------------------------------------------------
+    # FIND THE CORRECT GUIDANCE OWNER
+    # ---------------------------------------------------------
+    if process.is_historical:
+        guidance_owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    else:
+        guidance_owner = get_object_or_404(
+            TestInvitation.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    # ---------------------------------------------------------
+    # BUILD RESPONSE-STYLE RESULTS
+    # ---------------------------------------------------------
+    response_styles = (
+        build_response_styles_for_guidance_owner(
+            guidance_owner
+        )
+    )
+
+    available_response_styles = [
+        style
+        for style in response_styles
+        if style.get("available")
+    ]
+
+    if not available_response_styles:
+        return JsonResponse(
+            {
+                "error": (
+                    "No response-style results are "
+                    "available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        guidance_owner
+        .ai_response_style_guidance_status
+        or "not_started"
+    )
+
+    saved_guidance = (
+        guidance_owner.ai_response_style_guidance
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        guidance_owner
+        .ai_response_style_guidance_purpose
+        or ""
+    ).strip().lower()
+
+    # ---------------------------------------------------------
+    # SAFETY CHECK FOR CHANGED PURPOSE
+    # ---------------------------------------------------------
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        guidance_owner.ai_response_style_guidance_status = (
+            "outdated"
+        )
+
+        guidance_owner.save(update_fields=[
+            "ai_response_style_guidance_status",
+        ])
+
+    # ---------------------------------------------------------
+    # RETURN SAVED GUIDANCE
+    # ---------------------------------------------------------
+    if (
+        saved_guidance
+        and current_status == "completed"
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_guidance,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Response-style guidance is already "
+                    "being generated."
+                )
+            },
+            status=409,
+        )
+
+    guidance_owner.ai_response_style_guidance_status = (
+        "generating"
+    )
+
+    guidance_owner.save(update_fields=[
+        "ai_response_style_guidance_status",
+    ])
+
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
+    def generator():
+        guidance = (
+            create_empty_response_style_guidance(
+                guidance_owner
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_response_style_guidance(
+                guidance_owner=guidance_owner,
+                response_styles=available_response_styles,
+            ):
+                guidance = (
+                    apply_response_style_guidance_event(
+                        guidance,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            # Do not save an empty or malformed AI result.
+            if not (
+                guidance.get("summary")
+                or ""
+            ).strip():
+                raise ValueError(
+                    "The AI response did not contain "
+                    "a guidance summary."
+                )
+
+            if not received_done_event:
+                yield json.dumps({
+                    "type": "done",
+                }) + "\n"
+
+            save_response_style_guidance(
+                guidance_owner=guidance_owner,
+                guidance=guidance,
+            )
+
+        except Exception as error:
+            guidance_owner.ai_response_style_guidance_status = (
+                "failed"
+            )
+
+            guidance_owner.save(update_fields=[
+                "ai_response_style_guidance_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
 @login_required
 def process_candidate_purpose_fit_stream(
     request,
@@ -5019,6 +5421,10 @@ def build_historical_candidate_detail_context(
         ).lower(),
     )
 
+    response_styles = build_response_style_results(
+        normalised_personality_competencies
+    )
+
     normalised_team_style_scores = sorted(
         normalised_team_style_scores,
         key=lambda item: (
@@ -5523,6 +5929,31 @@ def build_historical_candidate_detail_context(
         "competency_scores": [],
         "overall_score": None,
         "reports": [],
+
+        "response_styles": response_styles,
+        "response_style_segments": range(1, 11),
+
+        "response_style_guidance": (
+            historical_candidate
+            .ai_response_style_guidance
+            or {}
+        ),
+
+        "response_style_guidance_status": (
+            historical_candidate
+            .ai_response_style_guidance_status
+        ),
+
+        "response_style_guidance_stream_url": reverse(
+            (
+                "processes:process_candidate_"
+                "response_style_guidance_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
     }
 
 

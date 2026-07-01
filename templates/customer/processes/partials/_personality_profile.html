@@ -1,3 +1,5 @@
+
+
 {% if personality_profile and personality_profile.sections %}
 
   <div class="personality-profile">
@@ -28,6 +30,257 @@
   </button>
 
 </div>
+
+<!-- RESPONSE STYLES -->
+{% if has_personality_results and response_styles %}
+  <section
+    class="card mb-4 purpose-fit-card response-styles-section"
+    data-response-style-guidance-root
+    data-guidance-stream-url="{{ response_style_guidance_stream_url }}"
+    data-guidance-status="{{ response_style_guidance_status|default:'not_started' }}"
+    data-has-guidance="{% if response_style_guidance %}true{% else %}false{% endif %}"
+  >
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="response-styles-header">
+
+        <div>
+          <h2 class="insight-summary-title mb-1">
+            Response styles
+          </h2>
+
+          <p class="text-muted small mb-0">
+            These indicators describe how {{ candidate.first_name }} used the
+            questionnaire response scale. They provide context for interpreting
+            the personality profile and are not personality traits themselves.
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- RESPONSE STYLE RESULTS -->
+      <div class="response-style-card">
+
+        {% for style in response_styles %}
+          <article
+            class="
+              response-style-item
+              {% if not style.available %}
+                response-style-item--missing
+              {% endif %}
+            "
+          >
+
+            <!-- TITLE AND VALUE -->
+            <div class="response-style-item__header">
+
+              <div>
+                <h3 class="response-style-item__title">
+                  {{ style.title }}
+                </h3>
+
+                <div class="response-style-item__subtitle">
+                  Questionnaire response pattern
+                </div>
+              </div>
+
+              {% if style.available %}
+                <div class="response-style-item__result">
+                  <span class="response-style-item__value">
+                    {{ style.value }}/10
+                  </span>
+                </div>
+              {% else %}
+                <span
+                  class="
+                    response-style-item__badge
+                    response-style-item__badge--missing
+                  "
+                >
+                  Not available
+                </span>
+              {% endif %}
+
+            </div>
+
+
+            {% if style.available %}
+
+              <!-- SCALE WITH POLE DESCRIPTIONS -->
+              <div class="response-style-profile">
+
+                <!-- LOWER SCORE -->
+                <div class="response-style-profile__pole">
+
+                  <div class="personality-trait-card__pole-label">
+                    Left score
+                  </div>
+
+                  <p class="response-style-profile__pole-text">
+                    {{ style.low_pole }}
+                  </p>
+
+                </div>
+
+
+                <!-- SCALE -->
+                <div
+                  class="response-style-scale response-style-profile__scale"
+                  role="img"
+                  aria-label="{{ style.title }}: {{ style.value }} out of 10"
+                >
+
+                  <div class="response-style-scale__segments">
+
+                    {% for segment in response_style_segments %}
+                      <span
+                        class="
+                          response-style-scale__segment
+
+                          {% if segment == style.value %}
+                            response-style-scale__segment--marker
+                          {% endif %}
+
+                          {% if segment <= style.value %}
+                            response-style-scale__segment--filled
+                          {% endif %}
+                        "
+                      ></span>
+                    {% endfor %}
+
+                  </div>
+
+                  <div class="response-style-scale__labels">
+                    <span>Left</span>
+                    <span>Typical</span>
+                    <span>Right</span>
+                  </div>
+
+                </div>
+
+
+                <!-- HIGHER SCORE -->
+                <div
+                  class="
+                    response-style-profile__pole
+                    response-style-profile__pole--right
+                  "
+                >
+
+                  <div class="personality-trait-card__pole-label align-right">
+                    Right score
+                  </div>
+
+                  <p class="response-style-profile__pole-text align-right">
+                    {{ style.high_pole }}
+                  </p>
+
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </article>
+        {% endfor %}
+
+      </div>
+
+      
+      <!-- AI GUIDANCE -->
+      <section
+        class="response-style-ai-card mt-4"
+        data-response-style-guidance
+      >
+
+        <div class="response-style-ai-card__header">
+
+          <div class="response-style-ai-card__heading">
+
+            <h3
+              class="response-style-item__title"
+              data-guidance-title
+            >
+            What does this mean for {{ candidate.first_name }}?
+            </h3>
+
+          </div>
+
+        </div>
+
+
+        <!-- THINKING STATE -->
+        <div
+          class="response-style-ai-thinking"
+          data-guidance-thinking
+          {% if response_style_guidance %}hidden{% endif %}
+        >
+
+          <span class="response-style-ai-thinking__dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+
+          <span data-guidance-thinking-text>
+            Analysing the response pattern and preparing practical guidance...
+          </span>
+
+        </div>
+
+
+        <!-- ERROR STATE -->
+        <div
+          class="response-style-ai-error"
+          data-guidance-error
+          hidden
+        >
+          <div>
+            The interpretation could not be generated.
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-guidance-retry
+          >
+            Try again
+          </button>
+        </div>
+
+
+        <!-- GUIDANCE CONTENT -->
+        <div
+          class="response-style-ai-content"
+          data-guidance-content
+          {% if not response_style_guidance %}hidden{% endif %}
+        >
+
+          <p
+            class="response-style-ai-content__summary"
+            data-guidance-summary
+          >
+            {{ response_style_guidance.summary }}
+          </p>
+
+        </div>
+
+      </section>
+      <!-- /AI GUIDANCE -->
+
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-top pt-3 mt-4">
+        Response-style indicators should be used as interpretive context rather
+        than as measures of ability, suitability or honesty.
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /RESPONSE STYLES -->
 
     {% for section in personality_profile.sections %}
 
@@ -140,14 +393,6 @@
                 </div>
 
               </div>
-
-{% if trait.summary %}
-
-  <div class="personality-trait-card__summary">
-    <p><strong>{{ candidate.first_name }} beskrivs som:</strong></p>
-    {{ trait.summary }}
-  </div>
-{% endif %}
 
 {% if trait.indicators %}
   <div class="personality-trait-card__indicator-toggle-wrap">
@@ -267,6 +512,14 @@
 </div>
 
       {% endfor %}
+
+      {% if trait.summary %}
+
+  <div class="personality-indicator-row">
+    <div class="personality-indicator-row__name mb-2">{{ candidate.first_name }} beskrivs som:</div>
+   <p class="personality-trait-card__pole">{{ trait.summary }}</p>
+  </div>
+{% endif %}
 
     </div>
 

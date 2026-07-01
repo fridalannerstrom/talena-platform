@@ -49,4 +49,16 @@ urlpatterns = [
         views.process_candidate_purpose_fit_regenerate,
         name="process_candidate_purpose_fit_regenerate",
     ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/"
+            "response-style-guidance/stream/"
+        ),
+        views.process_candidate_response_style_guidance_stream,
+        name=(
+            "process_candidate_"
+            "response_style_guidance_stream"
+        ),
+    ),
 ]

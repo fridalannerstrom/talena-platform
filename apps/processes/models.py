@@ -234,6 +234,39 @@ class TestInvitation(models.Model):
         default="",
     )
 
+        # ------------------------------------------------------------
+    # AI response-style guidance
+    # ------------------------------------------------------------
+    ai_response_style_guidance = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_response_style_guidance_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_response_style_guidance_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_response_style_guidance_purpose = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+    )
+
+
 
     is_historical = models.BooleanField(default=False, db_index=True)
 
@@ -258,9 +291,6 @@ class TestInvitation(models.Model):
         blank=True,
         default="",
     )
-
-    
-
 
     class Meta:
         constraints = [
@@ -483,6 +513,38 @@ class HistoricalProcessCandidate(models.Model):
     ai_summary_generated_at = models.DateTimeField(
         null=True,
         blank=True,
+    )
+
+        # ------------------------------------------------------------
+    # AI response-style guidance
+    # ------------------------------------------------------------
+    ai_response_style_guidance = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_response_style_guidance_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_response_style_guidance_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_response_style_guidance_purpose = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

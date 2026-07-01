@@ -2158,6 +2158,592 @@ refreshButton.disabled = true;
 
 </script>
 
+
+<!-- RESPONSE STYLE AI GUIDANCE -->
+<script>
+(function () {
+  "use strict";
+
+  if (window.__talenaResponseStyleGuidanceLoaded) {
+    return;
+  }
+
+  window.__talenaResponseStyleGuidanceLoaded = true;
+
+
+  function find(root, selector) {
+    return root.querySelector(selector);
+  }
+
+
+  function setHidden(element, hidden) {
+    if (!element) {
+      return;
+    }
+
+    element.hidden = hidden;
+  }
+
+
+  function setText(element, value) {
+    if (!element) {
+      return;
+    }
+
+    element.textContent = value || "";
+  }
+
+
+  function createEmptyGuidance() {
+    return {
+      title: "How to approach this profile",
+      label: "AI-supported interpretation",
+      summary: "",
+      how_to_interpret: "",
+      recommended_approach: "",
+      questions: [],
+      combination_note: "",
+      context_note: "",
+    };
+  }
+
+
+  function renderQuestions(root, questions) {
+    const section = find(
+      root,
+      "[data-guidance-questions-section]"
+    );
+
+    const list = find(
+      root,
+      "[data-guidance-questions]"
+    );
+
+    if (!list) {
+      return;
+    }
+
+    list.replaceChildren();
+
+    const validQuestions = Array.isArray(questions)
+      ? questions.filter(Boolean).slice(0, 3)
+      : [];
+
+    validQuestions.forEach(function (question) {
+      const item = document.createElement("li");
+      item.textContent = question;
+      list.appendChild(item);
+    });
+
+    setHidden(
+      section,
+      validQuestions.length === 0
+    );
+  }
+
+
+  function renderGuidance(root, guidance) {
+    if (!guidance) {
+      return;
+    }
+
+    const content = find(
+      root,
+      "[data-guidance-content]"
+    );
+
+    const thinking = find(
+      root,
+      "[data-guidance-thinking]"
+    );
+
+    const error = find(
+      root,
+      "[data-guidance-error]"
+    );
+
+    setText(
+      find(root, "[data-guidance-title]"),
+      guidance.title || "How to approach this profile"
+    );
+
+    setText(
+      find(root, "[data-guidance-label]"),
+      guidance.label || "AI-supported interpretation"
+    );
+
+    setText(
+      find(root, "[data-guidance-summary]"),
+      guidance.summary
+    );
+
+    const howSection = find(
+      root,
+      "[data-guidance-how-section]"
+    );
+
+    setText(
+      find(root, "[data-guidance-how]"),
+      guidance.how_to_interpret
+    );
+
+    setHidden(
+      howSection,
+      !guidance.how_to_interpret
+    );
+
+    const approachSection = find(
+      root,
+      "[data-guidance-approach-section]"
+    );
+
+    setText(
+      find(root, "[data-guidance-approach]"),
+      guidance.recommended_approach
+    );
+
+    setHidden(
+      approachSection,
+      !guidance.recommended_approach
+    );
+
+    renderQuestions(
+      root,
+      guidance.questions
+    );
+
+    const combinationSection = find(
+      root,
+      "[data-guidance-combination-section]"
+    );
+
+    setText(
+      find(root, "[data-guidance-combination]"),
+      guidance.combination_note
+    );
+
+    setHidden(
+      combinationSection,
+      !guidance.combination_note
+    );
+
+    const contextSection = find(
+      root,
+      "[data-guidance-context-section]"
+    );
+
+    setText(
+      find(root, "[data-guidance-context]"),
+      guidance.context_note
+    );
+
+    setHidden(
+      contextSection,
+      !guidance.context_note
+    );
+
+    setHidden(content, false);
+    setHidden(thinking, true);
+    setHidden(error, true);
+
+    root.dataset.hasGuidance = "true";
+  }
+
+
+  function applyEvent(guidance, event) {
+    switch (event.type) {
+      case "meta":
+        guidance.title =
+          event.title || guidance.title;
+
+        guidance.label =
+          event.label || guidance.label;
+        break;
+
+      case "summary_delta":
+        guidance.summary += event.text || "";
+        break;
+
+      case "how_to_interpret":
+        guidance.how_to_interpret =
+          event.text || "";
+        break;
+
+      case "recommended_approach":
+        guidance.recommended_approach =
+          event.text || "";
+        break;
+
+      case "questions":
+        guidance.questions = Array.isArray(event.items)
+          ? event.items
+          : [];
+        break;
+
+      case "combination_note":
+        guidance.combination_note =
+          event.text || "";
+        break;
+
+      case "context_note":
+        guidance.context_note =
+          event.text || "";
+        break;
+
+      case "saved_result":
+        return event.data || guidance;
+
+      default:
+        break;
+    }
+
+    return guidance;
+  }
+
+
+  async function loadGuidance(root, retryCount) {
+    retryCount = retryCount || 0;
+
+    if (
+      root.dataset.guidanceLoading === "true"
+    ) {
+      return;
+    }
+
+    const streamUrl =
+      root.dataset.guidanceStreamUrl;
+
+    const currentStatus =
+      root.dataset.guidanceStatus || "not_started";
+
+    const hasSavedGuidance =
+      root.dataset.hasGuidance === "true";
+
+    if (
+      currentStatus === "completed"
+      && hasSavedGuidance
+    ) {
+      setText(
+        find(root, "[data-guidance-state]"),
+        "Saved interpretation"
+      );
+
+      return;
+    }
+
+    if (!streamUrl) {
+      return;
+    }
+
+    root.dataset.guidanceLoading = "true";
+
+    const thinking = find(
+      root,
+      "[data-guidance-thinking]"
+    );
+
+    const error = find(
+      root,
+      "[data-guidance-error]"
+    );
+
+    const state = find(
+      root,
+      "[data-guidance-state]"
+    );
+
+    setHidden(error, true);
+
+    if (!hasSavedGuidance) {
+      setHidden(thinking, false);
+    }
+
+    setText(
+      state,
+      currentStatus === "outdated"
+        ? "Updating interpretation"
+        : "Generating interpretation"
+    );
+
+    let draft = createEmptyGuidance();
+
+    try {
+      const response = await fetch(streamUrl, {
+        method: "GET",
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      if (response.status === 409) {
+        root.dataset.guidanceLoading = "false";
+
+        setText(
+          state,
+          "Generating interpretation"
+        );
+
+        if (retryCount < 12) {
+          window.setTimeout(function () {
+            loadGuidance(
+              root,
+              retryCount + 1
+            );
+          }, 1500);
+        }
+
+        return;
+      }
+
+      if (!response.ok) {
+        let message =
+          "The interpretation could not be generated.";
+
+        try {
+          const errorData = await response.json();
+
+          if (errorData.error) {
+            message = errorData.error;
+          }
+        } catch (parseError) {
+          // Keep the fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "Streaming is not supported by this browser."
+        );
+      }
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+      let receivedDone = false;
+
+      while (true) {
+        const result = await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          { stream: true }
+        );
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+
+          if (!line) {
+            continue;
+          }
+
+          const event = JSON.parse(line);
+
+          if (event.type === "error") {
+            throw new Error(
+              event.message ||
+              "The interpretation could not be generated."
+            );
+          }
+
+          draft = applyEvent(
+            draft,
+            event
+          );
+
+          if (
+            event.type === "saved_result"
+          ) {
+            renderGuidance(
+              root,
+              draft
+            );
+          }
+
+          if (
+            event.type === "summary_delta"
+            && !hasSavedGuidance
+          ) {
+            renderGuidance(
+              root,
+              draft
+            );
+          }
+
+          if (event.type === "done") {
+            receivedDone = true;
+          }
+        }
+      }
+
+      const finalLine = buffer.trim();
+
+      if (finalLine) {
+        const event = JSON.parse(finalLine);
+
+        if (event.type === "error") {
+          throw new Error(
+            event.message ||
+            "The interpretation could not be generated."
+          );
+        }
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (event.type === "done") {
+          receivedDone = true;
+        }
+      }
+
+      if (
+        receivedDone
+        || draft.summary
+      ) {
+        renderGuidance(
+          root,
+          draft
+        );
+      }
+
+      root.dataset.guidanceStatus = "completed";
+
+      setText(
+        state,
+        "Saved interpretation"
+      );
+
+    } catch (error) {
+      console.error(
+        "Response-style guidance failed:",
+        error
+      );
+
+      setText(
+        find(
+          root,
+          "[data-guidance-error] div"
+        ),
+        error.message ||
+        "The interpretation could not be generated."
+      );
+
+      setHidden(error, false);
+
+      if (!hasSavedGuidance) {
+        setHidden(thinking, true);
+      }
+
+      setText(
+        state,
+        hasSavedGuidance
+          ? "Previous interpretation shown"
+          : "Generation failed"
+      );
+
+    } finally {
+      root.dataset.guidanceLoading = "false";
+    }
+  }
+
+
+  function initialiseRoot(root) {
+    if (
+      !root
+      || root.dataset.guidanceInitialised === "true"
+    ) {
+      return;
+    }
+
+    root.dataset.guidanceInitialised = "true";
+
+    const retryButton = find(
+      root,
+      "[data-guidance-retry]"
+    );
+
+    if (retryButton) {
+      retryButton.addEventListener(
+        "click",
+        function () {
+          root.dataset.guidanceStatus = "failed";
+          loadGuidance(root, 0);
+        }
+      );
+    }
+
+    loadGuidance(root, 0);
+  }
+
+
+  function initialiseAll(container) {
+    const scope = container || document;
+
+    scope
+      .querySelectorAll(
+        "[data-response-style-guidance-root]"
+      )
+      .forEach(initialiseRoot);
+  }
+
+
+  initialiseAll(document);
+
+
+  const observer = new MutationObserver(
+    function (mutations) {
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(
+          function (node) {
+            if (!(node instanceof Element)) {
+              return;
+            }
+
+            if (
+              node.matches(
+                "[data-response-style-guidance-root]"
+              )
+            ) {
+              initialiseRoot(node);
+            }
+
+            initialiseAll(node);
+          }
+        );
+      });
+    }
+  );
+
+  observer.observe(
+    document.body,
+    {
+      childList: true,
+      subtree: true,
+    }
+  );
+
+})();
+</script>
+<!-- /RESPONSE STYLE AI GUIDANCE -->
+
+
+
 <script>
 document.addEventListener("click", function (event) {
   const indicatorButton = event.target.closest(
