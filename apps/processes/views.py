@@ -1424,6 +1424,21 @@ def build_motivation_insight_section(
             "percentile": source.get("percentile"),
             "source_name": source_name,
             "order": item_order,
+
+            # Fallback interpretation data for motivation results
+            # that were not matched against motivation_model.
+            "summary_phrase": (
+                f"the motivational factor {source_name.lower()}"
+            ),
+            "support_phrase": (
+                f"opportunities connected to {source_name.lower()}"
+            ),
+            "top_interpretation": (
+                f"{candidate_label} appears to place relatively high importance "
+                f"on {source_name.lower()}. This result should be explored further "
+                f"with the candidate to understand what it means in their working "
+                f"context."
+            ),
         }
 
         item_order += 1
@@ -1527,7 +1542,12 @@ def build_motivation_insight_section(
         )
 
     for item in motivators:
-        item["interpretation"] = item["top_interpretation"]
+        item["interpretation"] = item.get(
+            "top_interpretation"
+        ) or (
+            f"{candidate_label} appears to be particularly motivated "
+            f"by {item.get('name', 'this aspect of work').lower()}."
+        )
 
     for item in less_central_drivers:
         item["interpretation"] = (
