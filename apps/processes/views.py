@@ -296,6 +296,7 @@ def build_cognitive_insight_results(
 
     return results
 
+
 def build_response_style_results(personality_competencies):
     """
     Build response-style results from Sova personality competencies.
@@ -307,9 +308,9 @@ def build_response_style_results(personality_competencies):
 
     Values are displayed using rounded STEN scores from 1 to 10.
 
-    The low_pole and high_pole texts explain what each side of the
-    response-style scale represents. The interpretation describes
-    what the candidate's specific result may indicate.
+    The scale starts from the centre:
+    - 1-5 extend towards the left
+    - 6-10 extend towards the right
     """
 
     competency_lookup = {
@@ -422,7 +423,7 @@ def build_response_style_results(personality_competencies):
 
         try:
             value = (
-                int(raw_value)
+                int(round(float(raw_value)))
                 if raw_value is not None
                 else None
             )
@@ -431,6 +432,10 @@ def build_response_style_results(personality_competencies):
 
         if value is not None:
             value = max(1, min(10, value))
+
+        # -------------------------------------------------
+        # RESULT BAND AND INTERPRETATION
+        # -------------------------------------------------
 
         if value is None:
             band_key = "missing"
@@ -454,6 +459,27 @@ def build_response_style_results(personality_competencies):
             band_label = "High"
             interpretation = config["high_text"]
 
+        # -------------------------------------------------
+        # CENTRED SCALE
+        #
+        # 1  = five segments towards the left
+        # 5  = one segment towards the left
+        # 6  = one segment towards the right
+        # 10 = five segments towards the right
+        # -------------------------------------------------
+
+        if value is None:
+            scale_side = None
+            scale_strength = 0
+
+        elif value <= 5:
+            scale_side = "left"
+            scale_strength = 6 - value
+
+        else:
+            scale_side = "right"
+            scale_strength = value - 5
+
         response_styles.append({
             "key": config["key"],
             "title": config["title"],
@@ -468,6 +494,10 @@ def build_response_style_results(personality_competencies):
             "band_key": band_key,
             "band_label": band_label,
             "interpretation": interpretation,
+
+            # Used by the centred scale in the template.
+            "scale_side": scale_side,
+            "scale_strength": scale_strength,
 
             # Original Sova information.
             "source_name": (
@@ -2595,6 +2625,7 @@ def build_candidate_detail_context(process, invitation):
         "response_style_guidance_status": (
             invitation.ai_response_style_guidance_status
         ),
+        "response_style_side_segments": range(1, 6),
 
         "response_style_guidance_stream_url": reverse(
             (

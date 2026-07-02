@@ -125,40 +125,59 @@
                 </div>
 
 
-                <!-- SCALE -->
-                <div
-                  class="response-style-scale response-style-profile__scale"
-                  role="img"
-                  aria-label="{{ style.title }}: {{ style.value }} out of 10"
-                >
+<!-- SCALE -->
+<div
+  class="response-style-scale response-style-profile__scale"
+  role="img"
+  aria-label="{{ style.title }}: {{ style.value }} out of 10"
+>
+  <div class="response-style-scale__track">
 
-                  <div class="response-style-scale__segments">
+    <!-- LEFT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--left">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'left' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
 
-                    {% for segment in response_style_segments %}
-                      <span
-                        class="
-                          response-style-scale__segment
+    <!-- CENTER LINE -->
+    <span class="response-style-scale__center-line" aria-hidden="true"></span>
 
-                          {% if segment == style.value %}
-                            response-style-scale__segment--marker
-                          {% endif %}
+    <!-- RIGHT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--right">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'right' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
 
-                          {% if segment <= style.value %}
-                            response-style-scale__segment--filled
-                          {% endif %}
-                        "
-                      ></span>
-                    {% endfor %}
+  </div>
 
-                  </div>
-
-                  <div class="response-style-scale__labels">
-                    <span>Left</span>
-                    <span>Typical</span>
-                    <span>Right</span>
-                  </div>
-
-                </div>
+  <div class="response-style-scale__labels">
+    <span class="response-style-scale__label response-style-scale__label--left">
+      Left
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--center">
+      Typical
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--right">
+      Right
+    </span>
+  </div>
+</div>
 
 
                 <!-- HIGHER SCORE -->
@@ -465,33 +484,98 @@
 
     </div>
 
-    <div class="personality-indicator-row__scale-wrap">
+<div class="personality-indicator-row__scale-wrap">
 
-      <div
-        class="personality-indicator-scale"
-        aria-label="{{ indicator.label }}: STEN {{ indicator.sten }}"
-      >
-        {% for score in "1234567890" %}
-          {% with score_value=forloop.counter %}
-            <span
-              class="
-                personality-indicator-scale__segment
-                {% if score_value == indicator.sten %}
-                  personality-indicator-scale__segment--selected
-                {% endif %}
-              "
-            ></span>
-          {% endwith %}
-        {% endfor %}
-      </div>
+  <div
+    class="personality-indicator-scale"
+    role="img"
+    aria-label="{{ indicator.label }}: STEN {{ indicator.sten }} out of 10"
+  >
 
-      <div class="personality-indicator-scale__labels">
-        <span>Left</span>
-        <span>Right</span>
-      </div>
+    <!-- LEFT SIDE: STEN 1-5 -->
+    <div
+      class="
+        personality-indicator-scale__side
+        personality-indicator-scale__side--left
+      "
+    >
+      {% for score in "12345" %}
+        {% with score_value=forloop.counter %}
 
+          <span
+            class="
+              personality-indicator-scale__segment
+
+              {% if indicator.sten <= 5 and indicator.sten <= score_value %}
+                personality-indicator-scale__segment--filled
+              {% endif %}
+
+              {% if score_value == indicator.sten %}
+                personality-indicator-scale__segment--selected
+              {% endif %}
+            "
+          ></span>
+
+        {% endwith %}
+      {% endfor %}
     </div>
 
+
+    <!-- CENTRE LINE -->
+    <span
+      class="personality-indicator-scale__center-line"
+      aria-hidden="true"
+    ></span>
+
+
+    <!-- RIGHT SIDE: STEN 6-10 -->
+    <div
+      class="
+        personality-indicator-scale__side
+        personality-indicator-scale__side--right
+      "
+    >
+      {% for score in "12345" %}
+        {% with score_value=forloop.counter|add:"5" %}
+
+          <span
+            class="
+              personality-indicator-scale__segment
+
+              {% if indicator.sten >= 6 and score_value <= indicator.sten %}
+                personality-indicator-scale__segment--filled
+              {% endif %}
+
+              {% if score_value == indicator.sten %}
+                personality-indicator-scale__segment--selected
+              {% endif %}
+            "
+          ></span>
+
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+  </div>
+
+
+  <div class="personality-indicator-scale__labels">
+
+    <span class="personality-indicator-scale__label--left">
+      Left
+    </span>
+
+    <span class="personality-indicator-scale__label--center">
+      Average
+    </span>
+
+    <span class="personality-indicator-scale__label--right">
+      Right
+    </span>
+
+  </div>
+
+</div>
     <div class="
       personality-indicator-row__pole
       personality-indicator-row__pole--right align-right
