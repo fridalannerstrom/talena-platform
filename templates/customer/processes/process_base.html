@@ -253,6 +253,8 @@ await initTeamStyleChart(sheetBody);
 
 await initCandidateSummaryStream(sheetBody);
 await initCandidatePurposeFitStream(sheetBody);
+await initCandidateCognitiveInterpretation(sheetBody);
+await initCandidateMotivationInterpretation(sheetBody);
 
 
       } catch (error) {
@@ -1751,6 +1753,1273 @@ ${userMessage}
 })();
 </script>
 
+<script>
+
+async function initCandidateMotivationInterpretation(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-motivation-ai-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset.motivationAiInitialised === "true"
+  ) {
+    return;
+  }
+
+  root.dataset.motivationAiInitialised = "true";
+
+  const streamUrl = root.dataset.streamUrl;
+  const regenerateUrl = root.dataset.regenerateUrl;
+
+  const thinking = root.querySelector(
+    "[data-motivation-ai-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-motivation-ai-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-motivation-ai-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-motivation-ai-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-motivation-ai-outdated]"
+  );
+
+  const interpretationEl = root.querySelector(
+    "[data-motivation-ai-interpretation]"
+  );
+
+  const engagementSection = root.querySelector(
+    "[data-motivation-ai-engagement-section]"
+  );
+
+  const engagementList = root.querySelector(
+    "[data-motivation-ai-engagement]"
+  );
+
+  const clarifySection = root.querySelector(
+    "[data-motivation-ai-clarify-section]"
+  );
+
+  const clarifyList = root.querySelector(
+    "[data-motivation-ai-clarify]"
+  );
+
+  const questionsSection = root.querySelector(
+    "[data-motivation-ai-questions-section]"
+  );
+
+  const questionsList = root.querySelector(
+    "[data-motivation-ai-questions]"
+  );
+
+  const expectationSection = root.querySelector(
+    "[data-motivation-ai-expectation-section]"
+  );
+
+  const expectationEl = root.querySelector(
+    "[data-motivation-ai-expectation]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-motivation-ai-context-note]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-motivation-ai-regenerate]"
+  );
+
+  let isStreaming = false;
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+  function setHidden(element, hidden) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+  function hideOutdatedState() {
+    setHidden(statusBadge, true);
+    setHidden(outdatedWarning, true);
+  }
+
+  function resetContent() {
+    interpretationEl.textContent = "";
+    engagementList.replaceChildren();
+    clarifyList.replaceChildren();
+    questionsList.replaceChildren();
+    expectationEl.textContent = "";
+    contextNote.textContent = "";
+
+    setHidden(engagementSection, true);
+    setHidden(clarifySection, true);
+    setHidden(questionsSection, true);
+    setHidden(expectationSection, true);
+
+    setHidden(errorBox, true);
+    setHidden(content, true);
+  }
+
+  function renderSimpleList(
+    listElement,
+    sectionElement,
+    items,
+    iconName
+  ) {
+    listElement.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter(Boolean)
+      : [];
+
+    validItems.forEach((item) => {
+      const li = document.createElement("li");
+
+      const icon = document.createElement("span");
+      icon.className = "motivation-ai-list-icon";
+      icon.innerHTML =
+        `<i data-feather="${iconName}"></i>`;
+
+      const text = document.createElement("span");
+      text.textContent = item;
+
+      li.appendChild(icon);
+      li.appendChild(text);
+
+      listElement.appendChild(li);
+    });
+
+    setHidden(
+      sectionElement,
+      validItems.length === 0
+    );
+
+    refreshIcons();
+  }
+
+  function renderQuestions(items) {
+    questionsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter(
+          (item) =>
+            item
+            && typeof item === "object"
+            && item.question
+        )
+      : [];
+
+    validItems.forEach((item, index) => {
+      const article = document.createElement(
+        "article"
+      );
+
+      article.className =
+        "motivation-ai-question";
+
+      const number = document.createElement(
+        "div"
+      );
+
+      number.className =
+        "motivation-ai-question__number";
+
+      number.textContent =
+        String(index + 1);
+
+      const questionContent =
+        document.createElement("div");
+
+      questionContent.className =
+        "motivation-ai-question__content";
+
+      const question =
+        document.createElement("div");
+
+      question.className =
+        "motivation-ai-question__text";
+
+      question.textContent =
+        item.question || "";
+
+      questionContent.appendChild(question);
+
+      if (item.why) {
+        const why =
+          document.createElement("div");
+
+        why.className =
+          "motivation-ai-question__detail";
+
+        const label =
+          document.createElement("span");
+
+        label.textContent =
+          "Why this matters";
+
+        why.appendChild(label);
+        why.append(
+          document.createTextNode(
+            item.why
+          )
+        );
+
+        questionContent.appendChild(why);
+      }
+
+      if (item.listen_for) {
+        const listenFor =
+          document.createElement("div");
+
+        listenFor.className =
+          "motivation-ai-question__detail";
+
+        const label =
+          document.createElement("span");
+
+        label.textContent =
+          "What to listen for";
+
+        listenFor.appendChild(label);
+        listenFor.append(
+          document.createTextNode(
+            item.listen_for
+          )
+        );
+
+        questionContent.appendChild(
+          listenFor
+        );
+      }
+
+      article.appendChild(number);
+      article.appendChild(
+        questionContent
+      );
+
+      questionsList.appendChild(article);
+    });
+
+    setHidden(
+      questionsSection,
+      validItems.length === 0
+    );
+  }
+
+  function applySavedResult(data) {
+    interpretationEl.textContent =
+      data.interpretation || "";
+
+    renderSimpleList(
+      engagementList,
+      engagementSection,
+      data.engagement_conditions || [],
+      "zap"
+    );
+
+    renderSimpleList(
+      clarifyList,
+      clarifySection,
+      data.areas_to_clarify || [],
+      "search"
+    );
+
+    renderQuestions(
+      data.questions || []
+    );
+
+    expectationEl.textContent =
+      data.expectation_setting || "";
+
+    setHidden(
+      expectationSection,
+      !data.expectation_setting
+    );
+
+    contextNote.textContent =
+      data.context_note || "";
+
+    setHidden(thinking, true);
+    setHidden(errorBox, true);
+    setHidden(content, false);
+  }
+
+  function applyEvent(draft, event) {
+    switch (event.type) {
+      case "saved_result":
+        return event.data || draft;
+
+      case "meta":
+        draft.title =
+          event.title || draft.title;
+
+        draft.label =
+          event.label || draft.label;
+        break;
+
+      case "interpretation_delta":
+        draft.interpretation +=
+          event.text || "";
+
+        interpretationEl.textContent =
+          draft.interpretation;
+
+        setHidden(thinking, true);
+        setHidden(content, false);
+        break;
+
+      case "engagement_conditions":
+        draft.engagement_conditions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderSimpleList(
+          engagementList,
+          engagementSection,
+          draft.engagement_conditions,
+          "zap"
+        );
+        break;
+
+      case "areas_to_clarify":
+        draft.areas_to_clarify =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderSimpleList(
+          clarifyList,
+          clarifySection,
+          draft.areas_to_clarify,
+          "search"
+        );
+        break;
+
+      case "questions":
+        draft.questions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderQuestions(
+          draft.questions
+        );
+        break;
+
+      case "expectation_setting":
+        draft.expectation_setting =
+          event.text || "";
+
+        expectationEl.textContent =
+          draft.expectation_setting;
+
+        setHidden(
+          expectationSection,
+          !draft.expectation_setting
+        );
+        break;
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        contextNote.textContent =
+          draft.context_note;
+        break;
+
+      case "error":
+        throw new Error(
+          event.message ||
+          "Motivation interpretation failed."
+        );
+
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+  async function streamInterpretation(url) {
+    if (!url || isStreaming) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(thinking, false);
+
+    regenerateButton.disabled = true;
+
+    let draft = {
+      title: "Motivation interpretation",
+      label: "AI-supported interpretation",
+      interpretation: "",
+      engagement_conditions: [],
+      areas_to_clarify: [],
+      questions: [],
+      expectation_setting: "",
+      context_note: "",
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      if (response.status === 409) {
+        throw new Error(
+          "The interpretation is already being generated."
+        );
+      }
+
+      if (!response.ok) {
+        let message =
+          "The motivation interpretation could not be generated.";
+
+        try {
+          const data = await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+        } catch (parseError) {
+          // Keep fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "Streaming is not supported by this browser."
+        );
+      }
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        for (const rawLine of lines) {
+          const line =
+            rawLine.trim();
+
+          if (!line) {
+            continue;
+          }
+
+          const event =
+            JSON.parse(line);
+
+          draft =
+            applyEvent(
+              draft,
+              event
+            );
+
+          if (
+            event.type ===
+            "saved_result"
+          ) {
+            applySavedResult(
+              draft
+            );
+          }
+        }
+      }
+
+      const finalLine =
+        buffer.trim();
+
+      if (finalLine) {
+        const event =
+          JSON.parse(finalLine);
+
+        draft =
+          applyEvent(
+            draft,
+            event
+          );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          applySavedResult(
+            draft
+          );
+        }
+      }
+
+      applySavedResult(draft);
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+    } catch (error) {
+      console.error(
+        "Motivation interpretation error:",
+        error
+      );
+
+      setHidden(thinking, true);
+      setHidden(content, true);
+      setHidden(errorBox, false);
+
+      errorBox.textContent =
+        error.message ||
+        "The motivation interpretation could not be generated.";
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+      regenerateButton.disabled = false;
+      refreshIcons();
+    }
+  }
+
+  regenerateButton.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl
+        || isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled = true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+            credentials: "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "The interpretation could not be regenerated."
+          );
+        }
+
+        await streamInterpretation(
+          data.stream_url || streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          "Motivation regeneration error:",
+          error
+        );
+
+        setHidden(errorBox, false);
+
+        errorBox.textContent =
+          error.message ||
+          "The interpretation could not be regenerated.";
+
+      } finally {
+        regenerateButton.disabled = false;
+      }
+    }
+  );
+
+  const hasResult =
+    root.dataset.hasResult === "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+  if (
+    !hasResult
+    && status !== "generating"
+  ) {
+    await streamInterpretation(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
+
+</script>
+
+<script>
+  async function initCandidateCognitiveInterpretation(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-cognitive-ai-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset.cognitiveAiInitialised === "true"
+  ) {
+    return;
+  }
+
+  root.dataset.cognitiveAiInitialised = "true";
+
+  const streamUrl = root.dataset.streamUrl;
+  const regenerateUrl = root.dataset.regenerateUrl;
+
+  const thinking = root.querySelector(
+    "[data-cognitive-ai-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-cognitive-ai-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-cognitive-ai-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-cognitive-ai-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-cognitive-ai-outdated]"
+  );
+
+  const interpretationEl = root.querySelector(
+    "[data-cognitive-ai-interpretation]"
+  );
+
+  const considerationsSection = root.querySelector(
+    "[data-cognitive-ai-considerations-section]"
+  );
+
+  const considerationsList = root.querySelector(
+    "[data-cognitive-ai-considerations]"
+  );
+
+  const questionsSection = root.querySelector(
+    "[data-cognitive-ai-questions-section]"
+  );
+
+  const questionsList = root.querySelector(
+    "[data-cognitive-ai-questions]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-cognitive-ai-context-note]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-cognitive-ai-regenerate]"
+  );
+
+  let isStreaming = false;
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+  function setHidden(element, hidden) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+  function hideOutdatedState() {
+    setHidden(statusBadge, true);
+    setHidden(outdatedWarning, true);
+  }
+
+  function resetContent() {
+    interpretationEl.textContent = "";
+    considerationsList.replaceChildren();
+    questionsList.replaceChildren();
+    contextNote.textContent = "";
+
+    setHidden(
+      considerationsSection,
+      true
+    );
+
+    setHidden(
+      questionsSection,
+      true
+    );
+
+    setHidden(errorBox, true);
+    setHidden(content, true);
+  }
+
+  function renderConsiderations(items) {
+    considerationsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter(Boolean)
+      : [];
+
+    validItems.forEach((item) => {
+      const li = document.createElement("li");
+
+      const icon = document.createElement("span");
+      icon.className = "cognitive-ai-list-icon";
+      icon.innerHTML =
+        '<i data-feather="search"></i>';
+
+      const text = document.createElement("span");
+      text.textContent = item;
+
+      li.appendChild(icon);
+      li.appendChild(text);
+
+      considerationsList.appendChild(li);
+    });
+
+    setHidden(
+      considerationsSection,
+      validItems.length === 0
+    );
+
+    refreshIcons();
+  }
+
+  function renderQuestions(items) {
+    questionsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter(
+          (item) =>
+            item
+            && typeof item === "object"
+            && item.question
+        )
+      : [];
+
+    validItems.forEach((item, index) => {
+      const article = document.createElement(
+        "article"
+      );
+
+      article.className =
+        "cognitive-ai-question";
+
+      const number = document.createElement(
+        "div"
+      );
+
+      number.className =
+        "cognitive-ai-question__number";
+
+      number.textContent =
+        String(index + 1);
+
+      const questionContent =
+        document.createElement("div");
+
+      questionContent.className =
+        "cognitive-ai-question__content";
+
+      const question =
+        document.createElement("div");
+
+      question.className =
+        "cognitive-ai-question__text";
+
+      question.textContent =
+        item.question || "";
+
+      questionContent.appendChild(
+        question
+      );
+
+      if (item.why) {
+        const why =
+          document.createElement("div");
+
+        why.className =
+          "cognitive-ai-question__detail";
+
+        const label =
+          document.createElement("span");
+
+        label.textContent =
+          "Why this matters";
+
+        why.appendChild(label);
+        why.append(
+          document.createTextNode(
+            item.why
+          )
+        );
+
+        questionContent.appendChild(why);
+      }
+
+      if (item.listen_for) {
+        const listenFor =
+          document.createElement("div");
+
+        listenFor.className =
+          "cognitive-ai-question__detail";
+
+        const label =
+          document.createElement("span");
+
+        label.textContent =
+          "What to listen for";
+
+        listenFor.appendChild(label);
+        listenFor.append(
+          document.createTextNode(
+            item.listen_for
+          )
+        );
+
+        questionContent.appendChild(
+          listenFor
+        );
+      }
+
+      article.appendChild(number);
+      article.appendChild(
+        questionContent
+      );
+
+      questionsList.appendChild(article);
+    });
+
+    setHidden(
+      questionsSection,
+      validItems.length === 0
+    );
+  }
+
+  function applySavedResult(data) {
+    interpretationEl.textContent =
+      data.interpretation || "";
+
+    renderConsiderations(
+      data.considerations || []
+    );
+
+    renderQuestions(
+      data.questions || []
+    );
+
+    contextNote.textContent =
+      data.context_note || "";
+
+    setHidden(thinking, true);
+    setHidden(errorBox, true);
+    setHidden(content, false);
+  }
+
+  function applyEvent(draft, event) {
+    switch (event.type) {
+      case "saved_result":
+        return event.data || draft;
+
+      case "meta":
+        draft.title =
+          event.title || draft.title;
+
+        draft.label =
+          event.label || draft.label;
+        break;
+
+      case "interpretation_delta":
+        draft.interpretation +=
+          event.text || "";
+
+        interpretationEl.textContent =
+          draft.interpretation;
+
+        setHidden(thinking, true);
+        setHidden(content, false);
+        break;
+
+      case "considerations":
+        draft.considerations =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderConsiderations(
+          draft.considerations
+        );
+        break;
+
+      case "questions":
+        draft.questions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderQuestions(
+          draft.questions
+        );
+        break;
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        contextNote.textContent =
+          draft.context_note;
+        break;
+
+      case "error":
+        throw new Error(
+          event.message ||
+          "Cognitive interpretation failed."
+        );
+
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+  async function streamInterpretation(url) {
+    if (!url || isStreaming) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(thinking, false);
+
+    regenerateButton.disabled = true;
+
+    let draft = {
+      title: "Cognitive interpretation",
+      label: "AI-supported interpretation",
+      interpretation: "",
+      considerations: [],
+      questions: [],
+      context_note: "",
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      if (response.status === 409) {
+        throw new Error(
+          "The interpretation is already being generated."
+        );
+      }
+
+      if (!response.ok) {
+        let message =
+          "The cognitive interpretation could not be generated.";
+
+        try {
+          const data = await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+        } catch (parseError) {
+          // Keep fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "Streaming is not supported by this browser."
+        );
+      }
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        for (const rawLine of lines) {
+          const line =
+            rawLine.trim();
+
+          if (!line) {
+            continue;
+          }
+
+          const event =
+            JSON.parse(line);
+
+          draft =
+            applyEvent(
+              draft,
+              event
+            );
+
+          if (
+            event.type ===
+            "saved_result"
+          ) {
+            applySavedResult(
+              draft
+            );
+          }
+        }
+      }
+
+      const finalLine =
+        buffer.trim();
+
+      if (finalLine) {
+        const event =
+          JSON.parse(finalLine);
+
+        draft =
+          applyEvent(
+            draft,
+            event
+          );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          applySavedResult(
+            draft
+          );
+        }
+      }
+
+      applySavedResult(draft);
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+    } catch (error) {
+      console.error(
+        "Cognitive interpretation error:",
+        error
+      );
+
+      setHidden(thinking, true);
+      setHidden(content, true);
+      setHidden(errorBox, false);
+
+      errorBox.textContent =
+        error.message ||
+        "The cognitive interpretation could not be generated.";
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+      regenerateButton.disabled = false;
+      refreshIcons();
+    }
+  }
+
+  regenerateButton.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl
+        || isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled = true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+            credentials: "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "The interpretation could not be regenerated."
+          );
+        }
+
+        await streamInterpretation(
+          data.stream_url || streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          "Cognitive regeneration error:",
+          error
+        );
+
+        setHidden(errorBox, false);
+
+        errorBox.textContent =
+          error.message ||
+          "The interpretation could not be regenerated.";
+
+      } finally {
+        regenerateButton.disabled = false;
+      }
+    }
+  );
+
+  const hasResult =
+    root.dataset.hasResult === "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+  if (
+    !hasResult
+    && status !== "generating"
+  ) {
+    await streamInterpretation(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
+</script>
 
 <script>
 async function initCandidatePurposeFitStream(container = document) {
@@ -1796,14 +3065,6 @@ async function initCandidatePurposeFitStream(container = document) {
 
     const title = container.querySelector(
         "#purposeFitTitle"
-    );
-
-    const recommendation = container.querySelector(
-        "#purposeFitRecommendation"
-    );
-
-    const confidence = container.querySelector(
-        "#purposeFitConfidence"
     );
 
     const summary = container.querySelector(
@@ -1877,9 +3138,7 @@ async function initCandidatePurposeFitStream(container = document) {
     }
 
     function resetPurposeFit() {
-        title.textContent = "Purpose fit";
-        recommendation.textContent = "";
-        confidence.textContent = "";
+        title.textContent = "AI Overview";
         summary.textContent = "";
         alignmentList.innerHTML = "";
         verifyList.innerHTML = "";
@@ -1916,10 +3175,7 @@ async function initCandidatePurposeFitStream(container = document) {
     }
 
     function applySavedResult(data) {
-        title.textContent = data.title || "Purpose fit";
-        recommendation.textContent =
-            data.recommendation || "Insufficient context";
-        confidence.textContent = data.confidence || "Low";
+        title.textContent = data.title || "AI Overview";
         summary.textContent = data.summary || "";
 
         renderList(
@@ -1958,13 +3214,7 @@ case "saved_result":
 
             case "meta":
                 title.textContent =
-                    event.title || "Purpose fit";
-
-                recommendation.textContent =
-                    event.recommendation || "";
-
-                confidence.textContent =
-                    event.confidence || "";
+                    title.textContent = "AI Overview";
 
                 loading.classList.add("d-none");
                 result.classList.remove("d-none");
@@ -2026,7 +3276,7 @@ case "done":
 
         loading.classList.remove("d-none");
 loadingText.textContent =
-    "Analysing assessment results and process context...";
+    "Creating an overview from the available assessment results...";
 
 if (statusBadge) {
     statusBadge.classList.add("d-none");
@@ -2045,10 +3295,11 @@ refreshButton.disabled = true;
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
 
-                throw new Error(
-                    errorData.error ||
-                    "Could not generate purpose fit."
-                );
+              throw new Error(
+                  errorData.error ||
+                  errorData.message ||
+                  "Could not generate AI overview."
+              );
             }
 
             if (!response.body) {
@@ -2094,7 +3345,7 @@ refreshButton.disabled = true;
             }
 
         } catch (error) {
-            console.error("Purpose fit error:", error);
+            console.error("AI overview error:", error);
 
             loading.classList.add("d-none");
             errorBox.classList.remove("d-none");

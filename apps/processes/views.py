@@ -17,6 +17,22 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from apps.core.ai.cognitive_interpretation import (
+    extract_cognitive_results,
+    create_empty_cognitive_interpretation,
+    apply_cognitive_interpretation_event,
+    stream_cognitive_interpretation,
+    save_cognitive_interpretation,
+)
+
+from apps.core.ai.motivation_interpretation import (
+    extract_motivation_results,
+    create_empty_motivation_interpretation,
+    apply_motivation_interpretation_event,
+    stream_motivation_interpretation,
+    save_motivation_interpretation,
+)
+
 from apps.core.ai.response_style_guidance import (
     create_empty_response_style_guidance,
     apply_response_style_guidance_event,
@@ -2661,6 +2677,76 @@ def build_candidate_detail_context(process, invitation):
         "motivation_insights": motivation_insights,
 
         "team_style_profile": team_style_profile,
+        # Cognitive AI interpretation
+        "cognitive_interpretation": (
+            invitation.ai_cognitive_interpretation
+            or {}
+        ),
+
+        "cognitive_interpretation_status": (
+            invitation
+            .ai_cognitive_interpretation_status
+            or "not_started"
+        ),
+
+        "cognitive_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+        # Motivation AI interpretation
+        "motivation_interpretation": (
+            invitation.ai_motivation_interpretation
+            or {}
+        ),
+
+        "motivation_interpretation_status": (
+            invitation
+            .ai_motivation_interpretation_status
+            or "not_started"
+        ),
+
+        "motivation_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
@@ -3074,6 +3160,14 @@ def mark_candidate_ai_content_outdated(process):
         .update(ai_purpose_fit_status="outdated")
     )
 
+    cognitive_interpretation_count = (
+        invitations
+        .exclude(ai_cognitive_interpretation={})
+        .update(
+            ai_cognitive_interpretation_status="outdated"
+        )
+    )
+
     response_style_guidance_count = (
         invitations
         .exclude(ai_response_style_guidance={})
@@ -3082,9 +3176,23 @@ def mark_candidate_ai_content_outdated(process):
         )
     )
 
+    motivation_interpretation_count = (
+        invitations
+        .exclude(ai_motivation_interpretation={})
+        .update(
+            ai_motivation_interpretation_status="outdated"
+        )
+    )
+
     return {
         "summaries": summary_count,
         "purpose_fits": purpose_fit_count,
+        "cognitive_interpretations": (
+            cognitive_interpretation_count
+        ),
+        "motivation_interpretations": (
+            motivation_interpretation_count
+        ),
         "response_style_guidance": (
             response_style_guidance_count
         ),
@@ -6061,3 +6169,626 @@ def process_candidate_summary_regenerate(
             },
         ),
     })
+
+
+@login_required
+def process_candidate_cognitive_interpretation_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save an AI-supported interpretation of the
+    candidate's available cognitive assessment results.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical cognitive interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    cognitive_results = extract_cognitive_results(
+        invitation
+    )
+
+    if not cognitive_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No cognitive assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_cognitive_interpretation_status
+        or "not_started"
+    )
+
+    saved_interpretation = (
+        invitation.ai_cognitive_interpretation
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        invitation.ai_cognitive_interpretation_purpose
+        or ""
+    ).strip().lower()
+
+    # Safety check in case the purpose changed without the normal
+    # outdated-marking flow being triggered.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_cognitive_interpretation_status = (
+            "outdated"
+        )
+
+        invitation.save(update_fields=[
+            "ai_cognitive_interpretation_status",
+        ])
+
+    # Return a completed saved result without a new OpenAI request.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_interpretation,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The cognitive interpretation is "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_cognitive_interpretation_status = (
+        "generating"
+    )
+
+    invitation.save(update_fields=[
+        "ai_cognitive_interpretation_status",
+    ])
+
+    def generator():
+        interpretation = (
+            create_empty_cognitive_interpretation(
+                invitation
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_cognitive_interpretation(
+                owner=invitation,
+                cognitive_results=cognitive_results,
+            ):
+                interpretation = (
+                    apply_cognitive_interpretation_event(
+                        interpretation,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            # Do not save an empty or malformed AI result.
+            if not (
+                interpretation.get("interpretation")
+                or ""
+            ).strip():
+                raise ValueError(
+                    "The AI response did not contain "
+                    "a cognitive interpretation."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_cognitive_interpretation(
+                owner=invitation,
+                interpretation=interpretation,
+            )
+
+        except Exception as error:
+            invitation.ai_cognitive_interpretation_status = (
+                "failed"
+            )
+
+            invitation.save(update_fields=[
+                "ai_cognitive_interpretation_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_cognitive_interpretation_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Clear the saved cognitive interpretation and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical cognitive interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_cognitive_interpretation = {}
+    invitation.ai_cognitive_interpretation_status = (
+        "not_started"
+    )
+    invitation.ai_cognitive_interpretation_generated_at = (
+        None
+    )
+    invitation.ai_cognitive_interpretation_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_cognitive_interpretation",
+            "ai_cognitive_interpretation_status",
+            "ai_cognitive_interpretation_generated_at",
+            "ai_cognitive_interpretation_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_cognitive_"
+                    "interpretation_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_motivation_interpretation_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save an AI-supported interpretation of the
+    candidate's motivation assessment results.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical motivation interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    motivation_results = extract_motivation_results(
+        invitation
+    )
+
+    if not motivation_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No motivation assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_motivation_interpretation_status
+        or "not_started"
+    )
+
+    saved_interpretation = (
+        invitation.ai_motivation_interpretation
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        invitation.ai_motivation_interpretation_purpose
+        or ""
+    ).strip().lower()
+
+    # Extra safety if the purpose changed without the normal
+    # outdated-marking flow being triggered.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_motivation_interpretation_status = (
+            "outdated"
+        )
+
+        invitation.save(update_fields=[
+            "ai_motivation_interpretation_status",
+        ])
+
+    # Return an existing completed interpretation.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_interpretation,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The motivation interpretation is "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_motivation_interpretation_status = (
+        "generating"
+    )
+
+    invitation.save(update_fields=[
+        "ai_motivation_interpretation_status",
+    ])
+
+    def generator():
+        interpretation = (
+            create_empty_motivation_interpretation(
+                invitation
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_motivation_interpretation(
+                owner=invitation,
+                motivation_results=motivation_results,
+            ):
+                interpretation = (
+                    apply_motivation_interpretation_event(
+                        interpretation,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            if not (
+                interpretation.get("interpretation")
+                or ""
+            ).strip():
+                raise ValueError(
+                    "The AI response did not contain "
+                    "a motivation interpretation."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_motivation_interpretation(
+                owner=invitation,
+                interpretation=interpretation,
+            )
+
+        except Exception as error:
+            invitation.ai_motivation_interpretation_status = (
+                "failed"
+            )
+
+            invitation.save(update_fields=[
+                "ai_motivation_interpretation_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_motivation_interpretation_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Clear the saved motivation interpretation and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical motivation interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_motivation_interpretation = {}
+    invitation.ai_motivation_interpretation_status = (
+        "not_started"
+    )
+    invitation.ai_motivation_interpretation_generated_at = (
+        None
+    )
+    invitation.ai_motivation_interpretation_purpose = ""
+
+    invitation.save(update_fields=[
+        "ai_motivation_interpretation",
+        "ai_motivation_interpretation_status",
+        "ai_motivation_interpretation_generated_at",
+        "ai_motivation_interpretation_purpose",
+    ])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_motivation_"
+                    "interpretation_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )

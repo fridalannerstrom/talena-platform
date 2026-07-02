@@ -61,4 +61,48 @@ urlpatterns = [
             "response_style_guidance_stream"
         ),
     ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/cognitive-interpretation/stream/"
+        ),
+        views.process_candidate_cognitive_interpretation_stream,
+        name=(
+            "process_candidate_cognitive_"
+            "interpretation_stream"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/cognitive-interpretation/regenerate/"
+        ),
+        views.process_candidate_cognitive_interpretation_regenerate,
+        name=(
+            "process_candidate_cognitive_"
+            "interpretation_regenerate"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/motivation-interpretation/stream/"
+        ),
+        views.process_candidate_motivation_interpretation_stream,
+        name=(
+            "process_candidate_motivation_"
+            "interpretation_stream"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/motivation-interpretation/regenerate/"
+        ),
+        views.process_candidate_motivation_interpretation_regenerate,
+        name=(
+            "process_candidate_motivation_"
+            "interpretation_regenerate"
+        ),
+    ),
 ]

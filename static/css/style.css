@@ -27430,6 +27430,488 @@ color: #6E63E3;
 }
 
 /* =========================================================
+   AI OVERVIEW
+   Overrides the old multi-column Purpose Fit layout.
+========================================================= */
+
+.ai-overview-card {
+  display: block !important;
+}
+
+.ai-overview-card > .card-body {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Every main section should occupy the full card width. */
+.ai-overview-card > .card-body > * {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Header */
+.ai-overview-card .ai-overview-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.ai-overview-card .ai-overview-header__content {
+  min-width: 0;
+  max-width: 760px;
+}
+
+.ai-overview-card .ai-overview-header__actions {
+  flex: 0 0 auto;
+}
+
+/* Result wrapper */
+.ai-overview-card #purposeFitResult {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.ai-overview-card #purposeFitResult.d-none {
+  display: none !important;
+}
+
+/* Overall interpretation */
+.ai-overview-card .purpose-fit-section {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+.ai-overview-card .purpose-fit-summary {
+  width: 100%;
+  max-width: none;
+  line-height: 1.7;
+}
+
+/* Supporting and exploration cards */
+.ai-overview-card .row {
+  width: auto;
+}
+
+.ai-overview-card .purpose-fit-list-card {
+  width: 100%;
+  min-width: 0;
+  padding: 22px;
+}
+
+.ai-overview-card .purpose-fit-list {
+  margin-bottom: 0;
+}
+
+.ai-overview-card .purpose-fit-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ai-overview-card .purpose-fit-list li > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Recommended next step */
+.ai-overview-card .purpose-fit-next-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 22px;
+}
+
+/* Explanation section */
+.ai-overview-card .purpose-fit-explainer {
+  display: block !important;
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  padding: 22px;
+}
+
+.ai-overview-card .purpose-fit-explainer__content {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+.ai-overview-card .purpose-fit-explainer__text {
+  max-width: 780px;
+  margin-top: 6px;
+  line-height: 1.65;
+}
+
+.ai-overview-card .purpose-fit-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Disclaimer */
+.ai-overview-card .purpose-fit-disclaimer {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: none;
+}
+
+.ai-overview-card .purpose-fit-disclaimer > div {
+  max-width: 900px;
+}
+
+/* Loading, warnings and errors */
+.ai-overview-card #purposeFitLoading,
+.ai-overview-card #purposeFitError,
+.ai-overview-card #purposeFitOutdatedWarning {
+  width: 100%;
+  max-width: none;
+}
+
+/* Tablet and mobile */
+@media (max-width: 767.98px) {
+  .ai-overview-card .ai-overview-header {
+    gap: 16px;
+  }
+
+  .ai-overview-card .purpose-fit-list-card,
+  .ai-overview-card .purpose-fit-next-step,
+  .ai-overview-card .purpose-fit-explainer {
+    padding: 18px;
+  }
+}
+
+/* =========================================================
+   COGNITIVE AI INTERPRETATION
+========================================================= */
+
+.cognitive-ai-card .card-body {
+  padding: 28px;
+}
+
+.cognitive-ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.cognitive-ai-section {
+  max-width: 100%;
+}
+
+.cognitive-ai-section__title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.cognitive-ai-interpretation {
+  line-height: 1.75;
+  color: #303545;
+}
+
+.cognitive-ai-considerations {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cognitive-ai-considerations li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #ece7dc;
+  border-radius: 12px;
+  background: #fffaf3;
+}
+
+.cognitive-ai-list-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff0d6;
+  color: #d47b00;
+}
+
+.cognitive-ai-list-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cognitive-ai-question-list {
+  display: grid;
+  gap: 14px;
+}
+
+.cognitive-ai-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e8e5f5;
+  border-radius: 14px;
+  background: #faf9ff;
+}
+
+.cognitive-ai-question__number {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #ebe7ff;
+  color: #6756d8;
+  font-weight: 700;
+}
+
+.cognitive-ai-question__content {
+  min-width: 0;
+}
+
+.cognitive-ai-question__text {
+  margin-bottom: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.cognitive-ai-question__detail {
+  margin-top: 6px;
+  color: #5d6474;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.cognitive-ai-question__detail span {
+  display: block;
+  margin-bottom: 2px;
+  color: #313646;
+  font-weight: 700;
+}
+
+.cognitive-ai-context-note {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #f7f8fb;
+  color: #5f6675;
+  line-height: 1.6;
+}
+
+.cognitive-ai-context-note__title {
+  margin-bottom: 6px;
+  color: #242936;
+  font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+  .cognitive-ai-card .card-body {
+    padding: 20px;
+  }
+
+  .cognitive-ai-header {
+    gap: 16px;
+  }
+}
+
+/* =========================================================
+   MOTIVATION AI INTERPRETATION
+========================================================= */
+
+.motivation-ai-card .card-body {
+  padding: 28px;
+}
+
+.motivation-ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.motivation-ai-section {
+  min-width: 0;
+}
+
+.motivation-ai-section__title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.motivation-ai-interpretation {
+  line-height: 1.75;
+  color: #303545;
+}
+
+.motivation-ai-list-card {
+  padding: 20px;
+  border: 1px solid #e4e5eb;
+  border-radius: 14px;
+}
+
+.motivation-ai-list-card--engagement {
+  background: #f4fbf8;
+}
+
+.motivation-ai-list-card--clarify {
+  background: #fffaf3;
+}
+
+.motivation-ai-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.motivation-ai-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.motivation-ai-list-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #e2f7ef;
+  color: #238b68;
+}
+
+.motivation-ai-list-card--clarify
+.motivation-ai-list-icon {
+  background: #fff0d6;
+  color: #d47b00;
+}
+
+.motivation-ai-list-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.motivation-ai-question-list {
+  display: grid;
+  gap: 14px;
+}
+
+.motivation-ai-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e8e5f5;
+  border-radius: 14px;
+  background: #faf9ff;
+}
+
+.motivation-ai-question__number {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #ebe7ff;
+  color: #6756d8;
+  font-weight: 700;
+}
+
+.motivation-ai-question__content {
+  min-width: 0;
+}
+
+.motivation-ai-question__text {
+  margin-bottom: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.motivation-ai-question__detail {
+  margin-top: 6px;
+  color: #5d6474;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.motivation-ai-question__detail span {
+  display: block;
+  margin-bottom: 2px;
+  color: #313646;
+  font-weight: 700;
+}
+
+.motivation-ai-expectation {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 1px solid #e7e4f7;
+  border-radius: 14px;
+  background: #f7f5ff;
+  line-height: 1.65;
+}
+
+.motivation-ai-expectation__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #e9e4ff;
+  color: #7257e8;
+}
+
+.motivation-ai-expectation__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.motivation-ai-context-note {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #f7f8fb;
+  color: #5f6675;
+  line-height: 1.6;
+}
+
+.motivation-ai-context-note__title {
+  margin-bottom: 6px;
+  color: #242936;
+  font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+  .motivation-ai-card .card-body {
+    padding: 20px;
+  }
+
+  .motivation-ai-header {
+    gap: 16px;
+  }
+}
+
+/* =========================================================
    TALENA AI · FLOATING CANDIDATE CHAT
 ========================================================= */
 

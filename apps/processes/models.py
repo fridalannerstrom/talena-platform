@@ -234,6 +234,50 @@ class TestInvitation(models.Model):
         default="",
     )
 
+    ai_cognitive_interpretation = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    ai_motivation_interpretation = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_motivation_interpretation_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_motivation_interpretation_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_motivation_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
         # ------------------------------------------------------------
     # AI response-style guidance
     # ------------------------------------------------------------
@@ -543,6 +587,50 @@ class HistoricalProcessCandidate(models.Model):
 
     ai_response_style_guidance_purpose = models.CharField(
         max_length=50,
+        blank=True,
+        default="",
+    )
+
+    ai_cognitive_interpretation = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_cognitive_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    ai_motivation_interpretation = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_motivation_interpretation_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_motivation_interpretation_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_motivation_interpretation_purpose = models.CharField(
+        max_length=100,
         blank=True,
         default="",
     )

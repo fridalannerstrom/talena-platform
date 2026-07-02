@@ -382,234 +382,19 @@
 -->
 
 
-        <!-- ======================================================
-             AI ASSESSMENT SUMMARY
-             Uses TestInvitation for active candidates and
-             HistoricalProcessCandidate for historical candidates.
-        ======================================================= -->
-        <section class="card mb-4 insight-summary-card">
-          <div class="card-body">
-
-            <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
-              <div>
-                <div class="insight-summary-kicker">✨ AI-generated insight</div>
-
-                <h2 class="insight-summary-title mb-1">
-                  AI Summary
-                </h2>
-
-                <div class="text-muted small">
-                  {% if is_historical %}
-                    Based on imported assessment results in general insight mode.
-                  {% elif has_purpose_context %}
-                    Based on the candidate’s assessment results and the added process context.
-                  {% else %}
-                    Based on the candidate’s assessment results and selected process purpose.
-                  {% endif %}
-                </div>
-              </div>
-
-              <div class="d-flex align-items-center gap-2">
-
-                {% if is_historical %}
-                  {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
-<span
-  id="aiSummaryStatusBadge"
-  class="badge rounded-pill bg-warning-subtle"
-  title="The assessment data has changed since this summary was generated.">
-  Needs update
-</span>
-                  {% endif %}
-                {% else %}
-                  {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-<span
-  id="aiSummaryStatusBadge"
-  class="badge rounded-pill bg-warning-subtle"
-  title="The process purpose or context has changed since this summary was generated.">
-  Needs update
-</span>
-                  {% endif %}
-                {% endif %}
-
-                <button
-                  type="button"
-                  class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center js-regenerate-summary"
-                  data-regenerate-url="{% url 'processes:process_candidate_summary_regenerate' process.id candidate.id %}"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="top"
-                  title="Generate a new summary"
-                  aria-label="Generate a new summary"
-                  style="width: 38px; height: 38px;">
-                  <i data-feather="refresh-cw"></i>
-                </button>
-
-              </div>
-            </div>
-
-            <div
-              id="aiSummaryContent"
-              class="insight-summary-content"
-              data-stream-url="{% url 'processes:process_candidate_summary_stream' process.id candidate.id %}"
-              data-has-summary="{% if is_historical %}{% if historical_candidate.ai_summary %}true{% else %}false{% endif %}{% else %}{% if invitation.ai_summary %}true{% else %}false{% endif %}{% endif %}"
-              data-summary-status="{% if is_historical %}{{ historical_candidate.ai_summary_status|default:'not_started' }}{% else %}{{ invitation.ai_summary_status|default:'not_started' }}{% endif %}">
-
-              {% if is_historical %}
-
-                {% if historical_candidate.ai_summary %}
-                  <div class="ai-summary-text">
-                    {{ historical_candidate.ai_summary }}
-                  </div>
-
-                {% elif historical_candidate.ai_summary_status == "generating" %}
-                  <div class="d-flex align-items-center gap-2 text-muted">
-                    <span
-                      class="spinner-border spinner-border-sm"
-                      role="status"
-                      aria-hidden="true">
-                    </span>
-                    <span>Generating candidate summary...</span>
-                  </div>
-
-                {% elif historical_candidate.ai_summary_status == "failed" %}
-                  <div class="alert alert-light border mb-0">
-                    <div class="fw-semibold mb-1">
-                      The summary could not be generated
-                    </div>
-                    <div class="small text-muted">
-                      Use the refresh button to try again.
-                    </div>
-                  </div>
-
-                {% else %}
-                  <div class="d-flex align-items-center gap-2 text-muted">
-                    <span
-                      class="spinner-border spinner-border-sm"
-                      role="status"
-                      aria-hidden="true">
-                    </span>
-                    <span>Preparing candidate summary...</span>
-                  </div>
-                {% endif %}
-
-              {% else %}
-
-                {% if invitation.ai_summary %}
-                  <div class="ai-summary-text">
-                    {{ invitation.ai_summary }}
-                  </div>
-
-                {% elif invitation.ai_summary_status == "generating" %}
-                  <div class="d-flex align-items-center gap-2 text-muted">
-                    <span
-                      class="spinner-border spinner-border-sm"
-                      role="status"
-                      aria-hidden="true">
-                    </span>
-                    <span>Generating candidate summary...</span>
-                  </div>
-
-                {% elif invitation.ai_summary_status == "failed" %}
-                  <div class="alert alert-light border mb-0">
-                    <div class="fw-semibold mb-1">
-                      The summary could not be generated
-                    </div>
-                    <div class="small text-muted">
-                      Use the refresh button to try again.
-                    </div>
-                  </div>
-
-                {% else %}
-                  <div class="d-flex align-items-center gap-2 text-muted">
-                    <span
-                      class="spinner-border spinner-border-sm"
-                      role="status"
-                      aria-hidden="true">
-                    </span>
-                    <span>Preparing candidate summary...</span>
-                  </div>
-                {% endif %}
-
-              {% endif %}
-            </div>
-
-            {% if is_historical %}
-              {% if historical_candidate.ai_summary and historical_candidate.ai_summary_status == "outdated" %}
-                <div
-  id="aiSummaryOutdatedWarning"
-  class="alert alert-warning mt-3 mb-0">
-                  <div class="d-flex align-items-start gap-2">
-                    <div class="flex-shrink-0 mt-1">
-                      <i
-                        data-feather="alert-circle"
-                        style="width: 17px; height: 17px;">
-                      </i>
-                    </div>
-                    <div>
-                      <div class="fw-semibold small mb-1">
-                        This summary may need updating
-                      </div>
-                      <div class="small">
-                        The imported assessment data has changed since this summary was generated.
-                        Use the refresh button to create an updated summary.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-            {% else %}
-              {% if invitation.ai_summary and invitation.ai_summary_status == "outdated" %}
-                <div
-  id="aiSummaryOutdatedWarning"
-  class="alert alert-warning mt-3 mb-0">
-                  <div class="d-flex align-items-start gap-2">
-                    <div class="flex-shrink-0 mt-1">
-                      <i
-                        data-feather="alert-circle"
-                        style="width: 17px; height: 17px;">
-                      </i>
-                    </div>
-                    <div>
-                      <div class="fw-semibold small mb-1">
-                        This summary may need updating
-                      </div>
-                      <div class="small">
-                        The process purpose or context has changed since this summary was generated.
-                        The existing summary has been kept. Use the refresh button to generate an updated version.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-            {% endif %}
-
-            <div class="d-flex align-items-start gap-2 mt-3 pt-3 border-top">
-
-              <div class="small text-muted">
-                {% if is_historical %}
-                  This summary is based on imported assessment evidence and uses general insight mode because no original process context is available.
-                {% else %}
-                  This summary is based on assessment evidence and should be used as decision support. Refresh it if the purpose, context or assessment information changes.
-                {% endif %}
-              </div>
-            </div>
-
-          </div>
-        </section>
-        <!-- /AI ASSESSMENT SUMMARY -->
-
 {% if not is_historical and all_assessments_completed %}
   {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
 
-    <section
-      class="card mb-4 purpose-fit-card"
-      id="purposeFitCard"
-    >
+<section
+  class="card mb-4 purpose-fit-card ai-overview-card"
+  id="purposeFitCard"
+>
       <div class="card-body">
 
 <!-- HEADER -->
-<div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+<div class="ai-overview-header">
 
-  <div>
+  <div class="ai-overview-header__content">
     <div class="insight-summary-kicker">
       ✨ AI-generated insight
     </div>
@@ -618,20 +403,16 @@
       class="insight-summary-title mb-1"
       id="purposeFitTitle"
     >
-      {% if invitation.ai_purpose_fit.title %}
-        {{ invitation.ai_purpose_fit.title }}
-      {% else %}
-        Purpose fit
-      {% endif %}
+      AI Overview
     </h2>
 
     <div class="text-muted small">
-      Talena AI has compared the candidate’s assessment results with the
-      selected purpose and available process context.
+      A combined interpretation of the candidate’s available assessment
+      results, selected process purpose and any added process context.
     </div>
   </div>
 
-  <div class="d-flex align-items-center gap-2 flex-shrink-0">
+  <div class="ai-overview-header__actions">
 
     <span
       id="purposeFitStatusBadge"
@@ -654,13 +435,14 @@
       data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
       data-bs-toggle="tooltip"
       data-bs-placement="top"
-      title="Generate a new interpretation using the latest assessment results, purpose and process context."
-      aria-label="Generate a new purpose-fit interpretation"
+      title="Generate a new overview using the latest assessment results, purpose and process context."
+      aria-label="Generate a new AI overview"
     >
       <i data-feather="refresh-cw"></i>
     </button>
 
   </div>
+
 </div>
 
 
@@ -712,192 +494,189 @@
         </div>
 
 
-        <!-- RESULT -->
-        <div
-          id="purposeFitResult"
-          class="{% if not invitation.ai_purpose_fit %}d-none{% endif %}"
-          data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
-          data-has-fit="{% if invitation.ai_purpose_fit %}true{% else %}false{% endif %}"
-          data-fit-status="{{ invitation.ai_purpose_fit_status|default:'not_started' }}"
-        >
+<!-- RESULT -->
+<div
+  id="purposeFitResult"
+  class="{% if not invitation.ai_purpose_fit %}d-none{% endif %}"
+  data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
+  data-has-fit="{% if invitation.ai_purpose_fit %}true{% else %}false{% endif %}"
+  data-fit-status="{{ invitation.ai_purpose_fit_status|default:'not_started' }}"
+>
 
-          <!-- OVERALL INDICATION -->
-<div class="purpose-fit-verdict mb-4">
-
-  <div>
-    <div class="purpose-fit-label purpose-fit-label--with-help">
-
-      <span>Overall indication</span>
-
-      <button
-        type="button"
-        class="purpose-fit-help"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="A summary of how the available assessment evidence aligns with the selected purpose and process context."
-        aria-label="What does overall indication mean?"
-      >
-        <i data-feather="info"></i>
-      </button>
-
+  <!-- OVERALL INTERPRETATION -->
+  <section class="purpose-fit-section mb-4">
+    <div class="purpose-fit-section-title">
+      Overall interpretation
     </div>
 
     <div
-      class="purpose-fit-recommendation"
-      id="purposeFitRecommendation"
+      class="purpose-fit-summary"
+      id="purposeFitSummary"
     >
-      {{ invitation.ai_purpose_fit.recommendation }}
+      {{ invitation.ai_purpose_fit.summary }}
     </div>
-  </div>
+  </section>
 
-  <div class="purpose-fit-confidence">
+  <!-- SUPPORT + EXPLORE -->
+  <div class="row g-3 mb-4">
 
-    <div class="purpose-fit-label purpose-fit-label--with-help">
+    <div class="col-lg-6">
+      <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
 
-      <span>Evidence confidence</span>
+        <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
+          <span>What supports the purpose</span>
 
-      <button
-        type="button"
-        class="purpose-fit-help"
-        data-bs-toggle="tooltip"
-        data-bs-placement="left"
-        title="Indicates how strongly the available assessment evidence and process information support this interpretation. It is not a probability that the candidate will succeed."
-        aria-label="What does evidence confidence mean?"
-      >
-        <i data-feather="info"></i>
-      </button>
-
-    </div>
-
-    <span
-      class="badge rounded-pill bg-light text-dark border"
-      id="purposeFitConfidence"
-    >
-      {{ invitation.ai_purpose_fit.confidence }}
-    </span>
-
-  </div>
-
-</div>
-
-
-          <!-- SUMMARY -->
-          <div class="purpose-fit-section mb-4">
-<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-
-  <span>How Talena interpreted the results</span>
-
-</div>
-
-            <div
-              class="purpose-fit-summary"
-              id="purposeFitSummary"
-            >{{ invitation.ai_purpose_fit.summary }}</div>
-          </div>
-
-
-          <!-- ALIGNMENT + VERIFY -->
-          <div class="row g-3 mb-4">
-
-            <div class="col-lg-6">
-              <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
-<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-
-  <span>What supports the alignment</span>
-
-  <button
-    type="button"
-    class="purpose-fit-help"
-    data-bs-toggle="tooltip"
-    data-bs-placement="top"
-    title="Assessment patterns that may support the selected purpose. These are not guarantees of performance."
-    aria-label="More information about evidence supporting alignment"
-  >
-    <i data-feather="info"></i>
-  </button>
-
-</div>
-
-                <ul
-                  class="purpose-fit-list"
-                  id="purposeFitAlignment"
-                >
-                  {% for item in invitation.ai_purpose_fit.key_alignment %}
-                    <li>
-                      <span class="purpose-fit-list-icon">
-                        <i data-feather="check"></i>
-                      </span>
-
-                      <span>{{ item }}</span>
-                    </li>
-                  {% endfor %}
-                </ul>
-
-              </div>
-            </div>
-
-            <div class="col-lg-6">
-              <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
-
-<div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-
-  <span>What to explore further</span>
-
-  <button
-    type="button"
-    class="purpose-fit-help"
-    data-bs-toggle="tooltip"
-    data-bs-placement="top"
-    title="Topics that should be explored through interviews or other evidence. They are not confirmed weaknesses."
-    aria-label="More information about evidence to validate"
-  >
-    <i data-feather="info"></i>
-  </button>
-
-</div>
-
-                <ul
-                  class="purpose-fit-list"
-                  id="purposeFitVerify"
-                >
-                  {% for item in invitation.ai_purpose_fit.areas_to_verify %}
-                    <li>
-                      <span class="purpose-fit-list-icon">
-                        <i data-feather="search"></i>
-                      </span>
-
-                      <span>{{ item }}</span>
-                    </li>
-                  {% endfor %}
-                </ul>
-
-              </div>
-            </div>
-
-          </div>
-
-
-          <!-- NEXT STEP -->
-          <div class="purpose-fit-next-step mb-3">
-
-            <div class="purpose-fit-next-step-icon">
-              <i data-feather="arrow-right"></i>
-            </div>
-
-            <div>
-              <div class="purpose-fit-section-title mb-1">
-                Suggested next step
-              </div>
-
-              <div id="purposeFitNextStep">
-                {{ invitation.ai_purpose_fit.suggested_next_step }}
-              </div>
-            </div>
-
-          </div>
-
+          <button
+            type="button"
+            class="purpose-fit-help"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance."
+            aria-label="More information about supporting evidence"
+          >
+            <i data-feather="info"></i>
+          </button>
         </div>
 
+        <ul
+          class="purpose-fit-list"
+          id="purposeFitAlignment"
+        >
+          {% for item in invitation.ai_purpose_fit.key_alignment %}
+            <li>
+              <span class="purpose-fit-list-icon">
+                <i data-feather="check"></i>
+              </span>
+
+              <span>{{ item }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
+
+        <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
+          <span>What to explore or consider</span>
+
+          <button
+            type="button"
+            class="purpose-fit-help"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses."
+            aria-label="More information about areas to explore"
+          >
+            <i data-feather="info"></i>
+          </button>
+        </div>
+
+        <ul
+          class="purpose-fit-list"
+          id="purposeFitVerify"
+        >
+          {% for item in invitation.ai_purpose_fit.areas_to_verify %}
+            <li>
+              <span class="purpose-fit-list-icon">
+                <i data-feather="search"></i>
+              </span>
+
+              <span>{{ item }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NEXT STEP -->
+  <div class="purpose-fit-next-step mb-4">
+
+    <div class="purpose-fit-next-step-icon">
+      <i data-feather="arrow-right"></i>
+    </div>
+
+    <div>
+      <div class="purpose-fit-section-title mb-1">
+        Recommended next step
+      </div>
+
+      <div id="purposeFitNextStep">
+        {{ invitation.ai_purpose_fit.suggested_next_step }}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- HOW THIS INSIGHT WAS CREATED -->
+  <div class="purpose-fit-explainer mb-4">
+
+    <div class="purpose-fit-explainer__content">
+
+      <div class="purpose-fit-explainer__title">
+        How Talena created this insight
+      </div>
+
+      <div
+        class="purpose-fit-explainer__text"
+        id="purposeFitContextNote"
+      >
+        {{ invitation.ai_purpose_fit.context_note }}
+      </div>
+
+      <div class="purpose-fit-inputs mt-3">
+
+        <span class="purpose-fit-inputs__label">
+          Based on
+        </span>
+
+        <span class="purpose-fit-input-pill">
+          Assessment results
+        </span>
+
+        <span class="purpose-fit-input-pill">
+          Selected purpose
+        </span>
+
+        {% if has_purpose_context %}
+          <span class="purpose-fit-input-pill">
+            Process context
+          </span>
+        {% else %}
+          <span
+            class="purpose-fit-input-pill purpose-fit-input-pill--muted"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="No additional process context has been added."
+          >
+            No added context
+          </span>
+        {% endif %}
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="purpose-fit-disclaimer border-top pt-3">
+    <i data-feather="info"></i>
+
+    <div>
+      This is an AI-generated interpretation of assessment evidence,
+      not a final decision or prediction of future performance.
+      Use it together with relevant conversations, experience and
+      other available information.
+    </div>
+  </div>
+
+</div>
 
         <!-- ERROR -->
         <div
@@ -909,76 +688,7 @@
         </div>
 
 
-        <!-- FOOTER -->
-
-        
-<!-- HOW THIS INSIGHT WAS CREATED -->
-<div class="purpose-fit-explainer mb-4 mt-4">
-
-  <div class="purpose-fit-explainer__content">
-
-    <div class="purpose-fit-explainer__title">
-      How Talena created this insight
-    </div>
-
-    <div class="purpose-fit-explainer__text">
-          <!-- CONTEXT NOTE -->
-          <div
-            class="purpose-fit-context-note"
-            id="purposeFitContextNote"
-          >
-            {{ invitation.ai_purpose_fit.context_note }}
-          </div>
-    </div>
-
-    <div class="purpose-fit-inputs">
-
-      <span class="purpose-fit-inputs__label">
-        Based on
-      </span>
-
-      <span class="purpose-fit-input-pill">
-        Assessment results
-      </span>
-
-      <span class="purpose-fit-input-pill">
-        {{ process.get_purpose_display|default:"Selected purpose" }}
-      </span>
-
-      {% if has_purpose_context %}
-        <span class="purpose-fit-input-pill">
-          Process context
-        </span>
-      {% else %}
-        <span
-          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="No additional role, team or development context has been added."
-        >
-          Purpose only
-        </span>
-      {% endif %}
-
-    </div>
-
-  </div>
-
-</div>
-
-<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-
-  
-  <i data-feather="info"></i>
-
-  <div>
-    This is an AI-generated interpretation of assessment evidence, not a final
-    decision or prediction of job performance. Combine it with structured
-    interviews, relevant experience and other available evidence.
-  </div>
-
-</div>
+      
 
       </div>
     </section>
@@ -986,382 +696,6 @@
   {% endif %}
 {% endif %}
 
-<!-- KEY STRENGTHS -->
-{% if candidate_insights.key_strengths %}
-  <section class="card mb-4 purpose-fit-card key-strengths-section">
-    <div class="card-body">
-
-      <!-- SECTION HEADER -->
-      <header class="key-strengths-section__header">
-        <div class="insight-summary-kicker">
-          Candidate Insights
-        </div>
-
-        <h2 class="insight-summary-title mb-1">
-          Key strengths
-        </h2>
-
-        <p class="text-muted small">
-          {% if report_mode == "context" %}
-            Strengths supported by elevated assessment results and prioritised for this process context.
-          {% else %}
-            Strengths supported by elevated results across the candidate’s assessment profile.
-          {% endif %}
-        </p>
-      </header>
-
-      <!-- STRENGTHS -->
-      <div class="key-strengths-list">
-
-        {% for strength in candidate_insights.key_strengths|slice:":4" %}
-          <article
-            class="key-strength-card"
-            data-strength-theme="{{ strength.icon_key|default:'spark' }}"
-          >
-
-            <!-- THEME SUMMARY -->
-            <div class="key-strength-card__summary">
-
-              <div
-                class="key-strength-card__icon"
-                aria-hidden="true"
-              >
-                {% include "customer/processes/partials/_strength_icon.html" with icon_key=strength.icon_key only %}
-              </div>
-
-              <div class="key-strength-card__content">
-
-                <h3 class="key-strength-card__title">
-                  {{ strength.title }}
-                </h3>
-
-                {% if strength.body %}
-                  <p class="key-strength-card__body">
-                    {{ strength.body }}
-                  </p>
-                {% endif %}
-
-{% if strength.how_it_may_show %}
-  <div class="key-strength-card__perspective">
-
-    <div class="explore_title">
-      {{ strength.purpose_label|default:"How this strength may show" }}
-    </div>
-
-    <p class="key-strength-card__interpretation">
-      {{ strength.how_it_may_show }}
-    </p>
-
-  </div>
-{% endif %}
-
-              </div>
-
-            </div>
-
-            <!-- SUPPORTING INDICATORS -->
-            {% if strength.supporting_indicators %}
-              <div class="strength-evidence-section">
-
-                <div class="strength-evidence-section__title">
-                  Supporting assessment indicators
-                </div>
-
-                <div class="strength-indicator-list">
-
-                  {% for indicator in strength.supporting_indicators %}
-                    <div class="strength-indicator">
-
-                      <div class="strength-indicator__main">
-                        <div class="strength-indicator__name">
-                          {{ indicator.name }}
-                        </div>
-
-                        {% if indicator.source_label %}
-                          <div class="strength-indicator__source">
-                            {{ indicator.source_label }}
-                          </div>
-                        {% endif %}
-                      </div>
-
-                      {% if indicator.sten_value %}
-                        <div
-                          class="strength-sten-dots"
-                          role="meter"
-                          aria-label="{{ indicator.name }}: STEN {{ indicator.sten_value }} out of 10"
-                          aria-valuemin="1"
-                          aria-valuemax="10"
-                          aria-valuenow="{{ indicator.sten_value }}"
-                          {% if indicator.tooltip %}
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="{{ indicator.tooltip }}"
-                          {% else %}
-                            title="STEN {{ indicator.sten_value }} of 10"
-                          {% endif %}
-                        >
-
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 1 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 2 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 3 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 4 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 5 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 6 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 7 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 8 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 9 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 10 %}is-active{% endif %}"></span>
-
-                          <span class="visually-hidden">
-                            STEN {{ indicator.sten_value }} out of 10
-                          </span>
-
-                        </div>
-
-                      {% else %}
-
-                        <div class="strength-indicator__score">
-                          {{ indicator.display_score }}
-                        </div>
-
-                      {% endif %}
-
-                    </div>
-                  {% endfor %}
-
-                </div>
-
-              </div>
-
-            {% elif strength.evidence %}
-
-              <div class="key-strength-evidence">
-                {% for item in strength.evidence %}
-                  <span class="key-strength-evidence-pill">
-                    {{ item }}
-                  </span>
-                {% endfor %}
-              </div>
-
-            {% endif %}
-
-          </article>
-        {% endfor %}
-
-      </div>
-
-<footer class="key-strengths-section__footer">
-  These themes are interpretive summaries supported by personality,
-  motivation and cognitive assessment indicators. Individual scores relate
-  to the supporting indicators, not to the theme as a whole.
-</footer>
-
-    </div>
-  </section>
-{% endif %}
-<!-- /KEY STRENGTHS -->
-
-<!-- AREAS TO EXPLORE -->
-{% if candidate_insights.areas_to_explore %}
-  <section class="card mb-4 purpose-fit-card key-strengths-section areas-to-explore-section">
-    <div class="card-body">
-
-      <!-- SECTION HEADER -->
-      <header class="key-strengths-section__header">
-        <div class="insight-summary-kicker">
-          Candidate Insights
-        </div>
-
-        <h2 class="insight-summary-title mb-1">
-          Areas to explore
-        </h2>
-
-        <p class="text-muted small">
-          Topics suggested by the assessment results that may be useful
-          to explore further in interview or follow-up conversations.
-        </p>
-      </header>
-
-      <!-- AREAS -->
-      <div class="key-strengths-list">
-
-        {% for area in candidate_insights.areas_to_explore|slice:":4" %}
-          <article
-            class="key-strength-card area-to-explore-card"
-            data-strength-theme="{{ area.icon_key|default:'spark' }}"
-          >
-
-            <!-- AREA SUMMARY -->
-            <div class="key-strength-card__summary">
-
-              <div
-                class="key-strength-card__icon"
-                aria-hidden="true"
-              >
-                {% include "customer/processes/partials/_strength_icon.html" with icon_key=area.icon_key|default:"spark" only %}
-              </div>
-
-              <div class="key-strength-card__content">
-
-                <h3 class="key-strength-card__title">
-                  {{ area.title }}
-                </h3>
-
-                {% if area.body %}
-                  <p class="key-strength-card__body">
-                    {{ area.body }}
-                  </p>
-                {% endif %}
-
-                {% if area.explore_through or area.what_to_listen_for %}
-                  <div class="area-explore-guidance">
-
-                    {% if area.explore_through %}
-                      <div class="area-explore-guidance__item">
-
-                        <div class="explore_title">
-                          Explore through
-                        </div>
-
-                        <p class="key-strength-card__interpretation">
-                          {{ area.explore_through }}
-                        </p>
-
-                      </div>
-                    {% endif %}
-
-                    {% if area.what_to_listen_for %}
-                      <div class="area-explore-guidance__item">
-
-                        <div class="explore_title">
-                          What to listen for
-                        </div>
-
-                        <p class="key-strength-card__interpretation">
-                          {{ area.what_to_listen_for }}
-                        </p>
-
-                      </div>
-                    {% endif %}
-
-                  </div>
-                {% endif %}
-
-              </div>
-
-            </div>
-
-            <!-- SUPPORTING INDICATORS -->
-            {% if area.supporting_indicators %}
-              <div class="strength-evidence-section">
-
-                <div class="strength-evidence-section__title">
-                  Supporting assessment indicators
-                </div>
-
-                <div class="strength-indicator-list">
-
-                  {% for indicator in area.supporting_indicators %}
-                    <div class="strength-indicator">
-
-                      <div class="strength-indicator__main">
-
-                        <div class="strength-indicator__name">
-                          {{ indicator.name }}
-                        </div>
-
-                        {% if indicator.source_label %}
-                          <div class="strength-indicator__source">
-                            {{ indicator.source_label }}
-                          </div>
-                        {% endif %}
-
-                      </div>
-
-                      {% if indicator.sten_value %}
-
-                        <div
-                          class="strength-sten-dots"
-                          role="meter"
-                          aria-label="{{ indicator.name }}: STEN {{ indicator.sten_value }} out of 10"
-                          aria-valuemin="1"
-                          aria-valuemax="10"
-                          aria-valuenow="{{ indicator.sten_value }}"
-                          {% if indicator.tooltip %}
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="{{ indicator.tooltip }}"
-                          {% else %}
-                            title="STEN {{ indicator.sten_value }} of 10"
-                          {% endif %}
-                        >
-
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 1 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 2 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 3 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 4 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 5 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 6 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 7 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 8 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 9 %}is-active{% endif %}"></span>
-                          <span class="strength-sten-dot {% if indicator.sten_value >= 10 %}is-active{% endif %}"></span>
-
-                          <span class="visually-hidden">
-                            STEN {{ indicator.sten_value }} out of 10
-                          </span>
-
-                        </div>
-
-                      {% else %}
-
-                        <div
-                          class="strength-indicator__score"
-                          {% if indicator.tooltip %}
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="{{ indicator.tooltip }}"
-                          {% endif %}
-                        >
-                          {{ indicator.display_score }}
-                        </div>
-
-                      {% endif %}
-
-                    </div>
-                  {% endfor %}
-
-                </div>
-
-              </div>
-
-            {% elif area.evidence %}
-
-              <div class="key-strength-evidence">
-                {% for item in area.evidence %}
-                  <span class="key-strength-evidence-pill">
-                    {{ item }}
-                  </span>
-                {% endfor %}
-              </div>
-
-            {% endif %}
-
-          </article>
-        {% endfor %}
-
-      </div>
-
-      <footer class="key-strengths-section__footer">
-        These areas are hypotheses to explore, not confirmed weaknesses.
-        They should be considered together with interview evidence and other
-        relevant information.
-      </footer>
-
-    </div>
-  </section>
-{% endif %}
-<!-- /AREAS TO EXPLORE -->
 
 
 
@@ -1543,7 +877,254 @@
 {% endif %}
 <!-- /COGNITIVE ASSESSMENT RESULTS -->
 
+{% if has_ability_results and not is_historical %}
+  <section
+    class="card mb-4 purpose-fit-card cognitive-ai-card"
+    data-cognitive-ai-root
+    data-stream-url="{{ cognitive_interpretation_stream_url }}"
+    data-regenerate-url="{{ cognitive_interpretation_regenerate_url }}"
+    data-status="{{ cognitive_interpretation_status }}"
+    data-has-result="{% if cognitive_interpretation %}true{% else %}false{% endif %}"
+  >
+    <div class="card-body">
 
+      <!-- HEADER -->
+      <div class="cognitive-ai-header">
+
+        <div>
+          <div class="insight-summary-kicker">
+            ✨ AI-supported interpretation
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Cognitive interpretation
+          </h2>
+
+          <p class="text-muted small mb-0">
+            A practical interpretation of the available cognitive assessment
+            results in relation to the selected purpose and process context.
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <span
+            class="badge rounded-pill bg-warning-subtle text-warning-emphasis
+              {% if cognitive_interpretation_status != 'outdated' %}d-none{% endif %}"
+            data-cognitive-ai-status-badge
+          >
+            Needs update
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-icon btn-light"
+            data-cognitive-ai-regenerate
+            title="Generate a new cognitive interpretation"
+            aria-label="Generate a new cognitive interpretation"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- OUTDATED WARNING -->
+      <div
+        class="alert alert-warning mt-4
+          {% if cognitive_interpretation_status != 'outdated' %}d-none{% endif %}"
+        data-cognitive-ai-outdated
+      >
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+            <div class="fw-semibold small mb-1">
+              The process information has changed
+            </div>
+
+            <div class="small">
+              This interpretation was generated using an earlier process
+              purpose or context. Refresh it to include the latest information.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- THINKING -->
+      <div
+        class="{% if cognitive_interpretation %}d-none{% endif %}"
+        data-cognitive-ai-thinking
+      >
+        <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Interpreting the cognitive assessment results...
+          </span>
+
+        </div>
+      </div>
+
+
+      <!-- ERROR -->
+      <div
+        class="alert alert-danger d-none mt-4"
+        data-cognitive-ai-error
+      >
+        The cognitive interpretation could not be generated.
+      </div>
+
+
+      <!-- CONTENT -->
+      <div
+        class="{% if not cognitive_interpretation %}d-none{% endif %}"
+        data-cognitive-ai-content
+      >
+
+        <!-- INTERPRETATION -->
+        <div class="cognitive-ai-section">
+
+          <h3 class="cognitive-ai-section__title">
+            Practical interpretation
+          </h3>
+
+          <div
+            class="cognitive-ai-interpretation"
+            data-cognitive-ai-interpretation
+          >
+            {{ cognitive_interpretation.interpretation }}
+          </div>
+
+        </div>
+
+
+        <!-- CONSIDERATIONS -->
+        <div
+          class="cognitive-ai-section mt-4"
+          data-cognitive-ai-considerations-section
+        >
+
+          <h3 class="cognitive-ai-section__title">
+            Relevant considerations
+          </h3>
+
+          <ul
+            class="cognitive-ai-considerations"
+            data-cognitive-ai-considerations
+          >
+            {% for item in cognitive_interpretation.considerations %}
+              <li>
+                <span class="cognitive-ai-list-icon">
+                  <i data-feather="search"></i>
+                </span>
+
+                <span>{{ item }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+
+        </div>
+
+
+        <!-- QUESTIONS -->
+        <div
+          class="cognitive-ai-section mt-4"
+          data-cognitive-ai-questions-section
+        >
+
+          <h3 class="cognitive-ai-section__title">
+            Questions to explore
+          </h3>
+
+          <div
+            class="cognitive-ai-question-list"
+            data-cognitive-ai-questions
+          >
+
+            {% for item in cognitive_interpretation.questions %}
+              <article class="cognitive-ai-question">
+
+                <div class="cognitive-ai-question__number">
+                  {{ forloop.counter }}
+                </div>
+
+                <div class="cognitive-ai-question__content">
+
+                  <div class="cognitive-ai-question__text">
+                    {{ item.question }}
+                  </div>
+
+                  {% if item.why %}
+                    <div class="cognitive-ai-question__detail">
+                      <span>Why this matters</span>
+                      {{ item.why }}
+                    </div>
+                  {% endif %}
+
+                  {% if item.listen_for %}
+                    <div class="cognitive-ai-question__detail">
+                      <span>What to listen for</span>
+                      {{ item.listen_for }}
+                    </div>
+                  {% endif %}
+
+                </div>
+
+              </article>
+            {% endfor %}
+
+          </div>
+
+        </div>
+
+
+        <!-- CONTEXT NOTE -->
+        <div class="cognitive-ai-context-note mt-4">
+
+          <div class="cognitive-ai-context-note__title">
+            How Talena created this interpretation
+          </div>
+
+          <div data-cognitive-ai-context-note>
+            {{ cognitive_interpretation.context_note }}
+          </div>
+
+        </div>
+
+
+        <!-- DISCLAIMER -->
+        <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+          <i data-feather="info"></i>
+
+          <div>
+            Cognitive assessment results describe relative performance on
+            specific reasoning tasks. They do not measure personality,
+            motivation, experience or overall intelligence, and should be
+            considered together with other relevant evidence.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+{% endif %}
 
 <!-- PERSONALITY PROFILE -->
 {% if has_personality_results %}
@@ -1806,6 +1387,301 @@
   </section>
 {% endif %}
 <!-- /MOTIVATION PROFILE -->
+
+{% if has_motivation_results and not is_historical %}
+  <section
+    class="card mb-4 purpose-fit-card motivation-ai-card"
+    data-motivation-ai-root
+    data-stream-url="{{ motivation_interpretation_stream_url }}"
+    data-regenerate-url="{{ motivation_interpretation_regenerate_url }}"
+    data-status="{{ motivation_interpretation_status }}"
+    data-has-result="{% if motivation_interpretation %}true{% else %}false{% endif %}"
+  >
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="motivation-ai-header">
+
+        <div>
+          <div class="insight-summary-kicker">
+            ✨ AI-supported interpretation
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Motivation interpretation
+          </h2>
+
+          <p class="text-muted small mb-0">
+            A practical interpretation of the motivation profile in relation
+            to the selected purpose and any added process context.
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <span
+            class="badge rounded-pill bg-warning-subtle text-warning-emphasis
+              {% if motivation_interpretation_status != 'outdated' %}d-none{% endif %}"
+            data-motivation-ai-status-badge
+          >
+            Needs update
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-icon btn-light"
+            data-motivation-ai-regenerate
+            title="Generate a new motivation interpretation"
+            aria-label="Generate a new motivation interpretation"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- OUTDATED WARNING -->
+      <div
+        class="alert alert-warning mt-4
+          {% if motivation_interpretation_status != 'outdated' %}d-none{% endif %}"
+        data-motivation-ai-outdated
+      >
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+            <div class="fw-semibold small mb-1">
+              The process information has changed
+            </div>
+
+            <div class="small">
+              This interpretation was generated using an earlier process
+              purpose or context. Refresh it to include the latest information.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- THINKING -->
+      <div
+        class="{% if motivation_interpretation %}d-none{% endif %}"
+        data-motivation-ai-thinking
+      >
+        <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Interpreting the motivation profile...
+          </span>
+
+        </div>
+      </div>
+
+
+      <!-- ERROR -->
+      <div
+        class="alert alert-danger d-none mt-4"
+        data-motivation-ai-error
+      >
+        The motivation interpretation could not be generated.
+      </div>
+
+
+      <!-- CONTENT -->
+      <div
+        class="{% if not motivation_interpretation %}d-none{% endif %}"
+        data-motivation-ai-content
+      >
+
+        <!-- OVERALL INTERPRETATION -->
+        <section class="motivation-ai-section">
+
+          <h3 class="motivation-ai-section__title">
+            Overall motivation interpretation
+          </h3>
+
+          <div
+            class="motivation-ai-interpretation"
+            data-motivation-ai-interpretation
+          >
+            {{ motivation_interpretation.interpretation }}
+          </div>
+
+        </section>
+
+
+        <!-- ENGAGEMENT + CLARIFY -->
+        <div class="row g-3 mt-1">
+
+          <div class="col-lg-6">
+            <section
+              class="motivation-ai-list-card motivation-ai-list-card--engagement h-100"
+              data-motivation-ai-engagement-section
+            >
+              <h3 class="motivation-ai-section__title">
+                Conditions likely to support engagement
+              </h3>
+
+              <ul
+                class="motivation-ai-list"
+                data-motivation-ai-engagement
+              >
+                {% for item in motivation_interpretation.engagement_conditions %}
+                  <li>
+                    <span class="motivation-ai-list-icon">
+                      <i data-feather="zap"></i>
+                    </span>
+
+                    <span>{{ item }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            </section>
+          </div>
+
+          <div class="col-lg-6">
+            <section
+              class="motivation-ai-list-card motivation-ai-list-card--clarify h-100"
+              data-motivation-ai-clarify-section
+            >
+              <h3 class="motivation-ai-section__title">
+                What to explore or clarify
+              </h3>
+
+              <ul
+                class="motivation-ai-list"
+                data-motivation-ai-clarify
+              >
+                {% for item in motivation_interpretation.areas_to_clarify %}
+                  <li>
+                    <span class="motivation-ai-list-icon">
+                      <i data-feather="search"></i>
+                    </span>
+
+                    <span>{{ item }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            </section>
+          </div>
+
+        </div>
+
+
+        <!-- QUESTIONS -->
+        <section
+          class="motivation-ai-section mt-4"
+          data-motivation-ai-questions-section
+        >
+          <h3 class="motivation-ai-section__title">
+            Questions to explore
+          </h3>
+
+          <div
+            class="motivation-ai-question-list"
+            data-motivation-ai-questions
+          >
+            {% for item in motivation_interpretation.questions %}
+              <article class="motivation-ai-question">
+
+                <div class="motivation-ai-question__number">
+                  {{ forloop.counter }}
+                </div>
+
+                <div class="motivation-ai-question__content">
+
+                  <div class="motivation-ai-question__text">
+                    {{ item.question }}
+                  </div>
+
+                  {% if item.why %}
+                    <div class="motivation-ai-question__detail">
+                      <span>Why this matters</span>
+                      {{ item.why }}
+                    </div>
+                  {% endif %}
+
+                  {% if item.listen_for %}
+                    <div class="motivation-ai-question__detail">
+                      <span>What to listen for</span>
+                      {{ item.listen_for }}
+                    </div>
+                  {% endif %}
+
+                </div>
+
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+
+
+        <!-- EXPECTATION SETTING -->
+        <section
+          class="motivation-ai-expectation mt-4"
+          data-motivation-ai-expectation-section
+        >
+          <div class="motivation-ai-expectation__icon">
+            <i data-feather="message-circle"></i>
+          </div>
+
+          <div>
+            <h3 class="motivation-ai-section__title mb-1">
+              Realistic expectation setting
+            </h3>
+
+            <div data-motivation-ai-expectation>
+              {{ motivation_interpretation.expectation_setting }}
+            </div>
+          </div>
+        </section>
+
+
+        <!-- CONTEXT NOTE -->
+        <div class="motivation-ai-context-note mt-4">
+
+          <div class="motivation-ai-context-note__title">
+            How Talena created this interpretation
+          </div>
+
+          <div data-motivation-ai-context-note>
+            {{ motivation_interpretation.context_note }}
+          </div>
+
+        </div>
+
+
+        <!-- DISCLAIMER -->
+        <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+          <i data-feather="info"></i>
+
+          <div>
+            Motivation results describe possible sources of energy,
+            engagement and preference. Less central factors are not
+            weaknesses and do not indicate limited capability or poor values.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+{% endif %}
 
   <section class="card mb-4 purpose-fit-card sova-debug-card">
     <div class="card-body">
@@ -2540,374 +2416,7 @@
   }
 </script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const card = document.getElementById("purposeFitCard");
-    const result = document.getElementById("purposeFitResult");
 
-    if (!card || !result) {
-        return;
-    }
-
-    const loading = document.getElementById("purposeFitLoading");
-    const loadingText = document.getElementById("purposeFitLoadingText");
-    const errorBox = document.getElementById("purposeFitError");
-    const statusBadge = document.getElementById("purposeFitStatusBadge");
-    const outdatedWarning = document.getElementById(
-        "purposeFitOutdatedWarning"
-    );
-
-    const title = document.getElementById("purposeFitTitle");
-    const recommendation = document.getElementById(
-        "purposeFitRecommendation"
-    );
-    const confidence = document.getElementById(
-        "purposeFitConfidence"
-    );
-    const summary = document.getElementById("purposeFitSummary");
-    const alignmentList = document.getElementById(
-        "purposeFitAlignment"
-    );
-    const verifyList = document.getElementById(
-        "purposeFitVerify"
-    );
-    const nextStep = document.getElementById(
-        "purposeFitNextStep"
-    );
-    const contextNote = document.getElementById(
-        "purposeFitContextNote"
-    );
-
-    const refreshButton = card.querySelector(
-        ".js-regenerate-purpose-fit"
-    );
-
-    let isStreaming = false;
-
-    function getCookie(name) {
-        const cookieValue = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith(`${name}=`));
-
-        return cookieValue
-            ? decodeURIComponent(cookieValue.split("=")[1])
-            : null;
-    }
-
-    function refreshIcons() {
-        if (window.feather) {
-            window.feather.replace();
-        }
-    }
-
-function setStatus(text, type = "neutral") {
-    if (!statusBadge) {
-        return;
-    }
-
-    statusBadge.textContent = text;
-    statusBadge.className = "badge rounded-pill";
-
-    if (type === "warning") {
-        statusBadge.classList.add(
-            "bg-warning-subtle",
-            "text-warning-emphasis"
-        );
-    } else if (type === "danger") {
-        statusBadge.classList.add(
-            "bg-danger-subtle",
-            "text-danger-emphasis"
-        );
-    } else {
-        statusBadge.classList.add("d-none");
-    }
-}
-
-    function resetPurposeFit() {
-        title.textContent = "Purpose fit";
-        recommendation.textContent = "";
-        confidence.textContent = "";
-        summary.textContent = "";
-        alignmentList.innerHTML = "";
-        verifyList.innerHTML = "";
-        nextStep.textContent = "";
-        contextNote.textContent = "";
-
-        result.classList.add("d-none");
-        errorBox.classList.add("d-none");
-
-        if (outdatedWarning) {
-            outdatedWarning.classList.add("d-none");
-        }
-
-          if (statusBadge) {
-        statusBadge.classList.add("d-none");
-    }
-    }
-
-    function renderList(listElement, items, iconName) {
-        listElement.innerHTML = "";
-
-        items.forEach((item) => {
-            const listItem = document.createElement("li");
-
-            const iconWrapper = document.createElement("span");
-            iconWrapper.className = "purpose-fit-list-icon";
-            iconWrapper.innerHTML = `<i data-feather="${iconName}"></i>`;
-
-            const text = document.createElement("span");
-            text.textContent = item;
-
-            listItem.appendChild(iconWrapper);
-            listItem.appendChild(text);
-            listElement.appendChild(listItem);
-        });
-
-        refreshIcons();
-    }
-
-    function applySavedResult(data) {
-        title.textContent = data.title || "Purpose fit";
-        recommendation.textContent =
-            data.recommendation || "Insufficient context";
-        confidence.textContent = data.confidence || "Low";
-        summary.textContent = data.summary || "";
-
-        renderList(
-            alignmentList,
-            data.key_alignment || [],
-            "check"
-        );
-
-        renderList(
-            verifyList,
-            data.areas_to_verify || [],
-            "search"
-        );
-
-        nextStep.textContent =
-            data.suggested_next_step || "";
-
-        contextNote.textContent =
-            data.context_note || "";
-
-        loading.classList.add("d-none");
-        result.classList.remove("d-none");
-    }
-
-    function applyStreamEvent(event) {
-        switch (event.type) {
-case "saved_result":
-    applySavedResult(event.data || {});
-
-    if (event.status === "outdated") {
-        setStatus("Needs update", "warning");
-    } else {
-        statusBadge.classList.add("d-none");
-    }
-    break;
-
-            case "meta":
-                title.textContent =
-                    event.title || "Purpose fit";
-
-                recommendation.textContent =
-                    event.recommendation || "";
-
-                confidence.textContent =
-                    event.confidence || "";
-
-                loading.classList.add("d-none");
-                result.classList.remove("d-none");
-                break;
-
-            case "summary_delta":
-                summary.textContent += event.text || "";
-                break;
-
-            case "key_alignment":
-                renderList(
-                    alignmentList,
-                    event.items || [],
-                    "check"
-                );
-                break;
-
-            case "areas_to_verify":
-                renderList(
-                    verifyList,
-                    event.items || [],
-                    "search"
-                );
-                break;
-
-            case "suggested_next_step":
-                nextStep.textContent = event.text || "";
-                break;
-
-            case "context_note":
-                contextNote.textContent = event.text || "";
-                break;
-
-case "done":
-    statusBadge.classList.add("d-none");
-    loading.classList.add("d-none");
-    result.classList.remove("d-none");
-    break;
-
-            case "error":
-                throw new Error(
-                    event.message ||
-                    "Purpose-fit generation failed."
-                );
-        }
-    }
-
-    async function streamPurposeFit(streamUrl) {
-        if (isStreaming) {
-            return;
-        }
-
-        isStreaming = true;
-
-        resetPurposeFit();
-
-        loading.classList.remove("d-none");
-        loadingText.textContent =
-            "Analysing assessment results and process context...";
-
-
-        refreshButton.disabled = true;
-
-        try {
-            const response = await fetch(streamUrl, {
-                method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-
-                throw new Error(
-                    errorData.error ||
-                    "Could not generate purpose fit."
-                );
-            }
-
-            if (!response.body) {
-                throw new Error(
-                    "Streaming is not supported by the browser."
-                );
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-
-            let buffer = "";
-
-            while (true) {
-                const { value, done } = await reader.read();
-
-                if (done) {
-                    break;
-                }
-
-                buffer += decoder.decode(value, {
-                    stream: true,
-                });
-
-                const lines = buffer.split("\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
-
-                    if (!trimmedLine) {
-                        continue;
-                    }
-
-                    const event = JSON.parse(trimmedLine);
-                    applyStreamEvent(event);
-                }
-            }
-
-            if (buffer.trim()) {
-                const finalEvent = JSON.parse(buffer.trim());
-                applyStreamEvent(finalEvent);
-            }
-
-        } catch (error) {
-            console.error("Purpose fit error:", error);
-
-            loading.classList.add("d-none");
-            errorBox.classList.remove("d-none");
-
-            setStatus("Failed", "danger");
-        } finally {
-            isStreaming = false;
-            refreshButton.disabled = false;
-            refreshIcons();
-        }
-    }
-
-    refreshButton.addEventListener("click", async () => {
-        if (isStreaming) {
-            return;
-        }
-
-        const regenerateUrl =
-            refreshButton.dataset.regenerateUrl;
-
-        refreshButton.disabled = true;
-
-        try {
-            const response = await fetch(regenerateUrl, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.error ||
-                    "Could not regenerate purpose fit."
-                );
-            }
-
-            await streamPurposeFit(data.stream_url);
-
-        } catch (error) {
-            console.error(
-                "Purpose fit regeneration error:",
-                error
-            );
-
-            errorBox.classList.remove("d-none");
-            setStatus("Failed", "danger");
-        } finally {
-            refreshButton.disabled = false;
-        }
-    });
-
-    const hasFit =
-        result.dataset.hasFit === "true";
-
-    if (!hasFit) {
-        streamPurposeFit(
-            result.dataset.streamUrl
-        );
-    }
-
-    refreshIcons();
-});
-
-</script>
 
 <script>
 function initStrengthScores(container = document) {

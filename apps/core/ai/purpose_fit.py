@@ -288,6 +288,19 @@ def calculate_max_confidence(
 
 
 def build_purpose_fit_prompt(invitation) -> str:
+    """
+    Build the prompt for Talena's combined AI Overview.
+
+    The overview is based on:
+    - all available assessment results
+    - the selected process purpose
+    - optional process context
+
+    The output remains compatible with the existing purpose-fit
+    streaming and storage structure while the feature is gradually
+    renamed to AI Overview.
+    """
+
     candidate = invitation.candidate
     process = invitation.process
 
@@ -300,8 +313,6 @@ def build_purpose_fit_prompt(invitation) -> str:
         else purpose_key,
     )
 
-    fit_title = get_purpose_fit_title(process)
-
     assessment_text, assessment_type_count = (
         build_assessment_evidence(invitation)
     )
@@ -310,104 +321,223 @@ def build_purpose_fit_prompt(invitation) -> str:
         process
     )
 
-    max_confidence = calculate_max_confidence(
-        context_data=context_data,
-        assessment_type_count=assessment_type_count,
-    )
+    has_context = bool(context_data)
+
+    if has_context:
+        context_instruction = """
+Use the supplied process context to explain how the assessment
+indications may be relevant to this specific purpose and situation.
+
+Clearly distinguish between:
+- information stated in the process context
+- indications derived from assessment results
+- interpretations that should be explored further
+
+Do not invent requirements, responsibilities or candidate experience
+that are not present in the supplied information.
+""".strip()
+    else:
+        context_instruction = """
+No additional process context has been supplied.
+
+Base the overview on the available assessment results and the selected
+process purpose only.
+
+Do not invent specific role requirements, responsibilities, team
+conditions or organisational circumstances.
+
+Clearly state that the interpretation is broader and that specific
+relevance should be explored using additional context or conversation.
+""".strip()
 
     return f"""
-You are generating a purpose-fit interpretation for Talena,
-an assessment and talent management platform.
+You are generating the AI Overview for Talena, an assessment and
+talent management platform.
+
+You are an experienced, balanced and commercially aware assessment
+consultant with a strong understanding of personality, motivation,
+cognitive ability, workplace behaviour and structured follow-up
+conversations.
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
-PROCESS PURPOSE
+SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
-Section title: {fit_title}
 
-PROCESS CONTEXT
+OPTIONAL PROCESS CONTEXT
 {context_text}
 
-ASSESSMENT EVIDENCE
+AVAILABLE ASSESSMENT EVIDENCE
 {assessment_text}
 
-MAXIMUM ALLOWED CONFIDENCE
-{max_confidence}
+CONTEXT INSTRUCTION
+{context_instruction}
 
 YOUR TASK
-Interpret how the candidate's assessment profile may align with
-the selected process purpose and the supplied context.
+Create one balanced and practical overview of all available assessment
+evidence in relation to the selected process purpose and any supplied
+process context.
 
-This is assessment-based decision support. It is not a final
-selection, hiring, promotion or development decision.
+The result should help the user understand:
 
-RECOMMENDATION LEVELS
-Use exactly one of these:
-- Strong alignment
-- Potential alignment
-- Mixed alignment
-- Limited alignment
-- Insufficient context
+1. The most important overall indications in the profile.
+2. Which assessment patterns may support the selected purpose.
+3. Which topics should be explored, considered or followed up.
+4. One practical and proportionate next step.
 
-CONFIDENCE LEVELS
-Use exactly one of these:
-- Low
-- Medium
-- High
-
-Never use a confidence level above:
-{max_confidence}
-
-IMPORTANT RULES
-- Do not create a percentage or numerical match score.
-- Do not write "recommended" or "not recommended".
-- Do not make a final hiring decision.
+CORE INTERPRETATION RULES
+- Treat assessment results as indicators and hypotheses, not facts.
+- Do not make a final hiring, promotion, development or placement decision.
+- Do not create a match score, suitability verdict or prediction of success.
+- Do not use categorical or judgemental language.
 - Do not diagnose the candidate.
-- Do not invent role requirements or context.
-- Do not treat lower scores as automatic weaknesses.
-- Separate assessment evidence from assumptions.
-- Use cautious language such as "may indicate", "suggests",
-  "appears to" and "could be useful to verify".
-- Keep each item concise and practical.
+- Do not invent role requirements, candidate experience or process context.
+- Only draw conclusions from assessment types that are actually available.
+- Do not imply that personality measures ability.
+- Do not imply that cognitive ability results measure personality,
+  motivation or experience.
+- Do not describe lower scores as automatic weaknesses.
+- Do not describe higher scores as automatic strengths.
+- Explain what an indication may mean in practice for the selected purpose.
+- Consider combinations across available results where useful, but do not
+  invent new psychological constructs, competency themes or composite scores.
+- If different parts of the evidence point in different directions,
+  describe the nuance or discrepancy clearly.
+- If the evidence is limited, say so clearly.
+- If additional context is missing, say so clearly.
 - Do not include raw assessment scores in the output.
+- Avoid technical test language and academic phrasing.
+- Keep the language practical and useful for the person reviewing the results.
+
+LANGUAGE AND TONE
 - Write in professional, clear English.
+- Use cautious formulations such as:
+  "may indicate",
+  "suggests",
+  "appears to",
+  "could mean",
+  "may be relevant",
+  "could be useful to explore".
+- Avoid repeatedly writing "the candidate is".
+- Refer to the candidate by first name where natural.
+- Keep the tone balanced and non-judgemental.
+- Avoid exaggerated positive or negative wording.
+
+IMPORTANT DISTINCTIONS
+- Personality results describe likely preferences or behavioural tendencies.
+- Motivation results describe possible sources of energy and engagement.
+- Cognitive results describe relative performance on specific reasoning tasks.
+- Process context describes the purpose, requirements or situation supplied
+  by the user.
+- Candidate experience, competence and actual workplace behaviour cannot be
+  assumed unless explicitly supplied in the context.
+
+CONTENT REQUIREMENTS
+
+OVERALL INTERPRETATION
+Write approximately 90 to 140 words.
+
+The interpretation should:
+- summarise the most important available indications
+- connect them carefully to the selected purpose
+- include both potentially supportive factors and relevant considerations
+- acknowledge missing or limited evidence where necessary
+- avoid repeating the lists word for word
+
+WHAT SUPPORTS THE PURPOSE
+Return exactly 3 concise points.
+
+Each point must:
+- be supported by available assessment evidence
+- explain possible relevance to the selected purpose or supplied context
+- remain cautious and practical
+- not claim proven performance, competence or experience
+
+Do not force three positive points if the evidence does not support them.
+In that situation, use cautious wording describing potentially relevant
+conditions or preferences.
+
+WHAT TO EXPLORE OR CONSIDER
+Return exactly 3 concise points.
+
+These may include:
+- lower or less preferred results that may matter in this context
+- potential tensions between different results
+- important requirements that cannot be evaluated from the available tests
+- areas where actual examples, experience or behaviour are needed
+- limitations caused by missing process context
+
+These are hypotheses to explore, not confirmed weaknesses.
+
+RECOMMENDED NEXT STEP
+Return one practical next step appropriate to the selected purpose.
+
+Examples may include:
+- a structured follow-up conversation
+- behavioural examples
+- a relevant work sample
+- a development discussion
+- clarification of role or organisational context
+- comparison with additional evidence
+
+Do not automatically recommend an interview unless recruitment is the
+selected purpose.
+
+CONTEXT NOTE
+Briefly and transparently explain:
+- which assessment types were used
+- whether additional process context was available
+- how this affects the scope of the interpretation
 
 STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must be written on one single line.
-Do not use markdown.
+Do not use Markdown.
 Do not use code fences.
 Do not add any text outside the JSON objects.
 
+The existing frontend still expects the following event names.
+Use them exactly.
+
 Return events in this exact order:
 
-1. One meta event:
-{{"type":"meta","title":"{fit_title}","recommendation":"Potential alignment","confidence":"Medium"}}
+1. One meta event.
 
-2. Between 3 and 6 summary_delta events:
-{{"type":"summary_delta","text":"First part of the summary. "}}
-{{"type":"summary_delta","text":"Next part of the summary. "}}
+The recommendation and confidence properties are temporary legacy fields
+used for technical compatibility. Always return the exact values below.
+They are not displayed as a verdict in the AI Overview.
 
-Together, the summary should be approximately 80 to 130 words.
+{{"type":"meta","title":"AI Overview","recommendation":"Insufficient context","confidence":"Low"}}
 
-3. One key_alignment event containing exactly 3 items:
-{{"type":"key_alignment","items":["Alignment one","Alignment two","Alignment three"]}}
+2. Between 3 and 6 summary_delta events.
 
-4. One areas_to_verify event containing exactly 3 items:
-{{"type":"areas_to_verify","items":["Area one","Area two","Area three"]}}
+Together, these events must form the complete overall interpretation.
 
-5. One suggested_next_step event:
-{{"type":"suggested_next_step","text":"A practical next step."}}
+{{"type":"summary_delta","text":"First part of the interpretation. "}}
+{{"type":"summary_delta","text":"Next part of the interpretation. "}}
 
-6. One context_note event:
-{{"type":"context_note","text":"Briefly explain what evidence and context the interpretation is based on."}}
+3. One key_alignment event containing exactly 3 items.
 
-7. One final done event:
+{{"type":"key_alignment","items":["Supporting point one","Supporting point two","Supporting point three"]}}
+
+4. One areas_to_verify event containing exactly 3 items.
+
+{{"type":"areas_to_verify","items":["Consideration one","Consideration two","Consideration three"]}}
+
+5. One suggested_next_step event.
+
+{{"type":"suggested_next_step","text":"One practical and purpose-relevant next step."}}
+
+6. One context_note event.
+
+{{"type":"context_note","text":"Brief explanation of the assessment evidence and process context used."}}
+
+7. One final done event.
+
 {{"type":"done"}}
 """.strip()
-
 
 def create_empty_purpose_fit(invitation) -> dict[str, Any]:
     return {
@@ -549,9 +679,10 @@ def stream_candidate_purpose_fit(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful assessment interpretation "
-                    "assistant. Follow the requested NDJSON streaming "
-                    "format exactly."
+                    "You are a careful and experienced assessment "
+                    "interpretation consultant. Treat test results as "
+                    "indicators rather than facts, do not invent context, "
+                    "and follow the requested NDJSON streaming format exactly."
                 ),
             },
             {
