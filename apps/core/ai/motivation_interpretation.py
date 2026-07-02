@@ -566,7 +566,11 @@ These may include:
 These are topics for clarification, not confirmed risks or weaknesses.
 
 QUESTIONS TO EXPLORE
-Return exactly 3 question objects.
+This section is mandatory.
+Do not omit the questions event.
+Each item must be a JSON object containing all three keys:
+"question", "why" and "listen_for".
+Do not return the questions as plain strings.
 
 Each question must:
 - be open and practical
@@ -634,7 +638,7 @@ Together, these events form the complete overall interpretation.
 
 5. One questions event containing exactly 3 objects:
 
-{{"type":"questions","items":[{{"question":"Question one","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","why":"Why it matters","listen_for":"What to listen for"}}]}}
+{{"type":"questions","items":[{{"question":"Question one","why":"Reason one","listen_for":"Evidence one"}},{{"question":"Question two","why":"Reason two","listen_for":"Evidence two"}},{{"question":"Question three","why":"Reason three","listen_for":"Evidence three"}}]}}
 
 6. One expectation_setting event:
 

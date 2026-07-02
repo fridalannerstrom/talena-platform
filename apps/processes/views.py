@@ -6674,6 +6674,17 @@ def process_candidate_motivation_interpretation_stream(
                     "The AI response did not contain "
                     "a motivation interpretation."
                 )
+            
+            questions = (
+                interpretation.get("questions")
+                or []
+            )
+
+            if len(questions) != 3:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "three valid motivation questions."
+                )
 
             if not received_done_event:
                 yield json.dumps(
