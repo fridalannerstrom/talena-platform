@@ -27912,6 +27912,208 @@ color: #6E63E3;
 }
 
 /* =========================================================
+   PERSONALITY QUESTIONS
+========================================================= */
+
+.personality-questions-card .card-body {
+  padding: 28px;
+}
+
+.personality-questions-header,
+.personality-questions-section-header,
+.personality-traits-editor__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.personality-questions-section-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.personality-trait-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.personality-trait-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #ddd7fb;
+  border-radius: 999px;
+  background: #f4f1ff;
+  color: #5945bd;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.personality-traits-editor {
+  padding: 20px;
+  border: 1px solid #e4e5eb;
+  border-radius: 14px;
+  background: #fafbfc;
+}
+
+.personality-traits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.personality-trait-option {
+  display: block;
+  cursor: pointer;
+}
+
+.personality-trait-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.personality-trait-option__control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid #e2e4ea;
+  border-radius: 11px;
+  background: #fff;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.personality-trait-option:hover
+.personality-trait-option__control {
+  border-color: #bbb2ef;
+}
+
+.personality-trait-option input:checked
++ .personality-trait-option__control {
+  border-color: #7b68db;
+  background: #f3f0ff;
+  box-shadow: 0 0 0 2px rgba(123, 104, 219, 0.1);
+}
+
+.personality-trait-option__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.personality-trait-option__score {
+  flex: 0 0 auto;
+  color: #7a8190;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.personality-question-list {
+  display: grid;
+  gap: 14px;
+}
+
+.personality-question-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e7e3f8;
+  border-radius: 14px;
+  background: #faf9ff;
+}
+
+.personality-question-card__number {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #eae5ff;
+  color: #654fd0;
+  font-weight: 700;
+}
+
+.personality-question-card__content {
+  min-width: 0;
+}
+
+.personality-question-card__text {
+  margin-bottom: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.personality-question-card__traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.personality-question-card__traits span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ece8ff;
+  color: #5f4cc0;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.personality-question-card__detail {
+  margin-top: 8px;
+  color: #606777;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.personality-question-card__detail strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #303544;
+}
+
+.personality-questions-context-note {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #f7f8fb;
+  color: #606777;
+  line-height: 1.6;
+}
+
+.personality-questions-context-note__title {
+  margin-bottom: 6px;
+  color: #292e3c;
+  font-weight: 700;
+}
+
+@media (max-width: 767.98px) {
+  .personality-questions-card .card-body {
+    padding: 20px;
+  }
+
+  .personality-traits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .personality-questions-header,
+  .personality-questions-section-header,
+  .personality-traits-editor__header {
+    gap: 14px;
+  }
+}
+
+/* =========================================================
    TALENA AI · FLOATING CANDIDATE CHAT
 ========================================================= */
 

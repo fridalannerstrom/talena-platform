@@ -105,4 +105,37 @@ urlpatterns = [
             "interpretation_regenerate"
         ),
     ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/personality-questions/stream/"
+        ),
+        views.process_candidate_personality_questions_stream,
+        name=(
+            "process_candidate_personality_"
+            "questions_stream"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/personality-questions/regenerate/"
+        ),
+        views.process_candidate_personality_questions_regenerate,
+        name=(
+            "process_candidate_personality_"
+            "questions_regenerate"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/personality-traits/update/"
+        ),
+        views.process_candidate_personality_traits_update,
+        name=(
+            "process_candidate_personality_"
+            "traits_update"
+        ),
+    ),
 ]

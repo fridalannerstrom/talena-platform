@@ -160,6 +160,15 @@ from apps.processes.services.process_recommendations import PROCESS_PURPOSES
 from .models import ProcessRoleContext
 from .forms import ProcessRoleContextForm
 
+from apps.core.ai.personality_questions import (
+    extract_personality_results,
+    normalise_selected_traits,
+    create_empty_personality_questions,
+    apply_personality_questions_event,
+    stream_personality_questions,
+    save_personality_questions,
+)
+
 def build_cognitive_insight_results(
     verbal_percentile=None,
     logical_percentile=None,
@@ -2121,6 +2130,12 @@ def build_candidate_detail_context(process, invitation):
         competencies=mq_competencies,
     )
 
+    personality_traits_for_selection = (
+        extract_personality_results(
+            invitation
+        )
+    )
+
     motivation_reports_for_ui = [
         practitioner_report,
         manager_report,
@@ -2747,6 +2762,63 @@ def build_candidate_detail_context(process, invitation):
                 "candidate_id": candidate.id,
             },
         ),
+
+        # Personality AI questions
+        "personality_questions": (
+            invitation.ai_personality_questions
+            or {}
+        ),
+
+        "personality_questions_status": (
+            invitation
+            .ai_personality_questions_status
+            or "not_started"
+        ),
+
+        "selected_personality_traits": (
+            invitation.selected_personality_traits
+            or []
+        ),
+
+        "personality_traits_for_selection": (
+            personality_traits_for_selection
+        ),
+
+        "personality_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_traits_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "traits_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
     }
 
 def get_dashboard_activity_for_user(user, limit=10):
@@ -3184,6 +3256,14 @@ def mark_candidate_ai_content_outdated(process):
         )
     )
 
+    personality_questions_count = (
+        invitations
+        .exclude(ai_personality_questions={})
+        .update(
+            ai_personality_questions_status="outdated"
+        )
+    )
+
     return {
         "summaries": summary_count,
         "purpose_fits": purpose_fit_count,
@@ -3192,6 +3272,9 @@ def mark_candidate_ai_content_outdated(process):
         ),
         "motivation_interpretations": (
             motivation_interpretation_count
+        ),
+        "personality_questions": (
+            personality_questions_count
         ),
         "response_style_guidance": (
             response_style_guidance_count
@@ -6800,6 +6883,437 @@ def process_candidate_motivation_interpretation_regenerate(
                     "process_id": process.id,
                     "candidate_id": candidate_id,
                 },
+            ),
+        }
+    )
+
+@login_required
+def process_candidate_personality_questions_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save AI-supported personality trait suggestions
+    and purpose-aware questions.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical personality questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    personality_results = extract_personality_results(
+        invitation
+    )
+
+    if not personality_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No personality assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_personality_questions_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation.ai_personality_questions
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        invitation.ai_personality_questions_purpose
+        or ""
+    ).strip().lower()
+
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_personality_questions_status = (
+            "outdated"
+        )
+
+        invitation.save(update_fields=[
+            "ai_personality_questions_status",
+        ])
+
+    if (
+        saved_result
+        and current_status == "completed"
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The personality questions are "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_personality_questions_status = (
+        "generating"
+    )
+
+    invitation.save(update_fields=[
+        "ai_personality_questions_status",
+    ])
+
+    def generator():
+        result = create_empty_personality_questions(
+            invitation
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_personality_questions(
+                owner=invitation,
+                personality_results=personality_results,
+            ):
+                result = apply_personality_questions_event(
+                    result,
+                    event,
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            selected_traits = (
+                result.get("selected_traits")
+                or []
+            )
+
+            questions = (
+                result.get("questions")
+                or []
+            )
+
+            if not 4 <= len(selected_traits) <= 6:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "between four and six valid personality traits."
+                )
+
+            if len(questions) != 3:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "three valid personality questions."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_personality_questions(
+                owner=invitation,
+                result=result,
+            )
+
+        except Exception as error:
+            invitation.ai_personality_questions_status = (
+                "failed"
+            )
+
+            invitation.save(update_fields=[
+                "ai_personality_questions_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_personality_questions_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Clear the saved personality questions and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical personality questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_personality_questions = {}
+    invitation.ai_personality_questions_status = (
+        "not_started"
+    )
+    invitation.ai_personality_questions_generated_at = (
+        None
+    )
+    invitation.ai_personality_questions_purpose = ""
+
+    invitation.save(update_fields=[
+        "ai_personality_questions",
+        "ai_personality_questions_status",
+        "ai_personality_questions_generated_at",
+        "ai_personality_questions_purpose",
+    ])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_personality_"
+                    "questions_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+@require_POST
+def process_candidate_personality_traits_update(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Save the user's selected personality traits and mark
+    the generated questions as outdated.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical personality trait selection "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    try:
+        payload = json.loads(
+            request.body.decode("utf-8")
+            or "{}"
+        )
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                "error": "Invalid JSON payload."
+            },
+            status=400,
+        )
+
+    raw_traits = payload.get(
+        "traits"
+    )
+
+    if not isinstance(raw_traits, list):
+        return JsonResponse(
+            {
+                "error": (
+                    "Traits must be supplied as a list."
+                )
+            },
+            status=400,
+        )
+
+    personality_results = extract_personality_results(
+        invitation
+    )
+
+    selected_traits = normalise_selected_traits(
+        selected_traits=raw_traits,
+        available_results=personality_results,
+    )
+
+    if not 1 <= len(selected_traits) <= 6:
+        return JsonResponse(
+            {
+                "error": (
+                    "Select between one and six "
+                    "available personality traits."
+                )
+            },
+            status=400,
+        )
+
+    invitation.selected_personality_traits = (
+        selected_traits
+    )
+
+    invitation.ai_personality_questions_status = (
+        "outdated"
+        if invitation.ai_personality_questions
+        else "not_started"
+    )
+
+    invitation.save(update_fields=[
+        "selected_personality_traits",
+        "ai_personality_questions_status",
+    ])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "selected_traits": selected_traits,
+            "questions_status": (
+                invitation
+                .ai_personality_questions_status
             ),
         }
     )

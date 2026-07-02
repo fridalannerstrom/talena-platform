@@ -255,6 +255,7 @@ await initCandidateSummaryStream(sheetBody);
 await initCandidatePurposeFitStream(sheetBody);
 await initCandidateCognitiveInterpretation(sheetBody);
 await initCandidateMotivationInterpretation(sheetBody);
+await initCandidatePersonalityQuestions(sheetBody);
 
 
       } catch (error) {
@@ -3437,6 +3438,843 @@ refreshButton.disabled = true;
     refreshIcons();
 }
 
+</script>
+
+<script>
+  async function initCandidatePersonalityQuestions(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-personality-questions-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset.personalityQuestionsInitialised === "true"
+  ) {
+    return;
+  }
+
+  root.dataset.personalityQuestionsInitialised = "true";
+
+  const streamUrl = root.dataset.streamUrl;
+  const regenerateUrl = root.dataset.regenerateUrl;
+  const updateTraitsUrl = root.dataset.updateTraitsUrl;
+
+  const thinking = root.querySelector(
+    "[data-personality-questions-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-personality-questions-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-personality-questions-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-personality-questions-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-personality-questions-outdated]"
+  );
+
+  const selectedTraitsContainer = root.querySelector(
+    "[data-personality-selected-traits]"
+  );
+
+  const questionsSection = root.querySelector(
+    "[data-personality-questions-list-section]"
+  );
+
+  const questionsList = root.querySelector(
+    "[data-personality-questions-list]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-personality-questions-context-note]"
+  );
+
+  const editButton = root.querySelector(
+    "[data-personality-traits-edit]"
+  );
+
+  const editor = root.querySelector(
+    "[data-personality-traits-editor]"
+  );
+
+  const checkboxes = Array.from(
+    root.querySelectorAll(
+      "[data-personality-trait-checkbox]"
+    )
+  );
+
+  const countEl = root.querySelector(
+    "[data-personality-traits-count]"
+  );
+
+  const saveButton = root.querySelector(
+    "[data-personality-traits-save]"
+  );
+
+  const cancelButton = root.querySelector(
+    "[data-personality-traits-cancel]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-personality-questions-regenerate]"
+  );
+
+  let isStreaming = false;
+
+  let savedSelection = checkboxes
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value);
+
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${name}=`));
+
+    return cookieValue
+      ? decodeURIComponent(
+          cookieValue.split("=")[1]
+        )
+      : null;
+  }
+
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
+  function setHidden(element, hidden) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function hideOutdatedState() {
+    setHidden(statusBadge, true);
+    setHidden(outdatedWarning, true);
+  }
+
+
+  function showOutdatedState() {
+    setHidden(statusBadge, false);
+    setHidden(outdatedWarning, false);
+  }
+
+
+  function getCheckedTraits() {
+    return checkboxes
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => checkbox.value);
+  }
+
+
+  function setCheckedTraits(traits) {
+    const selectedSet = new Set(
+      Array.isArray(traits)
+        ? traits
+        : []
+    );
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = selectedSet.has(
+        checkbox.value
+      );
+    });
+
+    updateSelectionCount();
+  }
+
+
+  function updateSelectionCount() {
+    const count = getCheckedTraits().length;
+
+    countEl.textContent =
+      `${count} selected`;
+
+    saveButton.disabled =
+      count < 1 || count > 6;
+
+    checkboxes.forEach((checkbox) => {
+      if (
+        count >= 6
+        && !checkbox.checked
+      ) {
+        checkbox.disabled = true;
+      } else {
+        checkbox.disabled = false;
+      }
+    });
+  }
+
+
+  function renderSelectedTraits(traits) {
+    selectedTraitsContainer.replaceChildren();
+
+    const validTraits = Array.isArray(traits)
+      ? traits.filter(Boolean)
+      : [];
+
+    validTraits.forEach((trait) => {
+      const pill = document.createElement("span");
+
+      pill.className =
+        "personality-trait-pill";
+
+      pill.textContent = trait;
+
+      selectedTraitsContainer.appendChild(
+        pill
+      );
+    });
+  }
+
+
+  function renderQuestions(items) {
+    questionsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter(
+          (item) =>
+            item
+            && typeof item === "object"
+            && item.question
+        )
+      : [];
+
+    validItems.forEach((item, index) => {
+      const article = document.createElement(
+        "article"
+      );
+
+      article.className =
+        "personality-question-card";
+
+      const number = document.createElement(
+        "div"
+      );
+
+      number.className =
+        "personality-question-card__number";
+
+      number.textContent =
+        String(index + 1);
+
+      const questionContent =
+        document.createElement("div");
+
+      questionContent.className =
+        "personality-question-card__content";
+
+      const question =
+        document.createElement("div");
+
+      question.className =
+        "personality-question-card__text";
+
+      question.textContent =
+        item.question || "";
+
+      questionContent.appendChild(
+        question
+      );
+
+      const traits = Array.isArray(
+        item.traits
+      )
+        ? item.traits.filter(Boolean)
+        : [];
+
+      if (traits.length) {
+        const traitList =
+          document.createElement("div");
+
+        traitList.className =
+          "personality-question-card__traits";
+
+        traits.forEach((trait) => {
+          const pill =
+            document.createElement("span");
+
+          pill.textContent = trait;
+
+          traitList.appendChild(pill);
+        });
+
+        questionContent.appendChild(
+          traitList
+        );
+      }
+
+      if (item.why) {
+        const why =
+          document.createElement("div");
+
+        why.className =
+          "personality-question-card__detail";
+
+        const label =
+          document.createElement("strong");
+
+        label.textContent =
+          "Why this matters";
+
+        why.appendChild(label);
+        why.append(
+          document.createTextNode(
+            item.why
+          )
+        );
+
+        questionContent.appendChild(why);
+      }
+
+      if (item.listen_for) {
+        const listenFor =
+          document.createElement("div");
+
+        listenFor.className =
+          "personality-question-card__detail";
+
+        const label =
+          document.createElement("strong");
+
+        label.textContent =
+          "What to listen for";
+
+        listenFor.appendChild(label);
+        listenFor.append(
+          document.createTextNode(
+            item.listen_for
+          )
+        );
+
+        questionContent.appendChild(
+          listenFor
+        );
+      }
+
+      article.appendChild(number);
+      article.appendChild(
+        questionContent
+      );
+
+      questionsList.appendChild(article);
+    });
+
+    setHidden(
+      questionsSection,
+      validItems.length === 0
+    );
+  }
+
+
+  function resetContent() {
+    selectedTraitsContainer.replaceChildren();
+    questionsList.replaceChildren();
+    contextNote.textContent = "";
+
+    setHidden(questionsSection, true);
+    setHidden(errorBox, true);
+    setHidden(content, true);
+  }
+
+
+  function applySavedResult(data) {
+    const selectedTraits =
+      data.selected_traits || [];
+
+    renderSelectedTraits(
+      selectedTraits
+    );
+
+    setCheckedTraits(
+      selectedTraits
+    );
+
+    savedSelection = [
+      ...selectedTraits
+    ];
+
+    renderQuestions(
+      data.questions || []
+    );
+
+    contextNote.textContent =
+      data.context_note || "";
+
+    setHidden(thinking, true);
+    setHidden(errorBox, true);
+    setHidden(content, false);
+  }
+
+
+  function applyEvent(draft, event) {
+    switch (event.type) {
+      case "saved_result":
+        return event.data || draft;
+
+      case "meta":
+        draft.title =
+          event.title || draft.title;
+
+        draft.label =
+          event.label || draft.label;
+        break;
+
+      case "suggested_traits":
+        draft.suggested_traits =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+        break;
+
+      case "selected_traits":
+        draft.selected_traits =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderSelectedTraits(
+          draft.selected_traits
+        );
+
+        setCheckedTraits(
+          draft.selected_traits
+        );
+
+        savedSelection = [
+          ...draft.selected_traits
+        ];
+
+        setHidden(thinking, true);
+        setHidden(content, false);
+        break;
+
+      case "questions":
+        draft.questions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderQuestions(
+          draft.questions
+        );
+        break;
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        contextNote.textContent =
+          draft.context_note;
+        break;
+
+      case "error":
+        throw new Error(
+          event.message ||
+          "Personality question generation failed."
+        );
+
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+
+  async function streamQuestions(url) {
+    if (!url || isStreaming) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(thinking, false);
+
+    regenerateButton.disabled = true;
+    editButton.disabled = true;
+
+    let draft = {
+      title: "Personality questions",
+      label: "AI-supported questions",
+      suggested_traits: [],
+      selected_traits: [],
+      questions: [],
+      context_note: "",
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      if (response.status === 409) {
+        throw new Error(
+          "The personality questions are already being generated."
+        );
+      }
+
+      if (!response.ok) {
+        let message =
+          "The personality questions could not be generated.";
+
+        try {
+          const data = await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+        } catch (parseError) {
+          // Keep fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+      if (!response.body) {
+        throw new Error(
+          "Streaming is not supported by this browser."
+        );
+      }
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        for (const rawLine of lines) {
+          const line =
+            rawLine.trim();
+
+          if (!line) {
+            continue;
+          }
+
+          const event =
+            JSON.parse(line);
+
+          draft = applyEvent(
+            draft,
+            event
+          );
+
+          if (
+            event.type === "saved_result"
+          ) {
+            applySavedResult(
+              draft
+            );
+          }
+        }
+      }
+
+      const finalLine =
+        buffer.trim();
+
+      if (finalLine) {
+        const event =
+          JSON.parse(finalLine);
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (
+          event.type === "saved_result"
+        ) {
+          applySavedResult(
+            draft
+          );
+        }
+      }
+
+      applySavedResult(draft);
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+    } catch (error) {
+      console.error(
+        "Personality questions error:",
+        error
+      );
+
+      setHidden(thinking, true);
+      setHidden(content, true);
+      setHidden(errorBox, false);
+
+      errorBox.textContent =
+        error.message ||
+        "The personality questions could not be generated.";
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+      regenerateButton.disabled = false;
+      editButton.disabled = false;
+      refreshIcons();
+    }
+  }
+
+
+  editButton.addEventListener(
+    "click",
+    () => {
+      setCheckedTraits(
+        savedSelection
+      );
+
+      setHidden(editor, false);
+      editButton.disabled = true;
+    }
+  );
+
+
+  cancelButton.addEventListener(
+    "click",
+    () => {
+      setCheckedTraits(
+        savedSelection
+      );
+
+      setHidden(editor, true);
+      editButton.disabled = false;
+    }
+  );
+
+
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener(
+      "change",
+      updateSelectionCount
+    );
+  });
+
+
+  saveButton.addEventListener(
+    "click",
+    async () => {
+      const selectedTraits =
+        getCheckedTraits();
+
+      if (
+        selectedTraits.length < 1
+        || selectedTraits.length > 6
+      ) {
+        return;
+      }
+
+      saveButton.disabled = true;
+      cancelButton.disabled = true;
+
+      try {
+        const response = await fetch(
+          updateTraitsUrl,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              traits: selectedTraits,
+            }),
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "The trait selection could not be saved."
+          );
+        }
+
+        savedSelection = [
+          ...(data.selected_traits || [])
+        ];
+
+        renderSelectedTraits(
+          savedSelection
+        );
+
+        setHidden(editor, true);
+        editButton.disabled = false;
+
+        root.dataset.status =
+          data.questions_status || "outdated";
+
+        showOutdatedState();
+
+      } catch (error) {
+        console.error(
+          "Trait selection error:",
+          error
+        );
+
+        setHidden(errorBox, false);
+
+        errorBox.textContent =
+          error.message ||
+          "The trait selection could not be saved.";
+
+      } finally {
+        saveButton.disabled = false;
+        cancelButton.disabled = false;
+        updateSelectionCount();
+      }
+    }
+  );
+
+
+  regenerateButton.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl
+        || isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled = true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+            credentials: "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "The personality questions could not be regenerated."
+          );
+        }
+
+        await streamQuestions(
+          data.stream_url || streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          "Personality regeneration error:",
+          error
+        );
+
+        setHidden(errorBox, false);
+
+        errorBox.textContent =
+          error.message ||
+          "The personality questions could not be regenerated.";
+
+      } finally {
+        regenerateButton.disabled = false;
+      }
+    }
+  );
+
+
+  updateSelectionCount();
+
+  const hasResult =
+    root.dataset.hasResult === "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+  if (
+    !hasResult
+    && status !== "generating"
+  ) {
+    await streamQuestions(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
 </script>
 
 

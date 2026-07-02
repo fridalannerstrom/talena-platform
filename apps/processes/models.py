@@ -310,6 +310,33 @@ class TestInvitation(models.Model):
         default="",
     )
 
+    selected_personality_traits = models.JSONField(
+        default=list,
+        blank=True,
+    )
+
+    ai_personality_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_personality_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_personality_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_personality_questions_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
 
 
     is_historical = models.BooleanField(default=False, db_index=True)
@@ -559,7 +586,34 @@ class HistoricalProcessCandidate(models.Model):
         blank=True,
     )
 
-        # ------------------------------------------------------------
+    selected_personality_traits = models.JSONField(
+        default=list,
+        blank=True,
+    )
+
+    ai_personality_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_personality_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_personality_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_personality_questions_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
     # AI response-style guidance
     # ------------------------------------------------------------
     ai_response_style_guidance = models.JSONField(
@@ -630,6 +684,33 @@ class HistoricalProcessCandidate(models.Model):
     )
 
     ai_motivation_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    selected_personality_traits = models.JSONField(
+        default=list,
+        blank=True,
+    )
+
+    ai_personality_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_personality_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_personality_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_personality_questions_purpose = models.CharField(
         max_length=100,
         blank=True,
         default="",
