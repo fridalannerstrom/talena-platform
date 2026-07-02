@@ -1564,6 +1564,8 @@
 {% include "customer/processes/partials/_team_styles.html" %}
 
 <!-- /TEAM STYLES -->
+
+
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
   <section class="card mb-4 purpose-fit-card motivation-profile-card">
@@ -1736,14 +1738,19 @@
 
                   {% if item.score is not None %}
 
-                    <div
-                      class="response-style-scale team-style-result__scale motivation-factor-result__scale"
-                      role="meter"
-                      aria-label="{{ item.name }}: {{ item.score }} out of 5"
-                      aria-valuemin="1"
-                      aria-valuemax="5"
-                      aria-valuenow="{{ item.score }}"
-                    >
+<div
+  class="
+    response-style-scale
+    response-style-scale--linear
+    team-style-result__scale
+    motivation-factor-result__scale
+  "
+  role="meter"
+  aria-label="{{ item.name }}: {{ item.score }} out of 5"
+  aria-valuemin="1"
+  aria-valuemax="5"
+  aria-valuenow="{{ item.score }}"
+>
 
                       <div class="response-style-scale__segments">
 

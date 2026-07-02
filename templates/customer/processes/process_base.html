@@ -654,6 +654,12 @@ console.log(
 
     initCopyCandidateUrl(container);
     initQuestionFilters(container);
+
+    if (
+      typeof window.initPersonalityViewSwitcher === "function"
+    ) {
+      window.initPersonalityViewSwitcher(container);
+    }
   }
 
   function initCopyCandidateUrl(container) {
@@ -2882,6 +2888,197 @@ function updatePersonalityGlobalToggle() {
 }
 </script>
 
+<script>
+(function () {
+  "use strict";
 
+  window.initPersonalityViewSwitcher =
+    function initPersonalityViewSwitcher(container = document) {
+
+      const scope = container || document;
+
+      scope
+        .querySelectorAll("[data-personality-profile-root]")
+        .forEach(function (root) {
+
+          /*
+           * Prevent duplicate click listeners if the same
+           * container is initialised more than once.
+           */
+          if (
+            root.dataset.personalityViewInitialised === "true"
+          ) {
+            return;
+          }
+
+          root.dataset.personalityViewInitialised = "true";
+
+          const tabs = root.querySelectorAll(
+            "[data-personality-view-tab]"
+          );
+
+          const panels = root.querySelectorAll(
+            "[data-personality-view-panel]"
+          );
+
+          const detailedOnlyElements = root.querySelectorAll(
+            "[data-personality-detailed-only]"
+          );
+
+          if (!tabs.length || !panels.length) {
+            console.warn(
+              "[PERSONALITY VIEW] Tabs or panels are missing.",
+              {
+                root: root,
+                tabs: tabs.length,
+                panels: panels.length,
+              }
+            );
+
+            return;
+          }
+
+
+          function activatePersonalityView(viewName) {
+
+            tabs.forEach(function (tab) {
+              const isActive =
+                tab.dataset.personalityViewTab === viewName;
+
+              tab.classList.toggle(
+                "is-active",
+                isActive
+              );
+
+              tab.setAttribute(
+                "aria-selected",
+                isActive ? "true" : "false"
+              );
+
+              tab.tabIndex = isActive ? 0 : -1;
+            });
+
+
+            panels.forEach(function (panel) {
+              const isActive =
+                panel.dataset.personalityViewPanel === viewName;
+
+              panel.hidden = !isActive;
+            });
+
+
+            detailedOnlyElements.forEach(function (element) {
+              element.hidden = viewName !== "detailed";
+            });
+
+
+            if (window.feather) {
+              window.feather.replace();
+            }
+          }
+
+
+          tabs.forEach(function (tab) {
+            tab.addEventListener(
+              "click",
+              function () {
+                activatePersonalityView(
+                  tab.dataset.personalityViewTab
+                );
+              }
+            );
+          });
+
+
+          /*
+           * Fill every Quick view scale from the centre
+           * towards the selected STEN result.
+           */
+          root
+            .querySelectorAll(
+              "[data-personality-quick-scale]"
+            )
+            .forEach(function (scale) {
+
+              const selectedSegment = scale.querySelector(
+                ".personality-quick-scale__segment--selected"
+              );
+
+              if (!selectedSegment) {
+                return;
+              }
+
+              const selectedScore = Number(
+                selectedSegment.dataset.score
+              );
+
+              if (!Number.isFinite(selectedScore)) {
+                return;
+              }
+
+              scale
+                .querySelectorAll(
+                  ".personality-quick-scale__segment[data-score]"
+                )
+                .forEach(function (segment) {
+
+                  const segmentScore = Number(
+                    segment.dataset.score
+                  );
+
+                  let shouldFill = false;
+
+                  if (selectedScore <= 5) {
+                    shouldFill =
+                      segmentScore >= selectedScore
+                      && segmentScore <= 5;
+                  } else {
+                    shouldFill =
+                      segmentScore >= 6
+                      && segmentScore <= selectedScore;
+                  }
+
+                  segment.classList.toggle(
+                    "personality-quick-scale__segment--filled",
+                    shouldFill
+                  );
+                });
+            });
+
+
+          /*
+           * Make sure the initial state matches the HTML,
+           * with Detailed view selected by default.
+           */
+          const initiallyActiveTab = root.querySelector(
+            '[data-personality-view-tab][aria-selected="true"]'
+          );
+
+          activatePersonalityView(
+            initiallyActiveTab?.dataset.personalityViewTab
+            || "detailed"
+          );
+        });
+    };
+
+
+  /*
+   * Also initialise profiles rendered directly on a full page.
+   */
+  function initialiseExistingProfiles() {
+    window.initPersonalityViewSwitcher(document);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initialiseExistingProfiles
+    );
+  } else {
+    initialiseExistingProfiles();
+  }
+
+})();
+</script>
 
 {% endblock %}

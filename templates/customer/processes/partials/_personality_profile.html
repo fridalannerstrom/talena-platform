@@ -2,7 +2,10 @@
 
 {% if personality_profile and personality_profile.sections %}
 
-  <div class="personality-profile">
+  <div
+  class="personality-profile"
+  data-personality-profile-root
+>
 
 <div class="personality-profile__header">
 
@@ -19,15 +22,6 @@
       Rounded STEN results across the personality traits.
     </p>
   </div>
-
-  <button
-    type="button"
-    class="btn btn-sm btn-outline-secondary personality-profile__toggle-all"
-    id="toggle-all-personality-indicators"
-    data-expanded="false"
-  >
-    Show all indicators
-  </button>
 
 </div>
 
@@ -300,6 +294,70 @@
   </section>
 {% endif %}
 <!-- /RESPONSE STYLES -->
+
+<!-- PERSONALITY VIEW CONTROLS -->
+<div class="personality-view-controls">
+
+  <div
+    class="personality-view-tabs"
+    role="tablist"
+    aria-label="Personality profile view"
+  >
+
+    <button
+      type="button"
+      id="personality-detailed-tab"
+      class="personality-view-tab is-active"
+      role="tab"
+      aria-selected="true"
+      aria-controls="personality-detailed-view"
+      data-personality-view-tab="detailed"
+    >
+      <i data-feather="list" aria-hidden="true"></i>
+      <span>Detailed view</span>
+    </button>
+
+    <button
+      type="button"
+      id="personality-quick-tab"
+      class="personality-view-tab"
+      role="tab"
+      aria-selected="false"
+      aria-controls="personality-quick-view"
+      data-personality-view-tab="quick"
+    >
+      <i data-feather="align-justify" aria-hidden="true"></i>
+      <span>Quick view</span>
+    </button>
+
+  </div>
+
+
+  <button
+    type="button"
+    class="
+      btn
+      btn-sm
+      btn-outline-secondary
+      personality-profile__toggle-all
+    "
+    id="toggle-all-personality-indicators"
+    data-expanded="false"
+    data-personality-detailed-only
+  >
+    Show all indicators
+  </button>
+
+</div>
+<!-- /PERSONALITY VIEW CONTROLS -->
+
+<div
+  id="personality-detailed-view"
+  class="personality-view-panel"
+  role="tabpanel"
+  aria-labelledby="personality-detailed-tab"
+  data-personality-view-panel="detailed"
+>
 
     {% for section in personality_profile.sections %}
 
@@ -621,6 +679,253 @@
     {% endfor %}
 
   </div>
+<!-- /DETAILED VIEW -->
+
+<!-- QUICK VIEW -->
+<div
+  id="personality-quick-view"
+  class="personality-view-panel personality-quick-view"
+  role="tabpanel"
+  aria-labelledby="personality-quick-tab"
+  data-personality-view-panel="quick"
+  hidden
+>
+
+  {% for section in personality_profile.sections %}
+
+    <section class="personality-quick-section">
+
+      <header class="personality-quick-section__header">
+
+        <h4 class="personality-quick-section__title">
+          {{ section.section_name }}
+        </h4>
+
+      </header>
+
+
+      <div class="personality-quick-section__traits">
+
+        {% for trait in section.traits %}
+
+          <article class="personality-quick-row">
+
+            <!-- LEFT POLE -->
+            <div class="personality-quick-row__pole">
+
+              <p>
+                {% if trait.low_pole %}
+                  {{ trait.low_pole }}
+                {% else %}
+                  Description is not yet available.
+                {% endif %}
+              </p>
+
+            </div>
+
+
+            <!-- TRAIT AND SCALE -->
+            <div class="personality-quick-row__result">
+
+              <div class="personality-quick-row__heading">
+
+                <div>
+                  <h5 class="personality-quick-row__title">
+                    {{ trait.label }}
+                  </h5>
+                </div>
+
+
+              </div>
+
+
+              <div
+                class="personality-quick-scale"
+                data-personality-quick-scale
+                role="img"
+                aria-label="{{ trait.label }} personality result"
+              >
+
+                {% for segment in trait.graph_segments %}
+
+                  <span
+                    class="
+                      personality-quick-scale__segment
+
+                      {% if segment.selected %}
+                        personality-quick-scale__segment--selected
+                      {% endif %}
+                    "
+                    data-score="{{ segment.score }}"
+                  ></span>
+
+                  {% if forloop.counter == 5 %}
+                    <span
+                      class="personality-quick-scale__center-line"
+                      aria-hidden="true"
+                    ></span>
+                  {% endif %}
+
+                {% endfor %}
+
+              </div>
+
+
+              <div class="personality-quick-scale__labels">
+                <span>Left</span>
+                <span>Average</span>
+                <span>Right</span>
+              </div>
+
+            </div>
+
+
+            <!-- RIGHT POLE -->
+            <div
+              class="
+                personality-quick-row__pole
+                personality-quick-row__pole--right
+              "
+            >
+
+              <p>
+                {% if trait.high_pole %}
+                  {{ trait.high_pole }}
+                {% else %}
+                  Description is not yet available.
+                {% endif %}
+              </p>
+
+            </div>
+
+          </article>
+
+        {% endfor %}
+
+      </div>
+
+    </section>
+
+  {% endfor %}
+
+</div>
+<!-- /QUICK VIEW -->
+
+<!-- PERSONALITY TRAIT DESCRIPTIONS -->
+<section
+  class="
+    card
+    mb-4
+    purpose-fit-card
+    personality-descriptions-card
+  "
+>
+  <div class="card-body">
+
+    <!-- HEADER -->
+    <div
+      class="
+        response-styles-header
+        personality-descriptions-card__header
+      "
+    >
+
+      <div>
+        <h2 class="insight-summary-title mb-1">
+          Personality trait descriptions
+        </h2>
+
+        <p class="text-muted small mb-0">
+          A more detailed description of how each personality result may
+          appear in {{ candidate.first_name }}’s behaviour and working style.
+        </p>
+      </div>
+
+    </div>
+
+
+    <!-- DESCRIPTION SECTIONS -->
+    <div class="personality-descriptions-card__sections">
+
+      {% for section in personality_profile.sections %}
+
+        <section
+          class="
+            personality-quick-section
+            personality-description-section
+          "
+        >
+
+          <!-- SECTION HEADER -->
+          <header class="personality-quick-section__header">
+
+            <h4 class="personality-quick-section__title">
+              {{ section.section_name }}
+            </h4>
+
+          </header>
+
+
+          <!-- TRAIT DESCRIPTIONS -->
+          <div class="personality-description-quick-list">
+
+            {% for trait in section.traits %}
+
+              {% if trait.summary %}
+
+                <article class="personality-description-quick-row">
+
+                  <div class="personality-description-quick-row__heading">
+
+                    <h5 class="personality-description-quick-row__title">
+                      {{ trait.label }}
+                    </h5>
+
+                    {% if trait.name != trait.label %}
+                      <span
+                        class="
+                          personality-description-quick-row__original-name
+                        "
+                      >
+                        {{ trait.name }}
+                      </span>
+                    {% endif %}
+
+                  </div>
+
+
+                  <p class="personality-description-quick-row__text">
+                    {{ trait.summary }}
+                  </p>
+
+                </article>
+
+              {% endif %}
+
+            {% endfor %}
+
+          </div>
+
+        </section>
+
+      {% endfor %}
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="small text-muted border-top pt-3 mt-4">
+      Personality descriptions summarise likely behavioural preferences.
+      They should be interpreted alongside the full profile, response-style
+      indicators and other available assessment information.
+    </div>
+
+  </div>
+</section>
+<!-- /PERSONALITY TRAIT DESCRIPTIONS -->
+
+
+</div>
 
 {% elif has_personality_results %}
 
@@ -629,3 +934,5 @@
   </div>
 
 {% endif %}
+
+
