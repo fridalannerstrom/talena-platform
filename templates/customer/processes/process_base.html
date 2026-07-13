@@ -61,6 +61,8 @@
     initSendAssessmentsButton();
     initAddCandidateModal();
     initCandidateAiChat();
+    initCandidateInsightsWorkspace(document);
+    initCandidateInsightsSubtabs(document);
   });
 
   // ------------------------------------------------------------
@@ -244,12 +246,6 @@ sheetBody.innerHTML = candidateHtml;
 initCandidateSheetInteractions(sheetBody);
 initGlobalEmailModal(sheetBody);
 initIconsAndTooltips(sheetBody);
-
-/*
- * The candidate sheet is loaded through AJAX, so charts must be
- * initialised after the returned HTML has been inserted into the DOM.
- */
-await initTeamStyleChart(sheetBody);
 
 await initCandidateSummaryStream(sheetBody);
 await initCandidatePurposeFitStream(sheetBody);
@@ -650,20 +646,22 @@ console.log(
 }
 
 
-  function initCandidateSheetInteractions(container) {
-    if (!container) {
-      return;
-    }
-
-    initCopyCandidateUrl(container);
-    initQuestionFilters(container);
-
-    if (
-      typeof window.initPersonalityViewSwitcher === "function"
-    ) {
-      window.initPersonalityViewSwitcher(container);
-    }
+function initCandidateSheetInteractions(container) {
+  if (!container) {
+    return;
   }
+
+  initCopyCandidateUrl(container);
+  initQuestionFilters(container);
+  initCandidateInsightsWorkspace(container);
+  initCandidateInsightsSubtabs(container);
+
+  if (
+    typeof window.initPersonalityViewSwitcher === "function"
+  ) {
+    window.initPersonalityViewSwitcher(container);
+  }
+}
 
   function initCopyCandidateUrl(container) {
     container.querySelectorAll("[data-copy-candidate-url]").forEach((button) => {
@@ -735,6 +733,218 @@ console.log(
       });
     });
   }
+
+  function initCandidateInsightsWorkspace(container = document) {
+  if (!container) {
+    return;
+  }
+
+  const workspaces = container.querySelectorAll(
+    "[data-candidate-insights-workspace]"
+  );
+
+  workspaces.forEach((workspace) => {
+    if (
+      workspace.dataset.insightsWorkspaceInitialised === "true"
+    ) {
+      return;
+    }
+
+    workspace.dataset.insightsWorkspaceInitialised = "true";
+
+    const tabs = Array.from(
+      workspace.querySelectorAll("[data-insights-tab]")
+    );
+
+    const panels = Array.from(
+      workspace.querySelectorAll("[data-insights-panel]")
+    );
+
+    if (!tabs.length || !panels.length) {
+      return;
+    }
+
+    async function activateTab(target) {
+      tabs.forEach((tab) => {
+        const isActive =
+          tab.dataset.insightsTab === target;
+
+        tab.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex = isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const isActive =
+          panel.dataset.insightsPanel === target;
+
+        panel.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        panel.hidden = !isActive;
+      });
+
+      const activePanel = workspace.querySelector(
+        `[data-insights-panel="${target}"]`
+      );
+
+      if (!activePanel) {
+        return;
+      }
+
+      /*
+       * Wait until the newly opened panel has received
+       * its actual dimensions.
+       */
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      /*
+       * Chart.js cannot measure a canvas correctly while
+       * its parent tab is hidden.
+       */
+      if (target === "team-styles") {
+        await initTeamStyleChart(activePanel);
+      }
+
+      initIconsAndTooltips(activePanel);
+
+      if (
+        typeof window.initPersonalityViewSwitcher === "function"
+      ) {
+        window.initPersonalityViewSwitcher(activePanel);
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        activateTab(
+          tab.dataset.insightsTab
+        );
+      });
+    });
+
+    const initiallyActiveTab = tabs.find(
+      (tab) =>
+        tab.getAttribute("aria-selected") === "true"
+    );
+
+    activateTab(
+      initiallyActiveTab?.dataset.insightsTab
+      || "overview"
+    );
+  });
+}
+
+function initCandidateInsightsSubtabs(container = document) {
+  if (!container) {
+    return;
+  }
+
+  const subworkspaces = container.querySelectorAll(
+    "[data-candidate-insights-subtabs]"
+  );
+
+  subworkspaces.forEach((subworkspace) => {
+    if (
+      subworkspace.dataset.insightsSubtabsInitialised === "true"
+    ) {
+      return;
+    }
+
+    subworkspace.dataset.insightsSubtabsInitialised = "true";
+
+    const tabs = Array.from(
+      subworkspace.querySelectorAll("[data-insights-subtab]")
+    );
+
+    const panels = Array.from(
+      subworkspace.querySelectorAll("[data-insights-subpanel]")
+    );
+
+    if (!tabs.length || !panels.length) {
+      return;
+    }
+
+    function activateSubtab(target) {
+      tabs.forEach((tab) => {
+        const isActive =
+          tab.dataset.insightsSubtab === target;
+
+        tab.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex = isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const isActive =
+          panel.dataset.insightsSubpanel === target;
+
+        panel.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        panel.hidden = !isActive;
+      });
+
+      const activePanel = subworkspace.querySelector(
+        `[data-insights-subpanel="${target}"]`
+      );
+
+      if (!activePanel) {
+        return;
+      }
+
+      initIconsAndTooltips(activePanel);
+
+      if (
+        typeof window.initPersonalityViewSwitcher === "function"
+      ) {
+        window.initPersonalityViewSwitcher(activePanel);
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        activateSubtab(
+          tab.dataset.insightsSubtab
+        );
+      });
+    });
+
+    const initiallyActiveTab = tabs.find(
+      (tab) =>
+        tab.getAttribute("aria-selected") === "true"
+    );
+
+    activateSubtab(
+      initiallyActiveTab?.dataset.insightsSubtab
+      || "results"
+    );
+  });
+}
 
   // ------------------------------------------------------------
   // Tabs

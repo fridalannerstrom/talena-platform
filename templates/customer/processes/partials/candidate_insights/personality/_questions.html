@@ -1,0 +1,330 @@
+
+{% if has_personality_results and not is_historical %}
+  <section
+    class="card mb-4 personality-questions-card"
+    data-personality-questions-root
+    data-stream-url="{{ personality_questions_stream_url }}"
+    data-regenerate-url="{{ personality_questions_regenerate_url }}"
+    data-update-traits-url="{{ personality_traits_update_url }}"
+    data-status="{{ personality_questions_status }}"
+    data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
+  >
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <div class="personality-questions-header">
+
+        <div>
+          <div class="insight-summary-kicker">
+            ✨ AI-supported questions
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Personality questions
+          </h2>
+
+          <p class="text-muted small mb-0">
+            Explore selected personality traits through practical,
+            purpose-aware questions.
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+
+          <span
+            class="badge rounded-pill bg-warning-subtle text-warning-emphasis
+              {% if personality_questions_status != 'outdated' %}d-none{% endif %}"
+            data-personality-questions-status-badge
+          >
+            Needs update
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-icon btn-light"
+            data-personality-questions-regenerate
+            title="Generate new personality questions"
+            aria-label="Generate new personality questions"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- OUTDATED WARNING -->
+      <div
+        class="alert alert-warning mt-4
+          {% if personality_questions_status != 'outdated' %}d-none{% endif %}"
+        data-personality-questions-outdated
+      >
+        <div class="d-flex align-items-start gap-2">
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+            <div class="fw-semibold small mb-1">
+              The selected traits or process information have changed
+            </div>
+
+            <div class="small">
+              Generate new questions to include the latest selection,
+              purpose and process context.
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- THINKING -->
+      <div
+        class="{% if personality_questions %}d-none{% endif %}"
+        data-personality-questions-thinking
+      >
+        <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Selecting relevant traits and creating questions...
+          </span>
+
+        </div>
+      </div>
+
+
+      <!-- ERROR -->
+      <div
+        class="alert alert-danger d-none mt-4"
+        data-personality-questions-error
+      >
+        The personality questions could not be generated.
+      </div>
+
+
+      <!-- CONTENT -->
+      <div
+        class="{% if not personality_questions %}d-none{% endif %}"
+        data-personality-questions-content
+      >
+
+        <!-- SELECTED TRAITS -->
+        <section class="personality-questions-traits mt-4">
+
+          <div class="personality-questions-section-header">
+
+            <div>
+              <h3 class="personality-questions-section-title mb-1">
+                Relevant traits for this purpose
+              </h3>
+
+              <p class="small text-muted mb-0">
+                Talena suggests relevant traits, but you can change the selection.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              data-personality-traits-edit
+            >
+              Edit selection
+            </button>
+
+          </div>
+
+
+          <div
+            class="personality-trait-pill-list mt-3"
+            data-personality-selected-traits
+          >
+            {% for trait in personality_questions.selected_traits %}
+              <span class="personality-trait-pill">
+                {{ trait }}
+              </span>
+            {% endfor %}
+          </div>
+
+
+          <!-- EDIT PANEL -->
+          <div
+            class="personality-traits-editor mt-3 d-none"
+            data-personality-traits-editor
+          >
+
+            <div class="personality-traits-editor__header">
+              <div>
+                <div class="fw-semibold">
+                  Select traits
+                </div>
+
+                <div class="small text-muted">
+                  Choose between one and six traits.
+                </div>
+              </div>
+
+              <span
+                class="small text-muted"
+                data-personality-traits-count
+              >
+                0 selected
+              </span>
+            </div>
+
+
+            <div
+              class="personality-traits-grid mt-3"
+              data-personality-traits-options
+            >
+              {% for trait in personality_traits_for_selection %}
+                <label class="personality-trait-option">
+
+                  <input
+                    type="checkbox"
+                    value="{{ trait.name }}"
+                    data-personality-trait-checkbox
+                    {% if trait.name in selected_personality_traits %}
+                      checked
+                    {% endif %}
+                  >
+
+                  <span class="personality-trait-option__control">
+                    <span class="personality-trait-option__name">
+                      {{ trait.name }}
+                    </span>
+
+                    <span class="personality-trait-option__score">
+                      STEN {{ trait.sten }}
+                    </span>
+                  </span>
+
+                </label>
+              {% endfor %}
+            </div>
+
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+
+              <button
+                type="button"
+                class="btn btn-sm btn-light"
+                data-personality-traits-cancel
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                data-personality-traits-save
+              >
+                Save selection
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- QUESTIONS -->
+        <section
+          class="personality-questions-section mt-4"
+          data-personality-questions-list-section
+        >
+          <h3 class="personality-questions-section-title">
+            Questions to explore
+          </h3>
+
+          <div
+            class="personality-question-list"
+            data-personality-questions-list
+          >
+            {% for item in personality_questions.questions %}
+              <article class="personality-question-card">
+
+                <div class="personality-question-card__number">
+                  {{ forloop.counter }}
+                </div>
+
+                <div class="personality-question-card__content">
+
+                  <div class="personality-question-card__text">
+                    {{ item.question }}
+                  </div>
+
+                  {% if item.traits %}
+                    <div class="personality-question-card__traits">
+                      {% for trait in item.traits %}
+                        <span>{{ trait }}</span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  {% if item.why %}
+                    <div class="personality-question-card__detail">
+                      <strong>Why this matters</strong>
+                      {{ item.why }}
+                    </div>
+                  {% endif %}
+
+                  {% if item.listen_for %}
+                    <div class="personality-question-card__detail">
+                      <strong>What to listen for</strong>
+                      {{ item.listen_for }}
+                    </div>
+                  {% endif %}
+
+                </div>
+
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+
+
+        <!-- CONTEXT NOTE -->
+        <div class="personality-questions-context-note mt-4">
+
+          <div class="personality-questions-context-note__title">
+            How Talena created these questions
+          </div>
+
+          <div data-personality-questions-context-note>
+            {{ personality_questions.context_note }}
+          </div>
+
+        </div>
+
+
+        <!-- DISCLAIMER -->
+        <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+          <i data-feather="info"></i>
+
+          <div>
+            Personality results describe likely behavioural preferences,
+            not fixed behaviour or proven competence. Use the questions
+            to explore, confirm or challenge the assessment indications.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+{% endif %}
+
+
+
+

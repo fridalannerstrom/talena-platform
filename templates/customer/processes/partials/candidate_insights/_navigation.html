@@ -1,0 +1,115 @@
+<section class="card mb-4 candidate-insights-navigation">
+
+  <div class="card-body pb-0">
+
+    <div class="insight-summary-kicker">
+      Candidate Insights
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Assessment workspace
+    </h2>
+
+    <p class="text-muted small mb-0">
+      Explore the candidate’s available assessment results,
+      interpretations and practical guidance.
+    </p>
+
+  </div>
+
+  <div class="candidate-profile-tabs-wrap mt-3">
+
+    <div
+      class="candidate-profile-tabs"
+      role="tablist"
+      aria-label="Candidate insight areas"
+    >
+
+      <button
+        type="button"
+        class="candidate-tab is-active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="candidate-insights-panel-overview"
+        data-insights-tab="overview"
+      >
+        Overview
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_personality_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-personality"
+        data-insights-tab="personality"
+      >
+        Personality
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not has_motivation_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-motivation"
+        data-insights-tab="motivation"
+      >
+        Motivation
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not candidate_insights.cognitive_results and not has_ability_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-cognitive"
+        data-insights-tab="cognitive"
+      >
+        Cognitive abilities
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab {% if not team_style_profile.available %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-team-styles"
+        data-insights-tab="team-styles"
+      >
+        Team styles
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-questions"
+        data-insights-tab="questions"
+      >
+        Questions
+      </button>
+
+
+      <button
+        type="button"
+        class="candidate-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-final-output"
+        data-insights-tab="final-output"
+      >
+        Final output
+      </button>
+
+    </div>
+
+  </div>
+
+</section>

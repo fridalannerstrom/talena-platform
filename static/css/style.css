@@ -28796,6 +28796,37 @@ color: #6E63E3;
   font-size: 0.66rem;
 }
 
+.personality-trait-card__summary {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f8f7fc;
+}
+
+.personality-trait-card__summary-label {
+  margin-bottom: 5px;
+  color: #706b80;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.personality-trait-card__summary-text {
+  margin: 0;
+  color: #34303e;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.personality-trait-card__indicator-panel--always-open {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #ebe8f1;
+}
+
+
+
 
 /* ---------------------------------------------------------
    RESPONSIVE
