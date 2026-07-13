@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import json
 from typing import Any, Iterable
-
-from django.forms.models import model_to_dict
 from django.utils import timezone
 
 from .openai_client import (
@@ -11,24 +9,11 @@ from .openai_client import (
     get_chat_model,
 )
 
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
 
-PURPOSE_LABELS = {
-    "hiring": "Recruitment",
-    "recruitment": "Recruitment",
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
-    "employee_development": "Employee development",
-    "career_path": "Career development",
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-    "flexible": "General insights",
-    "unsure": "General insights",
-    "general": "General insights",
-}
 
 
 MOTIVATION_DEFINITIONS = {
@@ -97,89 +82,6 @@ MOTIVATION_DEFINITIONS = {
 }
 
 
-def get_purpose_key(process) -> str:
-    return (process.purpose or "").strip().lower()
-
-
-def get_purpose_label(process) -> str:
-    purpose_key = get_purpose_key(process)
-
-    if purpose_key in PURPOSE_LABELS:
-        return PURPOSE_LABELS[purpose_key]
-
-    if hasattr(process, "get_purpose_display"):
-        return process.get_purpose_display()
-
-    return purpose_key or "General insights"
-
-
-def build_process_context(
-    process,
-) -> tuple[str, dict[str, Any]]:
-    """
-    Convert optional process context into prompt-friendly text.
-    """
-
-    purpose_context = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    if (
-        not purpose_context
-        or not purpose_context.has_content()
-    ):
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    raw_context = model_to_dict(
-        purpose_context
-    )
-
-    excluded_fields = {
-        "id",
-        "process",
-        "created_at",
-        "updated_at",
-        "purpose_data",
-    }
-
-    context_data = {}
-    context_lines = []
-
-    for field_name, value in raw_context.items():
-        if field_name in excluded_fields:
-            continue
-
-        if value in (None, "", [], {}):
-            continue
-
-        readable_name = (
-            field_name
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-        context_data[field_name] = value
-
-        context_lines.append(
-            f"- {readable_name}: {value}"
-        )
-
-    if not context_lines:
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    return (
-        "\n".join(context_lines),
-        context_data,
-    )
 
 
 def _normalise_name(value: Any) -> str:
@@ -354,16 +256,16 @@ def build_motivation_interpretation_prompt(
     Build the prompt for Talena's motivation interpretation.
     """
 
-    candidate = invitation.candidate
-    process = invitation.process
-
-    purpose_label = get_purpose_label(
-        process
+    shared_context = build_shared_ai_context(
+        invitation
     )
 
-    context_text, context_data = (
-        build_process_context(process)
-    )
+    candidate = shared_context["candidate"]
+    process = shared_context["process"]
+
+    purpose_label = shared_context["purpose_label"]
+    context_text = shared_context["context_text"]
+    context_data = shared_context["context_data"]
 
     evidence_text = (
         build_motivation_evidence_text(
@@ -669,6 +571,54 @@ def create_empty_motivation_interpretation(
     }
 
 
+def _normalise_motivation_questions(
+    items: Any,
+) -> list[dict[str, str]]:
+    """
+    Return only complete motivation question objects.
+
+    Every valid question must contain:
+    - question
+    - why
+    - listen_for
+    """
+
+    if not isinstance(items, list):
+        return []
+
+    questions = []
+
+    for item in items[:3]:
+        if not isinstance(item, dict):
+            continue
+
+        question = str(
+            item.get("question")
+            or ""
+        ).strip()
+
+        why = str(
+            item.get("why")
+            or ""
+        ).strip()
+
+        listen_for = str(
+            item.get("listen_for")
+            or ""
+        ).strip()
+
+        if not question or not why or not listen_for:
+            continue
+
+        questions.append({
+            "question": question,
+            "why": why,
+            "listen_for": listen_for,
+        })
+
+    return questions
+
+
 def apply_motivation_interpretation_event(
     interpretation: dict[str, Any],
     event: dict[str, Any],
@@ -717,38 +667,11 @@ def apply_motivation_interpretation_event(
             ]
 
     elif event_type == "questions":
-        items = event.get("items")
-
-        if isinstance(items, list):
-            normalised_questions = []
-
-            for item in items[:3]:
-                if not isinstance(item, dict):
-                    continue
-
-                question = str(
-                    item.get("question")
-                    or ""
-                ).strip()
-
-                if not question:
-                    continue
-
-                normalised_questions.append({
-                    "question": question,
-                    "why": str(
-                        item.get("why")
-                        or ""
-                    ).strip(),
-                    "listen_for": str(
-                        item.get("listen_for")
-                        or ""
-                    ).strip(),
-                })
-
-            interpretation["questions"] = (
-                normalised_questions
+        interpretation["questions"] = (
+            _normalise_motivation_questions(
+                event.get("items")
             )
+        )
 
     elif event_type == "expectation_setting":
         interpretation["expectation_setting"] = str(
@@ -794,6 +717,240 @@ def _parse_event_line(
     return event
 
 
+def _build_motivation_questions_repair_prompt(
+    *,
+    owner,
+    motivation_results: list[dict[str, Any]],
+) -> str:
+    """
+    Build a focused repair prompt used only when the main AI response
+    did not return three complete motivation questions.
+    """
+
+    shared_context = build_shared_ai_context(
+        owner
+    )
+
+    evidence_text = (
+        build_motivation_evidence_text(
+            motivation_results
+        )
+    )
+
+    return f"""
+You are repairing a missing questions section for Talena.
+
+CANDIDATE
+Name: {shared_context["candidate_name"]}
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"]}
+
+AVAILABLE MOTIVATION RESULTS
+{evidence_text}
+
+YOUR TASK
+Return exactly three practical and open questions that help explore
+how the motivation profile appears in real situations.
+
+The questions must:
+- be relevant to the selected process purpose
+- use supplied process context when available
+- invite a concrete example or reflection
+- cover three different motivation themes
+- avoid leading the respondent
+- avoid mentioning raw scores
+- treat assessment results as hypotheses rather than facts
+
+For each question return:
+- question
+- why
+- listen_for
+
+OUTPUT FORMAT
+Return exactly one JSON object on one single line.
+Do not use Markdown.
+Do not use code fences.
+Do not add any other text.
+
+{{"type":"questions","items":[{{"question":"Question one","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","why":"Why it matters","listen_for":"What to listen for"}}]}}
+""".strip()
+
+
+def _parse_repaired_questions_response(
+    raw_content: str,
+) -> dict[str, Any] | None:
+    """
+    Parse either a single-line or pretty-printed JSON repair response.
+    """
+
+    text = str(
+        raw_content
+        or ""
+    ).strip()
+
+    if not text:
+        return None
+
+    if text.startswith("```"):
+        text = "\n".join(
+            line
+            for line in text.splitlines()
+            if not line.strip().startswith("```")
+        ).strip()
+
+    try:
+        event = json.loads(text)
+    except json.JSONDecodeError:
+        event = None
+
+        for line in text.splitlines():
+            parsed_event = _parse_event_line(
+                line
+            )
+
+            if parsed_event:
+                event = parsed_event
+                break
+
+    if not isinstance(event, dict):
+        return None
+
+    if event.get("type") != "questions":
+        return None
+
+    questions = _normalise_motivation_questions(
+        event.get("items")
+    )
+
+    if len(questions) != 3:
+        return None
+
+    return {
+        "type": "questions",
+        "items": questions,
+    }
+
+
+def _build_safe_fallback_questions_event() -> dict[str, Any]:
+    """
+    Last-resort questions so a completed interpretation is not lost
+    merely because the model formatted the question event incorrectly.
+    """
+
+    return {
+        "type": "questions",
+        "items": [
+            {
+                "question": (
+                    "Which parts of your work tend to give you the most "
+                    "energy, and what is a recent example?"
+                ),
+                "why": (
+                    "This helps connect the motivation profile to the "
+                    "person's actual experience."
+                ),
+                "listen_for": (
+                    "Specific activities, conditions and recurring sources "
+                    "of engagement."
+                ),
+            },
+            {
+                "question": (
+                    "Tell me about a situation where something important "
+                    "for your motivation was missing. How did it affect you?"
+                ),
+                "why": (
+                    "This explores how prominent motivational needs may "
+                    "influence engagement when they are not supported."
+                ),
+                "listen_for": (
+                    "Self-awareness, practical coping strategies and the "
+                    "conditions that affected motivation."
+                ),
+            },
+            {
+                "question": (
+                    "What would you want clarified about this role or "
+                    "situation to judge whether it would keep you engaged "
+                    "over time?"
+                ),
+                "why": (
+                    "This helps translate assessment indications into "
+                    "realistic expectation setting."
+                ),
+                "listen_for": (
+                    "Priorities, working conditions and expectations that "
+                    "matter for sustainable engagement."
+                ),
+            },
+        ],
+    }
+
+
+def _generate_repaired_questions_event(
+    *,
+    owner,
+    motivation_results: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Make one focused repair request.
+
+    A safe deterministic fallback is returned if the repair response
+    is still malformed.
+    """
+
+    try:
+        client = get_openai_client()
+
+        response = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a careful workplace motivation "
+                        "assessment consultant. Return the requested "
+                        "JSON object exactly."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        _build_motivation_questions_repair_prompt(
+                            owner=owner,
+                            motivation_results=motivation_results,
+                        )
+                    ),
+                },
+            ],
+            temperature=0.1,
+            stream=False,
+        )
+
+        raw_content = (
+            response.choices[0].message.content
+            or ""
+        )
+
+        repaired_event = (
+            _parse_repaired_questions_response(
+                raw_content
+            )
+        )
+
+        if repaired_event:
+            return repaired_event
+
+    except Exception:
+        pass
+
+    return _build_safe_fallback_questions_event()
+
+
 def stream_motivation_interpretation(
     *,
     owner,
@@ -801,6 +958,9 @@ def stream_motivation_interpretation(
 ) -> Iterable[dict[str, Any]]:
     """
     Stream motivation interpretation events from OpenAI.
+
+    The final done event is held back until the response has been
+    checked and any missing questions have been repaired.
     """
 
     if not motivation_results:
@@ -838,6 +998,40 @@ def stream_motivation_interpretation(
     )
 
     buffer = ""
+    received_valid_questions = False
+
+    def prepare_event(
+        event: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        nonlocal received_valid_questions
+
+        if not event:
+            return None
+
+        event_type = event.get("type")
+
+        # Hold back done until validation and repair are complete.
+        if event_type == "done":
+            return None
+
+        if event_type == "questions":
+            questions = (
+                _normalise_motivation_questions(
+                    event.get("items")
+                )
+            )
+
+            if len(questions) != 3:
+                return None
+
+            received_valid_questions = True
+
+            return {
+                "type": "questions",
+                "items": questions,
+            }
+
+        return event
 
     for response_event in stream:
         delta = response_event.choices[0].delta
@@ -857,16 +1051,34 @@ def stream_motivation_interpretation(
                 raw_line
             )
 
-            if parsed_event:
-                yield parsed_event
+            prepared_event = prepare_event(
+                parsed_event
+            )
+
+            if prepared_event:
+                yield prepared_event
 
     final_event = _parse_event_line(
         buffer
     )
 
-    if final_event:
-        yield final_event
+    prepared_final_event = prepare_event(
+        final_event
+    )
 
+    if prepared_final_event:
+        yield prepared_final_event
+
+    if not received_valid_questions:
+        yield _generate_repaired_questions_event(
+            owner=owner,
+            motivation_results=motivation_results,
+        )
+
+    # Emit exactly one done event, after validation and repair.
+    yield {
+        "type": "done",
+    }
 
 def save_motivation_interpretation(
     *,
@@ -895,7 +1107,9 @@ def save_motivation_interpretation(
     )
 
     owner.ai_motivation_interpretation_purpose = (
-        get_purpose_key(owner.process)
+        get_process_purpose_key(
+            owner.process
+        )
     )
 
     owner.save(update_fields=[

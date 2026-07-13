@@ -3,7 +3,11 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
-from django.forms.models import model_to_dict
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
+
 from django.utils import timezone
 
 from .openai_client import (
@@ -12,29 +16,6 @@ from .openai_client import (
 )
 
 
-PURPOSE_LABELS = {
-    "hiring": "Recruitment",
-    "recruitment": "Recruitment",
-
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
-
-    "career_path": "Career development",
-    "employee_development": "Employee development",
-
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
-
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-
-    "flexible": "Flexible process / general insights",
-    "unsure": "Flexible process / general insights",
-    "general": "General insights",
-}
 
 
 RESPONSE_STYLE_EXPERT_GUIDANCE = """
@@ -163,121 +144,6 @@ KNOWN COMBINATION: PROFILE SPREAD LOW AND RATINGS SPREAD HIGH
 """.strip()
 
 
-def get_purpose_key(process) -> str:
-    return (
-        getattr(process, "purpose", "")
-        or ""
-    ).strip().lower()
-
-
-def get_purpose_label(process) -> str:
-    purpose_key = get_purpose_key(process)
-
-    if purpose_key in PURPOSE_LABELS:
-        return PURPOSE_LABELS[purpose_key]
-
-    if hasattr(process, "get_purpose_display"):
-        display_value = process.get_purpose_display()
-
-        if display_value:
-            return display_value
-
-    return purpose_key or "No specific purpose selected"
-
-
-def build_process_context(
-    process,
-) -> tuple[str, dict[str, Any]]:
-    """
-    Build prompt-friendly process context.
-
-    Historical processes use general interpretation because their
-    original purpose context may not be available or reliable.
-    """
-
-    if getattr(process, "is_historical", False):
-        return (
-            "This is a historical profile. No original process context "
-            "is available.",
-            {},
-        )
-
-    context_object = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    if (
-        not context_object
-        or not context_object.has_content()
-    ):
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    if hasattr(
-        context_object,
-        "get_current_context_data",
-    ):
-        raw_context = (
-            context_object.get_current_context_data()
-            or {}
-        )
-    else:
-        raw_context = model_to_dict(
-            context_object
-        )
-
-    excluded_fields = {
-        "id",
-        "process",
-        "created_at",
-        "updated_at",
-        "purpose_data",
-    }
-
-    context_data = {}
-    context_lines = []
-
-    for field_name, value in raw_context.items():
-        if field_name in excluded_fields:
-            continue
-
-        if value in (
-            None,
-            "",
-            [],
-            {},
-        ):
-            continue
-
-        readable_name = (
-            field_name
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-        context_data[field_name] = value
-
-        context_lines.append(
-            f"- {readable_name}: {value}"
-        )
-
-    if not context_lines:
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    return (
-        "\n".join(context_lines),
-        context_data,
-    )
-
-
 def build_response_style_evidence(
     response_styles: list[dict[str, Any]],
 ) -> tuple[str, dict[str, dict[str, Any]]]:
@@ -378,16 +244,16 @@ def build_response_style_guidance_prompt(
     - HistoricalProcessCandidate
     """
 
-    candidate = guidance_owner.candidate
-    process = guidance_owner.process
-
-    purpose_label = get_purpose_label(
-        process
+    shared_context = build_shared_ai_context(
+        guidance_owner
     )
 
-    context_text, context_data = (
-        build_process_context(process)
-    )
+    candidate = shared_context["candidate"]
+    process = shared_context["process"]
+
+    purpose_label = shared_context["purpose_label"]
+    context_text = shared_context["context_text"]
+    context_data = shared_context["context_data"]
 
     response_style_text, evidence_by_key = (
         build_response_style_evidence(
@@ -793,7 +659,7 @@ def save_response_style_guidance(
     )
 
     guidance_owner.ai_response_style_guidance_purpose = (
-        get_purpose_key(
+        get_process_purpose_key(
             guidance_owner.process
         )
     )

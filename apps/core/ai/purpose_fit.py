@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
-from django.forms.models import model_to_dict
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
 from django.utils import timezone
 
 from .openai_client import get_openai_client, get_chat_model
@@ -38,22 +41,6 @@ PURPOSE_FIT_TITLES = {
 }
 
 
-PURPOSE_LABELS = {
-    "hiring": "Recruitment",
-    "recruitment": "Recruitment",
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
-    "employee_development": "Employee development",
-    "career_path": "Career development",
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-}
-
-
 ALLOWED_RECOMMENDATIONS = {
     "Strong alignment",
     "Potential alignment",
@@ -70,12 +57,12 @@ ALLOWED_CONFIDENCE_LEVELS = {
 }
 
 
-def get_purpose_key(process) -> str:
-    return (process.purpose or "").strip().lower()
 
 
 def get_purpose_fit_title(process) -> str:
-    purpose_key = get_purpose_key(process)
+    purpose_key = get_process_purpose_key(
+        process
+    )
 
     return PURPOSE_FIT_TITLES.get(
         purpose_key,
@@ -88,7 +75,9 @@ def purpose_supports_fit(process) -> bool:
     Flexible/general processes should not receive a purpose-fit verdict.
     """
 
-    purpose_key = get_purpose_key(process)
+    purpose_key = get_process_purpose_key(
+        process
+    )
 
     return purpose_key not in {
         "",
@@ -200,67 +189,6 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
     )
 
 
-def build_process_context(process) -> tuple[str, dict[str, Any]]:
-    """
-    Convert the active process context into prompt-friendly text.
-    """
-
-    role_context = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    if not role_context or not role_context.has_content():
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    raw_context = model_to_dict(role_context)
-
-    excluded_fields = {
-        "id",
-        "process",
-        "created_at",
-        "updated_at",
-        "purpose_data",
-    }
-
-    context_data = {}
-    context_lines = []
-
-    for field_name, value in raw_context.items():
-        if field_name in excluded_fields:
-            continue
-
-        if value in (None, "", [], {}):
-            continue
-
-        readable_name = (
-            field_name
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-        context_data[field_name] = value
-        context_lines.append(
-            f"- {readable_name}: {value}"
-        )
-
-    if not context_lines:
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    return (
-        "\n".join(context_lines),
-        context_data,
-    )
-
-
 def calculate_max_confidence(
     *,
     context_data: dict[str, Any],
@@ -301,24 +229,21 @@ def build_purpose_fit_prompt(invitation) -> str:
     renamed to AI Overview.
     """
 
-    candidate = invitation.candidate
-    process = invitation.process
-
-    purpose_key = get_purpose_key(process)
-
-    purpose_label = PURPOSE_LABELS.get(
-        purpose_key,
-        process.get_purpose_display()
-        if hasattr(process, "get_purpose_display")
-        else purpose_key,
+    shared_context = build_shared_ai_context(
+        invitation
     )
+
+    candidate = shared_context["candidate"]
+    process = shared_context["process"]
+
+    purpose_key = shared_context["purpose_key"]
+    purpose_label = shared_context["purpose_label"]
+
+    context_text = shared_context["context_text"]
+    context_data = shared_context["context_data"]
 
     assessment_text, assessment_type_count = (
         build_assessment_evidence(invitation)
-    )
-
-    context_text, context_data = build_process_context(
-        process
     )
 
     has_context = bool(context_data)
@@ -743,7 +668,9 @@ def save_candidate_purpose_fit(
         timezone.now()
     )
     invitation.ai_purpose_fit_purpose = (
-        get_purpose_key(invitation.process)
+        get_process_purpose_key(
+            invitation.process
+        )
     )
 
     invitation.save(update_fields=[

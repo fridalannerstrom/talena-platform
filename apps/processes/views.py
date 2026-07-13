@@ -7071,10 +7071,26 @@ def process_candidate_personality_questions_stream(
                 or []
             )
 
-            if not 4 <= len(selected_traits) <= 6:
+            has_user_selected_traits = bool(
+                invitation.selected_personality_traits
+            )
+
+            minimum_trait_count = (
+                1
+                if has_user_selected_traits
+                else 4
+            )
+
+            if not minimum_trait_count <= len(selected_traits) <= 6:
                 raise ValueError(
-                    "The AI response did not contain "
-                    "between four and six valid personality traits."
+                    (
+                        "The personality trait selection was invalid."
+                        if has_user_selected_traits
+                        else (
+                            "The AI response did not contain "
+                            "between four and six valid personality traits."
+                        )
+                    )
                 )
 
             if len(questions) != 3:

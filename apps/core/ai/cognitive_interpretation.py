@@ -3,118 +3,18 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
-from django.forms.models import model_to_dict
 from django.utils import timezone
+
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
 
 from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
 
-
-PURPOSE_LABELS = {
-    "hiring": "Recruitment",
-    "recruitment": "Recruitment",
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
-    "employee_development": "Employee development",
-    "career_path": "Career development",
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-    "flexible": "General insights",
-    "unsure": "General insights",
-    "general": "General insights",
-}
-
-
-def get_purpose_key(process) -> str:
-    return (process.purpose or "").strip().lower()
-
-
-def get_purpose_label(process) -> str:
-    purpose_key = get_purpose_key(process)
-
-    if purpose_key in PURPOSE_LABELS:
-        return PURPOSE_LABELS[purpose_key]
-
-    if hasattr(process, "get_purpose_display"):
-        return process.get_purpose_display()
-
-    return purpose_key or "General insights"
-
-
-def build_process_context(
-    process,
-) -> tuple[str, dict[str, Any]]:
-    """
-    Convert the optional process context into text that can be
-    included in the AI prompt.
-    """
-
-    purpose_context = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    if (
-        not purpose_context
-        or not purpose_context.has_content()
-    ):
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    raw_context = model_to_dict(
-        purpose_context
-    )
-
-    excluded_fields = {
-        "id",
-        "process",
-        "created_at",
-        "updated_at",
-        "purpose_data",
-    }
-
-    context_data = {}
-    context_lines = []
-
-    for field_name, value in raw_context.items():
-        if field_name in excluded_fields:
-            continue
-
-        if value in (None, "", [], {}):
-            continue
-
-        readable_name = (
-            field_name
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-        context_data[field_name] = value
-
-        context_lines.append(
-            f"- {readable_name}: {value}"
-        )
-
-    if not context_lines:
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    return (
-        "\n".join(context_lines),
-        context_data,
-    )
 
 
 def extract_cognitive_results(
@@ -277,16 +177,16 @@ def build_cognitive_interpretation_prompt(
     Build the prompt for the cognitive interpretation section.
     """
 
-    candidate = invitation.candidate
-    process = invitation.process
-
-    purpose_label = get_purpose_label(
-        process
+    shared_context = build_shared_ai_context(
+        invitation
     )
 
-    context_text, context_data = (
-        build_process_context(process)
-    )
+    candidate = shared_context["candidate"]
+    process = shared_context["process"]
+
+    purpose_label = shared_context["purpose_label"]
+    context_text = shared_context["context_text"]
+    context_data = shared_context["context_data"]
 
     evidence_text = (
         build_cognitive_evidence_text(
@@ -731,7 +631,9 @@ def save_cognitive_interpretation(
     )
 
     owner.ai_cognitive_interpretation_purpose = (
-        get_purpose_key(owner.process)
+        get_process_purpose_key(
+            owner.process
+        )
     )
 
     owner.save(update_fields=[

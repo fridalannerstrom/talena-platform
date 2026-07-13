@@ -3,32 +3,18 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
-from django.forms.models import model_to_dict
 from django.utils import timezone
+
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
 
 from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
 
-
-PURPOSE_LABELS = {
-    "hiring": "Recruitment",
-    "recruitment": "Recruitment",
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
-    "employee_development": "Employee development",
-    "career_path": "Career development",
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-    "flexible": "General insights",
-    "unsure": "General insights",
-    "general": "General insights",
-}
 
 
 EXCLUDED_PERSONALITY_COMPETENCIES = {
@@ -39,90 +25,6 @@ EXCLUDED_PERSONALITY_COMPETENCIES = {
     "ratings spread",
 }
 
-
-def get_purpose_key(process) -> str:
-    return (process.purpose or "").strip().lower()
-
-
-def get_purpose_label(process) -> str:
-    purpose_key = get_purpose_key(process)
-
-    if purpose_key in PURPOSE_LABELS:
-        return PURPOSE_LABELS[purpose_key]
-
-    if hasattr(process, "get_purpose_display"):
-        return process.get_purpose_display()
-
-    return purpose_key or "General insights"
-
-
-def build_process_context(
-    process,
-) -> tuple[str, dict[str, Any]]:
-    """
-    Convert optional process context into prompt-friendly text.
-    """
-
-    purpose_context = getattr(
-        process,
-        "role_context",
-        None,
-    )
-
-    if (
-        not purpose_context
-        or not purpose_context.has_content()
-    ):
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    raw_context = model_to_dict(
-        purpose_context
-    )
-
-    excluded_fields = {
-        "id",
-        "process",
-        "created_at",
-        "updated_at",
-        "purpose_data",
-    }
-
-    context_data = {}
-    context_lines = []
-
-    for field_name, value in raw_context.items():
-        if field_name in excluded_fields:
-            continue
-
-        if value in (None, "", [], {}):
-            continue
-
-        readable_name = (
-            field_name
-            .replace("_", " ")
-            .strip()
-            .title()
-        )
-
-        context_data[field_name] = value
-
-        context_lines.append(
-            f"- {readable_name}: {value}"
-        )
-
-    if not context_lines:
-        return (
-            "No additional process context has been added.",
-            {},
-        )
-
-    return (
-        "\n".join(context_lines),
-        context_data,
-    )
 
 
 def _normalise_name(value: Any) -> str:
@@ -312,16 +214,16 @@ def build_personality_questions_prompt(
     Build the prompt for trait suggestions and purpose-aware questions.
     """
 
-    candidate = invitation.candidate
-    process = invitation.process
-
-    purpose_label = get_purpose_label(
-        process
+    shared_context = build_shared_ai_context(
+        invitation
     )
 
-    context_text, context_data = (
-        build_process_context(process)
-    )
+    candidate = shared_context["candidate"]
+    process = shared_context["process"]
+
+    purpose_label = shared_context["purpose_label"]
+    context_text = shared_context["context_text"]
+    context_data = shared_context["context_data"]
 
     evidence_text = (
         build_personality_evidence_text(
@@ -568,6 +470,89 @@ def create_empty_personality_questions(
         "context_note": "",
     }
 
+def _normalise_personality_questions(
+    items: Any,
+    selected_traits: list[str],
+) -> list[dict[str, Any]]:
+    """
+    Return complete personality question objects.
+
+    Every valid question must contain:
+    - question
+    - at least one selected trait
+    - why
+    - listen_for
+    """
+
+    if not isinstance(items, list):
+        return []
+
+    trait_lookup = {
+        str(trait).strip().lower(): str(trait).strip()
+        for trait in selected_traits or []
+        if str(trait).strip()
+    }
+
+    questions = []
+
+    for item in items[:3]:
+        if not isinstance(item, dict):
+            continue
+
+        question = str(
+            item.get("question")
+            or ""
+        ).strip()
+
+        why = str(
+            item.get("why")
+            or ""
+        ).strip()
+
+        listen_for = str(
+            item.get("listen_for")
+            or ""
+        ).strip()
+
+        raw_traits = item.get("traits")
+        traits = []
+
+        if isinstance(raw_traits, list):
+            for raw_trait in raw_traits:
+                trait_key = str(
+                    raw_trait
+                    or ""
+                ).strip().lower()
+
+                canonical_trait = trait_lookup.get(
+                    trait_key
+                )
+
+                if (
+                    canonical_trait
+                    and canonical_trait not in traits
+                ):
+                    traits.append(
+                        canonical_trait
+                    )
+
+        if (
+            not question
+            or not why
+            or not listen_for
+            or not traits
+        ):
+            continue
+
+        questions.append({
+            "question": question,
+            "traits": traits,
+            "why": why,
+            "listen_for": listen_for,
+        })
+
+    return questions
+
 
 def apply_personality_questions_event(
     result: dict[str, Any],
@@ -631,51 +616,12 @@ def apply_personality_questions_event(
             ]
 
     elif event_type == "questions":
-        items = event.get("items")
-
-        if isinstance(items, list):
-            normalised_questions = []
-
-            for item in items[:3]:
-                if not isinstance(item, dict):
-                    continue
-
-                question = str(
-                    item.get("question")
-                    or ""
-                ).strip()
-
-                if not question:
-                    continue
-
-                raw_traits = item.get("traits")
-
-                traits = (
-                    [
-                        str(trait).strip()
-                        for trait in raw_traits
-                        if str(trait).strip()
-                    ]
-                    if isinstance(raw_traits, list)
-                    else []
-                )
-
-                normalised_questions.append({
-                    "question": question,
-                    "traits": traits,
-                    "why": str(
-                        item.get("why")
-                        or ""
-                    ).strip(),
-                    "listen_for": str(
-                        item.get("listen_for")
-                        or ""
-                    ).strip(),
-                })
-
-            result["questions"] = (
-                normalised_questions
+        result["questions"] = (
+            _normalise_personality_questions(
+                event.get("items"),
+                result.get("selected_traits") or [],
             )
+        )
 
     elif event_type == "context_note":
         result["context_note"] = str(
@@ -714,6 +660,296 @@ def _parse_event_line(
 
     return event
 
+def _build_personality_questions_repair_prompt(
+    *,
+    owner,
+    personality_results: list[dict[str, Any]],
+    selected_traits: list[str],
+) -> str:
+    """
+    Build a focused prompt that repairs only the questions event.
+    """
+
+    shared_context = build_shared_ai_context(
+        owner
+    )
+
+    evidence_text = (
+        build_personality_evidence_text(
+            personality_results
+        )
+    )
+
+    selected_traits_text = "\n".join(
+        f"- {trait}"
+        for trait in selected_traits
+    )
+
+    return f"""
+You are repairing a missing or malformed personality questions event
+for Talena.
+
+CANDIDATE
+Name: {shared_context["candidate_name"]}
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"]}
+
+AVAILABLE PERSONALITY RESULTS
+{evidence_text}
+
+SELECTED PERSONALITY TRAITS
+{selected_traits_text}
+
+YOUR TASK
+Return exactly three complete questions based on the selected traits.
+
+Each question must:
+- be open and behavioural or reflective
+- ask for a concrete example, approach or learning
+- use one or more of the selected traits
+- be relevant to the selected purpose
+- use supplied process context when available
+- avoid leading the respondent
+- avoid mentioning raw assessment scores
+- treat personality results as hypotheses rather than facts
+
+Every question object must contain:
+- question
+- traits
+- why
+- listen_for
+
+The traits property must be a list containing only names from the
+selected personality traits above.
+
+OUTPUT FORMAT
+Return exactly one JSON object on one single line.
+Do not use Markdown.
+Do not use code fences.
+Do not add any other text.
+
+{{"type":"questions","items":[{{"question":"Question one","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
+""".strip()
+
+
+def _parse_repaired_personality_questions(
+    raw_content: str,
+    selected_traits: list[str],
+) -> dict[str, Any] | None:
+    """
+    Parse a repair response and verify all three questions.
+    """
+
+    text = str(
+        raw_content
+        or ""
+    ).strip()
+
+    if not text:
+        return None
+
+    if text.startswith("```"):
+        text = "\n".join(
+            line
+            for line in text.splitlines()
+            if not line.strip().startswith("```")
+        ).strip()
+
+    try:
+        event = json.loads(text)
+    except json.JSONDecodeError:
+        event = None
+
+        for line in text.splitlines():
+            parsed_event = _parse_event_line(
+                line
+            )
+
+            if parsed_event:
+                event = parsed_event
+                break
+
+    if not isinstance(event, dict):
+        return None
+
+    if event.get("type") != "questions":
+        return None
+
+    questions = _normalise_personality_questions(
+        event.get("items"),
+        selected_traits,
+    )
+
+    if len(questions) != 3:
+        return None
+
+    return {
+        "type": "questions",
+        "items": questions,
+    }
+
+
+def _build_safe_personality_questions_event(
+    *,
+    selected_traits: list[str],
+    personality_results: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Last-resort deterministic questions.
+
+    This prevents a valid trait selection from being lost because the
+    model formatted its questions event incorrectly.
+    """
+
+    traits = [
+        str(trait).strip()
+        for trait in selected_traits
+        if str(trait).strip()
+    ]
+
+    if not traits:
+        traits = [
+            item["name"]
+            for item in personality_results[:4]
+            if item.get("name")
+        ]
+
+    if not traits:
+        raise ValueError(
+            "No personality traits are available for the questions."
+        )
+
+    def trait_at(index):
+        return traits[index % len(traits)]
+
+    return {
+        "type": "questions",
+        "items": [
+            {
+                "question": (
+                    "Tell me about a recent situation where your usual "
+                    "way of working was particularly effective. What did "
+                    "you do, and what was the outcome?"
+                ),
+                "traits": [
+                    trait_at(0),
+                ],
+                "why": (
+                    "This helps compare the assessment indication with "
+                    "a concrete example of workplace behaviour."
+                ),
+                "listen_for": (
+                    "Specific actions, situational context and evidence "
+                    "of how the person used their natural preferences."
+                ),
+            },
+            {
+                "question": (
+                    "Describe a situation where you needed to adapt your "
+                    "normal approach. What made the adjustment necessary?"
+                ),
+                "traits": [
+                    trait_at(1),
+                    trait_at(2),
+                ],
+                "why": (
+                    "This explores flexibility and how personality "
+                    "preferences may change across situations."
+                ),
+                "listen_for": (
+                    "Self-awareness, deliberate adaptation and the effect "
+                    "of the surrounding context."
+                ),
+            },
+            {
+                "question": (
+                    "What feedback have you received about how you work "
+                    "with other people, and what did you learn from it?"
+                ),
+                "traits": [
+                    trait_at(3),
+                ],
+                "why": (
+                    "This provides external behavioural evidence that may "
+                    "confirm or add nuance to the personality profile."
+                ),
+                "listen_for": (
+                    "Concrete feedback, reflection and examples of changes "
+                    "made in response."
+                ),
+            },
+        ],
+    }
+
+
+def _generate_repaired_personality_questions_event(
+    *,
+    owner,
+    personality_results: list[dict[str, Any]],
+    selected_traits: list[str],
+) -> dict[str, Any]:
+    """
+    Make one focused repair request.
+
+    Use deterministic questions if the repair response remains malformed.
+    """
+
+    try:
+        client = get_openai_client()
+
+        response = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a careful workplace personality "
+                        "assessment consultant. Return the requested "
+                        "JSON object exactly."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        _build_personality_questions_repair_prompt(
+                            owner=owner,
+                            personality_results=personality_results,
+                            selected_traits=selected_traits,
+                        )
+                    ),
+                },
+            ],
+            temperature=0.1,
+            stream=False,
+        )
+
+        raw_content = (
+            response.choices[0].message.content
+            or ""
+        )
+
+        repaired_event = (
+            _parse_repaired_personality_questions(
+                raw_content,
+                selected_traits,
+            )
+        )
+
+        if repaired_event:
+            return repaired_event
+
+    except Exception:
+        pass
+
+    return _build_safe_personality_questions_event(
+        selected_traits=selected_traits,
+        personality_results=personality_results,
+    )
+
 
 def stream_personality_questions(
     *,
@@ -721,7 +957,8 @@ def stream_personality_questions(
     personality_results: list[dict[str, Any]],
 ) -> Iterable[dict[str, Any]]:
     """
-    Stream personality trait suggestions and questions from OpenAI.
+    Stream personality events and repair malformed questions
+    before emitting the final done event.
     """
 
     if not personality_results:
@@ -760,6 +997,95 @@ def stream_personality_questions(
 
     buffer = ""
 
+    selected_traits = normalise_selected_traits(
+        selected_traits=(
+            owner.selected_personality_traits
+            or []
+        ),
+        available_results=personality_results,
+    )
+
+    suggested_traits = []
+    received_valid_questions = False
+
+    def prepare_event(
+        event: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        nonlocal selected_traits
+        nonlocal suggested_traits
+        nonlocal received_valid_questions
+
+        if not event:
+            return None
+
+        event_type = event.get("type")
+
+        # Hold back done until validation and repair are complete.
+        if event_type == "done":
+            return None
+
+        if event_type == "suggested_traits":
+            items = event.get("items")
+
+            raw_names = []
+
+            if isinstance(items, list):
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+
+                    name = str(
+                        item.get("name")
+                        or ""
+                    ).strip()
+
+                    if name:
+                        raw_names.append(name)
+
+            suggested_traits = normalise_selected_traits(
+                selected_traits=raw_names,
+                available_results=personality_results,
+            )
+
+            return event
+
+        if event_type == "selected_traits":
+            cleaned_traits = normalise_selected_traits(
+                selected_traits=(
+                    event.get("items")
+                    or []
+                ),
+                available_results=personality_results,
+            )
+
+            if not cleaned_traits:
+                return None
+
+            selected_traits = cleaned_traits
+
+            return {
+                "type": "selected_traits",
+                "items": selected_traits,
+            }
+
+        if event_type == "questions":
+            questions = _normalise_personality_questions(
+                event.get("items"),
+                selected_traits,
+            )
+
+            if len(questions) != 3:
+                return None
+
+            received_valid_questions = True
+
+            return {
+                "type": "questions",
+                "items": questions,
+            }
+
+        return event
+
     for response_event in stream:
         delta = response_event.choices[0].delta
 
@@ -778,16 +1104,75 @@ def stream_personality_questions(
                 raw_line
             )
 
-            if parsed_event:
-                yield parsed_event
+            prepared_event = prepare_event(
+                parsed_event
+            )
+
+            if prepared_event:
+                yield prepared_event
 
     final_event = _parse_event_line(
         buffer
     )
 
-    if final_event:
-        yield final_event
+    prepared_final_event = prepare_event(
+        final_event
+    )
 
+    if prepared_final_event:
+        yield prepared_final_event
+
+    # Preserve explicit user selection when one exists.
+    user_selected_traits = normalise_selected_traits(
+        selected_traits=(
+            owner.selected_personality_traits
+            or []
+        ),
+        available_results=personality_results,
+    )
+
+    if user_selected_traits:
+        selected_traits = user_selected_traits
+
+    else:
+        # Make sure an AI-generated selection contains 4 to 6 traits.
+        trait_candidates = (
+            selected_traits
+            + suggested_traits
+            + [
+                item["name"]
+                for item in personality_results
+                if item.get("name")
+            ]
+        )
+
+        selected_traits = normalise_selected_traits(
+            selected_traits=trait_candidates,
+            available_results=personality_results,
+        )[:6]
+
+        if len(selected_traits) < 4:
+            raise ValueError(
+                "Fewer than four personality traits are available."
+            )
+
+    # Emit the final canonical selection.
+    yield {
+        "type": "selected_traits",
+        "items": selected_traits,
+    }
+
+    if not received_valid_questions:
+        yield _generate_repaired_personality_questions_event(
+            owner=owner,
+            personality_results=personality_results,
+            selected_traits=selected_traits,
+        )
+
+    yield {
+        "type": "done",
+    }
+    
 
 def save_personality_questions(
     *,
@@ -819,7 +1204,9 @@ def save_personality_questions(
     )
 
     owner.ai_personality_questions_purpose = (
-        get_purpose_key(owner.process)
+        get_process_purpose_key(
+            owner.process
+        )
     )
 
     owner.save(update_fields=[
