@@ -1,4 +1,71 @@
 
+<section class="card mb-4 purpose-fit-card candidate-overview-evidence">
+  <div class="card-body">
+
+    <div class="insight-summary-kicker">
+      Candidate overview
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Available assessment evidence
+    </h2>
+
+    <p class="text-muted small mb-3">
+      This overview shows which assessment areas are available
+      for the candidate and used across Candidate Insights.
+    </p>
+
+
+    <div class="purpose-fit-inputs">
+
+      {% if has_personality_results %}
+        <span class="purpose-fit-input-pill">
+          Personality
+        </span>
+      {% endif %}
+
+
+      {% if has_motivation_results %}
+        <span class="purpose-fit-input-pill">
+          Motivation
+        </span>
+      {% endif %}
+
+
+      {% if candidate_insights.cognitive_results or has_ability_results %}
+        <span class="purpose-fit-input-pill">
+          Cognitive abilities
+        </span>
+      {% endif %}
+
+
+      {% if team_style_profile.available %}
+        <span class="purpose-fit-input-pill">
+          Team styles
+        </span>
+      {% endif %}
+
+
+      {% if has_purpose_context %}
+        <span class="purpose-fit-input-pill">
+          Process context
+        </span>
+      {% else %}
+        <span
+          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="No additional process context has been added."
+        >
+          No added context
+        </span>
+      {% endif %}
+
+    </div>
+
+  </div>
+</section>
+
 {% if not is_historical and all_assessments_completed %}
   {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
 
@@ -231,55 +298,55 @@
   </div>
 
   <!-- HOW THIS INSIGHT WAS CREATED -->
-  <div class="purpose-fit-explainer mb-4">
+<details class="purpose-fit-explainer mb-4">
 
-    <div class="purpose-fit-explainer__content">
+  <summary class="purpose-fit-explainer__title">
+    How Talena created this insight
+  </summary>
 
-      <div class="purpose-fit-explainer__title">
-        How Talena created this insight
-      </div>
+  <div class="purpose-fit-explainer__content mt-3">
 
-      <div
-        class="purpose-fit-explainer__text"
-        id="purposeFitContextNote"
-      >
-        {{ invitation.ai_purpose_fit.context_note }}
-      </div>
+    <div
+      class="purpose-fit-explainer__text"
+      id="purposeFitContextNote"
+    >
+      {{ invitation.ai_purpose_fit.context_note }}
+    </div>
 
-      <div class="purpose-fit-inputs mt-3">
+    <div class="purpose-fit-inputs mt-3">
 
-        <span class="purpose-fit-inputs__label">
-          Based on
-        </span>
+      <span class="purpose-fit-inputs__label">
+        Based on
+      </span>
 
+      <span class="purpose-fit-input-pill">
+        Assessment results
+      </span>
+
+      <span class="purpose-fit-input-pill">
+        Selected purpose
+      </span>
+
+      {% if has_purpose_context %}
         <span class="purpose-fit-input-pill">
-          Assessment results
+          Process context
         </span>
-
-        <span class="purpose-fit-input-pill">
-          Selected purpose
+      {% else %}
+        <span
+          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="No additional process context has been added."
+        >
+          No added context
         </span>
-
-        {% if has_purpose_context %}
-          <span class="purpose-fit-input-pill">
-            Process context
-          </span>
-        {% else %}
-          <span
-            class="purpose-fit-input-pill purpose-fit-input-pill--muted"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="No additional process context has been added."
-          >
-            No added context
-          </span>
-        {% endif %}
-
-      </div>
+      {% endif %}
 
     </div>
 
   </div>
+
+</details>
 
   <!-- DISCLAIMER -->
   <div class="purpose-fit-disclaimer border-top pt-3">
@@ -310,6 +377,51 @@
       </div>
     </section>
 
-  {% endif %}
-{% endif %}
+  {% else %}
 
+    <section class="card mb-4 purpose-fit-card">
+      <div class="card-body">
+
+        <div class="insight-summary-kicker">
+          Assessment overview
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          No purpose-specific overview available
+        </h2>
+
+        <p class="text-muted mb-0">
+          A combined AI overview requires a specific process purpose.
+          The available assessment results can still be explored through
+          the Personality, Motivation, Cognitive abilities and Team styles tabs.
+        </p>
+
+      </div>
+    </section>
+
+  {% endif %}
+
+{% else %}
+
+  {% if is_historical %}
+    <section class="card mb-4 purpose-fit-card">
+      <div class="card-body">
+
+        <div class="insight-summary-kicker">
+          Imported assessment data
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Historical candidate overview
+        </h2>
+
+        <p class="text-muted mb-0">
+          This candidate uses imported assessment data. Explore the available
+          assessment areas through the tabs above.
+        </p>
+
+      </div>
+    </section>
+  {% endif %}
+
+{% endif %}

@@ -1,0 +1,72 @@
+<!-- PRACTICAL INTERPRETATION -->
+<section class="cognitive-ai-section">
+
+  <h3 class="cognitive-ai-section__title">
+    Practical interpretation
+  </h3>
+
+  <div
+    class="cognitive-ai-interpretation"
+    data-cognitive-ai-interpretation
+  >
+    {{ cognitive_interpretation.interpretation }}
+  </div>
+
+</section>
+
+
+<!-- RELEVANT CONSIDERATIONS -->
+<section
+  class="cognitive-ai-section mt-4"
+  data-cognitive-ai-considerations-section
+>
+
+  <h3 class="cognitive-ai-section__title">
+    Relevant considerations
+  </h3>
+
+  <ul
+    class="cognitive-ai-considerations"
+    data-cognitive-ai-considerations
+  >
+    {% for item in cognitive_interpretation.considerations %}
+      <li>
+        <span class="cognitive-ai-list-icon">
+          <i data-feather="search"></i>
+        </span>
+
+        <span>{{ item }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+
+</section>
+
+
+<!-- CONTEXT NOTE -->
+<div class="cognitive-ai-context-note mt-4">
+
+  <div class="cognitive-ai-context-note__title">
+    How Talena created this interpretation
+  </div>
+
+  <div data-cognitive-ai-context-note>
+    {{ cognitive_interpretation.context_note }}
+  </div>
+
+</div>
+
+
+<!-- DISCLAIMER -->
+<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+  <i data-feather="info"></i>
+
+  <div>
+    Cognitive assessment results describe relative performance on
+    specific reasoning tasks. They do not measure personality,
+    motivation, experience or overall intelligence, and should be
+    considered together with other relevant evidence.
+  </div>
+
+</div>

@@ -1,0 +1,76 @@
+<section
+  class="cognitive-ai-section"
+  data-cognitive-ai-questions-section
+>
+
+  <div class="mb-4">
+
+    <div class="insight-summary-kicker">
+      Purpose-aware questions
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Cognitive questions
+    </h2>
+
+    <p class="text-muted small mb-0">
+      Use these questions to explore how the candidate approaches
+      reasoning, learning, information and decision-making.
+    </p>
+
+  </div>
+
+
+  <div
+    class="cognitive-ai-question-list"
+    data-cognitive-ai-questions
+  >
+
+    {% for item in cognitive_interpretation.questions %}
+      <article class="cognitive-ai-question">
+
+        <div class="cognitive-ai-question__number">
+          {{ forloop.counter }}
+        </div>
+
+        <div class="cognitive-ai-question__content">
+
+          <div class="cognitive-ai-question__text">
+            {{ item.question }}
+          </div>
+
+          {% if item.why %}
+            <div class="cognitive-ai-question__detail">
+              <span>Why this matters</span>
+              {{ item.why }}
+            </div>
+          {% endif %}
+
+          {% if item.listen_for %}
+            <div class="cognitive-ai-question__detail">
+              <span>What to listen for</span>
+              {{ item.listen_for }}
+            </div>
+          {% endif %}
+
+        </div>
+
+      </article>
+    {% endfor %}
+
+  </div>
+
+</section>
+
+
+<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+  <i data-feather="info"></i>
+
+  <div>
+    Use these questions to gather concrete examples of how the
+    candidate works with information and solves problems. Assessment
+    results should not replace evidence from relevant experience.
+  </div>
+
+</div>
