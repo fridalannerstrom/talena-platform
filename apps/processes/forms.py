@@ -153,129 +153,66 @@ class ProcessRoleContextForm(forms.ModelForm):
     class Meta:
         model = ProcessRoleContext
         fields = [
-            "role_title",
-            "job_advertisement",
-            "requirements_profile",
-            "competency_profile",
-            "must_haves",
-            "nice_to_haves",
-            "priorities",
-            "interview_notes",
+            "context_text",
         ]
 
         widgets = {
-            "role_title": forms.TextInput(attrs={
+            "context_text": forms.Textarea(attrs={
                 "class": "form-control",
-                "placeholder": "Add a short title..."
-            }),
-            "job_advertisement": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 5,
-                "placeholder": "Add context..."
-            }),
-            "requirements_profile": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 4,
-                "placeholder": "Add expectations, criteria or requirements..."
-            }),
-            "competency_profile": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 4,
-                "placeholder": "Add important behaviours or competencies..."
-            }),
-            "must_haves": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "Add must-haves..."
-            }),
-            "nice_to_haves": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "Add nice-to-haves..."
-            }),
-            "priorities": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "Add priorities..."
-            }),
-            "interview_notes": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "Add notes..."
+                "rows": 18,
+                "placeholder": (
+                    "Describe the role, situation or development context.\n\n"
+                    "You can include:\n"
+                    "• responsibilities and expectations\n"
+                    "• important requirements or behaviours\n"
+                    "• team or organisational context\n"
+                    "• priorities, challenges or success criteria\n"
+                    "• areas you want Talena to explore"
+                ),
             }),
         }
 
-    def __init__(self, *args, context_config=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        context_config=None,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
 
         config = context_config or {}
 
-        field_config = {
-            "role_title": {
-                "label": "title_label",
-                "help": "title_help",
-            },
-            "job_advertisement": {
-                "label": "job_advertisement_label",
-                "help": "job_advertisement_help",
-            },
-            "requirements_profile": {
-                "label": "requirements_profile_label",
-                "help": "requirements_profile_help",
-            },
-            "competency_profile": {
-                "label": "competency_profile_label",
-                "help": "competency_profile_help",
-            },
-            "must_haves": {
-                "label": "must_haves_label",
-                "help": "must_haves_help",
-            },
-            "nice_to_haves": {
-                "label": "nice_to_haves_label",
-                "help": "nice_to_haves_help",
-            },
-            "priorities": {
-                "label": "priorities_label",
-                "help": "priorities_help",
-            },
-            "interview_notes": {
-                "label": "interview_notes_label",
-                "help": "interview_notes_help",
-            },
-        }
+        self.fields["context_text"].label = (
+            config.get("context_field_label")
+            or "Process context"
+        )
 
-        for field_name, keys in field_config.items():
-            if field_name in self.fields:
-                label = config.get(keys["label"])
-                help_text = config.get(keys["help"])
+        self.fields["context_text"].help_text = (
+            config.get("context_field_help")
+            or (
+                "Add the information that would help Talena interpret "
+                "the assessment results in relation to this process."
+            )
+        )
 
-                if label:
-                    self.fields[field_name].label = label
+        # Safety net for older processes that only contain legacy fields.
+        if (
+            not self.is_bound
+            and self.instance
+            and self.instance.pk
+            and not self.initial.get("context_text")
+        ):
+            self.initial["context_text"] = (
+                self.instance.get_current_context_text()
+            )
 
-                if help_text:
-                    self.fields[field_name].help_text = help_text
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        # Preserve existing values for fields that were not included
-        # in the submitted form.
-        #
-        # This is important when different process purposes display
-        # different context fields. Hidden or omitted fields should
-        # not be overwritten with empty values.
-        if self.is_bound and self.instance and self.instance.pk:
-            for field_name in self.Meta.fields:
-                if field_name not in self.data:
-                    cleaned_data[field_name] = getattr(
-                        self.instance,
-                        field_name,
-                        "",
-                    )
-
-        return cleaned_data
-
+    def clean_context_text(self):
+        return (
+            self.cleaned_data.get("context_text")
+            or ""
+        ).strip()
+    
+    
 
 class HistoricalTestProcessForm(forms.ModelForm):
     TEST_CHOICES = (

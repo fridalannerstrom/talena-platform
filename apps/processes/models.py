@@ -420,7 +420,17 @@ class ProcessRoleContext(models.Model):
         related_name="role_context",
     )
 
-    role_title = models.CharField(max_length=255, blank=True)
+    # New unified context field.
+    context_text = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    # Legacy fields are temporarily retained to avoid losing existing data.
+    role_title = models.CharField(
+        max_length=255,
+        blank=True,
+    )
 
     job_advertisement = models.TextField(blank=True)
     requirements_profile = models.TextField(blank=True)
@@ -430,7 +440,7 @@ class ProcessRoleContext(models.Model):
     priorities = models.TextField(blank=True)
     interview_notes = models.TextField(blank=True)
 
-    # Stores a separate version of the context for each purpose.
+    # Stores a separate version of the unified context for each purpose.
     purpose_data = models.JSONField(
         default=dict,
         blank=True,
@@ -439,7 +449,7 @@ class ProcessRoleContext(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    CONTEXT_FIELDS = (
+    LEGACY_CONTEXT_FIELDS = (
         "role_title",
         "job_advertisement",
         "requirements_profile",
@@ -450,52 +460,125 @@ class ProcessRoleContext(models.Model):
         "interview_notes",
     )
 
-    def get_current_context_data(self):
+    LEGACY_CONTEXT_LABELS = {
+        "role_title": "Role title",
+        "job_advertisement": "Job advertisement",
+        "requirements_profile": "Requirements profile",
+        "competency_profile": "Competency profile",
+        "must_haves": "Must-haves",
+        "nice_to_haves": "Nice-to-haves",
+        "priorities": "Priorities",
+        "interview_notes": "Interview notes",
+    }
+
+    CONTEXT_FIELDS = (
+        "context_text",
+    )
+
+    @classmethod
+    def build_context_text_from_legacy_data(cls, context_data):
+        """
+        Convert the previous multi-field context structure into one
+        readable text value.
+
+        This supports both model attributes and saved purpose_data entries.
+        """
+        sections = []
+
+        for field_name in cls.LEGACY_CONTEXT_FIELDS:
+            value = context_data.get(field_name, "") or ""
+            value = str(value).strip()
+
+            if not value:
+                continue
+
+            label = cls.LEGACY_CONTEXT_LABELS.get(
+                field_name,
+                field_name.replace("_", " ").title(),
+            )
+
+            sections.append(f"{label}:\n{value}")
+
+        return "\n\n".join(sections)
+
+    def get_legacy_context_data(self):
         return {
             field_name: getattr(self, field_name, "") or ""
-            for field_name in self.CONTEXT_FIELDS
+            for field_name in self.LEGACY_CONTEXT_FIELDS
+        }
+
+    def get_current_context_text(self):
+        """
+        Return the new unified context when available.
+
+        Existing processes fall back to a combined version of the old
+        context fields until their context is saved using the new editor.
+        """
+        context_text = (self.context_text or "").strip()
+
+        if context_text:
+            return context_text
+
+        return self.build_context_text_from_legacy_data(
+            self.get_legacy_context_data()
+        )
+
+    def get_current_context_data(self):
+        return {
+            "context_text": self.get_current_context_text(),
         }
 
     def get_context_for_purpose(self, purpose):
         purpose_key = normalize_purpose_key(purpose)
         saved_data = (self.purpose_data or {}).get(purpose_key)
 
-        if isinstance(saved_data, dict):
-            return {
-                field_name: saved_data.get(field_name, "") or ""
-                for field_name in self.CONTEXT_FIELDS
-            }
+        if not isinstance(saved_data, dict):
+            return None
 
-        return None
+        context_text = (saved_data.get("context_text") or "").strip()
+
+        # Backwards compatibility for purpose_data saved using old fields.
+        if not context_text:
+            context_text = self.build_context_text_from_legacy_data(
+                saved_data
+            )
+
+        return {
+            "context_text": context_text,
+        }
 
     def save_context_for_purpose(self, purpose, context_data=None):
         purpose_key = normalize_purpose_key(purpose)
-
-        data = dict(self.purpose_data or {})
+        purpose_data = dict(self.purpose_data or {})
 
         if context_data is None:
-            context_data = self.get_current_context_data()
+            context_text = self.get_current_context_text()
 
-        data[purpose_key] = {
-            field_name: context_data.get(field_name, "") or ""
-            for field_name in self.CONTEXT_FIELDS
+        elif isinstance(context_data, str):
+            context_text = context_data.strip()
+
+        else:
+            context_text = (
+                context_data.get("context_text", "") or ""
+            ).strip()
+
+        purpose_data[purpose_key] = {
+            "context_text": context_text,
         }
 
-        self.purpose_data = data
+        self.purpose_data = purpose_data
 
     def apply_context_data(self, context_data):
-        for field_name in self.CONTEXT_FIELDS:
-            setattr(
-                self,
-                field_name,
-                context_data.get(field_name, "") or "",
-            )
+        if isinstance(context_data, str):
+            self.context_text = context_data.strip()
+            return
+
+        self.context_text = (
+            context_data.get("context_text", "") or ""
+        ).strip()
 
     def has_content(self):
-        return any(
-            (getattr(self, field_name, "") or "").strip()
-            for field_name in self.CONTEXT_FIELDS
-        )
+        return bool(self.get_current_context_text())
 
     def __str__(self):
         return f"Process context for {self.process}"

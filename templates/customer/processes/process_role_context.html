@@ -7,93 +7,187 @@
 
   <div class="row g-4">
 
-    <!-- LEFT: Guidance -->
+    <!-- GUIDANCE -->
     <div class="col-12 col-lg-4 col-xl-3">
+
       <div class="card process-section-card h-100">
+
         <div class="card-header purpose-context-header bg-white py-3 px-4">
+
           <div class="fw-semibold mb-1">
             {{ context_config.context_title|default:"Process context" }}
           </div>
+
           <div class="text-muted small">
-            {{ context_config.context_intro|default:"Add context to tailor the candidate insights to this process." }}
+            {{ context_config.context_intro|default:"Add context to tailor Candidate Insights to this process." }}
           </div>
+
         </div>
+
 
         <div class="card-body">
 
           <div class="context-guide-list">
 
             <div class="context-guide-item">
-              <div class="context-guide-icon">1</div>
+
+              <div class="context-guide-icon">
+                1
+              </div>
+
               <div>
-                <div class="fw-semibold small">Add the situation</div>
+                <div class="fw-semibold small">
+                  Describe the situation
+                </div>
+
                 <div class="text-muted small">
-                  Describe the role, team, development goal or process context.
+                  Explain the role, team, development goal or other
+                  situation the assessment results should be considered in.
                 </div>
               </div>
+
             </div>
 
-            <div class="context-guide-item">
-              <div class="context-guide-icon">2</div>
-              <div>
-                <div class="fw-semibold small">Clarify what matters</div>
-                <div class="text-muted small">
-                  Add requirements, priorities, success criteria or important behaviours.
-                </div>
-              </div>
-            </div>
 
             <div class="context-guide-item">
-              <div class="context-guide-icon">3</div>
+
+              <div class="context-guide-icon">
+                2
+              </div>
+
               <div>
-                <div class="fw-semibold small">Improve Candidate Insights</div>
+                <div class="fw-semibold small">
+                  Explain what matters
+                </div>
+
                 <div class="text-muted small">
-                  Talena can use this context to make summaries, questions and recommendations more relevant.
+                  Include important expectations, behaviours,
+                  requirements, priorities or success criteria.
                 </div>
               </div>
+
+            </div>
+
+
+            <div class="context-guide-item">
+
+              <div class="context-guide-icon">
+                3
+              </div>
+
+              <div>
+                <div class="fw-semibold small">
+                  Add useful nuance
+                </div>
+
+                <div class="text-muted small">
+                  Include team context, current challenges or anything
+                  Talena should take into account when generating insights.
+                </div>
+              </div>
+
             </div>
 
           </div>
 
-          <div class="context-note mt-3">
-            <div class="fw-semibold mb-1">Tip</div>
-            <div class="small text-muted">
-              You do not need to fill in every field. Add the information that would help someone interpret the assessment results better.
-            </div>
-          </div>
 
           <div class="context-note mt-3">
-            <div class="fw-semibold mb-1">Current purpose</div>
-            <div class="small text-muted">
-              {{ process.get_purpose_display|default:process.purpose|default:"Flexible process" }}
+
+            <div class="fw-semibold mb-1">
+              You can paste existing material
             </div>
+
+            <div class="small text-muted">
+              A job advertisement, requirement profile, development plan
+              or internal notes can be pasted directly into the field.
+            </div>
+
+          </div>
+
+
+          <div class="context-note mt-3">
+
+            <div class="fw-semibold mb-1">
+              Current purpose
+            </div>
+
+            <div class="small text-muted">
+              {{ process_purpose.label|default:process.purpose|default:"Flexible process" }}
+            </div>
+
           </div>
 
         </div>
+
       </div>
+
     </div>
 
-    <!-- RIGHT: Form -->
+
+    <!-- CONTEXT FORM -->
     <div class="col-12 col-lg-8 col-xl-9">
-      <form method="post" class="card process-section-card" novalidate>
+
+      <form
+        method="post"
+        class="card process-section-card"
+        novalidate
+      >
         {% csrf_token %}
 
-        <div class="card-header purpose-context-header bg-white py-3 px-4 d-flex align-items-start justify-content-between gap-3 flex-wrap">
+
+        <div
+          class="
+            card-header
+            purpose-context-header
+            bg-white
+            py-3
+            px-4
+            d-flex
+            align-items-start
+            justify-content-between
+            gap-3
+            flex-wrap
+          "
+        >
+
           <div>
+
             <div class="fw-semibold mb-1">
               {{ context_config.context_title|default:"Process context" }}
             </div>
+
             <div class="text-muted small">
-              {{ context_config.context_intro|default:"Add context to tailor the candidate insights to this process." }}
+              {{ context_config.context_intro|default:"Add context to tailor Candidate Insights to this process." }}
             </div>
+
           </div>
+
 
           <span class="purpose-context-pill">
             {{ context_config.tab_label|default:"Context" }}
           </span>
+
         </div>
 
+
         <div class="card-body p-4">
+
+          {% if using_previous_purpose_as_start %}
+            <div class="alert alert-light border mb-4">
+
+              <div class="fw-semibold small mb-1">
+                Existing context has been reused
+              </div>
+
+              <div class="small text-muted">
+                This purpose does not have its own saved context yet.
+                The previous context has been added as a starting point.
+                Review it before saving.
+              </div>
+
+            </div>
+          {% endif %}
+
 
           {% if form.non_field_errors %}
             <div class="alert alert-danger">
@@ -102,179 +196,75 @@
           {% endif %}
 
 
-          <!-- Title -->
           <div class="mb-3">
-            <label class="form-label fw-semibold" for="{{ form.role_title.id_for_label }}">
-              {{ form.role_title.label }}
+
+            <label
+              class="form-label fw-semibold"
+              for="{{ form.context_text.id_for_label }}"
+            >
+              {{ form.context_text.label }}
             </label>
-            {{ form.role_title }}
 
-            {% if form.role_title.help_text %}
-              <div class="form-text">{{ form.role_title.help_text }}</div>
-            {% endif %}
+            {{ form.context_text }}
 
-            {% if form.role_title.errors %}
-              <div class="text-danger small mt-1">
-                {{ form.role_title.errors|striptags }}
+            {% if form.context_text.help_text %}
+              <div class="form-text">
+                {{ form.context_text.help_text }}
               </div>
             {% endif %}
-          </div>
 
-          <!-- Main context -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="{{ form.job_advertisement.id_for_label }}">
-              {{ form.job_advertisement.label }}
-            </label>
-            {{ form.job_advertisement }}
-
-            {% if form.job_advertisement.help_text %}
-              <div class="form-text">{{ form.job_advertisement.help_text }}</div>
-            {% endif %}
-
-            {% if form.job_advertisement.errors %}
+            {% if form.context_text.errors %}
               <div class="text-danger small mt-1">
-                {{ form.job_advertisement.errors|striptags }}
+                {{ form.context_text.errors|striptags }}
               </div>
             {% endif %}
-          </div>
-
-          <div class="row g-3">
-
-            <!-- Requirements -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.requirements_profile.id_for_label }}">
-                {{ form.requirements_profile.label }}
-              </label>
-              {{ form.requirements_profile }}
-
-              {% if form.requirements_profile.help_text %}
-                <div class="form-text">{{ form.requirements_profile.help_text }}</div>
-              {% endif %}
-
-              {% if form.requirements_profile.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.requirements_profile.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <!-- Competencies -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.competency_profile.id_for_label }}">
-                {{ form.competency_profile.label }}
-              </label>
-              {{ form.competency_profile }}
-
-              {% if form.competency_profile.help_text %}
-                <div class="form-text">{{ form.competency_profile.help_text }}</div>
-              {% endif %}
-
-              {% if form.competency_profile.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.competency_profile.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <!-- Must haves -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.must_haves.id_for_label }}">
-                {{ form.must_haves.label }}
-              </label>
-              {{ form.must_haves }}
-
-              {% if form.must_haves.help_text %}
-                <div class="form-text">{{ form.must_haves.help_text }}</div>
-              {% endif %}
-
-              {% if form.must_haves.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.must_haves.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <!-- Nice to haves -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.nice_to_haves.id_for_label }}">
-                {{ form.nice_to_haves.label }}
-              </label>
-              {{ form.nice_to_haves }}
-
-              {% if form.nice_to_haves.help_text %}
-                <div class="form-text">{{ form.nice_to_haves.help_text }}</div>
-              {% endif %}
-
-              {% if form.nice_to_haves.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.nice_to_haves.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <!-- Priorities -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.priorities.id_for_label }}">
-                {{ form.priorities.label }}
-              </label>
-              {{ form.priorities }}
-
-              {% if form.priorities.help_text %}
-                <div class="form-text">{{ form.priorities.help_text }}</div>
-              {% endif %}
-
-              {% if form.priorities.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.priorities.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-
-            <!-- Notes -->
-            <div class="col-12 col-lg-6">
-              <label class="form-label fw-semibold" for="{{ form.interview_notes.id_for_label }}">
-                {{ form.interview_notes.label }}
-              </label>
-              {{ form.interview_notes }}
-
-              {% if form.interview_notes.help_text %}
-                <div class="form-text">{{ form.interview_notes.help_text }}</div>
-              {% endif %}
-
-              {% if form.interview_notes.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.interview_notes.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
 
           </div>
+
 
           <div class="context-tip mt-4">
-            <div class="fw-semibold mb-1">How this is used</div>
-            <div class="small text-muted">
-              This context can be used to tailor Candidate Insights, interview questions, strengths, areas to explore and purpose-specific recommendations.
+
+            <div class="fw-semibold mb-1">
+              How Talena uses this
             </div>
+
+            <div class="small text-muted">
+              The context can be used together with the selected purpose
+              and available assessment results when generating summaries,
+              interpretations, questions and recommended next steps.
+            </div>
+
           </div>
 
+
           <div class="d-flex align-items-center gap-2 mt-4">
-            <button class="btn btn-primary" type="submit">
+
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
               {{ context_config.save_button|default:"Save context" }}
             </button>
 
-            <a class="btn btn-outline-secondary"
-               href="{% url 'processes:process_detail' process.id %}">
+            <a
+              class="btn btn-outline-secondary"
+              href="{% url 'processes:process_detail' process.id %}"
+            >
               Cancel
             </a>
+
           </div>
 
         </div>
+
       </form>
+
     </div>
 
   </div>
 
 </div>
+
 
 <style>
 .purpose-context-page .context-guide-list {
@@ -287,19 +277,19 @@
   grid-template-columns: auto 1fr;
   gap: .75rem;
   align-items: flex-start;
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: #fff;
-  border-radius: 14px;
   padding: .8rem .85rem;
+  border: 1px solid rgba(123, 87, 209, .14);
+  border-radius: 14px;
+  background: #fff;
 }
 
 .purpose-context-page .context-guide-icon {
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
   background: rgba(123, 87, 209, .08);
   color: #5f3fd1;
   font-size: .78rem;
@@ -308,36 +298,38 @@
 
 .purpose-context-page .context-note,
 .purpose-context-page .context-tip {
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: rgba(123, 87, 209, .045);
-  border-radius: 14px;
   padding: .85rem .95rem;
+  border: 1px solid rgba(123, 87, 209, .14);
+  border-radius: 14px;
+  background: rgba(123, 87, 209, .045);
 }
 
-.purpose-context-page textarea {
-  min-height: 150px;
+.purpose-context-page textarea[name="context_text"] {
+  min-height: 520px;
   resize: vertical;
-  line-height: 1.35rem;
-}
-
-.purpose-context-page textarea[name="job_advertisement"] {
-  min-height: 240px;
+  line-height: 1.55;
 }
 
 .purpose-context-pill {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
   padding: .45rem .75rem;
-  font-size: .78rem;
-  font-weight: 750;
+  border-radius: 999px;
   background: #f1e8ff;
   color: #6d3adf;
+  font-size: .78rem;
+  font-weight: 750;
   white-space: nowrap;
 }
 
 .purpose-context-header {
   border-bottom: 1px solid rgba(15, 23, 42, .06);
+}
+
+@media (max-width: 991px) {
+  .purpose-context-page textarea[name="context_text"] {
+    min-height: 360px;
+  }
 }
 </style>
 

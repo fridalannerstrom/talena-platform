@@ -3606,10 +3606,9 @@ def process_role_context(request, pk):
         # IMPORTANT:
         # Capture the saved database values before ModelForm validation,
         # because form.is_valid() may update the model instance in memory.
-        previous_context_data = {
-            field_name: getattr(role_context, field_name, "") or ""
-            for field_name in ProcessRoleContext.CONTEXT_FIELDS
-        }
+        previous_context_data = (
+            role_context.get_current_context_data()
+        )
 
         form = ProcessRoleContextForm(
             request.POST,
