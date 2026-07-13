@@ -909,6 +909,18 @@ function initCandidateInsightsSubtabs(container = document) {
         panel.hidden = !isActive;
       });
 
+      subworkspace
+  .querySelectorAll("[data-insights-panel-shell]")
+  .forEach((shell) => {
+    const containsActivePanel = Boolean(
+      shell.querySelector(
+        `[data-insights-subpanel="${target}"]`
+      )
+    );
+
+    shell.hidden = !containsActivePanel;
+  });
+
       const activePanel = subworkspace.querySelector(
         `[data-insights-subpanel="${target}"]`
       );

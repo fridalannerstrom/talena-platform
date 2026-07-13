@@ -1,0 +1,123 @@
+<!-- OVERALL INTERPRETATION -->
+<section class="motivation-ai-section">
+
+  <h3 class="motivation-ai-section__title">
+    Overall motivation interpretation
+  </h3>
+
+  <div
+    class="motivation-ai-interpretation"
+    data-motivation-ai-interpretation
+  >
+    {{ motivation_interpretation.interpretation }}
+  </div>
+
+</section>
+
+
+<!-- ENGAGEMENT + CLARIFY -->
+<div class="row g-3 mt-1">
+
+  <div class="col-lg-6">
+    <section
+      class="motivation-ai-list-card motivation-ai-list-card--engagement h-100"
+      data-motivation-ai-engagement-section
+    >
+      <h3 class="motivation-ai-section__title">
+        Conditions likely to support engagement
+      </h3>
+
+      <ul
+        class="motivation-ai-list"
+        data-motivation-ai-engagement
+      >
+        {% for item in motivation_interpretation.engagement_conditions %}
+          <li>
+            <span class="motivation-ai-list-icon">
+              <i data-feather="zap"></i>
+            </span>
+
+            <span>{{ item }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+
+  <div class="col-lg-6">
+    <section
+      class="motivation-ai-list-card motivation-ai-list-card--clarify h-100"
+      data-motivation-ai-clarify-section
+    >
+      <h3 class="motivation-ai-section__title">
+        What to explore or clarify
+      </h3>
+
+      <ul
+        class="motivation-ai-list"
+        data-motivation-ai-clarify
+      >
+        {% for item in motivation_interpretation.areas_to_clarify %}
+          <li>
+            <span class="motivation-ai-list-icon">
+              <i data-feather="search"></i>
+            </span>
+
+            <span>{{ item }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+</div>
+
+
+<!-- EXPECTATION SETTING -->
+<section
+  class="motivation-ai-expectation mt-4"
+  data-motivation-ai-expectation-section
+>
+  <div class="motivation-ai-expectation__icon">
+    <i data-feather="message-circle"></i>
+  </div>
+
+  <div>
+    <h3 class="motivation-ai-section__title mb-1">
+      Realistic expectation setting
+    </h3>
+
+    <div data-motivation-ai-expectation>
+      {{ motivation_interpretation.expectation_setting }}
+    </div>
+  </div>
+</section>
+
+
+<!-- CONTEXT NOTE -->
+<div class="motivation-ai-context-note mt-4">
+
+  <div class="motivation-ai-context-note__title">
+    How Talena created this interpretation
+  </div>
+
+  <div data-motivation-ai-context-note>
+    {{ motivation_interpretation.context_note }}
+  </div>
+
+</div>
+
+
+<!-- DISCLAIMER -->
+<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+  <i data-feather="info"></i>
+
+  <div>
+    Motivation results describe possible sources of energy,
+    engagement and preference. Less central factors are not
+    weaknesses and do not indicate limited capability or poor values.
+  </div>
+
+</div>

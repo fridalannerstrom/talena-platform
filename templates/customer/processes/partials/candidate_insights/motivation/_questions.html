@@ -1,0 +1,74 @@
+<section
+  class="motivation-ai-section"
+  data-motivation-ai-questions-section
+>
+
+  <div class="mb-4">
+    <div class="insight-summary-kicker">
+      Purpose-aware questions
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Motivation questions
+    </h2>
+
+    <p class="text-muted small mb-0">
+      Use these questions to explore, confirm or challenge indications
+      from the candidate’s motivation profile.
+    </p>
+  </div>
+
+
+  <div
+    class="motivation-ai-question-list"
+    data-motivation-ai-questions
+  >
+
+    {% for item in motivation_interpretation.questions %}
+      <article class="motivation-ai-question">
+
+        <div class="motivation-ai-question__number">
+          {{ forloop.counter }}
+        </div>
+
+        <div class="motivation-ai-question__content">
+
+          <div class="motivation-ai-question__text">
+            {{ item.question }}
+          </div>
+
+          {% if item.why %}
+            <div class="motivation-ai-question__detail">
+              <span>Why this matters</span>
+              {{ item.why }}
+            </div>
+          {% endif %}
+
+          {% if item.listen_for %}
+            <div class="motivation-ai-question__detail">
+              <span>What to listen for</span>
+              {{ item.listen_for }}
+            </div>
+          {% endif %}
+
+        </div>
+
+      </article>
+    {% endfor %}
+
+  </div>
+
+</section>
+
+
+<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+  <i data-feather="info"></i>
+
+  <div>
+    Motivation results indicate possible sources of energy and preference.
+    Use the questions to gather concrete examples and the candidate’s own
+    perspective rather than treating the results as confirmed facts.
+  </div>
+
+</div>

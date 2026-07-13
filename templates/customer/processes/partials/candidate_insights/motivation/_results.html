@@ -1,0 +1,240 @@
+<!-- MOTIVATION PROFILE -->
+{% if has_motivation_results and motivation_insights %}
+  <section class="card mb-4 purpose-fit-card motivation-profile-card">
+    <div class="card-body">
+
+      <!-- HEADER -->
+      <header class="team-styles-header mb-4">
+
+        <div class="insight-summary-kicker">
+          Candidate Insights
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          {{ motivation_insights.title }}
+        </h2>
+
+        <p class="text-muted small mb-0">
+          The profile highlights the candidate's more prominent and less
+          central motivational drivers, followed by the complete motivation
+          profile. Results use Sova's rounded five-point STIVE scale.
+        </p>
+
+      </header>
+
+
+      <!-- PROFILE SUMMARY -->
+      {% if motivation_insights.has_profile_difference %}
+
+
+          <!-- MORE PROMINENT DRIVERS -->
+          <article class="insight-summary-content motivation-summary-group">
+
+            <div class="response-style-item__header">
+
+              <div>
+<h4 class="response-style-item__title">
+  {{ candidate.first_name|default:"The candidate" }}’s most prominent drivers
+</h4>
+
+                <div class="response-style-item__subtitle">
+                  Factors more likely to provide energy and engagement
+                </div>
+              </div>
+
+              <div class="motivation-summary-group__icon">
+                <i data-feather="zap" aria-hidden="true"></i>
+              </div>
+
+            </div>
+
+
+            <div class="motivation-summary-list">
+
+              {% for item in motivation_insights.motivators %}
+
+                <div class="motivation-summary-item">
+
+                  <div class="motivation-summary-item__header">
+
+                    <div>
+                      <div class="motivation-summary-item__name">
+                        {{ item.name }}
+                      </div>
+
+                      <p class="motivation-summary-item__description">
+                        {{ item.interpretation }}
+                      </p>
+                    </div>
+
+                  </div>
+
+
+                </div>
+
+              {% endfor %}
+
+            </div>
+
+          </article>
+
+
+      {% endif %}
+
+
+      <!-- FULL PROFILE HEADING -->
+      <div class="motivation-full-profile-heading">
+
+        <div>
+          <div class="insight-summary-kicker">
+            Full profile
+          </div>
+
+          <h3 class="motivation-full-profile-heading__title">
+            All motivation factors
+          </h3>
+
+          <p>
+            Results are grouped according to the four areas in the
+            motivation model.
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- COMPLETE PROFILE -->
+
+
+        {% for domain in motivation_insights.domains %}
+
+          <article class="insight-summary-content mb-4 motivation-domain-section">
+
+            <!-- DOMAIN HEADER -->
+            <div class="response-style-item__header motivation-domain-section__header">
+
+              <div class="motivation-domain-section__title-wrap">
+
+                <div class="motivation-domain-section__icon">
+                  <i class="{{ domain.icon_class }}"></i>
+                </div>
+
+                <div>
+                  <h4 class="response-style-item__title">
+                    {{ domain.title }}
+                  </h4>
+
+                  <div class="response-style-item__subtitle">
+                    {{ domain.subtitle }}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- FACTORS -->
+            <div class="motivation-factor-list">
+
+              {% for item in domain.items %}
+
+                <div class="team-style-result motivation-factor-result">
+
+                  <div class="team-style-result__header motivation-factor-result__header">
+
+                    <div>
+
+                      <h5 class="motivation-factor-result__name">
+                        {{ item.name }}
+                      </h5>
+
+                      <p class="team-style-result__description">
+                        {{ item.description }}
+                      </p>
+                    </div>
+
+
+                    {% if item.score is not None %}
+                      <div class="team-style-result__value">
+                        {{ item.score }}/5
+                      </div>
+                    {% else %}
+                      <div class="team-style-result__value motivation-factor-result__missing">
+                        N/A
+                      </div>
+                    {% endif %}
+
+                  </div>
+
+
+                  {% if item.score is not None %}
+
+<div
+  class="
+    response-style-scale
+    response-style-scale--linear
+    team-style-result__scale
+    motivation-factor-result__scale
+  "
+  role="meter"
+  aria-label="{{ item.name }}: {{ item.score }} out of 5"
+  aria-valuemin="1"
+  aria-valuemax="5"
+  aria-valuenow="{{ item.score }}"
+>
+
+                      <div class="response-style-scale__segments">
+
+                        {% for segment in item.segments %}
+                          <span
+                            class="
+                              response-style-scale__segment
+
+                              {% if segment.number == item.score %}
+                                response-style-scale__segment--marker
+                              {% endif %}
+
+                              {% if segment.filled %}
+                                response-style-scale__segment--filled
+                              {% endif %}
+                            "
+                          ></span>
+                        {% endfor %}
+
+                      </div>
+
+                      <div class="response-style-scale__labels">
+                        <span>Less central</span>
+                        <span>Mid-range</span>
+                        <span>More prominent</span>
+                      </div>
+
+                    </div>
+
+                  {% endif %}
+
+                </div>
+
+              {% endfor %}
+
+            </div>
+
+          </article>
+
+        {% endfor %}
+
+
+
+      <!-- FOOTER -->
+      <footer class="team-styles-footer motivation-profile-footer">
+        Motivation scores describe relative sources of energy and preference.
+        Lower results do not indicate poor performance, weak values or limited
+        capability. Results should be considered alongside role context,
+        interview evidence and the candidate's own reflections.
+      </footer>
+
+    </div>
+  </section>
+{% endif %}
+<!-- /MOTIVATION PROFILE -->
