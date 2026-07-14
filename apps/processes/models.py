@@ -804,6 +804,38 @@ class HistoricalProcessCandidate(models.Model):
         default="",
     )
 
+    # ------------------------------------------------------------
+    # AI personality interpretation
+    # ------------------------------------------------------------
+    ai_personality_interpretation = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_personality_interpretation_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_personality_interpretation_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_personality_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
     selected_personality_traits = models.JSONField(
         default=list,
         blank=True,
