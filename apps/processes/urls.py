@@ -155,4 +155,20 @@ urlpatterns = [
         views.process_candidate_personality_interpretation_regenerate,
         name="process_candidate_personality_interpretation_regenerate",
     ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/combined-questions/"
+        ),
+        views.process_candidate_combined_questions,
+        name="process_candidate_combined_questions",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/final-output/"
+        ),
+        views.process_candidate_final_output,
+        name="process_candidate_final_output",
+    ),
 ]

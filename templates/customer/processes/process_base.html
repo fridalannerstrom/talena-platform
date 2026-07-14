@@ -253,6 +253,10 @@ await initCandidateCognitiveInterpretation(
   sheetBody
 );
 
+initCandidateDerivedContentSync(
+  sheetBody
+);
+
 await initCandidateMotivationInterpretation(
   sheetBody
 );
@@ -262,6 +266,10 @@ await initCandidatePersonalityInterpretation(
 );
 
 await initCandidatePersonalityQuestions(
+  sheetBody
+);
+
+await refreshCandidateCombinedQuestions(
   sheetBody
 );
 
@@ -2649,15 +2657,19 @@ async function initCandidatePersonalityInterpretation(
           draft
         );
 
-      root.dataset.status =
-        "completed";
+root.dataset.status =
+  "completed";
 
-      root.dataset.hasResult =
-        "true";
+root.dataset.hasResult =
+  "true";
 
-      hideOutdatedState();
+hideOutdatedState();
 
-    } catch (error) {
+notifyCandidateAiContentUpdated(
+  root
+);
+
+} catch (error) {
       console.error(
         (
           "Personality interpretation " +
@@ -2805,6 +2817,228 @@ async function initCandidatePersonalityInterpretation(
 }
 </script>
 
+<script>
+async function refreshCandidateFinalOutput(
+  container = document
+) {
+  const currentRoot = container.querySelector(
+    "[data-final-output-root]"
+  );
+
+  if (!currentRoot) {
+    return;
+  }
+
+  const refreshUrl =
+    currentRoot.dataset.refreshUrl;
+
+  if (!refreshUrl) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      refreshUrl,
+      {
+        method: "GET",
+
+        headers: {
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        credentials:
+          "same-origin",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "The final output could not be refreshed."
+      );
+    }
+
+    const html =
+      await response.text();
+
+    const template =
+      document.createElement("template");
+
+    template.innerHTML =
+      html.trim();
+
+    const newRoot =
+      template.content.firstElementChild;
+
+    if (!newRoot) {
+      throw new Error(
+        "The final output response was empty."
+      );
+    }
+
+    currentRoot.replaceWith(
+      newRoot
+    );
+
+    if (window.feather) {
+      window.feather.replace();
+    }
+
+  } catch (error) {
+    console.error(
+      "Final output refresh error:",
+      error
+    );
+  }
+}
+</script>
+
+<script>
+async function refreshCandidateDerivedViews(
+  container = document
+) {
+  await Promise.all([
+    refreshCandidateCombinedQuestions(
+      container
+    ),
+
+    refreshCandidateFinalOutput(
+      container
+    ),
+  ]);
+}
+
+
+function notifyCandidateAiContentUpdated(
+  sourceElement
+) {
+  if (!sourceElement) {
+    return;
+  }
+
+  sourceElement.dispatchEvent(
+    new CustomEvent(
+      "candidate-ai-content-updated",
+      {
+        bubbles: true,
+      }
+    )
+  );
+}
+
+
+function initCandidateDerivedContentSync(
+  container = document
+) {
+  if (
+    container.dataset
+      .candidateDerivedSyncInitialised ===
+    "true"
+  ) {
+    return;
+  }
+
+  container.dataset
+    .candidateDerivedSyncInitialised =
+    "true";
+
+  let refreshTimer = null;
+
+  container.addEventListener(
+    "candidate-ai-content-updated",
+    () => {
+      window.clearTimeout(
+        refreshTimer
+      );
+
+      refreshTimer = window.setTimeout(
+        async () => {
+          await refreshCandidateDerivedViews(
+            container
+          );
+        },
+        150
+      );
+    }
+  );
+}
+</script>
+
+<script>
+async function refreshCandidateCombinedQuestions(
+  container = document
+) {
+  const currentRoot = container.querySelector(
+    "[data-combined-questions-root]"
+  );
+
+  if (!currentRoot) {
+    return;
+  }
+
+  const refreshUrl =
+    currentRoot.dataset.refreshUrl;
+
+  if (!refreshUrl) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      refreshUrl,
+      {
+        method: "GET",
+
+        headers: {
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        credentials:
+          "same-origin",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "The combined questions could not be refreshed."
+      );
+    }
+
+    const html =
+      await response.text();
+
+    const template =
+      document.createElement("template");
+
+    template.innerHTML =
+      html.trim();
+
+    const newRoot =
+      template.content.firstElementChild;
+
+    if (!newRoot) {
+      throw new Error(
+        "The combined questions response was empty."
+      );
+    }
+
+    currentRoot.replaceWith(
+      newRoot
+    );
+
+    if (window.feather) {
+      window.feather.replace();
+    }
+
+  } catch (error) {
+    console.error(
+      "Combined questions refresh error:",
+      error
+    );
+  }
+}
+</script>
 
 <script>
 
@@ -3372,17 +3606,21 @@ async function initCandidateMotivationInterpretation(
         }
       }
 
-      applySavedResult(draft);
+applySavedResult(draft);
 
-      root.dataset.status =
-        "completed";
+root.dataset.status =
+  "completed";
 
-      root.dataset.hasResult =
-        "true";
+root.dataset.hasResult =
+  "true";
 
-      hideOutdatedState();
+hideOutdatedState();
 
-    } catch (error) {
+notifyCandidateAiContentUpdated(
+  root
+);
+
+} catch (error) {
       console.error(
         "Motivation interpretation error:",
         error
@@ -3985,17 +4223,21 @@ async function initCandidateMotivationInterpretation(
         }
       }
 
-      applySavedResult(draft);
+    applySavedResult(draft);
 
-      root.dataset.status =
-        "completed";
+root.dataset.status =
+  "completed";
 
-      root.dataset.hasResult =
-        "true";
+root.dataset.hasResult =
+  "true";
 
-      hideOutdatedState();
+hideOutdatedState();
 
-    } catch (error) {
+notifyCandidateAiContentUpdated(
+  root
+);
+
+} catch (error) {
       console.error(
         "Cognitive interpretation error:",
         error
@@ -4326,13 +4568,18 @@ case "saved_result":
                 break;
 
 case "done":
-    if (statusBadge) {
-        statusBadge.classList.add("d-none");
-    }
+  if (statusBadge) {
+    statusBadge.classList.add("d-none");
+  }
 
-    loading.classList.add("d-none");
-    result.classList.remove("d-none");
-    break;
+  loading.classList.add("d-none");
+  result.classList.remove("d-none");
+
+  notifyCandidateAiContentUpdated(
+    card
+  );
+
+  break;
 
             case "error":
                 throw new Error(
@@ -5094,17 +5341,21 @@ refreshButton.disabled = true;
         }
       }
 
-      applySavedResult(draft);
+applySavedResult(draft);
 
-      root.dataset.status =
-        "completed";
+root.dataset.status =
+  "completed";
 
-      root.dataset.hasResult =
-        "true";
+root.dataset.hasResult =
+  "true";
 
-      hideOutdatedState();
+hideOutdatedState();
 
-    } catch (error) {
+notifyCandidateAiContentUpdated(
+  root
+);
+
+} catch (error) {
       console.error(
         "Personality questions error:",
         error

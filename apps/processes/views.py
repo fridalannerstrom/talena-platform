@@ -1954,6 +1954,369 @@ def build_combined_candidate_questions(
         "has_questions": total_count > 0,
     }
 
+def _normalise_final_output_list(
+    value,
+    *,
+    limit=3,
+) -> list[str]:
+    """
+    Return a clean and limited list of displayable strings.
+    """
+
+    if not isinstance(value, list):
+        return []
+
+    items = []
+
+    for item in value:
+        text = str(
+            item
+            or ""
+        ).strip()
+
+        if not text:
+            continue
+
+        items.append(text)
+
+        if len(items) >= limit:
+            break
+
+    return items
+
+
+def build_candidate_final_output(
+    invitation,
+    *,
+    combined_questions=None,
+) -> dict:
+    """
+    Assemble the candidate's existing saved AI content into one
+    purpose-based final output.
+
+    This function does not make any new AI request.
+    """
+
+    process = invitation.process
+
+    overview_result = (
+        invitation.ai_purpose_fit
+        or {}
+    )
+
+    personality_result = (
+        invitation.ai_personality_interpretation
+        or {}
+    )
+
+    motivation_result = (
+        invitation.ai_motivation_interpretation
+        or {}
+    )
+
+    cognitive_result = (
+        invitation.ai_cognitive_interpretation
+        or {}
+    )
+
+    if combined_questions is None:
+        combined_questions = (
+            build_combined_candidate_questions(
+                invitation
+            )
+        )
+
+    # ---------------------------------------------------------
+    # Purpose label
+    # ---------------------------------------------------------
+
+    if hasattr(
+        process,
+        "get_purpose_display",
+    ):
+        purpose_label = (
+            process.get_purpose_display()
+            or ""
+        ).strip()
+    else:
+        purpose_label = ""
+
+    if not purpose_label:
+        purpose_label = (
+            str(
+                process.purpose
+                or ""
+            )
+            .replace("_", " ")
+            .strip()
+            .title()
+        )
+
+    if not purpose_label:
+        purpose_label = "General insights"
+
+    # ---------------------------------------------------------
+    # AI Overview
+    # ---------------------------------------------------------
+
+    overview_summary = str(
+        overview_result.get("summary")
+        or ""
+    ).strip()
+
+    overview_supporting = (
+        _normalise_final_output_list(
+            overview_result.get(
+                "key_alignment"
+            ),
+            limit=3,
+        )
+    )
+
+    overview_explore = (
+        _normalise_final_output_list(
+            overview_result.get(
+                "areas_to_verify"
+            ),
+            limit=3,
+        )
+    )
+
+    suggested_next_step = str(
+        overview_result.get(
+            "suggested_next_step"
+        )
+        or ""
+    ).strip()
+
+    overview_context_note = str(
+        overview_result.get(
+            "context_note"
+        )
+        or ""
+    ).strip()
+
+    has_overview = bool(
+        overview_summary
+        or overview_supporting
+        or overview_explore
+        or suggested_next_step
+    )
+
+    overview_status = (
+        invitation.ai_purpose_fit_status
+        or "not_started"
+    )
+
+    # ---------------------------------------------------------
+    # Assessment-specific interpretations
+    # ---------------------------------------------------------
+
+    assessment_config = [
+        {
+            "key": "personality",
+            "title": "Personality",
+            "description": (
+                "Likely behavioural preferences and "
+                "how they may appear in practice."
+            ),
+            "result": personality_result,
+            "status": (
+                invitation
+                .ai_personality_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": (
+                "supportive_patterns"
+            ),
+            "explore_key": (
+                "areas_to_explore"
+            ),
+        },
+        {
+            "key": "motivation",
+            "title": "Motivation",
+            "description": (
+                "Possible sources of engagement, energy "
+                "and expectation setting."
+            ),
+            "result": motivation_result,
+            "status": (
+                invitation
+                .ai_motivation_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": (
+                "engagement_conditions"
+            ),
+            "explore_key": (
+                "areas_to_clarify"
+            ),
+        },
+        {
+            "key": "cognitive",
+            "title": "Cognitive",
+            "description": (
+                "Indications from the available "
+                "reasoning assessments."
+            ),
+            "result": cognitive_result,
+            "status": (
+                invitation
+                .ai_cognitive_interpretation_status
+                or "not_started"
+            ),
+            "summary_key": "interpretation",
+            "support_key": None,
+            "explore_key": "considerations",
+        },
+    ]
+
+    assessment_sections = []
+
+    for config in assessment_config:
+        result = config["result"]
+
+        summary = str(
+            result.get(
+                config["summary_key"]
+            )
+            or ""
+        ).strip()
+
+        support_items = []
+
+        if config["support_key"]:
+            support_items = (
+                _normalise_final_output_list(
+                    result.get(
+                        config["support_key"]
+                    ),
+                    limit=3,
+                )
+            )
+
+        explore_items = (
+            _normalise_final_output_list(
+                result.get(
+                    config["explore_key"]
+                ),
+                limit=3,
+            )
+            if config["explore_key"]
+            else []
+        )
+
+        if not (
+            summary
+            or support_items
+            or explore_items
+        ):
+            continue
+
+        status = (
+            config["status"]
+            or "not_started"
+        )
+
+        assessment_sections.append({
+            "key": config["key"],
+            "title": config["title"],
+            "description": (
+                config["description"]
+            ),
+            "summary": summary,
+            "support_items": support_items,
+            "explore_items": explore_items,
+            "status": status,
+            "is_outdated": (
+                status == "outdated"
+            ),
+        })
+
+    # ---------------------------------------------------------
+    # Status and availability
+    # ---------------------------------------------------------
+
+    source_statuses = [
+        section["status"]
+        for section in assessment_sections
+    ]
+
+    if has_overview:
+        source_statuses.append(
+            overview_status
+        )
+
+    has_outdated_content = any(
+        status == "outdated"
+        for status in source_statuses
+    )
+
+    has_questions = bool(
+        combined_questions.get(
+            "has_questions"
+        )
+    )
+
+    question_count = int(
+        combined_questions.get(
+            "total_count"
+        )
+        or 0
+    )
+
+    has_content = bool(
+        has_overview
+        or assessment_sections
+        or has_questions
+    )
+
+    return {
+        "purpose_label": purpose_label,
+
+        "overview": {
+            "summary": overview_summary,
+            "supporting": overview_supporting,
+            "explore": overview_explore,
+            "suggested_next_step": (
+                suggested_next_step
+            ),
+            "context_note": (
+                overview_context_note
+            ),
+            "status": overview_status,
+            "is_outdated": (
+                overview_status == "outdated"
+            ),
+            "has_content": has_overview,
+        },
+
+        "assessment_sections": (
+            assessment_sections
+        ),
+
+        "combined_questions": (
+            combined_questions
+        ),
+
+        "question_count": question_count,
+        "has_questions": has_questions,
+
+        "source_count": (
+            len(assessment_sections)
+            + (1 if has_overview else 0)
+        ),
+
+        "has_outdated_content": (
+            has_outdated_content
+        ),
+
+        "has_content": has_content,
+    }
+
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
@@ -2490,6 +2853,13 @@ def build_candidate_detail_context(process, invitation):
         )
     )
 
+    final_output = (
+        build_candidate_final_output(
+            invitation,
+            combined_questions=combined_questions,
+        )
+    )
+
     ability_results = []
     motivation_results = []
     all_competencies = []
@@ -2875,6 +3245,30 @@ def build_candidate_detail_context(process, invitation):
             },
         ),
 
+        # Purpose-based final output
+        "final_output": final_output,
+
+        "has_final_output": (
+            final_output["has_content"]
+        ),
+
+        "final_output_has_outdated_content": (
+            final_output[
+                "has_outdated_content"
+            ]
+        ),
+
+        "final_output_refresh_url": reverse(
+        (
+            "processes:"
+            "process_candidate_final_output"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate.id,
+        },
+    ),
+
         "motivation_insights": motivation_insights,
 
         "team_style_profile": team_style_profile,
@@ -2997,6 +3391,17 @@ def build_candidate_detail_context(process, invitation):
             combined_questions["sections"]
         ),
 
+        "combined_questions_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_combined_questions"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
         "combined_question_count": (
             combined_questions["total_count"]
         ),
@@ -3110,6 +3515,179 @@ def user_can_access_process(user, process) -> bool:
     return bool(company_id and process.company_id == company_id)
 
 
+@login_required
+def process_candidate_final_output(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return the latest saved candidate final output
+    as rendered HTML.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical final output "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    final_output = (
+        build_candidate_final_output(
+            invitation,
+            combined_questions=combined_questions,
+        )
+    )
+
+    refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_final_output"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
+    return render(
+        request,
+        (
+            "customer/processes/partials/"
+            "candidate_insights/tabs/"
+            "_final_output.html"
+        ),
+        {
+            "final_output": final_output,
+
+            "has_final_output": (
+                final_output["has_content"]
+            ),
+
+            "final_output_has_outdated_content": (
+                final_output[
+                    "has_outdated_content"
+                ]
+            ),
+
+            "final_output_refresh_url": (
+                refresh_url
+            ),
+        },
+    )
+
+
+@login_required
+def process_candidate_combined_questions(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return the latest saved Personality, Motivation and
+    Cognitive questions as rendered HTML.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_combined_questions"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
+    return render(
+        request,
+        (
+            "customer/processes/partials/"
+            "candidate_insights/tabs/_questions.html"
+        ),
+        {
+            "combined_questions": (
+                combined_questions
+            ),
+
+            "combined_question_sections": (
+                combined_questions["sections"]
+            ),
+
+            "combined_question_count": (
+                combined_questions["total_count"]
+            ),
+
+            "has_combined_questions": (
+                combined_questions["has_questions"]
+            ),
+
+            "combined_questions_refresh_url": (
+                refresh_url
+            ),
+        },
+    )
 
 
 @login_required

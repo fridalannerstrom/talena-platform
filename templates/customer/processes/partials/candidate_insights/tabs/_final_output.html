@@ -1,20 +1,669 @@
-<section class="card mb-4 purpose-fit-card">
+<section
+  class="
+    card
+    mb-4
+    purpose-fit-card
+    final-output-card
+  "
+  data-final-output-root
+  data-refresh-url="{{ final_output_refresh_url }}"
+>
 
-  <div class="card-body py-5 text-center">
+  <div class="card-body">
 
-    <div class="insight-summary-kicker">
-      Purpose-based output
+    <!-- HEADER -->
+    <div
+      class="
+        d-flex
+        align-items-start
+        justify-content-between
+        gap-3
+        flex-wrap
+      "
+    >
+
+      <div>
+
+        <div class="insight-summary-kicker">
+          Purpose-based output
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Final output
+        </h2>
+
+        <p class="text-muted small mb-0">
+          A combined working summary based on the available assessment
+          results, interpretations and process information.
+        </p>
+
+      </div>
+
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+
+        {% if final_output.purpose_label %}
+
+          <span class="badge rounded-pill bg-light text-dark border">
+            {{ final_output.purpose_label }}
+          </span>
+
+        {% endif %}
+
+
+        {% if final_output.source_count %}
+
+          <span class="badge rounded-pill bg-light text-dark border">
+            {{ final_output.source_count }}
+            source{{ final_output.source_count|pluralize }}
+          </span>
+
+        {% endif %}
+
+      </div>
+
     </div>
 
-    <h2 class="insight-summary-title mb-2">
-      Final output
-    </h2>
 
-    <p class="text-muted mb-0">
-      A purpose-specific summary, plan or recommended next step
-      will be created here.
-    </p>
+    {% if final_output_has_outdated_content %}
+
+      <!-- OUTDATED WARNING -->
+      <div class="alert alert-warning mt-4">
+
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+
+            <div class="fw-semibold small mb-1">
+              Some content needs to be updated
+            </div>
+
+            <div class="small">
+              Parts of this output were generated before the process
+              purpose or context was changed. Refresh the relevant
+              interpretation before using the final output.
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    {% endif %}
+
+
+    {% if has_final_output %}
+
+      <!-- ================================================== -->
+      <!-- AI OVERVIEW -->
+      <!-- ================================================== -->
+
+      {% if final_output.overview.has_content %}
+
+        <section class="border rounded-3 p-4 mt-4">
+
+          <div
+            class="
+              d-flex
+              align-items-start
+              justify-content-between
+              gap-3
+              flex-wrap
+              mb-3
+            "
+          >
+
+            <div>
+
+              <div class="small text-muted text-uppercase mb-1">
+                Overall summary
+              </div>
+
+              <h3 class="h5 mb-0">
+                AI Overview
+              </h3>
+
+            </div>
+
+
+            {% if final_output.overview.is_outdated %}
+
+              <span
+                class="
+                  badge
+                  rounded-pill
+                  bg-warning-subtle
+                  text-warning-emphasis
+                "
+              >
+                Needs update
+              </span>
+
+            {% endif %}
+
+          </div>
+
+
+          {% if final_output.overview.summary %}
+
+            <div class="mb-4">
+              {{ final_output.overview.summary }}
+            </div>
+
+          {% endif %}
+
+
+          {% if final_output.overview.supporting or final_output.overview.explore %}
+
+            <div class="row g-3">
+
+              <!-- SUPPORTING -->
+              {% if final_output.overview.supporting %}
+
+                <div class="col-lg-6">
+
+                  <div class="border rounded-3 p-3 h-100">
+
+                    <h4 class="h6 mb-3">
+                      What may support the purpose
+                    </h4>
+
+                    <ul class="list-unstyled d-grid gap-3 mb-0">
+
+                      {% for item in final_output.overview.supporting %}
+
+                        <li class="d-flex align-items-start gap-2">
+
+                          <i
+                            data-feather="check-circle"
+                            class="flex-shrink-0 mt-1"
+                          ></i>
+
+                          <span>
+                            {{ item }}
+                          </span>
+
+                        </li>
+
+                      {% endfor %}
+
+                    </ul>
+
+                  </div>
+
+                </div>
+
+              {% endif %}
+
+
+              <!-- EXPLORE -->
+              {% if final_output.overview.explore %}
+
+                <div class="col-lg-6">
+
+                  <div class="border rounded-3 p-3 h-100">
+
+                    <h4 class="h6 mb-3">
+                      What to explore or verify
+                    </h4>
+
+                    <ul class="list-unstyled d-grid gap-3 mb-0">
+
+                      {% for item in final_output.overview.explore %}
+
+                        <li class="d-flex align-items-start gap-2">
+
+                          <i
+                            data-feather="search"
+                            class="flex-shrink-0 mt-1"
+                          ></i>
+
+                          <span>
+                            {{ item }}
+                          </span>
+
+                        </li>
+
+                      {% endfor %}
+
+                    </ul>
+
+                  </div>
+
+                </div>
+
+              {% endif %}
+
+            </div>
+
+          {% endif %}
+
+
+          {% if final_output.overview.suggested_next_step %}
+
+            <div class="alert alert-light border mt-4 mb-0">
+
+              <div class="d-flex align-items-start gap-3">
+
+                <i
+                  data-feather="arrow-right-circle"
+                  class="flex-shrink-0 mt-1"
+                ></i>
+
+                <div>
+
+                  <div class="fw-semibold small mb-1">
+                    Suggested next step
+                  </div>
+
+                  <div>
+                    {{ final_output.overview.suggested_next_step }}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          {% endif %}
+
+        </section>
+
+      {% endif %}
+
+
+      <!-- ================================================== -->
+      <!-- ASSESSMENT INTERPRETATIONS -->
+      <!-- ================================================== -->
+
+      {% if final_output.assessment_sections %}
+
+        <section class="mt-4">
+
+          <div class="mb-3">
+
+            <div class="small text-muted text-uppercase mb-1">
+              Assessment insights
+            </div>
+
+            <h3 class="h5 mb-1">
+              Interpretation by assessment
+            </h3>
+
+            <p class="small text-muted mb-0">
+              A compact view of the available Personality, Motivation
+              and Cognitive interpretations.
+            </p>
+
+          </div>
+
+
+          <div class="d-grid gap-3">
+
+            {% for section in final_output.assessment_sections %}
+
+              <article class="border rounded-3 p-4">
+
+                <!-- SECTION HEADER -->
+                <div
+                  class="
+                    d-flex
+                    align-items-start
+                    justify-content-between
+                    gap-3
+                    flex-wrap
+                    mb-3
+                  "
+                >
+
+                  <div class="d-flex align-items-start gap-3">
+
+                    <div class="flex-shrink-0">
+
+                      {% if section.key == "personality" %}
+
+                        <i data-feather="user"></i>
+
+                      {% elif section.key == "motivation" %}
+
+                        <i data-feather="zap"></i>
+
+                      {% elif section.key == "cognitive" %}
+
+                        <i data-feather="cpu"></i>
+
+                      {% else %}
+
+                        <i data-feather="file-text"></i>
+
+                      {% endif %}
+
+                    </div>
+
+
+                    <div>
+
+                      <h4 class="h6 mb-1">
+                        {{ section.title }}
+                      </h4>
+
+                      <p class="small text-muted mb-0">
+                        {{ section.description }}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  {% if section.is_outdated %}
+
+                    <span
+                      class="
+                        badge
+                        rounded-pill
+                        bg-warning-subtle
+                        text-warning-emphasis
+                      "
+                    >
+                      Needs update
+                    </span>
+
+                  {% endif %}
+
+                </div>
+
+
+                <!-- SUMMARY -->
+                {% if section.summary %}
+
+                  <div class="mb-3">
+                    {{ section.summary }}
+                  </div>
+
+                {% endif %}
+
+
+                <!-- SUPPORT + EXPLORE -->
+                {% if section.support_items or section.explore_items %}
+
+                  <div class="row g-3">
+
+                    {% if section.support_items %}
+
+                      <div class="col-lg-6">
+
+                        <div class="border rounded-3 p-3 h-100">
+
+                          <div class="small fw-semibold mb-2">
+                            Potentially supportive
+                          </div>
+
+                          <ul class="small mb-0 ps-3">
+
+                            {% for item in section.support_items %}
+
+                              <li
+                                class="
+                                  {% if not forloop.last %}
+                                    mb-2
+                                  {% endif %}
+                                "
+                              >
+                                {{ item }}
+                              </li>
+
+                            {% endfor %}
+
+                          </ul>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+
+                    {% if section.explore_items %}
+
+                      <div class="col-lg-6">
+
+                        <div class="border rounded-3 p-3 h-100">
+
+                          <div class="small fw-semibold mb-2">
+                            Explore or clarify
+                          </div>
+
+                          <ul class="small mb-0 ps-3">
+
+                            {% for item in section.explore_items %}
+
+                              <li
+                                class="
+                                  {% if not forloop.last %}
+                                    mb-2
+                                  {% endif %}
+                                "
+                              >
+                                {{ item }}
+                              </li>
+
+                            {% endfor %}
+
+                          </ul>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                  </div>
+
+                {% endif %}
+
+              </article>
+
+            {% endfor %}
+
+          </div>
+
+        </section>
+
+      {% endif %}
+
+
+      <!-- ================================================== -->
+      <!-- COMBINED QUESTIONS -->
+      <!-- ================================================== -->
+
+      {% if final_output.has_questions %}
+
+        <section class="border rounded-3 p-4 mt-4">
+
+          <div
+            class="
+              d-flex
+              align-items-start
+              justify-content-between
+              gap-3
+              flex-wrap
+              mb-4
+            "
+          >
+
+            <div>
+
+              <div class="small text-muted text-uppercase mb-1">
+                Conversation support
+              </div>
+
+              <h3 class="h5 mb-1">
+                Assessment questions
+              </h3>
+
+              <p class="small text-muted mb-0">
+                Questions for exploring the assessment indications through
+                examples and practical experience.
+              </p>
+
+            </div>
+
+
+            <span class="badge rounded-pill bg-light text-dark border">
+              {{ final_output.question_count }}
+              question{{ final_output.question_count|pluralize }}
+            </span>
+
+          </div>
+
+
+          <div class="d-grid gap-4">
+
+            {% for section in final_output.combined_questions.sections %}
+
+              <div>
+
+                <div
+                  class="
+                    d-flex
+                    align-items-center
+                    justify-content-between
+                    gap-3
+                    mb-3
+                  "
+                >
+
+                  <h4 class="h6 mb-0">
+                    {{ section.title }}
+                  </h4>
+
+
+                  {% if section.is_outdated %}
+
+                    <span
+                      class="
+                        badge
+                        rounded-pill
+                        bg-warning-subtle
+                        text-warning-emphasis
+                      "
+                    >
+                      Needs update
+                    </span>
+
+                  {% endif %}
+
+                </div>
+
+
+                <ol class="mb-0 ps-4">
+
+                  {% for item in section.questions %}
+
+                    <li
+                      class="
+                        {% if not forloop.last %}
+                          mb-3
+                        {% endif %}
+                      "
+                    >
+                      {{ item.question }}
+                    </li>
+
+                  {% endfor %}
+
+                </ol>
+
+              </div>
+
+            {% endfor %}
+
+          </div>
+
+        </section>
+
+      {% endif %}
+
+
+      <!-- ================================================== -->
+      <!-- FOOTER -->
+      <!-- ================================================== -->
+
+      <div class="small text-muted border-top pt-3 mt-4">
+
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="info"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+            This output combines existing Talena insights. It does not
+            replace professional judgement and should be interpreted
+            alongside relevant examples, experience and other available
+            information.
+          </div>
+
+        </div>
+
+      </div>
+
+
+    {% else %}
+
+      <!-- ================================================== -->
+      <!-- EMPTY STATE -->
+      <!-- ================================================== -->
+
+      <div
+        class="
+          border
+          rounded-3
+          text-center
+          px-4
+          py-5
+          mt-4
+          bg-light
+        "
+      >
+
+        <div class="mb-3">
+          <i
+            data-feather="file-text"
+            width="32"
+            height="32"
+          ></i>
+        </div>
+
+        <h3 class="h6 mb-2">
+          No final output is available yet
+        </h3>
+
+        <p
+          class="
+            text-muted
+            small
+            mb-0
+            mx-auto
+          "
+          style="max-width: 520px;"
+        >
+          Generate the AI Overview and assessment interpretations
+          to create a combined purpose-based output.
+        </p>
+
+      </div>
+
+    {% endif %}
 
   </div>
-
 </section>
