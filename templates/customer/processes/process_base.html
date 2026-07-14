@@ -249,9 +249,21 @@ initIconsAndTooltips(sheetBody);
 
 await initCandidateSummaryStream(sheetBody);
 await initCandidatePurposeFitStream(sheetBody);
-await initCandidateCognitiveInterpretation(sheetBody);
-await initCandidateMotivationInterpretation(sheetBody);
-await initCandidatePersonalityQuestions(sheetBody);
+await initCandidateCognitiveInterpretation(
+  sheetBody
+);
+
+await initCandidateMotivationInterpretation(
+  sheetBody
+);
+
+await initCandidatePersonalityInterpretation(
+  sheetBody
+);
+
+await initCandidatePersonalityQuestions(
+  sheetBody
+);
 
 
       } catch (error) {
@@ -1975,6 +1987,824 @@ ${userMessage}
 
 })();
 </script>
+
+<script>
+async function initCandidatePersonalityInterpretation(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-personality-ai-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset.personalityAiInitialised ===
+    "true"
+  ) {
+    return;
+  }
+
+  root.dataset.personalityAiInitialised =
+    "true";
+
+  const streamUrl =
+    root.dataset.streamUrl;
+
+  const regenerateUrl =
+    root.dataset.regenerateUrl;
+
+
+  const titleElement = root.querySelector(
+    "[data-personality-ai-title]"
+  );
+
+  const labelElement = root.querySelector(
+    "[data-personality-ai-label]"
+  );
+
+  const thinking = root.querySelector(
+    "[data-personality-ai-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-personality-ai-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-personality-ai-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-personality-ai-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-personality-ai-outdated]"
+  );
+
+  const interpretationElement =
+    root.querySelector(
+      "[data-personality-ai-interpretation]"
+    );
+
+  const dynamicsSection = root.querySelector(
+    "[data-personality-ai-dynamics-section]"
+  );
+
+  const dynamicsElement = root.querySelector(
+    "[data-personality-ai-dynamics]"
+  );
+
+  const supportiveSection =
+    root.querySelector(
+      "[data-personality-ai-supportive-section]"
+    );
+
+  const supportiveList = root.querySelector(
+    "[data-personality-ai-supportive]"
+  );
+
+  const exploreSection = root.querySelector(
+    "[data-personality-ai-explore-section]"
+  );
+
+  const exploreList = root.querySelector(
+    "[data-personality-ai-explore]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-personality-ai-context-note]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-personality-ai-regenerate]"
+  );
+
+  let isStreaming = false;
+
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => {
+        return row.startsWith(
+          `${name}=`
+        );
+      });
+
+    return cookieValue
+      ? decodeURIComponent(
+          cookieValue.split("=")[1]
+        )
+      : null;
+  }
+
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
+  function setHidden(
+    element,
+    hidden
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function hideOutdatedState() {
+    setHidden(
+      statusBadge,
+      true
+    );
+
+    setHidden(
+      outdatedWarning,
+      true
+    );
+  }
+
+
+  function resetContent() {
+    if (interpretationElement) {
+      interpretationElement.textContent = "";
+    }
+
+    if (dynamicsElement) {
+      dynamicsElement.textContent = "";
+    }
+
+    if (supportiveList) {
+      supportiveList.replaceChildren();
+    }
+
+    if (exploreList) {
+      exploreList.replaceChildren();
+    }
+
+    if (contextNote) {
+      contextNote.textContent = "";
+    }
+
+    setHidden(
+      dynamicsSection,
+      true
+    );
+
+    setHidden(
+      supportiveSection,
+      true
+    );
+
+    setHidden(
+      exploreSection,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      true
+    );
+  }
+
+
+  function showContent() {
+    setHidden(
+      thinking,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      false
+    );
+  }
+
+
+  function renderList(
+    listElement,
+    sectionElement,
+    items,
+    iconName
+  ) {
+    if (!listElement) {
+      return;
+    }
+
+    listElement.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items
+          .map((item) => {
+            return String(
+              item || ""
+            ).trim();
+          })
+          .filter(Boolean)
+          .slice(0, 3)
+      : [];
+
+    validItems.forEach((item) => {
+      const listItem =
+        document.createElement("li");
+
+      listItem.className =
+        "d-flex align-items-start gap-2";
+
+      const iconWrapper =
+        document.createElement("span");
+
+      iconWrapper.className =
+        "flex-shrink-0";
+
+      iconWrapper.innerHTML =
+        `<i data-feather="${iconName}"></i>`;
+
+      const text =
+        document.createElement("span");
+
+      text.textContent = item;
+
+      listItem.appendChild(
+        iconWrapper
+      );
+
+      listItem.appendChild(
+        text
+      );
+
+      listElement.appendChild(
+        listItem
+      );
+    });
+
+    setHidden(
+      sectionElement,
+      validItems.length === 0
+    );
+
+    refreshIcons();
+  }
+
+
+  function createEmptyDraft() {
+    return {
+      title:
+        "Personality interpretation",
+
+      label:
+        "AI-supported interpretation",
+
+      interpretation: "",
+
+      profile_dynamics: "",
+
+      supportive_patterns: [],
+
+      areas_to_explore: [],
+
+      context_note: "",
+    };
+  }
+
+
+  function applySavedResult(data) {
+    const savedResult = {
+      ...createEmptyDraft(),
+      ...(data || {}),
+    };
+
+    if (titleElement) {
+      titleElement.textContent =
+        savedResult.title;
+    }
+
+    if (labelElement) {
+      labelElement.textContent =
+        savedResult.label;
+    }
+
+    if (interpretationElement) {
+      interpretationElement.textContent =
+        savedResult.interpretation || "";
+    }
+
+    if (dynamicsElement) {
+      dynamicsElement.textContent =
+        savedResult.profile_dynamics || "";
+    }
+
+    setHidden(
+      dynamicsSection,
+      !savedResult.profile_dynamics
+    );
+
+    renderList(
+      supportiveList,
+      supportiveSection,
+      savedResult.supportive_patterns,
+      "check-circle"
+    );
+
+    renderList(
+      exploreList,
+      exploreSection,
+      savedResult.areas_to_explore,
+      "search"
+    );
+
+    if (contextNote) {
+      contextNote.textContent =
+        savedResult.context_note || "";
+    }
+
+    showContent();
+    refreshIcons();
+
+    return savedResult;
+  }
+
+
+  function applyEvent(
+    draft,
+    event
+  ) {
+    switch (event.type) {
+
+      case "saved_result":
+        return {
+          ...draft,
+          ...(event.data || {}),
+        };
+
+
+      case "meta":
+        draft.title =
+          event.title ||
+          draft.title;
+
+        draft.label =
+          event.label ||
+          draft.label;
+
+        if (titleElement) {
+          titleElement.textContent =
+            draft.title;
+        }
+
+        if (labelElement) {
+          labelElement.textContent =
+            draft.label;
+        }
+
+        break;
+
+
+      case "interpretation_delta":
+        draft.interpretation +=
+          event.text || "";
+
+        if (interpretationElement) {
+          interpretationElement.textContent =
+            draft.interpretation;
+        }
+
+        showContent();
+        break;
+
+
+      case "profile_dynamics":
+        draft.profile_dynamics =
+          event.text || "";
+
+        if (dynamicsElement) {
+          dynamicsElement.textContent =
+            draft.profile_dynamics;
+        }
+
+        setHidden(
+          dynamicsSection,
+          !draft.profile_dynamics
+        );
+
+        showContent();
+        break;
+
+
+      case "supportive_patterns":
+        draft.supportive_patterns =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderList(
+          supportiveList,
+          supportiveSection,
+          draft.supportive_patterns,
+          "check-circle"
+        );
+
+        showContent();
+        break;
+
+
+      case "areas_to_explore":
+        draft.areas_to_explore =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderList(
+          exploreList,
+          exploreSection,
+          draft.areas_to_explore,
+          "search"
+        );
+
+        showContent();
+        break;
+
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        if (contextNote) {
+          contextNote.textContent =
+            draft.context_note;
+        }
+
+        showContent();
+        break;
+
+
+      case "error":
+        throw new Error(
+          event.message ||
+          (
+            "The personality interpretation " +
+            "could not be generated."
+          )
+        );
+
+
+      case "done":
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+
+  async function streamInterpretation(url) {
+    if (
+      !url ||
+      isStreaming
+    ) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(
+      thinking,
+      false
+    );
+
+    regenerateButton.disabled = true;
+
+    let draft =
+      createEmptyDraft();
+
+    try {
+      const response = await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "Accept":
+              "application/x-ndjson",
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+        }
+      );
+
+
+      if (response.status === 409) {
+        throw new Error(
+          (
+            "The personality interpretation " +
+            "is already being generated."
+          )
+        );
+      }
+
+
+      if (!response.ok) {
+        let message =
+          (
+            "The personality interpretation " +
+            "could not be generated."
+          );
+
+        try {
+          const data =
+            await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+
+        } catch (parseError) {
+          // Keep the fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+
+      if (!response.body) {
+        throw new Error(
+          (
+            "Streaming is not supported " +
+            "by this browser."
+          )
+        );
+      }
+
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+
+      async function handleLine(rawLine) {
+        const line =
+          rawLine.trim();
+
+        if (!line) {
+          return;
+        }
+
+        const event =
+          JSON.parse(line);
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          draft =
+            applySavedResult(
+              draft
+            );
+        }
+      }
+
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        for (const rawLine of lines) {
+          await handleLine(
+            rawLine
+          );
+        }
+      }
+
+
+      buffer += decoder.decode();
+
+      const finalLine =
+        buffer.trim();
+
+      if (finalLine) {
+        await handleLine(
+          finalLine
+        );
+      }
+
+
+      draft =
+        applySavedResult(
+          draft
+        );
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+    } catch (error) {
+      console.error(
+        (
+          "Personality interpretation " +
+          "error:"
+        ),
+        error
+      );
+
+      setHidden(
+        thinking,
+        true
+      );
+
+      setHidden(
+        content,
+        true
+      );
+
+      setHidden(
+        errorBox,
+        false
+      );
+
+      errorBox.textContent =
+        error.message ||
+        (
+          "The personality interpretation " +
+          "could not be generated."
+        );
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+
+      regenerateButton.disabled =
+        false;
+
+      refreshIcons();
+    }
+  }
+
+
+  regenerateButton.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl ||
+        isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled =
+        true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+
+            credentials:
+              "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            (
+              "The interpretation could " +
+              "not be regenerated."
+            )
+          );
+        }
+
+        await streamInterpretation(
+          data.stream_url ||
+          streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          (
+            "Personality interpretation " +
+            "regeneration error:"
+          ),
+          error
+        );
+
+        setHidden(
+          errorBox,
+          false
+        );
+
+        errorBox.textContent =
+          error.message ||
+          (
+            "The interpretation could " +
+            "not be regenerated."
+          );
+
+      } finally {
+        regenerateButton.disabled =
+          false;
+
+        refreshIcons();
+      }
+    }
+  );
+
+
+  const hasResult =
+    root.dataset.hasResult ===
+    "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+
+  if (
+    !hasResult &&
+    status !== "generating"
+  ) {
+    await streamInterpretation(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
+</script>
+
 
 <script>
 

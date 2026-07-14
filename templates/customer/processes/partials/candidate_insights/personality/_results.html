@@ -772,3 +772,7 @@
 <!-- /QUICK VIEW -->
 
 </div>
+
+{% if personality_profile and personality_profile.sections %}
+  {% include "customer/processes/partials/candidate_insights/personality/_trait_descriptions.html" %}
+{% endif %}

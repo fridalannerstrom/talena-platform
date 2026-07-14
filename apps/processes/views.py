@@ -53,6 +53,13 @@ from .services.process_recommendations import (
     extract_tests_from_project_name,
 )
 
+from apps.core.ai.personality_interpretation import (
+    create_empty_personality_interpretation,
+    apply_personality_interpretation_event,
+    stream_personality_interpretation,
+    save_personality_interpretation,
+)
+
 from apps.processes.services.candidate_insights import (
     build_candidate_insights,
 )
@@ -2763,6 +2770,41 @@ def build_candidate_detail_context(process, invitation):
             },
         ),
 
+        # Personality AI interpretation
+        "personality_interpretation": (
+            invitation.ai_personality_interpretation
+            or {}
+        ),
+
+        "personality_interpretation_status": (
+            invitation.ai_personality_interpretation_status
+            or "not_started"
+        ),
+
+        "personality_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
         # Personality AI questions
         "personality_questions": (
             invitation.ai_personality_questions
@@ -3256,6 +3298,14 @@ def mark_candidate_ai_content_outdated(process):
         )
     )
 
+    personality_interpretation_count = (
+        invitations
+        .exclude(ai_personality_interpretation={})
+        .update(
+            ai_personality_interpretation_status="outdated"
+        )
+    )
+
     personality_questions_count = (
         invitations
         .exclude(ai_personality_questions={})
@@ -3275,6 +3325,9 @@ def mark_candidate_ai_content_outdated(process):
         ),
         "personality_questions": (
             personality_questions_count
+        ),
+        "personality_interpretations": (
+            personality_interpretation_count
         ),
         "response_style_guidance": (
             response_style_guidance_count
@@ -6876,6 +6929,314 @@ def process_candidate_motivation_interpretation_regenerate(
                 (
                     "processes:"
                     "process_candidate_motivation_"
+                    "interpretation_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+@login_required
+def process_candidate_personality_interpretation_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save an AI-supported interpretation of the
+    candidate's personality trait profile.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical personality interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    personality_results = extract_personality_results(
+        invitation
+    )
+
+    if not personality_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No personality assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_personality_interpretation_status
+        or "not_started"
+    )
+
+    saved_interpretation = (
+        invitation.ai_personality_interpretation
+        or {}
+    )
+
+    current_purpose = normalize_purpose_key(
+        process.purpose
+    )
+
+    saved_purpose = normalize_purpose_key(
+        invitation.ai_personality_interpretation_purpose
+    )
+
+    # Safety check in case the purpose changed without the normal
+    # outdated-marking flow being triggered.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_personality_interpretation_status = (
+            "outdated"
+        )
+
+        invitation.save(update_fields=[
+            "ai_personality_interpretation_status",
+        ])
+
+    # Return an existing completed interpretation.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_interpretation,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The personality interpretation is "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_personality_interpretation_status = (
+        "generating"
+    )
+
+    invitation.save(update_fields=[
+        "ai_personality_interpretation_status",
+    ])
+
+    def generator():
+        interpretation = (
+            create_empty_personality_interpretation(
+                invitation
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_personality_interpretation(
+                owner=invitation,
+                personality_results=personality_results,
+            ):
+                interpretation = (
+                    apply_personality_interpretation_event(
+                        interpretation,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            # Require the main interpretation, but do not throw away
+            # a valid result merely because a secondary list was short.
+            if not (
+                interpretation.get("interpretation")
+                or ""
+            ).strip():
+                raise ValueError(
+                    "The AI response did not contain "
+                    "a personality interpretation."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_personality_interpretation(
+                owner=invitation,
+                interpretation=interpretation,
+            )
+
+        except Exception as error:
+            invitation.ai_personality_interpretation_status = (
+                "failed"
+            )
+
+            invitation.save(update_fields=[
+                "ai_personality_interpretation_status",
+            ])
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+@login_required
+@require_POST
+def process_candidate_personality_interpretation_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Clear the saved personality interpretation and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical personality interpretation "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_personality_interpretation = {}
+    invitation.ai_personality_interpretation_status = (
+        "not_started"
+    )
+    invitation.ai_personality_interpretation_generated_at = (
+        None
+    )
+    invitation.ai_personality_interpretation_purpose = ""
+
+    invitation.save(update_fields=[
+        "ai_personality_interpretation",
+        "ai_personality_interpretation_status",
+        "ai_personality_interpretation_generated_at",
+        "ai_personality_interpretation_purpose",
+    ])
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_personality_"
                     "interpretation_stream"
                 ),
                 kwargs={

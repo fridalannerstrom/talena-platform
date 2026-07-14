@@ -138,4 +138,21 @@ urlpatterns = [
             "traits_update"
         ),
     ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/personality-interpretation/stream/"
+        ),
+        views.process_candidate_personality_interpretation_stream,
+        name="process_candidate_personality_interpretation_stream",
+    ),
+
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/personality-interpretation/regenerate/"
+        ),
+        views.process_candidate_personality_interpretation_regenerate,
+        name="process_candidate_personality_interpretation_regenerate",
+    ),
 ]
