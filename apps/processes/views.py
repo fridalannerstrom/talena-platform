@@ -546,6 +546,108 @@ def build_response_style_results(personality_competencies):
 
     return response_styles
 
+
+def build_personality_results_for_ai_owner(
+    owner,
+) -> list[dict]:
+    """
+    Build personality trait evidence for either:
+
+    - TestInvitation
+    - HistoricalProcessCandidate
+    """
+
+    process = owner.process
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+    if not getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return extract_personality_results(
+            owner
+        )
+
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+    profile = build_historical_candidate_profile(
+        owner
+    )
+
+    historical_competencies = (
+        profile.get(
+            "personality_competencies"
+        )
+        or []
+    )
+
+    excluded_competencies = {
+        "social desirability",
+        "fillers",
+        "reliability",
+        "profile spread",
+        "ratings spread",
+    }
+
+    results_by_name = {}
+
+    for item in historical_competencies:
+        name = str(
+            item.get("competency")
+            or item.get("name")
+            or ""
+        ).strip()
+
+        if not name:
+            continue
+
+        name_key = name.lower()
+
+        if name_key in excluded_competencies:
+            continue
+
+        raw_sten = item.get(
+            "sten_rounded"
+        )
+
+        if raw_sten is None:
+            raw_sten = item.get(
+                "sten"
+            )
+
+        # Historical imports may keep the imported STEN value
+        # in the generic score field.
+        if raw_sten is None:
+            raw_sten = item.get(
+                "score"
+            )
+
+        try:
+            sten = int(
+                round(float(raw_sten))
+            )
+        except (TypeError, ValueError):
+            continue
+
+        sten = max(
+            1,
+            min(10, sten),
+        )
+
+        results_by_name[name_key] = {
+            "name": name,
+            "sten": sten,
+        }
+
+    return list(
+        results_by_name.values()
+    )
+
+
 def build_response_styles_for_guidance_owner(
     guidance_owner,
 ):
@@ -1423,70 +1525,6 @@ def build_motivation_insight_section(
             "items": domain_items,
         })
 
-    # Safety net:
-    # Show any result returned by Sova that was not matched by the model above.
-    unmatched_items = []
-
-    for source in mq_competencies or []:
-        if id(source) in used_source_ids:
-            continue
-
-        score = get_score(source)
-        source_name = (
-            source.get("competency") or ""
-        ).strip()
-
-        if score is None or not source_name:
-            continue
-
-        band = get_band(score)
-
-        item = {
-            "key": normalise_name(source_name).replace(" ", "_"),
-            "name": source_name,
-            "description": (
-                "An additional motivation factor returned by the "
-                "assessment provider."
-            ),
-            "score": score,
-            "available": True,
-            "segments": build_segments(score),
-            "band_key": band["key"],
-            "band_label": band["label"],
-            "percentile": source.get("percentile"),
-            "source_name": source_name,
-            "order": item_order,
-
-            # Fallback interpretation data for motivation results
-            # that were not matched against motivation_model.
-            "summary_phrase": (
-                f"the motivational factor {source_name.lower()}"
-            ),
-            "support_phrase": (
-                f"opportunities connected to {source_name.lower()}"
-            ),
-            "top_interpretation": (
-                f"{candidate_label} appears to place relatively high importance "
-                f"on {source_name.lower()}. This result should be explored further "
-                f"with the candidate to understand what it means in their working "
-                f"context."
-            ),
-        }
-
-        item_order += 1
-        unmatched_items.append(item)
-        all_items.append(item)
-
-    if unmatched_items:
-        domains.append({
-            "key": "other",
-            "title": "Other Results",
-            "subtitle": (
-                "Additional factors returned by the assessment"
-            ),
-            "icon_class": "fa-solid fa-circle-nodes",
-            "items": unmatched_items,
-        })
 
     available_items = [
         item
@@ -6316,6 +6354,94 @@ def process_create_v2(request):
         "accounts_count": len(accounts),
     })
 
+def normalise_five_point_score(
+    value,
+) -> int | None:
+    """
+    Normalise an existing five-point score without
+    treating a ten-point STEN value as STIVE.
+    """
+
+    if value is None:
+        return None
+
+    try:
+        score = int(
+            round(float(value))
+        )
+    except (TypeError, ValueError):
+        return None
+
+    return max(
+        1,
+        min(5, score),
+    )
+
+
+def convert_sten_to_five_point(
+    value,
+) -> int | None:
+    """
+    Convert a rounded STEN result from 1–10 into
+    Talena's five-point display scale.
+
+    1–2  -> 1
+    3–4  -> 2
+    5–6  -> 3
+    7–8  -> 4
+    9–10 -> 5
+    """
+
+    if value is None:
+        return None
+
+    try:
+        sten = int(
+            round(float(value))
+        )
+    except (TypeError, ValueError):
+        return None
+
+    sten = max(
+        1,
+        min(10, sten),
+    )
+
+    return (
+        sten + 1
+    ) // 2
+
+
+def get_historical_five_point_score(
+    item,
+) -> int | None:
+    """
+    Historical Excel imports currently contain STEN scores.
+
+    Read the original imported STEN value and convert it
+    to Talena's five-point Motivation and Team style scale.
+
+    Do not trust stive/stive_rounded here, because older
+    historical normalisation may have copied the raw STEN
+    value into those fields.
+    """
+
+    for key in (
+        "score",
+        "sten_rounded",
+        "sten",
+    ):
+        value = item.get(key)
+
+        if value is None:
+            continue
+
+        return convert_sten_to_five_point(
+            value
+        )
+
+    return None
+
 
 def build_historical_candidate_detail_context(
     process,
@@ -6386,37 +6512,69 @@ def build_historical_candidate_detail_context(
     mq_competencies = []
 
     for item in motivation_competencies:
-        score_value = item.get("score")
+        raw_score = item.get(
+            "score"
+        )
 
-        motivation_results.append({
-            "activity": "Motivation Questionnaire",
-            "competency": item.get("competency") or item.get("name"),
-            "score": score_value,
-            "stive": item.get("stive", score_value),
-            "stive_rounded": item.get(
-                "stive_rounded",
-                round(score_value) if score_value is not None else None,
+        five_point_score = (
+            get_historical_five_point_score(
+                item
+            )
+        )
+
+        raw_sten = item.get(
+            "sten"
+        )
+
+        if raw_sten is None:
+            raw_sten = raw_score
+
+        raw_sten_rounded = item.get(
+            "sten_rounded"
+        )
+
+        if (
+            raw_sten_rounded is None
+            and raw_sten is not None
+        ):
+            raw_sten_rounded = int(
+                round(float(raw_sten))
+            )
+
+        normalised_item = {
+            "activity": (
+                "Motivation Questionnaire"
             ),
-            "sten": item.get("sten"),
-            "sten_rounded": item.get("sten_rounded"),
-            "percentile": item.get("percentile"),
+
+            "competency": (
+                item.get("competency")
+                or item.get("name")
+            ),
+
+            # Five-point result used by Motivation UI.
+            "score": five_point_score,
+            "stive": five_point_score,
+            "stive_rounded": five_point_score,
+
+            # Preserve the original imported STEN evidence.
+            "sten": raw_sten,
+            "sten_rounded": raw_sten_rounded,
+
+            "percentile": item.get(
+                "percentile"
+            ),
+
             "assessment_centre": None,
             "source": "historical_import",
-        })
+        }
 
-        mq_competencies.append({
-            "competency": item.get("competency") or item.get("name"),
-            "score": score_value,
-            "stive": item.get("stive", score_value),
-            "stive_rounded": item.get(
-                "stive_rounded",
-                round(score_value) if score_value is not None else None,
-            ),
-            "sten": item.get("sten"),
-            "sten_rounded": item.get("sten_rounded"),
-            "percentile": item.get("percentile"),
-            "source": "historical_import",
-        })
+        motivation_results.append(
+            normalised_item.copy()
+        )
+
+        mq_competencies.append(
+            normalised_item.copy()
+        )
 
     normalised_personality_competencies = []
 
@@ -6434,7 +6592,34 @@ def build_historical_candidate_detail_context(
     normalised_team_style_scores = []
 
     for item in team_style_scores:
-        score_value = item.get("score")
+        raw_score = item.get(
+            "score"
+        )
+
+        five_point_score = (
+            get_historical_five_point_score(
+                item
+            )
+        )
+
+        raw_sten = item.get(
+            "sten"
+        )
+
+        if raw_sten is None:
+            raw_sten = raw_score
+
+        raw_sten_rounded = item.get(
+            "sten_rounded"
+        )
+
+        if (
+            raw_sten_rounded is None
+            and raw_sten is not None
+        ):
+            raw_sten_rounded = int(
+                round(float(raw_sten))
+            )
 
         normalised_team_style_scores.append({
             "competency": (
@@ -6442,25 +6627,18 @@ def build_historical_candidate_detail_context(
                 or item.get("name")
             ),
 
-            "score": score_value,
+            # Five-point result used by Team styles.
+            "score": five_point_score,
+            "stive": five_point_score,
+            "stive_rounded": five_point_score,
 
-            "stive": item.get(
-                "stive",
-                score_value,
+            # Preserve original imported STEN.
+            "sten": raw_sten,
+            "sten_rounded": raw_sten_rounded,
+
+            "percentile": item.get(
+                "percentile"
             ),
-
-            "stive_rounded": item.get(
-                "stive_rounded",
-                (
-                    round(score_value)
-                    if score_value is not None
-                    else None
-                ),
-            ),
-
-            "sten": item.get("sten"),
-            "sten_rounded": item.get("sten_rounded"),
-            "percentile": item.get("percentile"),
 
             "category": "team_style",
             "source": "historical_import",
@@ -6496,6 +6674,12 @@ def build_historical_candidate_detail_context(
         key=lambda item: (
             item.get("competency") or ""
         ).lower(),
+    )
+
+    team_style_profile = (
+        build_team_style_profile(
+            normalised_team_style_scores
+        )
     )
 
     # -------------------------------------------------------------------------
@@ -6655,46 +6839,58 @@ def build_historical_candidate_detail_context(
             ),
         ]
 
-        # -------------------------------------------------------------------------
-        # Personality reports and profile
-        # -------------------------------------------------------------------------
 
-        personality_reports = []
-        personality_profile = None
+    # -------------------------------------------------------------------------
+    # Personality reports and profile
+    # -------------------------------------------------------------------------
 
-        if has_personality_results:
-            historical_personality_competencies = (
-                normalised_personality_competencies
-                + normalised_team_style_scores
-            )
+    personality_reports = []
+    personality_profile = None
 
-            historical_personality_activities = [
-                {
-                    "activity": "Personality Assessment",
-                    "status": "completed",
-                    "competencies": historical_personality_competencies,
-                }
-            ]
+    if has_personality_results:
+        historical_personality_competencies = (
+            normalised_personality_competencies
+            + normalised_team_style_scores
+        )
 
-            personality_reports = build_personality_reports_for_candidate(
-                sova_activities=historical_personality_activities,
-            )
-
-            personality_profile_report = next(
-                (
-                    report
-                    for report in personality_reports
-                    if report.get("report_id") == "trait_indicator_profile"
+        historical_personality_activities = [
+            {
+                "activity": "Personality Assessment",
+                "status": "completed",
+                "competencies": (
+                    historical_personality_competencies
                 ),
-                None,
-            )
+            }
+        ]
 
-            if personality_profile_report:
-                personality_profile = build_profile_from_resolved_report(
-                    resolved_report=personality_profile_report,
+        personality_reports = (
+            build_personality_reports_for_candidate(
+                sova_activities=(
+                    historical_personality_activities
+                ),
+            )
+        )
+
+        personality_profile_report = next(
+            (
+                report
+                for report in personality_reports
+                if report.get("report_id")
+                == "trait_indicator_profile"
+            ),
+            None,
+        )
+
+        if personality_profile_report:
+            personality_profile = (
+                build_profile_from_resolved_report(
+                    resolved_report=(
+                        personality_profile_report
+                    ),
                     language="sv",
                     include_missing_traits=False,
                 )
+            )
 
     available_reports_count = 0
 
@@ -6996,8 +7192,50 @@ def build_historical_candidate_detail_context(
         "overall_score": None,
         "reports": [],
 
+        # Historical personality AI interpretation
+        "personality_interpretation": (
+            historical_candidate
+            .ai_personality_interpretation
+            or {}
+        ),
+
+        "team_style_profile": team_style_profile,
+
+        "personality_interpretation_status": (
+            historical_candidate
+            .ai_personality_interpretation_status
+            or "not_started"
+        ),
+
+        "personality_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
         "response_styles": response_styles,
+
         "response_style_segments": range(1, 11),
+
+        "response_style_side_segments": range(1, 6),
 
         "response_style_guidance": (
             historical_candidate
@@ -7720,6 +7958,10 @@ def process_candidate_personality_interpretation_stream(
     """
     Stream and save an AI-supported interpretation of the
     candidate's personality trait profile.
+
+    Supports both:
+    - active TestInvitation candidates
+    - imported HistoricalProcessCandidate candidates
     """
 
     process = get_object_or_404(
@@ -7735,39 +7977,54 @@ def process_candidate_personality_interpretation_stream(
             "You do not have access to this process."
         )
 
+    # ---------------------------------------------------------
+    # FIND THE CORRECT OWNER
+    # ---------------------------------------------------------
+
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical personality interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
+    else:
+        owner = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
 
-    personality_results = extract_personality_results(
-        invitation
+        if owner.status != "completed":
+            return JsonResponse(
+                {
+                    "error": (
+                        "The candidate has not completed "
+                        "the assessments yet."
+                    )
+                },
+                status=400,
+            )
+
+    # ---------------------------------------------------------
+    # BUILD PERSONALITY EVIDENCE
+    # ---------------------------------------------------------
+
+    personality_results = (
+        build_personality_results_for_ai_owner(
+            owner
+        )
     )
 
     if not personality_results:
@@ -7781,13 +8038,17 @@ def process_candidate_personality_interpretation_stream(
             status=400,
         )
 
+    # ---------------------------------------------------------
+    # CURRENT SAVED STATE
+    # ---------------------------------------------------------
+
     current_status = (
-        invitation.ai_personality_interpretation_status
+        owner.ai_personality_interpretation_status
         or "not_started"
     )
 
     saved_interpretation = (
-        invitation.ai_personality_interpretation
+        owner.ai_personality_interpretation
         or {}
     )
 
@@ -7796,7 +8057,7 @@ def process_candidate_personality_interpretation_stream(
     )
 
     saved_purpose = normalize_purpose_key(
-        invitation.ai_personality_interpretation_purpose
+        owner.ai_personality_interpretation_purpose
     )
 
     # Safety check in case the purpose changed without the normal
@@ -7808,15 +8069,18 @@ def process_candidate_personality_interpretation_stream(
     ):
         current_status = "outdated"
 
-        invitation.ai_personality_interpretation_status = (
+        owner.ai_personality_interpretation_status = (
             "outdated"
         )
 
-        invitation.save(update_fields=[
+        owner.save(update_fields=[
             "ai_personality_interpretation_status",
         ])
 
-    # Return an existing completed interpretation.
+    # ---------------------------------------------------------
+    # RETURN SAVED RESULT
+    # ---------------------------------------------------------
+
     if (
         saved_interpretation
         and current_status == "completed"
@@ -7843,6 +8107,10 @@ def process_candidate_personality_interpretation_stream(
 
         return response
 
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+
     if current_status == "generating":
         return JsonResponse(
             {
@@ -7854,18 +8122,22 @@ def process_candidate_personality_interpretation_stream(
             status=409,
         )
 
-    invitation.ai_personality_interpretation_status = (
+    owner.ai_personality_interpretation_status = (
         "generating"
     )
 
-    invitation.save(update_fields=[
+    owner.save(update_fields=[
         "ai_personality_interpretation_status",
     ])
+
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
 
     def generator():
         interpretation = (
             create_empty_personality_interpretation(
-                invitation
+                owner
             )
         )
 
@@ -7873,7 +8145,7 @@ def process_candidate_personality_interpretation_stream(
 
         try:
             for event in stream_personality_interpretation(
-                owner=invitation,
+                owner=owner,
                 personality_results=personality_results,
             ):
                 interpretation = (
@@ -7891,10 +8163,10 @@ def process_candidate_personality_interpretation_stream(
                     ensure_ascii=False,
                 ) + "\n"
 
-            # Require the main interpretation, but do not throw away
-            # a valid result merely because a secondary list was short.
             if not (
-                interpretation.get("interpretation")
+                interpretation.get(
+                    "interpretation"
+                )
                 or ""
             ).strip():
                 raise ValueError(
@@ -7911,16 +8183,16 @@ def process_candidate_personality_interpretation_stream(
                 ) + "\n"
 
             save_personality_interpretation(
-                owner=invitation,
+                owner=owner,
                 interpretation=interpretation,
             )
 
         except Exception as error:
-            invitation.ai_personality_interpretation_status = (
+            owner.ai_personality_interpretation_status = (
                 "failed"
             )
 
-            invitation.save(update_fields=[
+            owner.save(update_fields=[
                 "ai_personality_interpretation_status",
             ])
 
@@ -7943,6 +8215,7 @@ def process_candidate_personality_interpretation_stream(
     response["X-Accel-Buffering"] = "no"
 
     return response
+
 
 @login_required
 @require_POST
@@ -7970,32 +8243,39 @@ def process_candidate_personality_interpretation_regenerate(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical personality interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
 
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        owner = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
-    invitation.ai_personality_interpretation = {}
-    invitation.ai_personality_interpretation_status = (
+    owner.ai_personality_interpretation = {}
+
+    owner.ai_personality_interpretation_status = (
         "not_started"
     )
-    invitation.ai_personality_interpretation_generated_at = (
+
+    owner.ai_personality_interpretation_generated_at = (
         None
     )
-    invitation.ai_personality_interpretation_purpose = ""
 
-    invitation.save(update_fields=[
+    owner.ai_personality_interpretation_purpose = ""
+
+    owner.save(update_fields=[
         "ai_personality_interpretation",
         "ai_personality_interpretation_status",
         "ai_personality_interpretation_generated_at",
@@ -8005,6 +8285,7 @@ def process_candidate_personality_interpretation_regenerate(
     return JsonResponse(
         {
             "ok": True,
+
             "stream_url": reverse(
                 (
                     "processes:"

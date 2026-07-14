@@ -247,31 +247,74 @@ initCandidateSheetInteractions(sheetBody);
 initGlobalEmailModal(sheetBody);
 initIconsAndTooltips(sheetBody);
 
-await initCandidateSummaryStream(sheetBody);
-await initCandidatePurposeFitStream(sheetBody);
-await initCandidateCognitiveInterpretation(
+const isHistoricalCandidate = Boolean(
+  sheetBody.querySelector(
+    '[data-is-historical="true"]'
+  )
+);
+
+
+/*
+ * Candidate summary supports both active and
+ * historical candidates.
+ */
+await initCandidateSummaryStream(
   sheetBody
 );
 
-initCandidateDerivedContentSync(
-  sheetBody
-);
 
-await initCandidateMotivationInterpretation(
-  sheetBody
-);
+/*
+ * Historical candidates currently support:
+ *
+ * - candidate summary
+ * - response-style guidance
+ * - personality interpretation
+ *
+ * Response-style guidance initialises automatically
+ * through its MutationObserver.
+ */
+if (isHistoricalCandidate) {
+  await initCandidatePersonalityInterpretation(
+    sheetBody
+  );
 
-await initCandidatePersonalityInterpretation(
-  sheetBody
-);
+} else {
+  /*
+   * Register the shared refresh listener before any
+   * active-candidate AI function starts generating.
+   */
+  initCandidateDerivedContentSync(
+    sheetBody
+  );
 
-await initCandidatePersonalityQuestions(
-  sheetBody
-);
+  await initCandidatePurposeFitStream(
+    sheetBody
+  );
 
-await refreshCandidateCombinedQuestions(
-  sheetBody
-);
+  await initCandidateCognitiveInterpretation(
+    sheetBody
+  );
+
+  await initCandidateMotivationInterpretation(
+    sheetBody
+  );
+
+  await initCandidatePersonalityInterpretation(
+    sheetBody
+  );
+
+  await initCandidatePersonalityQuestions(
+    sheetBody
+  );
+
+  /*
+   * Refresh both Questions and Final output after
+   * all initial AI functions have finished.
+   */
+  await refreshCandidateDerivedViews(
+    sheetBody
+  );
+}
 
 
       } catch (error) {
@@ -2930,6 +2973,17 @@ function notifyCandidateAiContentUpdated(
 function initCandidateDerivedContentSync(
   container = document
 ) {
+
+  const isHistoricalCandidate = Boolean(
+    container.querySelector(
+      '[data-is-historical="true"]'
+    )
+  );
+
+  if (isHistoricalCandidate) {
+    return;
+  }
+  
   if (
     container.dataset
       .candidateDerivedSyncInitialised ===
