@@ -1782,6 +1782,179 @@ def build_sova_reports_for_ui(reports):
     )
 
 
+def _normalise_combined_question(
+    item,
+) -> dict | None:
+    """
+    Convert questions from different AI modules into one shared shape.
+    """
+
+    if isinstance(item, str):
+        question = item.strip()
+
+        if not question:
+            return None
+
+        return {
+            "question": question,
+            "why": "",
+            "listen_for": "",
+            "traits": [],
+        }
+
+    if not isinstance(item, dict):
+        return None
+
+    question = str(
+        item.get("question")
+        or ""
+    ).strip()
+
+    if not question:
+        return None
+
+    why = str(
+        item.get("why")
+        or ""
+    ).strip()
+
+    listen_for = str(
+        item.get("listen_for")
+        or ""
+    ).strip()
+
+    raw_traits = item.get("traits")
+    traits = []
+
+    if isinstance(raw_traits, list):
+        traits = [
+            str(trait).strip()
+            for trait in raw_traits
+            if str(trait).strip()
+        ]
+
+    return {
+        "question": question,
+        "why": why,
+        "listen_for": listen_for,
+        "traits": traits,
+    }
+
+
+def build_combined_candidate_questions(
+    invitation,
+) -> dict:
+    """
+    Collect saved questions from Personality, Motivation and Cognitive.
+
+    No additional AI generation happens here.
+    """
+
+    question_sources = [
+        {
+            "key": "personality",
+            "title": "Personality questions",
+            "description": (
+                "Explore how relevant personality preferences "
+                "appear in practical situations."
+            ),
+            "result_field": "ai_personality_questions",
+            "status_field": (
+                "ai_personality_questions_status"
+            ),
+        },
+        {
+            "key": "motivation",
+            "title": "Motivation questions",
+            "description": (
+                "Explore what may create energy, engagement "
+                "and sustainable motivation."
+            ),
+            "result_field": (
+                "ai_motivation_interpretation"
+            ),
+            "status_field": (
+                "ai_motivation_interpretation_status"
+            ),
+        },
+        {
+            "key": "cognitive",
+            "title": "Cognitive questions",
+            "description": (
+                "Explore how the cognitive assessment results "
+                "relate to practical demands and working methods."
+            ),
+            "result_field": (
+                "ai_cognitive_interpretation"
+            ),
+            "status_field": (
+                "ai_cognitive_interpretation_status"
+            ),
+        },
+    ]
+
+    sections = []
+    total_count = 0
+
+    for source in question_sources:
+        saved_result = (
+            getattr(
+                invitation,
+                source["result_field"],
+                {},
+            )
+            or {}
+        )
+
+        raw_questions = (
+            saved_result.get("questions")
+            or []
+        )
+
+        questions = []
+
+        if isinstance(raw_questions, list):
+            for raw_question in raw_questions:
+                question = (
+                    _normalise_combined_question(
+                        raw_question
+                    )
+                )
+
+                if question:
+                    questions.append(question)
+
+        if not questions:
+            continue
+
+        status = (
+            getattr(
+                invitation,
+                source["status_field"],
+                "not_started",
+            )
+            or "not_started"
+        )
+
+        sections.append({
+            "key": source["key"],
+            "title": source["title"],
+            "description": source["description"],
+            "status": status,
+            "is_outdated": status == "outdated",
+            "questions": questions,
+            "question_count": len(questions),
+        })
+
+        total_count += len(questions)
+
+    return {
+        "sections": sections,
+        "total_count": total_count,
+        "has_questions": total_count > 0,
+    }
+
+
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
@@ -2311,6 +2484,12 @@ def build_candidate_detail_context(process, invitation):
         else invitation.overall_score
     )
 
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
     ability_results = []
     motivation_results = []
     all_competencies = []
@@ -2809,6 +2988,21 @@ def build_candidate_detail_context(process, invitation):
         "personality_questions": (
             invitation.ai_personality_questions
             or {}
+        ),
+
+        # Combined assessment questions
+        "combined_questions": combined_questions,
+
+        "combined_question_sections": (
+            combined_questions["sections"]
+        ),
+
+        "combined_question_count": (
+            combined_questions["total_count"]
+        ),
+
+        "has_combined_questions": (
+            combined_questions["has_questions"]
         ),
 
         "personality_questions_status": (

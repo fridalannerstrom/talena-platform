@@ -1,20 +1,467 @@
-<section class="card mb-4 purpose-fit-card">
+<section
+  class="
+    card
+    mb-4
+    purpose-fit-card
+    combined-questions-card
+  "
+>
+  <div class="card-body">
 
-  <div class="card-body py-5 text-center">
+    <!-- HEADER -->
+    <div
+      class="
+        d-flex
+        align-items-start
+        justify-content-between
+        gap-3
+        flex-wrap
+      "
+    >
 
-    <div class="insight-summary-kicker">
-      Question plan
+      <div>
+
+        <div class="insight-summary-kicker">
+          Questions
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Combined assessment questions
+        </h2>
+
+        <p class="text-muted small mb-0">
+          Practical questions collected from the available personality,
+          motivation and cognitive interpretations.
+        </p>
+
+      </div>
+
+
+      {% if has_combined_questions %}
+
+        <span class="badge rounded-pill bg-light text-dark border">
+          {{ combined_question_count }}
+          question{{ combined_question_count|pluralize }}
+        </span>
+
+      {% endif %}
+
     </div>
 
-    <h2 class="insight-summary-title mb-2">
-      Questions
-    </h2>
 
-    <p class="text-muted mb-0">
-      Questions from the different assessment areas will be collected
-      and organised here.
-    </p>
+    {% if has_combined_questions %}
+
+      <!-- INTRODUCTION -->
+      <div class="alert alert-light border mt-4 mb-4">
+
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="message-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div class="small">
+
+            Use these questions to explore the assessment indications
+            through concrete examples, reflections and practical experience.
+
+            The questions should support a structured conversation rather
+            than replace professional judgement.
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- QUESTION SECTIONS -->
+      <div class="d-grid gap-4">
+
+        {% for section in combined_question_sections %}
+
+          <section
+            class="
+              border
+              rounded-3
+              overflow-hidden
+              combined-question-section
+            "
+          >
+
+            <!-- SECTION HEADER -->
+            <header
+              class="
+                px-4
+                py-3
+                border-bottom
+                bg-light
+              "
+            >
+
+              <div
+                class="
+                  d-flex
+                  align-items-start
+                  justify-content-between
+                  gap-3
+                  flex-wrap
+                "
+              >
+
+                <div class="d-flex align-items-start gap-3">
+
+                  <div
+                    class="
+                      combined-question-section__icon
+                      flex-shrink-0
+                    "
+                  >
+
+                    {% if section.key == "personality" %}
+
+                      <i data-feather="user"></i>
+
+                    {% elif section.key == "motivation" %}
+
+                      <i data-feather="zap"></i>
+
+                    {% elif section.key == "cognitive" %}
+
+                      <i data-feather="cpu"></i>
+
+                    {% else %}
+
+                      <i data-feather="message-square"></i>
+
+                    {% endif %}
+
+                  </div>
+
+
+                  <div>
+
+                    <h3 class="h6 mb-1">
+                      {{ section.title }}
+                    </h3>
+
+                    <p class="small text-muted mb-0">
+                      {{ section.description }}
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div class="d-flex align-items-center gap-2">
+
+                  {% if section.is_outdated %}
+
+                    <span
+                      class="
+                        badge
+                        rounded-pill
+                        bg-warning-subtle
+                        text-warning-emphasis
+                      "
+                    >
+                      Needs update
+                    </span>
+
+                  {% endif %}
+
+                  <span
+                    class="
+                      badge
+                      rounded-pill
+                      bg-white
+                      text-dark
+                      border
+                    "
+                  >
+                    {{ section.question_count }}
+                    question{{ section.question_count|pluralize }}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              {% if section.is_outdated %}
+
+                <div class="small text-warning-emphasis mt-3">
+
+                  <i
+                    data-feather="alert-circle"
+                    class="me-1"
+                  ></i>
+
+                  These questions were generated using an earlier process
+                  purpose or context.
+
+                </div>
+
+              {% endif %}
+
+            </header>
+
+
+            <!-- QUESTIONS -->
+            <div class="combined-question-list">
+
+              {% for item in section.questions %}
+
+                <article
+                  class="
+                    combined-question-item
+                    px-4
+                    py-4
+                    {% if not forloop.last %}
+                      border-bottom
+                    {% endif %}
+                  "
+                >
+
+                  <div class="d-flex align-items-start gap-3">
+
+                    <!-- NUMBER -->
+                    <div
+                      class="
+                        combined-question-item__number
+                        flex-shrink-0
+                      "
+                    >
+                      {{ forloop.counter }}
+                    </div>
+
+
+                    <!-- QUESTION CONTENT -->
+                    <div class="flex-grow-1">
+
+                      <h4
+                        class="
+                          combined-question-item__question
+                          h6
+                          mb-3
+                        "
+                      >
+                        {{ item.question }}
+                      </h4>
+
+
+                      <!-- TRAITS -->
+                      {% if item.traits %}
+
+                        <div
+                          class="
+                            d-flex
+                            flex-wrap
+                            align-items-center
+                            gap-2
+                            mb-3
+                          "
+                        >
+
+                          <span class="small text-muted">
+                            Related traits:
+                          </span>
+
+                          {% for trait in item.traits %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                bg-light
+                                text-dark
+                                border
+                              "
+                            >
+                              {{ trait }}
+                            </span>
+
+                          {% endfor %}
+
+                        </div>
+
+                      {% endif %}
+
+
+                      <!-- WHY + LISTEN FOR -->
+                      {% if item.why or item.listen_for %}
+
+                        <div class="row g-3">
+
+                          {% if item.why %}
+
+                            <div
+                              class="
+                                {% if item.listen_for %}
+                                  col-lg-6
+                                {% else %}
+                                  col-12
+                                {% endif %}
+                              "
+                            >
+
+                              <div
+                                class="
+                                  combined-question-detail
+                                  border
+                                  rounded-3
+                                  p-3
+                                  h-100
+                                "
+                              >
+
+                                <div
+                                  class="
+                                    d-flex
+                                    align-items-center
+                                    gap-2
+                                    small
+                                    fw-semibold
+                                    mb-2
+                                  "
+                                >
+                                  <i data-feather="help-circle"></i>
+                                  Why ask this
+                                </div>
+
+                                <div class="small text-muted">
+                                  {{ item.why }}
+                                </div>
+
+                              </div>
+
+                            </div>
+
+                          {% endif %}
+
+
+                          {% if item.listen_for %}
+
+                            <div
+                              class="
+                                {% if item.why %}
+                                  col-lg-6
+                                {% else %}
+                                  col-12
+                                {% endif %}
+                              "
+                            >
+
+                              <div
+                                class="
+                                  combined-question-detail
+                                  border
+                                  rounded-3
+                                  p-3
+                                  h-100
+                                "
+                              >
+
+                                <div
+                                  class="
+                                    d-flex
+                                    align-items-center
+                                    gap-2
+                                    small
+                                    fw-semibold
+                                    mb-2
+                                  "
+                                >
+                                  <i data-feather="headphones"></i>
+                                  What to listen for
+                                </div>
+
+                                <div class="small text-muted">
+                                  {{ item.listen_for }}
+                                </div>
+
+                              </div>
+
+                            </div>
+
+                          {% endif %}
+
+                        </div>
+
+                      {% endif %}
+
+                    </div>
+
+                  </div>
+
+                </article>
+
+              {% endfor %}
+
+            </div>
+
+          </section>
+
+        {% endfor %}
+
+      </div>
+
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-top pt-3 mt-4">
+
+        These questions are based on available assessment results,
+        the selected process purpose and any process context available
+        when the source interpretation was generated.
+
+      </div>
+
+
+    {% else %}
+
+      <!-- EMPTY STATE -->
+      <div
+        class="
+          border
+          rounded-3
+          text-center
+          px-4
+          py-5
+          mt-4
+          bg-light
+        "
+      >
+
+        <div class="mb-3">
+          <i
+            data-feather="message-circle"
+            width="32"
+            height="32"
+          ></i>
+        </div>
+
+        <h3 class="h6 mb-2">
+          No assessment questions are available yet
+        </h3>
+
+        <p
+          class="
+            text-muted
+            small
+            mb-0
+            mx-auto
+          "
+          style="max-width: 520px;"
+        >
+          Generate the Personality, Motivation or Cognitive guidance
+          to collect practical questions here.
+        </p>
+
+      </div>
+
+    {% endif %}
 
   </div>
-
 </section>
