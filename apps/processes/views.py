@@ -4060,6 +4060,35 @@ def process_create(request):
         "accounts_count": len(accounts),
     })
 
+
+REUSABLE_AI_STATUSES = {
+    "completed",
+    "outdated",
+    "failed",
+}
+
+
+def should_return_saved_ai_result(
+    saved_result,
+    status,
+) -> bool:
+    """
+    Return existing AI content when usable saved content exists.
+
+    Outdated or previously failed updates should not discard
+    the last successfully generated result.
+    """
+
+    current_status = (
+        status
+        or "not_started"
+    )
+
+    return bool(
+        saved_result
+    ) and current_status in REUSABLE_AI_STATUSES
+
+
 def mark_candidate_ai_content_outdated(process):
     """
     Keep existing AI content, but mark it as needing regeneration.
@@ -5417,7 +5446,10 @@ def process_candidate_summary_stream(
     # ---------------------------------------------------------
     # RETURN EXISTING SUMMARY
     # ---------------------------------------------------------
-    if summary_owner.ai_summary:
+    if should_return_saved_ai_result(
+        summary_owner.ai_summary,
+        summary_owner.ai_summary_status,
+    ):
         def existing_generator():
             yield summary_owner.ai_summary
 
@@ -5848,7 +5880,10 @@ def process_candidate_purpose_fit_stream(
             status=400,
         )
 
-    if invitation.ai_purpose_fit:
+    if should_return_saved_ai_result(
+        invitation.ai_purpose_fit,
+        invitation.ai_purpose_fit_status,
+    ):
         print(
             "[PURPOSE FIT] Returning saved result",
             flush=True,
@@ -6023,14 +6058,12 @@ def process_candidate_purpose_fit_regenerate(
         candidate_id=candidate_id,
     )
 
-    invitation.ai_purpose_fit = {}
     invitation.ai_purpose_fit_status = "not_started"
     invitation.ai_purpose_fit_generated_at = None
     invitation.ai_purpose_fit_purpose = ""
 
     invitation.save(
         update_fields=[
-            "ai_purpose_fit",
             "ai_purpose_fit_status",
             "ai_purpose_fit_generated_at",
             "ai_purpose_fit_purpose",
@@ -7292,13 +7325,11 @@ def process_candidate_summary_regenerate(
             candidate_id=candidate_id,
         )
 
-    summary_owner.ai_summary = ""
     summary_owner.ai_summary_status = "not_started"
     summary_owner.ai_summary_generated_at = None
 
     summary_owner.save(
         update_fields=[
-            "ai_summary",
             "ai_summary_status",
             "ai_summary_generated_at",
         ]
@@ -7424,9 +7455,9 @@ def process_candidate_cognitive_interpretation_stream(
         ])
 
     # Return a completed saved result without a new OpenAI request.
-    if (
-        saved_interpretation
-        and current_status == "completed"
+    if should_return_saved_ai_result(
+        saved_interpretation,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -7593,7 +7624,6 @@ def process_candidate_cognitive_interpretation_regenerate(
         candidate_id=candidate_id,
     )
 
-    invitation.ai_cognitive_interpretation = {}
     invitation.ai_cognitive_interpretation_status = (
         "not_started"
     )
@@ -7604,7 +7634,6 @@ def process_candidate_cognitive_interpretation_regenerate(
 
     invitation.save(
         update_fields=[
-            "ai_cognitive_interpretation",
             "ai_cognitive_interpretation_status",
             "ai_cognitive_interpretation_generated_at",
             "ai_cognitive_interpretation_purpose",
@@ -7737,9 +7766,9 @@ def process_candidate_motivation_interpretation_stream(
         ])
 
     # Return an existing completed interpretation.
-    if (
-        saved_interpretation
-        and current_status == "completed"
+    if should_return_saved_ai_result(
+        saved_interpretation,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -7916,7 +7945,6 @@ def process_candidate_motivation_interpretation_regenerate(
         candidate_id=candidate_id,
     )
 
-    invitation.ai_motivation_interpretation = {}
     invitation.ai_motivation_interpretation_status = (
         "not_started"
     )
@@ -7925,8 +7953,8 @@ def process_candidate_motivation_interpretation_regenerate(
     )
     invitation.ai_motivation_interpretation_purpose = ""
 
+
     invitation.save(update_fields=[
-        "ai_motivation_interpretation",
         "ai_motivation_interpretation_status",
         "ai_motivation_interpretation_generated_at",
         "ai_motivation_interpretation_purpose",
@@ -8081,9 +8109,9 @@ def process_candidate_personality_interpretation_stream(
     # RETURN SAVED RESULT
     # ---------------------------------------------------------
 
-    if (
-        saved_interpretation
-        and current_status == "completed"
+    if should_return_saved_ai_result(
+        saved_interpretation,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -8263,8 +8291,6 @@ def process_candidate_personality_interpretation_regenerate(
             candidate_id=candidate_id,
         )
 
-    owner.ai_personality_interpretation = {}
-
     owner.ai_personality_interpretation_status = (
         "not_started"
     )
@@ -8276,7 +8302,6 @@ def process_candidate_personality_interpretation_regenerate(
     owner.ai_personality_interpretation_purpose = ""
 
     owner.save(update_fields=[
-        "ai_personality_interpretation",
         "ai_personality_interpretation_status",
         "ai_personality_interpretation_generated_at",
         "ai_personality_interpretation_purpose",
@@ -8405,9 +8430,9 @@ def process_candidate_personality_questions_stream(
             "ai_personality_questions_status",
         ])
 
-    if (
-        saved_result
-        and current_status == "completed"
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -8598,7 +8623,6 @@ def process_candidate_personality_questions_regenerate(
         candidate_id=candidate_id,
     )
 
-    invitation.ai_personality_questions = {}
     invitation.ai_personality_questions_status = (
         "not_started"
     )
@@ -8608,7 +8632,6 @@ def process_candidate_personality_questions_regenerate(
     invitation.ai_personality_questions_purpose = ""
 
     invitation.save(update_fields=[
-        "ai_personality_questions",
         "ai_personality_questions_status",
         "ai_personality_questions_generated_at",
         "ai_personality_questions_purpose",
