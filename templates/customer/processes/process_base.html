@@ -4952,21 +4952,33 @@ function setTraitEditorActionsDisabled(isDisabled) {
   }
 
 
-  function setCheckedTraits(traits) {
-    const selectedSet = new Set(
-      Array.isArray(traits)
-        ? traits
-        : []
-    );
+function normaliseTraitName(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\-–—/]+/g, " ")
+    .replace(/\s+/g, " ");
+}
 
-    checkboxes.forEach((checkbox) => {
-      checkbox.checked = selectedSet.has(
-        checkbox.value
+
+function setCheckedTraits(traits) {
+  const selectedTraitKeys = new Set(
+    (Array.isArray(traits) ? traits : [])
+      .map(normaliseTraitName)
+      .filter(Boolean)
+  );
+
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked =
+      selectedTraitKeys.has(
+        normaliseTraitName(
+          checkbox.value
+        )
       );
-    });
+  });
 
-    updateSelectionCount();
-  }
+  updateSelectionCount();
+}
 
 
   function updateSelectionCount() {

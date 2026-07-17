@@ -169,6 +169,7 @@ from .forms import ProcessRoleContextForm
 
 from apps.core.ai.personality_questions import (
     extract_personality_results,
+    extract_personality_question_traits,
     normalise_selected_traits,
     create_empty_personality_questions,
     apply_personality_questions_event,
@@ -2714,7 +2715,7 @@ def build_candidate_detail_context(process, invitation):
     )
 
     personality_traits_for_selection = (
-        extract_personality_results(
+        extract_personality_question_traits(
             invitation
         )
     )
@@ -8382,8 +8383,10 @@ def process_candidate_personality_questions_stream(
             status=400,
         )
 
-    personality_results = extract_personality_results(
-        invitation
+    personality_results = (
+        extract_personality_question_traits(
+            invitation
+        )
     )
 
     if not personality_results:
@@ -8746,9 +8749,9 @@ def process_candidate_personality_traits_update(
             },
             status=400,
         )
-
+    
     personality_results = (
-        extract_personality_results(
+        extract_personality_question_traits(
             invitation
         )
     )

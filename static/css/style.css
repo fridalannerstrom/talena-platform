@@ -28245,8 +28245,8 @@ color: #6E63E3;
   border-radius: 999px;
   background: #f4f1ff;
   color: #5945bd;
-  font-size: 0.86rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .personality-traits-editor {
@@ -28357,12 +28357,13 @@ color: #6E63E3;
 }
 
 .personality-question-card__traits span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #ece8ff;
-  color: #5f4cc0;
-  font-size: 0.74rem;
-  font-weight: 700;
+    padding: 7px 12px;
+    border: 1px solid #ddd7fb;
+    border-radius: 999px;
+    background: #f4f1ff;
+    color: #5945bd;
+    font-size: 0.7rem;
+    font-weight: 600;
 }
 
 .personality-question-card__detail {
@@ -31093,29 +31094,14 @@ color: #6E63E3;
   margin-top: 11px;
 }
 
-.personality-question-card__traits span {
-  display: inline-flex;
-  align-items: center;
-
-  min-height: 25px;
-  padding: 4px 10px;
-
-  border-radius: 999px;
-
-  color: #5c48d8;
-  background: #eeeaff;
-
-  font-size: 0.7rem;
-  font-weight: 750;
-}
-
 
 /* DETAIL GRID */
 
 .personality-question-card__details {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
+  margin-bottom: 10px;
 }
 
 .personality-question-card__detail {
@@ -31180,7 +31166,7 @@ color: #6E63E3;
 }
 
 .personality-question-card__detail-text {
-  color: #697185;
+  color: #374151;
 
   font-size: 0.78rem;
   line-height: 1.55;

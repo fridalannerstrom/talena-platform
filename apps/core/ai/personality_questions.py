@@ -25,6 +25,61 @@ EXCLUDED_PERSONALITY_COMPETENCIES = {
     "ratings spread",
 }
 
+QUESTION_PARENT_TRAIT_KEYS = {
+    "cooperative",
+    "empathy",
+    "supporting",
+    "connecting",
+    "dynamic",
+    "influential",
+
+    # Sova/report library may use either wording.
+    "goal focused",
+    "achievement striving",
+
+    "structured",
+    "analytical",
+    "complex thinking",
+    "creativity",
+    "adaptability",
+    "straightforward",
+    "status avoidance",
+    "modesty",
+    "resilience",
+    "emotional control",
+    "independence",
+}
+
+
+def _normalise_trait_key(
+    value: Any,
+) -> str:
+    """
+    Normalise trait names so differences such as
+    hyphens, underscores and casing do not matter.
+    """
+
+    text = str(
+        value
+        or ""
+    ).strip().casefold()
+
+    for character in (
+        "_",
+        "-",
+        "–",
+        "—",
+        "/",
+    ):
+        text = text.replace(
+            character,
+            " ",
+        )
+
+    return " ".join(
+        text.split()
+    )
+
 
 
 def _normalise_name(value: Any) -> str:
@@ -126,6 +181,30 @@ def extract_personality_results(
         results_by_name.values()
     )
 
+def extract_personality_question_traits(
+    invitation,
+) -> list[dict[str, Any]]:
+    """
+    Return only the 18 parent personality traits that
+    are available in the Trait Profile.
+
+    Indicators, response styles and other personality
+    competencies are excluded from question selection.
+    """
+
+    all_results = (
+        extract_personality_results(
+            invitation
+        )
+    )
+
+    return [
+        result
+        for result in all_results
+        if _normalise_trait_key(
+            result.get("name")
+        ) in QUESTION_PARENT_TRAIT_KEYS
+    ]
 
 def describe_sten_position(
     sten: int,
@@ -432,6 +511,38 @@ QUESTION RULES
 - Do not force unrelated traits into the same question.
 - A selected trait may appear in more than one question when useful.
 - Do not leave any selected trait without a question.
+
+WHY FIELD RULES
+- Explain which behavioural hypothesis the question helps the user
+  explore.
+- Do not say that the question assesses, proves or measures an ability,
+  competence, suitability or performance.
+- Do not describe a trait as crucial, vital or required unless this is
+  explicitly supported by the supplied process context.
+- Use cautious language such as "helps explore", "may provide evidence
+  about" or "can add context to".
+- Keep the explanation concise and specific to the question.
+
+LISTEN_FOR FIELD RULES
+- Explain what concrete evidence the user should look for in the answer.
+- Tailor the guidance to the exact question and selected traits.
+- Include three or four useful evidence cues in one concise paragraph.
+- Consider:
+  - the candidate's own actions
+  - reasoning and decision-making
+  - relevant trade-offs or adaptations
+  - observable outcomes
+  - reflection or learning
+- Include evidence that could confirm, challenge or add nuance to the
+  personality hypothesis.
+- Do not simply repeat the question.
+- Avoid generic phrases such as:
+  "look for examples",
+  "listen for specific strategies",
+  "effective communication",
+  "good problem-solving",
+  or "the outcome of the situation"
+  unless followed by more specific behavioural evidence.
 
 Each question must:
 - be open and behavioural or reflective
