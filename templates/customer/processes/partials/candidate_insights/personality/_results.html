@@ -7,16 +7,16 @@
 <!-- RESPONSE STYLES -->
 {% if has_personality_results and response_styles %}
   <section
-    class="card mb-4 purpose-fit-card response-styles-section"
+    class="mb-4 purpose-fit-card response-styles-section"
     data-response-style-guidance-root
     data-guidance-stream-url="{{ response_style_guidance_stream_url }}"
     data-guidance-status="{{ response_style_guidance_status|default:'not_started' }}"
     data-has-guidance="{% if response_style_guidance %}true{% else %}false{% endif %}"
   >
-    <div class="card-body">
+
 
       <!-- HEADER -->
-      <div class="response-styles-header">
+      <div class="response-styles-header mb-4 mt-4">
 
         <div>
           <h2 class="insight-summary-title mb-1">
@@ -264,17 +264,16 @@
 
 
       <!-- FOOTER -->
-      <div class="small text-muted border-top pt-3 mt-4">
+      <div class="small text-muted border-bottom mt-4 pb-4">
         Response-style indicators should be used as interpretive context rather
         than as measures of ability, suitability or honesty.
       </div>
 
-    </div>
   </section>
 {% endif %}
 <!-- /RESPONSE STYLES -->
 
-<div class="card card-body">
+
 
       <!-- HEADER -->
       <div class="response-styles-header">
@@ -778,6 +777,7 @@
 </div>
 <!-- /QUICK VIEW -->
 
+
 <!-- TRAIT DESCRIPTIONS VIEW -->
 <div
   id="personality-descriptions-view"
@@ -791,5 +791,6 @@
 </div>
 <!-- /TRAIT DESCRIPTIONS VIEW -->
 
+
 </div>
-</div>
+<!-- /personality-profile -->
