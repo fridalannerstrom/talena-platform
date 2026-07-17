@@ -6516,18 +6516,18 @@ function updatePersonalityGlobalToggle() {
             });
 
 
-          /*
-           * Make sure the initial state matches the HTML,
-           * with Detailed view selected by default.
-           */
-          const initiallyActiveTab = root.querySelector(
-            '[data-personality-view-tab][aria-selected="true"]'
-          );
+/*
+ * Match the initial state defined in the HTML.
+ * Trait Profile is used as the fallback view.
+ */
+const initiallyActiveTab = root.querySelector(
+  '[data-personality-view-tab][aria-selected="true"]'
+);
 
-          activatePersonalityView(
-            initiallyActiveTab?.dataset.personalityViewTab
-            || "detailed"
-          );
+activatePersonalityView(
+  initiallyActiveTab?.dataset.personalityViewTab
+  || "quick"
+);
         });
     };
 

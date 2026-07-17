@@ -4,25 +4,6 @@
   data-personality-profile-root
 >
 
-
-<div class="personality-profile__header">
-
-  <div>
-    <div class="insight-summary-kicker">
-      Assessment results
-    </div>
-
-    <h2 class="insight-summary-title mb-1">
-      Personality profile
-    </h2>
-
-    <p class="text-muted small mb-0">
-      Rounded STEN results across the personality traits.
-    </p>
-  </div>
-
-</div>
-
 <!-- RESPONSE STYLES -->
 {% if has_personality_results and response_styles %}
   <section
@@ -293,42 +274,74 @@
 {% endif %}
 <!-- /RESPONSE STYLES -->
 
+<div class="card card-body">
+
+      <!-- HEADER -->
+      <div class="response-styles-header">
+
+        <div>
+          <h2 class="insight-summary-title mb-1">
+            Personality profile
+          </h2>
+
+          <p class="text-muted small mb-0">
+  Explore the candidate’s overall personality traits and the
+  detailed indicators that contribute to each result.
+          </p>
+        </div>
+
+      </div>
+
+
 <!-- PERSONALITY VIEW CONTROLS -->
 <div class="personality-view-controls">
 
   <div
-    class="personality-view-tabs"
-    role="tablist"
-    aria-label="Personality profile view"
+  class="personality-view-tabs"
+  role="tablist"
+  aria-label="Personality profile view"
+>
+
+  <button
+    type="button"
+    id="personality-quick-tab"
+    class="personality-view-tab is-active"
+    role="tab"
+    aria-selected="true"
+    aria-controls="personality-quick-view"
+    data-personality-view-tab="quick"
   >
+    <i data-feather="align-justify" aria-hidden="true"></i>
+    <span>Trait Profile</span>
+  </button>
 
-    <button
-      type="button"
-      id="personality-detailed-tab"
-      class="personality-view-tab is-active"
-      role="tab"
-      aria-selected="true"
-      aria-controls="personality-detailed-view"
-      data-personality-view-tab="detailed"
-    >
-      <i data-feather="list" aria-hidden="true"></i>
-      <span>Detailed view</span>
-    </button>
+  <button
+    type="button"
+    id="personality-detailed-tab"
+    class="personality-view-tab"
+    role="tab"
+    aria-selected="false"
+    aria-controls="personality-detailed-view"
+    data-personality-view-tab="detailed"
+  >
+    <i data-feather="list" aria-hidden="true"></i>
+    <span>Trait &amp; Indicator Profile</span>
+  </button>
 
-    <button
-      type="button"
-      id="personality-quick-tab"
-      class="personality-view-tab"
-      role="tab"
-      aria-selected="false"
-      aria-controls="personality-quick-view"
-      data-personality-view-tab="quick"
-    >
-      <i data-feather="align-justify" aria-hidden="true"></i>
-      <span>Quick view</span>
-    </button>
+  <button
+  type="button"
+  id="personality-descriptions-tab"
+  class="personality-view-tab"
+  role="tab"
+  aria-selected="false"
+  aria-controls="personality-descriptions-view"
+  data-personality-view-tab="descriptions"
+>
+  <i data-feather="book-open" aria-hidden="true"></i>
+  <span>Trait Descriptions</span>
+</button>
 
-  </div>
+</div>
 
 </div>
 <!-- /PERSONALITY VIEW CONTROLS -->
@@ -339,6 +352,7 @@
   role="tabpanel"
   aria-labelledby="personality-detailed-tab"
   data-personality-view-panel="detailed"
+  hidden
 >
 
     {% for section in personality_profile.sections %}
@@ -363,99 +377,101 @@
                   <h5 class="personality-trait-card__title">
                     {{ trait.label }}
                   </h5>
-
-                  {% if trait.name != trait.label %}
-                    <div class="personality-trait-card__original-name">
-                      {{ trait.name }}
-                    </div>
-                  {% endif %}
                 </div>
 
               </div>
 
-              <div class="personality-trait-card__main">
+<div class="personality-trait-card__main">
 
-                <div class="personality-trait-card__pole">
+  <div class="personality-trait-card__pole">
 
-                  <div class="personality-trait-card__pole-label">
-                    Left Score
-                  </div>
+    <div class="personality-trait-card__pole-label">
+      Left Score
+    </div>
 
-                  {% if trait.low_pole %}
-                    <p>
-                      {{ trait.low_pole }}
-                    </p>
-                  {% else %}
-                    <p class="text-muted">
-                      Description is not yet available.
-                    </p>
-                  {% endif %}
+    {% if trait.low_pole %}
+      <p>
+        {{ trait.low_pole }}
+      </p>
+    {% else %}
+      <p class="text-muted">
+        Description is not yet available.
+      </p>
+    {% endif %}
 
-                </div>
+  </div>
 
-                <div class="personality-graph">
 
-                  <div class="personality-graph__bars">
+  <div class="personality-graph">
 
-                    {% for segment in trait.graph_segments %}
+    <div class="personality-graph__bars">
 
-                      <div
-                        class="
-                          personality-graph__segment
-                          {% if segment.selected %}
-                            personality-graph__segment--selected
-                          {% endif %}
-                        "
-                        style="height: {{ segment.height }}px;"
-                        aria-label="STEN {{ segment.score }}"
-                      >
+      {% for segment in trait.graph_segments %}
 
-                        {% if segment.selected %}
-                          <span class="personality-graph__marker">
-                            {{ segment.score }}
-                          </span>
-                        {% endif %}
+        <div
+          class="
+            personality-graph__segment
+            {% if segment.selected %}
+              personality-graph__segment--selected
+            {% endif %}
+          "
+          style="height: {{ segment.height }}px;"
+          aria-label="STEN {{ segment.score }}"
+        >
 
-                      </div>
+          {% if segment.selected %}
+            <span class="personality-graph__marker">
+              {{ segment.score }}
+            </span>
+          {% endif %}
 
-                    {% endfor %}
+        </div>
 
-                  </div>
+      {% endfor %}
 
-                  <div class="personality-graph__axis">
-                    <span>Left</span>
-                    <span>Average</span>
-                    <span>Right</span>
-                  </div>
+    </div>
 
-                </div>
+    <div class="personality-graph__axis">
+      <span>Left</span>
+      <span>Average</span>
+      <span>Right</span>
+    </div>
 
-                <div class="
-                  personality-trait-card__pole
-                  personality-trait-card__pole--right
-                ">
+  </div>
 
-                  <div class="personality-trait-card__pole-label align-right">
-                    Right Score
-                  </div>
 
-                  {% if trait.high_pole %}
-                    <p class="align-right">
-                      {{ trait.high_pole }}
-                    </p>
-                  {% else %}
-                    <p class="text-muted align-right">
-                      Description is not yet available.
-                    </p>
-                  {% endif %}
+  <div
+    class="
+      personality-trait-card__pole
+      personality-trait-card__pole--right
+    "
+  >
 
-                </div>
+    <div class="personality-trait-card__pole-label align-right">
+      Right Score
+    </div>
 
-              {% if trait.summary %}
+    {% if trait.high_pole %}
+      <p class="align-right">
+        {{ trait.high_pole }}
+      </p>
+    {% else %}
+      <p class="text-muted align-right">
+        Description is not yet available.
+      </p>
+    {% endif %}
+
+  </div>
+
+</div>
+<!-- /personality-trait-card__main -->
+
+
+{% if trait.summary %}
   <div class="personality-trait-card__summary">
 
     <div class="personality-trait-card__summary-label">
-      How this result may appear
+      How this trait may show up for {{ candidate.first_name }}
     </div>
 
     <p class="personality-trait-card__summary-text">
@@ -464,8 +480,6 @@
 
   </div>
 {% endif %}
-            
-            </div>
 
 {% if trait.indicators %}
 
@@ -486,12 +500,6 @@
 
     <div class="personality-indicator-row__name">
       {{ indicator.label }}
-
-      {% if indicator.name != indicator.label %}
-        <span class="personality-indicator-row__original-name">
-          {{ indicator.name }}
-        </span>
-      {% endif %}
     </div>
 
   </div>
@@ -644,11 +652,10 @@
 <!-- QUICK VIEW -->
 <div
   id="personality-quick-view"
-  class="personality-view-panel personality-quick-view"
+  class="personality-view-panel personality-quick-view mt-4"
   role="tabpanel"
   aria-labelledby="personality-quick-tab"
   data-personality-view-panel="quick"
-  hidden
 >
 
   {% for section in personality_profile.sections %}
@@ -771,8 +778,18 @@
 </div>
 <!-- /QUICK VIEW -->
 
-</div>
-
-{% if personality_profile and personality_profile.sections %}
+<!-- TRAIT DESCRIPTIONS VIEW -->
+<div
+  id="personality-descriptions-view"
+  class="personality-view-panel personality-trait-descriptions-view mt-4"
+  role="tabpanel"
+  aria-labelledby="personality-descriptions-tab"
+  data-personality-view-panel="descriptions"
+  hidden
+>
   {% include "customer/processes/partials/candidate_insights/personality/_trait_descriptions.html" %}
-{% endif %}
+</div>
+<!-- /TRAIT DESCRIPTIONS VIEW -->
+
+</div>
+</div>

@@ -3387,7 +3387,6 @@ color: #6CACCB;
 .personality-profile-section + .personality-profile-section {
   margin-top: 12px;
   padding-top: 34px;
-  border-top: 1px solid #dfe3ea;
 }
 
 .personality-profile-section__header {
@@ -3403,6 +3402,8 @@ color: #6CACCB;
   line-height: 1.4;
   letter-spacing: 0.025em;
   text-transform: uppercase;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebe8f1;
 }
 
 .personality-profile-section__traits {
@@ -26306,17 +26307,12 @@ color: #6E63E3;
 .personality-profile-section__traits {
   display: grid;
   gap: 1.25rem;
-  border: 1px solid rgba(123, 87, 209, .14);
-  border-radius: 10px;
-  padding: 1.75rem 2rem;
 }
 
 .personality-trait-card {
-  padding: 1.5rem;
-  background: #ffffff;
-  border: 1px solid #e1e5ec;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(30, 39, 58, 0.05);
+  border-bottom: 1px solid #e1e5ec;
+  padding-top: 20px;
+  padding-bottom: 50px;
 }
 
 .personality-trait-card__header {
@@ -26605,10 +26601,6 @@ color: #6E63E3;
 
 .personality-trait-card__indicator-panel {
   margin-top: 1rem;
-  padding: 1.25rem;
-  background: #fafbfc;
-  border: 1px solid #edf0f4;
-  border-radius: 14px;
 }
 
 .personality-trait-card__indicator-panel-header {
@@ -26643,7 +26635,7 @@ color: #6E63E3;
 .personality-indicator-row__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -26949,22 +26941,12 @@ color: #6E63E3;
 }
 
 /* =========================================================
-   PERSONALITY VIEW SWITCHER
+   SEGMENTED VIEW SWITCHERS
+   Used by personality views and insight subtabs
    ========================================================= */
 
-.personality-view-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-
-  margin: 0 0 1.5rem;
-  padding-bottom: 1rem;
-
-  border-bottom: 1px solid #e8eaf0;
-}
-
-.personality-view-tabs {
+.personality-view-tabs,
+.candidate-insights-view-switcher {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -26977,7 +26959,8 @@ color: #6E63E3;
   background: #f7f6fc;
 }
 
-.personality-view-tab {
+.personality-view-tab,
+.candidate-insights-view-option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -26994,6 +26977,7 @@ color: #6E63E3;
 
   font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1;
 
   cursor: pointer;
 
@@ -27003,12 +26987,14 @@ color: #6E63E3;
     box-shadow 150ms ease;
 }
 
-.personality-view-tab:hover {
+.personality-view-tab:hover,
+.candidate-insights-view-option:hover {
   color: #5948d6;
   background: rgba(255, 255, 255, 0.7);
 }
 
-.personality-view-tab.is-active {
+.personality-view-tab.is-active,
+.candidate-insights-view-option.is-active {
   color: #4f3fd0;
   background: #ffffff;
 
@@ -27016,15 +27002,16 @@ color: #6E63E3;
     0 2px 8px rgba(35, 28, 91, 0.1);
 }
 
-.personality-view-tab svg {
+.personality-view-tab svg,
+.candidate-insights-view-option svg {
   width: 15px;
   height: 15px;
 }
 
-.personality-view-panel[hidden] {
+.personality-view-panel[hidden],
+.candidate-insights-subpanel[hidden] {
   display: none !important;
 }
-
 
 /* =========================================================
    PERSONALITY QUICK VIEW
@@ -28818,31 +28805,29 @@ color: #6E63E3;
 
 .personality-trait-card__summary {
   margin-top: 18px;
-  padding: 14px 16px;
+  padding: 22px;
   border-radius: 12px;
-  background: #f8f7fc;
+  background: #fafbfc;
+  border: 1px solid #edf0f4;
 }
 
 .personality-trait-card__summary-label {
   margin-bottom: 5px;
-  color: #706b80;
-  font-size: 0.75rem;
+  color: #1f2433;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .personality-trait-card__summary-text {
   margin: 0;
-  color: #34303e;
-  font-size: 0.92rem;
+  color: #283349;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
 .personality-trait-card__indicator-panel--always-open {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid #ebe8f1;
 }
 
 
@@ -29656,6 +29641,9 @@ color: #6E63E3;
     padding: 1rem;
   }
 }
+
+
+
 
 /* ------------------------------------------------------------
    Work style profile

@@ -5,72 +5,75 @@
     data-candidate-insights-subtabs
   >
 
-    <section class="card mb-4 candidate-insights-subnavigation">
+<section class="candidate-insights-subnavigation">
 
-      <div class="card-body pb-0">
+  <div class="candidate-insights-subnavigation__layout mb-4">
 
-        <div class="insight-summary-kicker">
-          Personality
-        </div>
+    <div class="candidate-insights-subnavigation__heading mb-4">
 
-        <h2 class="insight-summary-title mb-1">
-          Personality insights
-        </h2>
-
-        <p class="text-muted small mb-0">
-          Explore personality results, practical interpretation
-          and purpose-aware questions.
-        </p>
-
+      <div class="insight-summary-kicker">
+        Personality
       </div>
 
+      <h2 class="insight-summary-title mb-1">
+        Personality insights
+      </h2>
 
-      <div class="candidate-profile-tabs-wrap mt-3">
+      <p class="text-muted small mb-0">
+        Explore personality results, practical interpretation
+        and purpose-aware questions.
+      </p>
 
-        <div
-          class="candidate-profile-tabs"
-          role="tablist"
-          aria-label="Personality insight areas"
-        >
+    </div>
 
-          <button
-            type="button"
-            class="candidate-tab is-active"
-            role="tab"
-            aria-selected="true"
-            aria-controls="personality-subpanel-results"
-            data-insights-subtab="results"
-          >
-            Results
-          </button>
 
-          <button
-            type="button"
-            class="candidate-tab"
-            role="tab"
-            aria-selected="false"
-            aria-controls="personality-subpanel-interpretation"
-            data-insights-subtab="interpretation"
-          >
-            Interpretation
-          </button>
+    <div
+      class="candidate-insights-view-switcher"
+      role="tablist"
+      aria-label="Personality insight areas"
+    >
 
-          <button
-            type="button"
-            class="candidate-tab"
-            role="tab"
-            aria-selected="false"
-            aria-controls="personality-subpanel-questions"
-            data-insights-subtab="questions"
-          >
-            Questions
-          </button>
+      <button
+        type="button"
+        class="candidate-insights-view-option is-active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="personality-subpanel-results"
+        data-insights-subtab="results"
+      >
+        <i data-feather="bar-chart-2"></i>
+        <span>Results</span>
+      </button>
 
-        </div>
+      <button
+        type="button"
+        class="candidate-insights-view-option"
+        role="tab"
+        aria-selected="false"
+        aria-controls="personality-subpanel-interpretation"
+        data-insights-subtab="interpretation"
+      >
+        <i data-feather="zap"></i>
+        <span>Interpretation</span>
+      </button>
 
-      </div>
+      <button
+        type="button"
+        class="candidate-insights-view-option"
+        role="tab"
+        aria-selected="false"
+        aria-controls="personality-subpanel-questions"
+        data-insights-subtab="questions"
+      >
+        <i data-feather="help-circle"></i>
+        <span>Questions</span>
+      </button>
 
-    </section>
+    </div>
+
+  </div>
+
+</section>
 
 
     <div class="candidate-insights-subworkspace__panels">
