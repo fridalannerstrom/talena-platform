@@ -4874,9 +4874,21 @@ refreshButton.disabled = true;
     "[data-personality-traits-save]"
   );
 
-  const cancelButton = root.querySelector(
+const cancelButtons = Array.from(
+  root.querySelectorAll(
     "[data-personality-traits-cancel]"
-  );
+  )
+);
+
+function setTraitEditorActionsDisabled(isDisabled) {
+  if (saveButton) {
+    saveButton.disabled = isDisabled;
+  }
+
+  cancelButtons.forEach((button) => {
+    button.disabled = isDisabled;
+  });
+}
 
   const regenerateButton = root.querySelector(
     "[data-personality-questions-regenerate]"
@@ -4960,11 +4972,13 @@ refreshButton.disabled = true;
   function updateSelectionCount() {
     const count = getCheckedTraits().length;
 
-    countEl.textContent =
-      `${count} selected`;
+countEl.textContent =
+  count === 0
+    ? "Talena will choose"
+    : `${count} selected`;
 
-    saveButton.disabled =
-      count < 1 || count > 6;
+saveButton.disabled =
+  count > 6;
 
     checkboxes.forEach((checkbox) => {
       if (
@@ -4979,165 +4993,274 @@ refreshButton.disabled = true;
   }
 
 
-  function renderSelectedTraits(traits) {
-    selectedTraitsContainer.replaceChildren();
+function renderSelectedTraits(traits) {
+  selectedTraitsContainer.replaceChildren();
 
-    const validTraits = Array.isArray(traits)
-      ? traits.filter(Boolean)
-      : [];
+  const validTraits = Array.isArray(traits)
+    ? traits.filter(Boolean)
+    : [];
 
-    validTraits.forEach((trait) => {
-      const pill = document.createElement("span");
+  if (!validTraits.length) {
+    const automaticPill =
+      document.createElement("span");
 
-      pill.className =
-        "personality-trait-pill";
+    automaticPill.className =
+      "personality-trait-pill personality-trait-pill--automatic";
 
-      pill.textContent = trait;
+    automaticPill.textContent =
+      "Automatic selection by Talena";
 
-      selectedTraitsContainer.appendChild(
-        pill
-      );
-    });
+    selectedTraitsContainer.appendChild(
+      automaticPill
+    );
+
+    return;
   }
+
+  validTraits.forEach((trait) => {
+    const pill =
+      document.createElement("span");
+
+    pill.className =
+      "personality-trait-pill";
+
+    pill.textContent = trait;
+
+    selectedTraitsContainer.appendChild(
+      pill
+    );
+  });
+}
 
 
   function renderQuestions(items) {
-    questionsList.replaceChildren();
+  questionsList.replaceChildren();
 
-    const validItems = Array.isArray(items)
-      ? items.filter(
-          (item) =>
-            item
-            && typeof item === "object"
-            && item.question
-        )
+  const validItems = Array.isArray(items)
+    ? items.filter(
+        (item) =>
+          item
+          && typeof item === "object"
+          && item.question
+      )
+    : [];
+
+  validItems.forEach((item, index) => {
+    const article =
+      document.createElement("article");
+
+    article.className =
+      "personality-question-card";
+
+
+    /* -----------------------------------------
+       QUESTION HEADER
+       ----------------------------------------- */
+
+    const header =
+      document.createElement("div");
+
+    header.className =
+      "personality-question-card__header";
+
+
+    const number =
+      document.createElement("div");
+
+    number.className =
+      "personality-question-card__number";
+
+    number.textContent =
+      String(index + 1);
+
+
+    const heading =
+      document.createElement("div");
+
+    heading.className =
+      "personality-question-card__heading";
+
+
+    const question =
+      document.createElement("div");
+
+    question.className =
+      "personality-question-card__text";
+
+    question.textContent =
+      item.question || "";
+
+    heading.appendChild(question);
+
+
+    /* -----------------------------------------
+       TRAITS
+       ----------------------------------------- */
+
+    const traits = Array.isArray(item.traits)
+      ? item.traits.filter(Boolean)
       : [];
 
-    validItems.forEach((item, index) => {
-      const article = document.createElement(
-        "article"
-      );
-
-      article.className =
-        "personality-question-card";
-
-      const number = document.createElement(
-        "div"
-      );
-
-      number.className =
-        "personality-question-card__number";
-
-      number.textContent =
-        String(index + 1);
-
-      const questionContent =
+    if (traits.length) {
+      const traitList =
         document.createElement("div");
 
-      questionContent.className =
-        "personality-question-card__content";
+      traitList.className =
+        "personality-question-card__traits";
 
-      const question =
+      traits.forEach((trait) => {
+        const pill =
+          document.createElement("span");
+
+        pill.textContent = trait;
+
+        traitList.appendChild(pill);
+      });
+
+      heading.appendChild(traitList);
+    }
+
+
+    header.appendChild(number);
+    header.appendChild(heading);
+    article.appendChild(header);
+
+
+    /* -----------------------------------------
+       DETAIL BOXES
+       ----------------------------------------- */
+
+    if (item.why || item.listen_for) {
+      const details =
         document.createElement("div");
 
-      question.className =
-        "personality-question-card__text";
+      details.className =
+        "personality-question-card__details";
 
-      question.textContent =
-        item.question || "";
-
-      questionContent.appendChild(
-        question
-      );
-
-      const traits = Array.isArray(
-        item.traits
-      )
-        ? item.traits.filter(Boolean)
-        : [];
-
-      if (traits.length) {
-        const traitList =
-          document.createElement("div");
-
-        traitList.className =
-          "personality-question-card__traits";
-
-        traits.forEach((trait) => {
-          const pill =
-            document.createElement("span");
-
-          pill.textContent = trait;
-
-          traitList.appendChild(pill);
-        });
-
-        questionContent.appendChild(
-          traitList
-        );
-      }
 
       if (item.why) {
         const why =
           document.createElement("div");
 
-        why.className =
-          "personality-question-card__detail";
+        why.className = [
+          "personality-question-card__detail",
+          "personality-question-card__detail--why",
+        ].join(" ");
 
-        const label =
-          document.createElement("strong");
+        const icon =
+          document.createElement("div");
 
-        label.textContent =
+        icon.className =
+          "personality-question-card__detail-icon";
+
+        icon.innerHTML =
+          '<i data-feather="compass"></i>';
+
+
+        const body =
+          document.createElement("div");
+
+        const title =
+          document.createElement("div");
+
+        title.className =
+          "personality-question-card__detail-title";
+
+        title.textContent =
           "Why this matters";
 
-        why.appendChild(label);
-        why.append(
-          document.createTextNode(
-            item.why
-          )
-        );
 
-        questionContent.appendChild(why);
+        const text =
+          document.createElement("div");
+
+        text.className =
+          "personality-question-card__detail-text";
+
+        text.textContent =
+          item.why;
+
+
+        body.appendChild(title);
+        body.appendChild(text);
+
+        why.appendChild(icon);
+        why.appendChild(body);
+
+        details.appendChild(why);
       }
+
 
       if (item.listen_for) {
         const listenFor =
           document.createElement("div");
 
-        listenFor.className =
-          "personality-question-card__detail";
+        listenFor.className = [
+          "personality-question-card__detail",
+          "personality-question-card__detail--listen",
+        ].join(" ");
 
-        const label =
-          document.createElement("strong");
+        const icon =
+          document.createElement("div");
 
-        label.textContent =
+        icon.className =
+          "personality-question-card__detail-icon";
+
+        icon.innerHTML =
+          '<i data-feather="headphones"></i>';
+
+
+        const body =
+          document.createElement("div");
+
+        const title =
+          document.createElement("div");
+
+        title.className =
+          "personality-question-card__detail-title";
+
+        title.textContent =
           "What to listen for";
 
-        listenFor.appendChild(label);
-        listenFor.append(
-          document.createTextNode(
-            item.listen_for
-          )
-        );
 
-        questionContent.appendChild(
-          listenFor
-        );
+        const text =
+          document.createElement("div");
+
+        text.className =
+          "personality-question-card__detail-text";
+
+        text.textContent =
+          item.listen_for;
+
+
+        body.appendChild(title);
+        body.appendChild(text);
+
+        listenFor.appendChild(icon);
+        listenFor.appendChild(body);
+
+        details.appendChild(listenFor);
       }
 
-      article.appendChild(number);
-      article.appendChild(
-        questionContent
-      );
 
-      questionsList.appendChild(article);
-    });
+      article.appendChild(details);
+    }
 
-    setHidden(
-      questionsSection,
-      validItems.length === 0
-    );
-  }
+
+    questionsList.appendChild(article);
+  });
+
+
+  setHidden(
+    questionsSection,
+    validItems.length === 0
+  );
+
+  /*
+   * Convert newly inserted Feather placeholders
+   * into SVG icons.
+   */
+  refreshIcons();
+}
 
 
   function resetContent() {
@@ -5200,27 +5323,29 @@ refreshButton.disabled = true;
             : [];
         break;
 
-      case "selected_traits":
-        draft.selected_traits =
-          Array.isArray(event.items)
-            ? event.items
-            : [];
+case "selected_traits":
+  draft.selected_traits =
+    Array.isArray(event.items)
+      ? event.items
+      : [];
 
-        renderSelectedTraits(
-          draft.selected_traits
-        );
+  renderSelectedTraits(
+    draft.selected_traits
+  );
 
-        setCheckedTraits(
-          draft.selected_traits
-        );
+  setCheckedTraits(
+    draft.selected_traits
+  );
 
-        savedSelection = [
-          ...draft.selected_traits
-        ];
+  savedSelection = [
+    ...draft.selected_traits
+  ];
 
-        setHidden(thinking, true);
-        setHidden(content, false);
-        break;
+  /*
+   * Keep the loader visible while the remaining
+   * questions are still being generated and validated.
+   */
+  break;
 
       case "questions":
         draft.questions =
@@ -5434,30 +5559,58 @@ notifyCandidateAiContentUpdated(
   }
 
 
-  editButton.addEventListener(
-    "click",
-    () => {
-      setCheckedTraits(
-        savedSelection
-      );
+function openTraitEditor() {
+  if (!editor) {
+    return;
+  }
 
-      setHidden(editor, false);
-      editButton.disabled = true;
-    }
+  setCheckedTraits(
+    savedSelection
   );
 
+  updateSelectionCount();
 
-  cancelButton.addEventListener(
-    "click",
-    () => {
-      setCheckedTraits(
-        savedSelection
-      );
+  if (typeof editor.showModal === "function") {
+    editor.showModal();
+  } else {
+    editor.setAttribute("open", "");
+  }
 
-      setHidden(editor, true);
-      editButton.disabled = false;
-    }
+  refreshIcons();
+}
+
+
+function closeTraitEditor() {
+  if (!editor) {
+    return;
+  }
+
+  setCheckedTraits(
+    savedSelection
   );
+
+  if (typeof editor.close === "function") {
+    editor.close();
+  } else {
+    editor.removeAttribute("open");
+  }
+
+  editButton?.focus();
+}
+
+
+editButton.addEventListener(
+  "click",
+  openTraitEditor
+);
+
+
+cancelButtons.forEach((button) => {
+  button.addEventListener(
+    "click",
+    closeTraitEditor
+  );
+});
 
 
   checkboxes.forEach((checkbox) => {
@@ -5468,88 +5621,133 @@ notifyCandidateAiContentUpdated(
   });
 
 
-  saveButton.addEventListener(
-    "click",
-    async () => {
-      const selectedTraits =
-        getCheckedTraits();
+ saveButton.addEventListener(
+  "click",
+  async () => {
+    const selectedTraits =
+      getCheckedTraits();
 
-      if (
-        selectedTraits.length < 1
-        || selectedTraits.length > 6
-      ) {
-        return;
-      }
+if (selectedTraits.length > 6) {
+  return;
+}
 
-      saveButton.disabled = true;
-      cancelButton.disabled = true;
+    if (!updateTraitsUrl) {
+      console.error(
+        "Personality trait update URL is missing."
+      );
 
-      try {
-        const response = await fetch(
-          updateTraitsUrl,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-              "X-CSRFToken":
-                getCookie("csrftoken"),
-              "X-Requested-With":
-                "XMLHttpRequest",
-            },
-            credentials: "same-origin",
-            body: JSON.stringify({
-              traits: selectedTraits,
-            }),
-          }
-        );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-            "The trait selection could not be saved."
-          );
-        }
-
-        savedSelection = [
-          ...(data.selected_traits || [])
-        ];
-
-        renderSelectedTraits(
-          savedSelection
-        );
-
-        setHidden(editor, true);
-        editButton.disabled = false;
-
-        root.dataset.status =
-          data.questions_status || "outdated";
-
-        showOutdatedState();
-
-      } catch (error) {
-        console.error(
-          "Trait selection error:",
-          error
-        );
-
-        setHidden(errorBox, false);
-
-        errorBox.textContent =
-          error.message ||
-          "The trait selection could not be saved.";
-
-      } finally {
-        saveButton.disabled = false;
-        cancelButton.disabled = false;
-        updateSelectionCount();
-      }
+      return;
     }
-  );
 
+    setTraitEditorActionsDisabled(true);
+
+    try {
+      const response = await fetch(
+        updateTraitsUrl,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "X-CSRFToken":
+              getCookie("csrftoken"),
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+
+          body: JSON.stringify({
+            traits: selectedTraits,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error
+          || "The trait selection could not be saved."
+        );
+      }
+
+      /*
+       * Use the backend response when available.
+       * Otherwise retain the selection that was submitted.
+       */
+      savedSelection = Array.isArray(
+        data.selected_traits
+      )
+        ? [...data.selected_traits]
+        : [...selectedTraits];
+
+      renderSelectedTraits(
+        savedSelection
+      );
+
+      setCheckedTraits(
+        savedSelection
+      );
+
+      root.dataset.status =
+        data.questions_status
+        || "outdated";
+
+      showOutdatedState();
+
+      /*
+       * Close only after the backend has confirmed
+       * that the selection was saved.
+       */
+      if (
+        editor
+        && typeof editor.close === "function"
+      ) {
+        editor.close();
+      } else {
+        editor?.removeAttribute("open");
+      }
+
+      editButton?.focus();
+
+    } catch (error) {
+      console.error(
+        "Trait selection error:",
+        error
+      );
+
+      setHidden(
+        errorBox,
+        false
+      );
+
+      errorBox.textContent =
+        error.message
+        || "The trait selection could not be saved.";
+
+    } finally {
+      setTraitEditorActionsDisabled(false);
+      updateSelectionCount();
+    }
+  }
+);
+
+editor?.addEventListener(
+  "click",
+  (event) => {
+    if (event.target !== editor) {
+      return;
+    }
+
+    closeTraitEditor();
+  }
+);
 
   regenerateButton.addEventListener(
     "click",

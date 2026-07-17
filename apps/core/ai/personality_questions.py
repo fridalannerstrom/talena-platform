@@ -206,6 +206,52 @@ def normalise_selected_traits(
     return normalised
 
 
+def get_personality_question_count(
+    selected_traits: list[str],
+) -> int:
+    """
+    Return between three and six questions.
+
+    Generate at least as many questions as there are
+    selected traits, with three as the minimum.
+    """
+
+    return max(
+        3,
+        min(
+            6,
+            len(selected_traits or []),
+        ),
+    )
+
+
+def personality_questions_cover_all_traits(
+    questions: list[dict[str, Any]],
+    selected_traits: list[str],
+) -> bool:
+    """
+    Check that every selected trait is represented
+    in at least one question.
+    """
+
+    required_traits = {
+        str(trait).strip().lower()
+        for trait in selected_traits or []
+        if str(trait).strip()
+    }
+
+    covered_traits = {
+        str(trait).strip().lower()
+        for question in questions or []
+        for trait in question.get("traits", [])
+        if str(trait).strip()
+    }
+
+    return required_traits.issubset(
+        covered_traits
+    )
+
+
 def build_personality_questions_prompt(
     invitation,
     personality_results: list[dict[str, Any]],
@@ -375,7 +421,17 @@ TRAIT SELECTION RULES
 - If the user has selected traits, preserve that selection exactly.
 
 QUESTION RULES
-Return exactly 3 question objects.
+- Return between 3 and 6 question objects.
+- The number of questions must be at least 3.
+- The number of questions must also be at least equal to the number
+  of traits in the selected_traits event.
+- Every selected trait must appear in the traits list of at least
+  one question.
+- Prefer combining two meaningfully related traits in one question
+  when this creates a useful and coherent behavioural theme.
+- Do not force unrelated traits into the same question.
+- A selected trait may appear in more than one question when useful.
+- Do not leave any selected trait without a question.
 
 Each question must:
 - be open and behavioural or reflective
@@ -385,6 +441,7 @@ Each question must:
 - avoid leading the respondent towards a preferred answer
 - avoid mentioning assessment scores
 - avoid labelling the person
+- normally use one or two selected traits
 
 For recruitment:
 - use behavioural interview wording
@@ -444,7 +501,10 @@ Return events in this exact order:
 
 {{"type":"selected_traits","items":["Trait name","Trait name","Trait name","Trait name"]}}
 
-4. One questions event containing exactly 3 objects:
+4. One questions event containing between 3 and 6 objects.
+
+The number of questions must follow the QUESTION RULES above.
+Every trait in selected_traits must appear in at least one question.
 
 {{"type":"questions","items":[{{"question":"Question one","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","traits":["Trait name","Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
 
@@ -495,7 +555,7 @@ def _normalise_personality_questions(
 
     questions = []
 
-    for item in items[:3]:
+    for item in items[:6]:
         if not isinstance(item, dict):
             continue
 
@@ -685,6 +745,12 @@ def _build_personality_questions_repair_prompt(
         for trait in selected_traits
     )
 
+    question_count = (
+        get_personality_question_count(
+            selected_traits
+        )
+    )
+
     return f"""
 You are repairing a missing or malformed personality questions event
 for Talena.
@@ -705,7 +771,15 @@ SELECTED PERSONALITY TRAITS
 {selected_traits_text}
 
 YOUR TASK
-Return exactly three complete questions based on the selected traits.
+Return exactly {question_count} complete questions based on the
+selected traits.
+
+Every selected trait must appear in the traits list of at least one
+question.
+
+Prefer combining two meaningfully related traits in a question when
+that creates a coherent behavioural theme. Do not combine unrelated
+traits merely to reduce the number of questions.
 
 Each question must:
 - be open and behavioural or reflective
@@ -716,6 +790,8 @@ Each question must:
 - avoid leading the respondent
 - avoid mentioning raw assessment scores
 - treat personality results as hypotheses rather than facts
+- collectively cover every selected trait at least once
+- normally use one or two selected traits per question
 
 Every question object must contain:
 - question
@@ -784,7 +860,19 @@ def _parse_repaired_personality_questions(
         selected_traits,
     )
 
-    if len(questions) != 3:
+    expected_count = (
+        get_personality_question_count(
+            selected_traits
+        )
+    )
+
+    if len(questions) != expected_count:
+        return None
+
+    if not personality_questions_cover_all_traits(
+        questions,
+        selected_traits,
+    ):
         return None
 
     return {
@@ -799,10 +887,10 @@ def _build_safe_personality_questions_event(
     personality_results: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """
-    Last-resort deterministic questions.
+    Build deterministic fallback questions.
 
-    This prevents a valid trait selection from being lost because the
-    model formatted its questions event incorrectly.
+    Every selected trait is represented in at least
+    one question.
     """
 
     traits = [
@@ -814,75 +902,154 @@ def _build_safe_personality_questions_event(
     if not traits:
         traits = [
             item["name"]
-            for item in personality_results[:4]
+            for item in personality_results[:6]
             if item.get("name")
         ]
 
     if not traits:
         raise ValueError(
-            "No personality traits are available for the questions."
+            "No personality traits are available "
+            "for the questions."
         )
 
-    def trait_at(index):
-        return traits[index % len(traits)]
+    question_count = (
+        get_personality_question_count(
+            traits
+        )
+    )
+
+    templates = [
+        {
+            "question": (
+                "Tell me about a situation where your usual way "
+                "of approaching work was particularly effective. "
+                "What did you do, and what was the outcome?"
+            ),
+            "why": (
+                "This helps compare the assessment indication with "
+                "a concrete example of workplace behaviour."
+            ),
+            "listen_for": (
+                "Specific actions, situational context and evidence "
+                "of how the person used their natural preferences."
+            ),
+        },
+        {
+            "question": (
+                "Describe a situation where you needed to adjust "
+                "your normal approach. What made the adjustment "
+                "necessary, and what did you do?"
+            ),
+            "why": (
+                "This explores how behavioural preferences may "
+                "change across different situations."
+            ),
+            "listen_for": (
+                "Self-awareness, deliberate adaptation and the "
+                "effect of the surrounding context."
+            ),
+        },
+        {
+            "question": (
+                "Tell me about a challenging situation involving "
+                "other people. How did you decide what approach "
+                "to take?"
+            ),
+            "why": (
+                "This provides evidence about how preferences may "
+                "influence collaboration and judgement."
+            ),
+            "listen_for": (
+                "Perspective-taking, communication choices and "
+                "the reasoning behind the person's actions."
+            ),
+        },
+        {
+            "question": (
+                "What feedback have you received about your way "
+                "of working, and what did you learn from it?"
+            ),
+            "why": (
+                "This adds external behavioural evidence that may "
+                "confirm or add nuance to the personality profile."
+            ),
+            "listen_for": (
+                "Concrete feedback, reflection and changes made "
+                "in response."
+            ),
+        },
+        {
+            "question": (
+                "Describe a situation where you had to balance "
+                "different priorities or expectations. How did "
+                "you approach it?"
+            ),
+            "why": (
+                "This explores how several behavioural preferences "
+                "may interact in a practical situation."
+            ),
+            "listen_for": (
+                "Prioritisation, trade-offs and awareness of how "
+                "the situation affected the chosen approach."
+            ),
+        },
+        {
+            "question": (
+                "Tell me about a situation that required you to "
+                "work outside your preferred style. What was "
+                "difficult, and what helped?"
+            ),
+            "why": (
+                "This explores flexibility and the conditions that "
+                "support effective behaviour."
+            ),
+            "listen_for": (
+                "Adaptation, support needs, learning and awareness "
+                "of personal preferences."
+            ),
+        },
+    ]
+
+    questions = []
+
+    for index in range(question_count):
+        primary_trait = traits[
+            index % len(traits)
+        ]
+
+        question_traits = [
+            primary_trait
+        ]
+
+                # Combine a neighbouring trait on alternating
+        # questions when more than one trait exists.
+        if (
+            len(traits) > 1
+            and index % 2 == 0
+        ):
+            secondary_trait = traits[
+                (index + 1) % len(traits)
+            ]
+
+            if secondary_trait != primary_trait:
+                question_traits.append(
+                    secondary_trait
+                )
+
+        template = templates[
+            index % len(templates)
+        ]
+
+        questions.append({
+            "question": template["question"],
+            "traits": question_traits,
+            "why": template["why"],
+            "listen_for": template["listen_for"],
+        })
 
     return {
         "type": "questions",
-        "items": [
-            {
-                "question": (
-                    "Tell me about a recent situation where your usual "
-                    "way of working was particularly effective. What did "
-                    "you do, and what was the outcome?"
-                ),
-                "traits": [
-                    trait_at(0),
-                ],
-                "why": (
-                    "This helps compare the assessment indication with "
-                    "a concrete example of workplace behaviour."
-                ),
-                "listen_for": (
-                    "Specific actions, situational context and evidence "
-                    "of how the person used their natural preferences."
-                ),
-            },
-            {
-                "question": (
-                    "Describe a situation where you needed to adapt your "
-                    "normal approach. What made the adjustment necessary?"
-                ),
-                "traits": [
-                    trait_at(1),
-                    trait_at(2),
-                ],
-                "why": (
-                    "This explores flexibility and how personality "
-                    "preferences may change across situations."
-                ),
-                "listen_for": (
-                    "Self-awareness, deliberate adaptation and the effect "
-                    "of the surrounding context."
-                ),
-            },
-            {
-                "question": (
-                    "What feedback have you received about how you work "
-                    "with other people, and what did you learn from it?"
-                ),
-                "traits": [
-                    trait_at(3),
-                ],
-                "why": (
-                    "This provides external behavioural evidence that may "
-                    "confirm or add nuance to the personality profile."
-                ),
-                "listen_for": (
-                    "Concrete feedback, reflection and examples of changes "
-                    "made in response."
-                ),
-            },
-        ],
+        "items": questions,
     }
 
 
@@ -1006,14 +1173,16 @@ def stream_personality_questions(
     )
 
     suggested_traits = []
-    received_valid_questions = False
+    received_questions: list[
+        dict[str, Any]
+    ] = []
 
     def prepare_event(
         event: dict[str, Any] | None,
     ) -> dict[str, Any] | None:
         nonlocal selected_traits
         nonlocal suggested_traits
-        nonlocal received_valid_questions
+        nonlocal received_questions
 
         if not event:
             return None
@@ -1069,20 +1238,16 @@ def stream_personality_questions(
             }
 
         if event_type == "questions":
-            questions = _normalise_personality_questions(
-                event.get("items"),
-                selected_traits,
+            received_questions = (
+                _normalise_personality_questions(
+                    event.get("items"),
+                    selected_traits,
+                )
             )
 
-            if len(questions) != 3:
-                return None
-
-            received_valid_questions = True
-
-            return {
-                "type": "questions",
-                "items": questions,
-            }
+            # Hold the questions until the final canonical
+            # trait selection has been established.
+            return None
 
         return event
 
@@ -1162,11 +1327,34 @@ def stream_personality_questions(
         "items": selected_traits,
     }
 
-    if not received_valid_questions:
-        yield _generate_repaired_personality_questions_event(
-            owner=owner,
-            personality_results=personality_results,
-            selected_traits=selected_traits,
+    expected_question_count = (
+        get_personality_question_count(
+            selected_traits
+        )
+    )
+
+    questions_are_valid = (
+        len(received_questions)
+        == expected_question_count
+        and personality_questions_cover_all_traits(
+            received_questions,
+            selected_traits,
+        )
+    )
+
+    if questions_are_valid:
+        yield {
+            "type": "questions",
+            "items": received_questions,
+        }
+
+    else:
+        yield (
+            _generate_repaired_personality_questions_event(
+                owner=owner,
+                personality_results=personality_results,
+                selected_traits=selected_traits,
+            )
         )
 
     yield {
@@ -1181,17 +1369,11 @@ def save_personality_questions(
 ):
     """
     Save generated personality trait suggestions and questions.
+
+    Automatically suggested traits are stored in the generated
+    question result, while selected_personality_traits remains
+    reserved for an explicit user selection.
     """
-
-    selected_traits = (
-        result.get("selected_traits")
-        or []
-    )
-
-    if not owner.selected_personality_traits:
-        owner.selected_personality_traits = (
-            selected_traits
-        )
 
     owner.ai_personality_questions = result
 
@@ -1209,10 +1391,11 @@ def save_personality_questions(
         )
     )
 
-    owner.save(update_fields=[
-        "selected_personality_traits",
-        "ai_personality_questions",
-        "ai_personality_questions_status",
-        "ai_personality_questions_generated_at",
-        "ai_personality_questions_purpose",
-    ])
+    owner.save(
+        update_fields=[
+            "ai_personality_questions",
+            "ai_personality_questions_status",
+            "ai_personality_questions_generated_at",
+            "ai_personality_questions_purpose",
+        ]
+    )

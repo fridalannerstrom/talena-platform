@@ -26049,6 +26049,295 @@ color: #6E63E3;
 
 
 /* =========================================================
+   PERSONALITY TRAIT SELECTION DIALOG
+   ========================================================= */
+
+.personality-traits-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(86vh, 850px);
+  padding: 0;
+
+  border: 0;
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 70px rgba(20, 22, 40, 0.22),
+    0 4px 16px rgba(20, 22, 40, 0.1);
+}
+
+.personality-traits-dialog::backdrop {
+  background: rgba(24, 27, 44, 0.46);
+  backdrop-filter: blur(2px);
+}
+
+.personality-traits-dialog__shell {
+  display: flex;
+  flex-direction: column;
+  max-height: min(86vh, 850px);
+}
+
+.personality-traits-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 24px 26px 18px;
+  border-bottom: 1px solid #e8eaf0;
+}
+
+.personality-traits-dialog__title {
+  margin: 3px 0 5px;
+
+  color: #171a2b;
+
+  font-size: 1.25rem;
+  font-weight: 750;
+}
+
+.personality-traits-dialog__description {
+  max-width: 600px;
+  margin: 0;
+
+  color: #747c90;
+
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.personality-traits-dialog__close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+
+  width: 36px;
+  height: 36px;
+
+  border: 0;
+  border-radius: 999px;
+
+  color: #697185;
+  background: #f3f4f8;
+
+  cursor: pointer;
+}
+
+.personality-traits-dialog__close:hover {
+  color: #4032bd;
+  background: #eceafd;
+}
+
+.personality-traits-dialog__close svg {
+  width: 17px;
+  height: 17px;
+}
+
+.personality-traits-dialog__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 12px 26px;
+
+  color: #71798c;
+  background: #fafafe;
+
+  font-size: 0.75rem;
+}
+
+.personality-traits-dialog__count {
+  color: #5745d3;
+  font-weight: 750;
+}
+
+.personality-traits-dialog__body {
+  overflow-y: auto;
+  padding: 22px 26px 28px;
+}
+
+.personality-traits-dialog__section + .personality-traits-dialog__section {
+  margin-top: 9px;
+}
+
+.personality-traits-dialog__section-title {
+  margin: 0 0 11px;
+
+  color: #34394d;
+
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.personality-traits-dialog__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.personality-trait-pill--automatic {
+  color: #6f6686;
+  border-style: dashed;
+  background: #f8f7fc;
+}
+
+/* OPTION */
+
+.personality-trait-option {
+  display: block;
+  margin: 0;
+  cursor: pointer;
+}
+
+.personality-trait-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.personality-trait-option__control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+
+  min-height: 64px;
+  padding: 12px 14px;
+
+  border: 1px solid #e1e4ec;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.personality-trait-option:hover .personality-trait-option__control {
+  border-color: #cbc5f4;
+  background: #faf9ff;
+}
+
+.personality-trait-option__check {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+
+  width: 23px;
+  height: 23px;
+
+  border: 1px solid #ccd1dc;
+  border-radius: 7px;
+
+  color: transparent;
+  background: #ffffff;
+}
+
+.personality-trait-option__check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.personality-trait-option__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+
+  text-align: left;
+}
+
+.personality-trait-option__name {
+  width: 100%;
+
+  color: #353a4d;
+
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.personality-trait-option__original-name {
+  width: 100%;
+
+  color: #9299aa;
+
+  font-size: 0.69rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+
+/* CHECKED */
+
+.personality-trait-option input:checked
+  + .personality-trait-option__control {
+  border-color: #7663eb;
+  background: #f6f4ff;
+
+  box-shadow:
+    0 0 0 2px rgba(118, 99, 235, 0.1);
+}
+
+.personality-trait-option input:checked
+  + .personality-trait-option__control
+  .personality-trait-option__check {
+  border-color: #6551df;
+  color: #ffffff;
+  background: #6551df;
+}
+
+
+/* DISABLED WHEN SIX ARE SELECTED */
+
+.personality-trait-option input:disabled
+  + .personality-trait-option__control {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* FOOTER */
+
+.personality-traits-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 16px 26px;
+
+  border-top: 1px solid #e8eaf0;
+  background: #ffffff;
+}
+
+@media (max-width: 575.98px) {
+  .personality-traits-dialog {
+    width: calc(100vw - 20px);
+    max-height: 92vh;
+  }
+
+  .personality-traits-dialog__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .personality-traits-dialog__header,
+  .personality-traits-dialog__body,
+  .personality-traits-dialog__footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+/* =========================================================
    RESPONSE STYLE PROFILE
    Low pole + scale + high pole
 ========================================================= */
@@ -27936,8 +28225,8 @@ color: #6E63E3;
 }
 
 .personality-questions-section-title {
-  margin: 0 0 12px;
-  font-size: 0.95rem;
+  margin: 0 0 20px;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
@@ -28026,11 +28315,10 @@ color: #6E63E3;
 
 .personality-question-list {
   display: grid;
-  gap: 14px;
+  gap: 35px;
 }
 
 .personality-question-card {
-  display: flex;
   align-items: flex-start;
   gap: 14px;
   padding: 18px;
@@ -30728,6 +31016,199 @@ color: #6E63E3;
     flex-direction: column;
   }
 }
+
+
+
+/* =========================================================
+   PERSONALITY QUESTION CARDS
+   ========================================================= */
+
+.personality-questions-traits {
+  background-color: #f8f9fc;
+  border-radius: 14px;
+  border: 1px solid #edeaf3;
+  padding: 20px;
+}
+
+/* CARD */
+
+.personality-question-card {
+  padding: 22px;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+}
+
+
+/* QUESTION HEADER */
+
+.personality-question-card__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.personality-question-card__heading {
+  min-width: 0;
+}
+
+.personality-question-card__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 999px;
+
+  color: #5b46dc;
+  background: #eeeaff;
+
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.personality-question-card__text {
+  max-width: 850px;
+
+  color: #202438;
+
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+
+/* TRAIT PILLS */
+
+.personality-question-card__traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 11px;
+}
+
+.personality-question-card__traits span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 25px;
+  padding: 4px 10px;
+
+  border-radius: 999px;
+
+  color: #5c48d8;
+  background: #eeeaff;
+
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+
+/* DETAIL GRID */
+
+.personality-question-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.personality-question-card__detail {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 11px;
+
+  min-height: 100%;
+  padding: 15px 16px;
+
+  border: 1px solid #e5e7ee;
+  border-radius: 12px;
+}
+
+.personality-question-card__detail--why {
+  background: #f8f7fd;
+}
+
+.personality-question-card__detail--listen {
+  background: #f8f7fd;
+}
+
+
+/* DETAIL ICON */
+
+.personality-question-card__detail-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 9px;
+
+  color: #6550df;
+  background: #ece9fd;
+}
+
+.personality-question-card__detail--listen
+.personality-question-card__detail-icon {
+  color: #6550df;
+  background: #ece9fd;
+}
+
+.personality-question-card__detail-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+
+/* DETAIL TEXT */
+
+.personality-question-card__detail-title {
+  margin-bottom: 5px;
+
+  color: #25293b;
+
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.personality-question-card__detail-text {
+  color: #697185;
+
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 767.98px) {
+  .personality-question-card__details {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .personality-question-card {
+    padding: 18px;
+  }
+
+  .personality-question-card__header {
+    gap: 11px;
+  }
+
+  .personality-question-card__text {
+    font-size: 0.9rem;
+  }
+}
+
 
 .org-or-divider .org-or {
   height: 2rem;

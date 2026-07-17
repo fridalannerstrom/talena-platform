@@ -1,7 +1,7 @@
 
 {% if has_personality_results and not is_historical %}
   <section
-    class="card mb-4 personality-questions-card"
+    class="personality-questions-card"
     data-personality-questions-root
     data-stream-url="{{ personality_questions_stream_url }}"
     data-regenerate-url="{{ personality_questions_regenerate_url }}"
@@ -9,10 +9,9 @@
     data-status="{{ personality_questions_status }}"
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
   >
-    <div class="card-body">
 
       <!-- HEADER -->
-      <div class="personality-questions-header">
+      <div class="personality-questions-header mt-4">
 
         <div>
           <div class="insight-summary-kicker">
@@ -111,7 +110,7 @@
 
 
       <!-- CONTENT -->
-      <div
+    <div
         class="{% if not personality_questions %}d-none{% endif %}"
         data-personality-questions-content
       >
@@ -123,20 +122,22 @@
 
             <div>
               <h3 class="personality-questions-section-title mb-1">
-                Relevant traits for this purpose
+                Traits used for these questions
               </h3>
 
               <p class="small text-muted mb-0">
-                Talena suggests relevant traits, but you can change the selection.
+                    Talena generated the questions below using these personality traits,
+    the process purpose and any available context. Change the selection
+    to shape the next set of questions.
               </p>
             </div>
 
             <button
               type="button"
-              class="btn btn-sm btn-outline-secondary"
+              class="btn btn-sm btn-outline-secondary text-nowrap"
               data-personality-traits-edit
             >
-              Edit selection
+              Change traits
             </button>
 
           </div>
@@ -153,85 +154,6 @@
             {% endfor %}
           </div>
 
-
-          <!-- EDIT PANEL -->
-          <div
-            class="personality-traits-editor mt-3 d-none"
-            data-personality-traits-editor
-          >
-
-            <div class="personality-traits-editor__header">
-              <div>
-                <div class="fw-semibold">
-                  Select traits
-                </div>
-
-                <div class="small text-muted">
-                  Choose between one and six traits.
-                </div>
-              </div>
-
-              <span
-                class="small text-muted"
-                data-personality-traits-count
-              >
-                0 selected
-              </span>
-            </div>
-
-
-            <div
-              class="personality-traits-grid mt-3"
-              data-personality-traits-options
-            >
-              {% for trait in personality_traits_for_selection %}
-                <label class="personality-trait-option">
-
-                  <input
-                    type="checkbox"
-                    value="{{ trait.name }}"
-                    data-personality-trait-checkbox
-                    {% if trait.name in selected_personality_traits %}
-                      checked
-                    {% endif %}
-                  >
-
-                  <span class="personality-trait-option__control">
-                    <span class="personality-trait-option__name">
-                      {{ trait.name }}
-                    </span>
-
-                    <span class="personality-trait-option__score">
-                      STEN {{ trait.sten }}
-                    </span>
-                  </span>
-
-                </label>
-              {% endfor %}
-            </div>
-
-
-            <div class="d-flex justify-content-end gap-2 mt-3">
-
-              <button
-                type="button"
-                class="btn btn-sm btn-light"
-                data-personality-traits-cancel
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-sm btn-primary"
-                data-personality-traits-save
-              >
-                Save selection
-              </button>
-
-            </div>
-
-          </div>
 
         </section>
 
@@ -250,43 +172,91 @@
             data-personality-questions-list
           >
             {% for item in personality_questions.questions %}
-              <article class="personality-question-card">
+<article class="personality-question-card">
 
-                <div class="personality-question-card__number">
-                  {{ forloop.counter }}
-                </div>
+  <div class="personality-question-card__header">
 
-                <div class="personality-question-card__content">
+    <div class="personality-question-card__number">
+      {{ forloop.counter }}
+    </div>
 
-                  <div class="personality-question-card__text">
-                    {{ item.question }}
-                  </div>
+    <div class="personality-question-card__heading">
 
-                  {% if item.traits %}
-                    <div class="personality-question-card__traits">
-                      {% for trait in item.traits %}
-                        <span>{{ trait }}</span>
-                      {% endfor %}
-                    </div>
-                  {% endif %}
+      <div class="personality-question-card__text">
+        {{ item.question }}
+      </div>
 
-                  {% if item.why %}
-                    <div class="personality-question-card__detail">
-                      <strong>Why this matters</strong>
-                      {{ item.why }}
-                    </div>
-                  {% endif %}
+      {% if item.traits %}
+        <div class="personality-question-card__traits">
+          {% for trait in item.traits %}
+            <span>{{ trait }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-                  {% if item.listen_for %}
-                    <div class="personality-question-card__detail">
-                      <strong>What to listen for</strong>
-                      {{ item.listen_for }}
-                    </div>
-                  {% endif %}
+    </div>
 
-                </div>
+  </div>
 
-              </article>
+
+  {% if item.why or item.listen_for %}
+    <div class="personality-question-card__details">
+
+      {% if item.why %}
+        <div
+          class="
+            personality-question-card__detail
+            personality-question-card__detail--why
+          "
+        >
+
+          <div class="personality-question-card__detail-icon">
+            <i data-feather="compass"></i>
+          </div>
+
+          <div>
+            <div class="personality-question-card__detail-title">
+              Why this matters
+            </div>
+
+            <div class="personality-question-card__detail-text">
+              {{ item.why }}
+            </div>
+          </div>
+
+        </div>
+      {% endif %}
+
+
+      {% if item.listen_for %}
+        <div
+          class="
+            personality-question-card__detail
+            personality-question-card__detail--listen
+          "
+        >
+
+          <div class="personality-question-card__detail-icon">
+            <i data-feather="headphones"></i>
+          </div>
+
+          <div>
+            <div class="personality-question-card__detail-title">
+              What to listen for
+            </div>
+
+            <div class="personality-question-card__detail-text">
+              {{ item.listen_for }}
+            </div>
+          </div>
+
+        </div>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+</article>
             {% endfor %}
           </div>
         </section>
@@ -319,9 +289,143 @@
 
         </div>
 
+      <!-- TRAIT SELECTION DIALOG -->
+<dialog
+  class="personality-traits-dialog"
+  data-personality-traits-editor
+  aria-labelledby="personalityTraitsDialogTitle"
+>
+  <div class="personality-traits-dialog__shell">
+
+    <!-- HEADER -->
+    <div class="personality-traits-dialog__header">
+
+      <div>
+        <div class="insight-summary-kicker">
+          Personality questions
+        </div>
+
+        <h3
+          class="personality-traits-dialog__title"
+          id="personalityTraitsDialogTitle"
+        >
+          Select traits to explore
+        </h3>
+
+        <p class="personality-traits-dialog__description">
+          Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated
+          using the selected traits, process purpose and available context.
+        </p>
       </div>
 
+      <button
+        type="button"
+        class="personality-traits-dialog__close"
+        data-personality-traits-cancel
+        aria-label="Close trait selection"
+      >
+        <i data-feather="x"></i>
+      </button>
+
     </div>
+
+
+    <!-- SELECTION STATUS -->
+    <div class="personality-traits-dialog__status">
+      <span>
+        Select up to 6 traits
+      </span>
+
+      <span
+        class="personality-traits-dialog__count"
+        data-personality-traits-count
+      >
+        0 selected
+      </span>
+    </div>
+
+
+    <!-- OPTIONS -->
+    <div
+      class="personality-traits-dialog__body"
+      data-personality-traits-options
+    >
+
+      {% for section in personality_profile.sections %}
+
+        <section class="personality-traits-dialog__section">
+
+          <div class="personality-traits-dialog__grid">
+
+            {% for trait in section.traits %}
+
+              <label class="personality-trait-option">
+
+                <input
+                  type="checkbox"
+                  value="{{ trait.name }}"
+                  data-personality-trait-checkbox
+                  {% if trait.name in selected_personality_traits %}
+                    checked
+                  {% endif %}
+                >
+
+<span class="personality-trait-option__control">
+
+  <span class="personality-trait-option__content">
+
+    <span class="personality-trait-option__name">
+      {{ trait.label }}
+    </span>
+  </span>
+
+  <span class="personality-trait-option__check">
+    <i data-feather="check"></i>
+  </span>
+
+</span>
+
+              </label>
+
+            {% endfor %}
+
+          </div>
+
+        </section>
+
+      {% endfor %}
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="personality-traits-dialog__footer">
+
+      <button
+        type="button"
+        class="btn btn-light"
+        data-personality-traits-cancel
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-personality-traits-save
+      >
+        Save selection
+      </button>
+
+    </div>
+
+  </div>
+</dialog>
+<!-- /TRAIT SELECTION DIALOG -->
+
+
+      </div>
+
   </section>
 {% endif %}
 

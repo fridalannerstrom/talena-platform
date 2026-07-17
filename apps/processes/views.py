@@ -174,6 +174,8 @@ from apps.core.ai.personality_questions import (
     apply_personality_questions_event,
     stream_personality_questions,
     save_personality_questions,
+    get_personality_question_count,
+    personality_questions_cover_all_traits,
 )
 
 def build_cognitive_insight_results(
@@ -8527,15 +8529,36 @@ def process_candidate_personality_questions_stream(
                         if has_user_selected_traits
                         else (
                             "The AI response did not contain "
-                            "between four and six valid personality traits."
+                            "between four and six valid "
+                            "personality traits."
                         )
                     )
                 )
 
-            if len(questions) != 3:
+            expected_question_count = (
+                get_personality_question_count(
+                    selected_traits
+                )
+            )
+
+            if len(questions) != expected_question_count:
                 raise ValueError(
-                    "The AI response did not contain "
-                    "three valid personality questions."
+                    (
+                        "The AI response did not contain "
+                        f"{expected_question_count} valid "
+                        "personality questions."
+                    )
+                )
+
+            if not personality_questions_cover_all_traits(
+                questions,
+                selected_traits,
+            ):
+                raise ValueError(
+                    (
+                        "The personality questions did not "
+                        "cover all selected traits."
+                    )
                 )
 
             if not received_done_event:
@@ -8663,8 +8686,10 @@ def process_candidate_personality_traits_update(
     candidate_id,
 ):
     """
-    Save the user's selected personality traits and mark
-    the generated questions as outdated.
+    Save the user's personality trait selection.
+
+    An empty list means that Talena should choose relevant
+    traits automatically when questions are generated.
     """
 
     process = get_object_or_404(
@@ -8710,9 +8735,7 @@ def process_candidate_personality_traits_update(
             status=400,
         )
 
-    raw_traits = payload.get(
-        "traits"
-    )
+    raw_traits = payload.get("traits")
 
     if not isinstance(raw_traits, list):
         return JsonResponse(
@@ -8724,20 +8747,26 @@ def process_candidate_personality_traits_update(
             status=400,
         )
 
-    personality_results = extract_personality_results(
-        invitation
+    personality_results = (
+        extract_personality_results(
+            invitation
+        )
     )
 
-    selected_traits = normalise_selected_traits(
-        selected_traits=raw_traits,
-        available_results=personality_results,
+    selected_traits = (
+        normalise_selected_traits(
+            selected_traits=raw_traits,
+            available_results=personality_results,
+        )
     )
 
-    if not 1 <= len(selected_traits) <= 6:
+    # Zero selected traits means automatic selection.
+    # A manual selection may contain no more than six traits.
+    if len(selected_traits) > 6:
         return JsonResponse(
             {
                 "error": (
-                    "Select between one and six "
+                    "Select no more than six "
                     "available personality traits."
                 )
             },
@@ -8754,15 +8783,22 @@ def process_candidate_personality_traits_update(
         else "not_started"
     )
 
-    invitation.save(update_fields=[
-        "selected_personality_traits",
-        "ai_personality_questions_status",
-    ])
+    invitation.save(
+        update_fields=[
+            "selected_personality_traits",
+            "ai_personality_questions_status",
+        ]
+    )
 
     return JsonResponse(
         {
             "ok": True,
             "selected_traits": selected_traits,
+            "selection_mode": (
+                "manual"
+                if selected_traits
+                else "automatic"
+            ),
             "questions_status": (
                 invitation
                 .ai_personality_questions_status
