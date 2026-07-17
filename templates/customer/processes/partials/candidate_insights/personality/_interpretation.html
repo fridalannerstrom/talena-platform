@@ -2,8 +2,6 @@
 
   <section
     class="
-      card
-      mb-4
       purpose-fit-card
       personality-ai-card
     "
@@ -13,7 +11,6 @@
     data-status="{{ personality_interpretation_status }}"
     data-has-result="{% if personality_interpretation %}true{% else %}false{% endif %}"
   >
-    <div class="card-body">
 
       <!-- HEADER -->
       <div
@@ -23,18 +20,14 @@
           justify-content-between
           gap-3
           flex-wrap
+          mt-4
         "
       >
 
         <div>
-
-          <div
-            class="insight-summary-kicker"
-            data-personality-ai-label
-          >
-            {{ personality_interpretation.label|default:"AI-supported interpretation" }}
-          </div>
-
+    <div class="insight-summary-kicker">
+      ✨ AI-generated insight
+    </div>
           <h2
             class="insight-summary-title mb-1"
             data-personality-ai-title
@@ -163,18 +156,16 @@
       >
 
         <!-- OVERALL INTERPRETATION -->
-        <section class="mt-4">
+        <section class="mt-4 purpose-fit-section">
 
-          <h3 class="h6 mb-2">
+          <h3 class="mb-2 purpose-fit-section-title">
             Overall personality interpretation
           </h3>
 
-          <div
-            class="personality-ai-interpretation"
-            data-personality-ai-interpretation
-          >
-            {{ personality_interpretation.interpretation }}
-          </div>
+<div
+  class="purpose-fit-summary"
+  data-personality-ai-interpretation
+>{{ personality_interpretation.interpretation }}</div>
 
         </section>
 
@@ -183,7 +174,7 @@
         <section
           class="
             border
-            rounded-3
+            rounded-4
             p-3
             mt-4
             {% if not personality_interpretation.profile_dynamics %}
@@ -201,16 +192,14 @@
 
             <div>
 
-              <h3 class="h6 mb-2">
-                Profile dynamics
+              <h3 class="mb-2 purpose-fit-section-title">
+                Combined trait dynamics
               </h3>
 
-              <div
-                class="text-muted"
-                data-personality-ai-dynamics
-              >
-                {{ personality_interpretation.profile_dynamics }}
-              </div>
+<div
+  class="purpose-fit-summary"
+  data-personality-ai-dynamics
+>{{ personality_interpretation.profile_dynamics }}</div>
 
             </div>
 
@@ -220,100 +209,91 @@
 
 
         <!-- SUPPORTIVE + EXPLORE -->
-        <div class="row g-3 mt-1">
+<div class="row g-4 mt-1">
 
-          <!-- SUPPORTIVE PATTERNS -->
-          <div class="col-lg-6">
+  <!-- SUPPORTIVE PATTERNS -->
+  <div class="col-lg-6">
 
-            <section
-              class="
-                border
-                rounded-3
-                p-3
-                h-100
-                {% if not personality_interpretation.supportive_patterns %}
-                  d-none
-                {% endif %}
-              "
-              data-personality-ai-supportive-section
-            >
+    <section
+      class="
+        purpose-fit-list-card
+        purpose-fit-list-card--positive
+        h-100
+        {% if not personality_interpretation.supportive_patterns %}
+          d-none
+        {% endif %}
+      "
+      data-personality-ai-supportive-section
+    >
 
-              <h3 class="h6 mb-3">
-                Potentially supportive patterns
-              </h3>
+      <div class="purpose-fit-section-title">
+        Potentially supportive patterns
+      </div>
 
-              <ul
-                class="list-unstyled mb-0 d-grid gap-3"
-                data-personality-ai-supportive
-              >
-                {% for item in personality_interpretation.supportive_patterns %}
+      <ul
+        class="purpose-fit-list"
+        data-personality-ai-supportive
+      >
+        {% for item in personality_interpretation.supportive_patterns %}
 
-                  <li class="d-flex align-items-start gap-2">
+          <li>
+            <span class="purpose-fit-list-icon">
+              <i data-feather="check"></i>
+            </span>
 
-                    <span class="flex-shrink-0">
-                      <i data-feather="check-circle"></i>
-                    </span>
+            <span>{{ item }}</span>
+          </li>
 
-                    <span>
-                      {{ item }}
-                    </span>
+        {% endfor %}
+      </ul>
 
-                  </li>
+    </section>
 
-                {% endfor %}
-              </ul>
-
-            </section>
-
-          </div>
+  </div>
 
 
-          <!-- AREAS TO EXPLORE -->
-          <div class="col-lg-6">
+  <!-- AREAS TO EXPLORE -->
+  <div class="col-lg-6">
 
-            <section
-              class="
-                border
-                rounded-3
-                p-3
-                h-100
-                {% if not personality_interpretation.areas_to_explore %}
-                  d-none
-                {% endif %}
-              "
-              data-personality-ai-explore-section
-            >
+    <section
+      class="
+        purpose-fit-list-card
+        purpose-fit-list-card--verify
+        h-100
+        {% if not personality_interpretation.areas_to_explore %}
+          d-none
+        {% endif %}
+      "
+      data-personality-ai-explore-section
+    >
 
-              <h3 class="h6 mb-3">
-                What to explore or validate
-              </h3>
+      <div class="purpose-fit-section-title">
+        What to explore or validate
+      </div>
 
-              <ul
-                class="list-unstyled mb-0 d-grid gap-3"
-                data-personality-ai-explore
-              >
-                {% for item in personality_interpretation.areas_to_explore %}
+      <ul
+        class="purpose-fit-list"
+        data-personality-ai-explore
+      >
+        {% for item in personality_interpretation.areas_to_explore %}
 
-                  <li class="d-flex align-items-start gap-2">
+          <li>
+            <span class="purpose-fit-list-icon">
+              <i data-feather="search"></i>
+            </span>
 
-                    <span class="flex-shrink-0">
-                      <i data-feather="search"></i>
-                    </span>
+            <span>{{ item }}</span>
+          </li>
 
-                    <span>
-                      {{ item }}
-                    </span>
+        {% endfor %}
+      </ul>
 
-                  </li>
+    </section>
 
-                {% endfor %}
-              </ul>
+  </div>
 
-            </section>
-
-          </div>
-
-        </div>
+</div>
+<!-- /SUPPORTIVE + EXPLORE -->
 
 
         <!-- CONTEXT NOTE -->
@@ -333,24 +313,14 @@
               class="flex-shrink-0"
             ></i>
 
-            <div data-personality-ai-context-note>
-              {{ personality_interpretation.context_note }}
-            </div>
+<div data-personality-ai-context-note>{{ personality_interpretation.context_note }}         Personality results describe likely behavioural preferences,
+          not fixed behaviour or proven competence. They should be considered
+          alongside relevant examples, experience and other assessment evidence.</div>
 
           </div>
         </div>
-
-
-        <!-- DISCLAIMER -->
-        <div class="small text-muted mt-3">
-          Personality results describe likely behavioural preferences,
-          not fixed behaviour or proven competence. They should be considered
-          alongside relevant examples, experience and other assessment evidence.
-        </div>
-
       </div>
 
-    </div>
   </section>
 
 {% endif %}

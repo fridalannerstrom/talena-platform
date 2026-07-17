@@ -355,6 +355,7 @@
     line-height: 1.7;
     white-space: pre-line;
     margin: 0;
+    padding-top: 0px;
 }
 
 .purpose-fit-list-card {
@@ -24376,6 +24377,7 @@ color: #6E63E3;
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.3;
+  margin-bottom: 0px;
 }
 
 .response-style-item__subtitle {
