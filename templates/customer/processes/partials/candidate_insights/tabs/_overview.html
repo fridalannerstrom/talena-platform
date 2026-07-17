@@ -1,79 +1,11 @@
 
-<section class="card mb-4 purpose-fit-card candidate-overview-evidence">
-  <div class="card-body">
-
-    <div class="insight-summary-kicker">
-      Candidate overview
-    </div>
-
-    <h2 class="insight-summary-title mb-1">
-      Available assessment evidence
-    </h2>
-
-    <p class="text-muted small mb-3">
-      This overview shows which assessment areas are available
-      for the candidate and used across Candidate Insights.
-    </p>
-
-
-    <div class="purpose-fit-inputs">
-
-      {% if has_personality_results %}
-        <span class="purpose-fit-input-pill">
-          Personality
-        </span>
-      {% endif %}
-
-
-      {% if has_motivation_results %}
-        <span class="purpose-fit-input-pill">
-          Motivation
-        </span>
-      {% endif %}
-
-
-      {% if candidate_insights.cognitive_results or has_ability_results %}
-        <span class="purpose-fit-input-pill">
-          Cognitive abilities
-        </span>
-      {% endif %}
-
-
-      {% if team_style_profile.available %}
-        <span class="purpose-fit-input-pill">
-          Team styles
-        </span>
-      {% endif %}
-
-
-      {% if has_purpose_context %}
-        <span class="purpose-fit-input-pill">
-          Process context
-        </span>
-      {% else %}
-        <span
-          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="No additional process context has been added."
-        >
-          No added context
-        </span>
-      {% endif %}
-
-    </div>
-
-  </div>
-</section>
-
 {% if not is_historical and all_assessments_completed %}
   {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
 
 <section
-  class="card mb-4 purpose-fit-card ai-overview-card"
+  class="purpose-fit-card ai-overview-card"
   id="purposeFitCard"
 >
-      <div class="card-body">
 
 <!-- HEADER -->
 <div class="ai-overview-header">
@@ -87,7 +19,7 @@
       class="insight-summary-title mb-1"
       id="purposeFitTitle"
     >
-      AI Overview
+      AI Summary
     </h2>
 
     <div class="text-muted small">
@@ -193,16 +125,14 @@
       Overall interpretation
     </div>
 
-    <div
-      class="purpose-fit-summary"
-      id="purposeFitSummary"
-    >
-      {{ invitation.ai_purpose_fit.summary }}
-    </div>
+<div
+  class="purpose-fit-summary"
+  id="purposeFitSummary"
+>{{ invitation.ai_purpose_fit.summary }}</div>
   </section>
 
   <!-- SUPPORT + EXPLORE -->
-  <div class="row g-3 mb-4">
+  <div class="row g-4 mb-4">
 
     <div class="col-lg-6">
       <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
@@ -278,7 +208,7 @@
 
   </div>
 
-  <!-- NEXT STEP -->
+  <!-- NEXT STEP 
   <div class="purpose-fit-next-step mb-4">
 
     <div class="purpose-fit-next-step-icon">
@@ -297,11 +227,13 @@
 
   </div>
 
+-->
+
   <!-- HOW THIS INSIGHT WAS CREATED -->
 <details class="purpose-fit-explainer mb-4">
 
   <summary class="purpose-fit-explainer__title">
-    How Talena created this insight
+    How Talena created this summary
   </summary>
 
   <div class="purpose-fit-explainer__content mt-3">
@@ -362,6 +294,75 @@
 
 </div>
 
+<!--Available assessment evidence
+
+  <div class="card-body">
+
+    <div class="insight-summary-kicker">
+      Candidate overview
+    </div>
+
+    <h2 class="insight-summary-title mb-1">
+      Available assessment evidence
+    </h2>
+
+    <p class="text-muted small mb-3">
+      This overview shows which assessment areas are available
+      for the candidate and used across Candidate Insights.
+    </p>
+
+
+    <div class="purpose-fit-inputs">
+
+      {% if has_personality_results %}
+        <span class="purpose-fit-input-pill">
+          Personality
+        </span>
+      {% endif %}
+
+
+      {% if has_motivation_results %}
+        <span class="purpose-fit-input-pill">
+          Motivation
+        </span>
+      {% endif %}
+
+
+      {% if candidate_insights.cognitive_results or has_ability_results %}
+        <span class="purpose-fit-input-pill">
+          Cognitive abilities
+        </span>
+      {% endif %}
+
+
+      {% if team_style_profile.available %}
+        <span class="purpose-fit-input-pill">
+          Team styles
+        </span>
+      {% endif %}
+
+
+      {% if has_purpose_context %}
+        <span class="purpose-fit-input-pill">
+          Process context
+        </span>
+      {% else %}
+        <span
+          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="No additional process context has been added."
+        >
+          No added context
+        </span>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+   -->
+
         <!-- ERROR -->
         <div
           class="alert alert-danger d-none mb-0"
@@ -374,7 +375,7 @@
 
       
 
-      </div>
+
     </section>
 
   {% else %}
@@ -398,6 +399,8 @@
 
       </div>
     </section>
+
+    
 
   {% endif %}
 

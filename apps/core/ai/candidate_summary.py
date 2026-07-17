@@ -209,7 +209,7 @@ Do not use markdown tables.
 """.strip()
 
 def save_candidate_summary(invitation, full_text: str):
-    invitation.ai_summary = full_text
+    invitation.ai_summary = (full_text or "").strip()
     invitation.ai_summary_generated_at = timezone.now()
     invitation.ai_summary_status = "completed"
     invitation.save(update_fields=[
@@ -494,11 +494,13 @@ def _normalise_general_insights(data: dict[str, Any]) -> dict[str, Any]:
                 "headline",
                 "General assessment insights",
             ),
-            "body": summary.get(
-                "body",
-                "The available assessment results provide a general view "
-                "of the candidate's likely work-related preferences and behaviours.",
-            ),
+            "body": (
+                summary.get("body")
+                or (
+                    "The available assessment results provide a general view "
+                    "of the candidate's likely work-related preferences and behaviours."
+                )
+            ).strip(),
             "bullets": summary.get("bullets") or [],
         },
 
@@ -515,7 +517,9 @@ def _normalise_general_insights(data: dict[str, Any]) -> dict[str, Any]:
                 "confidence",
                 "Medium",
             ),
-            "body": overall_interpretation.get("body", ""),
+            "body": (
+                overall_interpretation.get("body") or ""
+            ).strip(),
             "reasoning": overall_interpretation.get("reasoning") or [],
             "suggested_next_step": overall_interpretation.get(
                 "suggested_next_step",

@@ -292,6 +292,13 @@
     overflow: hidden;
 }
 
+.purpose-fit-section {
+    background-color: #f8f9fc;
+    border-radius: 14px;
+    border: 1px solid #edeaf3;
+    padding: 20px;
+}
+
 .purpose-fit-loading {
     display: flex;
     align-items: center;
@@ -347,6 +354,7 @@
     font-size: 0.8rem;
     line-height: 1.7;
     white-space: pre-line;
+    margin: 0;
 }
 
 .purpose-fit-list-card {
@@ -525,12 +533,22 @@
 }
 
 .candidate-profile-top {
-  padding: 2rem 2rem 2rem;
-  border-bottom: 1px solid #efefef;
-  
+  padding: 2rem 2rem 2rem;  
   background: #ffffff;
+  border-bottom: 1px solid #e9e9e9;
 }
 
+.candidate-insights-workspace {
+  overflow: hidden;
+}
+
+.candidate-insights-workspace__inner {
+  width: 100%;
+}
+
+.candidate-insights-panel {
+  padding: 24px;
+}
 /* -------------------------------
    Talena Sidebar
 -------------------------------- */
@@ -3617,6 +3635,8 @@ color: #6CACCB;
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  border: 1px solid rgba(33, 40, 50, 0.125);
+  border-radius: 10px;
 }
 
 .purpose-fit-explainer__icon {
