@@ -27926,12 +27926,13 @@ color: #6E63E3;
 
 .cognitive-ai-considerations li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 14px 16px;
   border: 1px solid #ece7dc;
   border-radius: 12px;
   background: #fffaf3;
+  color: #374151;
 }
 
 .cognitive-ai-list-icon {

@@ -25,6 +25,13 @@ from apps.core.ai.cognitive_interpretation import (
     save_cognitive_interpretation,
 )
 
+from apps.core.ai.cognitive_questions import (
+    create_empty_cognitive_questions,
+    apply_cognitive_questions_event,
+    stream_cognitive_questions,
+    save_cognitive_questions,
+)
+
 from apps.core.ai.motivation_interpretation import (
     extract_motivation_results,
     create_empty_motivation_interpretation,
@@ -3337,6 +3344,32 @@ def build_candidate_detail_context(process, invitation):
             },
         ),
 
+        "cognitive_questions": (
+            invitation.ai_cognitive_questions
+            or {}
+        ),
+
+        "cognitive_questions_status": (
+            invitation.ai_cognitive_questions_status
+            or "not_started"
+        ),
+
+        "cognitive_questions_stream_url": reverse(
+            "processes:process_candidate_cognitive_questions_stream",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions_regenerate_url": reverse(
+            "processes:process_candidate_cognitive_questions_regenerate",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
         "cognitive_interpretation_regenerate_url": reverse(
             (
                 "processes:"
@@ -4124,6 +4157,14 @@ def mark_candidate_ai_content_outdated(process):
         )
     )
 
+    cognitive_questions_count = (
+        invitations
+        .exclude(ai_cognitive_questions={})
+        .update(
+            ai_cognitive_questions_status="outdated"
+        )
+    )
+
     response_style_guidance_count = (
         invitations
         .exclude(ai_response_style_guidance={})
@@ -4173,6 +4214,9 @@ def mark_candidate_ai_content_outdated(process):
         ),
         "response_style_guidance": (
             response_style_guidance_count
+        ),
+        "cognitive_questions": (
+            cognitive_questions_count
         ),
     }
 
@@ -7651,6 +7695,325 @@ def process_candidate_cognitive_interpretation_regenerate(
                     "processes:"
                     "process_candidate_cognitive_"
                     "interpretation_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_cognitive_questions_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save AI-supported cognitive questions.
+
+    Cognitive questions are generated and stored independently
+    from the cognitive interpretation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical cognitive questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    cognitive_results = extract_cognitive_results(
+        invitation
+    )
+
+    if not cognitive_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No cognitive assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_cognitive_questions_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation.ai_cognitive_questions
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        invitation.ai_cognitive_questions_purpose
+        or ""
+    ).strip().lower()
+
+    # Safety check if the process purpose has changed.
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_cognitive_questions_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                "ai_cognitive_questions_status",
+            ]
+        )
+
+    # Return previously generated questions when available.
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The cognitive questions are "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_cognitive_questions_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            "ai_cognitive_questions_status",
+        ]
+    )
+
+    def generator():
+        result = create_empty_cognitive_questions(
+            invitation
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_cognitive_questions(
+                owner=invitation,
+                cognitive_results=cognitive_results,
+            ):
+                result = apply_cognitive_questions_event(
+                    result,
+                    event,
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            questions = (
+                result.get("questions")
+                or []
+            )
+
+            if len(questions) != 3:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "three valid cognitive questions."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_cognitive_questions(
+                owner=invitation,
+                result=result,
+            )
+
+        except Exception as error:
+            invitation.ai_cognitive_questions_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    "ai_cognitive_questions_status",
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+@login_required
+@require_POST
+def process_candidate_cognitive_questions_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset only the cognitive questions and return the
+    stream URL for a fresh generation.
+
+    The cognitive interpretation is not changed.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical cognitive questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_cognitive_questions_status = (
+        "not_started"
+    )
+
+    invitation.ai_cognitive_questions_generated_at = (
+        None
+    )
+
+    invitation.ai_cognitive_questions_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_cognitive_questions_status",
+            "ai_cognitive_questions_generated_at",
+            "ai_cognitive_questions_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_cognitive_"
+                    "questions_stream"
                 ),
                 kwargs={
                     "process_id": process.id,

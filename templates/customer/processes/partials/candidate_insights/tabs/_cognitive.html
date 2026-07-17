@@ -5,269 +5,399 @@
     data-candidate-insights-subtabs
   >
 
-    <!-- SUBNAVIGATION -->
-    <section class="card mb-4 candidate-insights-subnavigation">
+  <!-- SUBNAVIGATION -->
+<section class="candidate-insights-subnavigation">
 
-      <div class="card-body pb-0">
+  <div class="candidate-insights-subnavigation__layout mb-4">
 
-        <div class="insight-summary-kicker">
-          Cognitive abilities
-        </div>
+    <div
+      class="candidate-insights-view-switcher"
+      role="tablist"
+      aria-label="Cognitive insight areas"
+    >
 
-        <h2 class="insight-summary-title mb-1">
-          Cognitive insights
-        </h2>
-
-        <p class="text-muted small mb-0">
-          Explore cognitive assessment results, practical interpretation
-          and purpose-aware questions.
-        </p>
-
-      </div>
-
-
-      <div class="candidate-profile-tabs-wrap mt-3">
-
-        <div
-          class="candidate-profile-tabs"
-          role="tablist"
-          aria-label="Cognitive insight areas"
-        >
-
-          <button
-            type="button"
-            class="candidate-tab is-active"
-            role="tab"
-            aria-selected="true"
-            aria-controls="cognitive-subpanel-results"
-            data-insights-subtab="results"
-          >
-            Results
-          </button>
+<button
+  type="button"
+  id="cognitive-tab-results"
+  class="candidate-insights-view-option is-active"
+  role="tab"
+  aria-selected="true"
+  aria-controls="cognitive-subpanel-results"
+  data-insights-subtab="results"
+>
+        <i data-feather="bar-chart-2"></i>
+        <span>Results</span>
+      </button>
 
 
-          {% if has_ability_results and not is_historical %}
+      {% if has_ability_results and not is_historical %}
 
-            <button
-              type="button"
-              class="candidate-tab"
-              role="tab"
-              aria-selected="false"
-              aria-controls="cognitive-subpanel-interpretation"
-              data-insights-subtab="interpretation"
-            >
-              Interpretation
-            </button>
+<button
+  type="button"
+  id="cognitive-tab-interpretation"
+  aria-labelledby="cognitive-tab-interpretation"
+  class="candidate-insights-view-option"
+  role="tab"
+  aria-selected="false"
+  aria-controls="cognitive-subpanel-interpretation"
+  data-insights-subtab="interpretation"
+>
+          <i data-feather="zap"></i>
+          <span>Interpretation</span>
+        </button>
 
 
-            <button
-              type="button"
-              class="candidate-tab"
-              role="tab"
-              aria-selected="false"
-              aria-controls="cognitive-subpanel-questions"
-              data-insights-subtab="questions"
-            >
-              Questions
-            </button>
+<button
+  type="button"
+  id="cognitive-tab-questions"
+  aria-labelledby="cognitive-tab-questions"
+  class="candidate-insights-view-option"
+  role="tab"
+  aria-selected="false"
+  aria-controls="cognitive-subpanel-questions"
+  data-insights-subtab="questions"
+>
+          <i data-feather="help-circle"></i>
+          <span>Questions</span>
+        </button>
 
-          {% endif %}
+      {% endif %}
 
-        </div>
+    </div>
 
-      </div>
+  </div>
 
-    </section>
+</section>
 
 
     <div class="candidate-insights-subworkspace__panels">
 
       <!-- RESULTS -->
-      <div
-        id="cognitive-subpanel-results"
-        class="candidate-insights-subpanel is-active"
-        role="tabpanel"
-        data-insights-subpanel="results"
-      >
-        {% include "customer/processes/partials/candidate_insights/cognitive/_results.html" %}
+<div
+  id="cognitive-subpanel-results"
+  class="candidate-insights-subpanel is-active"
+  role="tabpanel"
+  aria-labelledby="cognitive-tab-results"
+  data-insights-subpanel="results"
+>
+  {% include "customer/processes/partials/candidate_insights/cognitive/_results.html" %}
+</div>
+
+
+{% if has_ability_results and not is_historical %}
+
+  <!-- INTERPRETATION -->
+  <div
+    id="cognitive-subpanel-interpretation"
+    class="candidate-insights-subpanel"
+    role="tabpanel"
+    aria-labelledby="cognitive-tab-interpretation"
+    data-insights-subpanel="interpretation"
+    hidden
+  >
+
+    <section
+      class="purpose-fit-card cognitive-ai-card"
+      data-cognitive-interpretation-root
+      data-stream-url="{{ cognitive_interpretation_stream_url }}"
+      data-regenerate-url="{{ cognitive_interpretation_regenerate_url }}"
+      data-status="{{ cognitive_interpretation_status }}"
+      data-has-result="{% if cognitive_interpretation %}true{% else %}false{% endif %}"
+    >
+
+      <!-- INTERPRETATION HEADER -->
+      <div class="cognitive-ai-header mb-4">
+
+        <div>
+
+          <div class="insight-summary-kicker mt-4">
+            ✨ AI-generated insight
+          </div>
+
+          <h2 class="insight-summary-title mb-1">
+            Cognitive interpretation
+          </h2>
+
+          <p class="text-muted small mb-0">
+            A practical interpretation of the available cognitive
+            results in relation to the selected purpose and process context.
+          </p>
+
+        </div>
+
+
+        <div class="d-flex align-items-center gap-2">
+
+          <span
+            class="
+              badge
+              rounded-pill
+              bg-warning-subtle
+              text-warning-emphasis
+              {% if cognitive_interpretation_status != 'outdated' %}
+                d-none
+              {% endif %}
+            "
+            data-cognitive-interpretation-status-badge
+          >
+            Needs update
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-icon btn-light"
+            data-cognitive-interpretation-regenerate
+            title="Generate a new cognitive interpretation"
+            aria-label="Generate a new cognitive interpretation"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        </div>
+
       </div>
 
 
-      {% if has_ability_results and not is_historical %}
+      <!-- INTERPRETATION OUTDATED -->
+      <div
+        class="
+          alert
+          alert-warning
+          mt-4
+          {% if cognitive_interpretation_status != 'outdated' %}
+            d-none
+          {% endif %}
+        "
+        data-cognitive-interpretation-outdated
+      >
 
-        <!-- SHARED AI ROOT -->
-        <section
-          class="card mb-4 purpose-fit-card cognitive-ai-card"
-          data-insights-panel-shell
-          data-cognitive-ai-root
-          data-stream-url="{{ cognitive_interpretation_stream_url }}"
-          data-regenerate-url="{{ cognitive_interpretation_regenerate_url }}"
-          data-status="{{ cognitive_interpretation_status }}"
-          data-has-result="{% if cognitive_interpretation %}true{% else %}false{% endif %}"
-          hidden
-        >
-          <div class="card-body">
+        <div class="d-flex align-items-start gap-2">
 
-            <!-- SHARED HEADER -->
-            <div class="cognitive-ai-header">
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
 
-              <div>
+          <div>
 
-                <div class="insight-summary-kicker">
-                  ✨ AI-supported guidance
-                </div>
-
-                <h2 class="insight-summary-title mb-1">
-                  Cognitive guidance
-                </h2>
-
-                <p class="text-muted small mb-0">
-                  Practical interpretation and questions based on the
-                  available cognitive results, selected purpose and
-                  process context.
-                </p>
-
-              </div>
-
-
-              <div class="d-flex align-items-center gap-2">
-
-                <span
-                  class="
-                    badge
-                    rounded-pill
-                    bg-warning-subtle
-                    text-warning-emphasis
-                    {% if cognitive_interpretation_status != 'outdated' %}
-                      d-none
-                    {% endif %}
-                  "
-                  data-cognitive-ai-status-badge
-                >
-                  Needs update
-                </span>
-
-                <button
-                  type="button"
-                  class="btn btn-icon btn-light"
-                  data-cognitive-ai-regenerate
-                  title="Generate new cognitive guidance"
-                  aria-label="Generate new cognitive guidance"
-                >
-                  <i data-feather="refresh-cw"></i>
-                </button>
-
-              </div>
-
+            <div class="fw-semibold small mb-1">
+              The process information has changed
             </div>
 
-
-            <!-- OUTDATED WARNING -->
-            <div
-              class="
-                alert
-                alert-warning
-                mt-4
-                {% if cognitive_interpretation_status != 'outdated' %}
-                  d-none
-                {% endif %}
-              "
-              data-cognitive-ai-outdated
-            >
-
-              <div class="d-flex align-items-start gap-2">
-
-                <i
-                  data-feather="alert-circle"
-                  class="flex-shrink-0 mt-1"
-                ></i>
-
-                <div>
-
-                  <div class="fw-semibold small mb-1">
-                    The process information has changed
-                  </div>
-
-                  <div class="small">
-                    This guidance was generated using an earlier process
-                    purpose or context. Refresh it to include the latest
-                    information.
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <!-- THINKING -->
-            <div
-              class="{% if cognitive_interpretation %}d-none{% endif %}"
-              data-cognitive-ai-thinking
-            >
-
-              <div class="d-flex align-items-center gap-2 text-muted py-3">
-
-                <span
-                  class="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  Interpreting the cognitive assessment results...
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <!-- ERROR -->
-            <div
-              class="alert alert-danger d-none mt-4"
-              data-cognitive-ai-error
-            >
-              The cognitive guidance could not be generated.
-            </div>
-
-
-            <!-- AI CONTENT -->
-            <div
-              class="{% if not cognitive_interpretation %}d-none{% endif %}"
-              data-cognitive-ai-content
-            >
-
-              <!-- INTERPRETATION -->
-              <div
-                id="cognitive-subpanel-interpretation"
-                class="candidate-insights-subpanel"
-                role="tabpanel"
-                data-insights-subpanel="interpretation"
-                hidden
-              >
-                {% include "customer/processes/partials/candidate_insights/cognitive/_interpretation.html" %}
-              </div>
-
-
-              <!-- QUESTIONS -->
-              <div
-                id="cognitive-subpanel-questions"
-                class="candidate-insights-subpanel"
-                role="tabpanel"
-                data-insights-subpanel="questions"
-                hidden
-              >
-                {% include "customer/processes/partials/candidate_insights/cognitive/_questions.html" %}
-              </div>
-
+            <div class="small">
+              This interpretation was generated using an earlier
+              process purpose or context. Refresh it to include
+              the latest information.
             </div>
 
           </div>
-        </section>
 
+        </div>
+
+      </div>
+
+
+      <!-- INTERPRETATION THINKING -->
+      <div
+        class="{% if cognitive_interpretation %}d-none{% endif %}"
+        data-cognitive-interpretation-thinking
+      >
+
+        <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Interpreting the cognitive assessment results...
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- INTERPRETATION ERROR -->
+      <div
+        class="alert alert-danger d-none mt-4"
+        data-cognitive-interpretation-error
+      >
+        The cognitive interpretation could not be generated.
+      </div>
+
+
+      <!-- INTERPRETATION CONTENT -->
+      <div
+        class="{% if not cognitive_interpretation %}d-none{% endif %}"
+        data-cognitive-interpretation-content
+      >
+        {% include "customer/processes/partials/candidate_insights/cognitive/_interpretation.html" %}
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- QUESTIONS -->
+  <div
+    id="cognitive-subpanel-questions"
+    class="candidate-insights-subpanel"
+    role="tabpanel"
+    aria-labelledby="cognitive-tab-questions"
+    data-insights-subpanel="questions"
+    hidden
+  >
+
+<section
+  class="purpose-fit-card cognitive-questions-card"
+  data-cognitive-questions-root
+  data-stream-url="{{ cognitive_questions_stream_url }}"
+  data-regenerate-url="{{ cognitive_questions_regenerate_url }}"
+  data-status="{{ cognitive_questions_status }}"
+  data-has-result="{% if cognitive_questions.questions %}true{% else %}false{% endif %}"
+>
+
+  <!-- QUESTIONS HEADER -->
+  <div class="cognitive-ai-header mb-4">
+
+    <div>
+
+      <div class="insight-summary-kicker mt-4">
+        ✨ AI-supported questions
+      </div>
+
+      <h2 class="insight-summary-title mb-1">
+        Cognitive questions
+      </h2>
+
+      <p class="text-muted small mb-0">
+        Practical questions for exploring how the cognitive results
+        may relate to relevant work situations.
+      </p>
+
+    </div>
+
+
+    <div class="d-flex align-items-center gap-2">
+
+      <span
+        class="
+          badge
+          rounded-pill
+          bg-warning-subtle
+          text-warning-emphasis
+          {% if cognitive_questions_status != 'outdated' %}
+            d-none
+          {% endif %}
+        "
+        data-cognitive-questions-status-badge
+      >
+        Needs update
+      </span>
+
+      <button
+        type="button"
+        class="btn btn-icon btn-light"
+        data-cognitive-questions-regenerate
+        title="Generate new cognitive questions"
+        aria-label="Generate new cognitive questions"
+      >
+        <i data-feather="refresh-cw"></i>
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUESTIONS OUTDATED WARNING -->
+  <div
+    class="
+      alert
+      alert-warning
+      mt-4
+      {% if cognitive_questions_status != 'outdated' %}
+        d-none
       {% endif %}
+    "
+    data-cognitive-questions-outdated
+  >
+
+    <div class="d-flex align-items-start gap-2">
+
+      <i
+        data-feather="alert-circle"
+        class="flex-shrink-0 mt-1"
+      ></i>
+
+      <div>
+
+        <div class="fw-semibold small mb-1">
+          The process information has changed
+        </div>
+
+        <div class="small">
+          These questions were generated using an earlier process
+          purpose or context. Refresh them to include the latest
+          information.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUESTIONS THINKING -->
+  <div
+    class="{% if cognitive_questions.questions %}d-none{% endif %}"
+    data-cognitive-questions-thinking
+  >
+
+    <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+      <span
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+
+      <span>
+        Generating cognitive questions...
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUESTIONS ERROR -->
+  <div
+    class="alert alert-danger d-none mt-4"
+    data-cognitive-questions-error
+  >
+    The cognitive questions could not be generated.
+  </div>
+
+
+  <!-- QUESTIONS CONTENT -->
+  <div
+    class="{% if not cognitive_questions.questions %}d-none{% endif %}"
+    data-cognitive-questions-content
+  >
+    {% include "customer/processes/partials/candidate_insights/cognitive/_questions.html" %}
+  </div>
+
+</section>
+
+  </div>
+
+{% endif %}
 
     </div>
 

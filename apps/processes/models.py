@@ -256,6 +256,32 @@ class TestInvitation(models.Model):
         default="",
     )
 
+    # ------------------------------------------------------------
+    # AI cognitive questions
+    # ------------------------------------------------------------
+
+    ai_cognitive_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_cognitive_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_cognitive_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_cognitive_questions_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
     ai_motivation_interpretation = models.JSONField(
         default=dict,
         blank=True,

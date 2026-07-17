@@ -171,4 +171,17 @@ urlpatterns = [
         views.process_candidate_final_output,
         name="process_candidate_final_output",
     ),
+    path(
+        "<int:process_id>/candidate/<int:candidate_id>/"
+        "cognitive-questions/stream/",
+        views.process_candidate_cognitive_questions_stream,
+        name="process_candidate_cognitive_questions_stream",
+    ),
+
+    path(
+        "<int:process_id>/candidate/<int:candidate_id>/"
+        "cognitive-questions/regenerate/",
+        views.process_candidate_cognitive_questions_regenerate,
+        name="process_candidate_cognitive_questions_regenerate",
+    ),
 ]

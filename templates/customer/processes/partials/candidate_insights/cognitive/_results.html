@@ -1,29 +1,10 @@
 
 <!-- COGNITIVE ASSESSMENT RESULTS -->
 {% if candidate_insights.cognitive_results %}
-  <section class="card mb-4 purpose-fit-card">
-    <div class="card-body">
-
-      <!-- HEADER -->
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-          <div class="insight-summary-kicker">
-            Candidate Insights
-          </div>
-
-          <h2 class="insight-summary-title mb-1">
-            Cognitive assessment results
-          </h2>
-
-          <div class="text-muted small">
-            Percentile results show how the candidate performed compared with
-            the assessment’s reference group.
-          </div>
-        </div>
-      </div>
+  <section class="purpose-fit-card">
 
       <!-- RESULTS -->
-<div class="cognitive-results-grid">
+<div class="cognitive-results-grid mt-4">
 
   {% for result in candidate_insights.cognitive_results %}
 
@@ -171,7 +152,6 @@
         group. They are not percentages of questions answered correctly.
       </div>
 
-    </div>
   </section>
 {% endif %}
 <!-- /COGNITIVE ASSESSMENT RESULTS -->

@@ -291,13 +291,17 @@ if (isHistoricalCandidate) {
     sheetBody
   );
 
-  await initCandidateCognitiveInterpretation(
-    sheetBody
-  );
+await initCandidateCognitiveInterpretation(
+  sheetBody
+);
 
-  await initCandidateMotivationInterpretation(
-    sheetBody
-  );
+await initCandidateCognitiveQuestions(
+  sheetBody
+);
+
+await initCandidateMotivationInterpretation(
+  sheetBody
+);
 
   await initCandidatePersonalityInterpretation(
     sheetBody
@@ -3778,11 +3782,11 @@ notifyCandidateAiContentUpdated(
 </script>
 
 <script>
-  async function initCandidateCognitiveInterpretation(
+async function initCandidateCognitiveInterpretation(
   container = document
 ) {
   const root = container.querySelector(
-    "[data-cognitive-ai-root]"
+    "[data-cognitive-interpretation-root]"
   );
 
   if (!root) {
@@ -3790,37 +3794,50 @@ notifyCandidateAiContentUpdated(
   }
 
   if (
-    root.dataset.cognitiveAiInitialised === "true"
+    root.dataset
+      .cognitiveInterpretationInitialised ===
+    "true"
   ) {
     return;
   }
 
-  root.dataset.cognitiveAiInitialised = "true";
+  root.dataset
+    .cognitiveInterpretationInitialised =
+    "true";
 
-  const streamUrl = root.dataset.streamUrl;
-  const regenerateUrl = root.dataset.regenerateUrl;
+
+  const streamUrl =
+    root.dataset.streamUrl;
+
+  const regenerateUrl =
+    root.dataset.regenerateUrl;
+
 
   const thinking = root.querySelector(
-    "[data-cognitive-ai-thinking]"
+    "[data-cognitive-interpretation-thinking]"
   );
 
   const content = root.querySelector(
-    "[data-cognitive-ai-content]"
+    "[data-cognitive-interpretation-content]"
   );
 
   const errorBox = root.querySelector(
-    "[data-cognitive-ai-error]"
+    "[data-cognitive-interpretation-error]"
   );
 
   const statusBadge = root.querySelector(
-    "[data-cognitive-ai-status-badge]"
+    "[data-cognitive-interpretation-status-badge]"
   );
 
   const outdatedWarning = root.querySelector(
-    "[data-cognitive-ai-outdated]"
+    "[data-cognitive-interpretation-outdated]"
   );
 
-  const interpretationEl = root.querySelector(
+  /*
+   * These selectors can remain unchanged inside
+   * cognitive/_interpretation.html for now.
+   */
+  const interpretationElement = root.querySelector(
     "[data-cognitive-ai-interpretation]"
   );
 
@@ -3832,28 +3849,26 @@ notifyCandidateAiContentUpdated(
     "[data-cognitive-ai-considerations]"
   );
 
-  const questionsSection = root.querySelector(
-    "[data-cognitive-ai-questions-section]"
-  );
-
-  const questionsList = root.querySelector(
-    "[data-cognitive-ai-questions]"
-  );
-
   const contextNote = root.querySelector(
     "[data-cognitive-ai-context-note]"
   );
 
   const regenerateButton = root.querySelector(
-    "[data-cognitive-ai-regenerate]"
+    "[data-cognitive-interpretation-regenerate]"
   );
+
 
   let isStreaming = false;
 
-    function getCookie(name) {
+
+  function getCookie(name) {
     const cookieValue = document.cookie
       .split("; ")
-      .find((row) => row.startsWith(`${name}=`));
+      .find((row) => {
+        return row.startsWith(
+          `${name}=`
+        );
+      });
 
     return cookieValue
       ? decodeURIComponent(
@@ -3862,13 +3877,18 @@ notifyCandidateAiContentUpdated(
       : null;
   }
 
+
   function refreshIcons() {
     if (window.feather) {
       window.feather.replace();
     }
   }
 
-  function setHidden(element, hidden) {
+
+  function setHidden(
+    element,
+    hidden
+  ) {
     if (!element) {
       return;
     }
@@ -3879,16 +3899,32 @@ notifyCandidateAiContentUpdated(
     );
   }
 
+
   function hideOutdatedState() {
-    setHidden(statusBadge, true);
-    setHidden(outdatedWarning, true);
+    setHidden(
+      statusBadge,
+      true
+    );
+
+    setHidden(
+      outdatedWarning,
+      true
+    );
   }
 
+
   function resetContent() {
-    interpretationEl.textContent = "";
-    considerationsList.replaceChildren();
-    questionsList.replaceChildren();
-    contextNote.textContent = "";
+    if (interpretationElement) {
+      interpretationElement.textContent = "";
+    }
+
+    if (considerationsList) {
+      considerationsList.replaceChildren();
+    }
+
+    if (contextNote) {
+      contextNote.textContent = "";
+    }
 
     setHidden(
       considerationsSection,
@@ -3896,36 +3932,58 @@ notifyCandidateAiContentUpdated(
     );
 
     setHidden(
-      questionsSection,
+      errorBox,
       true
     );
 
-    setHidden(errorBox, true);
-    setHidden(content, true);
+    setHidden(
+      content,
+      true
+    );
   }
 
+
   function renderConsiderations(items) {
+    if (!considerationsList) {
+      return;
+    }
+
     considerationsList.replaceChildren();
 
     const validItems = Array.isArray(items)
-      ? items.filter(Boolean)
+      ? items
+          .map((item) => {
+            return String(
+              item || ""
+            ).trim();
+          })
+          .filter(Boolean)
       : [];
 
     validItems.forEach((item) => {
-      const li = document.createElement("li");
+      const listItem =
+        document.createElement("li");
 
-      const icon = document.createElement("span");
-      icon.className = "cognitive-ai-list-icon";
+      const icon =
+        document.createElement("span");
+
+      icon.className =
+        "cognitive-ai-list-icon";
+
       icon.innerHTML =
         '<i data-feather="search"></i>';
 
-      const text = document.createElement("span");
+      const text =
+        document.createElement("span");
+
       text.textContent = item;
 
-      li.appendChild(icon);
-      li.appendChild(text);
+      listItem.appendChild(icon);
+      listItem.appendChild(text);
 
-      considerationsList.appendChild(li);
+      considerationsList.appendChild(
+        listItem
+      );
     });
 
     setHidden(
@@ -3936,160 +3994,111 @@ notifyCandidateAiContentUpdated(
     refreshIcons();
   }
 
-  function renderQuestions(items) {
-    questionsList.replaceChildren();
 
-    const validItems = Array.isArray(items)
-      ? items.filter(
-          (item) =>
-            item
-            && typeof item === "object"
-            && item.question
-        )
-      : [];
+  function createEmptyDraft() {
+    return {
+      title:
+        "Cognitive interpretation",
 
-    validItems.forEach((item, index) => {
-      const article = document.createElement(
-        "article"
-      );
+      label:
+        "AI-supported interpretation",
 
-      article.className =
-        "cognitive-ai-question";
+      interpretation: "",
 
-      const number = document.createElement(
-        "div"
-      );
+      considerations: [],
 
-      number.className =
-        "cognitive-ai-question__number";
-
-      number.textContent =
-        String(index + 1);
-
-      const questionContent =
-        document.createElement("div");
-
-      questionContent.className =
-        "cognitive-ai-question__content";
-
-      const question =
-        document.createElement("div");
-
-      question.className =
-        "cognitive-ai-question__text";
-
-      question.textContent =
-        item.question || "";
-
-      questionContent.appendChild(
-        question
-      );
-
-      if (item.why) {
-        const why =
-          document.createElement("div");
-
-        why.className =
-          "cognitive-ai-question__detail";
-
-        const label =
-          document.createElement("span");
-
-        label.textContent =
-          "Why this matters";
-
-        why.appendChild(label);
-        why.append(
-          document.createTextNode(
-            item.why
-          )
-        );
-
-        questionContent.appendChild(why);
-      }
-
-      if (item.listen_for) {
-        const listenFor =
-          document.createElement("div");
-
-        listenFor.className =
-          "cognitive-ai-question__detail";
-
-        const label =
-          document.createElement("span");
-
-        label.textContent =
-          "What to listen for";
-
-        listenFor.appendChild(label);
-        listenFor.append(
-          document.createTextNode(
-            item.listen_for
-          )
-        );
-
-        questionContent.appendChild(
-          listenFor
-        );
-      }
-
-      article.appendChild(number);
-      article.appendChild(
-        questionContent
-      );
-
-      questionsList.appendChild(article);
-    });
-
-    setHidden(
-      questionsSection,
-      validItems.length === 0
-    );
+      context_note: "",
+    };
   }
+
 
   function applySavedResult(data) {
-    interpretationEl.textContent =
-      data.interpretation || "";
+    const result = {
+      ...createEmptyDraft(),
+      ...(data || {}),
+    };
+
+    if (interpretationElement) {
+      interpretationElement.textContent =
+        result.interpretation || "";
+    }
 
     renderConsiderations(
-      data.considerations || []
+      result.considerations || []
     );
 
-    renderQuestions(
-      data.questions || []
+    if (contextNote) {
+      contextNote.textContent =
+        result.context_note || "";
+    }
+
+    setHidden(
+      thinking,
+      true
     );
 
-    contextNote.textContent =
-      data.context_note || "";
+    setHidden(
+      errorBox,
+      true
+    );
 
-    setHidden(thinking, true);
-    setHidden(errorBox, true);
-    setHidden(content, false);
+    setHidden(
+      content,
+      false
+    );
+
+    refreshIcons();
+
+    return result;
   }
 
-  function applyEvent(draft, event) {
+
+  function applyEvent(
+    draft,
+    event
+  ) {
     switch (event.type) {
+
       case "saved_result":
-        return event.data || draft;
+        return {
+          ...draft,
+          ...(event.data || {}),
+        };
+
 
       case "meta":
         draft.title =
-          event.title || draft.title;
+          event.title ||
+          draft.title;
 
         draft.label =
-          event.label || draft.label;
+          event.label ||
+          draft.label;
+
         break;
+
 
       case "interpretation_delta":
         draft.interpretation +=
           event.text || "";
 
-        interpretationEl.textContent =
-          draft.interpretation;
+        if (interpretationElement) {
+          interpretationElement.textContent =
+            draft.interpretation;
+        }
 
-        setHidden(thinking, true);
-        setHidden(content, false);
+        setHidden(
+          thinking,
+          true
+        );
+
+        setHidden(
+          content,
+          false
+        );
+
         break;
+
 
       case "considerations":
         draft.considerations =
@@ -4100,33 +4109,44 @@ notifyCandidateAiContentUpdated(
         renderConsiderations(
           draft.considerations
         );
+
         break;
 
+
+      /*
+       * The old interpretation backend may still
+       * send a questions event.
+       *
+       * Ignore it here. Visible cognitive questions
+       * are now owned by the separate Questions root.
+       */
       case "questions":
-        draft.questions =
-          Array.isArray(event.items)
-            ? event.items
-            : [];
-
-        renderQuestions(
-          draft.questions
-        );
         break;
+
 
       case "context_note":
         draft.context_note =
           event.text || "";
 
-        contextNote.textContent =
-          draft.context_note;
+        if (contextNote) {
+          contextNote.textContent =
+            draft.context_note;
+        }
+
         break;
+
 
       case "error":
         throw new Error(
           event.message ||
-          "Cognitive interpretation failed."
+          (
+            "The cognitive interpretation " +
+            "could not be generated."
+          )
         );
 
+
+      case "done":
       default:
         break;
     }
@@ -4134,8 +4154,12 @@ notifyCandidateAiContentUpdated(
     return draft;
   }
 
+
   async function streamInterpretation(url) {
-    if (!url || isStreaming) {
+    if (
+      !url ||
+      isStreaming
+    ) {
       return;
     }
 
@@ -4144,45 +4168,64 @@ notifyCandidateAiContentUpdated(
     resetContent();
     hideOutdatedState();
 
-    setHidden(thinking, false);
+    setHidden(
+      thinking,
+      false
+    );
 
-    regenerateButton.disabled = true;
+    if (regenerateButton) {
+      regenerateButton.disabled = true;
+    }
 
-    let draft = {
-      title: "Cognitive interpretation",
-      label: "AI-supported interpretation",
-      interpretation: "",
-      considerations: [],
-      questions: [],
-      context_note: "",
-    };
+    let draft =
+      createEmptyDraft();
+
 
     try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Accept": "application/x-ndjson",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        credentials: "same-origin",
-      });
+      const response = await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "Accept":
+              "application/x-ndjson",
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+        }
+      );
+
 
       if (response.status === 409) {
         throw new Error(
-          "The interpretation is already being generated."
+          (
+            "The cognitive interpretation " +
+            "is already being generated."
+          )
         );
       }
 
+
       if (!response.ok) {
         let message =
-          "The cognitive interpretation could not be generated.";
+          (
+            "The cognitive interpretation " +
+            "could not be generated."
+          );
 
         try {
-          const data = await response.json();
+          const data =
+            await response.json();
 
           if (data.error) {
             message = data.error;
           }
+
         } catch (parseError) {
           // Keep fallback message.
         }
@@ -4190,11 +4233,16 @@ notifyCandidateAiContentUpdated(
         throw new Error(message);
       }
 
+
       if (!response.body) {
         throw new Error(
-          "Streaming is not supported by this browser."
+          (
+            "Streaming is not supported " +
+            "by this browser."
+          )
         );
       }
+
 
       const reader =
         response.body.getReader();
@@ -4203,6 +4251,35 @@ notifyCandidateAiContentUpdated(
         new TextDecoder("utf-8");
 
       let buffer = "";
+
+
+      async function handleLine(rawLine) {
+        const line =
+          rawLine.trim();
+
+        if (!line) {
+          return;
+        }
+
+        const event =
+          JSON.parse(line);
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          draft =
+            applySavedResult(
+              draft
+            );
+        }
+      }
+
 
       while (true) {
         const result =
@@ -4226,118 +4303,113 @@ notifyCandidateAiContentUpdated(
           lines.pop() || "";
 
         for (const rawLine of lines) {
-          const line =
-            rawLine.trim();
-
-          if (!line) {
-            continue;
-          }
-
-          const event =
-            JSON.parse(line);
-
-          draft =
-            applyEvent(
-              draft,
-              event
-            );
-
-          if (
-            event.type ===
-            "saved_result"
-          ) {
-            applySavedResult(
-              draft
-            );
-          }
-        }
-      }
-
-      const finalLine =
-        buffer.trim();
-
-      if (finalLine) {
-        const event =
-          JSON.parse(finalLine);
-
-        draft =
-          applyEvent(
-            draft,
-            event
-          );
-
-        if (
-          event.type ===
-          "saved_result"
-        ) {
-          applySavedResult(
-            draft
+          await handleLine(
+            rawLine
           );
         }
       }
 
-    applySavedResult(draft);
 
-root.dataset.status =
-  "completed";
+      buffer += decoder.decode();
 
-root.dataset.hasResult =
-  "true";
+      if (buffer.trim()) {
+        await handleLine(
+          buffer
+        );
+      }
 
-hideOutdatedState();
 
-notifyCandidateAiContentUpdated(
-  root
-);
+      draft =
+        applySavedResult(
+          draft
+        );
 
-} catch (error) {
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+      notifyCandidateAiContentUpdated(
+        root
+      );
+
+    } catch (error) {
       console.error(
         "Cognitive interpretation error:",
         error
       );
 
-      setHidden(thinking, true);
-      setHidden(content, true);
-      setHidden(errorBox, false);
+      setHidden(
+        thinking,
+        true
+      );
 
-      errorBox.textContent =
-        error.message ||
-        "The cognitive interpretation could not be generated.";
+      setHidden(
+        content,
+        true
+      );
+
+      setHidden(
+        errorBox,
+        false
+      );
+
+      if (errorBox) {
+        errorBox.textContent =
+          error.message ||
+          (
+            "The cognitive interpretation " +
+            "could not be generated."
+          );
+      }
 
       root.dataset.status =
         "failed";
 
     } finally {
       isStreaming = false;
-      regenerateButton.disabled = false;
+
+      if (regenerateButton) {
+        regenerateButton.disabled = false;
+      }
+
       refreshIcons();
     }
   }
 
-  regenerateButton.addEventListener(
+
+  regenerateButton?.addEventListener(
     "click",
     async () => {
       if (
-        !regenerateUrl
-        || isStreaming
+        !regenerateUrl ||
+        isStreaming
       ) {
         return;
       }
 
-      regenerateButton.disabled = true;
+      regenerateButton.disabled =
+        true;
 
       try {
         const response = await fetch(
           regenerateUrl,
           {
             method: "POST",
+
             headers: {
               "X-CSRFToken":
                 getCookie("csrftoken"),
+
               "X-Requested-With":
                 "XMLHttpRequest",
             },
-            credentials: "same-origin",
+
+            credentials:
+              "same-origin",
           }
         );
 
@@ -4347,44 +4419,876 @@ notifyCandidateAiContentUpdated(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            "The interpretation could not be regenerated."
+            (
+              "The interpretation could " +
+              "not be regenerated."
+            )
           );
         }
 
         await streamInterpretation(
-          data.stream_url || streamUrl
+          data.stream_url ||
+          streamUrl
         );
 
       } catch (error) {
         console.error(
-          "Cognitive regeneration error:",
+          (
+            "Cognitive interpretation " +
+            "regeneration error:"
+          ),
           error
         );
 
-        setHidden(errorBox, false);
+        setHidden(
+          errorBox,
+          false
+        );
 
-        errorBox.textContent =
-          error.message ||
-          "The interpretation could not be regenerated.";
+        if (errorBox) {
+          errorBox.textContent =
+            error.message ||
+            (
+              "The interpretation could " +
+              "not be regenerated."
+            );
+        }
 
       } finally {
-        regenerateButton.disabled = false;
+        regenerateButton.disabled =
+          false;
+
+        refreshIcons();
       }
     }
   );
 
+
   const hasResult =
-    root.dataset.hasResult === "true";
+    root.dataset.hasResult ===
+    "true";
 
   const status =
     root.dataset.status ||
     "not_started";
 
+
   if (
-    !hasResult
-    && status !== "generating"
+    !hasResult &&
+    status !== "generating"
   ) {
     await streamInterpretation(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
+
+
+
+async function initCandidateCognitiveQuestions(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-cognitive-questions-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset
+      .cognitiveQuestionsInitialised ===
+    "true"
+  ) {
+    return;
+  }
+
+  root.dataset
+    .cognitiveQuestionsInitialised =
+    "true";
+
+
+  const streamUrl =
+    root.dataset.streamUrl;
+
+  const regenerateUrl =
+    root.dataset.regenerateUrl;
+
+
+  const thinking = root.querySelector(
+    "[data-cognitive-questions-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-cognitive-questions-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-cognitive-questions-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-cognitive-questions-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-cognitive-questions-outdated]"
+  );
+
+  const questionsList = root.querySelector(
+    "[data-cognitive-questions-list]"
+  );
+
+  const contextNoteSection = root.querySelector(
+    "[data-cognitive-questions-context-note-section]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-cognitive-questions-context-note]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-cognitive-questions-regenerate]"
+  );
+
+
+  let isStreaming = false;
+
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => {
+        return row.startsWith(
+          `${name}=`
+        );
+      });
+
+    return cookieValue
+      ? decodeURIComponent(
+          cookieValue.split("=")[1]
+        )
+      : null;
+  }
+
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
+  function setHidden(
+    element,
+    hidden
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function hideOutdatedState() {
+    setHidden(
+      statusBadge,
+      true
+    );
+
+    setHidden(
+      outdatedWarning,
+      true
+    );
+  }
+
+
+  function createEmptyDraft() {
+    return {
+      title:
+        "Cognitive questions",
+
+      label:
+        "AI-supported questions",
+
+      questions: [],
+
+      context_note: "",
+    };
+  }
+
+
+  function createDetailBox({
+    type,
+    iconName,
+    title,
+    text,
+  }) {
+    const detail =
+      document.createElement("div");
+
+    detail.className = [
+      "personality-question-card__detail",
+      (
+        "personality-question-card__detail--" +
+        type
+      ),
+    ].join(" ");
+
+
+    const icon =
+      document.createElement("div");
+
+    icon.className =
+      "personality-question-card__detail-icon";
+
+    icon.innerHTML =
+      `<i data-feather="${iconName}"></i>`;
+
+
+    const body =
+      document.createElement("div");
+
+
+    const heading =
+      document.createElement("div");
+
+    heading.className =
+      "personality-question-card__detail-title";
+
+    heading.textContent =
+      title;
+
+
+    const description =
+      document.createElement("div");
+
+    description.className =
+      "personality-question-card__detail-text";
+
+    description.textContent =
+      text;
+
+
+    body.appendChild(
+      heading
+    );
+
+    body.appendChild(
+      description
+    );
+
+    detail.appendChild(
+      icon
+    );
+
+    detail.appendChild(
+      body
+    );
+
+    return detail;
+  }
+
+
+  function renderQuestions(items) {
+    if (!questionsList) {
+      return;
+    }
+
+    questionsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter((item) => {
+          return (
+            item &&
+            typeof item === "object" &&
+            String(
+              item.question || ""
+            ).trim()
+          );
+        })
+      : [];
+
+
+    validItems.forEach(
+      (item, index) => {
+        const article =
+          document.createElement(
+            "article"
+          );
+
+        article.className =
+          "personality-question-card";
+
+
+        const header =
+          document.createElement("div");
+
+        header.className =
+          "personality-question-card__header";
+
+
+        const number =
+          document.createElement("div");
+
+        number.className =
+          "personality-question-card__number";
+
+        number.textContent =
+          String(index + 1);
+
+
+        const heading =
+          document.createElement("div");
+
+        heading.className =
+          "personality-question-card__heading";
+
+
+        const question =
+          document.createElement("div");
+
+        question.className =
+          "personality-question-card__text";
+
+        question.textContent =
+          item.question || "";
+
+
+        heading.appendChild(
+          question
+        );
+
+        header.appendChild(
+          number
+        );
+
+        header.appendChild(
+          heading
+        );
+
+        article.appendChild(
+          header
+        );
+
+
+        if (
+          item.why ||
+          item.listen_for
+        ) {
+          const details =
+            document.createElement("div");
+
+          details.className =
+            "personality-question-card__details";
+
+
+          if (item.why) {
+            details.appendChild(
+              createDetailBox({
+                type: "why",
+                iconName: "compass",
+                title: "Why this matters",
+                text: item.why,
+              })
+            );
+          }
+
+
+          if (item.listen_for) {
+            details.appendChild(
+              createDetailBox({
+                type: "listen",
+                iconName: "headphones",
+                title:
+                  "What to look for in the answer",
+                text:
+                  item.listen_for,
+              })
+            );
+          }
+
+
+          article.appendChild(
+            details
+          );
+        }
+
+
+        questionsList.appendChild(
+          article
+        );
+      }
+    );
+
+    refreshIcons();
+  }
+
+
+  function resetContent() {
+    questionsList?.replaceChildren();
+
+    if (contextNote) {
+      contextNote.textContent = "";
+    }
+
+    setHidden(
+      contextNoteSection,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      true
+    );
+  }
+
+
+  function applySavedResult(data) {
+    const result = {
+      ...createEmptyDraft(),
+      ...(data || {}),
+    };
+
+    renderQuestions(
+      result.questions || []
+    );
+
+    if (contextNote) {
+      contextNote.textContent =
+        result.context_note || "";
+    }
+
+    setHidden(
+      contextNoteSection,
+      !result.context_note
+    );
+
+    setHidden(
+      thinking,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      false
+    );
+
+    refreshIcons();
+
+    return result;
+  }
+
+
+  function applyEvent(
+    draft,
+    event
+  ) {
+    switch (event.type) {
+
+      case "saved_result":
+        return {
+          ...draft,
+          ...(event.data || {}),
+        };
+
+
+      case "meta":
+        draft.title =
+          event.title ||
+          draft.title;
+
+        draft.label =
+          event.label ||
+          draft.label;
+
+        break;
+
+
+      case "questions":
+        draft.questions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderQuestions(
+          draft.questions
+        );
+
+        break;
+
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        if (contextNote) {
+          contextNote.textContent =
+            draft.context_note;
+        }
+
+        break;
+
+
+      case "error":
+        throw new Error(
+          event.message ||
+          (
+            "The cognitive questions " +
+            "could not be generated."
+          )
+        );
+
+
+      case "done":
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+
+  async function streamQuestions(url) {
+    if (
+      !url ||
+      isStreaming
+    ) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(
+      thinking,
+      false
+    );
+
+    if (regenerateButton) {
+      regenerateButton.disabled = true;
+    }
+
+    let draft =
+      createEmptyDraft();
+
+
+    try {
+      const response = await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "Accept":
+              "application/x-ndjson",
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+        }
+      );
+
+
+      if (response.status === 409) {
+        throw new Error(
+          (
+            "The cognitive questions " +
+            "are already being generated."
+          )
+        );
+      }
+
+
+      if (!response.ok) {
+        let message =
+          (
+            "The cognitive questions " +
+            "could not be generated."
+          );
+
+        try {
+          const data =
+            await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+
+        } catch (parseError) {
+          // Keep fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+
+      if (!response.body) {
+        throw new Error(
+          (
+            "Streaming is not supported " +
+            "by this browser."
+          )
+        );
+      }
+
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+
+      async function handleLine(rawLine) {
+        const line =
+          rawLine.trim();
+
+        if (!line) {
+          return;
+        }
+
+        const event =
+          JSON.parse(line);
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          draft =
+            applySavedResult(
+              draft
+            );
+        }
+      }
+
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        for (const rawLine of lines) {
+          await handleLine(
+            rawLine
+          );
+        }
+      }
+
+
+      buffer += decoder.decode();
+
+      if (buffer.trim()) {
+        await handleLine(
+          buffer
+        );
+      }
+
+
+      draft =
+        applySavedResult(
+          draft
+        );
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+      notifyCandidateAiContentUpdated(
+        root
+      );
+
+    } catch (error) {
+      console.error(
+        "Cognitive questions error:",
+        error
+      );
+
+      setHidden(
+        thinking,
+        true
+      );
+
+      setHidden(
+        content,
+        true
+      );
+
+      setHidden(
+        errorBox,
+        false
+      );
+
+      if (errorBox) {
+        errorBox.textContent =
+          error.message ||
+          (
+            "The cognitive questions " +
+            "could not be generated."
+          );
+      }
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+
+      if (regenerateButton) {
+        regenerateButton.disabled = false;
+      }
+
+      refreshIcons();
+    }
+  }
+
+
+  regenerateButton?.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl ||
+        isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled =
+        true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+
+            credentials:
+              "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            (
+              "The cognitive questions " +
+              "could not be regenerated."
+            )
+          );
+        }
+
+        await streamQuestions(
+          data.stream_url ||
+          streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          (
+            "Cognitive questions " +
+            "regeneration error:"
+          ),
+          error
+        );
+
+        setHidden(
+          errorBox,
+          false
+        );
+
+        if (errorBox) {
+          errorBox.textContent =
+            error.message ||
+            (
+              "The cognitive questions " +
+              "could not be regenerated."
+            );
+        }
+
+      } finally {
+        regenerateButton.disabled =
+          false;
+
+        refreshIcons();
+      }
+    }
+  );
+
+
+  const hasResult =
+    root.dataset.hasResult ===
+    "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+
+  if (
+    !hasResult &&
+    status !== "generating"
+  ) {
+    await streamQuestions(
       streamUrl
     );
   }
