@@ -1,6 +1,5 @@
 <section
   class="
-    card
     mb-4
     purpose-fit-card
     combined-questions-card
@@ -8,462 +7,308 @@
   data-combined-questions-root
   data-refresh-url="{{ combined_questions_refresh_url }}"
 >
-  <div class="card-body">
 
-    <!-- HEADER -->
-    <div
-      class="
-        d-flex
-        align-items-start
-        justify-content-between
-        gap-3
-        flex-wrap
-      "
-    >
+  <!-- HEADER -->
+  <div class="personality-questions-header">
 
-      <div>
+    <div>
 
-        <div class="insight-summary-kicker">
-          Questions
-        </div>
+<h2 class="insight-summary-title mb-1">
+  All assessment questions
+</h2>
 
-        <h2 class="insight-summary-title mb-1">
-          Combined assessment questions
-        </h2>
-
-        <p class="text-muted small mb-0">
-          Practical questions collected from the available personality,
-          motivation and cognitive interpretations.
-        </p>
-
-      </div>
-
-
-      {% if has_combined_questions %}
-
-        <span class="badge rounded-pill bg-light text-dark border">
-          {{ combined_question_count }}
-          question{{ combined_question_count|pluralize }}
-        </span>
-
-      {% endif %}
+<p class="text-muted small mb-0">
+  This page brings together all saved questions from Personality,
+  Motivation and Cognitive in one place. The same questions are also
+  available inside each assessment category.
+</p>
 
     </div>
 
 
     {% if has_combined_questions %}
 
-      <!-- INTRODUCTION -->
-      <div class="alert alert-light border mt-4 mb-4">
+      <span class="personality-trait-pill text-nowrap">
+        {{ combined_question_count }}
+        question{{ combined_question_count|pluralize }}
+      </span>
 
-        <div class="d-flex align-items-start gap-2">
+    {% endif %}
 
-          <i
-            data-feather="message-circle"
-            class="flex-shrink-0 mt-1"
-          ></i>
+  </div>
 
-          <div class="small">
 
-            Use these questions to explore the assessment indications
-            through concrete examples, reflections and practical experience.
+  
 
-            The questions should support a structured conversation rather
-            than replace professional judgement.
+  {% if has_combined_questions %}
 
+    <!-- INTRODUCTION -->
+    <div class="personality-questions-context-note mt-4">
+
+      <div class="d-flex align-items-start gap-3">
+
+        <div class="personality-questions-context-note__icon">
+          <i data-feather="message-circle"></i>
+        </div>
+
+        <div>
+
+          <div class="personality-questions-context-note__title">
+            How to use these questions
+          </div>
+
+          <div>
+            Use the questions to explore assessment indications through
+            concrete examples, reflections and practical experience.
+            They should support a structured conversation rather than
+            replace professional judgement.
           </div>
 
         </div>
 
       </div>
 
+    </div>
 
-      <!-- QUESTION SECTIONS -->
-      <div class="d-grid gap-4">
 
-        {% for section in combined_question_sections %}
+    <!-- QUESTION SECTIONS -->
+    <div class="combined-question-sections mt-4">
 
-          <section
-            class="
-              border
-              rounded-3
-              overflow-hidden
-              combined-question-section
-            "
-          >
+      {% for section in combined_question_sections %}
 
-            <!-- SECTION HEADER -->
-            <header
-              class="
-                px-4
-                py-3
-                border-bottom
-                bg-light
-              "
-            >
+        <section>
 
-              <div
-                class="
-                  d-flex
-                  align-items-start
-                  justify-content-between
-                  gap-3
-                  flex-wrap
-                "
-              >
+          <!-- SECTION HEADER -->
+          <header class="combined-question-section__header mb-1 mt-4 pt-4 border-top">
 
-                <div class="d-flex align-items-start gap-3">
+            <div class="combined-question-section__heading">
 
-                  <div
-                    class="
-                      combined-question-section__icon
-                      flex-shrink-0
-                    "
-                  >
 
-                    {% if section.key == "personality" %}
+              <div>
 
-                      <i data-feather="user"></i>
+                <h3 class="personality-questions-section-title mb-1">
+                  {{ section.title }}
+                </h3>
 
-                    {% elif section.key == "motivation" %}
+                <p class="small text-muted mb-0">
+                  {{ section.description }}
+                </p>
 
-                      <i data-feather="zap"></i>
+              </div>
 
-                    {% elif section.key == "cognitive" %}
+            </div>
 
-                      <i data-feather="cpu"></i>
 
-                    {% else %}
+            <div class="combined-question-section__badges">
 
-                      <i data-feather="message-square"></i>
+              {% if section.is_outdated %}
 
-                    {% endif %}
+                <span
+                  class="
+                    badge
+                    rounded-pill
+                    bg-warning-subtle
+                    text-warning-emphasis
+                  "
+                >
+                  Needs update
+                </span>
 
+              {% endif %}
+
+
+              <span
+                class="personality-trait-pill text-nowrap">
+                {{ section.question_count }}
+                question{{ section.question_count|pluralize }}
+              </span>
+
+            </div>
+
+          </header>
+
+
+          <!-- OUTDATED WARNING -->
+          {% if section.is_outdated %}
+
+            <div class="alert alert-warning mt-3 mb-0">
+
+              <div class="d-flex align-items-start gap-2">
+
+                <i
+                  data-feather="alert-circle"
+                  class="flex-shrink-0 mt-1"
+                ></i>
+
+                <div>
+
+                  <div class="fw-semibold small mb-1">
+                    The process information has changed
                   </div>
 
-
-                  <div>
-
-                    <h3 class="h6 mb-1">
-                      {{ section.title }}
-                    </h3>
-
-                    <p class="small text-muted mb-0">
-                      {{ section.description }}
-                    </p>
-
+                  <div class="small">
+                    These questions were generated using an earlier
+                    process purpose or context.
                   </div>
-
-                </div>
-
-
-                <div class="d-flex align-items-center gap-2">
-
-                  {% if section.is_outdated %}
-
-                    <span
-                      class="
-                        badge
-                        rounded-pill
-                        bg-warning-subtle
-                        text-warning-emphasis
-                      "
-                    >
-                      Needs update
-                    </span>
-
-                  {% endif %}
-
-                  <span
-                    class="
-                      badge
-                      rounded-pill
-                      bg-white
-                      text-dark
-                      border
-                    "
-                  >
-                    {{ section.question_count }}
-                    question{{ section.question_count|pluralize }}
-                  </span>
 
                 </div>
 
               </div>
 
+            </div>
 
-              {% if section.is_outdated %}
-
-                <div class="small text-warning-emphasis mt-3">
-
-                  <i
-                    data-feather="alert-circle"
-                    class="me-1"
-                  ></i>
-
-                  These questions were generated using an earlier process
-                  purpose or context.
-
-                </div>
-
-              {% endif %}
-
-            </header>
+          {% endif %}
 
 
-            <!-- QUESTIONS -->
-            <div class="combined-question-list">
+          <!-- QUESTIONS -->
+          <div class="personality-question-list mt-3">
 
-              {% for item in section.questions %}
+            {% for item in section.questions %}
 
-                <article
-                  class="
-                    combined-question-item
-                    px-4
-                    py-4
-                    {% if not forloop.last %}
-                      border-bottom
-                    {% endif %}
-                  "
-                >
+              <article class="personality-question-card">
 
-                  <div class="d-flex align-items-start gap-3">
+                <!-- QUESTION HEADER -->
+                <div class="personality-question-card__header">
 
-                    <!-- NUMBER -->
-                    <div
-                      class="
-                        combined-question-item__number
-                        flex-shrink-0
-                      "
-                    >
-                      {{ forloop.counter }}
-                    </div>
+                  <div class="personality-question-card__number">
+                    {{ forloop.counter }}
+                  </div>
 
 
-                    <!-- QUESTION CONTENT -->
-                    <div class="flex-grow-1">
+                  <div class="personality-question-card__heading">
 
-                      <h4
-                        class="
-                          combined-question-item__question
-                          h6
-                          mb-3
-                        "
-                      >
-                        {{ item.question }}
-                      </h4>
-
-
-                      <!-- TRAITS -->
-                      {% if item.traits %}
-
-                        <div
-                          class="
-                            d-flex
-                            flex-wrap
-                            align-items-center
-                            gap-2
-                            mb-3
-                          "
-                        >
-
-                          <span class="small text-muted">
-                            Related traits:
-                          </span>
-
-                          {% for trait in item.traits %}
-
-                            <span
-                              class="
-                                badge
-                                rounded-pill
-                                bg-light
-                                text-dark
-                                border
-                              "
-                            >
-                              {{ trait }}
-                            </span>
-
-                          {% endfor %}
-
-                        </div>
-
-                      {% endif %}
-
-
-                      <!-- WHY + LISTEN FOR -->
-                      {% if item.why or item.listen_for %}
-
-                        <div class="row g-3">
-
-                          {% if item.why %}
-
-                            <div
-                              class="
-                                {% if item.listen_for %}
-                                  col-lg-6
-                                {% else %}
-                                  col-12
-                                {% endif %}
-                              "
-                            >
-
-                              <div
-                                class="
-                                  combined-question-detail
-                                  border
-                                  rounded-3
-                                  p-3
-                                  h-100
-                                "
-                              >
-
-                                <div
-                                  class="
-                                    d-flex
-                                    align-items-center
-                                    gap-2
-                                    small
-                                    fw-semibold
-                                    mb-2
-                                  "
-                                >
-                                  <i data-feather="help-circle"></i>
-                                  Why ask this
-                                </div>
-
-                                <div class="small text-muted">
-                                  {{ item.why }}
-                                </div>
-
-                              </div>
-
-                            </div>
-
-                          {% endif %}
-
-
-                          {% if item.listen_for %}
-
-                            <div
-                              class="
-                                {% if item.why %}
-                                  col-lg-6
-                                {% else %}
-                                  col-12
-                                {% endif %}
-                              "
-                            >
-
-                              <div
-                                class="
-                                  combined-question-detail
-                                  border
-                                  rounded-3
-                                  p-3
-                                  h-100
-                                "
-                              >
-
-                                <div
-                                  class="
-                                    d-flex
-                                    align-items-center
-                                    gap-2
-                                    small
-                                    fw-semibold
-                                    mb-2
-                                  "
-                                >
-                                  <i data-feather="headphones"></i>
-                                  What to listen for
-                                </div>
-
-                                <div class="small text-muted">
-                                  {{ item.listen_for }}
-                                </div>
-
-                              </div>
-
-                            </div>
-
-                          {% endif %}
-
-                        </div>
-
-                      {% endif %}
-
+                    <div class="personality-question-card__text">
+                      {{ item.question }}
                     </div>
 
                   </div>
 
-                </article>
-
-              {% endfor %}
-
-            </div>
-
-          </section>
-
-        {% endfor %}
-
-      </div>
+                </div>
 
 
-      <!-- FOOTER -->
-      <div class="small text-muted border-top pt-3 mt-4">
+                <!-- WHY + LISTEN FOR -->
+                {% if item.why or item.listen_for %}
 
+                  <div class="personality-question-card__details">
+
+                    {% if item.why %}
+
+                      <div
+                        class="
+                          personality-question-card__detail
+                          personality-question-card__detail--why
+                        "
+                      >
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="compass"></i>
+                        </div>
+
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            Why this matters
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.why }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+
+                    {% if item.listen_for %}
+
+                      <div
+                        class="
+                          personality-question-card__detail
+                          personality-question-card__detail--listen
+                        "
+                      >
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="headphones"></i>
+                        </div>
+
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            What to listen for
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.listen_for }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                  </div>
+
+                {% endif %}
+
+              </article>
+
+            {% endfor %}
+
+          </div>
+
+        </section>
+
+      {% endfor %}
+
+    </div>
+
+
+    <!-- DISCLAIMER -->
+    <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+      <i data-feather="info"></i>
+
+      <div>
         These questions are based on available assessment results,
         the selected process purpose and any process context available
-        when the source interpretation was generated.
-
+        when the source interpretations were generated. Use them to
+        explore and validate assessment indications rather than as
+        standalone evidence.
       </div>
 
+    </div>
 
-    {% else %}
 
-      <!-- EMPTY STATE -->
-      <div
-        class="
-          border
-          rounded-3
-          text-center
-          px-4
-          py-5
-          mt-4
-          bg-light
-        "
-      >
+  {% else %}
 
-        <div class="mb-3">
-          <i
-            data-feather="message-circle"
-            width="32"
-            height="32"
-          ></i>
-        </div>
+    <!-- EMPTY STATE -->
+    <div class="combined-questions-empty-state mt-4">
 
-        <h3 class="h6 mb-2">
-          No assessment questions are available yet
-        </h3>
-
-        <p
-          class="
-            text-muted
-            small
-            mb-0
-            mx-auto
-          "
-          style="max-width: 520px;"
-        >
-          Generate the Personality, Motivation or Cognitive guidance
-          to collect practical questions here.
-        </p>
-
+      <div class="combined-questions-empty-state__icon">
+        <i
+          data-feather="message-circle"
+          width="28"
+          height="28"
+        ></i>
       </div>
 
-    {% endif %}
+      <h3 class="personality-questions-section-title mb-2">
+        No assessment questions are available yet
+      </h3>
 
-  </div>
+      <p class="text-muted small mb-0">
+        Generate the Personality, Motivation or Cognitive guidance
+        to collect practical questions here.
+      </p>
+
+    </div>
+
+  {% endif %}
+
 </section>

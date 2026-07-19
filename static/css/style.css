@@ -30191,6 +30191,115 @@ color: #6E63E3;
   }
 }
 
+/* =========================================================
+   COMBINED ASSESSMENT QUESTIONS
+   Reuses the Personality/Cognitive question-card design.
+   ========================================================= */
+
+.combined-question-sections {
+  display: grid;
+  gap: 1.5rem;
+}
+
+
+.combined-question-section {
+  padding: 1.25rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  background: rgba(var(--bs-light-rgb), 0.45);
+}
+
+
+.combined-question-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+
+.combined-question-section__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+
+.combined-question-section__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-primary);
+}
+
+
+.combined-question-section__icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+
+.combined-question-section__badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+
+.combined-question-section .personality-question-card {
+  background: var(--bs-body-bg);
+}
+
+
+.combined-questions-empty-state {
+  padding: 3rem 1.5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  background: rgba(var(--bs-light-rgb), 0.45);
+  text-align: center;
+}
+
+
+.combined-questions-empty-state__icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 50%;
+  background: var(--bs-body-bg);
+  color: var(--bs-primary);
+}
+
+
+@media (max-width: 767.98px) {
+
+  .combined-question-section {
+    padding: 1rem;
+  }
+
+
+  .combined-question-section__header {
+    flex-direction: column;
+  }
+
+
+  .combined-question-section__badges {
+    justify-content: flex-start;
+  }
+
+}
+
+
+
 
 /* ------------------------------------------------------------
    Detailed evidence

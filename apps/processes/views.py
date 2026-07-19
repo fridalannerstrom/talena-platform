@@ -1896,6 +1896,10 @@ def build_combined_candidate_questions(
     Collect saved questions from Personality, Motivation and Cognitive.
 
     No additional AI generation happens here.
+
+    The cognitive source supports both:
+    - the new separate cognitive questions field
+    - the older cognitive interpretation field as a fallback
     """
 
     question_sources = [
@@ -1906,10 +1910,14 @@ def build_combined_candidate_questions(
                 "Explore how relevant personality preferences "
                 "appear in practical situations."
             ),
-            "result_field": "ai_personality_questions",
-            "status_field": (
-                "ai_personality_questions_status"
-            ),
+            "result_sources": [
+                {
+                    "result_field": "ai_personality_questions",
+                    "status_field": (
+                        "ai_personality_questions_status"
+                    ),
+                },
+            ],
         },
         {
             "key": "motivation",
@@ -1918,12 +1926,16 @@ def build_combined_candidate_questions(
                 "Explore what may create energy, engagement "
                 "and sustainable motivation."
             ),
-            "result_field": (
-                "ai_motivation_interpretation"
-            ),
-            "status_field": (
-                "ai_motivation_interpretation_status"
-            ),
+            "result_sources": [
+                {
+                    "result_field": (
+                        "ai_motivation_interpretation"
+                    ),
+                    "status_field": (
+                        "ai_motivation_interpretation_status"
+                    ),
+                },
+            ],
         },
         {
             "key": "cognitive",
@@ -1932,12 +1944,26 @@ def build_combined_candidate_questions(
                 "Explore how the cognitive assessment results "
                 "relate to practical demands and working methods."
             ),
-            "result_field": (
-                "ai_cognitive_interpretation"
-            ),
-            "status_field": (
-                "ai_cognitive_interpretation_status"
-            ),
+            "result_sources": [
+                {
+                    # New separate Cognitive Questions result.
+                    "result_field": (
+                        "ai_cognitive_questions"
+                    ),
+                    "status_field": (
+                        "ai_cognitive_questions_status"
+                    ),
+                },
+                {
+                    # Backwards-compatible fallback for older results.
+                    "result_field": (
+                        "ai_cognitive_interpretation"
+                    ),
+                    "status_field": (
+                        "ai_cognitive_interpretation_status"
+                    ),
+                },
+            ],
         },
     ]
 
@@ -1945,44 +1971,59 @@ def build_combined_candidate_questions(
     total_count = 0
 
     for source in question_sources:
-        saved_result = (
-            getattr(
-                invitation,
-                source["result_field"],
-                {},
-            )
-            or {}
-        )
+        raw_questions = []
+        status = "not_started"
 
-        raw_questions = (
-            saved_result.get("questions")
-            or []
-        )
+        # Try each configured result source in order.
+        # The first source containing questions wins.
+        for result_source in source["result_sources"]:
+            saved_result = (
+                getattr(
+                    invitation,
+                    result_source["result_field"],
+                    {},
+                )
+                or {}
+            )
+
+            possible_questions = (
+                saved_result.get("questions")
+                or []
+            )
+
+            if not isinstance(possible_questions, list):
+                continue
+
+            if not possible_questions:
+                continue
+
+            raw_questions = possible_questions
+
+            status = (
+                getattr(
+                    invitation,
+                    result_source["status_field"],
+                    "not_started",
+                )
+                or "not_started"
+            )
+
+            break
 
         questions = []
 
-        if isinstance(raw_questions, list):
-            for raw_question in raw_questions:
-                question = (
-                    _normalise_combined_question(
-                        raw_question
-                    )
+        for raw_question in raw_questions:
+            question = (
+                _normalise_combined_question(
+                    raw_question
                 )
+            )
 
-                if question:
-                    questions.append(question)
+            if question:
+                questions.append(question)
 
         if not questions:
             continue
-
-        status = (
-            getattr(
-                invitation,
-                source["status_field"],
-                "not_started",
-            )
-            or "not_started"
-        )
 
         sections.append({
             "key": source["key"],
@@ -2001,6 +2042,7 @@ def build_combined_candidate_questions(
         "total_count": total_count,
         "has_questions": total_count > 0,
     }
+
 
 def _normalise_final_output_list(
     value,
