@@ -391,6 +391,58 @@ def _describe_sector(start_angle, end_angle, outer_radius, inner_radius=0):
         f"{inner_start['x']} {inner_start['y']} Z"
     )
 
+def _build_team_style_relevance(display_value):
+    """
+    Determine how strongly the practical guidance should be applied.
+
+    Sova provides fixed guidance for each team style, rather than separate
+    low-, middle- and high-score interpretations. The STIVE result therefore
+    controls how the source guidance is presented, not its content.
+    """
+    if display_value is None:
+        return {
+            "key": "unavailable",
+            "label": None,
+            "show_guidance": False,
+            "guidance_intro": None,
+        }
+
+    if display_value >= 4:
+        return {
+            "key": "prominent",
+            "label": "Prominent style",
+            "show_guidance": True,
+            "guidance_intro": (
+                "This is a prominent preference in the candidate's profile. "
+                "The guidance below is therefore likely to be particularly "
+                "relevant."
+            ),
+        }
+
+    if display_value == 3:
+        return {
+            "key": "situational",
+            "label": "Situational style",
+            "show_guidance": True,
+            "guidance_intro": (
+                "This preference is around the middle of the scale. "
+                "The guidance may be relevant depending on the situation "
+                "and team context."
+            ),
+        }
+
+    return {
+        "key": "less_likely",
+        "label": "Less likely style",
+        "show_guidance": True,
+        "guidance_intro": (
+            "This is a less prominent preference in the candidate's profile. "
+            "The guidance below may therefore be less characteristic of their "
+            "usual approach, but can still be relevant in certain situations."
+        ),
+    }
+
+
 def build_team_style_profile(personality_competencies):
     """
     Build Talena's team-style presentation from Sova personality results.
@@ -427,6 +479,10 @@ def build_team_style_profile(personality_competencies):
         raw_value = values["raw_value"]
         display_value = values["display_value"]
         available = raw_value is not None and display_value is not None
+
+        relevance = _build_team_style_relevance(
+            display_value
+        )
 
         score_radius = (
             CHART_RESULT_MAX_RADIUS * raw_value / 5
@@ -469,6 +525,7 @@ def build_team_style_profile(personality_competencies):
         chart_styles.append({
             **config,
             "config_index": config_index,
+            "relevance": relevance,
             "available": available,
             "raw_value": raw_value,
             "display_value": display_value,
