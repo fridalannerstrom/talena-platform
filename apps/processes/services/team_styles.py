@@ -268,6 +268,205 @@ TEAM_STYLE_CONFIG = [
 ]
 
 
+# Source: Sova TQ Personality - Team Report (Team Style Implications and
+# communication guidance). The wording is intentionally kept source-led.
+SOVA_TEAM_STYLE_GUIDANCE = {
+    "connector": {
+        "expected_behavior": (
+            "Friendly and talkative; initiates new contacts, builds relationships "
+            "and maintains good awareness of the outside world."
+        ),
+        "potential_limitations": (
+            "Can spend too long interacting with others at the expense of achieving "
+            "other goals and objectives. May be too quick to involve others, thereby "
+            "compromising time or process-related efficiency within the team."
+        ),
+        "build_trust": (
+            "Clearly show what you want, be flexible and allow time to talk. Show "
+            "that you enjoy their company, ask how they feel and let them express "
+            "their feelings."
+        ),
+        "create_irritation": (
+            "Controlling or taking over the conversation, not disclosing information, "
+            "not showing eagerness, or using a cold or dismissive tone."
+        ),
+    },
+    "catalyst": {
+        "expected_behavior": (
+            "Talkative, impulsive and expressive. May use their hands when talking, "
+            "become emotional easily and be less careful with time."
+        ),
+        "potential_limitations": (
+            "Can be too quick to dismiss what is working well and may pursue change "
+            "for the sake of change. May overcomplicate issues or design solutions "
+            "that are unnecessarily complex."
+        ),
+        "build_trust": (
+            "Show positive commitment, be flexible and allow time for creativity. "
+            "Ask for their opinions or comments and show appreciation for their ideas."
+        ),
+        "create_irritation": (
+            "Criticising ideas without being constructive, focusing on excessive "
+            "detail, facts or figures, or showing little eagerness to listen to ideas."
+        ),
+    },
+    "director": {
+        "expected_behavior": (
+            "Talks about the task and is happy to discuss strategy. May be perceived "
+            "as distant or unaffected when discussing relationships."
+        ),
+        "potential_limitations": (
+            "Tends to be quite directive and may be seen as too quick to tell others "
+            "what to do. May push their own agenda rather than listen to others or "
+            "consult to identify mutually agreeable outcomes."
+        ),
+        "build_trust": (
+            "Do not discuss personal matters unless invited. Be clear, businesslike "
+            "and rational."
+        ),
+        "create_irritation": (
+            "Not focusing on the task, talking too much about personal matters or "
+            "failing to deliver what has been requested."
+        ),
+    },
+    "energiser": {
+        "expected_behavior": (
+            "Talks fast, makes a strong first impression and communicates directly. "
+            "May appear impatient or try to control the situation."
+        ),
+        "potential_limitations": (
+            "Can undermine the team's focus and motivation by pursuing too many "
+            "things at once or changing direction too rapidly. May be seen as overly "
+            "aggressive or intolerant of those who are less driven."
+        ),
+        "build_trust": (
+            "Keep a high pace and focus on the most important details. Show confidence, "
+            "involve them in decisions, avoid wasting time and focus on efficiency."
+        ),
+        "create_irritation": (
+            "Not reacting quickly enough, speaking or acting too cautiously, focusing "
+            "on insignificant matters or appearing muddled."
+        ),
+    },
+    "architect": {
+        "expected_behavior": (
+            "Concrete and action-oriented. Asks how to proceed, breaks down broad "
+            "strategies into actions and can work independently without needing to lead."
+        ),
+        "potential_limitations": (
+            "May delay execution and delivery through excessive planning and preparation. "
+            "May struggle to modify plans in response to changing requirements, "
+            "conditions or priorities."
+        ),
+        "build_trust": (
+            "Be specific and show how. Have a clear plan, discuss matters affecting the "
+            "group, let them take over the baton and establish clear action and "
+            "development plans."
+        ),
+        "create_irritation": (
+            "Discussing strategy without a plan, changing course after work has started, "
+            "changing conditions too quickly or setting unrealistic time frames."
+        ),
+    },
+    "harmoniser": {
+        "expected_behavior": (
+            "Patient and attentive to how colleagues feel. Communicates inclusively and "
+            "focuses on cohesion and making the group feel good."
+        ),
+        "potential_limitations": (
+            "Can be too eager to please others and may struggle to say no or set realistic "
+            "boundaries. May rely too heavily on a team-based approach and find "
+            "independent work difficult."
+        ),
+        "build_trust": (
+            "Show that you care, consider individuals within the group, express sincere "
+            "appreciation, focus on loyalty and communicate clearly when something is urgent."
+        ),
+        "create_irritation": (
+            "Focusing only on the task when relationships are strained, not engaging "
+            "personally, being harsh or dismissive, or demanding too much from people "
+            "already under strain."
+        ),
+    },
+    "analyst": {
+        "expected_behavior": (
+            "Refers to and asks questions about facts and statistics. Acts carefully "
+            "without reliable data, gestures sparingly, reviews critically and is "
+            "suspicious of superlatives."
+        ),
+        "potential_limitations": (
+            "May spend so long analysing and evaluating that action is delayed and "
+            "opportunities are lost. Can be seen as overly critical or too quick to "
+            "find fault with new ideas and proposed approaches."
+        ),
+        "build_trust": (
+            "Be concrete and fact-oriented, avoid intrusive personal questions, support "
+            "creative ideas with evidence, be prepared and careful, and provide proven "
+            "assurances for important decisions."
+        ),
+        "create_irritation": (
+            "Being spontaneous without referring to facts for important decisions, "
+            "appearing careless or disorganised, overselling ideas, or setting "
+            "unrealistic time frames."
+        ),
+    },
+    "auditor": {
+        "expected_behavior": (
+            "Patient, easy-going, reserved and methodical. Tends to finish what they "
+            "start and may be perceived as careful."
+        ),
+        "potential_limitations": (
+            "Can labour over small details and miss the bigger picture. May adhere too "
+            "rigidly to rules and procedures or struggle to recognise when commitments "
+            "should change with circumstances."
+        ),
+        "build_trust": (
+            "Create a friendly atmosphere, be calm and careful, present information "
+            "systematically, explain reasons and benefits when change is required, show "
+            "appreciation and focus on safety and follow-up."
+        ),
+        "create_irritation": (
+            "Being vague about deadlines, not engaging personally, being dominant or "
+            "demanding without explanation, or requiring quick answers."
+        ),
+    },
+}
+
+
+def _team_style_relevance(display_value):
+    if display_value is None:
+        return None
+    if display_value >= 4:
+        return {
+            "key": "prominent",
+            "label": "Prominent style",
+            "guidance_intro": (
+                "This is a prominent preference in the candidate's profile. The "
+                "guidance below is therefore likely to be particularly relevant."
+            ),
+            "show_guidance": True,
+        }
+    if display_value == 3:
+        return {
+            "key": "situational",
+            "label": "Situational style",
+            "guidance_intro": (
+                "This preference is around the middle of the scale. The guidance "
+                "may be relevant depending on the situation and team context."
+            ),
+            "show_guidance": True,
+        }
+    return {
+        "key": "less_likely",
+        "label": "Less likely style",
+        "guidance_intro": (
+            "This is a less likely style for the candidate. Behavioural guidance "
+            "is not shown as candidate-typical for this result."
+        ),
+        "show_guidance": False,
+    }
+
+
 def _normalise_name(value):
     return " ".join(
         str(value or "")
@@ -466,8 +665,13 @@ def build_team_style_profile(personality_competencies):
             92,
         )
 
+        guidance = SOVA_TEAM_STYLE_GUIDANCE.get(config["key"], {})
+        relevance = _team_style_relevance(display_value)
+
         chart_styles.append({
             **config,
+            **guidance,
+            "relevance": relevance,
             "config_index": config_index,
             "available": available,
             "raw_value": raw_value,
