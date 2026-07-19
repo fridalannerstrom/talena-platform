@@ -1,92 +1,799 @@
 <section
-  class="
-    card
-    mb-4
-    purpose-fit-card
-    final-output-card
-  "
+  class="purpose-fit-card final-output-card"
   data-final-output-root
+  data-decision-support-root
   data-refresh-url="{{ final_output_refresh_url }}"
+  data-pre-interview-stream-url="{{ pre_interview_decision_support_stream_url }}"
+  data-pre-interview-regenerate-url="{{ pre_interview_decision_support_regenerate_url }}"
+  data-interview-notes-update-url="{{ interview_notes_update_url }}"
+  data-pre-interview-status="{{ pre_interview_decision_support_status|default:'not_started' }}"
+  data-has-pre-interview-result="{% if has_pre_interview_decision_support %}true{% else %}false{% endif %}"
+  data-post-interview-stream-url="{{ post_interview_decision_support_stream_url }}"
+  data-post-interview-regenerate-url="{{ post_interview_decision_support_regenerate_url }}"
+  data-post-interview-status="{{ post_interview_decision_support_status|default:'not_started' }}"
+  data-has-post-interview-result="{% if has_post_interview_decision_support %}true{% else %}false{% endif %}"
 >
 
-  <div class="card-body">
+  <!-- ================================================== -->
+  <!-- PAGE HEADER -->
+  <!-- ================================================== -->
 
-    <!-- HEADER -->
-    <div
-      class="
-        d-flex
-        align-items-start
-        justify-content-between
-        gap-3
-        flex-wrap
-      "
-    >
+  <div
+    class="
+      d-flex
+      align-items-start
+      justify-content-between
+      gap-3
+      flex-wrap
+      mt-4
+    "
+  >
+
+    <div>
+
+      <div class="insight-summary-kicker">
+        ✨ AI-supported synthesis
+      </div>
+
+      <h2 class="insight-summary-title mb-1">
+        Decision support
+      </h2>
+
+      <p class="text-muted small mb-0">
+        A structured synthesis that helps you interpret the available
+        evidence, prepare discussions and identify what still needs
+        to be explored.
+      </p>
+
+    </div>
+
+
+    {% if process.get_purpose_display %}
+
+      <span class="badge rounded-pill bg-light text-dark border">
+        {{ process.get_purpose_display }}
+      </span>
+
+    {% endif %}
+
+  </div>
+
+
+  <!-- HUMAN DECISION REMINDER -->
+
+  <div class="personality-questions-context-note mt-4">
+
+    <div class="d-flex align-items-start gap-3">
+
+      <div class="personality-questions-context-note__icon">
+        <i data-feather="user-check"></i>
+      </div>
 
       <div>
 
-        <div class="insight-summary-kicker">
-          Purpose-based output
+        <div class="personality-questions-context-note__title">
+          Decision support, not a decision
         </div>
 
-        <h2 class="insight-summary-title mb-1">
-          Final output
-        </h2>
-
-        <p class="text-muted small mb-0">
-          A combined working summary based on the available assessment
-          results, interpretations and process information.
-        </p>
-
-      </div>
-
-
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-
-        {% if final_output.purpose_label %}
-
-          <span class="badge rounded-pill bg-light text-dark border">
-            {{ final_output.purpose_label }}
-          </span>
-
-        {% endif %}
-
-
-        {% if final_output.source_count %}
-
-          <span class="badge rounded-pill bg-light text-dark border">
-            {{ final_output.source_count }}
-            source{{ final_output.source_count|pluralize }}
-          </span>
-
-        {% endif %}
+        <div>
+          Talena organises and interprets available evidence but does
+          not determine whether the candidate should be selected,
+          rejected, promoted or placed in a role.
+        </div>
 
       </div>
 
     </div>
 
+  </div>
 
-    {% if final_output_has_outdated_content %}
 
-      <!-- OUTDATED WARNING -->
-      <div class="alert alert-warning mt-4">
+  {% if is_historical %}
 
-        <div class="d-flex align-items-start gap-2">
+    <div class="alert alert-light border mt-4 mb-0">
 
-          <i
-            data-feather="alert-circle"
-            class="flex-shrink-0 mt-1"
-          ></i>
+      Decision support is not yet available for historical candidates.
+
+    </div>
+
+  {% else %}
+
+    <!-- ================================================== -->
+    <!-- BEFORE / AFTER TABS -->
+    <!-- ================================================== -->
+
+    <div class="mt-4">
+
+      <div class="personality-view-controls">
+
+        <div
+          class="personality-view-tabs"
+          role="tablist"
+          aria-label="Decision support stage"
+        >
+
+          <button
+            type="button"
+            id="decision-support-before-tab"
+            class="personality-view-tab is-active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="decision-support-before-panel"
+            data-decision-tab="before"
+          >
+            <i data-feather="clipboard"></i>
+            <span>Before interview</span>
+          </button>
+
+
+          <button
+            type="button"
+            id="decision-support-after-tab"
+            class="personality-view-tab"
+            role="tab"
+            aria-selected="false"
+            aria-controls="decision-support-after-panel"
+            data-decision-tab="after"
+          >
+            <i data-feather="message-circle"></i>
+            <span>After interview</span>
+
+            {% if has_interview_notes %}
+              <span class="badge rounded-pill bg-light text-dark border ms-1">
+                Notes added
+              </span>
+            {% endif %}
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- BEFORE INTERVIEW PANEL -->
+      <!-- ================================================== -->
+
+      <div
+        id="decision-support-before-panel"
+        class="personality-view-panel"
+        role="tabpanel"
+        aria-labelledby="decision-support-before-tab"
+        data-decision-panel="before"
+      >
+
+        <!-- HEADER -->
+
+        <div
+          class="
+            d-flex
+            align-items-start
+            justify-content-between
+            gap-3
+            flex-wrap
+            mt-4
+          "
+        >
 
           <div>
 
-            <div class="fw-semibold small mb-1">
-              Some content needs to be updated
+            <div class="insight-summary-kicker">
+              Pre-interview
             </div>
 
-            <div class="small">
-              Parts of this output were generated before the process
-              purpose or context was changed. Refresh the relevant
-              interpretation before using the final output.
+            <h3 class="insight-summary-title mb-1">
+              Pre-interview decision support
+            </h3>
+
+            <p class="text-muted small mb-0">
+              Uses the available assessment interpretations, process
+              purpose and context to prepare a focused and evidence-based
+              discussion.
+            </p>
+
+          </div>
+
+
+          <div class="d-flex align-items-center gap-2">
+
+            <span
+              class="
+                badge
+                rounded-pill
+                bg-warning-subtle
+                text-warning-emphasis
+                {% if pre_interview_decision_support_status != 'outdated' %}
+                  d-none
+                {% endif %}
+              "
+              data-pre-interview-status-badge
+            >
+              Needs update
+            </span>
+
+
+            {% if has_pre_interview_decision_support %}
+
+              <button
+                type="button"
+                class="btn btn-icon btn-light"
+                title="Generate updated decision support"
+                aria-label="Generate updated decision support"
+                data-pre-interview-generate
+                data-regenerate="true"
+              >
+                <i data-feather="refresh-cw"></i>
+              </button>
+
+            {% else %}
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-pre-interview-generate
+                data-regenerate="false"
+              >
+                <i data-feather="star"></i>
+                Generate decision support
+              </button>
+
+            {% endif %}
+
+          </div>
+
+        </div>
+
+
+        <!-- OUTDATED WARNING -->
+
+        <div
+          class="
+            alert
+            alert-warning
+            mt-4
+            {% if pre_interview_decision_support_status != 'outdated' %}
+              d-none
+            {% endif %}
+          "
+          data-pre-interview-outdated
+        >
+
+          <div class="d-flex align-items-start gap-2">
+
+            <i
+              data-feather="alert-circle"
+              class="flex-shrink-0 mt-1"
+            ></i>
+
+            <div>
+
+              <div class="fw-semibold small mb-1">
+                The process information has changed
+              </div>
+
+              <div class="small">
+                This decision support was created using an earlier
+                purpose or process context. Generate an updated version
+                before relying on it.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- LOADING -->
+
+        <div
+          class="
+            d-flex
+            align-items-center
+            gap-2
+            text-muted
+            py-4
+            d-none
+          "
+          data-pre-interview-thinking
+        >
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Combining the available evidence and preparing decision support...
+          </span>
+
+        </div>
+
+
+        <!-- ERROR -->
+
+        <div
+          class="
+            alert
+            alert-danger
+            mt-4
+            {% if pre_interview_decision_support_status != 'failed' %}
+              d-none
+            {% endif %}
+          "
+          data-pre-interview-error
+        >
+          The pre-interview decision support could not be generated.
+        </div>
+
+
+        <!-- EMPTY STATE -->
+
+        <div
+          class="
+            combined-questions-empty-state
+            mt-4
+            {% if has_pre_interview_decision_support %}
+              d-none
+            {% endif %}
+          "
+          data-pre-interview-empty
+        >
+
+          <div class="combined-questions-empty-state__icon">
+            <i data-feather="clipboard"></i>
+          </div>
+
+          <h3 class="personality-questions-section-title mb-2">
+            Prepare the interview
+          </h3>
+
+          <p
+            class="text-muted small mb-0 mx-auto"
+            style="max-width: 560px;"
+          >
+            Generate a synthesis of the available assessment evidence,
+            cautious interpretations, discussion guidance and priority
+            validation questions.
+          </p>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- GENERATED CONTENT -->
+        <!-- ================================================== -->
+
+        <div
+          class="
+            {% if not has_pre_interview_decision_support %}
+              d-none
+            {% endif %}
+          "
+          data-pre-interview-content
+        >
+
+          <!-- OVERALL SYNTHESIS -->
+
+          <section class="purpose-fit-section mt-4">
+
+            <h3 class="purpose-fit-section-title mb-2">
+              Overall synthesis
+            </h3>
+
+            <div
+              class="purpose-fit-summary"
+              data-pre-interview-overall-synthesis
+            >
+              {{ pre_interview_decision_support.overall_synthesis }}
+            </div>
+
+          </section>
+
+
+          <!-- INDICATIONS + CAUTION -->
+
+          <div class="row g-4 mt-1">
+
+            <!-- PURPOSE-RELEVANT INDICATIONS -->
+
+            <div class="col-lg-6">
+
+              <section
+                class="
+                  purpose-fit-list-card
+                  purpose-fit-list-card--positive
+                  h-100
+                "
+              >
+
+                <div class="purpose-fit-section-title mb-3">
+                  Purpose-relevant indications
+                </div>
+
+                <div
+                  class="d-grid gap-3"
+                  data-pre-interview-indications
+                >
+
+                  {% for item in pre_interview_decision_support.purpose_relevant_indications %}
+
+                    <article>
+
+                      <div class="fw-semibold mb-1">
+                        {{ item.title }}
+                      </div>
+
+                      <div class="small">
+                        {{ item.interpretation }}
+                      </div>
+
+                      {% if item.evidence_sources %}
+
+                        <div class="d-flex flex-wrap gap-1 mt-2">
+
+                          {% for source in item.evidence_sources %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                bg-white
+                                text-dark
+                                border
+                              "
+                            >
+                              {{ source }}
+                            </span>
+
+                          {% endfor %}
+
+                        </div>
+
+                      {% endif %}
+
+                    </article>
+
+                  {% endfor %}
+
+                </div>
+
+              </section>
+
+            </div>
+
+
+            <!-- CAUTIOUS INTERPRETATIONS -->
+
+            <div class="col-lg-6">
+
+              <section
+                class="
+                  purpose-fit-list-card
+                  purpose-fit-list-card--verify
+                  h-100
+                "
+              >
+
+                <div class="purpose-fit-section-title mb-3">
+                  What requires cautious interpretation
+                </div>
+
+                <div
+                  class="d-grid gap-3"
+                  data-pre-interview-cautions
+                >
+
+                  {% for item in pre_interview_decision_support.cautious_interpretations %}
+
+                    <article>
+
+                      <div class="fw-semibold mb-1">
+                        {{ item.title }}
+                      </div>
+
+                      <div class="small">
+                        {{ item.interpretation }}
+                      </div>
+
+                      {% if item.reason_for_caution %}
+
+                        <div class="small text-muted mt-2">
+                          <strong>Why caution is needed:</strong>
+                          {{ item.reason_for_caution }}
+                        </div>
+
+                      {% endif %}
+
+                    </article>
+
+                  {% endfor %}
+
+                </div>
+
+              </section>
+
+            </div>
+
+          </div>
+
+
+          <!-- DISCUSSION GUIDANCE -->
+
+          <section class="purpose-fit-section border-top pt-4 mt-4">
+
+            <div class="insight-summary-kicker">
+              Practical guidance
+            </div>
+
+            <h3 class="insight-summary-title mb-1">
+              How to approach the discussion
+            </h3>
+
+            <p class="text-muted small mb-0">
+              Suggestions for discussing the profile constructively
+              and collecting relevant behavioural evidence.
+            </p>
+
+
+            <div class="row g-4 mt-1">
+
+              <div class="col-lg-6">
+
+                <section class="purpose-fit-list-card h-100">
+
+                  <div class="purpose-fit-section-title">
+                    Feedback approach
+                  </div>
+
+                  <ul
+                    class="purpose-fit-list"
+                    data-pre-interview-feedback-approach
+                  >
+
+                    {% for item in pre_interview_decision_support.discussion_guidance.feedback_approach %}
+
+                      <li>
+
+                        <span class="purpose-fit-list-icon">
+                          <i data-feather="message-circle"></i>
+                        </span>
+
+                        <span>{{ item }}</span>
+
+                      </li>
+
+                    {% endfor %}
+
+                  </ul>
+
+                </section>
+
+              </div>
+
+
+              <div class="col-lg-6">
+
+                <section class="purpose-fit-list-card h-100">
+
+                  <div class="purpose-fit-section-title">
+                    Interview focus
+                  </div>
+
+                  <ul
+                    class="purpose-fit-list"
+                    data-pre-interview-interview-focus
+                  >
+
+                    {% for item in pre_interview_decision_support.discussion_guidance.interview_focus %}
+
+                      <li>
+
+                        <span class="purpose-fit-list-icon">
+                          <i data-feather="search"></i>
+                        </span>
+
+                        <span>{{ item }}</span>
+
+                      </li>
+
+                    {% endfor %}
+
+                  </ul>
+
+                </section>
+
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- PRIORITY QUESTIONS -->
+
+          <section class="purpose-fit-section border-top pt-4 mt-4">
+
+            <div
+              class="
+                d-flex
+                align-items-start
+                justify-content-between
+                gap-3
+                flex-wrap
+                mb-3
+              "
+            >
+
+              <div>
+
+                <div class="insight-summary-kicker">
+                  Validation
+                </div>
+
+                <h3 class="insight-summary-title mb-1">
+                  Priority questions
+                </h3>
+
+                <p class="text-muted small mb-0">
+                  Questions selected to validate, challenge or add
+                  context to the overall assessment picture.
+                </p>
+
+              </div>
+
+
+              <span class="badge rounded-pill bg-light text-dark border">
+                {{ pre_interview_decision_support.validation_questions|length }}
+                question{{ pre_interview_decision_support.validation_questions|length|pluralize }}
+              </span>
+
+            </div>
+
+
+            <div
+              class="personality-question-list"
+              data-pre-interview-questions
+            >
+
+              {% for item in pre_interview_decision_support.validation_questions %}
+
+                <article class="personality-question-card">
+
+                  <div class="personality-question-card__header">
+
+                    <div class="personality-question-card__number">
+                      {{ forloop.counter }}
+                    </div>
+
+                    <div class="personality-question-card__heading">
+
+                      <div class="personality-question-card__text">
+                        {{ item.question }}
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="personality-question-card__details">
+
+                    {% if item.why %}
+
+                      <div
+                        class="
+                          personality-question-card__detail
+                          personality-question-card__detail--why
+                        "
+                      >
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="compass"></i>
+                        </div>
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            Why this matters
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.why }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+
+                    {% if item.listen_for %}
+
+                      <div
+                        class="
+                          personality-question-card__detail
+                          personality-question-card__detail--listen
+                        "
+                      >
+
+                        <div class="personality-question-card__detail-icon">
+                          <i data-feather="headphones"></i>
+                        </div>
+
+                        <div>
+
+                          <div class="personality-question-card__detail-title">
+                            What to look for in the answer
+                          </div>
+
+                          <div class="personality-question-card__detail-text">
+                            {{ item.listen_for }}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    {% endif %}
+
+                  </div>
+
+                </article>
+
+              {% endfor %}
+
+            </div>
+
+          </section>
+
+
+          <!-- EVIDENCE GAPS -->
+
+          <section class="purpose-fit-section border-top pt-4 mt-4">
+
+            <div class="purpose-fit-list-card">
+
+              <div class="purpose-fit-section-title">
+                Evidence still missing
+              </div>
+
+              <ul
+                class="purpose-fit-list"
+                data-pre-interview-evidence-gaps
+              >
+
+                {% for item in pre_interview_decision_support.evidence_gaps %}
+
+                  <li>
+
+                    <span class="purpose-fit-list-icon">
+                      <i data-feather="alert-circle"></i>
+                    </span>
+
+                    <span>{{ item }}</span>
+
+                  </li>
+
+                {% endfor %}
+
+              </ul>
+
+            </div>
+
+          </section>
+
+
+          <!-- CONTEXT NOTE -->
+
+          <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+            <i data-feather="info"></i>
+
+            <div data-pre-interview-context-note>
+              {{ pre_interview_decision_support.context_note }}
             </div>
 
           </div>
@@ -95,18 +802,45 @@
 
       </div>
 
-    {% endif %}
-
-
-    {% if has_final_output %}
 
       <!-- ================================================== -->
-      <!-- AI OVERVIEW -->
+      <!-- AFTER INTERVIEW PANEL -->
       <!-- ================================================== -->
 
-      {% if final_output.overview.has_content %}
+      <div
+        id="decision-support-after-panel"
+        class="personality-view-panel"
+        role="tabpanel"
+        aria-labelledby="decision-support-after-tab"
+        data-decision-panel="after"
+        hidden
+      >
 
-        <section class="border rounded-3 p-4 mt-4">
+        <div class="mt-4">
+
+          <div class="insight-summary-kicker">
+            Post-interview
+          </div>
+
+          <h3 class="insight-summary-title mb-1">
+            Add interview evidence
+          </h3>
+
+          <p class="text-muted small mb-0">
+            Add relevant interview notes, behavioural examples and
+            candidate reflections. Talena will later compare this evidence
+            with the assessment indications without making the final decision.
+          </p>
+
+        </div>
+
+
+        <!-- INTERVIEW NOTES -->
+
+        <section
+          class="response-style-ai-card mt-4"
+          data-interview-notes-root
+        >
 
           <div
             class="
@@ -121,467 +855,430 @@
 
             <div>
 
-              <div class="small text-muted text-uppercase mb-1">
-                Overall summary
+              <div class="purpose-fit-section-title mb-1">
+                Interview notes and candidate examples
               </div>
 
-              <h3 class="h5 mb-0">
-                AI Overview
-              </h3>
+              <div class="small text-muted">
+                Include relevant examples, working methods, context and
+                answers that may support, challenge or add nuance to the
+                assessment profile.
+              </div>
 
             </div>
 
 
-            {% if final_output.overview.is_outdated %}
+            {% if interview_notes_updated_at %}
 
               <span
-                class="
-                  badge
-                  rounded-pill
-                  bg-warning-subtle
-                  text-warning-emphasis
-                "
+                class="small text-muted"
+                data-interview-notes-last-saved
               >
-                Needs update
+                Last saved {{ interview_notes_updated_at|date:"j M Y, H:i" }}
               </span>
+
+            {% else %}
+
+              <span
+                class="small text-muted"
+                data-interview-notes-last-saved
+              ></span>
 
             {% endif %}
 
           </div>
 
 
-          {% if final_output.overview.summary %}
+          <label
+            for="candidate-interview-notes"
+            class="form-label fw-semibold"
+          >
+            Notes
+          </label>
+
+          <textarea
+            id="candidate-interview-notes"
+            class="form-control"
+            rows="12"
+            maxlength="30000"
+            placeholder="Paste interview notes, candidate examples and relevant observations here..."
+            data-interview-notes-input
+          >{{ interview_notes }}</textarea>
 
-            <div class="mb-4">
-              {{ final_output.overview.summary }}
-            </div>
-
-          {% endif %}
-
-
-          {% if final_output.overview.supporting or final_output.overview.explore %}
-
-            <div class="row g-3">
-
-              <!-- SUPPORTING -->
-              {% if final_output.overview.supporting %}
-
-                <div class="col-lg-6">
-
-                  <div class="border rounded-3 p-3 h-100">
-
-                    <h4 class="h6 mb-3">
-                      What may support the purpose
-                    </h4>
-
-                    <ul class="list-unstyled d-grid gap-3 mb-0">
-
-                      {% for item in final_output.overview.supporting %}
-
-                        <li class="d-flex align-items-start gap-2">
-
-                          <i
-                            data-feather="check-circle"
-                            class="flex-shrink-0 mt-1"
-                          ></i>
-
-                          <span>
-                            {{ item }}
-                          </span>
-
-                        </li>
-
-                      {% endfor %}
-
-                    </ul>
-
-                  </div>
-
-                </div>
-
-              {% endif %}
-
-
-              <!-- EXPLORE -->
-              {% if final_output.overview.explore %}
-
-                <div class="col-lg-6">
-
-                  <div class="border rounded-3 p-3 h-100">
-
-                    <h4 class="h6 mb-3">
-                      What to explore or verify
-                    </h4>
-
-                    <ul class="list-unstyled d-grid gap-3 mb-0">
-
-                      {% for item in final_output.overview.explore %}
-
-                        <li class="d-flex align-items-start gap-2">
-
-                          <i
-                            data-feather="search"
-                            class="flex-shrink-0 mt-1"
-                          ></i>
-
-                          <span>
-                            {{ item }}
-                          </span>
-
-                        </li>
-
-                      {% endfor %}
-
-                    </ul>
-
-                  </div>
-
-                </div>
-
-              {% endif %}
-
-            </div>
-
-          {% endif %}
-
-
-          {% if final_output.overview.suggested_next_step %}
-
-            <div class="alert alert-light border mt-4 mb-0">
-
-              <div class="d-flex align-items-start gap-3">
-
-                <i
-                  data-feather="arrow-right-circle"
-                  class="flex-shrink-0 mt-1"
-                ></i>
-
-                <div>
-
-                  <div class="fw-semibold small mb-1">
-                    Suggested next step
-                  </div>
-
-                  <div>
-                    {{ final_output.overview.suggested_next_step }}
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          {% endif %}
-
-        </section>
-
-      {% endif %}
-
-
-      <!-- ================================================== -->
-      <!-- ASSESSMENT INTERPRETATIONS -->
-      <!-- ================================================== -->
-
-      {% if final_output.assessment_sections %}
-
-        <section class="mt-4">
-
-          <div class="mb-3">
-
-            <div class="small text-muted text-uppercase mb-1">
-              Assessment insights
-            </div>
-
-            <h3 class="h5 mb-1">
-              Interpretation by assessment
-            </h3>
-
-            <p class="small text-muted mb-0">
-              A compact view of the available Personality, Motivation
-              and Cognitive interpretations.
-            </p>
-
-          </div>
-
-
-          <div class="d-grid gap-3">
-
-            {% for section in final_output.assessment_sections %}
-
-              <article class="border rounded-3 p-4">
-
-                <!-- SECTION HEADER -->
-                <div
-                  class="
-                    d-flex
-                    align-items-start
-                    justify-content-between
-                    gap-3
-                    flex-wrap
-                    mb-3
-                  "
-                >
-
-                  <div class="d-flex align-items-start gap-3">
-
-                    <div class="flex-shrink-0">
-
-                      {% if section.key == "personality" %}
-
-                        <i data-feather="user"></i>
-
-                      {% elif section.key == "motivation" %}
-
-                        <i data-feather="zap"></i>
-
-                      {% elif section.key == "cognitive" %}
-
-                        <i data-feather="cpu"></i>
-
-                      {% else %}
-
-                        <i data-feather="file-text"></i>
-
-                      {% endif %}
-
-                    </div>
-
-
-                    <div>
-
-                      <h4 class="h6 mb-1">
-                        {{ section.title }}
-                      </h4>
-
-                      <p class="small text-muted mb-0">
-                        {{ section.description }}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-
-                  {% if section.is_outdated %}
-
-                    <span
-                      class="
-                        badge
-                        rounded-pill
-                        bg-warning-subtle
-                        text-warning-emphasis
-                      "
-                    >
-                      Needs update
-                    </span>
-
-                  {% endif %}
-
-                </div>
-
-
-                <!-- SUMMARY -->
-                {% if section.summary %}
-
-                  <div class="mb-3">
-                    {{ section.summary }}
-                  </div>
-
-                {% endif %}
-
-
-                <!-- SUPPORT + EXPLORE -->
-                {% if section.support_items or section.explore_items %}
-
-                  <div class="row g-3">
-
-                    {% if section.support_items %}
-
-                      <div class="col-lg-6">
-
-                        <div class="border rounded-3 p-3 h-100">
-
-                          <div class="small fw-semibold mb-2">
-                            Potentially supportive
-                          </div>
-
-                          <ul class="small mb-0 ps-3">
-
-                            {% for item in section.support_items %}
-
-                              <li
-                                class="
-                                  {% if not forloop.last %}
-                                    mb-2
-                                  {% endif %}
-                                "
-                              >
-                                {{ item }}
-                              </li>
-
-                            {% endfor %}
-
-                          </ul>
-
-                        </div>
-
-                      </div>
-
-                    {% endif %}
-
-
-                    {% if section.explore_items %}
-
-                      <div class="col-lg-6">
-
-                        <div class="border rounded-3 p-3 h-100">
-
-                          <div class="small fw-semibold mb-2">
-                            Explore or clarify
-                          </div>
-
-                          <ul class="small mb-0 ps-3">
-
-                            {% for item in section.explore_items %}
-
-                              <li
-                                class="
-                                  {% if not forloop.last %}
-                                    mb-2
-                                  {% endif %}
-                                "
-                              >
-                                {{ item }}
-                              </li>
-
-                            {% endfor %}
-
-                          </ul>
-
-                        </div>
-
-                      </div>
-
-                    {% endif %}
-
-                  </div>
-
-                {% endif %}
-
-              </article>
-
-            {% endfor %}
-
-          </div>
-
-        </section>
-
-      {% endif %}
-
-
-      <!-- ================================================== -->
-      <!-- COMBINED QUESTIONS -->
-      <!-- ================================================== -->
-
-      {% if final_output.has_questions %}
-
-        <section class="border rounded-3 p-4 mt-4">
 
           <div
             class="
               d-flex
-              align-items-start
+              align-items-center
               justify-content-between
               gap-3
               flex-wrap
-              mb-4
+              mt-3
             "
           >
 
             <div>
 
-              <div class="small text-muted text-uppercase mb-1">
-                Conversation support
-              </div>
+              <span
+                class="small text-muted"
+                data-interview-notes-count
+              >
+                {{ interview_notes|length }} / 30,000 characters
+              </span>
 
-              <h3 class="h5 mb-1">
-                Assessment questions
-              </h3>
-
-              <p class="small text-muted mb-0">
-                Questions for exploring the assessment indications through
-                examples and practical experience.
-              </p>
+              <span
+                class="small ms-2"
+                data-interview-notes-status
+              ></span>
 
             </div>
 
 
-            <span class="badge rounded-pill bg-light text-dark border">
-              {{ final_output.question_count }}
-              question{{ final_output.question_count|pluralize }}
-            </span>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-interview-notes-save
+            >
+              <i data-feather="save"></i>
+              Save interview notes
+            </button>
 
           </div>
 
 
+          <div
+            class="alert alert-danger d-none mt-3 mb-0"
+            data-interview-notes-error
+          >
+            The interview notes could not be saved.
+          </div>
+
+        </section>
+
+<!-- ================================================== -->
+<!-- POST-INTERVIEW DECISION SUPPORT -->
+<!-- ================================================== -->
+
+<section
+  class="purpose-fit-section border-top pt-4 mt-4"
+  data-post-interview-section
+>
+
+  <!-- HEADER -->
+
+  <div
+    class="
+      d-flex
+      align-items-start
+      justify-content-between
+      gap-3
+      flex-wrap
+    "
+  >
+
+    <div>
+
+      <div class="insight-summary-kicker">
+        Assessment and interview synthesis
+      </div>
+
+      <h3 class="insight-summary-title mb-1">
+        Post-interview decision support
+      </h3>
+
+      <p class="text-muted small mb-0">
+        Compares the assessment indications with the saved interview
+        evidence, candidate examples and interviewer observations.
+      </p>
+
+    </div>
+
+
+    <div class="d-flex align-items-center gap-2">
+
+      <span
+        class="
+          badge
+          rounded-pill
+          bg-warning-subtle
+          text-warning-emphasis
+          {% if post_interview_decision_support_status != 'outdated' %}
+            d-none
+          {% endif %}
+        "
+        data-post-interview-status-badge
+      >
+        Needs update
+      </span>
+
+
+      {% if has_interview_notes %}
+
+        {% if has_post_interview_decision_support %}
+
+          <button
+            type="button"
+            class="btn btn-icon btn-light"
+            title="Generate updated post-interview decision support"
+            aria-label="Generate updated post-interview decision support"
+            data-post-interview-generate
+            data-regenerate="true"
+          >
+            <i data-feather="refresh-cw"></i>
+          </button>
+
+        {% else %}
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-post-interview-generate
+            data-regenerate="false"
+          >
+            <i data-feather="star"></i>
+            Generate post-interview decision support
+          </button>
+
+        {% endif %}
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+
+  <!-- OUTDATED WARNING -->
+
+  <div
+    class="
+      alert
+      alert-warning
+      mt-4
+      {% if post_interview_decision_support_status != 'outdated' %}
+        d-none
+      {% endif %}
+    "
+    data-post-interview-outdated
+  >
+
+    <div class="d-flex align-items-start gap-2">
+
+      <i
+        data-feather="alert-circle"
+        class="flex-shrink-0 mt-1"
+      ></i>
+
+      <div>
+
+        <div class="fw-semibold small mb-1">
+          The interview evidence has changed
+        </div>
+
+        <div class="small">
+          This synthesis was generated using an earlier version of
+          the interview notes or process information. Generate an
+          updated version before relying on it.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- LOADING -->
+
+  <div
+    class="
+      d-flex
+      align-items-center
+      gap-2
+      text-muted
+      py-4
+      d-none
+    "
+    data-post-interview-thinking
+  >
+
+    <span
+      class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"
+    ></span>
+
+    <span>
+      Comparing the assessment evidence with the interview notes...
+    </span>
+
+  </div>
+
+
+  <!-- ERROR -->
+
+  <div
+    class="
+      alert
+      alert-danger
+      mt-4
+      {% if post_interview_decision_support_status != 'failed' %}
+        d-none
+      {% endif %}
+    "
+    data-post-interview-error
+  >
+    The post-interview decision support could not be generated.
+  </div>
+
+
+  <!-- EMPTY STATE -->
+
+  <div
+    class="
+      combined-questions-empty-state
+      mt-4
+      {% if has_post_interview_decision_support %}
+        d-none
+      {% endif %}
+    "
+    data-post-interview-empty
+  >
+
+    <div class="combined-questions-empty-state__icon">
+      <i data-feather="message-circle"></i>
+    </div>
+
+    <h3 class="personality-questions-section-title mb-2">
+      Post-interview synthesis
+    </h3>
+
+
+    {% if has_interview_notes %}
+
+      <p
+        class="text-muted small mb-0 mx-auto"
+        style="max-width: 580px;"
+      >
+        The interview evidence has been saved. Generate a synthesis
+        to compare it with the assessment indications and identify
+        remaining uncertainties.
+      </p>
+
+    {% else %}
+
+      <p
+        class="text-muted small mb-0 mx-auto"
+        style="max-width: 580px;"
+      >
+        Add and save interview evidence before generating the
+        post-interview synthesis.
+      </p>
+
+    {% endif %}
+
+  </div>
+
+
+  <!-- ================================================== -->
+  <!-- GENERATED RESULT -->
+  <!-- ================================================== -->
+
+  <div
+    class="
+      {% if not has_post_interview_decision_support %}
+        d-none
+      {% endif %}
+    "
+    data-post-interview-content
+  >
+
+    <!-- OVERALL SYNTHESIS -->
+
+    <section class="purpose-fit-section mt-4">
+
+      <h3 class="purpose-fit-section-title mb-2">
+        Overall synthesis
+      </h3>
+
+      <div class="purpose-fit-summary">
+        {{ post_interview_decision_support.overall_synthesis }}
+      </div>
+
+    </section>
+
+
+    <!-- SUPPORTED INDICATIONS + ADDED NUANCE -->
+
+    <div class="row g-4 mt-1">
+
+      <!-- SUPPORTED INDICATIONS -->
+
+      <div class="col-lg-6">
+
+        <section
+          class="
+            purpose-fit-list-card
+            purpose-fit-list-card--positive
+            h-100
+          "
+        >
+
+          <div class="purpose-fit-section-title mb-3">
+            Evidence supporting assessment indications
+          </div>
+
           <div class="d-grid gap-4">
 
-            {% for section in final_output.combined_questions.sections %}
+            {% for item in post_interview_decision_support.supported_indications %}
 
-              <div>
+              <article>
 
-                <div
-                  class="
-                    d-flex
-                    align-items-center
-                    justify-content-between
-                    gap-3
-                    mb-3
-                  "
-                >
-
-                  <h4 class="h6 mb-0">
-                    {{ section.title }}
-                  </h4>
-
-
-                  {% if section.is_outdated %}
-
-                    <span
-                      class="
-                        badge
-                        rounded-pill
-                        bg-warning-subtle
-                        text-warning-emphasis
-                      "
-                    >
-                      Needs update
-                    </span>
-
-                  {% endif %}
-
+                <div class="fw-semibold mb-2">
+                  {{ item.title }}
                 </div>
 
+                {% if item.assessment_indication %}
 
-                <ol class="mb-0 ps-4">
+                  <div class="small mb-2">
 
-                  {% for item in section.questions %}
+                    <strong>
+                      Assessment indication:
+                    </strong>
 
-                    <li
-                      class="
-                        {% if not forloop.last %}
-                          mb-3
-                        {% endif %}
-                      "
-                    >
-                      {{ item.question }}
-                    </li>
+                    {{ item.assessment_indication }}
 
-                  {% endfor %}
+                  </div>
 
-                </ol>
+                {% endif %}
 
+
+                {% if item.interview_evidence %}
+
+                  <div class="small mb-2">
+
+                    <strong>
+                      Interview evidence:
+                    </strong>
+
+                    {{ item.interview_evidence }}
+
+                  </div>
+
+                {% endif %}
+
+
+                <div class="small text-muted">
+                  {{ item.interpretation }}
+                </div>
+
+              </article>
+
+            {% empty %}
+
+              <div class="small text-muted">
+                No assessment indications received sufficient
+                support from the available interview evidence.
               </div>
 
             {% endfor %}
@@ -590,80 +1287,291 @@
 
         </section>
 
-      {% endif %}
+      </div>
 
 
-      <!-- ================================================== -->
-      <!-- FOOTER -->
-      <!-- ================================================== -->
+      <!-- ADDED NUANCE -->
 
-      <div class="small text-muted border-top pt-3 mt-4">
+      <div class="col-lg-6">
 
-        <div class="d-flex align-items-start gap-2">
+        <section
+          class="
+            purpose-fit-list-card
+            purpose-fit-list-card--verify
+            h-100
+          "
+        >
 
-          <i
-            data-feather="info"
-            class="flex-shrink-0 mt-1"
-          ></i>
-
-          <div>
-            This output combines existing Talena insights. It does not
-            replace professional judgement and should be interpreted
-            alongside relevant examples, experience and other available
-            information.
+          <div class="purpose-fit-section-title mb-3">
+            What the interview adds or nuances
           </div>
 
-        </div>
+          <div class="d-grid gap-4">
+
+            {% for item in post_interview_decision_support.added_nuance %}
+
+              <article>
+
+                <div class="fw-semibold mb-2">
+                  {{ item.title }}
+                </div>
+
+                {% if item.assessment_indication %}
+
+                  <div class="small mb-2">
+
+                    <strong>
+                      Assessment indication:
+                    </strong>
+
+                    {{ item.assessment_indication }}
+
+                  </div>
+
+                {% endif %}
+
+
+                {% if item.interview_evidence %}
+
+                  <div class="small mb-2">
+
+                    <strong>
+                      Interview evidence:
+                    </strong>
+
+                    {{ item.interview_evidence }}
+
+                  </div>
+
+                {% endif %}
+
+
+                <div class="small text-muted">
+                  {{ item.interpretation }}
+                </div>
+
+              </article>
+
+            {% empty %}
+
+              <div class="small text-muted">
+                No additional nuance was identified from the
+                available interview evidence.
+              </div>
+
+            {% endfor %}
+
+          </div>
+
+        </section>
 
       </div>
 
+    </div>
 
-    {% else %}
 
-      <!-- ================================================== -->
-      <!-- EMPTY STATE -->
-      <!-- ================================================== -->
+    <!-- CONTRADICTIONS -->
 
-      <div
-        class="
-          border
-          rounded-3
-          text-center
-          px-4
-          py-5
-          mt-4
-          bg-light
-        "
-      >
+    {% if post_interview_decision_support.contradictions %}
 
-        <div class="mb-3">
-          <i
-            data-feather="file-text"
-            width="32"
-            height="32"
-          ></i>
+      <section class="purpose-fit-section border-top pt-4 mt-4">
+
+        <div class="insight-summary-kicker">
+          Evidence tensions
         </div>
 
-        <h3 class="h6 mb-2">
-          No final output is available yet
+        <h3 class="insight-summary-title mb-1">
+          Contradictions or tensions to consider
         </h3>
 
-        <p
-          class="
-            text-muted
-            small
-            mb-0
-            mx-auto
-          "
-          style="max-width: 520px;"
-        >
-          Generate the AI Overview and assessment interpretations
-          to create a combined purpose-based output.
+        <p class="text-muted small mb-3">
+          These differences should be explored rather than resolved
+          automatically in favour of either source.
         </p>
 
-      </div>
+
+        <div class="d-grid gap-3">
+
+          {% for item in post_interview_decision_support.contradictions %}
+
+            <article class="purpose-fit-list-card">
+
+              <div class="d-flex align-items-start gap-3">
+
+                <div class="purpose-fit-list-icon flex-shrink-0">
+                  <i data-feather="shuffle"></i>
+                </div>
+
+                <div>
+
+                  <div class="purpose-fit-section-title mb-2">
+                    {{ item.title }}
+                  </div>
+
+
+                  {% if item.assessment_evidence %}
+
+                    <div class="small mb-2">
+
+                      <strong>
+                        Assessment evidence:
+                      </strong>
+
+                      {{ item.assessment_evidence }}
+
+                    </div>
+
+                  {% endif %}
+
+
+                  {% if item.interview_evidence %}
+
+                    <div class="small mb-2">
+
+                      <strong>
+                        Interview evidence:
+                      </strong>
+
+                      {{ item.interview_evidence }}
+
+                    </div>
+
+                  {% endif %}
+
+
+                  <div class="small text-muted">
+                    {{ item.interpretation }}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </article>
+
+          {% endfor %}
+
+        </div>
+
+      </section>
 
     {% endif %}
 
+
+    <!-- UNCERTAINTIES + FOLLOW-UP -->
+
+    <section class="purpose-fit-section border-top pt-4 mt-4">
+
+      <div class="insight-summary-kicker">
+        Next steps
+      </div>
+
+      <h3 class="insight-summary-title mb-1">
+        What remains to be explored
+      </h3>
+
+      <p class="text-muted small mb-0">
+        Areas where additional evidence may help the responsible
+        decision-maker form a more complete judgement.
+      </p>
+
+
+      <div class="row g-4 mt-1">
+
+        <!-- REMAINING UNCERTAINTIES -->
+
+        <div class="col-lg-6">
+
+          <section class="purpose-fit-list-card h-100">
+
+            <div class="purpose-fit-section-title">
+              Remaining uncertainties
+            </div>
+
+            <ul class="purpose-fit-list">
+
+              {% for item in post_interview_decision_support.remaining_uncertainties %}
+
+                <li>
+
+                  <span class="purpose-fit-list-icon">
+                    <i data-feather="help-circle"></i>
+                  </span>
+
+                  <span>
+                    {{ item }}
+                  </span>
+
+                </li>
+
+              {% endfor %}
+
+            </ul>
+
+          </section>
+
+        </div>
+
+
+        <!-- SUGGESTED FOLLOW-UP -->
+
+        <div class="col-lg-6">
+
+          <section class="purpose-fit-list-card h-100">
+
+            <div class="purpose-fit-section-title">
+              Suggested follow-up
+            </div>
+
+            <ul class="purpose-fit-list">
+
+              {% for item in post_interview_decision_support.suggested_follow_up %}
+
+                <li>
+
+                  <span class="purpose-fit-list-icon">
+                    <i data-feather="arrow-right"></i>
+                  </span>
+
+                  <span>
+                    {{ item }}
+                  </span>
+
+                </li>
+
+              {% endfor %}
+
+            </ul>
+
+          </section>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CONTEXT NOTE -->
+
+    <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+      <i data-feather="info"></i>
+
+      <div>
+        {{ post_interview_decision_support.context_note }}
+      </div>
+
+    </div>
+
   </div>
+
+</section>
+       
+      </div>
+
+    </div>
+
+  {% endif %}
+
 </section>

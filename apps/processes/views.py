@@ -17,6 +17,18 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+from apps.core.ai.decision_support import (
+    create_empty_pre_interview_decision_support,
+    apply_pre_interview_decision_support_event,
+    stream_pre_interview_decision_support,
+    save_pre_interview_decision_support,
+
+    create_empty_post_interview_decision_support,
+    apply_post_interview_decision_support_event,
+    stream_post_interview_decision_support,
+    save_post_interview_decision_support,
+)
+
 from apps.core.ai.cognitive_interpretation import (
     extract_cognitive_results,
     create_empty_cognitive_interpretation,
@@ -3234,6 +3246,43 @@ def build_candidate_detail_context(process, invitation):
     print("HAS ABILITY RESULTS:", has_ability_results)
     print("=== /FLEXIBLE AI CONDITION DEBUG ===")
 
+    # ------------------------------------------------------------
+    # Decision support
+    # ------------------------------------------------------------
+
+    pre_interview_decision_support = (
+        invitation.ai_pre_interview_decision_support
+        or {}
+    )
+
+    post_interview_decision_support = (
+        invitation.ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
     return {
         "company": process.company,
         "process": process,
@@ -3333,6 +3382,133 @@ def build_candidate_detail_context(process, invitation):
                 "process_id": process.id,
                 "candidate_id": candidate.id,
             },
+        ),
+
+        # --------------------------------------------------------
+        # Decision support
+        # --------------------------------------------------------
+
+        "pre_interview_decision_support": (
+            pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_status": (
+            invitation
+            .ai_pre_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "pre_interview_decision_support_generated_at": (
+            invitation
+            .ai_pre_interview_decision_support_generated_at
+        ),
+
+        "has_pre_interview_decision_support": (
+            has_pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "pre_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+
+        # Interview evidence
+
+        "interview_notes": interview_notes,
+
+        "interview_notes_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_"
+                "interview_notes_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "has_interview_notes": bool(
+            interview_notes
+        ),
+
+        "interview_notes_updated_at": (
+            invitation.interview_notes_updated_at
+        ),
+
+        "interview_notes_updated_by": (
+            invitation.interview_notes_updated_by
+        ),
+
+
+        # Post-interview decision support
+
+        "post_interview_decision_support": (
+            post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_status": (
+            invitation
+            .ai_post_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "post_interview_decision_support_generated_at": (
+            invitation
+            .ai_post_interview_decision_support_generated_at
+        ),
+
+        "has_post_interview_decision_support": (
+            has_post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_notes_version": (
+            invitation
+            .ai_post_interview_decision_support_notes_version
         ),
 
         # Purpose-based final output
@@ -3632,6 +3808,940 @@ def user_can_access_process(user, process) -> bool:
 
 
 @login_required
+def process_candidate_pre_interview_decision_support_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save Talena's pre-interview decision support.
+
+    The result combines existing saved assessment interpretations,
+    identifies uncertainty and selects priority validation questions.
+
+    It does not provide a match score, suitability verdict or
+    selection recommendation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    # Historical candidates do not yet have the required
+    # decision-support fields on their owner model.
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical pre-interview decision support "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation
+        .ai_pre_interview_decision_support_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation
+        .ai_pre_interview_decision_support
+        or {}
+    )
+
+    current_purpose = normalize_purpose_key(
+        process.purpose
+    )
+
+    saved_purpose = normalize_purpose_key(
+        invitation
+        .ai_pre_interview_decision_support_purpose
+    )
+
+    # Safety net in case the process purpose changed without
+    # the normal outdated-marking flow being triggered.
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_pre_interview_decision_support_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                (
+                    "ai_pre_interview_"
+                    "decision_support_status"
+                ),
+            ]
+        )
+
+    # Return an already completed result without creating
+    # another OpenAI request.
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Pre-interview decision support "
+                    "is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_pre_interview_decision_support_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_pre_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    def generator():
+        result = (
+            create_empty_pre_interview_decision_support(
+                invitation
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in (
+                stream_pre_interview_decision_support(
+                    owner=invitation,
+                )
+            ):
+                result = (
+                    apply_pre_interview_decision_support_event(
+                        result,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            overall_synthesis = (
+                result.get(
+                    "overall_synthesis"
+                )
+                or ""
+            ).strip()
+
+            if not overall_synthesis:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "an overall synthesis."
+                )
+
+            validation_questions = (
+                result.get(
+                    "validation_questions"
+                )
+                or []
+            )
+
+            if len(validation_questions) < 3:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "at least three valid validation questions."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_pre_interview_decision_support(
+                owner=invitation,
+                result=result,
+            )
+
+        except Exception as error:
+            invitation.ai_pre_interview_decision_support_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    (
+                        "ai_pre_interview_"
+                        "decision_support_status"
+                    ),
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_pre_interview_decision_support_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset the pre-interview decision support and return
+    the stream URL for a fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical pre-interview decision support "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_pre_interview_decision_support_status = (
+        "not_started"
+    )
+
+    invitation.ai_pre_interview_decision_support_generated_at = (
+        None
+    )
+
+    invitation.ai_pre_interview_decision_support_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_pre_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_pre_interview_"
+                "decision_support_purpose"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+def process_candidate_post_interview_decision_support_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save post-interview decision support.
+
+    The result compares saved assessment interpretations with
+    interview notes and candidate examples.
+
+    It does not provide a matching verdict, suitability rating
+    or selection recommendation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical post-interview decision support "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    if not interview_notes:
+        return JsonResponse(
+            {
+                "error": (
+                    "Add and save interview notes before "
+                    "generating post-interview decision support."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation
+        .ai_post_interview_decision_support_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation
+        .ai_post_interview_decision_support
+        or {}
+    )
+
+    current_purpose = normalize_purpose_key(
+        process.purpose
+    )
+
+    saved_purpose = normalize_purpose_key(
+        invitation
+        .ai_post_interview_decision_support_purpose
+    )
+
+    current_notes_version = (
+        invitation.interview_notes_updated_at
+    )
+
+    saved_notes_version = (
+        invitation
+        .ai_post_interview_decision_support_notes_version
+    )
+
+    purpose_has_changed = (
+        saved_purpose != current_purpose
+    )
+
+    notes_have_changed = bool(
+        current_notes_version
+        and (
+            not saved_notes_version
+            or (
+                current_notes_version
+                > saved_notes_version
+            )
+        )
+    )
+
+    # Safety net in case purpose or interview notes changed
+    # without the normal outdated flow being triggered.
+    if (
+        saved_result
+        and current_status == "completed"
+        and (
+            purpose_has_changed
+            or notes_have_changed
+        )
+    ):
+        current_status = "outdated"
+
+        invitation.ai_post_interview_decision_support_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                (
+                    "ai_post_interview_"
+                    "decision_support_status"
+                ),
+            ]
+        )
+
+    # Return an existing completed or outdated result.
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "Post-interview decision support "
+                    "is already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_post_interview_decision_support_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    def generator():
+        result = (
+            create_empty_post_interview_decision_support(
+                invitation
+            )
+        )
+
+        received_done_event = False
+
+        try:
+            for event in (
+                stream_post_interview_decision_support(
+                    owner=invitation,
+                )
+            ):
+                result = (
+                    apply_post_interview_decision_support_event(
+                        result,
+                        event,
+                    )
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            overall_synthesis = (
+                result.get(
+                    "overall_synthesis"
+                )
+                or ""
+            ).strip()
+
+            if not overall_synthesis:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "an overall synthesis."
+                )
+
+            supported_indications = (
+                result.get(
+                    "supported_indications"
+                )
+                or []
+            )
+
+            added_nuance = (
+                result.get(
+                    "added_nuance"
+                )
+                or []
+            )
+
+            if not (
+                supported_indications
+                or added_nuance
+            ):
+                raise ValueError(
+                    "The AI response did not contain "
+                    "valid assessment and interview comparisons."
+                )
+
+            remaining_uncertainties = (
+                result.get(
+                    "remaining_uncertainties"
+                )
+                or []
+            )
+
+            if len(remaining_uncertainties) < 2:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "enough remaining uncertainties."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_post_interview_decision_support(
+                owner=invitation,
+                result=result,
+            )
+
+        except Exception as error:
+            invitation.ai_post_interview_decision_support_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    (
+                        "ai_post_interview_"
+                        "decision_support_status"
+                    ),
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+@login_required
+@require_POST
+def process_candidate_post_interview_decision_support_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset post-interview decision support and return
+    the stream URL for fresh generation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical post-interview decision support "
+                    "is not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if not (
+        invitation.interview_notes
+        or ""
+    ).strip():
+        return JsonResponse(
+            {
+                "error": (
+                    "Add and save interview notes before "
+                    "generating post-interview decision support."
+                )
+            },
+            status=400,
+        )
+
+    invitation.ai_post_interview_decision_support_status = (
+        "not_started"
+    )
+
+    invitation.ai_post_interview_decision_support_generated_at = (
+        None
+    )
+
+    invitation.ai_post_interview_decision_support_purpose = ""
+
+    invitation.ai_post_interview_decision_support_notes_version = (
+        None
+    )
+
+    invitation.save(
+        update_fields=[
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_generated_at"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_purpose"
+            ),
+            (
+                "ai_post_interview_"
+                "decision_support_notes_version"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
+
+@login_required
+@require_POST
+def process_candidate_interview_notes_update(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Save interview notes and candidate examples.
+
+    Updating the notes marks any existing post-interview
+    decision support as outdated.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Interview notes for historical candidates "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    try:
+        payload = json.loads(
+            request.body.decode("utf-8")
+            or "{}"
+        )
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                "error": "Invalid JSON payload."
+            },
+            status=400,
+        )
+
+    raw_notes = payload.get(
+        "interview_notes",
+        "",
+    )
+
+    if raw_notes is None:
+        raw_notes = ""
+
+    if not isinstance(raw_notes, str):
+        return JsonResponse(
+            {
+                "error": (
+                    "Interview notes must be supplied "
+                    "as text."
+                )
+            },
+            status=400,
+        )
+
+    interview_notes = raw_notes.strip()
+
+    if len(interview_notes) > 30000:
+        return JsonResponse(
+            {
+                "error": (
+                    "Interview notes may not exceed "
+                    "30,000 characters."
+                )
+            },
+            status=400,
+        )
+
+    updated_at = timezone.now()
+
+    invitation.interview_notes = (
+        interview_notes
+    )
+
+    invitation.interview_notes_updated_at = (
+        updated_at
+    )
+
+    invitation.interview_notes_updated_by = (
+        request.user
+    )
+
+    # An existing post-interview synthesis no longer
+    # reflects the latest interview evidence.
+    if (
+        invitation
+        .ai_post_interview_decision_support
+    ):
+        invitation.ai_post_interview_decision_support_status = (
+            "outdated"
+        )
+    else:
+        invitation.ai_post_interview_decision_support_status = (
+            "not_started"
+        )
+
+    invitation.save(
+        update_fields=[
+            "interview_notes",
+            "interview_notes_updated_at",
+            "interview_notes_updated_by",
+            (
+                "ai_post_interview_"
+                "decision_support_status"
+            ),
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "interview_notes": interview_notes,
+            "has_interview_notes": bool(
+                interview_notes
+            ),
+            "updated_at": (
+                updated_at.isoformat()
+            ),
+            "updated_by": (
+                request.user.get_full_name()
+                or request.user.get_username()
+            ),
+            "post_interview_status": (
+                invitation
+                .ai_post_interview_decision_support_status
+            ),
+        }
+    )
+
+
+@login_required
 def process_candidate_final_output(
     request,
     process_id,
@@ -3675,17 +4785,37 @@ def process_candidate_final_output(
         candidate_id=candidate_id,
     )
 
-    combined_questions = (
-        build_combined_candidate_questions(
-            invitation
-        )
+    pre_interview_decision_support = (
+        invitation.ai_pre_interview_decision_support
+        or {}
     )
 
-    final_output = (
-        build_candidate_final_output(
-            invitation,
-            combined_questions=combined_questions,
-        )
+    post_interview_decision_support = (
+        invitation.ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        invitation.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
     )
 
     refresh_url = reverse(
@@ -3707,20 +4837,124 @@ def process_candidate_final_output(
             "_final_output.html"
         ),
         {
-            "final_output": final_output,
+            "process": process,
+            "candidate": invitation.candidate,
+            "invitation": invitation,
+            "is_historical": False,
 
-            "has_final_output": (
-                final_output["has_content"]
+            "pre_interview_decision_support": (
+                pre_interview_decision_support
             ),
 
-            "final_output_has_outdated_content": (
-                final_output[
-                    "has_outdated_content"
-                ]
+            "pre_interview_decision_support_status": (
+                invitation
+                .ai_pre_interview_decision_support_status
+                or "not_started"
+            ),
+
+            "pre_interview_decision_support_generated_at": (
+                invitation
+                .ai_pre_interview_decision_support_generated_at
+            ),
+
+            "has_pre_interview_decision_support": (
+                has_pre_interview_decision_support
+            ),
+
+            "pre_interview_decision_support_stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "pre_interview_decision_support_regenerate_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_pre_interview_"
+                    "decision_support_regenerate"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "interview_notes": interview_notes,
+
+            "has_interview_notes": bool(
+                interview_notes
+            ),
+
+            "interview_notes_updated_at": (
+                invitation.interview_notes_updated_at
+            ),
+
+            "interview_notes_updated_by": (
+                invitation.interview_notes_updated_by
+            ),
+
+            "interview_notes_update_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_"
+                    "interview_notes_update"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "post_interview_decision_support": (
+                post_interview_decision_support
+            ),
+
+            "post_interview_decision_support_status": (
+                invitation
+                .ai_post_interview_decision_support_status
+                or "not_started"
+            ),
+
+            "post_interview_decision_support_generated_at": (
+                invitation
+                .ai_post_interview_decision_support_generated_at
+            ),
+
+            "has_post_interview_decision_support": (
+                has_post_interview_decision_support
             ),
 
             "final_output_refresh_url": (
                 refresh_url
+            ),
+            "post_interview_decision_support_stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+
+            "post_interview_decision_support_regenerate_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_post_interview_"
+                    "decision_support_regenerate"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
             ),
         },
     )

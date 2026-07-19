@@ -7664,4 +7664,1324 @@ activatePersonalityView(
 })();
 </script>
 
+<script>
+(function () {
+  "use strict";
+
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+
+    if (parts.length === 2) {
+      return parts
+        .pop()
+        .split(";")
+        .shift();
+    }
+
+    return "";
+  }
+
+
+  function refreshFeatherIcons() {
+    if (!window.feather) {
+      return;
+    }
+
+    try {
+      window.feather.replace();
+    } catch (error) {
+      console.error(
+        "Decision support icon error:",
+        error
+      );
+    }
+  }
+
+
+  function setHidden(
+    element,
+    hidden
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function initialiseDecisionSupportRoot(
+    root
+  ) {
+    if (
+      !root ||
+      root.dataset
+        .decisionSupportInitialised ===
+        "true"
+    ) {
+      return;
+    }
+
+    root.dataset
+      .decisionSupportInitialised =
+      "true";
+
+
+    // ========================================================
+    // BEFORE / AFTER TABS
+    // ========================================================
+
+    const tabs = Array.from(
+      root.querySelectorAll(
+        "[data-decision-tab]"
+      )
+    );
+
+    const panels = Array.from(
+      root.querySelectorAll(
+        "[data-decision-panel]"
+      )
+    );
+
+
+    function activateTab(target) {
+      tabs.forEach((tab) => {
+        const active =
+          tab.dataset.decisionTab ===
+          target;
+
+        tab.classList.toggle(
+          "is-active",
+          active
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          active ? "true" : "false"
+        );
+
+        tab.tabIndex =
+          active ? 0 : -1;
+      });
+
+
+      panels.forEach((panel) => {
+        const active =
+          panel.dataset.decisionPanel ===
+          target;
+
+        panel.hidden = !active;
+
+        panel.classList.toggle(
+          "is-active",
+          active
+        );
+      });
+
+      refreshFeatherIcons();
+    }
+
+
+    tabs.forEach((tab) => {
+      tab.addEventListener(
+        "click",
+        () => {
+          activateTab(
+            tab.dataset.decisionTab
+          );
+        }
+      );
+    });
+
+
+    activateTab("before");
+
+
+    // ========================================================
+    // PRE-INTERVIEW DECISION SUPPORT
+    // ========================================================
+
+    const refreshUrl =
+      root.dataset.refreshUrl;
+
+    const streamUrl =
+      root.dataset
+        .preInterviewStreamUrl;
+
+    const regenerateUrl =
+      root.dataset
+        .preInterviewRegenerateUrl;
+
+    const generateButton =
+      root.querySelector(
+        "[data-pre-interview-generate]"
+      );
+
+    const thinking =
+      root.querySelector(
+        "[data-pre-interview-thinking]"
+      );
+
+    const emptyState =
+      root.querySelector(
+        "[data-pre-interview-empty]"
+      );
+
+    const content =
+      root.querySelector(
+        "[data-pre-interview-content]"
+      );
+
+    const errorBox =
+      root.querySelector(
+        "[data-pre-interview-error]"
+      );
+
+    const outdatedWarning =
+      root.querySelector(
+        "[data-pre-interview-outdated]"
+      );
+
+    const statusBadge =
+      root.querySelector(
+        "[data-pre-interview-status-badge]"
+      );
+
+    let isGenerating = false;
+
+
+    function setGeneratingState(
+      generating
+    ) {
+      isGenerating = generating;
+
+      if (generateButton) {
+        generateButton.disabled =
+          generating;
+
+        if (generating) {
+          generateButton.innerHTML = `
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Generating...
+          `;
+        }
+      }
+
+      setHidden(
+        thinking,
+        !generating
+      );
+
+      if (generating) {
+        setHidden(
+          emptyState,
+          true
+        );
+
+        setHidden(
+          errorBox,
+          true
+        );
+      }
+
+      refreshFeatherIcons();
+    }
+
+
+    async function replaceDecisionSupportRoot() {
+      if (!refreshUrl) {
+        window.location.reload();
+        return;
+      }
+
+      const activeTab =
+        root
+          .querySelector(
+            "[data-decision-tab].is-active"
+          )
+          ?.dataset
+          ?.decisionTab
+        || "before";
+
+      const response = await fetch(
+        refreshUrl,
+        {
+          headers: {
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+          credentials:
+            "same-origin",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "The updated decision support could not be loaded."
+        );
+      }
+
+      const html =
+        await response.text();
+
+      const template =
+        document.createElement(
+          "template"
+        );
+
+      template.innerHTML =
+        html.trim();
+
+      const replacement =
+        template.content.querySelector(
+          "[data-decision-support-root]"
+        );
+
+      if (!replacement) {
+        throw new Error(
+          "The updated decision support markup was missing."
+        );
+      }
+
+      root.replaceWith(
+        replacement
+      );
+
+      initialiseDecisionSupportRoot(
+        replacement
+      );
+
+      const targetTab =
+        replacement.querySelector(
+          `[data-decision-tab="${activeTab}"]`
+        );
+
+      if (targetTab) {
+        targetTab.click();
+      }
+
+      refreshFeatherIcons();
+    }
+
+
+    async function consumeDecisionSupportStream(
+      url
+    ) {
+      if (
+        !url ||
+        isGenerating
+      ) {
+        return;
+      }
+
+      setGeneratingState(true);
+
+      try {
+        const response = await fetch(
+          url,
+          {
+            method: "GET",
+
+            headers: {
+              "Accept":
+                "application/x-ndjson",
+
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+
+            credentials:
+              "same-origin",
+          }
+        );
+
+
+        if (!response.ok) {
+          let message =
+            "The decision support could not be generated.";
+
+          try {
+            const data =
+              await response.json();
+
+            if (data.error) {
+              message = data.error;
+            }
+          } catch (parseError) {
+            // Keep the fallback message.
+          }
+
+          throw new Error(message);
+        }
+
+
+        if (!response.body) {
+          throw new Error(
+            "The browser did not receive a response stream."
+          );
+        }
+
+
+        const reader =
+          response.body.getReader();
+
+        const decoder =
+          new TextDecoder("utf-8");
+
+        let buffer = "";
+
+
+        function handleLine(rawLine) {
+          const line =
+            rawLine.trim();
+
+          if (!line) {
+            return;
+          }
+
+          const event =
+            JSON.parse(line);
+
+          if (event.type === "error") {
+            throw new Error(
+              event.message ||
+              "The decision support could not be generated."
+            );
+          }
+        }
+
+
+        while (true) {
+          const chunk =
+            await reader.read();
+
+          if (chunk.done) {
+            break;
+          }
+
+          buffer += decoder.decode(
+            chunk.value,
+            {
+              stream: true,
+            }
+          );
+
+          const lines =
+            buffer.split("\n");
+
+          buffer =
+            lines.pop() || "";
+
+          lines.forEach(
+            handleLine
+          );
+        }
+
+
+        buffer += decoder.decode();
+
+        if (buffer.trim()) {
+          handleLine(buffer);
+        }
+
+
+        await replaceDecisionSupportRoot();
+
+      } catch (error) {
+        console.error(
+          "Pre-interview decision support error:",
+          error
+        );
+
+        setHidden(
+          thinking,
+          true
+        );
+
+        setHidden(
+          errorBox,
+          false
+        );
+
+        if (errorBox) {
+          errorBox.textContent =
+            error.message ||
+            (
+              "The pre-interview decision " +
+              "support could not be generated."
+            );
+        }
+
+      } finally {
+        setGeneratingState(false);
+      }
+    }
+
+
+    if (generateButton) {
+      generateButton.addEventListener(
+        "click",
+        async () => {
+          const shouldRegenerate =
+            generateButton.dataset
+              .regenerate ===
+            "true";
+
+          setHidden(
+            outdatedWarning,
+            true
+          );
+
+          setHidden(
+            statusBadge,
+            true
+          );
+
+
+          if (!shouldRegenerate) {
+            await consumeDecisionSupportStream(
+              streamUrl
+            );
+
+            return;
+          }
+
+
+          try {
+            setGeneratingState(true);
+
+            const response = await fetch(
+              regenerateUrl,
+              {
+                method: "POST",
+
+                headers: {
+                  "X-CSRFToken":
+                    getCookie(
+                      "csrftoken"
+                    ),
+
+                  "X-Requested-With":
+                    "XMLHttpRequest",
+
+                  "Content-Type":
+                    "application/json",
+                },
+
+                credentials:
+                  "same-origin",
+
+                body:
+                  JSON.stringify({}),
+              }
+            );
+
+
+            if (!response.ok) {
+              let message =
+                "The decision support could not be regenerated.";
+
+              try {
+                const data =
+                  await response.json();
+
+                if (data.error) {
+                  message =
+                    data.error;
+                }
+              } catch (parseError) {
+                // Keep fallback.
+              }
+
+              throw new Error(
+                message
+              );
+            }
+
+
+            const data =
+              await response.json();
+
+            setGeneratingState(false);
+
+            await consumeDecisionSupportStream(
+              data.stream_url ||
+              streamUrl
+            );
+
+          } catch (error) {
+            console.error(
+              "Decision support regeneration error:",
+              error
+            );
+
+            setGeneratingState(false);
+
+            setHidden(
+              errorBox,
+              false
+            );
+
+            if (errorBox) {
+              errorBox.textContent =
+                error.message;
+            }
+          }
+        }
+      );
+    }
+
+
+    // ========================================================
+    // INTERVIEW NOTES
+    // ========================================================
+
+    const notesUpdateUrl =
+      root.dataset
+        .interviewNotesUpdateUrl;
+
+    const notesInput =
+      root.querySelector(
+        "[data-interview-notes-input]"
+      );
+
+    const notesSaveButton =
+      root.querySelector(
+        "[data-interview-notes-save]"
+      );
+
+    const notesStatus =
+      root.querySelector(
+        "[data-interview-notes-status]"
+      );
+
+    const notesError =
+      root.querySelector(
+        "[data-interview-notes-error]"
+      );
+
+    const notesCount =
+      root.querySelector(
+        "[data-interview-notes-count]"
+      );
+
+    const notesLastSaved =
+      root.querySelector(
+        "[data-interview-notes-last-saved]"
+      );
+
+
+    function updateCharacterCount() {
+      if (
+        !notesInput ||
+        !notesCount
+      ) {
+        return;
+      }
+
+      notesCount.textContent =
+        `${notesInput.value.length} / 30,000 characters`;
+    }
+
+
+    if (notesInput) {
+      notesInput.addEventListener(
+        "input",
+        () => {
+          updateCharacterCount();
+
+          if (notesStatus) {
+            notesStatus.textContent =
+              "Unsaved changes";
+
+            notesStatus.className =
+              "small ms-2 text-warning";
+          }
+        }
+      );
+
+      updateCharacterCount();
+    }
+
+
+    if (
+      notesSaveButton &&
+      notesInput
+    ) {
+      notesSaveButton.addEventListener(
+        "click",
+        async () => {
+          if (!notesUpdateUrl) {
+            return;
+          }
+
+          notesSaveButton.disabled =
+            true;
+
+          notesSaveButton.innerHTML = `
+            <span
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Saving...
+          `;
+
+          setHidden(
+            notesError,
+            true
+          );
+
+
+          try {
+            const response = await fetch(
+              notesUpdateUrl,
+              {
+                method: "POST",
+
+                headers: {
+                  "X-CSRFToken":
+                    getCookie(
+                      "csrftoken"
+                    ),
+
+                  "X-Requested-With":
+                    "XMLHttpRequest",
+
+                  "Content-Type":
+                    "application/json",
+                },
+
+                credentials:
+                  "same-origin",
+
+                body: JSON.stringify({
+                  interview_notes:
+                    notesInput.value,
+                }),
+              }
+            );
+
+
+            if (!response.ok) {
+              let message =
+                "The interview notes could not be saved.";
+
+              try {
+                const data =
+                  await response.json();
+
+                if (data.error) {
+                  message =
+                    data.error;
+                }
+              } catch (parseError) {
+                // Keep fallback.
+              }
+
+              throw new Error(
+                message
+              );
+            }
+
+
+            const data =
+              await response.json();
+
+            notesInput.value =
+              data.interview_notes || "";
+
+            updateCharacterCount();
+
+
+            if (notesStatus) {
+              notesStatus.textContent =
+                "Saved";
+
+              notesStatus.className =
+                "small ms-2 text-success";
+            }
+
+
+            if (
+              notesLastSaved &&
+              data.updated_at
+            ) {
+              const savedDate =
+                new Date(
+                  data.updated_at
+                );
+
+              notesLastSaved.textContent =
+                (
+                  "Last saved " +
+                  savedDate.toLocaleString()
+                );
+            }
+
+          await replaceDecisionSupportRoot();
+
+          } catch (error) {
+            console.error(
+              "Interview notes save error:",
+              error
+            );
+
+            setHidden(
+              notesError,
+              false
+            );
+
+            if (notesError) {
+              notesError.textContent =
+                error.message ||
+                (
+                  "The interview notes " +
+                  "could not be saved."
+                );
+            }
+
+          } finally {
+            notesSaveButton.disabled =
+              false;
+
+            notesSaveButton.innerHTML = `
+              <i data-feather="save"></i>
+              Save interview notes
+            `;
+
+            refreshFeatherIcons();
+          }
+        }
+      );
+    }
+// ========================================================
+// POST-INTERVIEW DECISION SUPPORT
+// ========================================================
+
+const postStreamUrl =
+  root.dataset
+    .postInterviewStreamUrl;
+
+const postRegenerateUrl =
+  root.dataset
+    .postInterviewRegenerateUrl;
+
+const postGenerateButton =
+  root.querySelector(
+    "[data-post-interview-generate]"
+  );
+
+const postThinking =
+  root.querySelector(
+    "[data-post-interview-thinking]"
+  );
+
+const postErrorBox =
+  root.querySelector(
+    "[data-post-interview-error]"
+  );
+
+const postEmptyState =
+  root.querySelector(
+    "[data-post-interview-empty]"
+  );
+
+const postContent =
+  root.querySelector(
+    "[data-post-interview-content]"
+  );
+
+const postOutdatedWarning =
+  root.querySelector(
+    "[data-post-interview-outdated]"
+  );
+
+const postStatusBadge =
+  root.querySelector(
+    "[data-post-interview-status-badge]"
+  );
+
+let isPostGenerating = false;
+
+
+function restorePostGenerateButton() {
+  if (!postGenerateButton) {
+    return;
+  }
+
+  const isRegenerate =
+    postGenerateButton.dataset
+      .regenerate === "true";
+
+  if (isRegenerate) {
+    postGenerateButton.innerHTML = `
+      <i data-feather="refresh-cw"></i>
+    `;
+  } else {
+    postGenerateButton.innerHTML = `
+      <i data-feather="star"></i>
+      Generate post-interview decision support
+    `;
+  }
+
+  refreshFeatherIcons();
+}
+
+
+function setPostGeneratingState(
+  generating
+) {
+  isPostGenerating =
+    generating;
+
+  if (postGenerateButton) {
+    postGenerateButton.disabled =
+      generating;
+
+    if (generating) {
+      postGenerateButton.innerHTML = `
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Generating...
+      `;
+    } else {
+      restorePostGenerateButton();
+    }
+  }
+
+  setHidden(
+    postThinking,
+    !generating
+  );
+
+  if (generating) {
+    setHidden(
+      postEmptyState,
+      true
+    );
+
+    setHidden(
+      postErrorBox,
+      true
+    );
+  }
+}
+
+
+async function consumePostInterviewStream(
+  url
+) {
+  if (
+    !url ||
+    isPostGenerating
+  ) {
+    return;
+  }
+
+  setPostGeneratingState(
+    true
+  );
+
+  try {
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "Accept":
+              "application/x-ndjson",
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+        }
+      );
+
+
+    if (!response.ok) {
+      let message =
+        (
+          "The post-interview decision " +
+          "support could not be generated."
+        );
+
+      try {
+        const data =
+          await response.json();
+
+        if (data.error) {
+          message =
+            data.error;
+        }
+      } catch (parseError) {
+        // Keep fallback message.
+      }
+
+      throw new Error(
+        message
+      );
+    }
+
+
+    if (!response.body) {
+      throw new Error(
+        (
+          "The browser did not receive " +
+          "a response stream."
+        )
+      );
+    }
+
+
+    const reader =
+      response.body.getReader();
+
+    const decoder =
+      new TextDecoder(
+        "utf-8"
+      );
+
+    let buffer = "";
+
+
+    function handlePostLine(
+      rawLine
+    ) {
+      const line =
+        rawLine.trim();
+
+      if (!line) {
+        return;
+      }
+
+      const event =
+        JSON.parse(line);
+
+      if (event.type === "error") {
+        throw new Error(
+          event.message ||
+          (
+            "The post-interview decision " +
+            "support could not be generated."
+          )
+        );
+      }
+    }
+
+
+    while (true) {
+      const chunk =
+        await reader.read();
+
+      if (chunk.done) {
+        break;
+      }
+
+      buffer += decoder.decode(
+        chunk.value,
+        {
+          stream: true,
+        }
+      );
+
+      const lines =
+        buffer.split("\n");
+
+      buffer =
+        lines.pop() || "";
+
+      for (
+        const rawLine of lines
+      ) {
+        handlePostLine(
+          rawLine
+        );
+      }
+    }
+
+
+    buffer +=
+      decoder.decode();
+
+    if (buffer.trim()) {
+      handlePostLine(
+        buffer
+      );
+    }
+
+
+    await replaceDecisionSupportRoot();
+
+  } catch (error) {
+    console.error(
+      (
+        "Post-interview decision " +
+        "support error:"
+      ),
+      error
+    );
+
+    setHidden(
+      postThinking,
+      true
+    );
+
+    setHidden(
+      postErrorBox,
+      false
+    );
+
+    if (postErrorBox) {
+      postErrorBox.textContent =
+        error.message ||
+        (
+          "The post-interview decision " +
+          "support could not be generated."
+        );
+    }
+
+  } finally {
+    setPostGeneratingState(
+      false
+    );
+  }
+}
+
+
+if (postGenerateButton) {
+  postGenerateButton.addEventListener(
+    "click",
+    async () => {
+      const shouldRegenerate =
+        postGenerateButton.dataset
+          .regenerate ===
+        "true";
+
+
+      setHidden(
+        postOutdatedWarning,
+        true
+      );
+
+      setHidden(
+        postStatusBadge,
+        true
+      );
+
+
+      if (!shouldRegenerate) {
+        await consumePostInterviewStream(
+          postStreamUrl
+        );
+
+        return;
+      }
+
+
+      try {
+        setPostGeneratingState(
+          true
+        );
+
+        const response =
+          await fetch(
+            postRegenerateUrl,
+            {
+              method: "POST",
+
+              headers: {
+                "X-CSRFToken":
+                  getCookie(
+                    "csrftoken"
+                  ),
+
+                "X-Requested-With":
+                  "XMLHttpRequest",
+
+                "Content-Type":
+                  "application/json",
+              },
+
+              credentials:
+                "same-origin",
+
+              body:
+                JSON.stringify({}),
+            }
+          );
+
+
+        if (!response.ok) {
+          let message =
+            (
+              "The post-interview decision " +
+              "support could not be regenerated."
+            );
+
+          try {
+            const data =
+              await response.json();
+
+            if (data.error) {
+              message =
+                data.error;
+            }
+          } catch (parseError) {
+            // Keep fallback.
+          }
+
+          throw new Error(
+            message
+          );
+        }
+
+
+        const data =
+          await response.json();
+
+
+        setPostGeneratingState(
+          false
+        );
+
+
+        await consumePostInterviewStream(
+          data.stream_url ||
+          postStreamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          (
+            "Post-interview regeneration " +
+            "error:"
+          ),
+          error
+        );
+
+        setPostGeneratingState(
+          false
+        );
+
+        setHidden(
+          postErrorBox,
+          false
+        );
+
+        if (postErrorBox) {
+          postErrorBox.textContent =
+            error.message ||
+            (
+              "The post-interview decision " +
+              "support could not be regenerated."
+            );
+        }
+      }
+    }
+  );
+}
+
+    refreshFeatherIcons();
+  }
+
+
+  function initialiseDecisionSupport(
+    container = document
+  ) {
+    const roots = [];
+
+
+    if (
+      container.matches &&
+      container.matches(
+        "[data-decision-support-root]"
+      )
+    ) {
+      roots.push(container);
+    }
+
+
+    if (container.querySelectorAll) {
+      roots.push(
+        ...container.querySelectorAll(
+          "[data-decision-support-root]"
+        )
+      );
+    }
+
+
+    roots.forEach(
+      initialiseDecisionSupportRoot
+    );
+  }
+
+
+  window.initCandidateDecisionSupport =
+    initialiseDecisionSupport;
+
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      initialiseDecisionSupport(
+        document
+      );
+    }
+  );
+
+
+  const observer =
+    new MutationObserver(
+      (mutations) => {
+        mutations.forEach(
+          (mutation) => {
+            mutation.addedNodes.forEach(
+              (node) => {
+                if (
+                  node.nodeType !==
+                  Node.ELEMENT_NODE
+                ) {
+                  return;
+                }
+
+                initialiseDecisionSupport(
+                  node
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+
+
+  observer.observe(
+    document.documentElement,
+    {
+      childList: true,
+      subtree: true,
+    }
+  );
+
+})();
+</script>
+
 {% endblock %}

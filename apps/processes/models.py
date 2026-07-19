@@ -395,6 +395,106 @@ class TestInvitation(models.Model):
         default="",
     )
 
+    # ------------------------------------------------------------
+    # Interview evidence
+    # ------------------------------------------------------------
+
+    interview_notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    interview_notes_updated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    interview_notes_updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="candidate_interview_notes_updated",
+    )
+
+
+    # ------------------------------------------------------------
+    # Pre-interview decision support
+    # ------------------------------------------------------------
+
+    ai_pre_interview_decision_support = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_pre_interview_decision_support_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_pre_interview_decision_support_generated_at = (
+        models.DateTimeField(
+            null=True,
+            blank=True,
+        )
+    )
+
+    ai_pre_interview_decision_support_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+
+    # ------------------------------------------------------------
+    # Post-interview decision support
+    # ------------------------------------------------------------
+
+    ai_post_interview_decision_support = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_post_interview_decision_support_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+        choices=[
+            ("not_started", "Not started"),
+            ("generating", "Generating"),
+            ("completed", "Completed"),
+            ("outdated", "Outdated"),
+            ("failed", "Failed"),
+        ],
+    )
+
+    ai_post_interview_decision_support_generated_at = (
+        models.DateTimeField(
+            null=True,
+            blank=True,
+        )
+    )
+
+    ai_post_interview_decision_support_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    ai_post_interview_decision_support_notes_version = (
+        models.DateTimeField(
+            null=True,
+            blank=True,
+        )
+    )
 
 
     is_historical = models.BooleanField(default=False, db_index=True)
