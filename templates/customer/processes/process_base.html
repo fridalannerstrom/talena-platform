@@ -7714,22 +7714,34 @@ activatePersonalityView(
     );
   }
 
-
-  function initialiseDecisionSupportRoot(
-    root
-  ) {
-    if (
-      !root ||
-      root.dataset
-        .decisionSupportInitialised ===
-        "true"
-    ) {
-      return;
-    }
-
+function initialiseDecisionSupportRoot(
+  root
+) {
+  if (
+    !root ||
     root.dataset
-      .decisionSupportInitialised =
-      "true";
+      .decisionSupportInitialised ===
+      "true"
+  ) {
+    return;
+  }
+
+  root.dataset
+    .decisionSupportInitialised =
+    "true";
+
+  /*
+   * Remove leading and trailing whitespace from
+   * server-rendered AI text.
+   */
+  root
+    .querySelectorAll(
+      ".purpose-fit-summary"
+    )
+    .forEach((element) => {
+      element.textContent =
+        element.textContent.trim();
+    });
 
 
     // ========================================================

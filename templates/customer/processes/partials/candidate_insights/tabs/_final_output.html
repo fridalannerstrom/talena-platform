@@ -18,75 +18,6 @@
   <!-- PAGE HEADER -->
   <!-- ================================================== -->
 
-  <div
-    class="
-      d-flex
-      align-items-start
-      justify-content-between
-      gap-3
-      flex-wrap
-      mt-4
-    "
-  >
-
-    <div>
-
-      <div class="insight-summary-kicker">
-        ✨ AI-supported synthesis
-      </div>
-
-      <h2 class="insight-summary-title mb-1">
-        Decision support
-      </h2>
-
-      <p class="text-muted small mb-0">
-        A structured synthesis that helps you interpret the available
-        evidence, prepare discussions and identify what still needs
-        to be explored.
-      </p>
-
-    </div>
-
-
-    {% if process.get_purpose_display %}
-
-      <span class="badge rounded-pill bg-light text-dark border">
-        {{ process.get_purpose_display }}
-      </span>
-
-    {% endif %}
-
-  </div>
-
-
-  <!-- HUMAN DECISION REMINDER -->
-
-  <div class="personality-questions-context-note mt-4">
-
-    <div class="d-flex align-items-start gap-3">
-
-      <div class="personality-questions-context-note__icon">
-        <i data-feather="user-check"></i>
-      </div>
-
-      <div>
-
-        <div class="personality-questions-context-note__title">
-          Decision support, not a decision
-        </div>
-
-        <div>
-          Talena organises and interprets available evidence but does
-          not determine whether the candidate should be selected,
-          rejected, promoted or placed in a role.
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
 
   {% if is_historical %}
 
@@ -102,7 +33,7 @@
     <!-- BEFORE / AFTER TABS -->
     <!-- ================================================== -->
 
-    <div class="mt-4">
+    <div>
 
       <div class="personality-view-controls">
 
@@ -177,11 +108,7 @@
 
           <div>
 
-            <div class="insight-summary-kicker">
-              Pre-interview
-            </div>
-
-            <h3 class="insight-summary-title mb-1">
+            <h3 class="insight-summary-title mb-1 mt-4">
               Pre-interview decision support
             </h3>
 
@@ -382,12 +309,10 @@
               Overall synthesis
             </h3>
 
-            <div
-              class="purpose-fit-summary"
-              data-pre-interview-overall-synthesis
-            >
-              {{ pre_interview_decision_support.overall_synthesis }}
-            </div>
+<div
+  class="purpose-fit-summary"
+  data-pre-interview-overall-synthesis
+>{{ pre_interview_decision_support.overall_synthesis }}</div>
 
           </section>
 
@@ -421,13 +346,11 @@
 
                     <article>
 
-                      <div class="fw-semibold mb-1">
+                      <div class="fw-semibold mb-1 border-top mt-2 pt-4">
                         {{ item.title }}
                       </div>
 
-                      <div class="small">
-                        {{ item.interpretation }}
-                      </div>
+<div class="purpose-fit-summary">{{ item.interpretation }}</div>
 
                       {% if item.evidence_sources %}
 
@@ -437,11 +360,7 @@
 
                             <span
                               class="
-                                badge
-                                rounded-pill
-                                bg-white
-                                text-dark
-                                border
+personality-trait-pill
                               "
                             >
                               {{ source }}
@@ -489,18 +408,18 @@
 
                     <article>
 
-                      <div class="fw-semibold mb-1">
+                      <div class="fw-semibold mb-1 border-top mt-2 pt-4">
                         {{ item.title }}
                       </div>
 
-                      <div class="small">
-                        {{ item.interpretation }}
-                      </div>
+<div class="purpose-fit-summary">{{ item.interpretation }}</div>
 
                       {% if item.reason_for_caution %}
 
-                        <div class="small text-muted mt-2">
-                          <strong>Why caution is needed:</strong>
+                                            <div class="fw-semibold mt-3">
+                        Why caution is needed:
+                      </div>
+                        <div class="purpose-fit-summary">
                           {{ item.reason_for_caution }}
                         </div>
 
@@ -797,6 +716,35 @@
             </div>
 
           </div>
+
+          
+  <!-- HUMAN DECISION REMINDER -->
+
+  <div class="personality-questions-context-note mt-4">
+
+    <div class="d-flex align-items-start gap-3">
+
+      <div class="personality-questions-context-note__icon">
+        <i data-feather="user-check"></i>
+      </div>
+
+      <div>
+
+        <div class="personality-questions-context-note__title">
+          Decision support, not a decision
+        </div>
+
+        <div>
+          Talena organises and interprets available evidence but does
+          not determine whether the candidate should be selected,
+          rejected, promoted or placed in a role.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 
         </div>
 
@@ -1201,9 +1149,7 @@
         Overall synthesis
       </h3>
 
-      <div class="purpose-fit-summary">
-        {{ post_interview_decision_support.overall_synthesis }}
-      </div>
+<div class="purpose-fit-summary">{{ post_interview_decision_support.overall_synthesis }}</div>
 
     </section>
 
@@ -1567,6 +1513,35 @@
   </div>
 
 </section>
+
+
+  <!-- HUMAN DECISION REMINDER -->
+
+  <div class="personality-questions-context-note mt-4">
+
+    <div class="d-flex align-items-start gap-3">
+
+      <div class="personality-questions-context-note__icon">
+        <i data-feather="user-check"></i>
+      </div>
+
+      <div>
+
+        <div class="personality-questions-context-note__title">
+          Decision support, not a decision
+        </div>
+
+        <div>
+          Talena organises and interprets available evidence but does
+          not determine whether the candidate should be selected,
+          rejected, promoted or placed in a role.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
        
       </div>
 
