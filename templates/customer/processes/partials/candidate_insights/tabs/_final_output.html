@@ -311,132 +311,206 @@
           </section>
 
 
-          <!-- INDICATIONS + CAUTION -->
+ <!-- INDICATIONS + CAUTION -->
 
-          <div class="row g-4 mt-1">
+<div class="row g-4 mt-1 post-evidence-grid">
 
-            <!-- PURPOSE-RELEVANT INDICATIONS -->
+  <!-- PURPOSE-RELEVANT INDICATIONS -->
 
-            <div class="col-lg-6">
+  <div
+    class="
+      col-12
+      col-xl-6
+      post-evidence-col
+      post-evidence-col--left
+    "
+  >
 
-              <section
-                class="
-                  purpose-fit-list-card
-                  purpose-fit-list-card--positive
-                  h-100
-                "
-              >
+    <section class="h-100 mt-4 pe-3">
 
-                <div class="purpose-fit-section-title mb-3">
-                  Purpose-relevant indications
-                </div>
+      <div class="post-evidence-column__header">
 
-                <div
-                  class="d-grid gap-3"
-                  data-pre-interview-indications
-                >
+        <div>
 
-                  {% for item in pre_interview_decision_support.purpose_relevant_indications %}
-
-                    <article>
-
-                      <div class="fw-semibold mb-1 border-top mt-2 pt-4">
-                        {{ item.title }}
-                      </div>
-
-<div class="purpose-fit-summary">{{ item.interpretation }}</div>
-
-                      {% if item.evidence_sources %}
-
-                        <div class="d-flex flex-wrap gap-1 mt-2">
-
-                          {% for source in item.evidence_sources %}
-
-                            <span
-                              class="
-personality-trait-pill
-                              "
-                            >
-                              {{ source }}
-                            </span>
-
-                          {% endfor %}
-
-                        </div>
-
-                      {% endif %}
-
-                    </article>
-
-                  {% endfor %}
-
-                </div>
-
-              </section>
-
-            </div>
-
-
-            <!-- CAUTIOUS INTERPRETATIONS -->
-
-            <div class="col-lg-6">
-
-              <section
-                class="
-                  purpose-fit-list-card
-                  purpose-fit-list-card--verify
-                  h-100
-                "
-              >
-
-                <div class="purpose-fit-section-title mb-3">
-                  What requires cautious interpretation
-                </div>
-
-                <div
-                  class="d-grid gap-3"
-                  data-pre-interview-cautions
-                >
-
-                  {% for item in pre_interview_decision_support.cautious_interpretations %}
-
-                    <article>
-
-                      <div class="fw-semibold mb-1 border-top mt-2 pt-4">
-                        {{ item.title }}
-                      </div>
-
-<div class="purpose-fit-summary">{{ item.interpretation }}</div>
-
-                      {% if item.reason_for_caution %}
-
-                                            <div class="fw-semibold mt-3">
-                        Why caution is needed:
-                      </div>
-                        <div class="purpose-fit-summary">
-                          {{ item.reason_for_caution }}
-                        </div>
-
-                      {% endif %}
-
-                    </article>
-
-                  {% endfor %}
-
-                </div>
-
-              </section>
-
-            </div>
-
+          <div class="response-style-item__title">
+            Purpose-relevant indications
           </div>
+
+          <div class="post-evidence-column__description">
+            Assessment indications that may be particularly relevant
+            to the purpose and context of this process.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="post-evidence-list"
+        data-pre-interview-indications
+      >
+
+        {% for item in pre_interview_decision_support.purpose_relevant_indications %}
+
+          <article class="post-evidence-item">
+
+            <h4 class="post-evidence-item__title">
+              {{ item.title }}
+            </h4>
+
+
+            {% if item.interpretation %}
+
+              <div>
+
+                <div class="post-evidence-block__text">
+                  {{ item.interpretation }}
+                </div>
+
+              </div>
+
+            {% endif %}
+
+
+            {% if item.evidence_sources %}
+
+              <div class="mt-2">
+
+                <div class="d-flex flex-wrap gap-1">
+
+                  {% for source in item.evidence_sources %}
+
+                    <span class="personality-trait-pill">
+                      {{ source }}
+                    </span>
+
+                  {% endfor %}
+
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </article>
+
+        {% empty %}
+
+          <div class="post-evidence-empty">
+            No purpose-relevant indications were identified from
+            the available assessment evidence.
+          </div>
+
+        {% endfor %}
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- CAUTIOUS INTERPRETATIONS -->
+
+  <div class="col-12 col-xl-6 post-evidence-col">
+
+    <section class="h-100 mt-4 ps-3">
+
+      <div class="post-evidence-column__header">
+
+        <div>
+
+          <div class="response-style-item__title">
+            What requires cautious interpretation
+          </div>
+
+          <div class="post-evidence-column__description">
+            Assessment indications that require validation, context
+            or additional behavioural evidence.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="post-evidence-list"
+        data-pre-interview-cautions
+      >
+
+        {% for item in pre_interview_decision_support.cautious_interpretations %}
+
+          <article class="post-evidence-item">
+
+            <h4 class="post-evidence-item__title">
+              {{ item.title }}
+            </h4>
+
+
+            {% if item.interpretation %}
+
+              <div>
+
+                <div class="post-evidence-block__text">
+                  {{ item.interpretation }}
+                </div>
+
+              </div>
+
+            {% endif %}
+
+
+            {% if item.reason_for_caution %}
+
+              <div class="post-evidence-interpretation">
+
+                <div class="post-evidence-interpretation__icon">
+                  <i data-feather="alert-triangle"></i>
+                </div>
+
+                <div>
+
+                  <div class="post-evidence-interpretation__label">
+                    Why caution is needed
+                  </div>
+
+                  <div class="post-evidence-interpretation__text">
+                    {{ item.reason_for_caution }}
+                  </div>
+
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </article>
+
+        {% empty %}
+
+          <div class="post-evidence-empty">
+            No indications requiring particular caution were
+            identified from the available assessment evidence.
+          </div>
+
+        {% endfor %}
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
 
 
           <!-- DISCUSSION GUIDANCE -->
 
-          <section class="purpose-fit-section border-top pt-4 mt-4">
+          <section class="border-top pt-4 mt-4 mb-4 pb-4">
 
-            <h3 class="insight-summary-title mb-1">
+            <h3 class="insight-summary-title mb-1 mt-4">
               How to approach the discussion
             </h3>
 
@@ -522,7 +596,7 @@ personality-trait-pill
 
           <!-- PRIORITY QUESTIONS -->
 
-          <section class="purpose-fit-section border-top pt-4 mt-4">
+          <section class="border-top pt-4 mt-4">
 
             <div
               class="
@@ -537,11 +611,11 @@ personality-trait-pill
 
               <div>
 
-                <h3 class="insight-summary-title mb-1">
+                <h3 class="insight-summary-title mb-1 pt-4">
                   Priority questions
                 </h3>
 
-                <p class="text-muted small mb-0">
+                <p class="text-muted small mb-3">
                   Questions selected to validate, challenge or add
                   context to the overall assessment picture.
                 </p>
@@ -659,7 +733,7 @@ personality-trait-pill
 
           <section class="purpose-fit-section border-top pt-4 mt-4">
 
-            <div class="purpose-fit-list-card">
+
 
               <div class="purpose-fit-section-title">
                 Evidence still missing
@@ -685,8 +759,6 @@ personality-trait-pill
                 {% endfor %}
 
               </ul>
-
-            </div>
 
           </section>
 
@@ -1132,7 +1204,7 @@ personality-trait-pill
 
 <!-- SUPPORTED INDICATIONS + ADDED NUANCE -->
 
-<div class="row g-4 mt-1 post-evidence-grid">
+<div class="row g-4 mt-1 post-evidence-grid mb-4">
 
   <!-- SUPPORTED INDICATIONS -->
 

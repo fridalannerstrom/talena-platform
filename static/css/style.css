@@ -29242,7 +29242,7 @@ color: #6E63E3;
 
 .post-evidence-list {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .post-evidence-item {
@@ -29252,17 +29252,11 @@ color: #6E63E3;
 }
 
 .post-evidence-item__title {
-  margin: 0 0 14px;
   color: black;
   font-size: 0.92rem;
   font-weight: 700;
   line-height: 1.4;
-}
-
-.post-evidence-block {
-  padding: 15px;
-  border-radius: 9px;
-  border: 1px solid #edeaf3;
+  margin-top: 5px;
 }
 
 .post-evidence-block + .post-evidence-block {
@@ -29279,6 +29273,13 @@ color: #6E63E3;
   font-weight: 700;
   letter-spacing: 0.025em;
   text-transform: uppercase;
+}
+
+
+.post-evidence-block {
+  padding: 15px;
+  border-radius: 9px;
+  border: 1px solid #edeaf3;
 }
 
 .post-evidence-block__label svg {
@@ -29301,7 +29302,7 @@ color: #6E63E3;
   background-color: #f8f9fc;
   border: 1px solid #edeaf3;
   border-radius: 9px;
-  margin-top: 8px;
+  margin-top: 15px;
 }
 
 .post-evidence-interpretation__icon {
