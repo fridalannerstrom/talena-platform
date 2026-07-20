@@ -1,14 +1,10 @@
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
-  <section class="card mb-4 purpose-fit-card motivation-profile-card">
-    <div class="card-body">
+  <section class="purpose-fit-card motivation-profile-card">
+    <div class="mt-4">
 
       <!-- HEADER -->
       <header class="team-styles-header mb-4">
-
-        <div class="insight-summary-kicker">
-          Candidate Insights
-        </div>
 
         <h2 class="insight-summary-title mb-1">
           {{ motivation_insights.title }}
@@ -21,6 +17,77 @@
         </p>
 
       </header>
+<!-- VISUAL MOTIVATION OVERVIEW -->
+
+<section
+  class="motivation-visual-overview mb-4"
+  data-motivation-visual-overview
+>
+
+<!-- MOTIVATION BUBBLE MAP -->
+
+<!-- KORN FERRY-INSPIRED MOTIVATION ROSE CHART -->
+
+<div
+  class="motivation-rose-chart"
+  data-motivation-rose-chart-root
+>
+
+  <!-- CHART -->
+
+  <div class="motivation-rose-chart__canvas-wrap">
+
+    <canvas
+      data-motivation-rose-chart
+      role="img"
+      aria-label="Circular overview of the candidate's motivation profile"
+    ></canvas>
+
+  </div>
+
+
+  <!-- LOADING / EMPTY STATE -->
+
+  <div
+    class="motivation-rose-chart__empty"
+    data-motivation-rose-chart-empty
+  >
+    Preparing motivation overview...
+  </div>
+
+
+  <!-- CHART DATA -->
+
+  <div
+    data-motivation-rose-chart-data
+    hidden
+  >
+
+    {% for domain in motivation_insights.domains %}
+
+      {% for item in domain.items %}
+
+        {% if item.score is not None %}
+
+          <span
+            data-motivation-rose-item
+            data-factor-name="{{ item.name|escape }}"
+            data-factor-score="{{ item.score }}"
+            data-factor-domain="{{ domain.title|escape }}"
+            data-domain-index="{{ forloop.parentloop.counter0 }}"
+          ></span>
+
+        {% endif %}
+
+      {% endfor %}
+
+    {% endfor %}
+
+  </div>
+
+</div>
+
+</section>
 
 
       <!-- PROFILE SUMMARY -->
@@ -28,7 +95,7 @@
 
 
           <!-- MORE PROMINENT DRIVERS -->
-          <article class="insight-summary-content motivation-summary-group">
+          <article class="insight-summary-content motivation-summary-group mb-4">
 
             <div class="response-style-item__header">
 
@@ -83,14 +150,11 @@
 
 
       <!-- FULL PROFILE HEADING -->
-      <div class="motivation-full-profile-heading">
+      <div class="motivation-full-profile-heading border-top mt-4 pt-4">
 
         <div>
-          <div class="insight-summary-kicker">
-            Full profile
-          </div>
 
-          <h3 class="motivation-full-profile-heading__title">
+          <h3 class="motivation-full-profile-heading__title mt-4">
             All motivation factors
           </h3>
 

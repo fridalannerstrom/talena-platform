@@ -29353,6 +29353,410 @@ color: #6E63E3;
   }
 }
 
+/* =========================================================
+   MOTIVATION VISUAL OVERVIEW
+========================================================= */
+
+.motivation-visual-overview {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+}
+
+.motivation-visual-overview__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.motivation-visual-overview__title {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #172033;
+}
+
+.motivation-visual-overview__description {
+  max-width: 680px;
+  margin: 0;
+  color: #667085;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.motivation-visual-overview__legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  flex-shrink: 0;
+  color: #667085;
+  font-size: 0.78rem;
+}
+
+.motivation-visual-overview__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.motivation-visual-overview__legend-circle {
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.motivation-visual-overview__legend-circle--cold {
+  width: 10px;
+  height: 10px;
+  background: #98a2b3;
+}
+
+.motivation-visual-overview__legend-circle--hot {
+  width: 18px;
+  height: 18px;
+  background: #b11778;
+}
+
+
+@media (max-width: 767.98px) {
+  .motivation-visual-overview {
+    padding: 18px;
+  }
+
+  .motivation-visual-overview__header {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+
+}
+
+/* =========================================================
+   MOTIVATION ROSE CHART
+========================================================= */
+
+.motivation-rose-chart {
+  position: relative;
+  width: 100%;
+}
+
+.motivation-rose-chart__canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  height: 800px;
+  margin: 0 auto;
+}
+
+.motivation-rose-chart__canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.motivation-rose-chart__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #98a2b3;
+  font-size: 0.875rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.motivation-rose-legend-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgba(177, 23, 120, 0.22);
+  border-radius: 50%;
+  background: rgba(177, 23, 120, 0.07);
+  color: #a31870;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.motivation-visual-overview__legend-line {
+  display: flex;
+  align-items: center;
+  width: 34px;
+}
+
+.motivation-visual-overview__legend-line span {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(152, 162, 179, 0.45),
+    rgba(177, 23, 120, 0.55)
+  );
+}
+
+@media (max-width: 767.98px) {
+  .motivation-rose-chart__canvas-wrap {
+    height: 430px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .motivation-rose-chart__canvas-wrap {
+    height: 370px;
+  }
+
+  .motivation-visual-overview__legend-line {
+    display: none;
+  }
+}
+
+/* =========================================================
+   MOTIVATION BUBBLE MAP
+========================================================= */
+
+.motivation-bubble-map {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  gap: 18px;
+}
+
+.motivation-bubble-domain {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.motivation-bubble-domain__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-height: 58px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+.motivation-bubble-domain__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(177, 23, 120, 0.08);
+  color: #a31870;
+}
+
+.motivation-bubble-domain__icon i,
+.motivation-bubble-domain__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.motivation-bubble-domain__title {
+  margin: 0 0 3px;
+  color: #172033;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.motivation-bubble-domain__subtitle {
+  margin: 0;
+  color: #7a8292;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.motivation-bubble-domain__items {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px 18px;
+}
+
+.motivation-bubble-factor {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 104px;
+  text-align: center;
+}
+
+.motivation-bubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.06),
+    0 8px 22px rgba(36, 44, 72, 0.1);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.motivation-bubble:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.08),
+    0 12px 28px rgba(36, 44, 72, 0.15);
+}
+
+.motivation-bubble__score {
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+
+/* SCORE 1 */
+
+.motivation-bubble--score-1 {
+  width: 34px;
+  height: 34px;
+  background:
+    linear-gradient(
+      145deg,
+      #aeb8c7,
+      #8491a4
+    );
+}
+
+
+/* SCORE 2 */
+
+.motivation-bubble--score-2 {
+  width: 46px;
+  height: 46px;
+  background:
+    linear-gradient(
+      145deg,
+      #8495ad,
+      #61738e
+    );
+}
+
+
+/* SCORE 3 */
+
+.motivation-bubble--score-3 {
+  width: 60px;
+  height: 60px;
+  background:
+    linear-gradient(
+      145deg,
+      #9168c5,
+      #7043a9
+    );
+}
+
+
+/* SCORE 4 */
+
+.motivation-bubble--score-4 {
+  width: 76px;
+  height: 76px;
+  background:
+    linear-gradient(
+      145deg,
+      #ca438e,
+      #aa176e
+    );
+}
+
+
+/* SCORE 5 */
+
+.motivation-bubble--score-5 {
+  width: 92px;
+  height: 92px;
+  background:
+    linear-gradient(
+      145deg,
+      #bd287d,
+      #841052
+    );
+}
+
+.motivation-bubble--score-4 .motivation-bubble__score,
+.motivation-bubble--score-5 .motivation-bubble__score {
+  font-size: 1rem;
+}
+
+.motivation-bubble-factor__name {
+  margin-top: 9px;
+  color: #344054;
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 991.98px) {
+  .motivation-bubble-map {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .motivation-bubble-domain {
+    padding: 16px;
+  }
+
+  .motivation-bubble-domain__items {
+    gap: 22px 10px;
+  }
+
+  .motivation-bubble-factor {
+    width: 88px;
+  }
+
+  .motivation-bubble--score-1 {
+    width: 32px;
+    height: 32px;
+  }
+
+  .motivation-bubble--score-2 {
+    width: 42px;
+    height: 42px;
+  }
+
+  .motivation-bubble--score-3 {
+    width: 54px;
+    height: 54px;
+  }
+
+  .motivation-bubble--score-4 {
+    width: 66px;
+    height: 66px;
+  }
+
+  .motivation-bubble--score-5 {
+    width: 78px;
+    height: 78px;
+  }
+}
+
 /* Missing doughnut */
 
 .cognitive-doughnut--missing {

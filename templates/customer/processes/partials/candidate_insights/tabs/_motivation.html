@@ -5,78 +5,74 @@
     data-candidate-insights-subtabs
   >
 
-    <!-- SUBNAVIGATION -->
-    <section class="card mb-4 candidate-insights-subnavigation">
+<!-- SUBNAVIGATION -->
 
-      <div class="card-body pb-0">
+<section class="candidate-insights-subnavigation">
 
-        <div class="insight-summary-kicker">
-          Motivation
-        </div>
+  <div class="candidate-insights-subnavigation__layout mb-4">
 
-        <h2 class="insight-summary-title mb-1">
-          Motivation insights
-        </h2>
+    <div
+      class="candidate-insights-view-switcher"
+      role="tablist"
+      aria-label="Motivation insight areas"
+    >
 
-        <p class="text-muted small mb-0">
-          Explore the motivation profile, practical interpretation
-          and purpose-aware questions.
-        </p>
+      <!-- RESULTS -->
 
-      </div>
+      <button
+        type="button"
+        id="motivation-tab-results"
+        class="candidate-insights-view-option is-active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="motivation-subpanel-results"
+        data-insights-subtab="results"
+      >
+        <i data-feather="bar-chart-2"></i>
+        <span>Results</span>
+      </button>
 
 
-      <div class="candidate-profile-tabs-wrap mt-3">
+      {% if not is_historical %}
 
-        <div
-          class="candidate-profile-tabs"
-          role="tablist"
-          aria-label="Motivation insight areas"
+        <!-- INTERPRETATION -->
+
+        <button
+          type="button"
+          id="motivation-tab-interpretation"
+          class="candidate-insights-view-option"
+          role="tab"
+          aria-selected="false"
+          aria-controls="motivation-subpanel-interpretation"
+          data-insights-subtab="interpretation"
         >
-
-          <button
-            type="button"
-            class="candidate-tab is-active"
-            role="tab"
-            aria-selected="true"
-            aria-controls="motivation-subpanel-results"
-            data-insights-subtab="results"
-          >
-            Results
-          </button>
+          <i data-feather="zap"></i>
+          <span>Interpretation</span>
+        </button>
 
 
-          {% if not is_historical %}
-            <button
-              type="button"
-              class="candidate-tab"
-              role="tab"
-              aria-selected="false"
-              aria-controls="motivation-subpanel-interpretation"
-              data-insights-subtab="interpretation"
-            >
-              Interpretation
-            </button>
+        <!-- QUESTIONS -->
 
+        <button
+          type="button"
+          id="motivation-tab-questions"
+          class="candidate-insights-view-option"
+          role="tab"
+          aria-selected="false"
+          aria-controls="motivation-subpanel-questions"
+          data-insights-subtab="questions"
+        >
+          <i data-feather="help-circle"></i>
+          <span>Questions</span>
+        </button>
 
-            <button
-              type="button"
-              class="candidate-tab"
-              role="tab"
-              aria-selected="false"
-              aria-controls="motivation-subpanel-questions"
-              data-insights-subtab="questions"
-            >
-              Questions
-            </button>
-          {% endif %}
+      {% endif %}
 
-        </div>
+    </div>
 
-      </div>
+  </div>
 
-    </section>
-
+</section>
 
     <div class="candidate-insights-subworkspace__panels">
 

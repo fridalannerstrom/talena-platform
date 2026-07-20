@@ -712,6 +712,709 @@ console.log(
 );
 }
 
+async function initMotivationRoseChart(
+  container = document
+) {
+  if (!container) {
+    return;
+  }
+
+  const canvas = container.querySelector(
+    "[data-motivation-rose-chart]"
+  );
+
+  if (!canvas) {
+    return;
+  }
+
+  /*
+   * Chart.js cannot correctly measure a canvas
+   * while its tab panel is hidden.
+   */
+  const containingPanel = canvas.closest(
+    "[data-insights-subpanel]"
+  );
+
+  if (
+    containingPanel
+    && containingPanel.hidden
+  ) {
+    return;
+  }
+
+  const ChartLibrary =
+    window.TeamStyleChartJS
+    || window.Chart;
+
+  if (!ChartLibrary) {
+    console.error(
+      "[MOTIVATION ROSE CHART] Chart.js has not been loaded."
+    );
+
+    return;
+  }
+
+  const chartRoot = canvas.closest(
+    "[data-motivation-rose-chart-root]"
+  );
+
+  const emptyState = chartRoot?.querySelector(
+    "[data-motivation-rose-chart-empty]"
+  );
+
+  const itemElements = Array.from(
+    chartRoot?.querySelectorAll(
+      "[data-motivation-rose-item]"
+    ) || []
+  );
+
+  const items = itemElements
+    .map((element) => {
+      const score = Number(
+        element.dataset.factorScore
+      );
+
+      const domainIndex = Number(
+        element.dataset.domainIndex
+      );
+
+      return {
+        name:
+          element.dataset.factorName
+          || "Motivation factor",
+
+        domain:
+          element.dataset.factorDomain
+          || "Motivation",
+
+        domainIndex:
+          Number.isFinite(domainIndex)
+            ? domainIndex
+            : 0,
+
+        score,
+      };
+    })
+    .filter((item) => {
+      return (
+        Number.isFinite(item.score)
+        && item.score >= 1
+        && item.score <= 5
+      );
+    });
+
+  if (!items.length) {
+    if (emptyState) {
+      emptyState.textContent =
+        "No motivation results are available for the overview.";
+
+      emptyState.classList.remove(
+        "d-none"
+      );
+    }
+
+    return;
+  }
+
+  /*
+   * Wait until the visible panel has received
+   * its final dimensions.
+   */
+  await new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
+
+  const existingChart =
+    canvas._motivationRoseChartInstance;
+
+  if (
+    existingChart
+    && typeof existingChart.destroy === "function"
+  ) {
+    existingChart.destroy();
+  }
+
+  canvas._motivationRoseChartInstance = null;
+
+  const compact =
+    canvas.clientWidth < 620;
+
+  const labels = items.map(
+    (item) => item.name
+  );
+
+  const scores = items.map(
+    (item) => item.score
+  );
+
+
+  /*
+   * Keep each motivation domain visually related,
+   * while score controls both length and intensity.
+   */
+  const domainColours = [
+    [177, 23, 120],
+    [111, 60, 183],
+    [62, 142, 230],
+    [35, 55, 180],
+  ];
+
+  const opacityByScore = {
+    1: 0.38,
+    2: 0.5,
+    3: 0.64,
+    4: 0.78,
+    5: 0.92,
+  };
+
+  const backgroundColours = items.map(
+    (item) => {
+      const colour =
+        domainColours[
+          item.domainIndex
+          % domainColours.length
+        ];
+
+      const opacity =
+        opacityByScore[item.score]
+        || 0.65;
+
+      return (
+        `rgba(` +
+        `${colour[0]}, ` +
+        `${colour[1]}, ` +
+        `${colour[2]}, ` +
+        `${opacity}` +
+        `)`
+      );
+    }
+  );
+
+
+  /*
+   * Group contiguous factors by motivation domain.
+   */
+  const domainGroups = [];
+
+  items.forEach((item, index) => {
+    const previousGroup =
+      domainGroups[
+        domainGroups.length - 1
+      ];
+
+    if (
+      previousGroup
+      && previousGroup.domainIndex
+        === item.domainIndex
+    ) {
+      previousGroup.endIndex = index;
+      return;
+    }
+
+    domainGroups.push({
+      domain: item.domain,
+      domainIndex: item.domainIndex,
+      startIndex: index,
+      endIndex: index,
+    });
+  });
+
+
+  function wrapLabel(
+    value,
+    maxLength
+  ) {
+    const words = String(value)
+      .trim()
+      .split(/\s+/);
+
+    const lines = [];
+    let currentLine = "";
+
+    words.forEach((word) => {
+      const nextLine = currentLine
+        ? `${currentLine} ${word}`
+        : word;
+
+      if (
+        nextLine.length > maxLength
+        && currentLine
+      ) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = nextLine;
+      }
+    });
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines.slice(0, 2);
+  }
+
+
+  /*
+   * Draw factor names, score values,
+   * domain labels and domain separators.
+   */
+  const motivationRoseLabelsPlugin = {
+    id: "motivationRoseLabels",
+
+    afterDraw(chart) {
+      const meta =
+        chart.getDatasetMeta(0);
+
+      const arcs =
+        meta?.data || [];
+
+      const radialScale =
+        chart.scales.r;
+
+      if (
+        !arcs.length
+        || !radialScale
+      ) {
+        return;
+      }
+
+      const {
+        ctx,
+      } = chart;
+
+      const centerX =
+        radialScale.xCenter;
+
+      const centerY =
+        radialScale.yCenter;
+
+      const drawingArea =
+        radialScale.drawingArea;
+
+      const factorLabelRadius =
+        drawingArea
+        + (compact ? 18 : 28);
+
+      const domainLabelRadius =
+        drawingArea
+        + (compact ? 46 : 66);
+
+      ctx.save();
+
+      /*
+       * Domain separator lines.
+       */
+      domainGroups.forEach(
+        (group, groupIndex) => {
+          if (groupIndex === 0) {
+            return;
+          }
+
+          const firstArc =
+            arcs[group.startIndex];
+
+          if (!firstArc) {
+            return;
+          }
+
+          const angle =
+            firstArc.startAngle;
+
+          ctx.beginPath();
+
+          ctx.moveTo(
+            centerX,
+            centerY
+          );
+
+          ctx.lineTo(
+            centerX
+              + Math.cos(angle)
+              * drawingArea,
+
+            centerY
+              + Math.sin(angle)
+              * drawingArea
+          );
+
+          ctx.strokeStyle =
+            "rgba(255, 255, 255, 0.88)";
+
+          ctx.lineWidth =
+            compact ? 3 : 4;
+
+          ctx.stroke();
+        }
+      );
+
+
+      /*
+       * Factor labels and score values.
+       */
+      items.forEach(
+        (item, index) => {
+          const arc = arcs[index];
+
+          if (!arc) {
+            return;
+          }
+
+          const angle =
+            (
+              arc.startAngle
+              + arc.endAngle
+            ) / 2;
+
+          const cosine =
+            Math.cos(angle);
+
+          const sine =
+            Math.sin(angle);
+
+          const labelX =
+            centerX
+            + cosine
+            * factorLabelRadius;
+
+          const labelY =
+            centerY
+            + sine
+            * factorLabelRadius;
+
+          const labelLines =
+            wrapLabel(
+              item.name,
+              compact ? 10 : 15
+            );
+
+          if (cosine > 0.25) {
+            ctx.textAlign = "left";
+          } else if (cosine < -0.25) {
+            ctx.textAlign = "right";
+          } else {
+            ctx.textAlign = "center";
+          }
+
+          ctx.textBaseline = "middle";
+
+          ctx.fillStyle =
+            "#475467";
+
+          ctx.font =
+            compact
+              ? "600 9px Inter, system-ui, sans-serif"
+              : "600 11px Inter, system-ui, sans-serif";
+
+          const lineHeight =
+            compact ? 11 : 14;
+
+          const firstLineY =
+            labelY
+            - (
+              (
+                labelLines.length - 1
+              )
+              * lineHeight
+            ) / 2;
+
+          labelLines.forEach(
+            (line, lineIndex) => {
+              ctx.fillText(
+                line,
+                labelX,
+                firstLineY
+                  + lineIndex
+                  * lineHeight
+              );
+            }
+          );
+
+
+          /*
+           * Draw the numeric score near
+           * the outer end of each rose segment.
+           */
+          const scoreRadius =
+            Math.max(
+              arc.innerRadius + 16,
+              arc.outerRadius
+                - (compact ? 13 : 17)
+            );
+
+          const scoreX =
+            centerX
+            + cosine
+            * scoreRadius;
+
+          const scoreY =
+            centerY
+            + sine
+            * scoreRadius;
+
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          ctx.fillStyle =
+            "#ffffff";
+
+          ctx.font =
+            compact
+              ? "700 9px Inter, system-ui, sans-serif"
+              : "700 11px Inter, system-ui, sans-serif";
+
+          ctx.fillText(
+            String(item.score),
+            scoreX,
+            scoreY
+          );
+        }
+      );
+
+
+      /*
+       * Domain labels outside the factor labels.
+       */
+      domainGroups.forEach((group) => {
+        const firstArc =
+          arcs[group.startIndex];
+
+        const lastArc =
+          arcs[group.endIndex];
+
+        if (
+          !firstArc
+          || !lastArc
+        ) {
+          return;
+        }
+
+        const startAngle =
+          firstArc.startAngle;
+
+        const endAngle =
+          lastArc.endAngle;
+
+        const middleAngle =
+          (
+            startAngle
+            + endAngle
+          ) / 2;
+
+        const domainX =
+          centerX
+          + Math.cos(middleAngle)
+          * domainLabelRadius;
+
+        const domainY =
+          centerY
+          + Math.sin(middleAngle)
+          * domainLabelRadius;
+
+        const colour =
+          domainColours[
+            group.domainIndex
+            % domainColours.length
+          ];
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillStyle =
+          `rgb(` +
+          `${colour[0]}, ` +
+          `${colour[1]}, ` +
+          `${colour[2]}` +
+          `)`;
+
+        ctx.font =
+          compact
+            ? "750 9px Inter, system-ui, sans-serif"
+            : "750 11px Inter, system-ui, sans-serif";
+
+        ctx.fillText(
+          String(group.domain)
+            .toUpperCase(),
+
+          domainX,
+          domainY
+        );
+      });
+
+      ctx.restore();
+    },
+  };
+
+
+  const chartInstance = new ChartLibrary(
+    canvas.getContext("2d"),
+    {
+      type: "polarArea",
+
+      data: {
+        labels,
+
+        datasets: [
+          {
+            label: "Motivation profile",
+            data: scores,
+
+            backgroundColor:
+              backgroundColours,
+
+            borderColor:
+              "#ffffff",
+
+            borderWidth:
+              compact ? 2 : 3,
+
+            hoverBorderColor:
+              "#ffffff",
+
+            hoverBorderWidth:
+              compact ? 3 : 4,
+
+            borderRadius:
+              compact ? 7 : 12,
+
+            spacing:
+              compact ? 1 : 2,
+          },
+        ],
+      },
+
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        layout: {
+          padding: compact
+            ? {
+                top: 64,
+                right: 64,
+                bottom: 64,
+                left: 64,
+              }
+            : {
+                top: 98,
+                right: 105,
+                bottom: 98,
+                left: 105,
+              },
+        },
+
+        scales: {
+          r: {
+            beginAtZero: true,
+            min: 0,
+            max: 5,
+            startAngle: -90,
+
+            ticks: {
+              display: true,
+              stepSize: 1,
+              color: "#98a2b3",
+              backdropColor:
+                "rgba(255, 255, 255, 0.86)",
+
+              backdropPadding: 2,
+
+              font: {
+                size: compact ? 9 : 10,
+              },
+
+              callback(value) {
+                return value === 0
+                  ? ""
+                  : value;
+              },
+            },
+
+            grid: {
+              circular: true,
+              color:
+                "rgba(80, 87, 102, 0.13)",
+            },
+
+            angleLines: {
+              display: false,
+            },
+
+            pointLabels: {
+              display: false,
+            },
+          },
+        },
+
+        plugins: {
+          legend: {
+            display: false,
+          },
+
+          tooltip: {
+            displayColors: false,
+
+            callbacks: {
+              title(context) {
+                return (
+                  context[0]?.label
+                  || "Motivation factor"
+                );
+              },
+
+              label(context) {
+                return (
+                  `Result: ` +
+                  `${context.raw} / 5`
+                );
+              },
+
+              afterLabel(context) {
+                const item =
+                  items[
+                    context.dataIndex
+                  ];
+
+                return item?.domain
+                  ? `Area: ${item.domain}`
+                  : "";
+              },
+            },
+          },
+        },
+
+        animation: {
+          duration: 700,
+        },
+      },
+
+      plugins: [
+        motivationRoseLabelsPlugin,
+      ],
+    }
+  );
+
+  canvas._motivationRoseChartInstance =
+    chartInstance;
+
+  if (emptyState) {
+    emptyState.classList.add(
+      "d-none"
+    );
+  }
+
+  console.log(
+    "[MOTIVATION ROSE CHART] Initialised",
+    {
+      labels,
+      scores,
+      domains: domainGroups,
+    }
+  );
+}
+
 
 function initCandidateSheetInteractions(container) {
   if (!container) {
@@ -887,6 +1590,12 @@ function initCandidateSheetInteractions(container) {
         await initTeamStyleChart(activePanel);
       }
 
+if (target === "motivation") {
+  await initMotivationRoseChart(
+    activePanel
+  );
+}
+
       initIconsAndTooltips(activePanel);
 
       if (
@@ -997,6 +1706,21 @@ function initCandidateInsightsSubtabs(container = document) {
       }
 
       initIconsAndTooltips(activePanel);
+
+if (
+  target === "results"
+  && activePanel.querySelector(
+    "[data-motivation-rose-chart]"
+  )
+) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      initMotivationRoseChart(
+        activePanel
+      );
+    });
+  });
+}
 
       if (
         typeof window.initPersonalityViewSwitcher === "function"
