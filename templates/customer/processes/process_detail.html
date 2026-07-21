@@ -160,18 +160,12 @@
             id="send-tests-btn"
             type="submit"
             form="send-tests-form"
-            class="btn btn-outline-secondary btn-sm"
+            class="btn btn-primary btn-sm"
             disabled
             aria-disabled="true"
           >
             <i data-feather="send" class="icon-16"></i>
             Send assessments
-          </button>
-
-          <button type="button"
-                  class="btn btn-primary btn-sm js-add-candidate"
-                  data-url="{% url 'processes:process_add_candidate' process.id %}">
-            Add candidate
           </button>
         </div>
       {% endif %}

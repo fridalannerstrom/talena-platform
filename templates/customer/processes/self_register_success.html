@@ -1,5 +1,121 @@
-<h1>Tack!</h1>
-<p>{{ message }}</p>
-{% if already_registered %}
-  <p>(Looks like you already registered for this process.)</p>
-{% endif %}
+{% load static %}
+<!doctype html>
+<html lang="sv">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Registreringen är klar | Talena</title>
+
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+
+<body>
+
+  <main class="auth-shell">
+
+    <!-- LEFT -->
+    <section class="auth-left">
+
+      <header class="brand">
+        <img
+          src="{% static 'images/talena-logo.svg' %}"
+          alt="Talena"
+          class="brand-logo"
+        />
+      </header>
+
+      <div class="auth-card registration-card success-card">
+
+        <div class="success-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12.5L9.25 16.75L19 7"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        {% if already_registered %}
+
+          <span class="registration-eyebrow">
+            Redan registrerad
+          </span>
+
+          <h1 class="auth-title">
+            Du är redan registrerad
+          </h1>
+
+          <p class="auth-subtitle success-message">
+            {{ message }}
+          </p>
+
+          <div class="success-information">
+            Du behöver inte registrera dig på nytt. Använd instruktionerna
+            som tidigare skickats till din e-postadress för att fortsätta.
+          </div>
+
+        {% else %}
+
+          <span class="registration-eyebrow">
+            Registreringen är klar
+          </span>
+
+          <h1 class="auth-title">
+            Tack!
+          </h1>
+
+          <p class="auth-subtitle success-message">
+            {{ message }}
+          </p>
+
+          <div class="success-information">
+            Din registrering har tagits emot. Följ instruktionerna du får
+            för att fortsätta till nästa steg.
+          </div>
+
+        {% endif %}
+
+      </div>
+
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="auth-right success-right" aria-hidden="true">
+
+      <div class="success-decoration">
+
+        <div class="success-decoration-mark">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12.5L9.25 16.75L19 7"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        <p>Du är redo för nästa steg.</p>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+</body>
+</html>

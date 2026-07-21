@@ -1,26 +1,227 @@
-<h1>{{ process.name }}</h1>
-<p>Ange information för att registrera dig till testprocessen.</p>
+{% load static %}
+<!doctype html>
+<html lang="sv">
 
-<form method="post">
-  {% csrf_token %}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <p>
-    <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label><br>
-    {{ form.first_name }}
-    {{ form.first_name.errors }}
-  </p>
+  <title>Registrera dig | Talena</title>
 
-  <p>
-    <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label><br>
-    {{ form.last_name }}
-    {{ form.last_name.errors }}
-  </p>
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
 
-  <p>
-    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label><br>
-    {{ form.email }}
-    {{ form.email.errors }}
-  </p>
+<body>
 
-  <button type="submit">Registrera dig</button>
-</form>
+  <main class="auth-shell">
+
+    <!-- LEFT -->
+    <section class="auth-left">
+
+      <header class="brand">
+        <img
+          src="{% static 'images/talena-logo.svg' %}"
+          alt="Talena"
+          class="brand-logo"
+        />
+      </header>
+
+      <div class="auth-card registration-card">
+
+        <div class="registration-heading">
+          <span class="registration-eyebrow">
+            Testprocess
+          </span>
+
+          <h1 class="auth-title">
+            Registrera dig
+          </h1>
+
+          <p class="auth-subtitle">
+            Fyll i dina uppgifter för att delta i
+            <strong>{{ process.name }}</strong>.
+          </p>
+        </div>
+
+        <form
+          method="post"
+          class="auth-form registration-form"
+          novalidate
+        >
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="registration-name-grid">
+
+            <div class="field {% if form.first_name.errors %}has-error{% endif %}">
+              <label
+                class="label"
+                for="{{ form.first_name.id_for_label }}"
+              >
+                {{ form.first_name.label }}
+              </label>
+
+              {{ form.first_name }}
+
+              {% if form.first_name.errors %}
+                <div class="field-error">
+                  {{ form.first_name.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="field {% if form.last_name.errors %}has-error{% endif %}">
+              <label
+                class="label"
+                for="{{ form.last_name.id_for_label }}"
+              >
+                {{ form.last_name.label }}
+              </label>
+
+              {{ form.last_name }}
+
+              {% if form.last_name.errors %}
+                <div class="field-error">
+                  {{ form.last_name.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+
+          <div class="field {% if form.email.errors %}has-error{% endif %}">
+            <label
+              class="label"
+              for="{{ form.email.id_for_label }}"
+            >
+              {{ form.email.label }}
+            </label>
+
+            {{ form.email }}
+
+            {% if form.email.errors %}
+              <div class="field-error">
+                {{ form.email.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <button class="btn registration-button" type="submit">
+            Registrera dig
+          </button>
+
+          <p class="registration-privacy">
+            Dina uppgifter används för att koppla dig till rätt testprocess.
+          </p>
+
+        </form>
+
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="auth-right registration-right">
+
+      <div class="registration-right-content">
+
+        <div class="registration-process-card">
+
+          <span class="registration-process-label">
+            Du registrerar dig till
+          </span>
+
+          <h2 class="registration-process-title">
+            {{ process.name }}
+          </h2>
+
+          <div class="registration-divider"></div>
+
+          <div class="registration-steps">
+
+            <div class="registration-step">
+              <span class="registration-step-number">1</span>
+
+              <div>
+                <strong>Fyll i dina uppgifter</strong>
+                <p>
+                  Ange ditt namn och den e-postadress som ska kopplas till testet.
+                </p>
+              </div>
+            </div>
+
+            <div class="registration-step">
+              <span class="registration-step-number">2</span>
+
+              <div>
+                <strong>Registrera dig</strong>
+                <p>
+                  Talena skapar din registrering för den här testprocessen.
+                </p>
+              </div>
+            </div>
+
+            <div class="registration-step">
+              <span class="registration-step-number">3</span>
+
+              <div>
+                <strong>Få nästa instruktion</strong>
+                <p>
+                  Efter registreringen får du information om hur du går vidare.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script>
+    (function () {
+      const fields = [
+        {
+          element: document.getElementById(
+            "{{ form.first_name.id_for_label }}"
+          ),
+          autocomplete: "given-name"
+        },
+        {
+          element: document.getElementById(
+            "{{ form.last_name.id_for_label }}"
+          ),
+          autocomplete: "family-name"
+        },
+        {
+          element: document.getElementById(
+            "{{ form.email.id_for_label }}"
+          ),
+          autocomplete: "email"
+        }
+      ];
+
+      fields.forEach(function (field) {
+        if (!field.element) {
+          return;
+        }
+
+        field.element.classList.add("input");
+        field.element.setAttribute(
+          "autocomplete",
+          field.autocomplete
+        );
+      });
+    })();
+  </script>
+
+</body>
+</html>
