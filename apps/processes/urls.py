@@ -108,6 +108,28 @@ urlpatterns = [
     path(
         (
             "<int:process_id>/candidate/"
+            "<int:candidate_id>/motivation-questions/stream/"
+        ),
+        views.process_candidate_motivation_questions_stream,
+        name=(
+            "process_candidate_motivation_"
+            "questions_stream"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/motivation-questions/regenerate/"
+        ),
+        views.process_candidate_motivation_questions_regenerate,
+        name=(
+            "process_candidate_motivation_"
+            "questions_regenerate"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidate/"
             "<int:candidate_id>/personality-questions/stream/"
         ),
         views.process_candidate_personality_questions_stream,
@@ -258,4 +280,5 @@ urlpatterns = [
             "decision_support_regenerate"
         ),
     ),
+    
 ]

@@ -376,9 +376,7 @@ Help the user understand:
 1. What may provide energy and engagement.
 2. Which working conditions may support sustainable motivation.
 3. Which expectations, tensions or less central drivers should be clarified.
-4. Which questions may help understand how the person experiences motivation
-   in practice.
-5. How the role, situation or development opportunity should be described
+4. How the role, situation or development opportunity should be described
    realistically.
 
 CORE INTERPRETATION RULES
@@ -467,29 +465,6 @@ These may include:
 
 These are topics for clarification, not confirmed risks or weaknesses.
 
-QUESTIONS TO EXPLORE
-This section is mandatory.
-Do not omit the questions event.
-Each item must be a JSON object containing all three keys:
-"question", "why" and "listen_for".
-Do not return the questions as plain strings.
-
-Each question must:
-- be open and practical
-- invite a concrete example or reflection
-- help understand how the motivation pattern appears in real situations
-- be relevant to the selected purpose
-- avoid leading the respondent towards a preferred answer
-- cover different themes rather than asking the same question three ways
-
-For recruitment, questions may be phrased as interview questions.
-For development, leadership, onboarding or team purposes, phrase them
-as reflection or discussion questions where appropriate.
-
-For each question, also return:
-- why the question is relevant
-- what the user should listen for
-
 REALISTIC EXPECTATION SETTING
 Write one short practical paragraph.
 
@@ -538,19 +513,15 @@ Together, these events form the complete overall interpretation.
 
 {{"type":"areas_to_clarify","items":["Clarification one","Clarification two","Clarification three"]}}
 
-5. One questions event containing exactly 3 objects:
-
-{{"type":"questions","items":[{{"question":"Question one","why":"Reason one","listen_for":"Evidence one"}},{{"question":"Question two","why":"Reason two","listen_for":"Evidence two"}},{{"question":"Question three","why":"Reason three","listen_for":"Evidence three"}}]}}
-
-6. One expectation_setting event:
+5. One expectation_setting event:
 
 {{"type":"expectation_setting","text":"A short, honest expectation-setting recommendation."}}
 
-7. One context_note event:
+6. One context_note event:
 
 {{"type":"context_note","text":"Brief explanation of the evidence and context used."}}
 
-8. One final done event:
+7. One final done event:
 
 {{"type":"done"}}
 """.strip()
@@ -565,11 +536,9 @@ def create_empty_motivation_interpretation(
         "interpretation": "",
         "engagement_conditions": [],
         "areas_to_clarify": [],
-        "questions": [],
         "expectation_setting": "",
         "context_note": "",
     }
-
 
 def _normalise_motivation_questions(
     items: Any,
@@ -665,13 +634,6 @@ def apply_motivation_interpretation_event(
                 for item in items[:3]
                 if str(item).strip()
             ]
-
-    elif event_type == "questions":
-        interpretation["questions"] = (
-            _normalise_motivation_questions(
-                event.get("items")
-            )
-        )
 
     elif event_type == "expectation_setting":
         interpretation["expectation_setting"] = str(
@@ -959,8 +921,8 @@ def stream_motivation_interpretation(
     """
     Stream motivation interpretation events from OpenAI.
 
-    The final done event is held back until the response has been
-    checked and any missing questions have been repaired.
+    Motivation questions are generated independently in
+    motivation_questions.py.
     """
 
     if not motivation_results:
@@ -977,6 +939,7 @@ def stream_motivation_interpretation(
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
+
         messages=[
             {
                 "role": "system",
@@ -993,53 +956,39 @@ def stream_motivation_interpretation(
                 "content": prompt,
             },
         ],
+
         temperature=0.2,
         stream=True,
     )
 
     buffer = ""
-    received_valid_questions = False
-
-    def prepare_event(
-        event: dict[str, Any] | None,
-    ) -> dict[str, Any] | None:
-        nonlocal received_valid_questions
-
-        if not event:
-            return None
-
-        event_type = event.get("type")
-
-        # Hold back done until validation and repair are complete.
-        if event_type == "done":
-            return None
-
-        if event_type == "questions":
-            questions = (
-                _normalise_motivation_questions(
-                    event.get("items")
-                )
-            )
-
-            if len(questions) != 3:
-                return None
-
-            received_valid_questions = True
-
-            return {
-                "type": "questions",
-                "items": questions,
-            }
-
-        return event
 
     for response_event in stream:
-        delta = response_event.choices[0].delta
+        choices = getattr(
+            response_event,
+            "choices",
+            None,
+        )
 
-        if not delta or not delta.content:
+        if not choices:
             continue
 
-        buffer += delta.content
+        delta = getattr(
+            choices[0],
+            "delta",
+            None,
+        )
+
+        content = getattr(
+            delta,
+            "content",
+            None,
+        )
+
+        if not content:
+            continue
+
+        buffer += content
 
         while "\n" in buffer:
             raw_line, buffer = buffer.split(
@@ -1047,38 +996,19 @@ def stream_motivation_interpretation(
                 1,
             )
 
-            parsed_event = _parse_event_line(
+            event = _parse_event_line(
                 raw_line
             )
 
-            prepared_event = prepare_event(
-                parsed_event
-            )
-
-            if prepared_event:
-                yield prepared_event
+            if event:
+                yield event
 
     final_event = _parse_event_line(
         buffer
     )
 
-    prepared_final_event = prepare_event(
-        final_event
-    )
-
-    if prepared_final_event:
-        yield prepared_final_event
-
-    if not received_valid_questions:
-        yield _generate_repaired_questions_event(
-            owner=owner,
-            motivation_results=motivation_results,
-        )
-
-    # Emit exactly one done event, after validation and repair.
-    yield {
-        "type": "done",
-    }
+    if final_event:
+        yield final_event
 
 def save_motivation_interpretation(
     *,

@@ -305,6 +305,32 @@ class TestInvitation(models.Model):
     )
 
     # ------------------------------------------------------------
+    # AI motivation questions
+    # ------------------------------------------------------------
+
+    ai_motivation_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_motivation_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_motivation_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_motivation_questions_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
     # AI personality interpretation
     # ------------------------------------------------------------
     ai_personality_interpretation = models.JSONField(
@@ -925,6 +951,32 @@ class HistoricalProcessCandidate(models.Model):
     )
 
     ai_motivation_interpretation_purpose = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
+    # AI motivation questions
+    # ------------------------------------------------------------
+
+    ai_motivation_questions = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_motivation_questions_status = models.CharField(
+        max_length=30,
+        default="not_started",
+        blank=True,
+    )
+
+    ai_motivation_questions_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_motivation_questions_purpose = models.CharField(
         max_length=100,
         blank=True,
         default="",

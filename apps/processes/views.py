@@ -17,6 +17,8 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+
+
 from apps.core.ai.decision_support import (
     create_empty_pre_interview_decision_support,
     apply_pre_interview_decision_support_event,
@@ -50,6 +52,13 @@ from apps.core.ai.motivation_interpretation import (
     apply_motivation_interpretation_event,
     stream_motivation_interpretation,
     save_motivation_interpretation,
+)
+
+from apps.core.ai.motivation_questions import (
+    create_empty_motivation_questions,
+    apply_motivation_questions_event,
+    stream_motivation_questions,
+    save_motivation_questions,
 )
 
 from apps.core.ai.response_style_guidance import (
@@ -3634,6 +3643,41 @@ def build_candidate_detail_context(process, invitation):
                 "candidate_id": candidate.id,
             },
         ),
+
+        # Motivation AI questions
+        "motivation_questions": (
+            invitation.ai_motivation_questions
+            or {}
+        ),
+
+        "motivation_questions_status": (
+            invitation.ai_motivation_questions_status
+            or "not_started"
+        ),
+
+        "motivation_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),       
 
         # Personality AI interpretation
         "personality_interpretation": (
@@ -9490,17 +9534,6 @@ def process_candidate_motivation_interpretation_stream(
                     "The AI response did not contain "
                     "a motivation interpretation."
                 )
-            
-            questions = (
-                interpretation.get("questions")
-                or []
-            )
-
-            if len(questions) != 3:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "three valid motivation questions."
-                )
 
             if not received_done_event:
                 yield json.dumps(
@@ -9618,6 +9651,325 @@ def process_candidate_motivation_interpretation_regenerate(
             ),
         }
     )
+
+@login_required
+def process_candidate_motivation_questions_stream(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Stream and save AI-supported motivation questions.
+
+    Motivation questions are generated and stored independently
+    from the motivation interpretation.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical motivation questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    motivation_results = extract_motivation_results(
+        invitation
+    )
+
+    if not motivation_results:
+        return JsonResponse(
+            {
+                "error": (
+                    "No motivation assessment results "
+                    "are available for this candidate."
+                )
+            },
+            status=400,
+        )
+
+    current_status = (
+        invitation.ai_motivation_questions_status
+        or "not_started"
+    )
+
+    saved_result = (
+        invitation.ai_motivation_questions
+        or {}
+    )
+
+    current_purpose = (
+        process.purpose
+        or ""
+    ).strip().lower()
+
+    saved_purpose = (
+        invitation.ai_motivation_questions_purpose
+        or ""
+    ).strip().lower()
+
+    # Safety check if the process purpose has changed.
+    if (
+        saved_result
+        and current_status == "completed"
+        and saved_purpose != current_purpose
+    ):
+        current_status = "outdated"
+
+        invitation.ai_motivation_questions_status = (
+            "outdated"
+        )
+
+        invitation.save(
+            update_fields=[
+                "ai_motivation_questions_status",
+            ]
+        )
+
+    # Return previously generated questions when available.
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
+    ):
+        def existing_generator():
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": saved_result,
+                    "status": current_status,
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+        response = StreamingHttpResponse(
+            existing_generator(),
+            content_type=(
+                "application/x-ndjson; charset=utf-8"
+            ),
+        )
+
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+
+        return response
+
+    if current_status == "generating":
+        return JsonResponse(
+            {
+                "error": (
+                    "The motivation questions are "
+                    "already being generated."
+                )
+            },
+            status=409,
+        )
+
+    invitation.ai_motivation_questions_status = (
+        "generating"
+    )
+
+    invitation.save(
+        update_fields=[
+            "ai_motivation_questions_status",
+        ]
+    )
+
+    def generator():
+        result = create_empty_motivation_questions(
+            invitation
+        )
+
+        received_done_event = False
+
+        try:
+            for event in stream_motivation_questions(
+                owner=invitation,
+                motivation_results=motivation_results,
+            ):
+                result = apply_motivation_questions_event(
+                    result,
+                    event,
+                )
+
+                if event.get("type") == "done":
+                    received_done_event = True
+
+                yield json.dumps(
+                    event,
+                    ensure_ascii=False,
+                ) + "\n"
+
+            questions = (
+                result.get("questions")
+                or []
+            )
+
+            if len(questions) != 3:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "three valid motivation questions."
+                )
+
+            if not received_done_event:
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
+
+            save_motivation_questions(
+                owner=invitation,
+                result=result,
+            )
+
+        except Exception as error:
+            invitation.ai_motivation_questions_status = (
+                "failed"
+            )
+
+            invitation.save(
+                update_fields=[
+                    "ai_motivation_questions_status",
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(error),
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+    response = StreamingHttpResponse(
+        generator(),
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
+    )
+
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+
+    return response
+
+
+@login_required
+@require_POST
+def process_candidate_motivation_questions_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Reset only the motivation questions and return the
+    stream URL for a fresh generation.
+
+    The motivation interpretation is not changed.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Historical motivation questions "
+                    "are not connected yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    invitation.ai_motivation_questions_status = (
+        "not_started"
+    )
+
+    invitation.ai_motivation_questions_generated_at = (
+        None
+    )
+
+    invitation.ai_motivation_questions_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_motivation_questions_status",
+            "ai_motivation_questions_generated_at",
+            "ai_motivation_questions_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_motivation_"
+                    "questions_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
+
 
 @login_required
 def process_candidate_personality_interpretation_stream(

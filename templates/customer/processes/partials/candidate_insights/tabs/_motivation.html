@@ -5,74 +5,71 @@
     data-candidate-insights-subtabs
   >
 
-<!-- SUBNAVIGATION -->
+    <!-- SUBNAVIGATION -->
+    <section class="candidate-insights-subnavigation">
 
-<section class="candidate-insights-subnavigation">
+      <div class="candidate-insights-subnavigation__layout mb-4">
 
-  <div class="candidate-insights-subnavigation__layout mb-4">
-
-    <div
-      class="candidate-insights-view-switcher"
-      role="tablist"
-      aria-label="Motivation insight areas"
-    >
-
-      <!-- RESULTS -->
-
-      <button
-        type="button"
-        id="motivation-tab-results"
-        class="candidate-insights-view-option is-active"
-        role="tab"
-        aria-selected="true"
-        aria-controls="motivation-subpanel-results"
-        data-insights-subtab="results"
-      >
-        <i data-feather="bar-chart-2"></i>
-        <span>Results</span>
-      </button>
-
-
-      {% if not is_historical %}
-
-        <!-- INTERPRETATION -->
-
-        <button
-          type="button"
-          id="motivation-tab-interpretation"
-          class="candidate-insights-view-option"
-          role="tab"
-          aria-selected="false"
-          aria-controls="motivation-subpanel-interpretation"
-          data-insights-subtab="interpretation"
+        <div
+          class="candidate-insights-view-switcher"
+          role="tablist"
+          aria-label="Motivation insight areas"
         >
-          <i data-feather="zap"></i>
-          <span>Interpretation</span>
-        </button>
+
+          <!-- RESULTS -->
+          <button
+            type="button"
+            id="motivation-tab-results"
+            class="candidate-insights-view-option is-active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="motivation-subpanel-results"
+            data-insights-subtab="results"
+          >
+            <i data-feather="bar-chart-2"></i>
+            <span>Results</span>
+          </button>
 
 
-        <!-- QUESTIONS -->
+          {% if not is_historical %}
 
-        <button
-          type="button"
-          id="motivation-tab-questions"
-          class="candidate-insights-view-option"
-          role="tab"
-          aria-selected="false"
-          aria-controls="motivation-subpanel-questions"
-          data-insights-subtab="questions"
-        >
-          <i data-feather="help-circle"></i>
-          <span>Questions</span>
-        </button>
+            <!-- INTERPRETATION -->
+            <button
+              type="button"
+              id="motivation-tab-interpretation"
+              class="candidate-insights-view-option"
+              role="tab"
+              aria-selected="false"
+              aria-controls="motivation-subpanel-interpretation"
+              data-insights-subtab="interpretation"
+            >
+              <i data-feather="zap"></i>
+              <span>Interpretation</span>
+            </button>
 
-      {% endif %}
 
-    </div>
+            <!-- QUESTIONS -->
+            <button
+              type="button"
+              id="motivation-tab-questions"
+              class="candidate-insights-view-option"
+              role="tab"
+              aria-selected="false"
+              aria-controls="motivation-subpanel-questions"
+              data-insights-subtab="questions"
+            >
+              <i data-feather="help-circle"></i>
+              <span>Questions</span>
+            </button>
 
-  </div>
+          {% endif %}
 
-</section>
+        </div>
+
+      </div>
+
+    </section>
+
 
     <div class="candidate-insights-subworkspace__panels">
 
@@ -81,6 +78,7 @@
         id="motivation-subpanel-results"
         class="candidate-insights-subpanel is-active"
         role="tabpanel"
+        aria-labelledby="motivation-tab-results"
         data-insights-subpanel="results"
       >
         {% include "customer/processes/partials/candidate_insights/motivation/_results.html" %}
@@ -89,169 +87,316 @@
 
       {% if not is_historical %}
 
-        <!-- SHARED AI ROOT -->
-        <section
-          class="card mb-4 purpose-fit-card motivation-ai-card"
-          data-insights-panel-shell
-          data-motivation-ai-root
-          data-stream-url="{{ motivation_interpretation_stream_url }}"
-          data-regenerate-url="{{ motivation_interpretation_regenerate_url }}"
-          data-status="{{ motivation_interpretation_status }}"
-          data-has-result="{% if motivation_interpretation %}true{% else %}false{% endif %}"
-          hidden
+  <!-- INTERPRETATION -->
+<div
+  id="motivation-subpanel-interpretation"
+  class="candidate-insights-subpanel"
+  role="tabpanel"
+  aria-labelledby="motivation-tab-interpretation"
+  data-insights-subpanel="interpretation"
+  hidden
+>
+
+  <section
+    class="purpose-fit-card motivation-ai-card"
+    data-motivation-ai-root
+    data-stream-url="{{ motivation_interpretation_stream_url }}"
+    data-regenerate-url="{{ motivation_interpretation_regenerate_url }}"
+    data-status="{{ motivation_interpretation_status }}"
+    data-has-result="{% if motivation_interpretation %}true{% else %}false{% endif %}"
+  >
+
+    <!-- INTERPRETATION HEADER -->
+    <div class="motivation-ai-header mb-4">
+
+      <div>
+
+        <div class="insight-summary-kicker mt-4">
+          ✨ AI-generated insight
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Motivation interpretation
+        </h2>
+
+        <p class="text-muted small mb-0">
+          A practical interpretation of the motivation profile
+          in relation to the selected purpose and process context.
+        </p>
+
+      </div>
+
+
+      <div class="d-flex align-items-center gap-2">
+
+        <span
+          class="
+            badge
+            rounded-pill
+            bg-warning-subtle
+            text-warning-emphasis
+            {% if motivation_interpretation_status != 'outdated' %}
+              d-none
+            {% endif %}
+          "
+          data-motivation-ai-status-badge
         >
-          <div class="card-body">
+          Needs update
+        </span>
 
-            <!-- SHARED HEADER -->
-            <div class="motivation-ai-header">
+        <button
+          type="button"
+          class="btn btn-icon btn-light"
+          data-motivation-ai-regenerate
+          title="Generate a new motivation interpretation"
+          aria-label="Generate a new motivation interpretation"
+        >
+          <i data-feather="refresh-cw"></i>
+        </button>
 
-              <div>
-                <div class="insight-summary-kicker">
-                  ✨ AI-supported guidance
-                </div>
+      </div>
 
-                <h2 class="insight-summary-title mb-1">
-                  Motivation guidance
-                </h2>
-
-                <p class="text-muted small mb-0">
-                  Practical interpretation and questions based on the
-                  motivation profile, selected purpose and process context.
-                </p>
-              </div>
+    </div>
 
 
-              <div class="d-flex align-items-center gap-2">
+    <!-- OUTDATED WARNING -->
+    <div
+      class="
+        alert
+        alert-warning
+        mt-4
+        {% if motivation_interpretation_status != 'outdated' %}
+          d-none
+        {% endif %}
+      "
+      data-motivation-ai-outdated
+    >
 
-                <span
-                  class="
-                    badge
-                    rounded-pill
-                    bg-warning-subtle
-                    text-warning-emphasis
-                    {% if motivation_interpretation_status != 'outdated' %}
-                      d-none
-                    {% endif %}
-                  "
-                  data-motivation-ai-status-badge
-                >
-                  Needs update
-                </span>
+      <div class="d-flex align-items-start gap-2">
 
-                <button
-                  type="button"
-                  class="btn btn-icon btn-light"
-                  data-motivation-ai-regenerate
-                  title="Generate new motivation guidance"
-                  aria-label="Generate new motivation guidance"
-                >
-                  <i data-feather="refresh-cw"></i>
-                </button>
+        <i
+          data-feather="alert-circle"
+          class="flex-shrink-0 mt-1"
+        ></i>
 
-              </div>
+        <div>
 
-            </div>
-
-
-            <!-- OUTDATED WARNING -->
-            <div
-              class="
-                alert
-                alert-warning
-                mt-4
-                {% if motivation_interpretation_status != 'outdated' %}
-                  d-none
-                {% endif %}
-              "
-              data-motivation-ai-outdated
-            >
-              <div class="d-flex align-items-start gap-2">
-
-                <i
-                  data-feather="alert-circle"
-                  class="flex-shrink-0 mt-1"
-                ></i>
-
-                <div>
-                  <div class="fw-semibold small mb-1">
-                    The process information has changed
-                  </div>
-
-                  <div class="small">
-                    This guidance was generated using an earlier process
-                    purpose or context. Refresh it to include the latest
-                    information.
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-
-            <!-- THINKING -->
-            <div
-              class="{% if motivation_interpretation %}d-none{% endif %}"
-              data-motivation-ai-thinking
-            >
-              <div class="d-flex align-items-center gap-2 text-muted py-3">
-
-                <span
-                  class="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  Interpreting the motivation profile...
-                </span>
-
-              </div>
-            </div>
-
-
-            <!-- ERROR -->
-            <div
-              class="alert alert-danger d-none mt-4"
-              data-motivation-ai-error
-            >
-              The motivation guidance could not be generated.
-            </div>
-
-
-            <!-- AI CONTENT -->
-            <div
-              class="{% if not motivation_interpretation %}d-none{% endif %}"
-              data-motivation-ai-content
-            >
-
-              <!-- INTERPRETATION -->
-              <div
-                id="motivation-subpanel-interpretation"
-                class="candidate-insights-subpanel"
-                role="tabpanel"
-                data-insights-subpanel="interpretation"
-                hidden
-              >
-                {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
-              </div>
-
-
-              <!-- QUESTIONS -->
-              <div
-                id="motivation-subpanel-questions"
-                class="candidate-insights-subpanel"
-                role="tabpanel"
-                data-insights-subpanel="questions"
-                hidden
-              >
-                {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
-              </div>
-
-            </div>
-
+          <div class="fw-semibold small mb-1">
+            The process information has changed
           </div>
-        </section>
 
+          <div class="small">
+            This interpretation was generated using an earlier
+            process purpose or context. Refresh it to include
+            the latest information.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- THINKING -->
+    <div
+      class="{% if motivation_interpretation %}d-none{% endif %}"
+      data-motivation-ai-thinking
+    >
+
+      <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+
+        <span>
+          Interpreting the motivation profile...
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ERROR -->
+    <div
+      class="alert alert-danger d-none mt-4"
+      data-motivation-ai-error
+    >
+      The motivation interpretation could not be generated.
+    </div>
+
+
+    <!-- INTERPRETATION CONTENT -->
+    <div
+      class="{% if not motivation_interpretation %}d-none{% endif %}"
+      data-motivation-ai-content
+    >
+      {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
+    </div>
+
+  </section>
+
+</div>
+
+
+<!-- QUESTIONS -->
+<div
+  id="motivation-subpanel-questions"
+  class="candidate-insights-subpanel"
+  role="tabpanel"
+  aria-labelledby="motivation-tab-questions"
+  data-insights-subpanel="questions"
+  hidden
+>
+
+  <section
+    class="purpose-fit-card motivation-questions-card"
+    data-motivation-questions-root
+    data-stream-url="{{ motivation_questions_stream_url }}"
+    data-regenerate-url="{{ motivation_questions_regenerate_url }}"
+    data-status="{{ motivation_questions_status }}"
+    data-has-result="{% if motivation_questions.questions %}true{% else %}false{% endif %}"
+  >
+
+    <!-- QUESTIONS HEADER -->
+    <div class="motivation-ai-header mb-4">
+
+      <div>
+
+        <div class="insight-summary-kicker mt-4">
+          ✨ AI-supported questions
+        </div>
+
+        <h2 class="insight-summary-title mb-1">
+          Motivation questions
+        </h2>
+
+        <p class="text-muted small mb-0">
+          Practical questions for exploring how the motivation
+          profile may appear in relevant work situations.
+        </p>
+
+      </div>
+
+
+      <div class="d-flex align-items-center gap-2">
+
+        <span
+          class="
+            badge
+            rounded-pill
+            bg-warning-subtle
+            text-warning-emphasis
+            {% if motivation_questions_status != 'outdated' %}
+              d-none
+            {% endif %}
+          "
+          data-motivation-questions-status-badge
+        >
+          Needs update
+        </span>
+
+        <button
+          type="button"
+          class="btn btn-icon btn-light"
+          data-motivation-questions-regenerate
+          title="Generate new motivation questions"
+          aria-label="Generate new motivation questions"
+        >
+          <i data-feather="refresh-cw"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- OUTDATED WARNING -->
+    <div
+      class="
+        alert
+        alert-warning
+        mt-4
+        {% if motivation_questions_status != 'outdated' %}
+          d-none
+        {% endif %}
+      "
+      data-motivation-questions-outdated
+    >
+
+      <div class="d-flex align-items-start gap-2">
+
+        <i
+          data-feather="alert-circle"
+          class="flex-shrink-0 mt-1"
+        ></i>
+
+        <div>
+
+          <div class="fw-semibold small mb-1">
+            The process information has changed
+          </div>
+
+          <div class="small">
+            These questions were generated using an earlier
+            process purpose or context. Refresh them to include
+            the latest information.
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- THINKING -->
+    <div
+      class="{% if motivation_questions.questions %}d-none{% endif %}"
+      data-motivation-questions-thinking
+    >
+
+      <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+
+        <span>
+          Generating motivation questions...
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ERROR -->
+    <div
+      class="alert alert-danger d-none mt-4"
+      data-motivation-questions-error
+    >
+      The motivation questions could not be generated.
+    </div>
+
+
+    <!-- QUESTIONS CONTENT -->
+    <div
+      class="{% if not motivation_questions.questions %}d-none{% endif %}"
+      data-motivation-questions-content
+    >
+      {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
+    </div>
+
+  </section>
+
+</div>
       {% endif %}
 
     </div>

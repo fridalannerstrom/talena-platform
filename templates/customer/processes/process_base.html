@@ -303,6 +303,10 @@ await initCandidateMotivationInterpretation(
   sheetBody
 );
 
+await initCandidateMotivationQuestions(
+  sheetBody
+);
+
   await initCandidatePersonalityInterpretation(
     sheetBody
   );
@@ -3949,7 +3953,7 @@ async function initCandidateMotivationInterpretation(
     interpretationEl.textContent = "";
     engagementList.replaceChildren();
     clarifyList.replaceChildren();
-    questionsList.replaceChildren();
+    questionsList?.replaceChildren();
     expectationEl.textContent = "";
     contextNote.textContent = "";
 
@@ -3999,8 +4003,15 @@ async function initCandidateMotivationInterpretation(
     refreshIcons();
   }
 
-  function renderQuestions(items) {
-    questionsList.replaceChildren();
+function renderQuestions(items) {
+  if (
+    !questionsList ||
+    !questionsSection
+  ) {
+    return;
+  }
+
+  questionsList.replaceChildren();
 
     const validItems = Array.isArray(items)
       ? items.filter(
@@ -4504,6 +4515,835 @@ notifyCandidateAiContentUpdated(
 }
 
 </script>
+
+
+<script>
+async function initCandidateMotivationQuestions(
+  container = document
+) {
+  const root = container.querySelector(
+    "[data-motivation-questions-root]"
+  );
+
+  if (!root) {
+    return;
+  }
+
+  if (
+    root.dataset
+      .motivationQuestionsInitialised ===
+    "true"
+  ) {
+    return;
+  }
+
+  root.dataset
+    .motivationQuestionsInitialised =
+    "true";
+
+
+  const streamUrl =
+    root.dataset.streamUrl;
+
+  const regenerateUrl =
+    root.dataset.regenerateUrl;
+
+
+  const thinking = root.querySelector(
+    "[data-motivation-questions-thinking]"
+  );
+
+  const content = root.querySelector(
+    "[data-motivation-questions-content]"
+  );
+
+  const errorBox = root.querySelector(
+    "[data-motivation-questions-error]"
+  );
+
+  const statusBadge = root.querySelector(
+    "[data-motivation-questions-status-badge]"
+  );
+
+  const outdatedWarning = root.querySelector(
+    "[data-motivation-questions-outdated]"
+  );
+
+  const questionsList = root.querySelector(
+    "[data-motivation-questions-list]"
+  );
+
+  const contextNoteSection = root.querySelector(
+    "[data-motivation-questions-context-note-section]"
+  );
+
+  const contextNote = root.querySelector(
+    "[data-motivation-questions-context-note]"
+  );
+
+  const regenerateButton = root.querySelector(
+    "[data-motivation-questions-regenerate]"
+  );
+
+
+  let isStreaming = false;
+
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => {
+        return row.startsWith(
+          `${name}=`
+        );
+      });
+
+    return cookieValue
+      ? decodeURIComponent(
+          cookieValue.split("=")[1]
+        )
+      : null;
+  }
+
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
+  function setHidden(
+    element,
+    hidden
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function hideOutdatedState() {
+    setHidden(
+      statusBadge,
+      true
+    );
+
+    setHidden(
+      outdatedWarning,
+      true
+    );
+  }
+
+
+  function createEmptyDraft() {
+    return {
+      title:
+        "Motivation questions",
+
+      label:
+        "AI-supported questions",
+
+      questions: [],
+
+      context_note: "",
+    };
+  }
+
+
+  function createDetailBox({
+    type,
+    iconName,
+    title,
+    text,
+  }) {
+    const detail =
+      document.createElement("div");
+
+    detail.className = [
+      "personality-question-card__detail",
+      (
+        "personality-question-card__detail--" +
+        type
+      ),
+    ].join(" ");
+
+
+    const icon =
+      document.createElement("div");
+
+    icon.className =
+      "personality-question-card__detail-icon";
+
+    icon.innerHTML =
+      `<i data-feather="${iconName}"></i>`;
+
+
+    const body =
+      document.createElement("div");
+
+    const heading =
+      document.createElement("div");
+
+    heading.className =
+      "personality-question-card__detail-title";
+
+    heading.textContent =
+      title;
+
+
+    const description =
+      document.createElement("div");
+
+    description.className =
+      "personality-question-card__detail-text";
+
+    description.textContent =
+      text;
+
+
+    body.appendChild(
+      heading
+    );
+
+    body.appendChild(
+      description
+    );
+
+    detail.appendChild(
+      icon
+    );
+
+    detail.appendChild(
+      body
+    );
+
+    return detail;
+  }
+
+
+  function renderQuestions(items) {
+    if (!questionsList) {
+      return;
+    }
+
+    questionsList.replaceChildren();
+
+    const validItems = Array.isArray(items)
+      ? items.filter((item) => {
+          return (
+            item &&
+            typeof item === "object" &&
+            String(
+              item.question || ""
+            ).trim()
+          );
+        })
+      : [];
+
+
+    validItems.forEach(
+      (item, index) => {
+        const article =
+          document.createElement(
+            "article"
+          );
+
+        article.className =
+          "personality-question-card";
+
+
+        const header =
+          document.createElement("div");
+
+        header.className =
+          "personality-question-card__header";
+
+
+        const number =
+          document.createElement("div");
+
+        number.className =
+          "personality-question-card__number";
+
+        number.textContent =
+          String(index + 1);
+
+
+        const heading =
+          document.createElement("div");
+
+        heading.className =
+          "personality-question-card__heading";
+
+
+        const question =
+          document.createElement("div");
+
+        question.className =
+          "personality-question-card__text";
+
+        question.textContent =
+          item.question || "";
+
+
+        heading.appendChild(
+          question
+        );
+
+        header.appendChild(
+          number
+        );
+
+        header.appendChild(
+          heading
+        );
+
+        article.appendChild(
+          header
+        );
+
+
+        if (
+          item.why ||
+          item.listen_for
+        ) {
+          const details =
+            document.createElement("div");
+
+          details.className =
+            "personality-question-card__details";
+
+
+          if (item.why) {
+            details.appendChild(
+              createDetailBox({
+                type: "why",
+                iconName: "compass",
+                title: "Why this matters",
+                text: item.why,
+              })
+            );
+          }
+
+
+          if (item.listen_for) {
+            details.appendChild(
+              createDetailBox({
+                type: "listen",
+                iconName: "headphones",
+                title:
+                  "What to look for in the answer",
+                text:
+                  item.listen_for,
+              })
+            );
+          }
+
+
+          article.appendChild(
+            details
+          );
+        }
+
+
+        questionsList.appendChild(
+          article
+        );
+      }
+    );
+
+    refreshIcons();
+  }
+
+
+  function resetContent() {
+    questionsList?.replaceChildren();
+
+    if (contextNote) {
+      contextNote.textContent = "";
+    }
+
+    setHidden(
+      contextNoteSection,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      true
+    );
+  }
+
+
+  function applySavedResult(data) {
+    const result = {
+      ...createEmptyDraft(),
+      ...(data || {}),
+    };
+
+    renderQuestions(
+      result.questions || []
+    );
+
+    if (contextNote) {
+      contextNote.textContent =
+        result.context_note || "";
+    }
+
+    setHidden(
+      contextNoteSection,
+      !result.context_note
+    );
+
+    setHidden(
+      thinking,
+      true
+    );
+
+    setHidden(
+      errorBox,
+      true
+    );
+
+    setHidden(
+      content,
+      false
+    );
+
+    refreshIcons();
+
+    return result;
+  }
+
+
+  function applyEvent(
+    draft,
+    event
+  ) {
+    switch (event.type) {
+
+      case "saved_result":
+        return {
+          ...draft,
+          ...(event.data || {}),
+        };
+
+
+      case "meta":
+        draft.title =
+          event.title ||
+          draft.title;
+
+        draft.label =
+          event.label ||
+          draft.label;
+
+        break;
+
+
+      case "questions":
+        draft.questions =
+          Array.isArray(event.items)
+            ? event.items
+            : [];
+
+        renderQuestions(
+          draft.questions
+        );
+
+        break;
+
+
+      case "context_note":
+        draft.context_note =
+          event.text || "";
+
+        if (contextNote) {
+          contextNote.textContent =
+            draft.context_note;
+        }
+
+        break;
+
+
+      case "error":
+        throw new Error(
+          event.message ||
+          (
+            "The motivation questions " +
+            "could not be generated."
+          )
+        );
+
+
+      case "done":
+      default:
+        break;
+    }
+
+    return draft;
+  }
+
+
+  async function streamQuestions(url) {
+    if (
+      !url ||
+      isStreaming
+    ) {
+      return;
+    }
+
+    isStreaming = true;
+
+    resetContent();
+    hideOutdatedState();
+
+    setHidden(
+      thinking,
+      false
+    );
+
+    if (regenerateButton) {
+      regenerateButton.disabled = true;
+    }
+
+    let draft =
+      createEmptyDraft();
+
+
+    try {
+      const response = await fetch(
+        url,
+        {
+          method: "GET",
+
+          headers: {
+            "Accept":
+              "application/x-ndjson",
+
+            "X-Requested-With":
+              "XMLHttpRequest",
+          },
+
+          credentials:
+            "same-origin",
+        }
+      );
+
+
+      if (response.status === 409) {
+        throw new Error(
+          (
+            "The motivation questions " +
+            "are already being generated."
+          )
+        );
+      }
+
+
+      if (!response.ok) {
+        let message =
+          (
+            "The motivation questions " +
+            "could not be generated."
+          );
+
+        try {
+          const data =
+            await response.json();
+
+          if (data.error) {
+            message = data.error;
+          }
+
+        } catch (parseError) {
+          // Keep fallback message.
+        }
+
+        throw new Error(message);
+      }
+
+
+      if (!response.body) {
+        throw new Error(
+          (
+            "Streaming is not supported " +
+            "by this browser."
+          )
+        );
+      }
+
+
+      const reader =
+        response.body.getReader();
+
+      const decoder =
+        new TextDecoder("utf-8");
+
+      let buffer = "";
+
+
+      function handleLine(rawLine) {
+        const line =
+          rawLine.trim();
+
+        if (!line) {
+          return;
+        }
+
+        const event =
+          JSON.parse(line);
+
+        draft = applyEvent(
+          draft,
+          event
+        );
+
+        if (
+          event.type ===
+          "saved_result"
+        ) {
+          draft =
+            applySavedResult(
+              draft
+            );
+
+          if (
+            event.status ===
+            "outdated"
+          ) {
+            setHidden(
+              statusBadge,
+              false
+            );
+
+            setHidden(
+              outdatedWarning,
+              false
+            );
+
+          } else {
+            hideOutdatedState();
+          }
+        }
+      }
+
+
+      while (true) {
+        const result =
+          await reader.read();
+
+        if (result.done) {
+          break;
+        }
+
+        buffer += decoder.decode(
+          result.value,
+          {
+            stream: true,
+          }
+        );
+
+        const lines =
+          buffer.split("\n");
+
+        buffer =
+          lines.pop() || "";
+
+        lines.forEach(
+          handleLine
+        );
+      }
+
+
+      buffer += decoder.decode();
+
+      if (buffer.trim()) {
+        handleLine(
+          buffer
+        );
+      }
+
+
+      draft =
+        applySavedResult(
+          draft
+        );
+
+      root.dataset.status =
+        "completed";
+
+      root.dataset.hasResult =
+        "true";
+
+      hideOutdatedState();
+
+      notifyCandidateAiContentUpdated(
+        root
+      );
+
+    } catch (error) {
+      console.error(
+        "Motivation questions error:",
+        error
+      );
+
+      setHidden(
+        thinking,
+        true
+      );
+
+      setHidden(
+        content,
+        true
+      );
+
+      setHidden(
+        errorBox,
+        false
+      );
+
+      if (errorBox) {
+        errorBox.textContent =
+          error.message ||
+          (
+            "The motivation questions " +
+            "could not be generated."
+          );
+      }
+
+      root.dataset.status =
+        "failed";
+
+    } finally {
+      isStreaming = false;
+
+      if (regenerateButton) {
+        regenerateButton.disabled =
+          false;
+      }
+
+      refreshIcons();
+    }
+  }
+
+
+  regenerateButton?.addEventListener(
+    "click",
+    async () => {
+      if (
+        !regenerateUrl ||
+        isStreaming
+      ) {
+        return;
+      }
+
+      regenerateButton.disabled =
+        true;
+
+      try {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+
+            headers: {
+              "X-CSRFToken":
+                getCookie("csrftoken"),
+
+              "X-Requested-With":
+                "XMLHttpRequest",
+            },
+
+            credentials:
+              "same-origin",
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            (
+              "The motivation questions " +
+              "could not be regenerated."
+            )
+          );
+        }
+
+        await streamQuestions(
+          data.stream_url ||
+          streamUrl
+        );
+
+      } catch (error) {
+        console.error(
+          (
+            "Motivation questions " +
+            "regeneration error:"
+          ),
+          error
+        );
+
+        setHidden(
+          errorBox,
+          false
+        );
+
+        if (errorBox) {
+          errorBox.textContent =
+            error.message ||
+            (
+              "The motivation questions " +
+              "could not be regenerated."
+            );
+        }
+
+      } finally {
+        regenerateButton.disabled =
+          false;
+
+        refreshIcons();
+      }
+    }
+  );
+
+
+  const hasResult =
+    root.dataset.hasResult ===
+    "true";
+
+  const status =
+    root.dataset.status ||
+    "not_started";
+
+
+  if (
+    !hasResult &&
+    status !== "generating"
+  ) {
+    await streamQuestions(
+      streamUrl
+    );
+  }
+
+  refreshIcons();
+}
+</script>
+
 
 <script>
 async function initCandidateCognitiveInterpretation(

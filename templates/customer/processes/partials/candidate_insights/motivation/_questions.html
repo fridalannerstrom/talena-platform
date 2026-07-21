@@ -1,64 +1,139 @@
-<section
-  class="motivation-ai-section"
-  data-motivation-ai-questions-section
+<div
+  class="personality-question-list"
+  data-motivation-questions-list
 >
 
-  <div class="mb-4">
-    <div class="insight-summary-kicker">
-      Purpose-aware questions
-    </div>
+  {% for item in motivation_questions.questions %}
 
-    <h2 class="insight-summary-title mb-1">
-      Motivation questions
-    </h2>
+    <article
+      class="personality-question-card"
+      data-motivation-question-card
+    >
 
-    <p class="text-muted small mb-0">
-      Use these questions to explore, confirm or challenge indications
-      from the candidate’s motivation profile.
-    </p>
-  </div>
+      <div class="personality-question-card__header">
 
-
-  <div
-    class="motivation-ai-question-list"
-    data-motivation-ai-questions
-  >
-
-    {% for item in motivation_interpretation.questions %}
-      <article class="motivation-ai-question">
-
-        <div class="motivation-ai-question__number">
+        <div class="personality-question-card__number">
           {{ forloop.counter }}
         </div>
 
-        <div class="motivation-ai-question__content">
 
-          <div class="motivation-ai-question__text">
+        <div class="personality-question-card__heading">
+
+          <div class="personality-question-card__text">
             {{ item.question }}
           </div>
 
+        </div>
+
+      </div>
+
+
+      {% if item.why or item.listen_for %}
+
+        <div class="personality-question-card__details">
+
           {% if item.why %}
-            <div class="motivation-ai-question__detail">
-              <span>Why this matters</span>
-              {{ item.why }}
+
+            <div
+              class="
+                personality-question-card__detail
+                personality-question-card__detail--why
+              "
+            >
+
+              <div class="personality-question-card__detail-icon">
+                <i data-feather="compass"></i>
+              </div>
+
+
+              <div>
+
+                <div class="personality-question-card__detail-title">
+                  Why this matters
+                </div>
+
+                <div class="personality-question-card__detail-text">
+                  {{ item.why }}
+                </div>
+
+              </div>
+
             </div>
+
           {% endif %}
 
+
           {% if item.listen_for %}
-            <div class="motivation-ai-question__detail">
-              <span>What to listen for</span>
-              {{ item.listen_for }}
+
+            <div
+              class="
+                personality-question-card__detail
+                personality-question-card__detail--listen
+              "
+            >
+
+              <div class="personality-question-card__detail-icon">
+                <i data-feather="headphones"></i>
+              </div>
+
+
+              <div>
+
+                <div class="personality-question-card__detail-title">
+                  What to look for in the answer
+                </div>
+
+                <div class="personality-question-card__detail-text">
+                  {{ item.listen_for }}
+                </div>
+
+              </div>
+
             </div>
+
           {% endif %}
 
         </div>
 
-      </article>
-    {% endfor %}
+      {% endif %}
+
+    </article>
+
+  {% endfor %}
+
+</div>
+
+
+<div
+  class="
+    purpose-fit-context-note
+    mt-4
+    {% if not motivation_questions.context_note %}
+      d-none
+    {% endif %}
+  "
+  data-motivation-questions-context-note-section
+>
+
+  <div class="purpose-fit-context-note__icon">
+    <i data-feather="info"></i>
+  </div>
+
+
+  <div>
+
+    <div class="purpose-fit-context-note__title">
+      Evidence used
+    </div>
+
+    <div
+      class="purpose-fit-context-note__text"
+      data-motivation-questions-context-note
+    >{{ motivation_questions.context_note }}</div>
 
   </div>
 
-</section>
+</div>
 
 
 <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
@@ -67,8 +142,8 @@
 
   <div>
     Motivation results indicate possible sources of energy and preference.
-    Use the questions to gather concrete examples and the candidate’s own
-    perspective rather than treating the results as confirmed facts.
+    Use these questions to gather concrete examples and the candidate’s own
+    perspective rather than treating assessment indications as confirmed facts.
   </div>
 
 </div>
