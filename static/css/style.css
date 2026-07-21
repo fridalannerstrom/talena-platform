@@ -7453,6 +7453,7 @@ textarea.form-control-lg {
   --bs-btn-disabled-color: #000;
   --bs-btn-disabled-bg: #f2f6fc;
   --bs-btn-disabled-border-color: #f2f6fc;
+  border-radius: 100px;
 }
 
 .btn-dark {
@@ -25626,6 +25627,19 @@ color: #6E63E3;
   width: 20px;
   height: 20px;
   stroke-width: 1.8;
+}
+
+[data-global-ai-update-modal] .modal-body {
+  color: #111827;
+}
+
+[data-global-ai-update-modal] .modal-body p,
+[data-global-ai-update-modal] .modal-body li,
+[data-global-ai-update-modal] .modal-body .text-muted {
+  color: #111827 !important;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  white-space: normal;
 }
 
 .team-style-guidance__item-header {

@@ -54,7 +54,7 @@
 
         <div>
 
-      <h2 class="response-style-item__title mb-3">
+      <h2 class="response-style-item__title mb-2">
         Process information has changed
       </h2>
 
@@ -132,7 +132,7 @@
         <div class="modal-header">
 
           <h2
-            class="modal-title fs-5"
+            class="response-style-item__title"
             id="globalAiUpdateModalLabel-{{ candidate.id }}"
           >
             Update all AI insights?
@@ -157,42 +157,24 @@
 
           <div data-global-ai-update-intro>
 
-            <div class="d-flex align-items-start gap-3">
-
-              <div
-                class="
-                  d-inline-flex
-                  align-items-center
-                  justify-content-center
-                  rounded-circle
-                  bg-warning-subtle
-                  border
-                  flex-shrink-0
-                "
-                style="
-                  width: 44px;
-                  height: 44px;
-                "
-              >
-                <i data-feather="alert-triangle"></i>
-              </div>
+            <div class="d-flex align-items-start gap-3 text-dark">
 
 
               <div>
 
-                <div class="fw-semibold mb-2">
+                <div class="fw-semibold mb-2 text-dark">
                   Existing AI-generated content will be replaced
                 </div>
 
 
-                <p class="text-muted mb-3">
+                <p class="text-muted mb-3 text-dark">
                   The affected interpretations, guidance and questions
                   will be regenerated using the current process purpose
                   and context.
                 </p>
 
 
-                <div class="small fw-semibold mb-2">
+                <div class="fw-semibold mb-2 text-dark">
                   {{ outdated_ai_section_count }}
                   section{{ outdated_ai_section_count|pluralize }}
                   will be updated:
@@ -214,14 +196,10 @@
 
                 <div
                   class="
-                    alert
-                    alert-light
-                    border
-                    small
-                    mb-0
+purpose-fit-section
                   "
                 >
-                  Assessment results, Sova reports, interview notes and
+                  Assessment results, PDF reports, interview notes and
                   other source data will not be changed.
                 </div>
 
@@ -376,7 +354,6 @@
             class="btn btn-primary"
             data-global-ai-update-confirm
           >
-            <i data-feather="refresh-cw"></i>
             Update all AI insights
           </button>
 

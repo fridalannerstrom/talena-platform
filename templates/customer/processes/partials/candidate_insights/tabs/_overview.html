@@ -61,36 +61,6 @@
 
 </div>
 
-
-        <!-- OUTDATED WARNING -->
-        {% if invitation.ai_purpose_fit and invitation.ai_purpose_fit_status == "outdated" %}
-          <div
-            class="alert alert-warning d-flex align-items-start gap-2 mb-4"
-            id="purposeFitOutdatedWarning"
-          >
-            <i data-feather="alert-circle"></i>
-
-            <div>
-              <div class="fw-semibold small mb-1">
-                The process information has changed
-              </div>
-
-              
-
-              <div class="small">
-                This interpretation is based on an earlier purpose or process context.
-                Refresh it when you want Talena to include the latest information.
-              </div>
-            </div>
-          </div>
-        {% else %}
-          <div
-            class="alert alert-warning d-none mb-4"
-            id="purposeFitOutdatedWarning"
-          ></div>
-        {% endif %}
-
-
         <!-- LOADING -->
         <div
           id="purposeFitLoading"
