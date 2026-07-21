@@ -99,66 +99,16 @@
             </div>
 
 
-            <div class="combined-question-section__badges">
+<div class="combined-question-section__badges">
 
-              {% if section.is_outdated %}
+  <span class="personality-trait-pill text-nowrap">
+    {{ section.question_count }}
+    question{{ section.question_count|pluralize }}
+  </span>
 
-                <span
-                  class="
-                    badge
-                    rounded-pill
-                    bg-warning-subtle
-                    text-warning-emphasis
-                  "
-                >
-                  Needs update
-                </span>
-
-              {% endif %}
-
-
-              <span
-                class="personality-trait-pill text-nowrap">
-                {{ section.question_count }}
-                question{{ section.question_count|pluralize }}
-              </span>
-
-            </div>
+</div>
 
           </header>
-
-
-          <!-- OUTDATED WARNING -->
-          {% if section.is_outdated %}
-
-            <div class="alert alert-warning mt-3 mb-0">
-
-              <div class="d-flex align-items-start gap-2">
-
-                <i
-                  data-feather="alert-circle"
-                  class="flex-shrink-0 mt-1"
-                ></i>
-
-                <div>
-
-                  <div class="fw-semibold small mb-1">
-                    The process information has changed
-                  </div>
-
-                  <div class="small">
-                    These questions were generated using an earlier
-                    process purpose or context.
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          {% endif %}
-
 
           <!-- QUESTIONS -->
           <div class="personality-question-list mt-3">
@@ -272,13 +222,11 @@
 
       <i data-feather="info"></i>
 
-      <div>
-        These questions are based on available assessment results,
-        the selected process purpose and any process context available
-        when the source interpretations were generated. Use them to
-        explore and validate assessment indications rather than as
-        standalone evidence.
-      </div>
+<div>
+  These questions bring together the currently saved question sets
+  from the available assessment areas. Use them to explore and
+  validate assessment indications rather than as standalone evidence.
+</div>
 
     </div>
 
@@ -300,10 +248,11 @@
         No assessment questions are available yet
       </h3>
 
-      <p class="text-muted small mb-0">
-        Generate the Personality, Motivation or Cognitive guidance
-        to collect practical questions here.
-      </p>
+<p class="text-muted small mb-0">
+  This page brings together the candidate’s currently saved questions
+  from Personality, Motivation and Cognitive abilities. Questions can
+  be changed or regenerated within each assessment category.
+</p>
 
     </div>
 

@@ -30,13 +30,23 @@
 
         <div class="d-flex align-items-center gap-2">
 
-          <span
-            class="badge rounded-pill bg-warning-subtle text-warning-emphasis
-              {% if personality_questions_status != 'outdated' %}d-none{% endif %}"
-            data-personality-questions-status-badge
-          >
-            Needs update
-          </span>
+<span
+  class="
+    badge
+    rounded-pill
+    bg-warning-subtle
+    text-warning-emphasis
+    {% if personality_questions_status != 'outdated' %}
+      d-none
+    {% endif %}
+  "
+  data-personality-questions-status-badge
+  data-bs-toggle="tooltip"
+  data-bs-placement="top"
+  title="The selected traits, process purpose or context have changed."
+>
+  Needs update
+</span>
 
           <button
             type="button"
@@ -52,32 +62,12 @@
 
       </div>
 
-
-      <!-- OUTDATED WARNING -->
-      <div
-        class="alert alert-warning mt-4
-          {% if personality_questions_status != 'outdated' %}d-none{% endif %}"
-        data-personality-questions-outdated
-      >
-        <div class="d-flex align-items-start gap-2">
-          <i
-            data-feather="alert-circle"
-            class="flex-shrink-0 mt-1"
-          ></i>
-
-          <div>
-            <div class="fw-semibold small mb-1">
-              The selected traits or process information have changed
-            </div>
-
-            <div class="small">
-              Generate new questions to include the latest selection,
-              purpose and process context.
-            </div>
-          </div>
-        </div>
-      </div>
-
+<!-- Hidden hook retained for existing JavaScript -->
+<div
+  class="d-none"
+  data-personality-questions-outdated
+  aria-hidden="true"
+></div>
 
       <!-- THINKING -->
       <div
@@ -409,14 +399,13 @@
         Cancel
       </button>
 
-      <button
-        type="button"
-        class="btn btn-primary"
-        data-personality-traits-save
-      >
-        Save selection
-      </button>
-
+<button
+  type="button"
+  class="btn btn-primary"
+  data-personality-traits-save
+>
+  Save and generate
+</button>
     </div>
 
   </div>

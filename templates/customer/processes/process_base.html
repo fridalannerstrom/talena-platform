@@ -2999,74 +2999,96 @@ hideOutdatedState();
     await streamSummary(streamUrl);
   }
 
-
   // ----------------------------------------------------------
   // Manual regeneration
   // ----------------------------------------------------------
+
   if (regenerateButton) {
-    regenerateButton.addEventListener("click", async () => {
-      const regenerateUrl =
-        regenerateButton.dataset.regenerateUrl;
+    regenerateButton.addEventListener(
+      "click",
+      async () => {
+        const regenerateUrl =
+          regenerateButton.dataset.regenerateUrl;
 
-      if (!regenerateUrl) {
-        return;
-      }
-
-      setButtonLoading(true);
-
-      try {
-        const response = await fetch(regenerateUrl, {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({})
-        });
-
-        if (!response.ok) {
-          const responseText = await response.text();
-
-          console.error(
-            "Summary regeneration failed:",
-            response.status,
-            responseText
-          );
-
-          window.alert(
-            "The summary could not be regenerated."
-          );
-
+        if (!regenerateUrl) {
           return;
         }
 
-        const data = await response.json();
+        setButtonLoading(true);
 
-        summaryEl.dataset.hasSummary = "false";
-        summaryEl.dataset.summaryStatus = "not_started";
+        try {
+          const response = await fetch(
+            regenerateUrl,
+            {
+              method: "POST",
 
-        await streamSummary(
-          data.stream_url || summaryEl.dataset.streamUrl
-        );
+              headers: {
+                "X-CSRFToken":
+                  getCookie("csrftoken"),
 
-      } catch (error) {
-        console.error(
-          "Summary regeneration error:",
-          error
-        );
+                "X-Requested-With":
+                  "XMLHttpRequest",
 
-        window.alert(
-          "An error occurred while regenerating the summary."
-        );
+                "Content-Type":
+                  "application/json",
+              },
 
-      } finally {
-        setButtonLoading(false);
+              credentials:
+                "same-origin",
+
+              body:
+                JSON.stringify({}),
+            }
+          );
+
+          if (!response.ok) {
+            const responseText =
+              await response.text();
+
+            console.error(
+              "Summary regeneration failed:",
+              response.status,
+              responseText
+            );
+
+            window.alert(
+              "The summary could not be regenerated."
+            );
+
+            return;
+          }
+
+          const data =
+            await response.json();
+
+          summaryEl.dataset.hasSummary =
+            "false";
+
+          summaryEl.dataset.summaryStatus =
+            "not_started";
+
+          await streamSummary(
+            data.stream_url ||
+            summaryEl.dataset.streamUrl
+          );
+
+        } catch (error) {
+          console.error(
+            "Summary regeneration error:",
+            error
+          );
+
+          window.alert(
+            "An error occurred while regenerating the summary."
+          );
+
+        } finally {
+          setButtonLoading(false);
+        }
       }
-    });
+    );
   }
 }
-
   // ------------------------------------------------------------
   // Status polling
   // ------------------------------------------------------------
@@ -7774,21 +7796,47 @@ async function initCandidatePurposeFitStream(container = document) {
         }
     }
 
-    function resetPurposeFit() {
-        title.textContent = "AI Overview";
-        summary.textContent = "";
-        alignmentList.innerHTML = "";
-        verifyList.innerHTML = "";
-        nextStep.textContent = "";
-        contextNote.textContent = "";
+function resetPurposeFit() {
+  if (title) {
+    title.textContent = "AI Overview";
+  }
 
-        result.classList.add("d-none");
-        errorBox.classList.add("d-none");
+  if (summary) {
+    summary.textContent = "";
+  }
 
-        if (outdatedWarning) {
-            outdatedWarning.classList.add("d-none");
-        }
-    }
+  if (alignmentList) {
+    alignmentList.replaceChildren();
+  }
+
+  if (verifyList) {
+    verifyList.replaceChildren();
+  }
+
+  /*
+   * The Recommended next step section is currently
+   * commented out in the template.
+   */
+  if (nextStep) {
+    nextStep.textContent = "";
+  }
+
+  if (contextNote) {
+    contextNote.textContent = "";
+  }
+
+  if (result) {
+    result.classList.add("d-none");
+  }
+
+  if (errorBox) {
+    errorBox.classList.add("d-none");
+  }
+
+  if (outdatedWarning) {
+    outdatedWarning.classList.add("d-none");
+  }
+}
 
     function renderList(listElement, items, iconName) {
         listElement.innerHTML = "";
@@ -7827,8 +7875,10 @@ async function initCandidatePurposeFitStream(container = document) {
             "search"
         );
 
-        nextStep.textContent =
-            data.suggested_next_step || "";
+if (nextStep) {
+  nextStep.textContent =
+    data.suggested_next_step || "";
+}
 
         contextNote.textContent =
             data.context_note || "";
@@ -7877,9 +7927,12 @@ case "saved_result":
                 );
                 break;
 
-            case "suggested_next_step":
-                nextStep.textContent = event.text || "";
-                break;
+case "suggested_next_step":
+  if (nextStep) {
+    nextStep.textContent =
+      event.text || "";
+  }
+  break;
 
             case "context_note":
                 contextNote.textContent = event.text || "";
@@ -8897,16 +8950,125 @@ cancelButtons.forEach((button) => {
     );
   });
 
+async function regeneratePersonalityQuestions() {
+  if (
+    !regenerateUrl
+    || isStreaming
+  ) {
+    return false;
+  }
 
- saveButton.addEventListener(
+  if (regenerateButton) {
+    regenerateButton.disabled = true;
+  }
+
+  if (editButton) {
+    editButton.disabled = true;
+  }
+
+  hideOutdatedState();
+
+  setHidden(
+    errorBox,
+    true
+  );
+
+  try {
+    const response = await fetch(
+      regenerateUrl,
+      {
+        method: "POST",
+
+        headers: {
+          "X-CSRFToken":
+            getCookie("csrftoken"),
+
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        credentials:
+          "same-origin",
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        (
+          "The personality questions " +
+          "could not be regenerated."
+        )
+      );
+    }
+
+    await streamQuestions(
+      data.stream_url ||
+      streamUrl
+    );
+
+    const succeeded =
+      root.dataset.status ===
+      "completed";
+
+    if (!succeeded) {
+      showOutdatedState();
+    }
+
+    return succeeded;
+
+  } catch (error) {
+    console.error(
+      "Personality regeneration error:",
+      error
+    );
+
+    showOutdatedState();
+
+    setHidden(
+      errorBox,
+      false
+    );
+
+    if (errorBox) {
+      errorBox.textContent =
+        error.message ||
+        (
+          "The personality questions " +
+          "could not be regenerated."
+        );
+    }
+
+    return false;
+
+  } finally {
+    if (regenerateButton) {
+      regenerateButton.disabled =
+        false;
+    }
+
+    if (editButton) {
+      editButton.disabled =
+        false;
+    }
+
+    refreshIcons();
+  }
+}
+
+
+saveButton.addEventListener(
   "click",
   async () => {
     const selectedTraits =
       getCheckedTraits();
 
-if (selectedTraits.length > 6) {
-  return;
-}
+    if (selectedTraits.length > 6) {
+      return;
+    }
 
     if (!updateTraitsUrl) {
       console.error(
@@ -8916,7 +9078,9 @@ if (selectedTraits.length > 6) {
       return;
     }
 
-    setTraitEditorActionsDisabled(true);
+    setTraitEditorActionsDisabled(
+      true
+    );
 
     try {
       const response = await fetch(
@@ -8949,20 +9113,25 @@ if (selectedTraits.length > 6) {
 
       if (!response.ok) {
         throw new Error(
-          data.error
-          || "The trait selection could not be saved."
+          data.error ||
+          (
+            "The trait selection " +
+            "could not be saved."
+          )
         );
       }
 
+
       /*
-       * Use the backend response when available.
-       * Otherwise retain the selection that was submitted.
+       * Update the locally saved selection before
+       * closing the dialog.
        */
       savedSelection = Array.isArray(
         data.selected_traits
       )
         ? [...data.selected_traits]
         : [...selectedTraits];
+
 
       renderSelectedTraits(
         savedSelection
@@ -8972,26 +9141,24 @@ if (selectedTraits.length > 6) {
         savedSelection
       );
 
-      root.dataset.status =
-        data.questions_status
-        || "outdated";
 
-      showOutdatedState();
+      root.dataset.status =
+        data.questions_status ||
+        "outdated";
+
 
       /*
-       * Close only after the backend has confirmed
-       * that the selection was saved.
+       * Close the dialog immediately after the
+       * selection has been saved.
        */
-      if (
-        editor
-        && typeof editor.close === "function"
-      ) {
-        editor.close();
-      } else {
-        editor?.removeAttribute("open");
-      }
+      closeTraitEditor();
 
-      editButton?.focus();
+
+      /*
+       * Generate a new question set automatically
+       * using the newly saved trait selection.
+       */
+      await regeneratePersonalityQuestions();
 
     } catch (error) {
       console.error(
@@ -9004,12 +9171,20 @@ if (selectedTraits.length > 6) {
         false
       );
 
-      errorBox.textContent =
-        error.message
-        || "The trait selection could not be saved.";
+      if (errorBox) {
+        errorBox.textContent =
+          error.message ||
+          (
+            "The trait selection " +
+            "could not be saved."
+          );
+      }
 
     } finally {
-      setTraitEditorActionsDisabled(false);
+      setTraitEditorActionsDisabled(
+        false
+      );
+
       updateSelectionCount();
     }
   }
@@ -9026,65 +9201,12 @@ editor?.addEventListener(
   }
 );
 
-  regenerateButton.addEventListener(
-    "click",
-    async () => {
-      if (
-        !regenerateUrl
-        || isStreaming
-      ) {
-        return;
-      }
-
-      regenerateButton.disabled = true;
-
-      try {
-        const response = await fetch(
-          regenerateUrl,
-          {
-            method: "POST",
-            headers: {
-              "X-CSRFToken":
-                getCookie("csrftoken"),
-              "X-Requested-With":
-                "XMLHttpRequest",
-            },
-            credentials: "same-origin",
-          }
-        );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-            "The personality questions could not be regenerated."
-          );
-        }
-
-        await streamQuestions(
-          data.stream_url || streamUrl
-        );
-
-      } catch (error) {
-        console.error(
-          "Personality regeneration error:",
-          error
-        );
-
-        setHidden(errorBox, false);
-
-        errorBox.textContent =
-          error.message ||
-          "The personality questions could not be regenerated.";
-
-      } finally {
-        regenerateButton.disabled = false;
-      }
-    }
-  );
-
+regenerateButton?.addEventListener(
+  "click",
+  async () => {
+    await regeneratePersonalityQuestions();
+  }
+);
 
   updateSelectionCount();
 

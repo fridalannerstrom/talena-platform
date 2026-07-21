@@ -158,44 +158,12 @@
 
     </div>
 
-
-    <!-- OUTDATED WARNING -->
-    <div
-      class="
-        alert
-        alert-warning
-        mt-4
-        {% if motivation_interpretation_status != 'outdated' %}
-          d-none
-        {% endif %}
-      "
-      data-motivation-ai-outdated
-    >
-
-      <div class="d-flex align-items-start gap-2">
-
-        <i
-          data-feather="alert-circle"
-          class="flex-shrink-0 mt-1"
-        ></i>
-
-        <div>
-
-          <div class="fw-semibold small mb-1">
-            The process information has changed
-          </div>
-
-          <div class="small">
-            This interpretation was generated using an earlier
-            process purpose or context. Refresh it to include
-            the latest information.
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
+<!-- Hidden hook retained for existing JavaScript -->
+<div
+  class="d-none"
+  data-motivation-ai-outdated
+  aria-hidden="true"
+></div>
 
 
     <!-- THINKING -->
