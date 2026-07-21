@@ -63,6 +63,7 @@
     initCandidateAiChat();
     initCandidateInsightsWorkspace(document);
     initCandidateInsightsSubtabs(document);
+    initGlobalAiUpdate(document);
   });
 
   // ------------------------------------------------------------
@@ -97,6 +98,942 @@ function initIconsAndTooltips(scope = document) {
 
     return "";
   }
+
+  
+  function initGlobalAiUpdate(
+  container = document
+) {
+  const banner = container.querySelector(
+    "[data-global-ai-update-banner]"
+  );
+
+  if (!banner) {
+    return;
+  }
+
+  if (
+    banner.dataset.globalAiUpdateInitialised ===
+    "true"
+  ) {
+    return;
+  }
+
+  banner.dataset.globalAiUpdateInitialised =
+    "true";
+
+
+  const planUrl =
+    banner.dataset.updatePlanUrl;
+
+  const candidateId =
+    banner.dataset.candidateId;
+
+const modal = container.querySelector(
+  "[data-global-ai-update-modal]"
+);
+
+if (!modal) {
+  return;
+}
+
+
+/*
+ * Candidate Sheet is rendered inside a Bootstrap
+ * offcanvas, which creates its own stacking context.
+ *
+ * Move the modal to document.body so Bootstrap's
+ * backdrop appears behind the modal instead of
+ * covering it.
+ */
+document
+  .querySelectorAll(
+    "body > [data-global-ai-update-modal]"
+  )
+  .forEach((existingModal) => {
+    if (existingModal === modal) {
+      return;
+    }
+
+    if (
+      window.bootstrap
+      && bootstrap.Modal
+    ) {
+      const existingInstance =
+        bootstrap.Modal.getInstance(
+          existingModal
+        );
+
+      existingInstance?.dispose();
+    }
+
+    existingModal.remove();
+  });
+
+
+if (modal.parentElement !== document.body) {
+  document.body.appendChild(
+    modal
+  );
+}
+
+
+  const confirmButton = modal.querySelector(
+    "[data-global-ai-update-confirm]"
+  );
+
+  const cancelButton = modal.querySelector(
+    "[data-global-ai-update-cancel]"
+  );
+
+  const reloadButton = modal.querySelector(
+    "[data-global-ai-update-reload]"
+  );
+
+  const closeButton = modal.querySelector(
+    ".btn-close"
+  );
+
+
+  const intro = modal.querySelector(
+    "[data-global-ai-update-intro]"
+  );
+
+  const progressSection = modal.querySelector(
+    "[data-global-ai-update-progress]"
+  );
+
+  const progressText = modal.querySelector(
+    "[data-global-ai-update-progress-text]"
+  );
+
+  const progressCount = modal.querySelector(
+    "[data-global-ai-update-progress-count]"
+  );
+
+  const progressTrack = modal.querySelector(
+    "[data-global-ai-update-progress-track]"
+  );
+
+  const progressBar = modal.querySelector(
+    "[data-global-ai-update-progress-bar]"
+  );
+
+  const updateList = modal.querySelector(
+    "[data-global-ai-update-list]"
+  );
+
+
+  const completeSection = modal.querySelector(
+    "[data-global-ai-update-complete]"
+  );
+
+  const completeTitle = modal.querySelector(
+    "[data-global-ai-update-complete-title]"
+  );
+
+  const completeText = modal.querySelector(
+    "[data-global-ai-update-complete-text]"
+  );
+
+  const errorBox = modal.querySelector(
+    "[data-global-ai-update-error]"
+  );
+
+
+  let isRunning = false;
+
+  const queueElements = new Map();
+
+
+  function setHidden(
+    element,
+    hidden
+  ) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.toggle(
+      "d-none",
+      hidden
+    );
+  }
+
+
+  function refreshIcons() {
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
+  async function getResponseError(
+    response,
+    fallbackMessage
+  ) {
+    try {
+      const data =
+        await response.json();
+
+      return (
+        data.error ||
+        data.message ||
+        fallbackMessage
+      );
+
+    } catch (error) {
+      return fallbackMessage;
+    }
+  }
+
+
+  async function postJson(url) {
+    const response = await fetch(
+      url,
+      {
+        method: "POST",
+
+        headers: {
+          "Accept":
+            "application/json",
+
+          "X-CSRFToken":
+            getCookie("csrftoken"),
+
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        credentials:
+          "same-origin",
+      }
+    );
+
+
+    if (!response.ok) {
+      const message =
+        await getResponseError(
+          response,
+          (
+            "The update request could " +
+            "not be completed."
+          )
+        );
+
+      throw new Error(message);
+    }
+
+
+    return response.json();
+  }
+
+
+  async function consumeAiStream(
+    streamUrl
+  ) {
+    if (!streamUrl) {
+      throw new Error(
+        "No AI stream URL was returned."
+      );
+    }
+
+
+    const response = await fetch(
+      streamUrl,
+      {
+        method: "GET",
+
+        headers: {
+          "Accept":
+            "application/x-ndjson",
+
+          "X-Requested-With":
+            "XMLHttpRequest",
+        },
+
+        credentials:
+          "same-origin",
+      }
+    );
+
+
+    if (!response.ok) {
+      const message =
+        await getResponseError(
+          response,
+          (
+            "The AI insight could not " +
+            "be generated."
+          )
+        );
+
+      throw new Error(message);
+    }
+
+
+    if (!response.body) {
+      const fallbackText =
+        await response.text();
+
+      if (!fallbackText) {
+        return;
+      }
+
+      const lines =
+        fallbackText.split("\n");
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line) {
+          continue;
+        }
+
+        try {
+          const event =
+            JSON.parse(line);
+
+          if (event.type === "error") {
+            throw new Error(
+              event.message ||
+              (
+                "The AI insight could " +
+                "not be generated."
+              )
+            );
+          }
+
+        } catch (error) {
+          if (
+            error instanceof SyntaxError
+          ) {
+            continue;
+          }
+
+          throw error;
+        }
+      }
+
+      return;
+    }
+
+
+    const reader =
+      response.body.getReader();
+
+    const decoder =
+      new TextDecoder("utf-8");
+
+    let buffer = "";
+
+
+    function handleLine(rawLine) {
+      const line =
+        rawLine.trim();
+
+      if (!line) {
+        return;
+      }
+
+      let event;
+
+      try {
+        event = JSON.parse(line);
+
+      } catch (error) {
+        console.warn(
+          "Could not parse AI stream event:",
+          line
+        );
+
+        return;
+      }
+
+
+      if (event.type === "error") {
+        throw new Error(
+          event.message ||
+          (
+            "The AI insight could not " +
+            "be generated."
+          )
+        );
+      }
+    }
+
+
+    while (true) {
+      const result =
+        await reader.read();
+
+      if (result.done) {
+        break;
+      }
+
+
+      buffer += decoder.decode(
+        result.value,
+        {
+          stream: true,
+        }
+      );
+
+
+      const lines =
+        buffer.split("\n");
+
+      buffer =
+        lines.pop() || "";
+
+
+      for (const line of lines) {
+        handleLine(line);
+      }
+    }
+
+
+    buffer += decoder.decode();
+
+    if (buffer.trim()) {
+      handleLine(buffer);
+    }
+  }
+
+
+  function createQueueItem(section) {
+    const item =
+      document.createElement("div");
+
+    item.className =
+      "list-group-item px-0 bg-transparent";
+
+
+    const row =
+      document.createElement("div");
+
+    row.className = [
+      "d-flex",
+      "align-items-center",
+      "justify-content-between",
+      "gap-3",
+    ].join(" ");
+
+
+    const label =
+      document.createElement("div");
+
+    label.className =
+      "small fw-semibold";
+
+    label.textContent =
+      section.label;
+
+
+    const status =
+      document.createElement("span");
+
+    status.className =
+      "badge rounded-pill bg-light text-dark border";
+
+    status.textContent =
+      "Waiting";
+
+
+    const message =
+      document.createElement("div");
+
+    message.className =
+      "small text-muted mt-1 d-none";
+
+
+    row.appendChild(label);
+    row.appendChild(status);
+
+    item.appendChild(row);
+    item.appendChild(message);
+
+
+    updateList.appendChild(item);
+
+
+    queueElements.set(
+      section.key,
+      {
+        item,
+        status,
+        message,
+      }
+    );
+  }
+
+
+  function renderQueue(sections) {
+    updateList.replaceChildren();
+    queueElements.clear();
+
+    sections.forEach(
+      createQueueItem
+    );
+  }
+
+
+  function setQueueState(
+    sectionKey,
+    state,
+    messageText = ""
+  ) {
+    const elements =
+      queueElements.get(sectionKey);
+
+    if (!elements) {
+      return;
+    }
+
+
+    const {
+      status,
+      message,
+    } = elements;
+
+
+    status.className =
+      "badge rounded-pill";
+
+
+    if (state === "running") {
+      status.classList.add(
+        "bg-primary-subtle",
+        "text-primary-emphasis"
+      );
+
+      status.textContent =
+        "Updating...";
+
+    } else if (state === "success") {
+      status.classList.add(
+        "bg-success-subtle",
+        "text-success-emphasis"
+      );
+
+      status.textContent =
+        "Updated";
+
+    } else if (state === "failed") {
+      status.classList.add(
+        "bg-danger-subtle",
+        "text-danger-emphasis"
+      );
+
+      status.textContent =
+        "Failed";
+
+    } else {
+      status.classList.add(
+        "bg-light",
+        "text-dark",
+        "border"
+      );
+
+      status.textContent =
+        "Waiting";
+    }
+
+
+    if (messageText) {
+      message.textContent =
+        messageText;
+
+      setHidden(
+        message,
+        false
+      );
+
+    } else {
+      message.textContent = "";
+
+      setHidden(
+        message,
+        true
+      );
+    }
+  }
+
+
+  function updateProgress(
+    completed,
+    total,
+    currentLabel = ""
+  ) {
+    const percentage = total
+      ? Math.round(
+          (
+            completed /
+            total
+          ) * 100
+        )
+      : 0;
+
+
+    progressCount.textContent =
+      `${completed} of ${total}`;
+
+
+    progressBar.style.width =
+      `${percentage}%`;
+
+
+    progressTrack?.setAttribute(
+      "aria-valuenow",
+      String(percentage)
+    );
+
+
+    if (currentLabel) {
+      progressText.textContent =
+        `Updating ${currentLabel}...`;
+
+    } else {
+      progressText.textContent =
+        "Preparing AI insights...";
+    }
+  }
+
+
+  function setRunningState(running) {
+    isRunning = running;
+
+    if (confirmButton) {
+      confirmButton.disabled =
+        running;
+    }
+
+    if (cancelButton) {
+      cancelButton.disabled =
+        running;
+    }
+
+    if (closeButton) {
+      closeButton.disabled =
+        running;
+    }
+  }
+
+
+  function showInitialError(message) {
+    errorBox.textContent =
+      message;
+
+    setHidden(
+      errorBox,
+      false
+    );
+
+    setRunningState(
+      false
+    );
+  }
+
+
+  function reloadCurrentCandidate() {
+    const url = new URL(
+      window.location.href
+    );
+
+    if (candidateId) {
+      url.searchParams.set(
+        "open_candidate",
+        candidateId
+      );
+    }
+
+    window.location.assign(
+      url.toString()
+    );
+  }
+
+
+  reloadButton?.addEventListener(
+    "click",
+    reloadCurrentCandidate
+  );
+
+
+  confirmButton?.addEventListener(
+    "click",
+    async () => {
+      if (
+        isRunning ||
+        !planUrl
+      ) {
+        return;
+      }
+
+
+      setRunningState(
+        true
+      );
+
+      setHidden(
+        errorBox,
+        true
+      );
+
+
+      try {
+        const plan =
+          await postJson(
+            planUrl
+          );
+
+        const sections =
+          Array.isArray(plan.sections)
+            ? plan.sections
+            : [];
+
+
+        if (!sections.length) {
+          setHidden(
+            intro,
+            true
+          );
+
+          setHidden(
+            progressSection,
+            true
+          );
+
+          setHidden(
+            completeSection,
+            false
+          );
+
+          completeTitle.textContent =
+            "AI insights are already up to date";
+
+          completeText.textContent =
+            (
+              "No AI-generated sections " +
+              "currently require updating."
+            );
+
+          setHidden(
+            confirmButton,
+            true
+          );
+
+          setHidden(
+            cancelButton,
+            true
+          );
+
+          setHidden(
+            reloadButton,
+            false
+          );
+
+          setRunningState(
+            false
+          );
+
+          refreshIcons();
+          return;
+        }
+
+
+        setHidden(
+          intro,
+          true
+        );
+
+        setHidden(
+          progressSection,
+          false
+        );
+
+        renderQueue(
+          sections
+        );
+
+        updateProgress(
+          0,
+          sections.length
+        );
+
+
+        let completedCount = 0;
+        const failures = [];
+
+
+        for (const section of sections) {
+          updateProgress(
+            completedCount,
+            sections.length,
+            section.label
+          );
+
+          setQueueState(
+            section.key,
+            "running"
+          );
+
+
+          try {
+            const regenerateResult =
+              await postJson(
+                section.regenerate_url
+              );
+
+            await consumeAiStream(
+              regenerateResult.stream_url
+            );
+
+
+            setQueueState(
+              section.key,
+              "success"
+            );
+
+          } catch (error) {
+            console.error(
+              (
+                "Global AI update failed " +
+                `for ${section.key}:`
+              ),
+              error
+            );
+
+            const message =
+              error.message ||
+              (
+                "This section could " +
+                "not be updated."
+              );
+
+            failures.push({
+              key: section.key,
+              label: section.label,
+              message,
+            });
+
+            setQueueState(
+              section.key,
+              "failed",
+              message
+            );
+          }
+
+
+          completedCount += 1;
+
+          updateProgress(
+            completedCount,
+            sections.length
+          );
+        }
+
+
+        setHidden(
+          progressSection,
+          true
+        );
+
+        setHidden(
+          completeSection,
+          false
+        );
+
+        setHidden(
+          confirmButton,
+          true
+        );
+
+        setHidden(
+          cancelButton,
+          true
+        );
+
+
+        if (failures.length) {
+          completeTitle.textContent =
+            "Some AI insights could not be updated";
+
+          completeText.textContent = (
+            `${completedCount - failures.length} ` +
+            `of ${completedCount} sections were ` +
+            "updated successfully."
+          );
+
+          errorBox.textContent = (
+            `${failures.length} section` +
+            (
+              failures.length === 1
+                ? ""
+                : "s"
+            ) +
+            " could not be updated. " +
+            (
+              "Reload the candidate and try those " +
+              "sections again individually."
+            )
+          );
+
+          setHidden(
+            errorBox,
+            false
+          );
+
+          setHidden(
+            reloadButton,
+            false
+          );
+
+          setRunningState(
+            false
+          );
+
+        } else {
+          completeTitle.textContent =
+            "All AI insights have been updated";
+
+          completeText.textContent =
+            (
+              "The new insights were generated " +
+              "using the latest process purpose " +
+              "and context. Reloading the " +
+              "candidate now..."
+            );
+
+          refreshIcons();
+
+          window.setTimeout(
+            reloadCurrentCandidate,
+            1200
+          );
+        }
+
+
+        refreshIcons();
+
+      } catch (error) {
+        console.error(
+          "Global AI update error:",
+          error
+        );
+
+        showInitialError(
+          error.message ||
+          (
+            "The AI update could not " +
+            "be started."
+          )
+        );
+      }
+    }
+  );
+
+
+  refreshIcons();
+}
 
   async function copyText(value) {
     if (navigator.clipboard && window.isSecureContext) {
@@ -246,6 +1183,7 @@ sheetBody.innerHTML = candidateHtml;
 initCandidateSheetInteractions(sheetBody);
 initGlobalEmailModal(sheetBody);
 initIconsAndTooltips(sheetBody);
+initGlobalAiUpdate(sheetBody);
 
 const isHistoricalCandidate = Boolean(
   sheetBody.querySelector(
@@ -3889,14 +4827,6 @@ async function initCandidateMotivationInterpretation(
     "[data-motivation-ai-clarify]"
   );
 
-  const questionsSection = root.querySelector(
-    "[data-motivation-ai-questions-section]"
-  );
-
-  const questionsList = root.querySelector(
-    "[data-motivation-ai-questions]"
-  );
-
   const expectationSection = root.querySelector(
     "[data-motivation-ai-expectation-section]"
   );
@@ -3953,13 +4883,11 @@ async function initCandidateMotivationInterpretation(
     interpretationEl.textContent = "";
     engagementList.replaceChildren();
     clarifyList.replaceChildren();
-    questionsList?.replaceChildren();
     expectationEl.textContent = "";
     contextNote.textContent = "";
 
     setHidden(engagementSection, true);
     setHidden(clarifySection, true);
-    setHidden(questionsSection, true);
     setHidden(expectationSection, true);
 
     setHidden(errorBox, true);
@@ -4003,121 +4931,6 @@ async function initCandidateMotivationInterpretation(
     refreshIcons();
   }
 
-function renderQuestions(items) {
-  if (
-    !questionsList ||
-    !questionsSection
-  ) {
-    return;
-  }
-
-  questionsList.replaceChildren();
-
-    const validItems = Array.isArray(items)
-      ? items.filter(
-          (item) =>
-            item
-            && typeof item === "object"
-            && item.question
-        )
-      : [];
-
-    validItems.forEach((item, index) => {
-      const article = document.createElement(
-        "article"
-      );
-
-      article.className =
-        "motivation-ai-question";
-
-      const number = document.createElement(
-        "div"
-      );
-
-      number.className =
-        "motivation-ai-question__number";
-
-      number.textContent =
-        String(index + 1);
-
-      const questionContent =
-        document.createElement("div");
-
-      questionContent.className =
-        "motivation-ai-question__content";
-
-      const question =
-        document.createElement("div");
-
-      question.className =
-        "motivation-ai-question__text";
-
-      question.textContent =
-        item.question || "";
-
-      questionContent.appendChild(question);
-
-      if (item.why) {
-        const why =
-          document.createElement("div");
-
-        why.className =
-          "motivation-ai-question__detail";
-
-        const label =
-          document.createElement("span");
-
-        label.textContent =
-          "Why this matters";
-
-        why.appendChild(label);
-        why.append(
-          document.createTextNode(
-            item.why
-          )
-        );
-
-        questionContent.appendChild(why);
-      }
-
-      if (item.listen_for) {
-        const listenFor =
-          document.createElement("div");
-
-        listenFor.className =
-          "motivation-ai-question__detail";
-
-        const label =
-          document.createElement("span");
-
-        label.textContent =
-          "What to listen for";
-
-        listenFor.appendChild(label);
-        listenFor.append(
-          document.createTextNode(
-            item.listen_for
-          )
-        );
-
-        questionContent.appendChild(
-          listenFor
-        );
-      }
-
-      article.appendChild(number);
-      article.appendChild(
-        questionContent
-      );
-
-      questionsList.appendChild(article);
-    });
-
-    setHidden(
-      questionsSection,
-      validItems.length === 0
-    );
-  }
 
   function applySavedResult(data) {
     interpretationEl.textContent =
@@ -4135,10 +4948,6 @@ function renderQuestions(items) {
       clarifySection,
       data.areas_to_clarify || [],
       "search"
-    );
-
-    renderQuestions(
-      data.questions || []
     );
 
     expectationEl.textContent =
@@ -4209,17 +5018,6 @@ function renderQuestions(items) {
         );
         break;
 
-      case "questions":
-        draft.questions =
-          Array.isArray(event.items)
-            ? event.items
-            : [];
-
-        renderQuestions(
-          draft.questions
-        );
-        break;
-
       case "expectation_setting":
         draft.expectation_setting =
           event.text || "";
@@ -4268,16 +5066,15 @@ function renderQuestions(items) {
 
     regenerateButton.disabled = true;
 
-    let draft = {
-      title: "Motivation interpretation",
-      label: "AI-supported interpretation",
-      interpretation: "",
-      engagement_conditions: [],
-      areas_to_clarify: [],
-      questions: [],
-      expectation_setting: "",
-      context_note: "",
-    };
+let draft = {
+  title: "Motivation interpretation",
+  label: "AI-supported interpretation",
+  interpretation: "",
+  engagement_conditions: [],
+  areas_to_clarify: [],
+  expectation_setting: "",
+  context_note: "",
+};
 
     try {
       const response = await fetch(url, {

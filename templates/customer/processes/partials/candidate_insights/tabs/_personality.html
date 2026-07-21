@@ -107,6 +107,6 @@
 
 {% else %}
 
-  {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_title="No personality assessment available" missing_description="A personality assessment could provide insight into likely behavioural preferences, response patterns and areas to explore through relevant conversations." %}
+{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="user" missing_title="No personality assessment available" missing_description="Include a Personality assessment in future processes to unlock a detailed trait profile, response-style guidance, team-style insights, AI-supported interpretation and tailored follow-up questions." missing_unlock_label="Available with Personality assessment" %}
 
 {% endif %}

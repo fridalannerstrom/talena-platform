@@ -6,7 +6,7 @@
   {% for item in cognitive_questions.questions %}
 
     <article
-      class="personality-question-card"
+      class="purpose-fit-section"
       data-cognitive-question-card
     >
 
@@ -37,7 +37,6 @@
             <div
               class="
                 personality-question-card__detail
-                personality-question-card__detail--why
               "
             >
 
@@ -68,7 +67,6 @@
             <div
               class="
                 personality-question-card__detail
-                personality-question-card__detail--listen
               "
             >
 
@@ -100,38 +98,6 @@
     </article>
 
   {% endfor %}
-
-</div>
-
-
-<div
-  class="
-    purpose-fit-context-note
-    mt-4
-    {% if not cognitive_questions.context_note %}
-      d-none
-    {% endif %}
-  "
-  data-cognitive-questions-context-note-section
->
-
-  <div class="purpose-fit-context-note__icon">
-    <i data-feather="info"></i>
-  </div>
-
-
-  <div>
-
-    <div class="purpose-fit-context-note__title">
-      Evidence used
-    </div>
-
-    <div
-      class="purpose-fit-context-note__text"
-      data-cognitive-questions-context-note
-    >{{ cognitive_questions.context_note }}</div>
-
-  </div>
 
 </div>
 

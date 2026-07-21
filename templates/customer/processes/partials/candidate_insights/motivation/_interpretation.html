@@ -1,5 +1,5 @@
 <!-- OVERALL INTERPRETATION -->
-<section class="motivation-ai-section">
+<section class="mt-4 purpose-fit-section">
 
   <h3 class="motivation-ai-section__title">
     Overall motivation interpretation
@@ -15,84 +15,128 @@
 </section>
 
 
-<!-- ENGAGEMENT + CLARIFY -->
-<div class="row g-3 mt-1">
+<!-- EXPECTATION SETTING -->
+<section
+  class="
+    border
+    rounded-4
+    p-3
+    mt-4
+    {% if not motivation_interpretation.expectation_setting %}
+      d-none
+    {% endif %}
+  "
+  data-motivation-ai-expectation-section
+>
 
-  <div class="col-lg-6">
-    <section
-      class="motivation-ai-list-card motivation-ai-list-card--engagement h-100"
-      data-motivation-ai-engagement-section
-    >
-      <h3 class="motivation-ai-section__title">
-        Conditions likely to support engagement
+  <div class="d-flex align-items-start gap-3">
+
+    <div class="flex-shrink-0">
+      <i data-feather="message-circle"></i>
+    </div>
+
+    <div>
+
+      <h3 class="mb-2 purpose-fit-section-title">
+        Realistic expectation setting
       </h3>
 
+      <div
+        class="purpose-fit-summary"
+        data-motivation-ai-expectation
+      >{{ motivation_interpretation.expectation_setting }}</div>
+
+    </div>
+
+  </div>
+
+</section>
+<!-- ENGAGEMENT + CLARIFY -->
+<div class="row g-4 mt-1">
+
+  <!-- ENGAGEMENT CONDITIONS -->
+  <div class="col-lg-6">
+
+    <section
+      class="
+        purpose-fit-list-card
+        purpose-fit-list-card--positive
+        h-100
+        {% if not motivation_interpretation.engagement_conditions %}
+          d-none
+        {% endif %}
+      "
+      data-motivation-ai-engagement-section
+    >
+
+      <div class="purpose-fit-section-title">
+        Conditions likely to support engagement
+      </div>
+
       <ul
-        class="motivation-ai-list"
+        class="purpose-fit-list"
         data-motivation-ai-engagement
       >
         {% for item in motivation_interpretation.engagement_conditions %}
+
           <li>
-            <span class="motivation-ai-list-icon">
+            <span class="purpose-fit-list-icon">
               <i data-feather="zap"></i>
             </span>
 
             <span>{{ item }}</span>
           </li>
+
         {% endfor %}
       </ul>
+
     </section>
+
   </div>
 
 
+  <!-- AREAS TO CLARIFY -->
   <div class="col-lg-6">
+
     <section
-      class="motivation-ai-list-card motivation-ai-list-card--clarify h-100"
+      class="
+        purpose-fit-list-card
+        purpose-fit-list-card--verify
+        h-100
+        {% if not motivation_interpretation.areas_to_clarify %}
+          d-none
+        {% endif %}
+      "
       data-motivation-ai-clarify-section
     >
-      <h3 class="motivation-ai-section__title">
+
+      <div class="purpose-fit-section-title">
         What to explore or clarify
-      </h3>
+      </div>
 
       <ul
-        class="motivation-ai-list"
+        class="purpose-fit-list"
         data-motivation-ai-clarify
       >
         {% for item in motivation_interpretation.areas_to_clarify %}
+
           <li>
-            <span class="motivation-ai-list-icon">
+            <span class="purpose-fit-list-icon">
               <i data-feather="search"></i>
             </span>
 
             <span>{{ item }}</span>
           </li>
+
         {% endfor %}
       </ul>
+
     </section>
+
   </div>
 
 </div>
-
-
-<!-- EXPECTATION SETTING -->
-<section
-  class="motivation-ai-expectation mt-4"
-  data-motivation-ai-expectation-section
->
-  <div class="motivation-ai-expectation__icon">
-    <i data-feather="message-circle"></i>
-  </div>
-
-  <div>
-    <h3 class="motivation-ai-section__title mb-1">
-      Realistic expectation setting
-    </h3>
-
-    <div data-motivation-ai-expectation>
-      {{ motivation_interpretation.expectation_setting }}
-    </div>
-  </div>
-</section>
+<!-- /ENGAGEMENT + CLARIFY -->
 
 
 <!-- CONTEXT NOTE -->

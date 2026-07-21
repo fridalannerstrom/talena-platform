@@ -4,6 +4,6 @@
 
 {% else %}
 
-  {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_title="No team-style profile available" missing_description="Team-style results could provide additional insight into how the candidate may contribute, communicate and interact within a team." %}
+{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="users" missing_title="No team-style profile available" missing_description="Team-style insights are generated from the Personality assessment. Include it in future processes to explore how the candidate may contribute, communicate, build trust and collaborate within a team." missing_unlock_label="Available with Personality assessment" %}
 
 {% endif %}

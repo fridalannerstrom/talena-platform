@@ -1,27 +1,26 @@
-<section class="card mb-4 purpose-fit-card">
+<section
+  class="
+    combined-questions-empty-state
+    mt-4
+    mb-4
+  "
+>
 
-  <div class="card-body">
-
-    <div class="d-flex align-items-start gap-3">
-
-      <div class="empty-icon">
-        i
-      </div>
-
-      <div>
-
-        <h2 class="h5 mb-1">
-          {{ missing_title }}
-        </h2>
-
-        <p class="text-muted mb-0">
-          {{ missing_description }}
-        </p>
-
-      </div>
-
-    </div>
-
+  <div class="combined-questions-empty-state__icon">
+    <i data-feather="{{ missing_icon|default:'info' }}"></i>
   </div>
+
+
+  <h3 class="personality-questions-section-title mb-2">
+    {{ missing_title }}
+  </h3>
+
+
+  <p
+    class="text-muted small mb-0 mx-auto"
+    style="max-width: 640px;"
+  >
+    {{ missing_description }}
+  </p>
 
 </section>

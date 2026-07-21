@@ -280,5 +280,42 @@ urlpatterns = [
             "decision_support_regenerate"
         ),
     ),
-    
+    path(
+        (
+            "<int:process_id>/candidate/"
+            "<int:candidate_id>/ai-insights/update-plan/"
+        ),
+        views.process_candidate_global_ai_update_plan,
+        name=(
+            "process_candidate_global_"
+            "ai_update_plan"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/"
+            "response-style-guidance/stream/"
+        ),
+        views.process_candidate_response_style_guidance_stream,
+        name=(
+            "process_candidate_"
+            "response_style_guidance_stream"
+        ),
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/"
+            "response-style-guidance/regenerate/"
+        ),
+        (
+            views
+            .process_candidate_response_style_guidance_regenerate
+        ),
+        name=(
+            "process_candidate_"
+            "response_style_guidance_regenerate"
+        ),
+    ),
 ]

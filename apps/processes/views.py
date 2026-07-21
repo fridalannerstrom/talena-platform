@@ -1949,6 +1949,16 @@ def build_combined_candidate_questions(
             ),
             "result_sources": [
                 {
+                    # New separate Motivation Questions result.
+                    "result_field": (
+                        "ai_motivation_questions"
+                    ),
+                    "status_field": (
+                        "ai_motivation_questions_status"
+                    ),
+                },
+                {
+                    # Backwards-compatible fallback for older results.
                     "result_field": (
                         "ai_motivation_interpretation"
                     ),
@@ -2426,6 +2436,347 @@ def build_candidate_final_output(
         ),
 
         "has_content": has_content,
+    }
+
+def build_candidate_ai_update_state(
+    *,
+    invitation,
+    process,
+    purpose_context=None,
+):
+    """
+    Build the shared update state for AI-generated candidate insights.
+
+    The global update banner should appear when existing AI content
+    was created using an earlier process purpose or context.
+
+    Sections that have never been generated are not included.
+    Historical candidates are not connected to global regeneration yet.
+    """
+
+    empty_state = {
+        "has_outdated_insights": False,
+        "sections": [],
+        "section_count": 0,
+        "purpose_changed": False,
+        "context_changed": False,
+    }
+
+    if getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return empty_state
+
+    current_purpose = normalize_purpose_key(
+        getattr(
+            process,
+            "purpose",
+            "",
+        )
+        or ""
+    )
+
+    context_updated_at = getattr(
+        purpose_context,
+        "updated_at",
+        None,
+    )
+
+    section_config = [
+        {
+            "key": "overview",
+            "label": "AI Summary",
+            "result_field": "ai_purpose_fit",
+            "status_field": "ai_purpose_fit_status",
+            "generated_at_field": (
+                "ai_purpose_fit_generated_at"
+            ),
+            "purpose_field": (
+                "ai_purpose_fit_purpose"
+            ),
+        },
+        {
+            "key": "response_style_guidance",
+            "label": "Response-style guidance",
+            "result_field": (
+                "ai_response_style_guidance"
+            ),
+            "status_field": (
+                "ai_response_style_guidance_status"
+            ),
+            "generated_at_field": (
+                "ai_response_style_guidance_generated_at"
+            ),
+            "purpose_field": (
+                "ai_response_style_guidance_purpose"
+            ),
+        },
+        {
+            "key": "personality_interpretation",
+            "label": "Personality interpretation",
+            "result_field": (
+                "ai_personality_interpretation"
+            ),
+            "status_field": (
+                "ai_personality_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_personality_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_personality_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "personality_questions",
+            "label": "Personality questions",
+            "result_field": (
+                "ai_personality_questions"
+            ),
+            "status_field": (
+                "ai_personality_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_personality_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_personality_questions_purpose"
+            ),
+        },
+        {
+            "key": "motivation_interpretation",
+            "label": "Motivation interpretation",
+            "result_field": (
+                "ai_motivation_interpretation"
+            ),
+            "status_field": (
+                "ai_motivation_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_motivation_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_motivation_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "motivation_questions",
+            "label": "Motivation questions",
+            "result_field": (
+                "ai_motivation_questions"
+            ),
+            "status_field": (
+                "ai_motivation_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_motivation_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_motivation_questions_purpose"
+            ),
+        },
+        {
+            "key": "cognitive_interpretation",
+            "label": "Cognitive interpretation",
+            "result_field": (
+                "ai_cognitive_interpretation"
+            ),
+            "status_field": (
+                "ai_cognitive_interpretation_status"
+            ),
+            "generated_at_field": (
+                "ai_cognitive_interpretation_generated_at"
+            ),
+            "purpose_field": (
+                "ai_cognitive_interpretation_purpose"
+            ),
+        },
+        {
+            "key": "cognitive_questions",
+            "label": "Cognitive questions",
+            "result_field": (
+                "ai_cognitive_questions"
+            ),
+            "status_field": (
+                "ai_cognitive_questions_status"
+            ),
+            "generated_at_field": (
+                "ai_cognitive_questions_generated_at"
+            ),
+            "purpose_field": (
+                "ai_cognitive_questions_purpose"
+            ),
+        },
+        {
+            "key": "pre_interview_decision_support",
+            "label": "Pre-interview decision support",
+            "result_field": (
+                "ai_pre_interview_decision_support"
+            ),
+            "status_field": (
+                "ai_pre_interview_decision_support_status"
+            ),
+            "generated_at_field": (
+                "ai_pre_interview_decision_support_generated_at"
+            ),
+            "purpose_field": (
+                "ai_pre_interview_decision_support_purpose"
+            ),
+        },
+        {
+            "key": "post_interview_decision_support",
+            "label": "Post-interview decision support",
+            "result_field": (
+                "ai_post_interview_decision_support"
+            ),
+            "status_field": (
+                "ai_post_interview_decision_support_status"
+            ),
+            "generated_at_field": (
+                "ai_post_interview_decision_support_generated_at"
+            ),
+            "purpose_field": (
+                "ai_post_interview_decision_support_purpose"
+            ),
+        },
+    ]
+
+    analysed_sections = []
+
+    has_confirmed_process_change = False
+    has_purpose_change = False
+    has_context_change = False
+
+    for config in section_config:
+        saved_result = getattr(
+            invitation,
+            config["result_field"],
+            None,
+        )
+
+        # Do not include AI sections that have never been generated.
+        if not saved_result:
+            continue
+
+        status = str(
+            getattr(
+                invitation,
+                config["status_field"],
+                "",
+            )
+            or ""
+        ).strip().lower()
+
+        generated_at = getattr(
+            invitation,
+            config["generated_at_field"],
+            None,
+        )
+
+        purpose_field = config.get(
+            "purpose_field"
+        )
+
+        saved_purpose = ""
+
+        if purpose_field:
+            raw_saved_purpose = getattr(
+                invitation,
+                purpose_field,
+                "",
+            )
+
+            if raw_saved_purpose:
+                saved_purpose = (
+                    normalize_purpose_key(
+                        raw_saved_purpose
+                    )
+                )
+
+        purpose_changed = bool(
+            saved_purpose
+            and current_purpose
+            and saved_purpose != current_purpose
+        )
+
+        context_changed = bool(
+            context_updated_at
+            and generated_at
+            and context_updated_at > generated_at
+        )
+
+        if purpose_changed:
+            has_confirmed_process_change = True
+            has_purpose_change = True
+
+        if context_changed:
+            has_confirmed_process_change = True
+            has_context_change = True
+
+        analysed_sections.append({
+            **config,
+            "status": status,
+            "purpose_changed": purpose_changed,
+            "context_changed": context_changed,
+        })
+
+    # Do not show the global process-information banner merely because
+    # a section became outdated for another reason, such as changed
+    # interview notes or changed personality-trait selection.
+    if not has_confirmed_process_change:
+        return empty_state
+
+    outdated_sections = []
+
+    for section in analysed_sections:
+        needs_update = bool(
+            section["status"] == "outdated"
+            or section["purpose_changed"]
+            or section["context_changed"]
+        )
+
+        if not needs_update:
+            continue
+
+        reasons = []
+
+        if section["purpose_changed"]:
+            reasons.append(
+                "purpose"
+            )
+
+        if section["context_changed"]:
+            reasons.append(
+                "context"
+            )
+
+        if (
+            section["status"] == "outdated"
+            and not reasons
+        ):
+            reasons.append(
+                "dependent_content"
+            )
+
+        outdated_sections.append({
+            "key": section["key"],
+            "label": section["label"],
+            "status": section["status"],
+            "reasons": reasons,
+        })
+
+    return {
+        "has_outdated_insights": bool(
+            outdated_sections
+        ),
+        "sections": outdated_sections,
+        "section_count": len(
+            outdated_sections
+        ),
+        "purpose_changed": has_purpose_change,
+        "context_changed": has_context_change,
     }
 
 
@@ -3190,6 +3541,14 @@ def build_candidate_detail_context(process, invitation):
         else False
     )
 
+    candidate_ai_update_state = (
+        build_candidate_ai_update_state(
+            invitation=invitation,
+            process=process,
+            purpose_context=purpose_context_obj,
+        )
+    )
+
     context_title = ""
 
     if has_purpose_context:
@@ -3391,6 +3750,53 @@ def build_candidate_detail_context(process, invitation):
                 "process_id": process.id,
                 "candidate_id": candidate.id,
             },
+        ),
+
+        "global_ai_update_plan_url": reverse(
+            (
+                "processes:"
+                "process_candidate_global_"
+                "ai_update_plan"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # Global AI update state
+        "candidate_ai_update_state": (
+            candidate_ai_update_state
+        ),
+
+        "has_outdated_ai_insights": (
+            candidate_ai_update_state[
+                "has_outdated_insights"
+            ]
+        ),
+
+        "outdated_ai_sections": (
+            candidate_ai_update_state[
+                "sections"
+            ]
+        ),
+
+        "outdated_ai_section_count": (
+            candidate_ai_update_state[
+                "section_count"
+            ]
+        ),
+
+        "outdated_ai_purpose_changed": (
+            candidate_ai_update_state[
+                "purpose_changed"
+            ]
+        ),
+
+        "outdated_ai_context_changed": (
+            candidate_ai_update_state[
+                "context_changed"
+            ]
         ),
 
         # --------------------------------------------------------
@@ -3849,6 +4255,185 @@ def user_can_access_process(user, process) -> bool:
         .first()
     )
     return bool(company_id and process.company_id == company_id)
+
+@login_required
+@require_POST
+def process_candidate_global_ai_update_plan(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Return a fresh plan for updating outdated AI insights.
+
+    This endpoint does not delete, reset or regenerate anything.
+    Existing AI content remains unchanged until the client starts
+    each individual regeneration.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Global AI updating is not connected "
+                    "for historical candidates yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    purpose_context = getattr(
+        process,
+        "role_context",
+        None,
+    )
+
+    update_state = (
+        build_candidate_ai_update_state(
+            invitation=invitation,
+            process=process,
+            purpose_context=purpose_context,
+        )
+    )
+
+    sections = []
+
+    regenerate_route_names = {
+        "overview": (
+            "process_candidate_purpose_fit_regenerate"
+        ),
+
+        "response_style_guidance": (
+            "process_candidate_"
+            "response_style_guidance_regenerate"
+        ),
+
+        "personality_interpretation": (
+            "process_candidate_personality_"
+            "interpretation_regenerate"
+        ),
+
+        "personality_questions": (
+            "process_candidate_personality_"
+            "questions_regenerate"
+        ),
+
+        "motivation_interpretation": (
+            "process_candidate_motivation_"
+            "interpretation_regenerate"
+        ),
+
+        "motivation_questions": (
+            "process_candidate_motivation_"
+            "questions_regenerate"
+        ),
+
+        "cognitive_interpretation": (
+            "process_candidate_cognitive_"
+            "interpretation_regenerate"
+        ),
+
+        "cognitive_questions": (
+            "process_candidate_cognitive_"
+            "questions_regenerate"
+        ),
+
+        "pre_interview_decision_support": (
+            "process_candidate_pre_interview_"
+            "decision_support_regenerate"
+        ),
+
+        "post_interview_decision_support": (
+            "process_candidate_post_interview_"
+            "decision_support_regenerate"
+        ),
+    }
+
+
+    sections = []
+
+    for section in update_state["sections"]:
+        section_key = section["key"]
+
+        route_name = regenerate_route_names.get(
+            section_key
+        )
+
+        if not route_name:
+            continue
+
+        regenerate_url = reverse(
+            f"processes:{route_name}",
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate_id,
+            },
+        )
+
+        sections.append({
+            "key": section_key,
+            "label": section["label"],
+            "reasons": section["reasons"],
+            "regenerate_url": regenerate_url,
+        })
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "has_updates": bool(
+                update_state[
+                    "has_outdated_insights"
+                ]
+            ),
+            "section_count": len(
+                sections
+            ),
+            "sections": sections,
+            "purpose_changed": bool(
+                update_state[
+                    "purpose_changed"
+                ]
+            ),
+            "context_changed": bool(
+                update_state[
+                    "context_changed"
+                ]
+            ),
+        }
+    )
 
 
 @login_required
@@ -7163,6 +7748,98 @@ def process_candidate_response_style_guidance_stream(
     response["X-Accel-Buffering"] = "no"
 
     return response
+
+
+@login_required
+@require_POST
+def process_candidate_response_style_guidance_regenerate(
+    request,
+    process_id,
+    candidate_id,
+):
+    """
+    Prepare response-style guidance for regeneration.
+
+    The existing saved result is retained until the new
+    generation has completed successfully.
+    """
+
+    process = get_object_or_404(
+        TestProcess,
+        pk=process_id,
+    )
+
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
+        return HttpResponseForbidden(
+            "You do not have access to this process."
+        )
+
+    if process.is_historical:
+        return JsonResponse(
+            {
+                "error": (
+                    "Global response-style regeneration "
+                    "is not connected for historical "
+                    "candidates yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation = get_object_or_404(
+        TestInvitation,
+        process=process,
+        candidate_id=candidate_id,
+    )
+
+    if invitation.status != "completed":
+        return JsonResponse(
+            {
+                "error": (
+                    "The candidate has not completed "
+                    "the assessments yet."
+                )
+            },
+            status=400,
+        )
+
+    invitation.ai_response_style_guidance_status = (
+        "not_started"
+    )
+
+    invitation.ai_response_style_guidance_generated_at = (
+        None
+    )
+
+    invitation.ai_response_style_guidance_purpose = ""
+
+    invitation.save(
+        update_fields=[
+            "ai_response_style_guidance_status",
+            "ai_response_style_guidance_generated_at",
+            "ai_response_style_guidance_purpose",
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "stream_url": reverse(
+                (
+                    "processes:"
+                    "process_candidate_"
+                    "response_style_guidance_stream"
+                ),
+                kwargs={
+                    "process_id": process.id,
+                    "candidate_id": candidate_id,
+                },
+            ),
+        }
+    )
 
 
 @login_required

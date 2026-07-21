@@ -1,778 +1,381 @@
+{% if show_context_prompt %}
 
-  {% if show_context_prompt %}
-        <div class="card mb-4 role-context-prompt-card">
-          <div class="card-body">
-            <div class="role-context-prompt">
-              <div class="role-context-prompt__icon">
-                <i data-feather="zap"></i>
-              </div>
+  <div class="card mb-4 role-context-prompt-card">
 
-              <div class="role-context-prompt__content">
-                <div class="text-muted small mb-1">Improve candidate insights</div>
-                <h2 class="h5 mb-1">Add {{ context_config.tab_label|default:"context"|lower }}</h2>
-                <p class="text-muted mb-0">
-                  Add context to make the candidate insights more relevant to this process.
-                </p>
-              </div>
-
-              <div class="role-context-prompt__action">
-                <a
-                  href="{% url 'processes:process_role_context' process.id %}"
-                  class="btn btn-primary">
-                  {{ context_config.add_cta|default:"Add context" }}
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if not has_any_results %}
-        <div class="card mb-4">
-          <div class="card-body empty-results">
-            <div class="d-flex align-items-start gap-3">
-              <div class="empty-icon">!</div>
-              <div>
-                <div class="fw-semibold mb-1">No results yet</div>
-                <div class="text-muted small">
-                  Results will appear here when assessment data is available.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% elif not all_assessments_completed %}
-        <div class="card mb-4">
-          <div class="card-body empty-results">
-            <div class="d-flex align-items-start gap-3">
-              <div class="empty-icon">…</div>
-              <div>
-                <div class="fw-semibold mb-1">Candidate insights are not available yet</div>
-                <div class="text-muted small">
-                  The report will appear when all assessments in the process are completed.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-
-
-      {% else %}
-
-<section
-  class="card candidate-insights-workspace mb-4"
-  data-candidate-insights-workspace
->
-
-<div class="candidate-insights-workspace__inner">
-
-  {% include "customer/processes/partials/candidate_insights/_navigation.html" %}
-
-
-  <div class="candidate-insights-workspace__panels">
-
-    <!-- OVERVIEW -->
-    <div
-      id="candidate-insights-panel-overview"
-      class="candidate-insights-panel is-active"
-      role="tabpanel"
-      data-insights-panel="overview"
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_overview.html" %}
-    </div>
-
-
-    <!-- PERSONALITY -->
-    <div
-      id="candidate-insights-panel-personality"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="personality"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_personality.html" %}
-    </div>
-
-
-    <!-- MOTIVATION -->
-    <div
-      id="candidate-insights-panel-motivation"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="motivation"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_motivation.html" %}
-    </div>
-
-
-    <!-- COGNITIVE -->
-    <div
-      id="candidate-insights-panel-cognitive"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="cognitive"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_cognitive.html" %}
-    </div>
-
-
-    <!-- TEAM STYLES -->
-    <div
-      id="candidate-insights-panel-team-styles"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="team-styles"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
-    </div>
-
-
-    <!-- QUESTIONS -->
-    <div
-      id="candidate-insights-panel-questions"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="questions"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
-    </div>
-
-
-    <!-- FINAL OUTPUT -->
-    <div
-      id="candidate-insights-panel-final-output"
-      class="candidate-insights-panel"
-      role="tabpanel"
-      data-insights-panel="final-output"
-      hidden
-    >
-      {% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}
-    </div>
-
-  </div>
-
-</section>
-
-       <!--  
-
-{% if purpose_report and report_mode == "context" %}
-  <div class="card mb-4 purpose-report-hero purpose-report-{{ purpose_report_key|default:report_mode }}">
     <div class="card-body">
 
-      <div class="d-flex align-items-start justify-content-between gap-3">
+      <div class="role-context-prompt">
 
-        <div>
+        <div class="role-context-prompt__icon">
+          <i data-feather="zap"></i>
+        </div>
+
+
+        <div class="role-context-prompt__content">
+
           <div class="text-muted small mb-1">
-            Report focus
+            Improve candidate insights
           </div>
 
-          <h2 class="h5 mb-2">
-            {{ purpose_report.title }}
+          <h2 class="h5 mb-1">
+            Add {{ context_config.tab_label|default:"context"|lower }}
           </h2>
 
-          {% if purpose_report.intro %}
-            <p class="text-muted mb-0">
-              {{ purpose_report.intro }}
-            </p>
-          {% endif %}
+          <p class="text-muted mb-0">
+            Add context to make the candidate insights more relevant
+            to this process.
+          </p>
+
         </div>
 
-        <a
-          href="{% url 'processes:process_update' process.id %}"
-          class="btn btn-sm btn-outline-secondary flex-shrink-0">
-          <i data-feather="settings" class="me-1"></i>
-          Change view
-        </a>
+
+        <div class="role-context-prompt__action">
+
+          <a
+            href="{% url 'processes:process_role_context' process.id %}"
+            class="btn btn-primary"
+          >
+            {{ context_config.add_cta|default:"Add context" }}
+          </a>
+
+        </div>
 
       </div>
 
     </div>
+
   </div>
+
 {% endif %}
--->
 
 
 
+{% if not has_any_results %}
 
+  <section class="combined-questions-empty-state mb-4">
 
-
-<!-- TEAM STYLES -->
-
-
-
-<!-- /TEAM STYLES -->
-
-
-
-  <section class="card mb-4 purpose-fit-card sova-debug-card">
-    <div class="card-body">
-
-      <div class="d-flex align-items-start justify-content-between gap-3">
-        <div>
-          <div class="insight-summary-kicker">
-            Developer tools
-          </div>
-
-          <h2 class="insight-summary-title mb-1">
-            Raw Sova data
-          </h2>
-
-          <div class="text-muted small">
-            Unprocessed data currently stored for this invitation.
-          </div>
-        </div>
-
-        <span class="badge bg-light text-dark border">
-          Staff only
-        </span>
-      </div>
-
-      <div class="accordion mt-4" id="sovaDebugAccordion">
-
-        <!-- FULL PAYLOAD -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="sovaPayloadHeading">
-            <button
-              class="accordion-button collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sovaPayloadCollapse"
-              aria-expanded="false"
-              aria-controls="sovaPayloadCollapse"
-            >
-              Full stored Sova payload
-            </button>
-          </h2>
-
-          <div
-            id="sovaPayloadCollapse"
-            class="accordion-collapse collapse"
-            aria-labelledby="sovaPayloadHeading"
-            data-bs-parent="#sovaDebugAccordion"
-          >
-            <div class="accordion-body">
-              <pre class="sova-debug-json"><code>{{ raw_sova_payload_json }}</code></pre>
-            </div>
-          </div>
-        </div>
-
-        <!-- ACTIVITIES -->
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="sovaActivitiesHeading">
-            <button
-              class="accordion-button collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sovaActivitiesCollapse"
-              aria-expanded="false"
-              aria-controls="sovaActivitiesCollapse"
-            >
-              Normalised assessment activities
-            </button>
-          </h2>
-
-          <div
-            id="sovaActivitiesCollapse"
-            class="accordion-collapse collapse"
-            aria-labelledby="sovaActivitiesHeading"
-            data-bs-parent="#sovaDebugAccordion"
-          >
-            <div class="accordion-body">
-              <pre class="sova-debug-json"><code>{{ raw_sova_activities_json }}</code></pre>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
+    <div class="combined-questions-empty-state__icon">
+      <i data-feather="clock"></i>
     </div>
+
+    <h2 class="personality-questions-section-title mb-2">
+      No results yet
+    </h2>
+
+    <p
+      class="text-muted small mb-0 mx-auto"
+      style="max-width: 580px;"
+    >
+      Candidate insights will appear here when assessment data
+      becomes available.
+    </p>
+
   </section>
 
-  <!-- REPORTS -->
-{% if is_historical and historical_reports or not is_historical and sova_reports_for_ui %}
 
-  <div class="card mb-4">
 
-    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-      <span>Reports</span>
+{% elif not all_assessments_completed %}
 
-      {% if is_historical %}
-        {% if historical_reports %}
-          <span class="badge rounded-pill text-bg-light border">
-            {{ historical_reports|length }} available
-          </span>
-        {% endif %}
-      {% else %}
-        {% if sova_reports_for_ui %}
-          <span class="badge rounded-pill text-bg-light border">
-            {{ sova_reports_for_ui|length }} available
-          </span>
-        {% endif %}
-      {% endif %}
+  <section class="combined-questions-empty-state mb-4">
+
+    <div class="combined-questions-empty-state__icon">
+      <i data-feather="loader"></i>
     </div>
 
-    <div class="card-body">
-      <div class="list-group list-group-flush">
+    <h2 class="personality-questions-section-title mb-2">
+      Candidate insights are not available yet
+    </h2>
+
+    <p
+      class="text-muted small mb-0 mx-auto"
+      style="max-width: 580px;"
+    >
+      The candidate insights will appear when all assessments
+      included in the process have been completed.
+    </p>
+
+  </section>
+
+
+
+{% else %}
+
+  <!-- ================================================== -->
+  <!-- CANDIDATE INSIGHTS WORKSPACE -->
+  <!-- ================================================== -->
+
+  <section
+    class="card candidate-insights-workspace mb-4"
+    data-candidate-insights-workspace
+  >
+
+    <div class="candidate-insights-workspace__inner">
+
+      {% include "customer/processes/partials/candidate_insights/_navigation.html" %}
+
+
+      <div class="candidate-insights-workspace__panels">
+
+        <!-- OVERVIEW -->
+
+        <div
+          id="candidate-insights-panel-overview"
+          class="candidate-insights-panel is-active"
+          role="tabpanel"
+          data-insights-panel="overview"
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_overview.html" %}
+        </div>
+
+
+        <!-- PERSONALITY -->
+
+        <div
+          id="candidate-insights-panel-personality"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="personality"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_personality.html" %}
+        </div>
+
+
+        <!-- MOTIVATION -->
+
+        <div
+          id="candidate-insights-panel-motivation"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="motivation"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_motivation.html" %}
+        </div>
+
+
+        <!-- COGNITIVE ABILITIES -->
+
+        <div
+          id="candidate-insights-panel-cognitive"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="cognitive"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_cognitive.html" %}
+        </div>
+
+
+        <!-- TEAM STYLES -->
+
+        <div
+          id="candidate-insights-panel-team-styles"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="team-styles"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
+        </div>
+
+
+        <!-- QUESTIONS -->
+
+        <div
+          id="candidate-insights-panel-questions"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="questions"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
+        </div>
+
+
+        <!-- FINAL OUTPUT -->
+
+        <div
+          id="candidate-insights-panel-final-output"
+          class="candidate-insights-panel"
+          role="tabpanel"
+          data-insights-panel="final-output"
+          hidden
+        >
+          {% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================== -->
+  <!-- ASSESSMENT REPORTS -->
+  <!-- ================================================== -->
+
+  {% if is_historical and historical_reports or not is_historical and sova_reports_for_ui %}
+
+    <section class="card mb-4">
+
+      <div
+        class="
+          card-header
+          fw-semibold
+          d-flex
+          justify-content-between
+          align-items-center
+          gap-3
+        "
+      >
+
+        <span>
+          Reports
+        </span>
+
 
         {% if is_historical %}
 
-          <!-- HISTORICAL UPLOADED REPORTS -->
-          {% for report in historical_reports %}
-            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+          {% if historical_reports %}
 
-              <div class="min-w-0">
-                <div class="fw-semibold">
-                  {{ report.title|default:report.original_filename }}
+            <span class="badge rounded-pill text-bg-light border">
+              {{ historical_reports|length }} available
+            </span>
+
+          {% endif %}
+
+        {% else %}
+
+          {% if sova_reports_for_ui %}
+
+            <span class="badge rounded-pill text-bg-light border">
+              {{ sova_reports_for_ui|length }} available
+            </span>
+
+          {% endif %}
+
+        {% endif %}
+
+      </div>
+
+
+      <div class="card-body">
+
+        <div class="list-group list-group-flush">
+
+          {% if is_historical %}
+
+            <!-- HISTORICAL REPORTS -->
+
+            {% for report in historical_reports %}
+
+              <div
+                class="
+                  list-group-item
+                  px-0
+                  d-flex
+                  justify-content-between
+                  align-items-center
+                  gap-3
+                "
+              >
+
+                <div class="min-w-0">
+
+                  <div class="fw-semibold">
+                    {{ report.title|default:report.original_filename }}
+                  </div>
+
+                  <div class="small text-muted">
+                    Uploaded historical assessment report
+                  </div>
+
                 </div>
 
-                <div class="small text-muted">
-                  Uploaded historical assessment report
-                </div>
+
+                {% if report.file %}
+
+                  <a
+                    href="{{ report.file.url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-sm btn-outline-dark flex-shrink-0"
+                  >
+                    Open report
+                  </a>
+
+                {% endif %}
+
               </div>
 
-              {% if report.file %}
+            {% empty %}
+
+              <div class="text-muted small py-3">
+                No historical reports have been uploaded.
+              </div>
+
+            {% endfor %}
+
+
+          {% else %}
+
+            <!-- LIVE SOVA REPORTS -->
+
+            {% for report in sova_reports_for_ui %}
+
+              <div
+                class="
+                  list-group-item
+                  px-0
+                  d-flex
+                  justify-content-between
+                  align-items-center
+                  gap-3
+                "
+              >
+
+                <div class="min-w-0">
+
+                  <div class="fw-semibold">
+                    {{ report.title }}
+                  </div>
+
+                  <div class="small text-muted">
+                    {{ report.category }} · {{ report.audience }}
+                  </div>
+
+                </div>
+
+
                 <a
-                  href="{{ report.file.url }}"
+                  href="{{ report.url }}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="btn btn-sm btn-outline-dark flex-shrink-0"
                 >
                   Open report
                 </a>
-              {% endif %}
 
-            </div>
-          {% empty %}
-            <div class="text-muted small py-3">
-              No historical reports have been uploaded.
-            </div>
-          {% endfor %}
-
-        {% else %}
-
-          <!-- LIVE SOVA WEBHOOK REPORTS -->
-          {% for report in sova_reports_for_ui %}
-            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
-
-              <div class="min-w-0">
-                <div class="fw-semibold">
-                  {{ report.title }}
-                </div>
-
-                <div class="small text-muted">
-                  {{ report.category }} · {{ report.audience }}
-                </div>
               </div>
 
-              <a
-                href="{{ report.url }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-sm btn-outline-dark flex-shrink-0"
-              >
-                Open report
-              </a>
+            {% empty %}
 
-            </div>
-          {% empty %}
-            <div class="text-muted small py-3">
-              No assessment reports are currently available.
-            </div>
-          {% endfor %}
-
-        {% endif %}
-
-      </div>
-    </div>
-
-  </div>
-
-{% endif %}
-<!-- /REPORTS -->
-
-
-        <!-- TEMPORARY RAW HISTORICAL DATA -->
-        {% if is_historical and assessment_results %}
-          <div class="card mb-4">
-            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-              <span>Raw imported assessment data</span>
-              <span class="badge rounded-pill text-bg-light border">
-                {{ assessment_results|length }} result{% if assessment_results|length != 1 %}s{% endif %}
-              </span>
-            </div>
-
-            <div class="card-body">
-              <div class="accordion" id="historicalRawDataAccordion">
-                {% for result in assessment_results %}
-                  <div class="accordion-item border rounded mb-2">
-                    <h2 class="accordion-header" id="rawHeading{{ result.id }}">
-                      <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#rawCollapse{{ result.id }}"
-                        aria-expanded="false"
-                        aria-controls="rawCollapse{{ result.id }}">
-
-                        <div class="w-100 d-flex justify-content-between align-items-center gap-3 pe-3">
-                          <div>
-                            <div class="fw-semibold text-capitalize">
-                              {{ result.assessment_type }} · {{ result.scale|upper }}
-                            </div>
-                            <div class="text-muted small">
-                              SOVA candidate ID: {{ result.sova_candidate_id|default:"—" }}
-                              · Result ID: {{ result.sova_result_id|default:"—" }}
-                            </div>
-                          </div>
-
-                          <span class="badge bg-light text-dark border">
-                            {{ result.scores.all|length }} scores
-                          </span>
-                        </div>
-                      </button>
-                    </h2>
-
-                    <div
-                      id="rawCollapse{{ result.id }}"
-                      class="accordion-collapse collapse"
-                      aria-labelledby="rawHeading{{ result.id }}"
-                      data-bs-parent="#historicalRawDataAccordion">
-
-                      <div class="accordion-body">
-                        <div class="row g-3 mb-4">
-                          <div class="col-md-3">
-                            <div class="small text-muted">Status</div>
-                            <div class="fw-semibold">{{ result.status|default:"—" }}</div>
-                          </div>
-
-                          <div class="col-md-3">
-                            <div class="small text-muted">Language</div>
-                            <div class="fw-semibold">{{ result.language|default:"—" }}</div>
-                          </div>
-
-                          <div class="col-md-3">
-                            <div class="small text-muted">Completed</div>
-                            <div class="fw-semibold">
-                              {% if result.time_completed %}
-                                {{ result.time_completed|date:"Y-m-d H:i" }}
-                              {% else %}
-                                —
-                              {% endif %}
-                            </div>
-                          </div>
-
-                          <div class="col-md-3">
-                            <div class="small text-muted">Source file</div>
-                            <div class="fw-semibold">
-                              {% if result.import_file %}
-                                {{ result.import_file.original_filename|truncatechars:36 }}
-                              {% else %}
-                                —
-                              {% endif %}
-                            </div>
-                          </div>
-                        </div>
-
-                        {% regroup result.scores.all by category as score_groups %}
-
-                        {% for group in score_groups %}
-                          <div class="mb-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                              <h3 class="h6 mb-0 text-capitalize">
-                                {{ group.grouper|default:"Scores"|cut:"_" }}
-                              </h3>
-                              <span class="text-muted small">
-                                {{ group.list|length }} item{% if group.list|length != 1 %}s{% endif %}
-                              </span>
-                            </div>
-
-                            <div class="table-responsive">
-                              <table class="table table-sm align-middle mb-0">
-                                <thead>
-                                  <tr>
-                                    <th>Score</th>
-                                    <th style="width: 140px;">Value</th>
-                                    <th style="width: 140px;">Percentile</th>
-                                    <th style="width: 140px;">Scale</th>
-                                  </tr>
-                                </thead>
-
-                                <tbody>
-                                  {% for score in group.list %}
-                                    <tr>
-                                      <td><span class="fw-semibold">{{ score.name }}</span></td>
-                                      <td>
-                                        {% if score.score is not None %}
-                                          {{ score.score|floatformat:1 }}
-                                        {% else %}
-                                          <span class="text-muted">—</span>
-                                        {% endif %}
-                                      </td>
-                                      <td>
-                                        {% if score.percentile is not None %}
-                                          {{ score.percentile|floatformat:0 }}
-                                        {% else %}
-                                          <span class="text-muted">—</span>
-                                        {% endif %}
-                                      </td>
-                                      <td>
-                                        <span class="badge bg-light text-dark border">
-                                          {{ score.scale|upper }}
-                                        </span>
-                                      </td>
-                                    </tr>
-                                  {% endfor %}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        {% empty %}
-                          <div class="text-muted small">No scores saved for this result.</div>
-                        {% endfor %}
-                      </div>
-                    </div>
-                  </div>
-                {% endfor %}
+              <div class="text-muted small py-3">
+                No assessment reports are currently available.
               </div>
-            </div>
-          </div>
-        {% endif %}
-        <!-- /TEMPORARY RAW HISTORICAL DATA -->
 
-        <!-- RAW ASSESSMENT DATA -->
-{% if not is_historical and activities %}
-  <section class="card mb-4 purpose-fit-card">
-    <div class="card-body">
+            {% endfor %}
 
-      <!-- HEADER -->
-      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-        <div>
-          <div class="insight-summary-kicker">
-            Assessment data
-          </div>
+          {% endif %}
 
-          <h2 class="insight-summary-title mb-1">
-            Raw assessment data
-          </h2>
-
-          <div class="text-muted small">
-            Detailed assessment values received from SOVA.
-          </div>
         </div>
 
-        <span class="badge rounded-pill bg-light text-dark border">
-          {{ activities|length }}
-          assessment{% if activities|length != 1 %}s{% endif %}
-        </span>
       </div>
 
-      <!-- ASSESSMENT ACCORDION -->
-      <div
-        class="accordion raw-assessment-accordion"
-        id="rawAssessmentAccordion"
-      >
-        {% for activity in activities %}
-          <div class="accordion-item border rounded-3 mb-3">
+    </section>
 
-            <h3
-              class="accordion-header"
-              id="rawAssessmentHeading{{ forloop.counter }}"
-            >
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#rawAssessmentCollapse{{ forloop.counter }}"
-                aria-expanded="false"
-                aria-controls="rawAssessmentCollapse{{ forloop.counter }}"
-              >
-                <div class="w-100 d-flex align-items-center justify-content-between gap-3 pe-3">
+  {% endif %}
 
-                  <div>
-                    <div class="fw-semibold">
-                      {{ activity.activity|default:"Assessment" }}
-                    </div>
-
-                    <div class="small text-muted mt-1">
-                      Status:
-                      {{ activity.status|default:"—"|title }}
-                    </div>
-                  </div>
-
-                  <span class="badge rounded-pill bg-light text-dark border flex-shrink-0">
-                    {{ activity.competencies|length }}
-                    score{% if activity.competencies|length != 1 %}s{% endif %}
-                  </span>
-
-                </div>
-              </button>
-            </h3>
-
-            <div
-              id="rawAssessmentCollapse{{ forloop.counter }}"
-              class="accordion-collapse collapse"
-              aria-labelledby="rawAssessmentHeading{{ forloop.counter }}"
-              data-bs-parent="#rawAssessmentAccordion"
-            >
-              <div class="accordion-body">
-
-                <!-- ASSESSMENT OVERVIEW -->
-                <div class="row g-3 mb-4">
-
-                  <div class="col-sm-6 col-lg-3">
-                    <div class="small text-muted">
-                      Assessment
-                    </div>
-
-                    <div class="fw-semibold">
-                      {{ activity.activity|default:"—" }}
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6 col-lg-3">
-                    <div class="small text-muted">
-                      Status
-                    </div>
-
-                    <div class="fw-semibold text-capitalize">
-                      {{ activity.status|default:"—" }}
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6 col-lg-3">
-                    <div class="small text-muted">
-                      Assessment score
-                    </div>
-
-                    <div class="fw-semibold">
-                      {% if activity.score is not None %}
-                        {{ activity.score|floatformat:1 }}
-                      {% else %}
-                        —
-                      {% endif %}
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6 col-lg-3">
-                    <div class="small text-muted">
-                      Competencies
-                    </div>
-
-                    <div class="fw-semibold">
-                      {{ activity.competencies|length }}
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- COMPETENCY SCORES -->
-                {% if activity.competencies %}
-                  <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0 raw-assessment-table">
-
-                      <thead>
-                        <tr>
-                          <th>Competency</th>
-                          <th>STIVE</th>
-                          <th>STIVE rounded</th>
-                          <th>STEN</th>
-                          <th>STEN rounded</th>
-                          <th>Percentile</th>
-                          <th>Assessment centre</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {% for competency in activity.competencies %}
-                          <tr>
-                            <td>
-                              <span class="fw-semibold">
-                                {{ competency.competency|default:"—" }}
-                              </span>
-                            </td>
-
-                            <td>
-                              {% if competency.stive is not None %}
-                                {{ competency.stive|floatformat:2 }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-
-                            <td>
-                              {% if competency.stive_rounded is not None %}
-                                {{ competency.stive_rounded|floatformat:0 }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-
-                            <td>
-                              {% if competency.sten is not None %}
-                                {{ competency.sten|floatformat:2 }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-
-                            <td>
-                              {% if competency.sten_rounded is not None %}
-                                {{ competency.sten_rounded|floatformat:0 }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-
-                            <td>
-                              {% if competency.percentile is not None %}
-                                {{ competency.percentile|floatformat:0 }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-
-                            <td>
-                              {% if competency.assessment_centre %}
-                                {{ competency.assessment_centre }}
-                              {% else %}
-                                <span class="text-muted">—</span>
-                              {% endif %}
-                            </td>
-                          </tr>
-                        {% endfor %}
-                      </tbody>
-
-                    </table>
-                  </div>
-                {% else %}
-                  <div class="text-muted small">
-                    No competency values were included for this assessment.
-                  </div>
-                {% endif %}
-
-              </div>
-            </div>
-
-          </div>
-        {% endfor %}
-      </div>
-
-      <!-- FOOTER -->
-      <div class="small text-muted border-top pt-3 mt-4">
-        This section shows the underlying assessment values used to create
-        the candidate insights and reports.
-      </div>
-
-    </div>
-  </div>
-  </section>
 {% endif %}
-<!-- /RAW ASSESSMENT DATA -->
-
-      {% endif %}

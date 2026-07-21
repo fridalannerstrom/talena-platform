@@ -133,32 +133,20 @@
             </span>
 
 
-            {% if has_pre_interview_decision_support %}
+{% if has_pre_interview_decision_support %}
 
-              <button
-                type="button"
-                class="btn btn-icon btn-light"
-                title="Generate updated decision support"
-                aria-label="Generate updated decision support"
-                data-pre-interview-generate
-                data-regenerate="true"
-              >
-                <i data-feather="refresh-cw"></i>
-              </button>
+  <button
+    type="button"
+    class="btn btn-icon btn-light"
+    title="Generate updated decision support"
+    aria-label="Generate updated decision support"
+    data-pre-interview-generate
+    data-regenerate="true"
+  >
+    <i data-feather="refresh-cw"></i>
+  </button>
 
-            {% else %}
-
-              <button
-                type="button"
-                class="btn btn-primary"
-                data-pre-interview-generate
-                data-regenerate="false"
-              >
-                <i data-feather="star"></i>
-                Generate decision support
-              </button>
-
-            {% endif %}
+{% endif %}
 
           </div>
 
@@ -278,6 +266,23 @@
             cautious interpretations, discussion guidance and priority
             validation questions.
           </p>
+
+          {% if not has_pre_interview_decision_support %}
+
+  <div class="d-flex justify-content-center mt-4">
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-pre-interview-generate
+      data-regenerate="false"
+    >
+      Generate decision support
+    </button>
+
+  </div>
+
+{% endif %}
 
         </div>
 
@@ -1009,36 +1014,20 @@
       </span>
 
 
-      {% if has_interview_notes %}
+{% if has_interview_notes and has_post_interview_decision_support %}
 
-        {% if has_post_interview_decision_support %}
+  <button
+    type="button"
+    class="btn btn-icon btn-light"
+    title="Generate updated post-interview decision support"
+    aria-label="Generate updated post-interview decision support"
+    data-post-interview-generate
+    data-regenerate="true"
+  >
+    <i data-feather="refresh-cw"></i>
+  </button>
 
-          <button
-            type="button"
-            class="btn btn-icon btn-light"
-            title="Generate updated post-interview decision support"
-            aria-label="Generate updated post-interview decision support"
-            data-post-interview-generate
-            data-regenerate="true"
-          >
-            <i data-feather="refresh-cw"></i>
-          </button>
-
-        {% else %}
-
-          <button
-            type="button"
-            class="btn btn-primary"
-            data-post-interview-generate
-            data-regenerate="false"
-          >
-            <i data-feather="star"></i>
-            Generate post-interview decision support
-          </button>
-
-        {% endif %}
-
-      {% endif %}
+{% endif %}
 
     </div>
 
@@ -1151,28 +1140,47 @@
     </h3>
 
 
-    {% if has_interview_notes %}
+{% if has_interview_notes %}
 
-      <p
-        class="text-muted small mb-0 mx-auto"
-        style="max-width: 580px;"
+  <p
+    class="text-muted small mb-0 mx-auto"
+    style="max-width: 580px;"
+  >
+    The interview evidence has been saved. Generate a synthesis
+    to compare it with the assessment indications and identify
+    remaining uncertainties.
+  </p>
+
+
+  {% if not has_post_interview_decision_support %}
+
+    <div class="d-flex justify-content-center mt-4">
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-post-interview-generate
+        data-regenerate="false"
       >
-        The interview evidence has been saved. Generate a synthesis
-        to compare it with the assessment indications and identify
-        remaining uncertainties.
-      </p>
+        Generate post-interview decision support
+      </button>
 
-    {% else %}
+    </div>
 
-      <p
-        class="text-muted small mb-0 mx-auto"
-        style="max-width: 580px;"
-      >
-        Add and save interview evidence before generating the
-        post-interview synthesis.
-      </p>
+  {% endif %}
 
-    {% endif %}
+
+{% else %}
+
+  <p
+    class="text-muted small mb-0 mx-auto"
+    style="max-width: 580px;"
+  >
+    Add and save interview evidence before generating the
+    post-interview synthesis.
+  </p>
+
+{% endif %}
 
   </div>
 

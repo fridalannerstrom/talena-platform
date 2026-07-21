@@ -1,0 +1,403 @@
+{% if has_outdated_ai_insights and not is_historical %}
+
+  <!-- ================================================== -->
+  <!-- GLOBAL AI UPDATE BANNER -->
+  <!-- ================================================== -->
+
+  <section
+    class="
+      mb-4
+      border-warning-subtle
+      bg-warning-subtle
+      alert-warning
+      rounded-3
+      alert
+      p-0
+    "
+    data-global-ai-update-banner
+    data-update-plan-url="{{ global_ai_update_plan_url }}"
+    data-candidate-id="{{ candidate.id }}"
+  >
+
+    <div class="card-body p-4">
+
+      <div
+        class="
+          d-flex
+          align-items-center
+          justify-content-between
+          gap-4
+          flex-wrap
+        "
+      >
+
+        <!-- MESSAGE -->
+
+        <div
+          class="
+            d-flex
+            align-items-start
+            gap-3
+            flex-grow-1
+          "
+        >
+
+<div
+  class="
+    global-ai-update-icon
+    flex-shrink-0
+  "
+>
+  <i data-feather="alert-circle"></i>
+</div>
+
+
+        <div>
+
+      <h2 class="response-style-item__title mb-3">
+        Process information has changed
+      </h2>
+
+      <p
+        class="mb-0"
+        style="max-width: 700px;"
+      >
+        The process purpose and/or context have changed since
+        some AI insights were generated. Update them to reflect
+        the latest information.
+      </p>
+
+    </div>
+
+
+  <div class="flex-shrink-0 align-self-center">
+
+    <button
+      type="button"
+      class="
+        btn
+        btn-primary
+        d-inline-flex
+        align-items-center
+        justify-content-center
+        gap-2
+      "
+      data-bs-toggle="modal"
+      data-bs-target="#globalAiUpdateModal-{{ candidate.id }}"
+    >
+      <i data-feather="refresh-cw"></i>
+
+      <span>
+        Update all AI insights
+      </span>
+    </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+        <!-- ACTION -->
+
+
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================================================== -->
+  <!-- GLOBAL AI UPDATE CONFIRMATION MODAL -->
+  <!-- ================================================== -->
+
+  <div
+    class="modal fade"
+    id="globalAiUpdateModal-{{ candidate.id }}"
+    tabindex="-1"
+    aria-labelledby="globalAiUpdateModalLabel-{{ candidate.id }}"
+    aria-hidden="true"
+    data-global-ai-update-modal
+  >
+
+    <div class="modal-dialog modal-dialog-centered">
+
+      <div class="modal-content">
+
+        <!-- HEADER -->
+
+        <div class="modal-header">
+
+          <h2
+            class="modal-title fs-5"
+            id="globalAiUpdateModalLabel-{{ candidate.id }}"
+          >
+            Update all AI insights?
+          </h2>
+
+
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+
+        </div>
+
+
+        <!-- BODY -->
+
+        <div class="modal-body">
+
+          <!-- CONFIRMATION CONTENT -->
+
+          <div data-global-ai-update-intro>
+
+            <div class="d-flex align-items-start gap-3">
+
+              <div
+                class="
+                  d-inline-flex
+                  align-items-center
+                  justify-content-center
+                  rounded-circle
+                  bg-warning-subtle
+                  border
+                  flex-shrink-0
+                "
+                style="
+                  width: 44px;
+                  height: 44px;
+                "
+              >
+                <i data-feather="alert-triangle"></i>
+              </div>
+
+
+              <div>
+
+                <div class="fw-semibold mb-2">
+                  Existing AI-generated content will be replaced
+                </div>
+
+
+                <p class="text-muted mb-3">
+                  The affected interpretations, guidance and questions
+                  will be regenerated using the current process purpose
+                  and context.
+                </p>
+
+
+                <div class="small fw-semibold mb-2">
+                  {{ outdated_ai_section_count }}
+                  section{{ outdated_ai_section_count|pluralize }}
+                  will be updated:
+                </div>
+
+
+                <ul class="small text-muted mb-3 ps-3">
+
+                  {% for section in outdated_ai_sections %}
+
+                    <li class="mb-1">
+                      {{ section.label }}
+                    </li>
+
+                  {% endfor %}
+
+                </ul>
+
+
+                <div
+                  class="
+                    alert
+                    alert-light
+                    border
+                    small
+                    mb-0
+                  "
+                >
+                  Assessment results, Sova reports, interview notes and
+                  other source data will not be changed.
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- UPDATE PROGRESS -->
+
+          <div
+            class="d-none"
+            data-global-ai-update-progress
+          >
+
+            <div
+              class="
+                d-flex
+                align-items-center
+                justify-content-between
+                gap-3
+                mb-2
+              "
+            >
+
+              <div
+                class="fw-semibold"
+                data-global-ai-update-progress-text
+              >
+                Preparing AI insights...
+              </div>
+
+
+              <div
+                class="small text-muted flex-shrink-0"
+                data-global-ai-update-progress-count
+              >
+                0 of 0
+              </div>
+
+            </div>
+
+
+            <div
+              class="progress mb-4"
+              role="progressbar"
+              aria-label="AI insight update progress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              style="height: 8px;"
+              data-global-ai-update-progress-track
+            >
+
+              <div
+                class="progress-bar"
+                style="width: 0%;"
+                data-global-ai-update-progress-bar
+              ></div>
+
+            </div>
+
+
+            <div
+              class="list-group list-group-flush"
+              data-global-ai-update-list
+            ></div>
+
+          </div>
+
+
+          <!-- COMPLETE STATE -->
+
+          <div
+            class="d-none text-center py-3"
+            data-global-ai-update-complete
+          >
+
+            <div
+              class="
+                d-inline-flex
+                align-items-center
+                justify-content-center
+                rounded-circle
+                bg-success-subtle
+                text-success-emphasis
+                mb-3
+              "
+              style="
+                width: 52px;
+                height: 52px;
+              "
+            >
+              <i data-feather="check"></i>
+            </div>
+
+
+            <h3
+              class="h5 mb-2"
+              data-global-ai-update-complete-title
+            >
+              AI insights updated
+            </h3>
+
+
+            <p
+              class="text-muted small mb-0 mx-auto"
+              style="max-width: 420px;"
+              data-global-ai-update-complete-text
+            >
+              The candidate insights have been updated using the latest
+              process information.
+            </p>
+
+          </div>
+
+
+          <!-- ERROR SUMMARY -->
+
+          <div
+            class="
+              alert
+              alert-danger
+              d-none
+              mt-3
+              mb-0
+            "
+            data-global-ai-update-error
+          ></div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn btn-light"
+            data-bs-dismiss="modal"
+            data-global-ai-update-cancel
+          >
+            Keep existing insights
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-global-ai-update-confirm
+          >
+            <i data-feather="refresh-cw"></i>
+            Update all AI insights
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-primary d-none"
+            data-global-ai-update-reload
+          >
+            Reload candidate insights
+          </button>
+
+        </div>
+
+      </div>
+      <!-- /modal-content -->
+
+    </div>
+    <!-- /modal-dialog -->
+
+  </div>
+  <!-- /modal -->
+
+{% endif %}
