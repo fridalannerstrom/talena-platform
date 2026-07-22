@@ -245,21 +245,87 @@
         </div>
 
 
-        <!-- GUIDANCE CONTENT -->
-        <div
-          class="response-style-ai-content"
-          data-guidance-content
-          {% if not response_style_guidance %}hidden{% endif %}
-        >
+<!-- GUIDANCE CONTENT -->
+<div
+  class="response-style-ai-content"
+  data-guidance-content
+  {% if not response_style_guidance %}hidden{% endif %}
+>
 
-          <p
-            class="response-style-ai-content__summary"
-            data-guidance-summary
-          >
-            {{ response_style_guidance.summary }}
-          </p>
+  <!-- OVERALL MEANING -->
+  <p
+    class="response-style-ai-content__summary"
+    data-guidance-summary
+  >
+    {{ response_style_guidance.summary }}
+  </p>
 
-        </div>
+
+  <!-- HOW TO INTERPRET THE PERSONALITY PROFILE -->
+  <div
+    class="response-style-ai-content__section"
+    data-guidance-how-section
+    {% if not response_style_guidance.how_to_interpret %}hidden{% endif %}
+  >
+
+    <div class="response-style-ai-content__label">
+      Keep in mind when reading the profile
+    </div>
+
+    <p
+      class="response-style-ai-content__text"
+      data-guidance-how
+    >
+      {{ response_style_guidance.how_to_interpret }}
+    </p>
+
+  </div>
+
+
+  <!-- PRACTICAL APPROACH -->
+  <div
+    class="response-style-ai-content__section"
+    data-guidance-approach-section
+    {% if not response_style_guidance.recommended_approach %}hidden{% endif %}
+  >
+
+    <div class="response-style-ai-content__label">
+      Practical approach
+    </div>
+
+    <p
+      class="response-style-ai-content__text"
+      data-guidance-approach
+    >
+      {{ response_style_guidance.recommended_approach }}
+    </p>
+
+  </div>
+
+
+  <!-- FOLLOW-UP QUESTIONS -->
+  <details
+    class="response-style-ai-content__questions"
+    data-guidance-questions-section
+    {% if not response_style_guidance.questions %}hidden{% endif %}
+  >
+
+    <summary class="response-style-ai-content__questions-toggle">
+      Questions to explore
+    </summary>
+
+    <ul
+      class="response-style-ai-content__questions-list mt-2"
+      data-guidance-questions
+    >
+      {% for question in response_style_guidance.questions %}
+        <li>{{ question }}</li>
+      {% endfor %}
+    </ul>
+
+  </details>
+
+</div>
 
       </section>
       <!-- /AI GUIDANCE -->
