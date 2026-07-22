@@ -1,269 +1,492 @@
 {% extends "customer/core/layouts/customer_base.html" %}
-{% block content %}
-{% load static %}
+{% load static i18n %}
 {% load dict_extras %}
+{% get_current_language as CURRENT_LANGUAGE %}
+
+{% block content %}
 
 <div class="container-fluid px-2 px-md-3 dashboard">
-  <div class="d-flex align-items-center gap-3 mb-3">
 
-    <!-- Text -->
+  <div class="d-flex align-items-center gap-3 mb-3">
     <div>
-      <h1 id="greeting" class="mb-1">
-        Hi, {{ request.user.first_name|default:request.user.get_username }}!
+      <h1 class="mb-1">
+        <span
+          id="greeting-text"
+          data-hi="{% trans 'Hi' %}"
+          data-good-morning="{% trans 'Good morning' %}"
+          data-welcome="{% trans 'Welcome' %}"
+          data-good-afternoon="{% trans 'Good afternoon' %}"
+          data-good-evening="{% trans 'Good evening' %}"
+        >
+          {% trans "Hi" %}
+        </span>,
+        {{ request.user.first_name|default:request.user.get_username }}!
       </h1>
 
-      <p class="dashboard-date mb-0" id="today-date"></p>
+      <p
+        class="dashboard-date mb-0"
+        id="today-date"
+      ></p>
     </div>
-
   </div>
 
-<section class="quick-access mt-3 py-3">
-  <h3>What would you like to do?</h3>
 
-  <div class="quick-access-grid">
+  <!-- QUICK ACCESS -->
 
-    <a href="{% url 'processes:process_create' %}" class="quick-card">
-      <div class="quick-card-icon"><i data-feather="plus"></i></div>
-      <div class="quick-card-title">Create a new test process</div>
-      <div class="quick-card-desc">Send assessments to candidates</div>
-    </a>
+  <section class="quick-access mt-3 py-3">
 
-    <a href="{% url 'processes:process_list' %}" class="quick-card testprocess-card">
-      <div class="quick-card-icon"><i data-feather="list"></i></div>
-      <div class="quick-card-title">View your test processes</div>
-      <div class="quick-card-desc">View status and results</div>
-    </a>
+    <h3>
+      {% trans "What would you like to do?" %}
+    </h3>
 
-    <a href="{% url 'portal:settings' %}" class="quick-card settings-card">
-      <div class="quick-card-icon"><i data-feather="settings"></i></div>
-      <div class="quick-card-title">Account settings</div>
-      <div class="quick-card-desc">Password, profile picture, contact information</div>
-    </a>
+    <div class="quick-access-grid">
 
-  </div>
-</section>
+      <a
+        href="{% url 'processes:process_create' %}"
+        class="quick-card"
+      >
+        <div class="quick-card-icon">
+          <i data-feather="plus"></i>
+        </div>
 
-  <!-- Main content -->
+        <div class="quick-card-title">
+          {% trans "Create a new test process" %}
+        </div>
+
+        <div class="quick-card-desc">
+          {% trans "Send assessments to candidates" %}
+        </div>
+      </a>
+
+
+      <a
+        href="{% url 'processes:process_list' %}"
+        class="quick-card testprocess-card"
+      >
+        <div class="quick-card-icon">
+          <i data-feather="list"></i>
+        </div>
+
+        <div class="quick-card-title">
+          {% trans "View your test processes" %}
+        </div>
+
+        <div class="quick-card-desc">
+          {% trans "View status and results" %}
+        </div>
+      </a>
+
+
+      <a
+        href="{% url 'portal:settings' %}"
+        class="quick-card settings-card"
+      >
+        <div class="quick-card-icon">
+          <i data-feather="settings"></i>
+        </div>
+
+        <div class="quick-card-title">
+          {% trans "Account settings" %}
+        </div>
+
+        <div class="quick-card-desc">
+          {% trans "Password, profile picture, contact information" %}
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- MAIN CONTENT -->
+
   <div class="row g-5 mt-1">
 
-    <!-- Left: Stats + Recent activity -->
+    <!-- LEFT COLUMN -->
 
     <div class="col-12 col-xl-8">
-         <!-- Stats -->
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-            <div>
-              <h3 class="mb-1">Overview</h3>
-              <div class="text-muted small">A quick overview of your latest assessments</div>
-            </div>
+
+      <!-- OVERVIEW -->
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div>
+          <h3 class="mb-1">
+            {% trans "Overview" %}
+          </h3>
+
+          <div class="text-muted small">
+            {% trans "A quick overview of your latest assessments" %}
           </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Test processes</div>
-                <div class="h3 mt-1">{{ stats.processes }}</div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Sent assessments</div>
-                <div class="h3 mt-1">{{ stats.sent }}</div>
-              </div>
-            </div>
-
-            <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Started assessments</div>
-                <div class="h3 mt-1">{{ stats.started }}</div>
-              </div>
-            </div>
-            
-            <div class="col-12 col-md-3">
-              <div class="border rounded-3 p-3 h-100 bg-white">
-                <div class="text-muted small">Completed assessments</div>
-                <div class="h3 mt-1">{{ stats.completed }}</div>
-              </div>
-            </div>
-          </div>
-
-      <!-- Test processes -->
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
-      <div>
-        <h3 class="mb-1 mt-3">Latest test processes</h3>
-        <div class="text-muted small">Quick access to what you are currently working on</div>
+        </div>
       </div>
 
-      <a href="{% url 'processes:process_list' %}"
-         class="btn btn-primary btn-sm rounded-pill mt-3">
-        View all
-      </a>
-    </div>
-{% if processes %}
-  <div class="process-rows">
-    {% for p in processes %}
-      <a href="{% url 'processes:process_detail' p.id %}"
-         class="process-row process-row-link">
 
-        {# COL 2: Name + tests #}
-        <div class="process-col-main min-w-0">
-          <div class="process-name text-truncate">
-            {{ p.name }}
+      <div class="row g-3 mb-3">
+
+        <div class="col-12 col-md-3">
+          <div class="border rounded-3 p-3 h-100 bg-white">
+
+            <div class="text-muted small">
+              {% trans "Test processes" %}
+            </div>
+
+            <div class="h3 mt-1">
+              {{ stats.processes }}
+            </div>
+
           </div>
-<div class="process-sub text-muted small text-truncate">
-  {% with key=p.account_code|add:"::"|add:p.project_code %}
-    {% with m=meta_by_key|get_item:key %}
-      {% if m and m.tests %}
-        Includes assessments:
-        {% for t in m.tests|split_tests %}
-          {{ t }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-      {% else %}
-        Includes assessments: Not specified
-      {% endif %}
-    {% endwith %}
-  {% endwith %}
-</div>
         </div>
 
 
-   {# COL 3: Candidates #}
-<div class="process-col-meta">
-  <span class="process-info-pill process-info-pill-candidates">
-    <span class="process-info-icon">
-      <i data-feather="users"></i>
-    </span>
-    <span class="process-info-text">
-      {{ p.candidates_count|default:"0" }}
-    </span>
-  </span>
-</div>
+        <div class="col-12 col-md-3">
+          <div class="border rounded-3 p-3 h-100 bg-white">
 
-{# COL 1: Labels #}
-<div class="process-col-label">
-  <div class="process-labels">
-    {% with labels=p.labels.all %}
-      {% if labels %}
-        {% for lab in labels|slice:":2" %}
-          <span class="process-label">{{ lab.name }}</span>
-        {% endfor %}
+            <div class="text-muted small">
+              {% trans "Sent assessments" %}
+            </div>
 
-        {% if labels|length > 2 %}
-          <span class="process-label process-label-more">...</span>
-        {% endif %}
+            <div class="h3 mt-1">
+              {{ stats.sent }}
+            </div>
+
+          </div>
+        </div>
+
+
+        <div class="col-12 col-md-3">
+          <div class="border rounded-3 p-3 h-100 bg-white">
+
+            <div class="text-muted small">
+              {% trans "Started assessments" %}
+            </div>
+
+            <div class="h3 mt-1">
+              {{ stats.started }}
+            </div>
+
+          </div>
+        </div>
+
+
+        <div class="col-12 col-md-3">
+          <div class="border rounded-3 p-3 h-100 bg-white">
+
+            <div class="text-muted small">
+              {% trans "Completed assessments" %}
+            </div>
+
+            <div class="h3 mt-1">
+              {{ stats.completed }}
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- LATEST TEST PROCESSES -->
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-3">
+
+        <div>
+          <h3 class="mb-1 mt-3">
+            {% trans "Latest test processes" %}
+          </h3>
+
+          <div class="text-muted small">
+            {% trans "Quick access to what you are currently working on" %}
+          </div>
+        </div>
+
+        <a
+          href="{% url 'processes:process_list' %}"
+          class="btn btn-primary btn-sm rounded-pill mt-3"
+        >
+          {% trans "View all" %}
+        </a>
+
+      </div>
+
+
+      {% if processes %}
+
+        <div class="process-rows">
+
+          {% for p in processes %}
+
+            <a
+              href="{% url 'processes:process_detail' p.id %}"
+              class="process-row process-row-link"
+            >
+
+              <!-- PROCESS NAME + ASSESSMENTS -->
+
+              <div class="process-col-main min-w-0">
+
+                <div class="process-name text-truncate">
+                  {{ p.name }}
+                </div>
+
+                <div class="process-sub text-muted small text-truncate">
+
+                  {% with key=p.account_code|add:"::"|add:p.project_code %}
+                    {% with m=meta_by_key|get_item:key %}
+
+                      {% trans "Includes assessments:" %}
+
+                      {% if m and m.tests %}
+
+                        {% for t in m.tests|split_tests %}
+                          {{ t }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+
+                      {% else %}
+
+                        {% trans "Not specified" %}
+
+                      {% endif %}
+
+                    {% endwith %}
+                  {% endwith %}
+
+                </div>
+
+              </div>
+
+
+              <!-- CANDIDATE COUNT -->
+
+              <div class="process-col-meta">
+
+                <span class="process-info-pill process-info-pill-candidates">
+
+                  <span class="process-info-icon">
+                    <i data-feather="users"></i>
+                  </span>
+
+                  <span class="process-info-text">
+                    {{ p.candidates_count|default:"0" }}
+                  </span>
+
+                </span>
+
+              </div>
+
+
+              <!-- PROCESS LABELS -->
+
+              <div class="process-col-label">
+
+                <div class="process-labels">
+
+                  {% with labels=p.labels.all %}
+
+                    {% if labels %}
+
+                      {% for lab in labels|slice:":2" %}
+                        <span class="process-label">
+                          {{ lab.name }}
+                        </span>
+                      {% endfor %}
+
+                      {% if labels|length > 2 %}
+                        <span class="process-label process-label-more">
+                          ...
+                        </span>
+                      {% endif %}
+
+                    {% else %}
+
+                      <span class="process-label process-label-muted">
+                        {% trans "Uncategorised" %}
+                      </span>
+
+                    {% endif %}
+
+                  {% endwith %}
+
+                </div>
+
+              </div>
+
+            </a>
+
+          {% endfor %}
+
+        </div>
+
+
       {% else %}
-        <span class="process-label process-label-muted">Uncategorised</span>
-      {% endif %}
-    {% endwith %}
-  </div>
-</div>
 
-      </a>
-    {% endfor %}
-  </div>
+        <div class="latest-process-empty">
 
-{% else %}
-  <div class="latest-process-empty">
-    <div class="latest-process-empty-icon">
-      <i data-feather="clipboard"></i>
-    </div>
+          <div class="latest-process-empty-icon">
+            <i data-feather="clipboard"></i>
+          </div>
 
-    <div class="latest-process-empty-title">
-      No active test processes yet
-    </div>
+          <div class="latest-process-empty-title">
+            {% trans "No active test processes yet" %}
+          </div>
 
-    <div class="latest-process-empty-text">
-      Create your first test process to send assessments and follow candidate progress here.
-    </div>
+          <div class="latest-process-empty-text">
+            {% trans "Create your first test process to send assessments and follow candidate progress here." %}
+          </div>
 
-    <a class="btn btn-primary btn-sm rounded-pill mt-3"
-       href="{% url 'processes:process_create' %}">
-      <i data-feather="plus" class="me-1"></i>
-      Create test process
-    </a>
-  </div>
-{% endif %}
-
-</div>
-<!-- Right: Activity feed -->
-<div class="col-12 col-xl-4">
-
-  <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-    <div>
-      <h3 class="mb-1">Recent activity</h3>
-      <div class="text-muted small">Activity across your active test processes</div>
-    </div>
-
-    <a href="#"
-       class="btn btn-primary btn-sm rounded-pill">
-      View all
-    </a>
-  </div>
-
-  <div class="recent-activity-list">
-    {% for event in activity_events|slice:":5" %}
-      <div class="recent-activity-item">
-
-        {% if event.process %}
           <a
-            href="{% url 'processes:process_detail' event.process.pk %}"
-            class="recent-activity-card"
+            class="btn btn-primary btn-sm rounded-pill mt-3"
+            href="{% url 'processes:process_create' %}"
           >
-        {% else %}
-          <div class="recent-activity-card">
-        {% endif %}
+            <i data-feather="plus" class="me-1"></i>
+            {% trans "Create test process" %}
+          </a>
 
-            <div class="recent-activity-head">
-              <span class="recent-activity-badge
-                {% if event.verb == 'invite_sent' %}is-invite
-                {% elif event.verb == 'candidate_added' %}is-added
-                {% elif event.verb == 'status_changed' %}is-status
-                {% elif event.verb == 'process_created' %}is-created
-                {% else %}is-default{% endif %}">
+        </div>
 
-                {% if event.verb == 'invite_sent' %}
-                  Invitation sent
-                {% elif event.verb == 'candidate_added' %}
-                  Candidate added
-                {% elif event.verb == 'status_changed' %}
-                  Status updated
-                {% elif event.verb == 'process_created' %}
-                  Process created
-                {% else %}
-                  Activity
-                {% endif %}
-              </span>
+      {% endif %}
 
-              <span class="recent-activity-time">
-                {{ event.created_at|date:"Y-m-d H:i" }}
-              </span>
-            </div>
+    </div>
 
-            <div class="recent-activity-title">
-              {{ event.message }}
-            </div>
+
+    <!-- RIGHT COLUMN: RECENT ACTIVITY -->
+
+    <div class="col-12 col-xl-4">
+
+      <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+
+        <div>
+          <h3 class="mb-1">
+            {% trans "Recent activity" %}
+          </h3>
+
+          <div class="text-muted small">
+            {% trans "Activity across your active test processes" %}
+          </div>
+        </div>
+
+        <a
+          href="#"
+          class="btn btn-primary btn-sm rounded-pill"
+        >
+          {% trans "View all" %}
+        </a>
+
+      </div>
+
+
+      <div class="recent-activity-list">
+
+        {% for event in activity_events|slice:":5" %}
+
+          <div class="recent-activity-item">
 
             {% if event.process %}
-              <div class="recent-activity-process">
-                Process:
-                {{ event.process.project_name_snapshot|default:event.process.project_code|default:event.process.name }}
-              </div>
+
+              <a
+                href="{% url 'processes:process_detail' event.process.pk %}"
+                class="recent-activity-card"
+              >
+
+            {% else %}
+
+              <div class="recent-activity-card">
+
             {% endif %}
 
-        {% if event.process %}
-          </a>
-        {% else %}
+
+              <div class="recent-activity-head">
+
+                <span
+                  class="
+                    recent-activity-badge
+                    {% if event.verb == 'invite_sent' %}
+                      is-invite
+                    {% elif event.verb == 'candidate_added' %}
+                      is-added
+                    {% elif event.verb == 'status_changed' %}
+                      is-status
+                    {% elif event.verb == 'process_created' %}
+                      is-created
+                    {% else %}
+                      is-default
+                    {% endif %}
+                  "
+                >
+
+                  {% if event.verb == "invite_sent" %}
+
+                    {% trans "Invitation sent" %}
+
+                  {% elif event.verb == "candidate_added" %}
+
+                    {% trans "Candidate added" %}
+
+                  {% elif event.verb == "status_changed" %}
+
+                    {% trans "Status updated" %}
+
+                  {% elif event.verb == "process_created" %}
+
+                    {% trans "Process created" %}
+
+                  {% else %}
+
+                    {% trans "Activity" %}
+
+                  {% endif %}
+
+                </span>
+
+
+                <span class="recent-activity-time">
+                  {{ event.created_at|date:"Y-m-d H:i" }}
+                </span>
+
+              </div>
+
+
+              <div class="recent-activity-title">
+                {{ event.message }}
+              </div>
+
+
+              {% if event.process %}
+
+                <div class="recent-activity-process">
+                  {% trans "Process:" %}
+                  {{ event.process.project_name_snapshot|default:event.process.project_code|default:event.process.name }}
+                </div>
+
+              {% endif %}
+
+
+            {% if event.process %}
+
+              </a>
+
+            {% else %}
+
+              </div>
+
+            {% endif %}
+
           </div>
-        {% endif %}
+
+
+        {% empty %}
+
+          <div class="recent-activity-empty">
+            {% trans "No activity yet." %}
+          </div>
+
+        {% endfor %}
 
       </div>
-    {% empty %}
-      <div class="recent-activity-empty">
-        No activity yet.
-      </div>
-    {% endfor %}
+
+    </div>
+
   </div>
-</div>
+
 </div>
 
 <style>.process-rows{
@@ -558,23 +781,49 @@
     const now = new Date();
     const hour = now.getHours();
 
-    let greeting = "Hi";
-    if (hour < 10) greeting = "Good morning";
-    else if (hour < 13) greeting = "Welcome";
-    else if (hour < 17) greeting = "Good afternoon";
-    else greeting = "Good evening";
+    const greetingEl = document.getElementById("greeting-text");
 
-    const greetingEl = document.getElementById("greeting");
     if (greetingEl) {
-      greetingEl.innerText = greeting + ", " + greetingEl.innerText.split(",")[1];
+      let greeting = greetingEl.dataset.hi;
+
+      if (hour < 10) {
+        greeting = greetingEl.dataset.goodMorning;
+      } else if (hour < 13) {
+        greeting = greetingEl.dataset.welcome;
+      } else if (hour < 17) {
+        greeting = greetingEl.dataset.goodAfternoon;
+      } else {
+        greeting = greetingEl.dataset.goodEvening;
+      }
+
+      greetingEl.textContent = greeting;
     }
 
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const dateStr = now.toLocaleDateString('en-GB', options);
+    const currentLanguage = "{{ CURRENT_LANGUAGE|escapejs }}";
+
+    const locale =
+      currentLanguage === "sv"
+        ? "sv-SE"
+        : "en-GB";
+
+    const options = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    };
+
+    const dateString = now.toLocaleDateString(
+      locale,
+      options
+    );
 
     const dateEl = document.getElementById("today-date");
+
     if (dateEl) {
-      dateEl.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      dateEl.textContent =
+        dateString.charAt(0).toUpperCase() +
+        dateString.slice(1);
     }
   })();
 </script>

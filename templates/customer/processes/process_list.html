@@ -1,357 +1,761 @@
 {% extends "customer/core/layouts/customer_base.html" %}
+{% load dict_extras static i18n %}
+
 {% block content %}
-{% load dict_extras %}
-{% load static %}
 
 <div class="container-fluid px-2 px-md-3">
 
   <!-- Header -->
+
   <div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
+
     <div>
-      <h1 class="h4 mb-1">Test processes</h1>
-      <div class="text-muted">Overview of your test processes and their status.</div>
+      <h1 class="h4 mb-1">
+        {% trans "Test processes" %}
+      </h1>
+
+      <div class="text-muted">
+        {% trans "Overview of your test processes and their status." %}
+      </div>
     </div>
+
 
     {% if not show_archived %}
-      <a class="btn btn-primary" href="{% url 'processes:process_create_v2' %}">
-        Create test process
+
+      <a
+        class="btn btn-primary"
+        href="{% url 'processes:process_create_v2' %}"
+      >
+        {% trans "Create test process" %}
       </a>
+
     {% endif %}
+
   </div>
+
 
   <!-- Controls -->
+
   <div class="card mb-3">
+
     <div class="card-body process-list-header">
+
       <div class="row g-2 align-items-center">
+
         <div class="col-12 col-md-6 col-lg-5">
+
           <div class="input-group">
+
             <span class="input-group-text bg-white">
-              <i data-feather="search" style="width:16px;height:16px;"></i>
+              <i
+                data-feather="search"
+                style="width:16px;height:16px;"
+              ></i>
             </span>
-            <input id="processSearch" type="text" class="form-control" placeholder="Search by title or assessment package...">
+
+            <input
+              id="processSearch"
+              type="text"
+              class="form-control"
+              placeholder="{% trans 'Search by title or assessment package...' %}"
+              aria-label="{% trans 'Search test processes' %}"
+            >
+
           </div>
+
         </div>
+
 
         <div class="col-12 col-md-6 col-lg-4">
-          <select id="packageFilter" class="form-select">
-            <option value="">All assessment packages</option>
+
+          <select
+            id="packageFilter"
+            class="form-select"
+            aria-label="{% trans 'Filter by assessment package' %}"
+          >
+            <option value="">
+              {% trans "All assessment packages" %}
+            </option>
           </select>
+
         </div>
+
 
         <div class="col-12 col-lg-3">
-          <select id="sortBy" class="form-select">
-            <option value="created_desc">Sort: Newest first</option>
-            <option value="created_asc">Sort: Oldest first</option>
-            <option value="candidates_desc">Sort: Most candidates</option>
-            <option value="candidates_asc">Sort: Fewest candidates</option>
-            <option value="title_asc">Sort: Title A–Z</option>
-            <option value="title_desc">Sort: Title Z–A</option>
+
+          <select
+            id="sortBy"
+            class="form-select"
+            aria-label="{% trans 'Sort test processes' %}"
+          >
+            <option value="created_desc">
+              {% trans "Sort: Newest first" %}
+            </option>
+
+            <option value="created_asc">
+              {% trans "Sort: Oldest first" %}
+            </option>
+
+            <option value="candidates_desc">
+              {% trans "Sort: Most candidates" %}
+            </option>
+
+            <option value="candidates_asc">
+              {% trans "Sort: Fewest candidates" %}
+            </option>
+
+            <option value="title_asc">
+              {% trans "Sort: Title A–Z" %}
+            </option>
+
+            <option value="title_desc">
+              {% trans "Sort: Title Z–A" %}
+            </option>
           </select>
+
         </div>
+
       </div>
+
     </div>
+
   </div>
 
-  <!-- Tabs (segmented control) -->
+
+  <!-- Tabs -->
+
   <div class="mt-3 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div class="seg-tabs" role="tablist" aria-label="Show test processes">
-      <a href="{% url 'processes:process_list' %}"
-         class="seg-tab {% if not show_archived %}is-active{% endif %}"
-         role="tab"
-         aria-selected="{% if not show_archived %}true{% else %}false{% endif %}">
-        Active
+
+    <div
+      class="seg-tabs"
+      role="tablist"
+      aria-label="{% trans 'Show test processes' %}"
+    >
+
+      <a
+        href="{% url 'processes:process_list' %}"
+        class="seg-tab {% if not show_archived %}is-active{% endif %}"
+        role="tab"
+        aria-selected="{% if not show_archived %}true{% else %}false{% endif %}"
+      >
+        {% trans "Active" %}
       </a>
 
-      <a href="{% url 'processes:process_list' %}?archived=1"
-         class="seg-tab {% if show_archived %}is-active{% endif %}"
-         role="tab"
-         aria-selected="{% if show_archived %}true{% else %}false{% endif %}">
-        Archived
+
+      <a
+        href="{% url 'processes:process_list' %}?archived=1"
+        class="seg-tab {% if show_archived %}is-active{% endif %}"
+        role="tab"
+        aria-selected="{% if show_archived %}true{% else %}false{% endif %}"
+      >
+        {% trans "Archived" %}
       </a>
+
     </div>
+
 
     {% if show_archived %}
+
       <div class="text-muted small">
-        These are the processes you have archived.
+        {% trans "These are the processes you have archived." %}
       </div>
+
     {% endif %}
+
   </div>
 
+
   {% if processes %}
-    <div id="processGrid" class="process-grid">
+
+    <div
+      id="processGrid"
+      class="process-grid"
+    >
+
       {% for p in processes %}
-        <div class="process-card card"
-             role="button"
-             tabindex="0"
-             data-href="{% url 'processes:process_detail' p.id %}"
-             data-title="{{ p.name|default:''|lower }}"
-             data-package="{{ p.project_name_snapshot|default:'' }}"
-             data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
-             data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
-             data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
-             data-created="{{ p.created_at|date:'Y-m-d' }}">
+
+        <div
+          class="process-card card"
+          role="button"
+          tabindex="0"
+          data-href="{% url 'processes:process_detail' p.id %}"
+          data-title="{{ p.name|default:''|lower }}"
+          data-package="{{ p.project_name_snapshot|default:'' }}"
+          data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
+          data-labels-lower="
+            {% if p.is_historical %}
+              historical
+            {% else %}
+              {% for lab in p.labels.all %}
+                {{ lab.name|lower }}
+              {% endfor %}
+            {% endif %}
+          "
+          data-candidates="
+            {% if p.is_historical %}
+              {{ p.historical_candidates_count|default:0 }}
+            {% else %}
+              {{ p.live_candidates_count|default:0 }}
+            {% endif %}
+          "
+          data-created="{{ p.created_at|date:'Y-m-d' }}"
+        >
 
           <div class="card-body process-card-body">
 
-            <!-- Top: labels + actions -->
+            <!-- Labels and actions -->
+
             <div class="d-flex align-items-start justify-content-between gap-3">
 
-              <!-- Labels -->
               <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+
                 {% if p.is_historical %}
+
                   <span class="process-label">
-                    Historical
+                    {% trans "Historical" %}
                   </span>
+
                 {% else %}
+
                   {% if p.labels.exists %}
+
                     {% for lab in p.labels.all %}
-                      <span class="process-label">{{ lab.name }}</span>
+                      <span class="process-label">
+                        {{ lab.name }}
+                      </span>
                     {% endfor %}
+
                   {% else %}
-                    <span class="process-label process-label-muted">Uncategorised</span>
+
+                    <span class="process-label process-label-muted">
+                      {% trans "Uncategorised" %}
+                    </span>
+
                   {% endif %}
+
                 {% endif %}
+
               </div>
 
-              <!-- Actions -->
+
               {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-                <div class="card-actions d-inline-flex gap-1 align-items-center flex-shrink-0
-                            {% if not can_edit or p.is_historical %}is-placeholder{% endif %}">
+
+                <div
+                  class="
+                    card-actions
+                    d-inline-flex
+                    gap-1
+                    align-items-center
+                    flex-shrink-0
+                    {% if not can_edit or p.is_historical %}
+                      is-placeholder
+                    {% endif %}
+                  "
+                >
 
                   {% if can_edit and not p.is_historical %}
 
                     {% if not show_archived %}
-                      <a class="icon-btn"
-                         href="{% url 'processes:process_update' p.id %}"
-                         aria-label="Edit"
-                         title="Edit"
-                         onclick="event.stopPropagation();">
+
+                      <a
+                        class="icon-btn"
+                        href="{% url 'processes:process_update' p.id %}"
+                        aria-label="{% trans 'Edit' %}"
+                        title="{% trans 'Edit' %}"
+                        onclick="event.stopPropagation();"
+                      >
                         <i data-feather="edit"></i>
                       </a>
 
-                      <form method="post"
-                            action="{% url 'processes:process_archive' p.id %}"
-                            class="d-inline"
-                            onsubmit="event.stopPropagation(); return confirm('Archive this process?');">
+
+                      <form
+                        method="post"
+                        action="{% url 'processes:process_archive' p.id %}"
+                        class="d-inline"
+                        data-confirm="{% trans 'Archive this process?' %}"
+                        onsubmit="
+                          event.stopPropagation();
+                          return confirm(this.dataset.confirm);
+                        "
+                      >
                         {% csrf_token %}
-                        <button type="submit" class="icon-btn" aria-label="Archive" title="Archive">
+
+                        <button
+                          type="submit"
+                          class="icon-btn"
+                          aria-label="{% trans 'Archive' %}"
+                          title="{% trans 'Archive' %}"
+                        >
                           <i data-feather="archive"></i>
                         </button>
                       </form>
 
+
                     {% else %}
-                      <form method="post"
-                            action="{% url 'processes:process_unarchive' p.id %}"
-                            class="d-inline"
-                            onsubmit="event.stopPropagation(); return confirm('Restore this process to active processes?');">
+
+                      <form
+                        method="post"
+                        action="{% url 'processes:process_unarchive' p.id %}"
+                        class="d-inline"
+                        data-confirm="{% trans 'Restore this process to active processes?' %}"
+                        onsubmit="
+                          event.stopPropagation();
+                          return confirm(this.dataset.confirm);
+                        "
+                      >
                         {% csrf_token %}
-                        <button type="submit" class="icon-btn" aria-label="Restore" title="Restore">
+
+                        <button
+                          type="submit"
+                          class="icon-btn"
+                          aria-label="{% trans 'Restore' %}"
+                          title="{% trans 'Restore' %}"
+                        >
                           <i data-feather="rotate-ccw"></i>
                         </button>
                       </form>
 
-                      <form method="post"
-                            action="{% url 'processes:process_delete' p.id %}"
-                            class="d-inline"
-                            onsubmit="event.stopPropagation(); return confirm('Permanently delete this archived process? This cannot be undone.');">
+
+                      <form
+                        method="post"
+                        action="{% url 'processes:process_delete' p.id %}"
+                        class="d-inline"
+                        data-confirm="{% trans 'Permanently delete this archived process? This cannot be undone.' %}"
+                        onsubmit="
+                          event.stopPropagation();
+                          return confirm(this.dataset.confirm);
+                        "
+                      >
                         {% csrf_token %}
-                        <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete" title="Delete">
+
+                        <button
+                          type="submit"
+                          class="icon-btn icon-btn-danger"
+                          aria-label="{% trans 'Delete' %}"
+                          title="{% trans 'Delete' %}"
+                        >
                           <i data-feather="trash-2"></i>
                         </button>
                       </form>
+
                     {% endif %}
 
+
                   {% else %}
-                    {# Invisible placeholders keep card layout aligned #}
+
                     <span class="icon-btn"></span>
                     <span class="icon-btn"></span>
+
                   {% endif %}
 
                 </div>
+
               {% endwith %}
 
             </div>
 
+
             <!-- Title -->
+
             <div class="mt-3">
+
               <div class="process-title">
                 {{ p.name }}
               </div>
 
+
               <div class="text-muted small">
+
                 {% if p.is_historical %}
-                  Historical test data
+
+                  {% trans "Historical test data" %}
+
                 {% else %}
+
                   {{ p.project_name_snapshot }}
+
                   <br>
 
                   {% with key=p.account_code|add:"::"|add:p.project_code %}
                     {% with m=meta_by_key|get_item:key %}
+
                       {% if m and m.tests %}
-                        Includes assessments:
+
+                        {% trans "Includes assessments:" %}
+
                         {% for t in m.tests|split_tests %}
                           {{ t }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
+
                       {% endif %}
+
                     {% endwith %}
                   {% endwith %}
+
                 {% endif %}
+
               </div>
+
             </div>
 
-            <!-- Divider -->
+
             <div class="card-divider"></div>
 
+
             <!-- Footer meta -->
+
             <div class="card-footer-meta">
-              <div class="meta-item">
-                <i data-feather="users" class="icon-16"></i>
-                <span>
-  Candidates:
-  <strong>
-    {% if p.is_historical %}
-      {{ p.historical_candidates_count|default:0 }}
-    {% else %}
-      {% if p.is_historical %}
-  {{ p.historical_candidates_count|default:0 }}
-{% else %}
-  {{ p.live_candidates_count|default:0 }}
-{% endif %}
-    {% endif %}
-  </strong>
-</span>
-              </div>
 
               <div class="meta-item">
-                <i data-feather="calendar" class="icon-16"></i>
-                <span>Created: <strong>{{ p.created_at|date:"Y-m-d" }}</strong></span>
+
+                <i
+                  data-feather="users"
+                  class="icon-16"
+                ></i>
+
+                <span>
+                  {% trans "Candidates:" %}
+
+                  <strong>
+                    {% if p.is_historical %}
+                      {{ p.historical_candidates_count|default:0 }}
+                    {% else %}
+                      {{ p.live_candidates_count|default:0 }}
+                    {% endif %}
+                  </strong>
+                </span>
+
               </div>
+
+
+              <div class="meta-item">
+
+                <i
+                  data-feather="calendar"
+                  class="icon-16"
+                ></i>
+
+                <span>
+                  {% trans "Created:" %}
+
+                  <strong>
+                    {{ p.created_at|date:"Y-m-d" }}
+                  </strong>
+                </span>
+
+              </div>
+
             </div>
 
           </div>
+
         </div>
+
       {% endfor %}
+
     </div>
 
+
   {% else %}
-    <!-- Empty state, different for active vs archived -->
+
+    <!-- Empty state -->
+
     <div class="card empty-state">
+
       <div class="card-body p-5 text-center">
 
         {% if show_archived %}
-          <div class="h5 mb-1">No archived test processes</div>
-          <div class="text-muted mb-3">When you archive a process, it will appear here.</div>
+
+          <div class="h5 mb-1">
+            {% trans "No archived test processes" %}
+          </div>
+
+          <div class="text-muted mb-3">
+            {% trans "When you archive a process, it will appear here." %}
+          </div>
+
+
         {% else %}
-          <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena" style="max-width: 220px;"><br><br>
-          <div class="h5 mb-1">You do not have any test processes yet</div>
-          <div class="text-muted mb-3">Create a test process to start sending assessments to candidates.</div>
-          <a class="btn btn-primary" href="{% url 'processes:process_create' %}">
-            Create your first test process
+
+          <img
+            src="{% static 'images/talena-empty-state.png' %}"
+            alt="Talena"
+            style="max-width: 220px;"
+          >
+
+          <br><br>
+
+          <div class="h5 mb-1">
+            {% trans "You do not have any test processes yet" %}
+          </div>
+
+          <div class="text-muted mb-3">
+            {% trans "Create a test process to start sending assessments to candidates." %}
+          </div>
+
+          <a
+            class="btn btn-primary"
+            href="{% url 'processes:process_create' %}"
+          >
+            {% trans "Create your first test process" %}
           </a>
+
         {% endif %}
 
       </div>
+
     </div>
+
   {% endif %}
 
 </div>
 
-<style>
-</style>
 
 <script>
   (function () {
     const grid = document.getElementById("processGrid");
-    if (!grid) return;
 
-    const cards = Array.from(grid.querySelectorAll(".process-card"));
-    const searchInput = document.getElementById("processSearch");
-    const filterSelect = document.getElementById("packageFilter");
-    const sortSelect = document.getElementById("sortBy");
+    if (!grid) {
+      return;
+    }
 
-    // Populate filter options from existing cards, using unique package names
+    const cards = Array.from(
+      grid.querySelectorAll(".process-card")
+    );
+
+    const searchInput =
+      document.getElementById("processSearch");
+
+    const filterSelect =
+      document.getElementById("packageFilter");
+
+    const sortSelect =
+      document.getElementById("sortBy");
+
+
     const packages = new Map();
-    cards.forEach(c => {
-      const label = (c.dataset.package || "").trim();
-      if (label) packages.set(label.toLowerCase(), label);
+
+    cards.forEach((card) => {
+      const label =
+        (card.dataset.package || "").trim();
+
+      if (label) {
+        packages.set(
+          label.toLowerCase(),
+          label
+        );
+      }
     });
+
 
     Array.from(packages.values())
       .sort((a, b) => a.localeCompare(b))
-      .forEach(label => {
-        const opt = document.createElement("option");
-        opt.value = label.toLowerCase();
-        opt.textContent = label;
-        filterSelect.appendChild(opt);
+      .forEach((label) => {
+        const option =
+          document.createElement("option");
+
+        option.value =
+          label.toLowerCase();
+
+        option.textContent =
+          label;
+
+        filterSelect.appendChild(option);
       });
 
-    function matches(card, q, packageValue) {
-      const title = card.dataset.title || "";
-      const pkg = card.dataset.packageLower || "";
-      const labels = card.dataset.labelsLower || "";
 
-      const filterOk = !packageValue || pkg === packageValue;
-      const queryOk = !q || title.includes(q) || pkg.includes(q) || labels.includes(q);
+    function matches(
+      card,
+      query,
+      packageValue
+    ) {
+      const title =
+        card.dataset.title || "";
 
-      return queryOk && filterOk;
+      const assessmentPackage =
+        card.dataset.packageLower || "";
+
+      const labels =
+        card.dataset.labelsLower || "";
+
+      const filterMatches =
+        !packageValue ||
+        assessmentPackage === packageValue;
+
+      const queryMatches =
+        !query ||
+        title.includes(query) ||
+        assessmentPackage.includes(query) ||
+        labels.includes(query);
+
+      return (
+        queryMatches &&
+        filterMatches
+      );
     }
 
-    function sortCards(list, mode) {
+
+    function sortCards(
+      list,
+      mode
+    ) {
       const copy = [...list];
 
-      const by = {
-        created_desc: (a, b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
-        created_asc: (a, b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
-        candidates_desc: (a, b) => (parseInt(b.dataset.candidates || "0", 10) - parseInt(a.dataset.candidates || "0", 10)),
-        candidates_asc: (a, b) => (parseInt(a.dataset.candidates || "0", 10) - parseInt(b.dataset.candidates || "0", 10)),
-        title_asc: (a, b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
-        title_desc: (a, b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
-      }[mode] || ((a, b) => 0);
+      const sortFunction = {
+        created_desc: (a, b) =>
+          (b.dataset.created || "")
+            .localeCompare(
+              a.dataset.created || ""
+            ),
 
-      copy.sort(by);
+        created_asc: (a, b) =>
+          (a.dataset.created || "")
+            .localeCompare(
+              b.dataset.created || ""
+            ),
+
+        candidates_desc: (a, b) =>
+          parseInt(
+            b.dataset.candidates || "0",
+            10
+          ) -
+          parseInt(
+            a.dataset.candidates || "0",
+            10
+          ),
+
+        candidates_asc: (a, b) =>
+          parseInt(
+            a.dataset.candidates || "0",
+            10
+          ) -
+          parseInt(
+            b.dataset.candidates || "0",
+            10
+          ),
+
+        title_asc: (a, b) =>
+          (a.dataset.title || "")
+            .localeCompare(
+              b.dataset.title || ""
+            ),
+
+        title_desc: (a, b) =>
+          (b.dataset.title || "")
+            .localeCompare(
+              a.dataset.title || ""
+            )
+      }[mode] || (() => 0);
+
+      copy.sort(sortFunction);
+
       return copy;
     }
 
+
     function render() {
-      const q = (searchInput.value || "").trim().toLowerCase();
-      const pkgVal = (filterSelect.value || "").trim().toLowerCase();
-      const mode = sortSelect.value;
+      const query =
+        (searchInput.value || "")
+          .trim()
+          .toLowerCase();
 
-      const visible = cards.filter(c => matches(c, q, pkgVal));
-      const sorted = sortCards(visible, mode);
+      const packageValue =
+        (filterSelect.value || "")
+          .trim()
+          .toLowerCase();
 
-      cards.forEach(c => c.style.display = "none");
+      const mode =
+        sortSelect.value;
 
-      sorted.forEach(c => {
-        c.style.display = "";
-        grid.appendChild(c);
+      const visibleCards =
+        cards.filter((card) =>
+          matches(
+            card,
+            query,
+            packageValue
+          )
+        );
+
+      const sortedCards =
+        sortCards(
+          visibleCards,
+          mode
+        );
+
+      cards.forEach((card) => {
+        card.style.display = "none";
+      });
+
+      sortedCards.forEach((card) => {
+        card.style.display = "";
+        grid.appendChild(card);
       });
     }
 
-    // Card click goes to detail page, ignoring clicks on actions
-    cards.forEach(card => {
-      const go = () => {
-        const href = card.dataset.href;
-        if (href) window.location.href = href;
+
+    cards.forEach((card) => {
+      const openCard = () => {
+        const href =
+          card.dataset.href;
+
+        if (href) {
+          window.location.href =
+            href;
+        }
       };
 
-      card.addEventListener("click", (e) => {
-        if (e.target.closest("a") || e.target.closest("button") || e.target.closest("form")) return;
-        go();
-      });
+      card.addEventListener(
+        "click",
+        (event) => {
+          if (
+            event.target.closest("a") ||
+            event.target.closest("button") ||
+            event.target.closest("form")
+          ) {
+            return;
+          }
 
-      card.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          if (e.target.closest("a") || e.target.closest("button") || e.target.closest("form")) return;
-          e.preventDefault();
-          go();
+          openCard();
         }
-      });
+      );
+
+      card.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
+            if (
+              event.target.closest("a") ||
+              event.target.closest("button") ||
+              event.target.closest("form")
+            ) {
+              return;
+            }
+
+            event.preventDefault();
+            openCard();
+          }
+        }
+      );
     });
 
-    searchInput.addEventListener("input", render);
-    filterSelect.addEventListener("change", render);
-    sortSelect.addEventListener("change", render);
+
+    searchInput.addEventListener(
+      "input",
+      render
+    );
+
+    filterSelect.addEventListener(
+      "change",
+      render
+    );
+
+    sortSelect.addEventListener(
+      "change",
+      render
+    );
 
     render();
   })();

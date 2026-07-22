@@ -1,4 +1,5 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <nav class="topnav navbar navbar-expand justify-content-between navbar-light bg-white talena-topnav"
     id="sidenavAccordion">
 
@@ -7,13 +8,14 @@
     <div class="position-relative nav-search">
         <i data-feather="search" class="nav-search-icon"></i>
 
-        <input 
-            id="globalSearchInput" 
-            class="form-control" 
-            type="search" 
-            placeholder="Search" 
-            autocomplete="off"
-        >
+<input 
+    id="globalSearchInput" 
+    class="form-control" 
+    type="search" 
+    placeholder="{% trans 'Search' %}"
+    aria-label="{% trans 'Search' %}"
+    autocomplete="off"
+>
 
         <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
     </div>
@@ -117,6 +119,84 @@
             </div>
         </li>
         {% endcomment %}
+                <!-- Language switcher -->
+        <li class="nav-item me-2">
+          <div
+            class="talena-language-switcher"
+            role="group"
+            aria-label="{% trans 'Choose language' %}"
+          >
+
+            <form
+              action="{% url 'set_language' %}"
+              method="post"
+              class="m-0"
+            >
+              {% csrf_token %}
+
+              <input
+                type="hidden"
+                name="next"
+                value="{{ request.get_full_path }}"
+              >
+
+              <input
+                type="hidden"
+                name="language"
+                value="sv"
+              >
+
+              <button
+                type="submit"
+                class="
+                  talena-language-button
+                  {% if CURRENT_LANGUAGE == 'sv' %}is-active{% endif %}
+                "
+                title="Svenska"
+                aria-label="Byt språk till svenska"
+                aria-pressed="{% if CURRENT_LANGUAGE == 'sv' %}true{% else %}false{% endif %}"
+              >
+                <span aria-hidden="true">🇸🇪</span>
+              </button>
+            </form>
+
+
+            <form
+              action="{% url 'set_language' %}"
+              method="post"
+              class="m-0"
+            >
+              {% csrf_token %}
+
+              <input
+                type="hidden"
+                name="next"
+                value="{{ request.get_full_path }}"
+              >
+
+              <input
+                type="hidden"
+                name="language"
+                value="en"
+              >
+
+              <button
+                type="submit"
+                class="
+                  talena-language-button
+                  {% if CURRENT_LANGUAGE == 'en' %}is-active{% endif %}
+                "
+                title="English"
+                aria-label="Change language to English"
+                aria-pressed="{% if CURRENT_LANGUAGE == 'en' %}true{% else %}false{% endif %}"
+              >
+                <span aria-hidden="true">🇬🇧</span>
+              </button>
+            </form>
+
+          </div>
+        </li>
+
         <!-- User Dropdown-->
         <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">
             <a class="btn btn-icon btn-transparent-dark dropdown-toggle" id="navbarDropdownUserImage"
@@ -147,7 +227,7 @@
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{% url 'portal:settings' %}">
                     <div class="dropdown-item-icon"><i data-feather="settings"></i></div>
-                    Account
+                    {% trans "Account" %}
                 </a>
 <form method="post" action="{% url 'core:logout' %}" class="m-0">
   {% csrf_token %}
@@ -155,7 +235,7 @@
     <div class="dropdown-item-icon">
       <i data-feather="log-out"></i>
     </div>
-    Log out
+    {% trans "Log out" %}
   </button>
 </form>
             </div>

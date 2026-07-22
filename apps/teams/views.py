@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.db.models import Count
 
 from apps.processes.services.access import get_accessible_processes_for_user
+from django.utils.translation import gettext as _
 
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
@@ -339,14 +340,22 @@ def team_detail(request, pk):
 
 @login_required
 def team_create(request):
-    accessible_processes, company = get_accessible_processes_for_user(
-        request.user,
-        include_archived=True,
+    accessible_processes, company = (
+        get_accessible_processes_for_user(
+            request.user,
+            include_archived=True,
+        )
     )
 
     if not company:
-        messages.error(request, "You are not linked to a company.")
-        return redirect("processes:process_list")
+        messages.error(
+            request,
+            _("You are not linked to a company."),
+        )
+
+        return redirect(
+            "processes:process_list"
+        )
 
     if request.method == "POST":
         form = TeamForm(request.POST)
@@ -356,8 +365,16 @@ def team_create(request):
             team.company = company
             team.save()
 
-            messages.success(request, "Team created.")
-            return redirect("teams:team_detail", pk=team.pk)
+            messages.success(
+                request,
+                _("Team created."),
+            )
+
+            return redirect(
+                "teams:team_detail",
+                pk=team.pk,
+            )
+
     else:
         form = TeamForm()
 
@@ -367,8 +384,8 @@ def team_create(request):
         {
             "form": form,
             "team": None,
-            "page_title": "Create team",
-            "submit_label": "Create team",
+            "page_title": _("Create team"),
+            "submit_label": _("Create team"),
         },
     )
 
@@ -425,7 +442,10 @@ def team_members_edit(request, pk):
                 },
             )
 
-        messages.success(request, "Team members updated.")
+        messages.success(
+            request,
+            _("Team members updated."),
+        )
         return redirect("teams:team_detail", pk=team.pk)
 
     selected_candidate_ids = set(
@@ -446,25 +466,43 @@ def team_members_edit(request, pk):
 
 @login_required
 def team_edit(request, pk):
-    accessible_processes, company = get_accessible_processes_for_user(
-        request.user,
-        include_archived=True,
+    accessible_processes, company = (
+        get_accessible_processes_for_user(
+            request.user,
+            include_archived=True,
+        )
     )
 
     team = get_object_or_404(
-        Team.objects.filter(company=company),
+        Team.objects.filter(
+            company=company
+        ),
         pk=pk,
     )
 
     if request.method == "POST":
-        form = TeamForm(request.POST, instance=team)
+        form = TeamForm(
+            request.POST,
+            instance=team,
+        )
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Team updated.")
-            return redirect("teams:team_detail", pk=team.pk)
+
+            messages.success(
+                request,
+                _("Team updated."),
+            )
+
+            return redirect(
+                "teams:team_detail",
+                pk=team.pk,
+            )
+
     else:
-        form = TeamForm(instance=team)
+        form = TeamForm(
+            instance=team
+        )
 
     return render(
         request,
@@ -472,7 +510,7 @@ def team_edit(request, pk):
         {
             "form": form,
             "team": team,
-            "page_title": "Edit team",
-            "submit_label": "Save changes",
+            "page_title": _("Edit team"),
+            "submit_label": _("Save changes"),
         },
     )

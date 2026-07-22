@@ -1,0 +1,2113 @@
+# Swedish translations for Talena.
+# Copyright (C) 2026 Talent Qode
+# This file is distributed under the same license as the Talena package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Talena 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 00:41+0200\n"
+"PO-Revision-Date: 2026-07-22 23:25+0200\n"
+"Last-Translator: Talent Qode\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: .\apps\portal\forms.py:72
+msgid "Max file size is 2MB."
+msgstr "Maximal filstorlek är 2 MB."
+
+#: .\apps\portal\forms.py:88
+msgid "Only JPG, PNG or WEBP files are allowed."
+msgstr "Endast filer i formaten JPG, PNG eller WEBP är tillåtna."
+
+#: .\apps\portal\views.py:54
+msgid "Profile photo updated."
+msgstr "Profilbilden har uppdaterats."
+
+#: .\apps\portal\views.py:64
+msgid "Could not upload image. Please try again."
+msgstr "Bilden kunde inte laddas upp. Försök igen."
+
+#: .\apps\portal\views.py:83
+msgid "Profile photo removed."
+msgstr "Profilbilden har tagits bort."
+
+#: .\apps\portal\views.py:111
+msgid "Settings updated."
+msgstr "Inställningarna har uppdaterats."
+
+#: .\apps\portal\views.py:120
+msgid "Please correct the errors below."
+msgstr "Rätta felen nedan."
+
+#: .\apps\portal\views.py:139
+msgid "Password updated successfully."
+msgstr "Lösenordet har uppdaterats."
+
+#: .\apps\portal\views.py:149
+msgid "Please correct the password errors below."
+msgstr "Rätta lösenordsfelen nedan."
+
+#: .\apps\portal\views.py:157
+msgid "Unknown form submission."
+msgstr "Okänd formulärinlämning."
+
+#: .\apps\processes\services\process_recommendations.py:6
+msgid "Recruitment"
+msgstr "Rekrytering"
+
+#: .\apps\processes\services\process_recommendations.py:8
+msgid "Assess candidates for selection and role fit."
+msgstr "Bedöm kandidater för urval och matchning mot rollen."
+
+#: .\apps\processes\services\process_recommendations.py:13
+msgid "Role match"
+msgstr "Rollmatchning"
+
+#: .\apps\processes\services\process_recommendations.py:15
+msgid "Assess how well an employee matches a new or existing role."
+msgstr "Bedöm hur väl en medarbetare matchar en ny eller befintlig roll."
+
+#: .\apps\processes\services\process_recommendations.py:21
+msgid "Leadership potential"
+msgstr "Ledarskapspotential"
+
+#: .\apps\processes\services\process_recommendations.py:23
+msgid "Explore potential for future leadership roles."
+msgstr "Utforska potential för framtida ledarroller."
+
+#: .\apps\processes\services\process_recommendations.py:28
+msgid "Career path"
+msgstr "Karriärväg"
+
+#: .\apps\processes\services\process_recommendations.py:30
+msgid "Understand possible development and career directions."
+msgstr "Förstå möjliga utvecklingsvägar och framtida karriärinriktningar."
+
+#: .\apps\processes\services\process_recommendations.py:36
+msgid "Onboarding"
+msgstr "Onboarding"
+
+#: .\apps\processes\services\process_recommendations.py:38
+msgid "Understand how to support a person from the start."
+msgstr "Förstå hur personen kan få rätt stöd från början."
+
+#: .\apps\processes\services\process_recommendations.py:43
+msgid "Employee development"
+msgstr "Medarbetarutveckling"
+
+#: .\apps\processes\services\process_recommendations.py:45
+msgid "Create a foundation for coaching and individual growth."
+msgstr "Skapa en grund för coachning och individuell utveckling."
+
+#: .\apps\processes\services\process_recommendations.py:51
+msgid "Leader development"
+msgstr "Ledarutveckling"
+
+#: .\apps\processes\services\process_recommendations.py:53
+msgid "Create a foundation for leadership development and reflection."
+msgstr "Skapa en grund för ledarutveckling och reflektion."
+
+#: .\apps\processes\services\process_recommendations.py:59
+msgid "Team development"
+msgstr "Teamutveckling"
+
+#: .\apps\processes\services\process_recommendations.py:61
+msgid "Explore drivers, behaviours and team patterns."
+msgstr "Utforska drivkrafter, beteenden och mönster i teamet."
+
+#: .\apps\processes\services\process_recommendations.py:66
+msgid "Reorganisation"
+msgstr "Omorganisation"
+
+#: .\apps\processes\services\process_recommendations.py:68
+msgid "Support change, role distribution or internal transition."
+msgstr "Stöd förändring, rollfördelning eller intern förflyttning."
+
+#: .\apps\processes\services\process_recommendations.py:74
+msgid "Flexible process"
+msgstr "Flexibel process"
+
+#: .\apps\processes\services\process_recommendations.py:76
+msgid "Create a process without a defined purpose."
+msgstr "Skapa en process utan ett definierat syfte."
+
+#: .\apps\processes\services\process_recommendations.py:97
+msgid "Personality"
+msgstr "Personlighet"
+
+#: .\apps\processes\services\process_recommendations.py:100
+msgid "Understand behavioural style, strengths, risks and role fit."
+msgstr "Förstå beteendestil, styrkor, risker och matchning mot rollen."
+
+#: .\apps\processes\services\process_recommendations.py:106
+msgid "Motivation"
+msgstr "Motivation"
+
+#: .\apps\processes\services\process_recommendations.py:109
+msgid ""
+"Understand what drives the person and what environment supports performance."
+msgstr ""
+"Förstå vad som driver personen och vilken miljö som stödjer god prestation."
+
+#: .\apps\processes\services\process_recommendations.py:115
+#: .\apps\processes\services\process_recommendations.py:116
+msgid "Verbal"
+msgstr "Verbal förmåga"
+
+#: .\apps\processes\services\process_recommendations.py:118
+#: .\templates\customer\processes\process_create_v2.html:942
+msgid ""
+"Useful when the role requires reading, interpreting or communicating complex "
+"information."
+msgstr ""
+"Användbart när rollen kräver att läsa, tolka eller kommunicera komplex "
+"information."
+
+#: .\apps\processes\services\process_recommendations.py:124
+#: .\apps\processes\services\process_recommendations.py:125
+msgid "Logical"
+msgstr "Logisk förmåga"
+
+#: .\apps\processes\services\process_recommendations.py:127
+msgid ""
+"Useful when the role requires problem-solving, structure and analytical "
+"thinking."
+msgstr ""
+"Användbart när rollen kräver problemlösning, struktur och analytiskt "
+"tänkande."
+
+#: .\apps\processes\services\process_recommendations.py:133
+#: .\apps\processes\services\process_recommendations.py:134
+msgid "Numerical"
+msgstr "Numerisk förmåga"
+
+#: .\apps\processes\services\process_recommendations.py:136
+#: .\templates\customer\processes\process_create_v2.html:950
+msgid ""
+"Useful when the role involves numbers, data, finance, reporting or analysis."
+msgstr ""
+"Användbart när rollen omfattar siffror, data, ekonomi, rapportering eller "
+"analys."
+
+#: .\apps\processes\services\process_recommendations.py:266
+#: .\templates\customer\processes\process_create_v2.html:10
+msgid "Test process"
+msgstr "Testprocess"
+
+#: .\apps\teams\forms.py:20
+msgid "Example: Finance team, Leadership pool, Sales 2026"
+msgstr "Exempel: Ekonomiteamet, Ledarpoolen, Försäljning 2026"
+
+#: .\apps\teams\forms.py:29
+msgid "Optional description of this team."
+msgstr "Valfri beskrivning av teamet."
+
+#: .\apps\teams\views.py:353
+msgid "You are not linked to a company."
+msgstr "Du är inte kopplad till något företag."
+
+#: .\apps\teams\views.py:370
+msgid "Team created."
+msgstr "Teamet har skapats."
+
+#: .\apps\teams\views.py:387 .\apps\teams\views.py:388
+#: .\templates\customer\teams\team_list.html:33
+msgid "Create team"
+msgstr "Skapa team"
+
+#: .\apps\teams\views.py:447
+msgid "Team members updated."
+msgstr "Teamets medlemmar har uppdaterats."
+
+#: .\apps\teams\views.py:494
+msgid "Team updated."
+msgstr "Teamet har uppdaterats."
+
+#: .\apps\teams\views.py:513 .\templates\customer\teams\team_detail.html:47
+msgid "Edit team"
+msgstr "Redigera team"
+
+#: .\apps\teams\views.py:514
+#: .\templates\customer\processes\process_edit.html:285
+#: .\templates\shared\_settings_content.html:232
+msgid "Save changes"
+msgstr "Spara ändringar"
+
+#: .\config\settings.py:277
+msgid "Svenska"
+msgstr "Svenska"
+
+#: .\config\settings.py:278
+msgid "English"
+msgstr "Engelska"
+
+#: .\templates\customer\candidates\candidate_list.html:69
+#: .\templates\customer\core\partials\customer_sidebar.html:109
+#: .\templates\customer\teams\team_list.html:15
+msgid "Candidates"
+msgstr "Kandidater"
+
+#: .\templates\customer\candidates\candidate_list.html:73
+#: .\templates\customer\core\partials\customer_sidebar.html:126
+msgid "All candidates"
+msgstr "Alla kandidater"
+
+#: .\templates\customer\candidates\candidate_list.html:77
+msgid ""
+"All candidates you have access to across test processes and historical "
+"imports."
+msgstr ""
+"Alla kandidater som du har tillgång till i testprocesser och historiska "
+"importer."
+
+#: .\templates\customer\candidates\candidate_list.html:82
+#, python-format
+msgid ""
+"\n"
+"          Showing %(candidate_count)s candidate.\n"
+"        "
+msgid_plural ""
+"\n"
+"          Showing %(candidate_count)s candidates.\n"
+"        "
+msgstr[0] ""
+"\n"
+"          Visar %(candidate_count)s kandidat.\n"
+"        "
+msgstr[1] ""
+"\n"
+"          Visar %(candidate_count)s kandidater.\n"
+"        "
+
+#: .\templates\customer\candidates\candidate_list.html:113
+#: .\templates\customer\teams\team_members_edit.html:58
+msgid "Search candidates..."
+msgstr "Sök kandidater..."
+
+#: .\templates\customer\candidates\candidate_list.html:114
+#: .\templates\customer\teams\team_members_edit.html:59
+msgid "Search candidates"
+msgstr "Sök kandidater"
+
+#: .\templates\customer\candidates\candidate_list.html:127
+msgid "Filter candidates by team"
+msgstr "Filtrera kandidater efter team"
+
+#: .\templates\customer\candidates\candidate_list.html:132
+msgid "All teams"
+msgstr "Alla team"
+
+#: .\templates\customer\candidates\candidate_list.html:139
+#: .\templates\customer\candidates\candidate_list.html:233
+msgid "No team"
+msgstr "Inget team"
+
+#: .\templates\customer\candidates\candidate_list.html:164
+msgid "Clear"
+msgstr "Rensa"
+
+#: .\templates\customer\candidates\candidate_list.html:183
+#: .\templates\customer\teams\team_detail.html:456
+#: .\templates\customer\teams\team_members_edit.html:87
+msgid "Candidate"
+msgstr "Kandidat"
+
+#: .\templates\customer\candidates\candidate_list.html:184
+#: .\templates\customer\core\partials\customer_sidebar.html:144
+#: .\templates\customer\teams\team_list.html:19
+msgid "Teams"
+msgstr "Team"
+
+#: .\templates\customer\candidates\candidate_list.html:185
+msgid "Processes"
+msgstr "Processer"
+
+#: .\templates\customer\candidates\candidate_list.html:186
+#: .\templates\customer\processes\process_create_v2.html:89
+msgid "Tests"
+msgstr "Tester"
+
+#: .\templates\customer\candidates\candidate_list.html:187
+msgid "Latest activity"
+msgstr "Senaste aktivitet"
+
+#: .\templates\customer\candidates\candidate_list.html:188
+#: .\templates\customer\teams\team_list.html:55
+msgid "Actions"
+msgstr "Åtgärder"
+
+#: .\templates\customer\candidates\candidate_list.html:247
+#, python-format
+msgid ""
+"\n"
+"                      %(process_count)s process\n"
+"                    "
+msgid_plural ""
+"\n"
+"                      %(process_count)s processes\n"
+"                    "
+msgstr[0] ""
+"\n"
+"                      %(process_count)s process\n"
+"                    "
+msgstr[1] ""
+"\n"
+"                      %(process_count)s processer\n"
+"                    "
+
+#: .\templates\customer\candidates\candidate_list.html:268
+msgid "Completed"
+msgstr "Genomfört"
+
+#: .\templates\customer\candidates\candidate_list.html:268
+msgid "Sent or started"
+msgstr "Skickat eller påbörjat"
+
+#: .\templates\customer\candidates\candidate_list.html:268
+msgid "Not sent"
+msgstr "Inte skickat"
+
+#: .\templates\customer\candidates\candidate_list.html:334
+#: .\templates\customer\candidates\candidate_list.html:344
+#: .\templates\customer\teams\team_list.html:120
+msgid "View"
+msgstr "Visa"
+
+#: .\templates\customer\candidates\candidate_list.html:362
+msgid "No candidates found."
+msgstr "Inga kandidater hittades."
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:15
+#: .\templates\customer\core\layouts\customer_dashboard.html:21
+msgid "Hi"
+msgstr "Hej"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:16
+msgid "Good morning"
+msgstr "God morgon"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:17
+msgid "Welcome"
+msgstr "Välkommen"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:18
+msgid "Good afternoon"
+msgstr "God eftermiddag"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:19
+msgid "Good evening"
+msgstr "God kväll"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:39
+msgid "What would you like to do?"
+msgstr "Vad vill du göra?"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:53
+msgid "Create a new test process"
+msgstr "Skapa en ny testprocess"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:57
+msgid "Send assessments to candidates"
+msgstr "Skicka tester till kandidater"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:71
+msgid "View your test processes"
+msgstr "Visa dina testprocesser"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:75
+msgid "View status and results"
+msgstr "Visa status och resultat"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:89
+#: .\templates\customer\core\partials\customer_sidebar.html:64
+#: .\templates\shared\_settings_content.html:12
+msgid "Account settings"
+msgstr "Kontoinställningar"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:93
+msgid "Password, profile picture, contact information"
+msgstr "Lösenord, profilbild och kontaktinformation"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:114
+msgid "Overview"
+msgstr "Översikt"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:118
+msgid "A quick overview of your latest assessments"
+msgstr "En snabb översikt över dina senaste tester"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:130
+#: .\templates\customer\core\partials\customer_sidebar.html:86
+#: .\templates\customer\processes\process_create_v2.html:26
+#: .\templates\customer\processes\process_list.html:14
+msgid "Test processes"
+msgstr "Testprocesser"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:145
+msgid "Sent assessments"
+msgstr "Skickade tester"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:160
+msgid "Started assessments"
+msgstr "Påbörjade tester"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:175
+msgid "Completed assessments"
+msgstr "Genomförda tester"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:194
+msgid "Latest test processes"
+msgstr "Senaste testprocesserna"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:198
+msgid "Quick access to what you are currently working on"
+msgstr "Snabb åtkomst till det du arbetar med just nu"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:206
+#: .\templates\customer\core\layouts\customer_dashboard.html:371
+msgid "View all"
+msgstr "Visa alla"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:236
+#: .\templates\customer\processes\process_list.html:384
+msgid "Includes assessments:"
+msgstr "Innehåller tester:"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:246
+msgid "Not specified"
+msgstr "Ej angivet"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:302
+#: .\templates\customer\processes\process_list.html:231
+msgid "Uncategorised"
+msgstr "Okategoriserad"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:329
+msgid "No active test processes yet"
+msgstr "Det finns inga aktiva testprocesser ännu"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:333
+msgid ""
+"Create your first test process to send assessments and follow candidate "
+"progress here."
+msgstr ""
+"Skapa din första testprocess för att skicka tester och följa kandidaternas "
+"framsteg här."
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:341
+#: .\templates\customer\processes\process_create_v2.html:30
+#: .\templates\customer\processes\process_list.html:29
+msgid "Create test process"
+msgstr "Skapa testprocess"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:359
+msgid "Recent activity"
+msgstr "Senaste aktivitet"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:363
+msgid "Activity across your active test processes"
+msgstr "Aktivitet i dina aktiva testprocesser"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:418
+msgid "Invitation sent"
+msgstr "Inbjudan skickad"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:422
+msgid "Candidate added"
+msgstr "Kandidat tillagd"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:426
+msgid "Status updated"
+msgstr "Status uppdaterad"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:430
+msgid "Process created"
+msgstr "Process skapad"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:434
+msgid "Activity"
+msgstr "Aktivitet"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:456
+msgid "Process:"
+msgstr "Process:"
+
+#: .\templates\customer\core\layouts\customer_dashboard.html:479
+msgid "No activity yet."
+msgstr "Ingen aktivitet ännu."
+
+#: .\templates\customer\core\partials\customer_header.html:15
+#: .\templates\customer\core\partials\customer_header.html:16
+msgid "Search"
+msgstr "Sök"
+
+#: .\templates\customer\core\partials\customer_header.html:128
+msgid "Choose language"
+msgstr "Välj språk"
+
+#: .\templates\customer\core\partials\customer_header.html:231
+msgid "Account"
+msgstr "Konto"
+
+#: .\templates\customer\core\partials\customer_header.html:239
+msgid "Log out"
+msgstr "Logga ut"
+
+#: .\templates\customer\core\partials\customer_sidebar.html:29
+msgid "General"
+msgstr "Allmänt"
+
+#: .\templates\customer\core\partials\customer_sidebar.html:46
+msgid "Dashboard"
+msgstr "Översikt"
+
+#: .\templates\customer\core\partials\customer_sidebar.html:69
+msgid "Assessments"
+msgstr "Tester"
+
+#: .\templates\customer\core\partials\customer_sidebar.html:104
+msgid "Create new test process"
+msgstr "Skapa ny testprocess"
+
+#: .\templates\customer\core\partials\customer_sidebar.html:156
+msgid "Signed in as"
+msgstr "Inloggad som"
+
+#: .\templates\customer\processes\process_create_v2.html:6
+msgid "Recommended"
+msgstr "Rekommenderat"
+
+#: .\templates\customer\processes\process_create_v2.html:7
+#: .\templates\customer\processes\process_create_v2.html:249
+msgid "Optional"
+msgstr "Valfritt"
+
+#: .\templates\customer\processes\process_create_v2.html:8
+#: .\templates\customer\processes\process_create_v2.html:276
+msgid "No tests selected"
+msgstr "Inga tester valda"
+
+#: .\templates\customer\processes\process_create_v2.html:9
+msgid "Not selected"
+msgstr "Inte valt"
+
+#: .\templates\customer\processes\process_create_v2.html:12
+msgid "Please select a purpose before continuing."
+msgstr "Välj ett syfte innan du fortsätter."
+
+#: .\templates\customer\processes\process_create_v2.html:13
+msgid "Please select at least one test before continuing."
+msgstr "Välj minst ett test innan du fortsätter."
+
+#: .\templates\customer\processes\process_create_v2.html:14
+msgid "Please select a purpose first."
+msgstr "Välj ett syfte först."
+
+#: .\templates\customer\processes\process_create_v2.html:15
+msgid "Please select at least one test first."
+msgstr "Välj minst ett test först."
+
+#: .\templates\customer\processes\process_create_v2.html:16
+msgid "Please select a purpose."
+msgstr "Välj ett syfte."
+
+#: .\templates\customer\processes\process_create_v2.html:17
+msgid "Please select at least one test."
+msgstr "Välj minst ett test."
+
+#: .\templates\customer\processes\process_create_v2.html:34
+msgid ""
+"Choose why you are creating this process, then Talena will recommend a "
+"suitable assessment setup."
+msgstr ""
+"Välj varför du skapar processen, så rekommenderar Talena en lämplig "
+"testuppsättning."
+
+#: .\templates\customer\processes\process_create_v2.html:42
+msgid "Back to processes"
+msgstr "Tillbaka till processer"
+
+#: .\templates\customer\processes\process_create_v2.html:48
+msgid "Could not load Sova projects:"
+msgstr "Kunde inte läsa in Sova-projekt:"
+
+#: .\templates\customer\processes\process_create_v2.html:68
+msgid "Create process steps"
+msgstr "Steg för att skapa en process"
+
+#: .\templates\customer\processes\process_create_v2.html:77
+#: .\templates\customer\processes\process_edit.html:109
+msgid "Purpose"
+msgstr "Syfte"
+
+#: .\templates\customer\processes\process_create_v2.html:101
+msgid "Details"
+msgstr "Detaljer"
+
+#: .\templates\customer\processes\process_create_v2.html:114
+msgid "Why are you creating this process?"
+msgstr "Varför skapar du den här processen?"
+
+#: .\templates\customer\processes\process_create_v2.html:118
+msgid ""
+"This helps Talena suggest the right test combination and later adapt the "
+"report."
+msgstr ""
+"Detta hjälper Talena att föreslå rätt testkombination och senare anpassa "
+"rapporten."
+
+#: .\templates\customer\processes\process_create_v2.html:185
+#: .\templates\customer\processes\process_create_v2.html:300
+msgid "Continue"
+msgstr "Fortsätt"
+
+#: .\templates\customer\processes\process_create_v2.html:200
+msgid "Choose tests"
+msgstr "Välj tester"
+
+#: .\templates\customer\processes\process_create_v2.html:204
+msgid ""
+"Talena has preselected recommended tests based on your purpose, but you can "
+"adjust the selection."
+msgstr ""
+"Talena har förvalt rekommenderade tester utifrån syftet, men du kan justera "
+"valet."
+
+#: .\templates\customer\processes\process_create_v2.html:272
+msgid "Selected assessment setup"
+msgstr "Vald testuppsättning"
+
+#: .\templates\customer\processes\process_create_v2.html:280
+msgid ""
+"Talena will automatically connect this test combination to the corresponding "
+"Sova project."
+msgstr ""
+"Talena kopplar automatiskt den här testkombinationen till motsvarande Sova-"
+"projekt."
+
+#: .\templates\customer\processes\process_create_v2.html:292
+#: .\templates\customer\processes\process_create_v2.html:383
+msgid "Back"
+msgstr "Tillbaka"
+
+#: .\templates\customer\processes\process_create_v2.html:315
+msgid "Name and organize"
+msgstr "Namnge och organisera"
+
+#: .\templates\customer\processes\process_create_v2.html:319
+msgid ""
+"Give the process an internal name and add labels if you want to organize it "
+"by department, role or project."
+msgstr ""
+"Ge processen ett internt namn och lägg till etiketter om du vill organisera "
+"den efter avdelning, roll eller projekt."
+
+#: .\templates\customer\processes\process_create_v2.html:330
+#: .\templates\customer\processes\process_create_v2.html:338
+msgid "Process name"
+msgstr "Processnamn"
+
+#: .\templates\customer\processes\process_create_v2.html:346
+msgid ""
+"This is only used internally. You can leave it empty and Talena will create "
+"a name."
+msgstr ""
+"Detta används endast internt. Du kan lämna fältet tomt så skapar Talena ett "
+"namn."
+
+#: .\templates\customer\processes\process_create_v2.html:355
+#: .\templates\customer\processes\process_edit.html:70
+msgid "Labels"
+msgstr "Etiketter"
+
+#: .\templates\customer\processes\process_create_v2.html:363
+msgid "e.g. Sales, Stockholm, Graduate"
+msgstr "t.ex. Försäljning, Stockholm, Graduate"
+
+#: .\templates\customer\processes\process_create_v2.html:371
+msgid "Separate labels with commas."
+msgstr "Separera etiketterna med kommatecken."
+
+#: .\templates\customer\processes\process_create_v2.html:390
+msgid "Create process"
+msgstr "Skapa process"
+
+# | msgid "Understand behavioural style, strengths, risks and role fit."
+#: .\templates\customer\processes\process_create_v2.html:911
+msgid ""
+"Helps assess behavioural style, strengths, risks and role fit in a selection "
+"context."
+msgstr ""
+"Hjälper till att bedöma beteendestil, styrkor, risker och matchning mot "
+"rollen i ett urvalssammanhang."
+
+# | msgid "Understand behavioural style, strengths, risks and role fit."
+#: .\templates\customer\processes\process_create_v2.html:912
+msgid ""
+"Add Personality if you want deeper insight into behavioural style, strengths "
+"and potential role fit."
+msgstr ""
+"Lägg till personlighetstestet om du vill få djupare insikt i beteendestil, "
+"styrkor och möjlig matchning mot rollen."
+
+# | msgid ""
+# | "Understand what drives the person and what environment supports "
+# | "performance."
+#: .\templates\customer\processes\process_create_v2.html:915
+msgid ""
+"Shows what drives the candidate and what kind of work environment supports "
+"performance and retention."
+msgstr ""
+"Visar vad som driver kandidaten och vilken typ av arbetsmiljö som stödjer "
+"prestation och långsiktigt engagemang."
+
+#: .\templates\customer\processes\process_create_v2.html:916
+msgid ""
+"Add Motivation if you want to understand what will keep the candidate "
+"engaged and performing over time."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som hjälper kandidaten att "
+"förbli engagerad och prestera över tid."
+
+#: .\templates\customer\processes\process_create_v2.html:919
+msgid ""
+"Adds insight into how the candidate understands, interprets and communicates "
+"written information."
+msgstr ""
+"Ger insikt i hur kandidaten förstår, tolkar och kommunicerar skriftlig "
+"information."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:920
+msgid ""
+"Add Verbal if the role requires reading, interpreting or communicating "
+"complex written information."
+msgstr ""
+"Lägg till verbal förmåga om rollen kräver att läsa, tolka eller kommunicera "
+"komplex skriftlig information."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:923
+msgid ""
+"Adds insight into problem-solving, structure and analytical thinking "
+"relevant to the role."
+msgstr ""
+"Ger insikt i problemlösning, struktur och analytiskt tänkande som är "
+"relevant för rollen."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:924
+msgid ""
+"Add Logical if the role requires problem-solving, structure, analysis or "
+"complex decision-making."
+msgstr ""
+"Lägg till logisk förmåga om rollen kräver problemlösning, struktur, analys "
+"eller komplexa beslut."
+
+# | msgid ""
+# | "Useful when the role involves numbers, data, finance, reporting or "
+# | "analysis."
+#: .\templates\customer\processes\process_create_v2.html:927
+msgid ""
+"Adds insight into how the candidate handles numbers, data, finance, "
+"reporting or analysis."
+msgstr ""
+"Ger insikt i hur kandidaten hanterar siffror, data, ekonomi, rapportering "
+"eller analys."
+
+# | msgid ""
+# | "Useful when the role involves numbers, data, finance, reporting or "
+# | "analysis."
+#: .\templates\customer\processes\process_create_v2.html:928
+msgid ""
+"Add Numerical if the role involves numbers, data, finance, reporting, KPIs "
+"or analysis."
+msgstr ""
+"Lägg till numerisk förmåga om rollen omfattar siffror, data, ekonomi, "
+"rapportering, nyckeltal eller analys."
+
+#: .\templates\customer\processes\process_create_v2.html:934
+msgid ""
+"Helps compare behavioural style with the demands of a specific role or "
+"future position."
+msgstr ""
+"Hjälper till att jämföra beteendestilen med kraven i en specifik roll eller "
+"framtida befattning."
+
+#: .\templates\customer\processes\process_create_v2.html:935
+msgid ""
+"Add Personality if you want to understand how the person’s working style "
+"fits the role."
+msgstr ""
+"Lägg till personlighetstestet om du vill förstå hur personens arbetssätt "
+"passar rollen."
+
+#: .\templates\customer\processes\process_create_v2.html:938
+msgid ""
+"Shows whether the role is likely to match what motivates and energises the "
+"person."
+msgstr ""
+"Visar om rollen sannolikt matchar det som motiverar och ger personen energi."
+
+#: .\templates\customer\processes\process_create_v2.html:939
+msgid ""
+"Add Motivation if you want to see whether the role is likely to feel "
+"engaging and sustainable."
+msgstr ""
+"Lägg till motivationstestet om du vill se om rollen sannolikt upplevs som "
+"engagerande och hållbar över tid."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:943
+msgid ""
+"Add Verbal if the role includes written communication, documentation or "
+"complex information."
+msgstr ""
+"Lägg till verbal förmåga om rollen omfattar skriftlig kommunikation, "
+"dokumentation eller komplex information."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:946
+msgid ""
+"Useful when the role requires structured problem-solving and analytical "
+"decision-making."
+msgstr ""
+"Användbart när rollen kräver strukturerad problemlösning och analytiskt "
+"beslutsfattande."
+
+#: .\templates\customer\processes\process_create_v2.html:947
+msgid ""
+"Add Logical if the role requires analysis, structure, prioritisation or "
+"problem-solving."
+msgstr ""
+"Lägg till logisk förmåga om rollen kräver analys, struktur, prioritering "
+"eller problemlösning."
+
+#: .\templates\customer\processes\process_create_v2.html:951
+msgid ""
+"Add Numerical if the role includes reports, budgets, KPIs, data or financial "
+"information."
+msgstr ""
+"Lägg till numerisk förmåga om rollen omfattar rapporter, budgetar, "
+"nyckeltal, data eller ekonomisk information."
+
+#: .\templates\customer\processes\process_create_v2.html:957
+msgid ""
+"Helps identify behavioural strengths, leadership potential and possible risk "
+"areas in future leadership roles."
+msgstr ""
+"Hjälper till att identifiera beteendemässiga styrkor, ledarskapspotential "
+"och möjliga riskområden i framtida ledarroller."
+
+#: .\templates\customer\processes\process_create_v2.html:958
+msgid ""
+"Add Personality if you want to explore behavioural leadership potential and "
+"possible risk areas."
+msgstr ""
+"Lägg till personlighetstestet om du vill utforska beteendemässig "
+"ledarskapspotential och möjliga riskområden."
+
+#: .\templates\customer\processes\process_create_v2.html:961
+msgid ""
+"Shows what drives the person and whether leadership responsibility is likely "
+"to feel energising."
+msgstr ""
+"Visar vad som driver personen och om ledaransvar sannolikt upplevs som "
+"energigivande."
+
+#: .\templates\customer\processes\process_create_v2.html:962
+msgid ""
+"Add Motivation if you want to understand whether leadership responsibility "
+"is likely to motivate the person."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå om ledaransvar sannolikt "
+"motiverar personen."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:965
+msgid ""
+"Adds insight into how the person understands and communicates complex "
+"information."
+msgstr ""
+"Ger insikt i hur personen förstår och kommunicerar komplex information."
+
+#: .\templates\customer\processes\process_create_v2.html:966
+msgid ""
+"Add Verbal if future leadership roles require communication, written "
+"information or stakeholder updates."
+msgstr ""
+"Lägg till verbal förmåga om framtida ledarroller kräver kommunikation, "
+"skriftlig information eller uppdateringar till intressenter."
+
+#: .\templates\customer\processes\process_create_v2.html:969
+msgid ""
+"Adds insight into analytical thinking, problem-solving and decision-making "
+"potential."
+msgstr ""
+"Ger insikt i analytiskt tänkande, problemlösning och potential för "
+"beslutsfattande."
+
+#: .\templates\customer\processes\process_create_v2.html:970
+msgid ""
+"Add Logical if the future leadership role involves complex decisions, "
+"strategy or problem-solving."
+msgstr ""
+"Lägg till logisk förmåga om den framtida ledarrollen omfattar komplexa "
+"beslut, strategi eller problemlösning."
+
+#: .\templates\customer\processes\process_create_v2.html:973
+msgid ""
+"Useful if the future leadership role includes budgets, KPIs, reporting or "
+"data-driven decisions."
+msgstr ""
+"Användbart om den framtida ledarrollen omfattar budgetar, nyckeltal, "
+"rapportering eller datadrivna beslut."
+
+#: .\templates\customer\processes\process_create_v2.html:974
+msgid ""
+"Add Numerical if future leadership responsibilities include budgets, KPIs, "
+"data or business reporting."
+msgstr ""
+"Lägg till numerisk förmåga om framtida ledaransvar omfattar budgetar, "
+"nyckeltal, data eller affärsrapportering."
+
+#: .\templates\customer\processes\process_create_v2.html:980
+msgid ""
+"Helps identify natural working style, strengths and development areas that "
+"may guide future career direction."
+msgstr ""
+"Hjälper till att identifiera ett naturligt arbetssätt, styrkor och "
+"utvecklingsområden som kan vägleda framtida karriärval."
+
+#: .\templates\customer\processes\process_create_v2.html:981
+msgid ""
+"Add Personality if you want to map natural strengths, working style and "
+"possible development paths."
+msgstr ""
+"Lägg till personlighetstestet om du vill kartlägga naturliga styrkor, "
+"arbetssätt och möjliga utvecklingsvägar."
+
+#: .\templates\customer\processes\process_create_v2.html:984
+msgid ""
+"Shows what kind of tasks, environments and responsibilities are most likely "
+"to create engagement."
+msgstr ""
+"Visar vilka typer av uppgifter, miljöer och ansvarsområden som sannolikt "
+"skapar mest engagemang."
+
+#: .\templates\customer\processes\process_create_v2.html:985
+msgid ""
+"Add Motivation if you want to understand what type of work and environment "
+"may suit the person long term."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vilken typ av arbete och miljö "
+"som kan passa personen långsiktigt."
+
+#: .\templates\customer\processes\process_create_v2.html:988
+msgid ""
+"Adds insight into whether communication-heavy or information-rich roles may "
+"suit the person."
+msgstr ""
+"Ger insikt i om roller med mycket kommunikation eller stora "
+"informationsmängder kan passa personen."
+
+#: .\templates\customer\processes\process_create_v2.html:989
+msgid ""
+"Add Verbal if you want to explore whether communication-heavy or information-"
+"rich roles may be suitable."
+msgstr ""
+"Lägg till verbal förmåga om du vill utforska om roller med mycket "
+"kommunikation eller stora informationsmängder kan vara lämpliga."
+
+#: .\templates\customer\processes\process_create_v2.html:992
+msgid ""
+"Adds insight into whether analytical, strategic or problem-solving roles may "
+"suit the person."
+msgstr ""
+"Ger insikt i om analytiska, strategiska eller problemlösande roller kan "
+"passa personen."
+
+#: .\templates\customer\processes\process_create_v2.html:993
+msgid ""
+"Add Logical if you want to explore analytical, strategic or problem-solving "
+"career directions."
+msgstr ""
+"Lägg till logisk förmåga om du vill utforska analytiska, strategiska eller "
+"problemlösande karriärinriktningar."
+
+#: .\templates\customer\processes\process_create_v2.html:996
+msgid ""
+"Adds insight into whether data, finance, reporting or analytical roles may "
+"be a good direction."
+msgstr ""
+"Ger insikt i om roller inom data, ekonomi, rapportering eller analys kan "
+"vara en lämplig inriktning."
+
+# | msgid ""
+# | "Useful when the role involves numbers, data, finance, reporting or "
+# | "analysis."
+#: .\templates\customer\processes\process_create_v2.html:997
+msgid ""
+"Add Numerical if you want to explore roles involving data, finance, "
+"reporting or analysis."
+msgstr ""
+"Lägg till numerisk förmåga om du vill utforska roller som omfattar data, "
+"ekonomi, rapportering eller analys."
+
+# | msgid "Understand how to support a person from the start."
+#: .\templates\customer\processes\process_create_v2.html:1003
+msgid ""
+"Helps managers understand how to support the person’s working style from the "
+"start."
+msgstr ""
+"Hjälper chefer att förstå hur personens arbetssätt kan stödjas från början."
+
+#: .\templates\customer\processes\process_create_v2.html:1004
+msgid ""
+"Add Personality if you want to tailor onboarding to the person’s working "
+"style and support needs."
+msgstr ""
+"Lägg till personlighetstestet om du vill anpassa introduktionen efter "
+"personens arbetssätt och behov av stöd."
+
+#: .\templates\customer\processes\process_create_v2.html:1007
+msgid ""
+"Shows what helps the person feel engaged, supported and productive during "
+"onboarding."
+msgstr ""
+"Visar vad som hjälper personen att känna sig engagerad, få stöd och vara "
+"produktiv under introduktionen."
+
+#: .\templates\customer\processes\process_create_v2.html:1008
+msgid ""
+"Add Motivation if you want to understand what will help the person feel "
+"engaged from the start."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som hjälper personen att "
+"känna engagemang från början."
+
+#: .\templates\customer\processes\process_create_v2.html:1011
+msgid ""
+"Useful if the onboarding includes complex written material, policies or "
+"documentation."
+msgstr ""
+"Användbart om introduktionen omfattar komplext skriftligt material, policyer "
+"eller dokumentation."
+
+#: .\templates\customer\processes\process_create_v2.html:1012
+msgid ""
+"Add Verbal if onboarding involves policies, documentation, written "
+"instructions or complex information."
+msgstr ""
+"Lägg till verbal förmåga om introduktionen omfattar policyer, dokumentation, "
+"skriftliga instruktioner eller komplex information."
+
+#: .\templates\customer\processes\process_create_v2.html:1015
+msgid ""
+"Useful if the role requires the person to quickly understand processes, "
+"systems or problem-solving tasks."
+msgstr ""
+"Användbart om rollen kräver att personen snabbt förstår processer, system "
+"eller problemlösningsuppgifter."
+
+#: .\templates\customer\processes\process_create_v2.html:1016
+msgid ""
+"Add Logical if the person needs to quickly understand systems, processes or "
+"problem-solving tasks."
+msgstr ""
+"Lägg till logisk förmåga om personen snabbt behöver förstå system, processer "
+"eller problemlösningsuppgifter."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:1019
+msgid ""
+"Useful if the role requires early work with numbers, reports, KPIs or "
+"financial information."
+msgstr ""
+"Användbart om rollen tidigt kräver arbete med siffror, rapporter, nyckeltal "
+"eller ekonomisk information."
+
+#: .\templates\customer\processes\process_create_v2.html:1020
+msgid ""
+"Add Numerical if onboarding includes reports, KPIs, financial information or "
+"numerical tasks."
+msgstr ""
+"Lägg till numerisk förmåga om introduktionen omfattar rapporter, nyckeltal, "
+"ekonomisk information eller numeriska uppgifter."
+
+#: .\templates\customer\processes\process_create_v2.html:1026
+msgid ""
+"Helps identify behavioural strengths, development areas and coaching themes."
+msgstr ""
+"Hjälper till att identifiera beteendemässiga styrkor, utvecklingsområden och "
+"teman för coachning."
+
+#: .\templates\customer\processes\process_create_v2.html:1027
+msgid ""
+"Add Personality if you want to identify behavioural strengths, development "
+"areas and coaching themes."
+msgstr ""
+"Lägg till personlighetstestet om du vill identifiera beteendemässiga "
+"styrkor, utvecklingsområden och teman för coachning."
+
+# | msgid ""
+# | "Understand what drives the person and what environment supports "
+# | "performance."
+#: .\templates\customer\processes\process_create_v2.html:1030
+msgid ""
+"Shows what drives engagement and what kind of environment supports "
+"sustainable growth."
+msgstr ""
+"Visar vad som driver engagemang och vilken typ av miljö som stödjer hållbar "
+"utveckling."
+
+#: .\templates\customer\processes\process_create_v2.html:1031
+msgid ""
+"Add Motivation if you want to understand what supports engagement, growth "
+"and sustainable performance."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som stödjer engagemang, "
+"utveckling och hållbar prestation."
+
+#: .\templates\customer\processes\process_create_v2.html:1034
+msgid ""
+"Adds insight into communication, comprehension and learning through written "
+"information."
+msgstr ""
+"Ger insikt i kommunikation, förståelse och lärande genom skriftlig "
+"information."
+
+#: .\templates\customer\processes\process_create_v2.html:1035
+msgid ""
+"Add Verbal if the development plan includes communication, written "
+"information or knowledge-heavy tasks."
+msgstr ""
+"Lägg till verbal förmåga om utvecklingsplanen omfattar kommunikation, "
+"skriftlig information eller kunskapsintensiva uppgifter."
+
+#: .\templates\customer\processes\process_create_v2.html:1038
+msgid ""
+"Adds insight into problem-solving style and areas for analytical development."
+msgstr ""
+"Ger insikt i personens problemlösningsstil och områden för analytisk "
+"utveckling."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:1039
+msgid ""
+"Add Logical if the development focus includes problem-solving, structure or "
+"analytical thinking."
+msgstr ""
+"Lägg till logisk förmåga om utvecklingsfokuset omfattar problemlösning, "
+"struktur eller analytiskt tänkande."
+
+#: .\templates\customer\processes\process_create_v2.html:1042
+msgid ""
+"Useful when development goals include data, reporting, finance or numerical "
+"confidence."
+msgstr ""
+"Användbart när utvecklingsmålen omfattar data, rapportering, ekonomi eller "
+"trygghet i att arbeta med siffror."
+
+#: .\templates\customer\processes\process_create_v2.html:1043
+msgid ""
+"Add Numerical if development goals include data, reports, finance, KPIs or "
+"numerical confidence."
+msgstr ""
+"Lägg till numerisk förmåga om utvecklingsmålen omfattar data, rapporter, "
+"ekonomi, nyckeltal eller trygghet i att arbeta med siffror."
+
+#: .\templates\customer\processes\process_create_v2.html:1049
+msgid ""
+"Helps identify leadership style, behavioural strengths, blind spots and "
+"possible derailers."
+msgstr ""
+"Hjälper till att identifiera ledarstil, beteendemässiga styrkor, blinda "
+"fläckar och möjliga riskbeteenden."
+
+#: .\templates\customer\processes\process_create_v2.html:1050
+msgid ""
+"Add Personality if you want to explore leadership style, behavioural "
+"strengths and possible blind spots."
+msgstr ""
+"Lägg till personlighetstestet om du vill utforska ledarstil, beteendemässiga "
+"styrkor och möjliga blinda fläckar."
+
+# | msgid ""
+# | "Understand what drives the person and what environment supports "
+# | "performance."
+#: .\templates\customer\processes\process_create_v2.html:1053
+msgid ""
+"Shows what drives the leader and what kind of environment supports "
+"sustainable leadership."
+msgstr ""
+"Visar vad som driver ledaren och vilken typ av miljö som stödjer ett "
+"hållbart ledarskap."
+
+#: .\templates\customer\processes\process_create_v2.html:1054
+msgid ""
+"Add Motivation if you want to understand what energises the leader and "
+"supports sustainable leadership."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som ger ledaren energi och "
+"stödjer ett hållbart ledarskap."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:1057
+msgid ""
+"Adds insight into how the leader processes and communicates complex "
+"information."
+msgstr ""
+"Ger insikt i hur ledaren bearbetar och kommunicerar komplex information."
+
+#: .\templates\customer\processes\process_create_v2.html:1058
+msgid ""
+"Add Verbal if the leader needs to interpret complex information or "
+"communicate clearly in writing."
+msgstr ""
+"Lägg till verbal förmåga om ledaren behöver tolka komplex information eller "
+"kommunicera tydligt i skrift."
+
+#: .\templates\customer\processes\process_create_v2.html:1061
+msgid ""
+"Adds insight into structured thinking, problem-solving and decision-making "
+"in leadership situations."
+msgstr ""
+"Ger insikt i strukturerat tänkande, problemlösning och beslutsfattande i "
+"ledarskapssituationer."
+
+#: .\templates\customer\processes\process_create_v2.html:1062
+msgid ""
+"Add Logical if the leader works with strategy, complex decisions or "
+"structured problem-solving."
+msgstr ""
+"Lägg till logisk förmåga om ledaren arbetar med strategi, komplexa beslut "
+"eller strukturerad problemlösning."
+
+#: .\templates\customer\processes\process_create_v2.html:1065
+msgid ""
+"Useful when the leader works with budgets, KPIs, performance data or "
+"business reporting."
+msgstr ""
+"Användbart när ledaren arbetar med budgetar, nyckeltal, prestationsdata "
+"eller affärsrapportering."
+
+#: .\templates\customer\processes\process_create_v2.html:1066
+msgid ""
+"Add Numerical if the leader works with budgets, KPIs, performance data or "
+"business reporting."
+msgstr ""
+"Lägg till numerisk förmåga om ledaren arbetar med budgetar, nyckeltal, "
+"prestationsdata eller affärsrapportering."
+
+#: .\templates\customer\processes\process_create_v2.html:1072
+msgid ""
+"Helps reveal behavioural patterns, collaboration styles and possible "
+"friction points in the team."
+msgstr ""
+"Hjälper till att synliggöra beteendemönster, samarbetsstilar och möjliga "
+"friktionspunkter i teamet."
+
+#: .\templates\customer\processes\process_create_v2.html:1073
+msgid ""
+"Add Personality if you want to understand collaboration styles, team "
+"dynamics and possible friction points."
+msgstr ""
+"Lägg till personlighetstestet om du vill förstå samarbetsstilar, teamdynamik "
+"och möjliga friktionspunkter."
+
+#: .\templates\customer\processes\process_create_v2.html:1076
+msgid ""
+"Shows what energises different team members and where motivational needs may "
+"differ."
+msgstr ""
+"Visar vad som ger olika teammedlemmar energi och var deras motivationsbehov "
+"kan skilja sig åt."
+
+#: .\templates\customer\processes\process_create_v2.html:1077
+msgid ""
+"Add Motivation if you want to understand what energises the team and where "
+"needs may differ."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som ger teamet energi och "
+"var behoven kan skilja sig åt."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:1080
+msgid ""
+"Useful if the team relies heavily on written communication, documentation or "
+"shared information."
+msgstr ""
+"Användbart om teamet i hög grad är beroende av skriftlig kommunikation, "
+"dokumentation eller delad information."
+
+#: .\templates\customer\processes\process_create_v2.html:1081
+msgid ""
+"Add Verbal if the team relies on written communication, documentation or "
+"shared information."
+msgstr ""
+"Lägg till verbal förmåga om teamet är beroende av skriftlig kommunikation, "
+"dokumentation eller delad information."
+
+#: .\templates\customer\processes\process_create_v2.html:1084
+msgid ""
+"Adds insight into how team members approach problems, structure and "
+"decisions."
+msgstr ""
+"Ger insikt i hur teammedlemmarna tar sig an problem, struktur och beslut."
+
+#: .\templates\customer\processes\process_create_v2.html:1085
+msgid ""
+"Add Logical if the team works with prioritisation, problem-solving or shared "
+"decision-making."
+msgstr ""
+"Lägg till logisk förmåga om teamet arbetar med prioritering, problemlösning "
+"eller gemensamt beslutsfattande."
+
+#: .\templates\customer\processes\process_create_v2.html:1088
+msgid ""
+"Useful if the team works with data, reporting, finance, analysis or "
+"measurable targets."
+msgstr ""
+"Användbart om teamet arbetar med data, rapportering, ekonomi, analys eller "
+"mätbara mål."
+
+#: .\templates\customer\processes\process_create_v2.html:1089
+msgid ""
+"Add Numerical if the team works with targets, reporting, data, finance or "
+"measurable outcomes."
+msgstr ""
+"Lägg till numerisk förmåga om teamet arbetar med mål, rapportering, data, "
+"ekonomi eller mätbara resultat."
+
+#: .\templates\customer\processes\process_create_v2.html:1095
+msgid ""
+"Helps understand how people may respond to change, uncertainty and new role "
+"expectations."
+msgstr ""
+"Hjälper till att förstå hur människor kan reagera på förändring, osäkerhet "
+"och nya rollförväntningar."
+
+#: .\templates\customer\processes\process_create_v2.html:1096
+msgid ""
+"Add Personality if you want to understand how people may respond to change "
+"and new role expectations."
+msgstr ""
+"Lägg till personlighetstestet om du vill förstå hur människor kan reagera på "
+"förändring och nya rollförväntningar."
+
+#: .\templates\customer\processes\process_create_v2.html:1099
+msgid "Shows what people need to stay engaged and supported during change."
+msgstr ""
+"Visar vad människor behöver för att behålla engagemang och känna stöd under "
+"förändring."
+
+#: .\templates\customer\processes\process_create_v2.html:1100
+msgid ""
+"Add Motivation if you want to understand what people need to stay engaged "
+"during change."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad människor behöver för att "
+"behålla sitt engagemang under förändring."
+
+#: .\templates\customer\processes\process_create_v2.html:1103
+msgid ""
+"Useful when people need to absorb and communicate new information during "
+"transition."
+msgstr ""
+"Användbart när människor behöver ta till sig och kommunicera ny information "
+"under en omställning."
+
+# | msgid ""
+# | "Useful when the role requires reading, interpreting or communicating "
+# | "complex information."
+#: .\templates\customer\processes\process_create_v2.html:1104
+msgid ""
+"Add Verbal if the change requires people to absorb, interpret or communicate "
+"new information."
+msgstr ""
+"Lägg till verbal förmåga om förändringen kräver att människor tar till sig, "
+"tolkar eller kommunicerar ny information."
+
+#: .\templates\customer\processes\process_create_v2.html:1107
+msgid ""
+"Adds insight into problem-solving and adaptability in changing structures."
+msgstr ""
+"Ger insikt i problemlösning och anpassningsförmåga i föränderliga strukturer."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:1108
+msgid ""
+"Add Logical if new roles require problem-solving, structure or analytical "
+"thinking."
+msgstr ""
+"Lägg till logisk förmåga om nya roller kräver problemlösning, struktur eller "
+"analytiskt tänkande."
+
+#: .\templates\customer\processes\process_create_v2.html:1111
+msgid ""
+"Useful when new roles involve reporting, analysis, budgets or data-driven "
+"work."
+msgstr ""
+"Användbart när nya roller omfattar rapportering, analys, budgetar eller "
+"datadrivet arbete."
+
+#: .\templates\customer\processes\process_create_v2.html:1112
+msgid ""
+"Add Numerical if new roles involve reporting, analysis, budgets, KPIs or "
+"data-driven work."
+msgstr ""
+"Lägg till numerisk förmåga om nya roller omfattar rapportering, analys, "
+"budgetar, nyckeltal eller datadrivet arbete."
+
+# | msgid "Understand behavioural style, strengths, risks and role fit."
+#: .\templates\customer\processes\process_create_v2.html:1118
+msgid ""
+"Gives a broad view of behavioural style, strengths and potential development "
+"areas."
+msgstr ""
+"Ger en bred bild av beteendestil, styrkor och möjliga utvecklingsområden."
+
+#: .\templates\customer\processes\process_create_v2.html:1119
+msgid ""
+"Add Personality if you want a broad view of behavioural style, strengths and "
+"development areas."
+msgstr ""
+"Lägg till personlighetstestet om du vill få en bred bild av beteendestil, "
+"styrkor och utvecklingsområden."
+
+# | msgid ""
+# | "Understand what drives the person and what environment supports "
+# | "performance."
+#: .\templates\customer\processes\process_create_v2.html:1122
+msgid ""
+"Shows what drives the person and what kind of environment supports "
+"engagement."
+msgstr ""
+"Visar vad som driver personen och vilken typ av miljö som stödjer engagemang."
+
+# | msgid ""
+# | "Understand what drives the person and what environment supports "
+# | "performance."
+#: .\templates\customer\processes\process_create_v2.html:1123
+msgid ""
+"Add Motivation if you want to understand what drives the person and supports "
+"engagement."
+msgstr ""
+"Lägg till motivationstestet om du vill förstå vad som driver personen och "
+"stödjer engagemang."
+
+#: .\templates\customer\processes\process_create_v2.html:1126
+msgid "Adds insight into understanding and working with written information."
+msgstr "Ger insikt i förmågan att förstå och arbeta med skriftlig information."
+
+#: .\templates\customer\processes\process_create_v2.html:1127
+msgid ""
+"Add Verbal if written communication, reading or information handling is "
+"relevant."
+msgstr ""
+"Lägg till verbal förmåga om skriftlig kommunikation, läsning eller "
+"informationshantering är relevant."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:1130
+msgid "Adds insight into problem-solving and analytical thinking."
+msgstr "Ger insikt i problemlösning och analytiskt tänkande."
+
+# | msgid ""
+# | "Useful when the role requires problem-solving, structure and analytical "
+# | "thinking."
+#: .\templates\customer\processes\process_create_v2.html:1131
+msgid ""
+"Add Logical if problem-solving, structure or analytical thinking is relevant."
+msgstr ""
+"Lägg till logisk förmåga om problemlösning, struktur eller analytiskt "
+"tänkande är relevant."
+
+#: .\templates\customer\processes\process_create_v2.html:1134
+msgid "Adds insight into working with numbers, data and reports."
+msgstr "Ger insikt i förmågan att arbeta med siffror, data och rapporter."
+
+#: .\templates\customer\processes\process_create_v2.html:1135
+msgid "Add Numerical if numbers, data, reports or KPIs are relevant."
+msgstr ""
+"Lägg till numerisk förmåga om siffror, data, rapporter eller nyckeltal är "
+"relevanta."
+
+#: .\templates\customer\processes\process_edit.html:9
+msgid "Could not load SOVA setup data:"
+msgstr "Kunde inte läsa in SOVA-konfigurationen:"
+
+#: .\templates\customer\processes\process_edit.html:15
+msgid "Please check the fields below."
+msgstr "Kontrollera fälten nedan."
+
+#: .\templates\customer\processes\process_edit.html:27
+msgid "Process settings"
+msgstr "Processinställningar"
+
+#: .\templates\customer\processes\process_edit.html:31
+msgid "Update the process details, purpose and selected assessments."
+msgstr "Uppdatera processens uppgifter, syfte och valda tester."
+
+#: .\templates\customer\processes\process_edit.html:52
+msgid "Name"
+msgstr "Namn"
+
+#: .\templates\customer\processes\process_edit.html:72
+msgid "(optional)"
+msgstr "(valfritt)"
+
+#: .\templates\customer\processes\process_edit.html:97
+msgid "Assessment setup"
+msgstr "Testuppsättning"
+
+#: .\templates\customer\processes\process_edit.html:101
+msgid ""
+"Choose the purpose and the assessments that should be included in this "
+"process."
+msgstr "Välj syftet och vilka tester som ska ingå i processen."
+
+#: .\templates\customer\processes\process_edit.html:113
+msgid ""
+"Changing the purpose updates how Talena interprets and presents candidate "
+"results. It does not change assessments already sent."
+msgstr ""
+"När syftet ändras uppdateras hur Talena tolkar och presenterar "
+"kandidatresultaten. Tester som redan har skickats påverkas inte."
+
+#: .\templates\customer\processes\process_edit.html:175
+msgid "Selected assessments"
+msgstr "Valda tester"
+
+#: .\templates\customer\processes\process_edit.html:180
+msgid ""
+"The assessment selection cannot be changed because assessments have already "
+"been sent in this process."
+msgstr ""
+"Testurvalet kan inte ändras eftersom tester redan har skickats i processen."
+
+#: .\templates\customer\processes\process_edit.html:193
+msgid "The selected assessments are locked."
+msgstr "De valda testerna är låsta."
+
+#: .\templates\customer\processes\process_edit.html:198
+msgid ""
+"You can still update the process name, labels and purpose. Changing the "
+"purpose updates how Talena interprets and presents candidate reports, but "
+"the assessments already sent will remain unchanged."
+msgstr ""
+"Du kan fortfarande uppdatera processens namn, etiketter och syfte. När "
+"syftet ändras uppdateras hur Talena tolkar och presenterar "
+"kandidatrapporterna, men tester som redan har skickats förblir oförändrade."
+
+#: .\templates\customer\processes\process_edit.html:272
+msgid "Tip: choose a purpose first, then adjust the assessments if needed."
+msgstr "Tips: välj ett syfte först och justera sedan testerna vid behov."
+
+#: .\templates\customer\processes\process_edit.html:292
+#: .\templates\customer\teams\team_form.html:119
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: .\templates\customer\processes\process_edit.html:309
+msgid "Tips"
+msgstr "Tips"
+
+#: .\templates\customer\processes\process_edit.html:313
+msgid "For a clear and organised process."
+msgstr "För en tydlig och organiserad process."
+
+#: .\templates\customer\processes\process_edit.html:321
+msgid "Use labels to stay organised"
+msgstr "Använd etiketter för att hålla ordning"
+
+#: .\templates\customer\processes\process_edit.html:325
+msgid ""
+"Labels are for internal structure. You can use them to group processes by "
+"department, role type, project, priority or customer-specific categories."
+msgstr ""
+"Etiketter används för intern struktur. Du kan använda dem för att gruppera "
+"processer efter avdelning, rolltyp, projekt, prioritet eller "
+"kundspecifika kategorier."
+
+#: .\templates\customer\processes\process_edit.html:331
+msgid "Purpose guides the report"
+msgstr "Syftet vägleder rapporten"
+
+#: .\templates\customer\processes\process_edit.html:335
+msgid ""
+"The selected purpose helps Talena understand how candidate results should be "
+"interpreted and presented. You can update it later if the focus of the "
+"process changes."
+msgstr ""
+"Det valda syftet hjälper Talena att förstå hur kandidatresultaten ska tolkas "
+"och presenteras. Du kan uppdatera det senare om processens fokus förändras."
+
+#: .\templates\customer\processes\process_edit.html:341
+msgid "Locked assessments?"
+msgstr "Låsta tester?"
+
+#: .\templates\customer\processes\process_edit.html:345
+msgid ""
+"Once assessments have been sent, the assessment selection is locked to "
+"protect the process history. The purpose can still be updated."
+msgstr ""
+"När tester har skickats låses testurvalet för att skydda processens historik. "
+"Syftet kan fortfarande uppdateras."
+
+#: .\templates\customer\processes\process_list.html:18
+msgid "Overview of your test processes and their status."
+msgstr "Översikt över dina testprocesser och deras status."
+
+#: .\templates\customer\processes\process_list.html:60
+msgid "Search by title or assessment package..."
+msgstr "Sök efter titel eller testpaket..."
+
+#: .\templates\customer\processes\process_list.html:61
+msgid "Search test processes"
+msgstr "Sök bland testprocesser"
+
+#: .\templates\customer\processes\process_list.html:74
+msgid "Filter by assessment package"
+msgstr "Filtrera efter testpaket"
+
+#: .\templates\customer\processes\process_list.html:77
+msgid "All assessment packages"
+msgstr "Alla testpaket"
+
+#: .\templates\customer\processes\process_list.html:89
+msgid "Sort test processes"
+msgstr "Sortera testprocesser"
+
+#: .\templates\customer\processes\process_list.html:92
+msgid "Sort: Newest first"
+msgstr "Sortera: Nyaste först"
+
+#: .\templates\customer\processes\process_list.html:96
+msgid "Sort: Oldest first"
+msgstr "Sortera: Äldsta först"
+
+#: .\templates\customer\processes\process_list.html:100
+msgid "Sort: Most candidates"
+msgstr "Sortera: Flest kandidater"
+
+#: .\templates\customer\processes\process_list.html:104
+msgid "Sort: Fewest candidates"
+msgstr "Sortera: Färst kandidater"
+
+#: .\templates\customer\processes\process_list.html:108
+msgid "Sort: Title A–Z"
+msgstr "Sortera: Titel A–Ö"
+
+#: .\templates\customer\processes\process_list.html:112
+msgid "Sort: Title Z–A"
+msgstr "Sortera: Titel Ö–A"
+
+#: .\templates\customer\processes\process_list.html:132
+msgid "Show test processes"
+msgstr "Visa testprocesser"
+
+#: .\templates\customer\processes\process_list.html:141
+msgid "Active"
+msgstr "Aktiva"
+
+#: .\templates\customer\processes\process_list.html:151
+msgid "Archived"
+msgstr "Arkiverade"
+
+#: .\templates\customer\processes\process_list.html:160
+msgid "These are the processes you have archived."
+msgstr "Här visas de processer som du har arkiverat."
+
+#: .\templates\customer\processes\process_list.html:215
+msgid "Historical"
+msgstr "Historisk"
+
+#: .\templates\customer\processes\process_list.html:263
+#: .\templates\customer\processes\process_list.html:264
+msgid "Edit"
+msgstr "Redigera"
+
+#: .\templates\customer\processes\process_list.html:275
+msgid "Archive this process?"
+msgstr "Vill du arkivera den här processen?"
+
+#: .\templates\customer\processes\process_list.html:286
+#: .\templates\customer\processes\process_list.html:287
+msgid "Archive"
+msgstr "Arkivera"
+
+#: .\templates\customer\processes\process_list.html:300
+msgid "Restore this process to active processes?"
+msgstr "Vill du återställa den här processen till aktiva processer?"
+
+#: .\templates\customer\processes\process_list.html:311
+#: .\templates\customer\processes\process_list.html:312
+msgid "Restore"
+msgstr "Återställ"
+
+#: .\templates\customer\processes\process_list.html:323
+msgid "Permanently delete this archived process? This cannot be undone."
+msgstr ""
+"Vill du radera den här arkiverade processen permanent? Detta går inte att "
+"ångra."
+
+#: .\templates\customer\processes\process_list.html:334
+#: .\templates\customer\processes\process_list.html:335
+msgid "Delete"
+msgstr "Radera"
+
+#: .\templates\customer\processes\process_list.html:371
+msgid "Historical test data"
+msgstr "Historiska testdata"
+
+#: .\templates\customer\processes\process_list.html:417
+msgid "Candidates:"
+msgstr "Kandidater:"
+
+#: .\templates\customer\processes\process_list.html:439
+msgid "Created:"
+msgstr "Skapad:"
+
+#: .\templates\customer\processes\process_list.html:470
+msgid "No archived test processes"
+msgstr "Inga arkiverade testprocesser"
+
+#: .\templates\customer\processes\process_list.html:474
+msgid "When you archive a process, it will appear here."
+msgstr "När du arkiverar en process visas den här."
+
+#: .\templates\customer\processes\process_list.html:489
+msgid "You do not have any test processes yet"
+msgstr "Du har inga testprocesser ännu"
+
+#: .\templates\customer\processes\process_list.html:493
+msgid "Create a test process to start sending assessments to candidates."
+msgstr "Skapa en testprocess för att börja skicka tester till kandidater."
+
+#: .\templates\customer\processes\process_list.html:500
+msgid "Create your first test process"
+msgstr "Skapa din första testprocess"
+
+#: .\templates\customer\teams\team_detail.html:4
+#: .\templates\customer\teams\team_detail.html:126
+#: .\templates\customer\teams\team_detail.html:143
+msgid "Average"
+msgstr "Genomsnitt"
+
+#: .\templates\customer\teams\team_detail.html:5
+msgid "Maximum"
+msgstr "Maxvärde"
+
+#: .\templates\customer\teams\team_detail.html:17
+#: .\templates\customer\teams\team_form.html:13
+#: .\templates\customer\teams\team_list.html:52
+msgid "Team"
+msgstr "Team"
+
+#: .\templates\customer\teams\team_detail.html:33
+msgid "Candidate team overview."
+msgstr "Översikt över kandidatteamet."
+
+#: .\templates\customer\teams\team_detail.html:54
+msgid "Back to teams"
+msgstr "Tillbaka till team"
+
+#: .\templates\customer\teams\team_detail.html:77
+msgid "Team styles"
+msgstr "Teamstilar"
+
+#: .\templates\customer\teams\team_detail.html:81
+msgid "Composite team style profile"
+msgstr "Sammanvägd teamstilsprofil"
+
+#: .\templates\customer\teams\team_detail.html:85
+msgid "Aggregated team style scores based on imported SOVA personality data."
+msgstr ""
+"Sammanställda teamstilspoäng baserade på importerade personlighetsdata från "
+"SOVA."
+
+#: .\templates\customer\teams\team_detail.html:92
+#, python-format
+msgid "%(available)s / %(total)s with data"
+msgstr "%(available)s / %(total)s med data"
+
+#: .\templates\customer\teams\team_detail.html:106
+msgid "Members with team style data"
+msgstr "Medlemmar med teamstilsdata"
+
+#: .\templates\customer\teams\team_detail.html:111
+#, python-format
+msgid "out of %(total)s team members"
+msgstr "av totalt %(total)s teammedlemmar"
+
+#: .\templates\customer\teams\team_detail.html:120
+msgid "Strongest average style"
+msgstr "Starkaste genomsnittliga teamstil"
+
+#: .\templates\customer\teams\team_detail.html:137
+msgid "Lowest average style"
+msgstr "Lägsta genomsnittliga teamstil"
+
+#: .\templates\customer\teams\team_detail.html:159
+msgid "Average profile"
+msgstr "Genomsnittsprofil"
+
+#: .\templates\customer\teams\team_detail.html:163
+msgid "Average score across selected team members."
+msgstr "Genomsnittlig poäng för de valda teammedlemmarna."
+
+#: .\templates\customer\teams\team_detail.html:177
+msgid "Ranked averages"
+msgstr "Rangordnade genomsnitt"
+
+#: .\templates\customer\teams\team_detail.html:181
+msgid "Team styles ordered by average score."
+msgstr "Teamstilar sorterade efter genomsnittlig poäng."
+
+#: .\templates\customer\teams\team_detail.html:219
+msgid "No team style data is available for the candidates in this team yet."
+msgstr "Det finns ännu ingen teamstilsdata för kandidaterna i det här teamet."
+
+#: .\templates\customer\teams\team_detail.html:237
+msgid "Composite team styles · Maximum"
+msgstr "Sammanvägda teamstilar · Maxvärde"
+
+#: .\templates\customer\teams\team_detail.html:241
+msgid "Highest score found in the team for each style."
+msgstr "Den högsta poängen i teamet för varje teamstil."
+
+#: .\templates\customer\teams\team_detail.html:282
+msgid "Most and least preferred styles"
+msgstr "Mest och minst föredragna teamstilar"
+
+#: .\templates\customer\teams\team_detail.html:286
+msgid "Team members with the highest and lowest score for each style."
+msgstr "Teammedlemmarna med högst och lägst poäng för varje teamstil."
+
+#: .\templates\customer\teams\team_detail.html:295
+msgid "Team style"
+msgstr "Teamstil"
+
+#: .\templates\customer\teams\team_detail.html:296
+msgid "Most preferred"
+msgstr "Mest föredragen"
+
+#: .\templates\customer\teams\team_detail.html:297
+msgid "Least preferred"
+msgstr "Minst föredragen"
+
+#: .\templates\customer\teams\team_detail.html:363
+msgid "Team member profiles"
+msgstr "Teammedlemmarnas profiler"
+
+#: .\templates\customer\teams\team_detail.html:367
+msgid "Individual team style scores for each team member."
+msgstr "Individuella teamstilspoäng för varje teammedlem."
+
+#: .\templates\customer\teams\team_detail.html:377
+msgid "Member"
+msgstr "Medlem"
+
+#: .\templates\customer\teams\team_detail.html:434
+msgid "Candidates in this team"
+msgstr "Kandidater i teamet"
+
+#: .\templates\customer\teams\team_detail.html:438
+msgid "Candidates can belong to several teams, across different processes."
+msgstr "Kandidater kan tillhöra flera team i olika processer."
+
+#: .\templates\customer\teams\team_detail.html:447
+msgid "Add candidates"
+msgstr "Lägg till kandidater"
+
+#: .\templates\customer\teams\team_detail.html:457
+#: .\templates\customer\teams\team_members_edit.html:88
+#: .\templates\shared\_settings_content.html:208
+msgid "Email"
+msgstr "E-post"
+
+#: .\templates\customer\teams\team_detail.html:458
+msgid "Role in team"
+msgstr "Roll i teamet"
+
+#: .\templates\customer\teams\team_detail.html:459
+msgid "Source"
+msgstr "Källa"
+
+#: .\templates\customer\teams\team_detail.html:460
+msgid "Added"
+msgstr "Tillagd"
+
+#: .\templates\customer\teams\team_detail.html:506
+msgid "No candidates have been added to this team yet."
+msgstr "Inga kandidater har lagts till i teamet ännu."
+
+#: .\templates\customer\teams\team_form.html:24
+msgid "Update this team’s name and description."
+msgstr "Uppdatera teamets namn och beskrivning."
+
+#: .\templates\customer\teams\team_form.html:30
+msgid "Create a team to group candidates across different test processes."
+msgstr "Skapa ett team för att samla kandidater från olika testprocesser."
+
+#: .\templates\customer\teams\team_form.html:69
+msgid "Team name"
+msgstr "Teamnamn"
+
+#: .\templates\customer\teams\team_form.html:94
+#: .\templates\customer\teams\team_list.html:53
+msgid "Description"
+msgstr "Beskrivning"
+
+#: .\templates\customer\teams\team_list.html:23
+msgid "Create and manage candidate teams across processes."
+msgstr "Skapa och hantera kandidatteam i olika processer."
+
+#: .\templates\customer\teams\team_list.html:54
+msgid "Members"
+msgstr "Medlemmar"
+
+#: .\templates\customer\teams\team_list.html:91
+msgid "No description"
+msgstr "Ingen beskrivning"
+
+#: .\templates\customer\teams\team_list.html:103
+#, python-format
+msgid ""
+"\n"
+"                    %(member_count)s member\n"
+"                  "
+msgid_plural ""
+"\n"
+"                    %(member_count)s members\n"
+"                  "
+msgstr[0] ""
+"\n"
+"                    %(member_count)s medlem\n"
+"                  "
+msgstr[1] ""
+"\n"
+"                    %(member_count)s medlemmar\n"
+"                  "
+
+#: .\templates\customer\teams\team_list.html:136
+msgid "No teams created yet."
+msgstr "Inga team har skapats ännu."
+
+#: .\templates\customer\teams\team_members_edit.html:15
+msgid "Team members"
+msgstr "Teammedlemmar"
+
+#: .\templates\customer\teams\team_members_edit.html:19
+#, python-format
+msgid "Manage members: %(team_name)s"
+msgstr "Hantera medlemmar: %(team_name)s"
+
+#: .\templates\customer\teams\team_members_edit.html:25
+msgid "Add candidates to this team. Candidates can belong to several teams."
+msgstr "Lägg till kandidater i teamet. Kandidater kan tillhöra flera team."
+
+#: .\templates\customer\teams\team_members_edit.html:35
+msgid "Back to team"
+msgstr "Tillbaka till teamet"
+
+#: .\templates\customer\teams\team_members_edit.html:70
+msgid "Save members"
+msgstr "Spara medlemmar"
+
+#: .\templates\customer\teams\team_members_edit.html:107
+#, python-format
+msgid "Select %(first_name)s %(last_name)s"
+msgstr "Välj %(first_name)s %(last_name)s"
+
+#: .\templates\customer\teams\team_members_edit.html:145
+msgid "No candidates available."
+msgstr "Det finns inga tillgängliga kandidater."
+
+#: .\templates\shared\_settings_content.html:16
+msgid "Manage your profile and security"
+msgstr "Hantera din profil och säkerhet"
+
+#: .\templates\shared\_settings_content.html:57
+msgid "Change profile picture"
+msgstr "Byt profilbild"
+
+#: .\templates\shared\_settings_content.html:65
+msgid "Profile picture"
+msgstr "Profilbild"
+
+#: .\templates\shared\_settings_content.html:74
+msgid "Default profile picture"
+msgstr "Standardprofilbild"
+
+#: .\templates\shared\_settings_content.html:96
+msgid "Upload profile picture"
+msgstr "Ladda upp profilbild"
+
+#: .\templates\shared\_settings_content.html:131
+msgid "Remove profile picture"
+msgstr "Ta bort profilbild"
+
+#: .\templates\shared\_settings_content.html:164
+msgid "First name"
+msgstr "Förnamn"
+
+#: .\templates\shared\_settings_content.html:186
+msgid "Last name"
+msgstr "Efternamn"
+
+#: .\templates\shared\_settings_content.html:255
+msgid "Password"
+msgstr "Lösenord"
+
+#: .\templates\shared\_settings_content.html:259
+msgid "Update your password to keep your account secure."
+msgstr "Uppdatera ditt lösenord för att hålla kontot säkert."
+
+#: .\templates\shared\_settings_content.html:283
+msgid "Current password"
+msgstr "Nuvarande lösenord"
+
+#: .\templates\shared\_settings_content.html:305
+msgid "New password"
+msgstr "Nytt lösenord"
+
+#: .\templates\shared\_settings_content.html:327
+msgid "Confirm new password"
+msgstr "Bekräfta nytt lösenord"
+
+#: .\templates\shared\_settings_content.html:349
+msgid "Update password"
+msgstr "Uppdatera lösenord"

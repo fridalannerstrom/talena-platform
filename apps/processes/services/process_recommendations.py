@@ -1,53 +1,80 @@
+from django.utils.translation import gettext_lazy as _
+
 PROCESS_PURPOSES = [
     {
         "key": "hiring",
-        "label": "Recruitment",
-        "description": "Assess candidates for selection and role fit.",
+        "label": _("Recruitment"),
+        "description": _(
+            "Assess candidates for selection and role fit."
+        ),
     },
     {
         "key": "internal_role_match",
-        "label": "Role match",
-        "description": "Assess how well an employee matches a new or existing role.",
+        "label": _("Role match"),
+        "description": _(
+            "Assess how well an employee matches "
+            "a new or existing role."
+        ),
     },
     {
         "key": "leadership_potential",
-        "label": "Leadership potential",
-        "description": "Explore potential for future leadership roles.",
+        "label": _("Leadership potential"),
+        "description": _(
+            "Explore potential for future leadership roles."
+        ),
     },
     {
         "key": "career_path",
-        "label": "Career path",
-        "description": "Understand possible development and career directions.",
+        "label": _("Career path"),
+        "description": _(
+            "Understand possible development "
+            "and career directions."
+        ),
     },
     {
         "key": "onboarding",
-        "label": "Onboarding",
-        "description": "Understand how to support a person from the start.",
+        "label": _("Onboarding"),
+        "description": _(
+            "Understand how to support a person from the start."
+        ),
     },
     {
         "key": "employee_development",
-        "label": "Employee development",
-        "description": "Create a foundation for coaching and individual growth.",
+        "label": _("Employee development"),
+        "description": _(
+            "Create a foundation for coaching "
+            "and individual growth."
+        ),
     },
     {
         "key": "leader_development",
-        "label": "Leader development",
-        "description": "Create a foundation for leadership development and reflection.",
+        "label": _("Leader development"),
+        "description": _(
+            "Create a foundation for leadership "
+            "development and reflection."
+        ),
     },
     {
         "key": "team_development",
-        "label": "Team development",
-        "description": "Explore drivers, behaviours and team patterns.",
+        "label": _("Team development"),
+        "description": _(
+            "Explore drivers, behaviours and team patterns."
+        ),
     },
     {
         "key": "reorganisation",
-        "label": "Reorganisation",
-        "description": "Support change, role distribution or internal transition.",
+        "label": _("Reorganisation"),
+        "description": _(
+            "Support change, role distribution "
+            "or internal transition."
+        ),
     },
     {
         "key": "unsure",
-        "label": "Flexible process",
-        "description": "Create a process without a defined purpose.",
+        "label": _("Flexible process"),
+        "description": _(
+            "Create a process without a defined purpose."
+        ),
     },
 ]
 
@@ -67,36 +94,50 @@ PURPOSE_RECOMMENDED_TESTS = {
 AVAILABLE_TESTS = [
     {
         "key": "personality",
-        "label": "Personality",
+        "label": _("Personality"),
         "short_label": "PQ",
-        "description": "Understand behavioural style, strengths, risks and role fit.",
+        "description": _(
+            "Understand behavioural style, strengths, "
+            "risks and role fit."
+        ),
     },
     {
         "key": "motivation",
-        "label": "Motivation",
+        "label": _("Motivation"),
         "short_label": "MQ",
-        "description": "Understand what drives the person and what environment supports performance.",
+        "description": _(
+            "Understand what drives the person and what "
+            "environment supports performance."
+        ),
     },
     {
         "key": "verbal",
-        "label": "Verbal",
-        "short_label": "Verbal",
-        "description": "Useful when the role requires reading, interpreting or communicating complex information.",
+        "label": _("Verbal"),
+        "short_label": _("Verbal"),
+        "description": _(
+            "Useful when the role requires reading, "
+            "interpreting or communicating complex information."
+        ),
     },
     {
         "key": "logical",
-        "label": "Logical",
-        "short_label": "Logical",
-        "description": "Useful when the role requires problem-solving, structure and analytical thinking.",
+        "label": _("Logical"),
+        "short_label": _("Logical"),
+        "description": _(
+            "Useful when the role requires problem-solving, "
+            "structure and analytical thinking."
+        ),
     },
     {
         "key": "numerical",
-        "label": "Numerical",
-        "short_label": "Numerical",
-        "description": "Useful when the role involves numbers, data, finance, reporting or analysis.",
+        "label": _("Numerical"),
+        "short_label": _("Numerical"),
+        "description": _(
+            "Useful when the role involves numbers, data, "
+            "finance, reporting or analysis."
+        ),
     },
 ]
-
 
 def get_recommended_tests_for_purpose(purpose):
     return PURPOSE_RECOMMENDED_TESTS.get(purpose, [])
@@ -220,7 +261,10 @@ def resolve_sova_template(selected_tests, template_cards):
 
 def build_default_process_name(purpose, selected_tests):
     purpose_lookup = {item["key"]: item["label"] for item in PROCESS_PURPOSES}
-    purpose_label = purpose_lookup.get(purpose, "Test process")
+    purpose_label = purpose_lookup.get(
+        purpose,
+        _("Test process"),
+    )
 
     test_labels = []
     for test in AVAILABLE_TESTS:

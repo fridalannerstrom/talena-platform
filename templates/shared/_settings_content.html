@@ -1,178 +1,410 @@
-{% load static %}
+{% load static i18n %}
 
 <div class="container-fluid px-2 px-md-3">
+
+  <!-- Header -->
+
   <div class="d-flex align-items-start justify-content-between mb-4">
+
     <div>
-      <h2 class="h4 mb-1">Account settings</h2>
-      <div class="text-muted">Manage your profile and security</div>
+
+      <h2 class="h4 mb-1">
+        {% trans "Account settings" %}
+      </h2>
+
+      <div class="text-muted">
+        {% trans "Manage your profile and security" %}
+      </div>
+
     </div>
+
   </div>
+
 
   <div class="row g-4">
 
-    <!-- LEFT: Profile settings -->
+    <!-- Profile settings -->
+
     <div class="col-12 col-lg-6">
+
       <div class="card h-100">
+
         <div class="card-body p-4">
 
-          <!-- AVATAR FORM separate, not inside other forms -->
+          <!-- Profile picture -->
+
           <div class="d-flex flex-column align-items-center text-center mb-4">
 
-            <form id="avatarForm" method="post" enctype="multipart/form-data" class="avatar-form">
-              {% csrf_token %}
-              <input type="hidden" name="form_type" value="avatar">
+            <form
+              id="avatarForm"
+              method="post"
+              enctype="multipart/form-data"
+              class="avatar-form"
+            >
 
-              <label class="avatar-click" for="id_avatar_image" title="Change profile picture">
+              {% csrf_token %}
+
+              <input
+                type="hidden"
+                name="form_type"
+                value="avatar"
+              >
+
+
+              <label
+                class="avatar-click"
+                for="id_avatar_image"
+                title="{% trans 'Change profile picture' %}"
+              >
+
                 {% if request.user.profile.image %}
-                  <img id="avatarPreview" src="{{ request.user.profile.image.url }}" alt="Profile picture" class="avatar-img">
+
+                  <img
+                    id="avatarPreview"
+                    src="{{ request.user.profile.image.url }}"
+                    alt="{% trans 'Profile picture' %}"
+                    class="avatar-img"
+                  >
+
                 {% else %}
-                  <img id="avatarPreview" src="{% static 'images/avatar-default.png' %}" alt="Default profile picture" class="avatar-img">
+
+                  <img
+                    id="avatarPreview"
+                    src="{% static 'images/avatar-default.png' %}"
+                    alt="{% trans 'Default profile picture' %}"
+                    class="avatar-img"
+                  >
+
                 {% endif %}
 
-                <span class="avatar-camera" aria-hidden="true">
+
+                <span
+                  class="avatar-camera"
+                  aria-hidden="true"
+                >
                   <i class="fa-solid fa-camera"></i>
                 </span>
+
               </label>
+
 
               <input
                 id="id_avatar_image"
                 type="file"
                 name="image"
                 accept="image/jpeg,image/png,image/webp"
+                aria-label="{% trans 'Upload profile picture' %}"
                 class="d-none"
               >
 
+
               {% for err in image_form.image.errors %}
-                <div class="text-danger small mt-2">{{ err }}</div>
+
+                <div class="text-danger small mt-2">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </form>
 
+
             {% if request.user.profile.image %}
-              <form method="post" class="mt-2">
+
+              <form
+                method="post"
+                class="mt-2"
+              >
+
                 {% csrf_token %}
-                <input type="hidden" name="form_type" value="remove_avatar">
-                <button type="submit" class="btn btn-link btn-sm text-danger p-0">
-                  Remove profile picture
+
+                <input
+                  type="hidden"
+                  name="form_type"
+                  value="remove_avatar"
+                >
+
+                <button
+                  type="submit"
+                  class="btn btn-link btn-sm text-danger p-0"
+                >
+                  {% trans "Remove profile picture" %}
                 </button>
+
               </form>
+
             {% endif %}
+
           </div>
 
-          <!-- PROFILE FORM separate -->
-          <form method="post" class="row g-3" enctype="multipart/form-data">
+
+          <!-- Profile form -->
+
+          <form
+            method="post"
+            class="row g-3"
+            enctype="multipart/form-data"
+          >
+
             {% csrf_token %}
-            <input type="hidden" name="form_type" value="profile">
+
+            <input
+              type="hidden"
+              name="form_type"
+              value="profile"
+            >
+
 
             <div class="col-12 col-md-6">
-              <label class="form-label small text-muted">First name</label>
+
+              <label
+                class="form-label small text-muted"
+                for="{{ account_form.first_name.id_for_label }}"
+              >
+                {% trans "First name" %}
+              </label>
+
               {{ account_form.first_name }}
+
               {% for err in account_form.first_name.errors %}
-                <div class="text-danger small">{{ err }}</div>
+
+                <div class="text-danger small">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
 
+
             <div class="col-12 col-md-6">
-              <label class="form-label small text-muted">Last name</label>
+
+              <label
+                class="form-label small text-muted"
+                for="{{ account_form.last_name.id_for_label }}"
+              >
+                {% trans "Last name" %}
+              </label>
+
               {{ account_form.last_name }}
+
               {% for err in account_form.last_name.errors %}
-                <div class="text-danger small">{{ err }}</div>
+
+                <div class="text-danger small">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
+
 
             <div class="col-12">
-              <label class="form-label small text-muted">Email</label>
+
+              <label
+                class="form-label small text-muted"
+                for="{{ account_form.email.id_for_label }}"
+              >
+                {% trans "Email" %}
+              </label>
+
               <div class="input-group">
                 {{ account_form.email }}
               </div>
+
               {% for err in account_form.email.errors %}
-                <div class="text-danger small mt-1">{{ err }}</div>
+
+                <div class="text-danger small mt-1">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
 
+
             <div class="col-12 pt-2">
-              <button class="btn btn-primary" type="submit">Save changes</button>
+
+              <button
+                class="btn btn-primary"
+                type="submit"
+              >
+                {% trans "Save changes" %}
+              </button>
+
             </div>
+
           </form>
 
         </div>
+
       </div>
+
     </div>
 
-    <!-- RIGHT: Password settings -->
-    <div class="col-12 col-lg-6">
-      <div class="card h-100">
-        <div class="card-body p-4">
-          <h6 class="mb-1">Password</h6>
-          <div class="text-muted small mb-3">Update your password to keep your account secure.</div>
 
-          <form method="post" class="row g-3">
+    <!-- Password settings -->
+
+    <div class="col-12 col-lg-6">
+
+      <div class="card h-100">
+
+        <div class="card-body p-4">
+
+          <h6 class="mb-1">
+            {% trans "Password" %}
+          </h6>
+
+          <div class="text-muted small mb-3">
+            {% trans "Update your password to keep your account secure." %}
+          </div>
+
+
+          <form
+            method="post"
+            class="row g-3"
+          >
+
             {% csrf_token %}
-            <input type="hidden" name="form_type" value="password">
+
+            <input
+              type="hidden"
+              name="form_type"
+              value="password"
+            >
+
 
             <div class="col-12">
-              <label class="form-label small text-muted" for="{{ password_form.old_password.id_for_label }}">
-                Current password
+
+              <label
+                class="form-label small text-muted"
+                for="{{ password_form.old_password.id_for_label }}"
+              >
+                {% trans "Current password" %}
               </label>
+
               {{ password_form.old_password }}
+
               {% for err in password_form.old_password.errors %}
-                <div class="text-danger small mt-1">{{ err }}</div>
+
+                <div class="text-danger small mt-1">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
 
+
             <div class="col-md-6">
-              <label class="form-label small text-muted" for="{{ password_form.new_password1.id_for_label }}">
-                New password
+
+              <label
+                class="form-label small text-muted"
+                for="{{ password_form.new_password1.id_for_label }}"
+              >
+                {% trans "New password" %}
               </label>
+
               {{ password_form.new_password1 }}
+
               {% for err in password_form.new_password1.errors %}
-                <div class="text-danger small mt-1">{{ err }}</div>
+
+                <div class="text-danger small mt-1">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
 
+
             <div class="col-md-6">
-              <label class="form-label small text-muted" for="{{ password_form.new_password2.id_for_label }}">
-                Confirm new password
+
+              <label
+                class="form-label small text-muted"
+                for="{{ password_form.new_password2.id_for_label }}"
+              >
+                {% trans "Confirm new password" %}
               </label>
+
               {{ password_form.new_password2 }}
+
               {% for err in password_form.new_password2.errors %}
-                <div class="text-danger small mt-1">{{ err }}</div>
+
+                <div class="text-danger small mt-1">
+                  {{ err }}
+                </div>
+
               {% endfor %}
+
             </div>
+
 
             <div class="col-12 pt-2">
-              <button class="btn btn-primary" type="submit">Update password</button>
+
+              <button
+                class="btn btn-primary"
+                type="submit"
+              >
+                {% trans "Update password" %}
+              </button>
+
             </div>
+
           </form>
 
         </div>
+
       </div>
+
     </div>
 
   </div>
+
 </div>
 
+
 <script>
-  // Add Bootstrap classes to password fields as well, since PasswordChangeForm is not your ModelForm
-  document.querySelectorAll("input[type='password']").forEach(el => el.classList.add("form-control"));
+  document
+    .querySelectorAll("input[type='password']")
+    .forEach(function (element) {
+      element.classList.add("form-control");
+    });
 </script>
+
 
 <script>
   (function () {
-    const input = document.getElementById("id_avatar_image");
-    const form = document.getElementById("avatarForm");
-    const preview = document.getElementById("avatarPreview");
-    if (!input || !form || !preview) return;
+    const input =
+      document.getElementById("id_avatar_image");
 
-    input.addEventListener("change", function () {
-      const file = input.files && input.files[0];
-      if (!file) return;
+    const form =
+      document.getElementById("avatarForm");
 
-      // 1) Show the image immediately as a preview
-      const url = URL.createObjectURL(file);
-      preview.src = url;
+    const preview =
+      document.getElementById("avatarPreview");
 
-      // 2) Auto-save immediately with POST
-      form.submit();
-    });
+    if (!input || !form || !preview) {
+      return;
+    }
+
+    input.addEventListener(
+      "change",
+      function () {
+        const file =
+          input.files && input.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        const url =
+          URL.createObjectURL(file);
+
+        preview.src = url;
+
+        form.submit();
+      }
+    );
   })();
 </script>

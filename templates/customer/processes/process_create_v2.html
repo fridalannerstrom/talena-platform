@@ -1,29 +1,53 @@
 {% extends "customer/core/layouts/customer_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block content %}
+
+{% trans "Recommended" as js_recommended %}
+{% trans "Optional" as js_optional %}
+{% trans "No tests selected" as js_no_tests_selected %}
+{% trans "Not selected" as js_not_selected %}
+{% trans "Test process" as js_test_process %}
+
+{% trans "Please select a purpose before continuing." as js_select_purpose_before_continuing %}
+{% trans "Please select at least one test before continuing." as js_select_test_before_continuing %}
+{% trans "Please select a purpose first." as js_select_purpose_first %}
+{% trans "Please select at least one test first." as js_select_test_first %}
+{% trans "Please select a purpose." as js_select_purpose %}
+{% trans "Please select at least one test." as js_select_test %}
+
 
 <div class="container-fluid px-3 px-md-4">
 
   <!-- PAGE HEADER -->
   <div class="d-flex align-items-start justify-content-between mb-4">
     <div>
-      <div class="text-muted small mb-1">Test processes</div>
-      <h1 class="h3 mb-1">Create test process</h1>
-      <p class="text-muted mb-0">
-        Choose why you are creating this process, then Talena will recommend a suitable assessment setup.
-      </p>
+<div class="text-muted small mb-1">
+  {% trans "Test processes" %}
+</div>
+
+<h1 class="h3 mb-1">
+  {% trans "Create test process" %}
+</h1>
+
+<p class="text-muted mb-0">
+  {% trans "Choose why you are creating this process, then Talena will recommend a suitable assessment setup." %}
+</p>
     </div>
 
-    <a href="{% url 'processes:process_list' %}" class="btn btn-outline-secondary btn-sm">
-      Back to processes
-    </a>
+<a
+  href="{% url 'processes:process_list' %}"
+  class="btn btn-outline-secondary btn-sm"
+>
+  {% trans "Back to processes" %}
+</a>
   </div>
 
   {% if error %}
-    <div class="alert alert-warning">
-      Could not load Sova projects: {{ error }}
-    </div>
+<div class="alert alert-warning">
+  {% trans "Could not load Sova projects:" %}
+  {{ error }}
+</div>
   {% endif %}
 
   {% if form.non_field_errors %}
@@ -39,14 +63,19 @@
     <div class="talena-wizard">
 
       <!-- STEP INDICATOR -->
-<div class="wizard-progress mb-4" aria-label="Create process steps">
+<div
+  class="wizard-progress mb-4"
+  aria-label="{% trans 'Create process steps' %}"
+>
   <button type="button" class="wizard-progress-step active" data-step-target="1">
     <span class="wizard-progress-line"></span>
     <span class="wizard-progress-meta">
       <span class="wizard-progress-dot">
         <i class="fa-solid fa-check"></i>
       </span>
-      <span class="wizard-progress-label">Purpose</span>
+      <span class="wizard-progress-label">
+  {% trans "Purpose" %}
+</span>
     </span>
   </button>
 
@@ -56,7 +85,9 @@
       <span class="wizard-progress-dot">
         <i class="fa-solid fa-check"></i>
       </span>
-      <span class="wizard-progress-label">Tests</span>
+      <span class="wizard-progress-label">
+  {% trans "Tests" %}
+</span>
     </span>
   </button>
 
@@ -66,7 +97,9 @@
       <span class="wizard-progress-dot">
         <i class="fa-solid fa-check"></i>
       </span>
-      <span class="wizard-progress-label">Details</span>
+      <span class="wizard-progress-label">
+  {% trans "Details" %}
+</span>
     </span>
   </button>
 </div>
@@ -77,10 +110,13 @@
           <div class="card-body p-4">
 
             <div class="mb-4">
-              <h2 class="h4 mb-1">Why are you creating this process?</h2>
-              <p class="text-muted mb-0">
-                This helps Talena suggest the right test combination and later adapt the report.
-              </p>
+<h2 class="h4 mb-1">
+  {% trans "Why are you creating this process?" %}
+</h2>
+
+<p class="text-muted mb-0">
+  {% trans "This helps Talena suggest the right test combination and later adapt the report." %}
+</p>
             </div>
 
             {% if form.purpose.errors %}
@@ -141,9 +177,13 @@
 
             <div class="wizard-actions mt-4">
               <div></div>
-              <button type="button" class="btn btn-primary" data-next-step>
-                Continue
-              </button>
+<button
+  type="button"
+  class="btn btn-primary"
+  data-next-step
+>
+  {% trans "Continue" %}
+</button>
             </div>
 
           </div>
@@ -156,10 +196,13 @@
           <div class="card-body p-4">
 
             <div class="mb-4">
-              <h2 class="h4 mb-1">Choose tests</h2>
-              <p class="text-muted mb-0">
-                Talena has preselected recommended tests based on your purpose, but you can adjust the selection.
-              </p>
+<h2 class="h4 mb-1">
+  {% trans "Choose tests" %}
+</h2>
+
+<p class="text-muted mb-0">
+  {% trans "Talena has preselected recommended tests based on your purpose, but you can adjust the selection." %}
+</p>
             </div>
 
             {% if form.selected_tests.errors %}
@@ -199,8 +242,11 @@
             <i class="fa-solid fa-check"></i>
           </span>
         </div>
-<div class="test-guidance-badge js-test-badge" data-recommended-for="{{ test.key }}">
-  Optional
+<div
+  class="test-guidance-badge js-test-badge"
+  data-recommended-for="{{ test.key }}"
+>
+  {% trans "Optional" %}
 </div>
 <div class="test-card-copy">
   <h3>{{ test.label }}</h3>
@@ -222,30 +268,37 @@
     </div>
 
     <div>
-      <div class="small text-muted mb-1">
-        Selected assessment setup
-      </div>
+<div class="small text-muted mb-1">
+  {% trans "Selected assessment setup" %}
+</div>
 
-      <strong id="currentSovaSetupLabel">
-        No tests selected
-      </strong>
+<strong id="currentSovaSetupLabel">
+  {% trans "No tests selected" %}
+</strong>
 
-      <p class="mb-0 text-muted small">
-        Talena will automatically connect this test combination
-        to the corresponding Sova project.
-      </p>
+<p class="mb-0 text-muted small">
+  {% trans "Talena will automatically connect this test combination to the corresponding Sova project." %}
+</p>
     </div>
   </div>
 </div>
 
             <div class="wizard-actions mt-4">
-              <button type="button" class="btn btn-outline-secondary" data-prev-step>
-                Back
-              </button>
+<button
+  type="button"
+  class="btn btn-outline-secondary"
+  data-prev-step
+>
+  {% trans "Back" %}
+</button>
 
-              <button type="button" class="btn btn-primary" data-next-step>
-                Continue
-              </button>
+<button
+  type="button"
+  class="btn btn-primary"
+  data-next-step
+>
+  {% trans "Continue" %}
+</button>
             </div>
 
           </div>
@@ -258,63 +311,84 @@
           <div class="card-body p-4">
 
             <div class="mb-4">
-              <h2 class="h4 mb-1">Name and organize</h2>
-              <p class="text-muted mb-0">
-                Give the process an internal name and add labels if you want to organize it by department, role or project.
-              </p>
+<h2 class="h4 mb-1">
+  {% trans "Name and organize" %}
+</h2>
+
+<p class="text-muted mb-0">
+  {% trans "Give the process an internal name and add labels if you want to organize it by department, role or project." %}
+</p>
             </div>
 
             <div class="row g-4">
 
               <div class="col-12 col-lg-7">
-                <label class="form-label">Process name</label>
+                <label
+  class="form-label"
+  for="processNameInput"
+>
+  {% trans "Process name" %}
+</label>
                 <input
                   type="text"
                   name="name"
                   id="processNameInput"
                   class="form-control form-control-lg"
                   value="{{ form.name.value|default:'' }}"
-                  placeholder="Process name"
+                  placeholder="{% trans 'Process name' %}"
                 >
 
                 {% if form.name.errors %}
                   <div class="text-danger small mt-1">{{ form.name.errors }}</div>
                 {% endif %}
 
-                <div class="form-text">
-                  This is only used internally. You can leave it empty and Talena will create a name.
-                </div>
+<div class="form-text">
+  {% trans "This is only used internally. You can leave it empty and Talena will create a name." %}
+</div>
               </div>
 
               <div class="col-12 col-lg-5">
-                <label class="form-label">Labels</label>
-                <input
-                  type="text"
-                  name="labels_text"
-                  class="form-control form-control-lg"
+                <label
+  class="form-label"
+  for="processLabelsInput"
+>
+  {% trans "Labels" %}
+</label>
+<input
+  type="text"
+  name="labels_text"
+  id="processLabelsInput"
+  class="form-control form-control-lg"
                   value="{{ form.labels_text.value|default:'' }}"
-                  placeholder="e.g. Sales, Stockholm, Graduate"
+                  placeholder="{% trans 'e.g. Sales, Stockholm, Graduate' %}"
                 >
 
                 {% if form.labels_text.errors %}
                   <div class="text-danger small mt-1">{{ form.labels_text.errors }}</div>
                 {% endif %}
 
-                <div class="form-text">
-                  Separate labels with commas.
-                </div>
+<div class="form-text">
+  {% trans "Separate labels with commas." %}
+</div>
               </div>
 
             </div>
 
             <div class="wizard-actions mt-4">
-              <button type="button" class="btn btn-outline-secondary" data-prev-step>
-                Back
-              </button>
+<button
+  type="button"
+  class="btn btn-outline-secondary"
+  data-prev-step
+>
+  {% trans "Back" %}
+</button>
 
-              <button type="submit" class="btn btn-primary">
-                Create process
-              </button>
+<button
+  type="submit"
+  class="btn btn-primary"
+>
+  {% trans "Create process" %}
+</button>
             </div>
 
           </div>
@@ -783,6 +857,32 @@
   document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("processCreateWizardForm");
 
+    const I18N = {
+  recommended: "{{ js_recommended|escapejs }}",
+  optional: "{{ js_optional|escapejs }}",
+  noTestsSelected: "{{ js_no_tests_selected|escapejs }}",
+  notSelected: "{{ js_not_selected|escapejs }}",
+  testProcess: "{{ js_test_process|escapejs }}",
+
+  selectPurposeBeforeContinuing:
+    "{{ js_select_purpose_before_continuing|escapejs }}",
+
+  selectTestBeforeContinuing:
+    "{{ js_select_test_before_continuing|escapejs }}",
+
+  selectPurposeFirst:
+    "{{ js_select_purpose_first|escapejs }}",
+
+  selectTestFirst:
+    "{{ js_select_test_first|escapejs }}",
+
+  selectPurpose:
+    "{{ js_select_purpose|escapejs }}",
+
+  selectTest:
+    "{{ js_select_test|escapejs }}"
+};
+
     const recommendedByPurpose = JSON.parse(
       document.getElementById("purposeRecommendedTestsData").textContent
     );
@@ -805,247 +905,245 @@
       testLabelMap[test.key] = test.short_label || test.label;
     });
 
-    const TEST_GUIDANCE_BY_PURPOSE = {
-    hiring: {
-      personality: {
-        recommended: "Helps assess behavioural style, strengths, risks and role fit in a selection context.",
-        optional: "Add Personality if you want deeper insight into behavioural style, strengths and potential role fit."
-      },
-      motivation: {
-        recommended: "Shows what drives the candidate and what kind of work environment supports performance and retention.",
-        optional: "Add Motivation if you want to understand what will keep the candidate engaged and performing over time."
-      },
-      verbal: {
-        recommended: "Adds insight into how the candidate understands, interprets and communicates written information.",
-        optional: "Add Verbal if the role requires reading, interpreting or communicating complex written information."
-      },
-      logical: {
-        recommended: "Adds insight into problem-solving, structure and analytical thinking relevant to the role.",
-        optional: "Add Logical if the role requires problem-solving, structure, analysis or complex decision-making."
-      },
-      numerical: {
-        recommended: "Adds insight into how the candidate handles numbers, data, finance, reporting or analysis.",
-        optional: "Add Numerical if the role involves numbers, data, finance, reporting, KPIs or analysis."
-      }
+const TEST_GUIDANCE_BY_PURPOSE = {
+  hiring: {
+    personality: {
+      recommended: "{% trans 'Helps assess behavioural style, strengths, risks and role fit in a selection context.' %}",
+      optional: "{% trans 'Add Personality if you want deeper insight into behavioural style, strengths and potential role fit.' %}"
     },
+    motivation: {
+      recommended: "{% trans 'Shows what drives the candidate and what kind of work environment supports performance and retention.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what will keep the candidate engaged and performing over time.' %}"
+    },
+    verbal: {
+      recommended: "{% trans 'Adds insight into how the candidate understands, interprets and communicates written information.' %}",
+      optional: "{% trans 'Add Verbal if the role requires reading, interpreting or communicating complex written information.' %}"
+    },
+    logical: {
+      recommended: "{% trans 'Adds insight into problem-solving, structure and analytical thinking relevant to the role.' %}",
+      optional: "{% trans 'Add Logical if the role requires problem-solving, structure, analysis or complex decision-making.' %}"
+    },
+    numerical: {
+      recommended: "{% trans 'Adds insight into how the candidate handles numbers, data, finance, reporting or analysis.' %}",
+      optional: "{% trans 'Add Numerical if the role involves numbers, data, finance, reporting, KPIs or analysis.' %}"
+    }
+  },
 
   internal_role_match: {
     personality: {
-      recommended: "Helps compare behavioural style with the demands of a specific role or future position.",
-      optional: "Add Personality if you want to understand how the person’s working style fits the role."
+      recommended: "{% trans 'Helps compare behavioural style with the demands of a specific role or future position.' %}",
+      optional: "{% trans 'Add Personality if you want to understand how the person’s working style fits the role.' %}"
     },
     motivation: {
-      recommended: "Shows whether the role is likely to match what motivates and energises the person.",
-      optional: "Add Motivation if you want to see whether the role is likely to feel engaging and sustainable."
+      recommended: "{% trans 'Shows whether the role is likely to match what motivates and energises the person.' %}",
+      optional: "{% trans 'Add Motivation if you want to see whether the role is likely to feel engaging and sustainable.' %}"
     },
     verbal: {
-      recommended: "Useful when the role requires reading, interpreting or communicating complex information.",
-      optional: "Add Verbal if the role includes written communication, documentation or complex information."
+      recommended: "{% trans 'Useful when the role requires reading, interpreting or communicating complex information.' %}",
+      optional: "{% trans 'Add Verbal if the role includes written communication, documentation or complex information.' %}"
     },
     logical: {
-      recommended: "Useful when the role requires structured problem-solving and analytical decision-making.",
-      optional: "Add Logical if the role requires analysis, structure, prioritisation or problem-solving."
+      recommended: "{% trans 'Useful when the role requires structured problem-solving and analytical decision-making.' %}",
+      optional: "{% trans 'Add Logical if the role requires analysis, structure, prioritisation or problem-solving.' %}"
     },
     numerical: {
-      recommended: "Useful when the role involves numbers, data, finance, reporting or analysis.",
-      optional: "Add Numerical if the role includes reports, budgets, KPIs, data or financial information."
+      recommended: "{% trans 'Useful when the role involves numbers, data, finance, reporting or analysis.' %}",
+      optional: "{% trans 'Add Numerical if the role includes reports, budgets, KPIs, data or financial information.' %}"
     }
   },
 
   leadership_potential: {
     personality: {
-      recommended: "Helps identify behavioural strengths, leadership potential and possible risk areas in future leadership roles.",
-      optional: "Add Personality if you want to explore behavioural leadership potential and possible risk areas."
+      recommended: "{% trans 'Helps identify behavioural strengths, leadership potential and possible risk areas in future leadership roles.' %}",
+      optional: "{% trans 'Add Personality if you want to explore behavioural leadership potential and possible risk areas.' %}"
     },
     motivation: {
-      recommended: "Shows what drives the person and whether leadership responsibility is likely to feel energising.",
-      optional: "Add Motivation if you want to understand whether leadership responsibility is likely to motivate the person."
+      recommended: "{% trans 'Shows what drives the person and whether leadership responsibility is likely to feel energising.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand whether leadership responsibility is likely to motivate the person.' %}"
     },
     verbal: {
-      recommended: "Adds insight into how the person understands and communicates complex information.",
-      optional: "Add Verbal if future leadership roles require communication, written information or stakeholder updates."
+      recommended: "{% trans 'Adds insight into how the person understands and communicates complex information.' %}",
+      optional: "{% trans 'Add Verbal if future leadership roles require communication, written information or stakeholder updates.' %}"
     },
     logical: {
-      recommended: "Adds insight into analytical thinking, problem-solving and decision-making potential.",
-      optional: "Add Logical if the future leadership role involves complex decisions, strategy or problem-solving."
+      recommended: "{% trans 'Adds insight into analytical thinking, problem-solving and decision-making potential.' %}",
+      optional: "{% trans 'Add Logical if the future leadership role involves complex decisions, strategy or problem-solving.' %}"
     },
     numerical: {
-      recommended: "Useful if the future leadership role includes budgets, KPIs, reporting or data-driven decisions.",
-      optional: "Add Numerical if future leadership responsibilities include budgets, KPIs, data or business reporting."
+      recommended: "{% trans 'Useful if the future leadership role includes budgets, KPIs, reporting or data-driven decisions.' %}",
+      optional: "{% trans 'Add Numerical if future leadership responsibilities include budgets, KPIs, data or business reporting.' %}"
     }
   },
 
   career_path: {
     personality: {
-      recommended: "Helps identify natural working style, strengths and development areas that may guide future career direction.",
-      optional: "Add Personality if you want to map natural strengths, working style and possible development paths."
+      recommended: "{% trans 'Helps identify natural working style, strengths and development areas that may guide future career direction.' %}",
+      optional: "{% trans 'Add Personality if you want to map natural strengths, working style and possible development paths.' %}"
     },
     motivation: {
-      recommended: "Shows what kind of tasks, environments and responsibilities are most likely to create engagement.",
-      optional: "Add Motivation if you want to understand what type of work and environment may suit the person long term."
+      recommended: "{% trans 'Shows what kind of tasks, environments and responsibilities are most likely to create engagement.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what type of work and environment may suit the person long term.' %}"
     },
     verbal: {
-      recommended: "Adds insight into whether communication-heavy or information-rich roles may suit the person.",
-      optional: "Add Verbal if you want to explore whether communication-heavy or information-rich roles may be suitable."
+      recommended: "{% trans 'Adds insight into whether communication-heavy or information-rich roles may suit the person.' %}",
+      optional: "{% trans 'Add Verbal if you want to explore whether communication-heavy or information-rich roles may be suitable.' %}"
     },
     logical: {
-      recommended: "Adds insight into whether analytical, strategic or problem-solving roles may suit the person.",
-      optional: "Add Logical if you want to explore analytical, strategic or problem-solving career directions."
+      recommended: "{% trans 'Adds insight into whether analytical, strategic or problem-solving roles may suit the person.' %}",
+      optional: "{% trans 'Add Logical if you want to explore analytical, strategic or problem-solving career directions.' %}"
     },
     numerical: {
-      recommended: "Adds insight into whether data, finance, reporting or analytical roles may be a good direction.",
-      optional: "Add Numerical if you want to explore roles involving data, finance, reporting or analysis."
+      recommended: "{% trans 'Adds insight into whether data, finance, reporting or analytical roles may be a good direction.' %}",
+      optional: "{% trans 'Add Numerical if you want to explore roles involving data, finance, reporting or analysis.' %}"
     }
   },
 
   onboarding: {
     personality: {
-      recommended: "Helps managers understand how to support the person’s working style from the start.",
-      optional: "Add Personality if you want to tailor onboarding to the person’s working style and support needs."
+      recommended: "{% trans 'Helps managers understand how to support the person’s working style from the start.' %}",
+      optional: "{% trans 'Add Personality if you want to tailor onboarding to the person’s working style and support needs.' %}"
     },
     motivation: {
-      recommended: "Shows what helps the person feel engaged, supported and productive during onboarding.",
-      optional: "Add Motivation if you want to understand what will help the person feel engaged from the start."
+      recommended: "{% trans 'Shows what helps the person feel engaged, supported and productive during onboarding.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what will help the person feel engaged from the start.' %}"
     },
     verbal: {
-      recommended: "Useful if the onboarding includes complex written material, policies or documentation.",
-      optional: "Add Verbal if onboarding involves policies, documentation, written instructions or complex information."
+      recommended: "{% trans 'Useful if the onboarding includes complex written material, policies or documentation.' %}",
+      optional: "{% trans 'Add Verbal if onboarding involves policies, documentation, written instructions or complex information.' %}"
     },
     logical: {
-      recommended: "Useful if the role requires the person to quickly understand processes, systems or problem-solving tasks.",
-      optional: "Add Logical if the person needs to quickly understand systems, processes or problem-solving tasks."
+      recommended: "{% trans 'Useful if the role requires the person to quickly understand processes, systems or problem-solving tasks.' %}",
+      optional: "{% trans 'Add Logical if the person needs to quickly understand systems, processes or problem-solving tasks.' %}"
     },
     numerical: {
-      recommended: "Useful if the role requires early work with numbers, reports, KPIs or financial information.",
-      optional: "Add Numerical if onboarding includes reports, KPIs, financial information or numerical tasks."
+      recommended: "{% trans 'Useful if the role requires early work with numbers, reports, KPIs or financial information.' %}",
+      optional: "{% trans 'Add Numerical if onboarding includes reports, KPIs, financial information or numerical tasks.' %}"
     }
   },
 
   employee_development: {
     personality: {
-      recommended: "Helps identify behavioural strengths, development areas and coaching themes.",
-      optional: "Add Personality if you want to identify behavioural strengths, development areas and coaching themes."
+      recommended: "{% trans 'Helps identify behavioural strengths, development areas and coaching themes.' %}",
+      optional: "{% trans 'Add Personality if you want to identify behavioural strengths, development areas and coaching themes.' %}"
     },
     motivation: {
-      recommended: "Shows what drives engagement and what kind of environment supports sustainable growth.",
-      optional: "Add Motivation if you want to understand what supports engagement, growth and sustainable performance."
+      recommended: "{% trans 'Shows what drives engagement and what kind of environment supports sustainable growth.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what supports engagement, growth and sustainable performance.' %}"
     },
     verbal: {
-      recommended: "Adds insight into communication, comprehension and learning through written information.",
-      optional: "Add Verbal if the development plan includes communication, written information or knowledge-heavy tasks."
+      recommended: "{% trans 'Adds insight into communication, comprehension and learning through written information.' %}",
+      optional: "{% trans 'Add Verbal if the development plan includes communication, written information or knowledge-heavy tasks.' %}"
     },
     logical: {
-      recommended: "Adds insight into problem-solving style and areas for analytical development.",
-      optional: "Add Logical if the development focus includes problem-solving, structure or analytical thinking."
+      recommended: "{% trans 'Adds insight into problem-solving style and areas for analytical development.' %}",
+      optional: "{% trans 'Add Logical if the development focus includes problem-solving, structure or analytical thinking.' %}"
     },
     numerical: {
-      recommended: "Useful when development goals include data, reporting, finance or numerical confidence.",
-      optional: "Add Numerical if development goals include data, reports, finance, KPIs or numerical confidence."
+      recommended: "{% trans 'Useful when development goals include data, reporting, finance or numerical confidence.' %}",
+      optional: "{% trans 'Add Numerical if development goals include data, reports, finance, KPIs or numerical confidence.' %}"
     }
   },
 
   leader_development: {
     personality: {
-      recommended: "Helps identify leadership style, behavioural strengths, blind spots and possible derailers.",
-      optional: "Add Personality if you want to explore leadership style, behavioural strengths and possible blind spots."
+      recommended: "{% trans 'Helps identify leadership style, behavioural strengths, blind spots and possible derailers.' %}",
+      optional: "{% trans 'Add Personality if you want to explore leadership style, behavioural strengths and possible blind spots.' %}"
     },
     motivation: {
-      recommended: "Shows what drives the leader and what kind of environment supports sustainable leadership.",
-      optional: "Add Motivation if you want to understand what energises the leader and supports sustainable leadership."
+      recommended: "{% trans 'Shows what drives the leader and what kind of environment supports sustainable leadership.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what energises the leader and supports sustainable leadership.' %}"
     },
     verbal: {
-      recommended: "Adds insight into how the leader processes and communicates complex information.",
-      optional: "Add Verbal if the leader needs to interpret complex information or communicate clearly in writing."
+      recommended: "{% trans 'Adds insight into how the leader processes and communicates complex information.' %}",
+      optional: "{% trans 'Add Verbal if the leader needs to interpret complex information or communicate clearly in writing.' %}"
     },
     logical: {
-      recommended: "Adds insight into structured thinking, problem-solving and decision-making in leadership situations.",
-      optional: "Add Logical if the leader works with strategy, complex decisions or structured problem-solving."
+      recommended: "{% trans 'Adds insight into structured thinking, problem-solving and decision-making in leadership situations.' %}",
+      optional: "{% trans 'Add Logical if the leader works with strategy, complex decisions or structured problem-solving.' %}"
     },
     numerical: {
-      recommended: "Useful when the leader works with budgets, KPIs, performance data or business reporting.",
-      optional: "Add Numerical if the leader works with budgets, KPIs, performance data or business reporting."
+      recommended: "{% trans 'Useful when the leader works with budgets, KPIs, performance data or business reporting.' %}",
+      optional: "{% trans 'Add Numerical if the leader works with budgets, KPIs, performance data or business reporting.' %}"
     }
   },
 
   team_development: {
     personality: {
-      recommended: "Helps reveal behavioural patterns, collaboration styles and possible friction points in the team.",
-      optional: "Add Personality if you want to understand collaboration styles, team dynamics and possible friction points."
+      recommended: "{% trans 'Helps reveal behavioural patterns, collaboration styles and possible friction points in the team.' %}",
+      optional: "{% trans 'Add Personality if you want to understand collaboration styles, team dynamics and possible friction points.' %}"
     },
     motivation: {
-      recommended: "Shows what energises different team members and where motivational needs may differ.",
-      optional: "Add Motivation if you want to understand what energises the team and where needs may differ."
+      recommended: "{% trans 'Shows what energises different team members and where motivational needs may differ.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what energises the team and where needs may differ.' %}"
     },
     verbal: {
-      recommended: "Useful if the team relies heavily on written communication, documentation or shared information.",
-      optional: "Add Verbal if the team relies on written communication, documentation or shared information."
+      recommended: "{% trans 'Useful if the team relies heavily on written communication, documentation or shared information.' %}",
+      optional: "{% trans 'Add Verbal if the team relies on written communication, documentation or shared information.' %}"
     },
     logical: {
-      recommended: "Adds insight into how team members approach problems, structure and decisions.",
-      optional: "Add Logical if the team works with prioritisation, problem-solving or shared decision-making."
+      recommended: "{% trans 'Adds insight into how team members approach problems, structure and decisions.' %}",
+      optional: "{% trans 'Add Logical if the team works with prioritisation, problem-solving or shared decision-making.' %}"
     },
     numerical: {
-      recommended: "Useful if the team works with data, reporting, finance, analysis or measurable targets.",
-      optional: "Add Numerical if the team works with targets, reporting, data, finance or measurable outcomes."
+      recommended: "{% trans 'Useful if the team works with data, reporting, finance, analysis or measurable targets.' %}",
+      optional: "{% trans 'Add Numerical if the team works with targets, reporting, data, finance or measurable outcomes.' %}"
     }
   },
 
   reorganisation: {
     personality: {
-      recommended: "Helps understand how people may respond to change, uncertainty and new role expectations.",
-      optional: "Add Personality if you want to understand how people may respond to change and new role expectations."
+      recommended: "{% trans 'Helps understand how people may respond to change, uncertainty and new role expectations.' %}",
+      optional: "{% trans 'Add Personality if you want to understand how people may respond to change and new role expectations.' %}"
     },
     motivation: {
-      recommended: "Shows what people need to stay engaged and supported during change.",
-      optional: "Add Motivation if you want to understand what people need to stay engaged during change."
+      recommended: "{% trans 'Shows what people need to stay engaged and supported during change.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what people need to stay engaged during change.' %}"
     },
     verbal: {
-      recommended: "Useful when people need to absorb and communicate new information during transition.",
-      optional: "Add Verbal if the change requires people to absorb, interpret or communicate new information."
+      recommended: "{% trans 'Useful when people need to absorb and communicate new information during transition.' %}",
+      optional: "{% trans 'Add Verbal if the change requires people to absorb, interpret or communicate new information.' %}"
     },
     logical: {
-      recommended: "Adds insight into problem-solving and adaptability in changing structures.",
-      optional: "Add Logical if new roles require problem-solving, structure or analytical thinking."
+      recommended: "{% trans 'Adds insight into problem-solving and adaptability in changing structures.' %}",
+      optional: "{% trans 'Add Logical if new roles require problem-solving, structure or analytical thinking.' %}"
     },
     numerical: {
-      recommended: "Useful when new roles involve reporting, analysis, budgets or data-driven work.",
-      optional: "Add Numerical if new roles involve reporting, analysis, budgets, KPIs or data-driven work."
+      recommended: "{% trans 'Useful when new roles involve reporting, analysis, budgets or data-driven work.' %}",
+      optional: "{% trans 'Add Numerical if new roles involve reporting, analysis, budgets, KPIs or data-driven work.' %}"
     }
   },
 
-  flexible_process: {
+  unsure: {
     personality: {
-      recommended: "Gives a broad view of behavioural style, strengths and potential development areas.",
-      optional: "Add Personality if you want a broad view of behavioural style, strengths and development areas."
+      recommended: "{% trans 'Gives a broad view of behavioural style, strengths and potential development areas.' %}",
+      optional: "{% trans 'Add Personality if you want a broad view of behavioural style, strengths and development areas.' %}"
     },
     motivation: {
-      recommended: "Shows what drives the person and what kind of environment supports engagement.",
-      optional: "Add Motivation if you want to understand what drives the person and supports engagement."
+      recommended: "{% trans 'Shows what drives the person and what kind of environment supports engagement.' %}",
+      optional: "{% trans 'Add Motivation if you want to understand what drives the person and supports engagement.' %}"
     },
     verbal: {
-      recommended: "Adds insight into understanding and working with written information.",
-      optional: "Add Verbal if written communication, reading or information handling is relevant."
+      recommended: "{% trans 'Adds insight into understanding and working with written information.' %}",
+      optional: "{% trans 'Add Verbal if written communication, reading or information handling is relevant.' %}"
     },
     logical: {
-      recommended: "Adds insight into problem-solving and analytical thinking.",
-      optional: "Add Logical if problem-solving, structure or analytical thinking is relevant."
+      recommended: "{% trans 'Adds insight into problem-solving and analytical thinking.' %}",
+      optional: "{% trans 'Add Logical if problem-solving, structure or analytical thinking is relevant.' %}"
     },
     numerical: {
-      recommended: "Adds insight into working with numbers, data and reports.",
-      optional: "Add Numerical if numbers, data, reports or KPIs are relevant."
+      recommended: "{% trans 'Adds insight into working with numbers, data and reports.' %}",
+      optional: "{% trans 'Add Numerical if numbers, data, reports or KPIs are relevant.' %}"
     }
-    
   }
-  
 };
 
 function updateTestGuidance() {
   const purpose = getSelectedPurpose();
   const recommended = recommendedByPurpose[purpose] || [];
-  const guidanceForPurpose =
-    TEST_GUIDANCE_BY_PURPOSE[purpose] ||
-    TEST_GUIDANCE_BY_PURPOSE.flexible_process ||
-    {};
+const guidanceForPurpose =
+  TEST_GUIDANCE_BY_PURPOSE[purpose] ||
+  TEST_GUIDANCE_BY_PURPOSE.unsure ||
+  {};
 
   document.querySelectorAll("[data-test-card]").forEach((card) => {
     const testKey = card.dataset.testKey;
@@ -1055,7 +1153,9 @@ function updateTestGuidance() {
     const description = card.querySelector(".js-test-description");
 
     if (badge) {
-      badge.textContent = isRecommended ? "Recommended" : "Optional";
+      badge.textContent = isRecommended
+  ? I18N.recommended
+  : I18N.optional;
       badge.classList.toggle("is-recommended", isRecommended);
       badge.classList.toggle("is-optional", !isRecommended);
     }
@@ -1136,7 +1236,7 @@ function applyRecommendedTests() {
 
 function getSovaSetupLabel(selectedTests) {
   if (!selectedTests.length) {
-    return "No tests selected";
+    return I18N.noTestsSelected;
   }
 
   return selectedTests
@@ -1151,13 +1251,13 @@ function updateSummary() {
   if (summaryPurpose) {
     summaryPurpose.textContent = purpose
       ? purposeLabelMap[purpose] || purpose
-      : "Not selected";
+      : I18N.notSelected;
   }
 
   if (summaryTests) {
     summaryTests.textContent = selectedTests.length
       ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
-      : "Not selected";
+      : I18N.notSelected;
   }
 
   const sovaSetup = getSovaSetupLabel(selectedTests);
@@ -1183,7 +1283,8 @@ function updateSuggestedName() {
     return;
   }
 
-  const purposeLabel = purposeLabelMap[purpose] || "Test process";
+  const purposeLabel =
+  purposeLabelMap[purpose] || I18N.testProcess;
   const testsLabel = selectedTests.length
     ? selectedTests.map((key) => testLabelMap[key] || key).join(" + ")
     : "";
@@ -1196,12 +1297,12 @@ function updateSuggestedName() {
     document.querySelectorAll("[data-next-step]").forEach((button) => {
       button.addEventListener("click", function () {
         if (currentStep === 1 && !getSelectedPurpose()) {
-          alert("Please select a purpose before continuing.");
+          alert(I18N.selectPurposeBeforeContinuing);
           return;
         }
 
         if (currentStep === 2 && getSelectedTests().length === 0) {
-          alert("Please select at least one test before continuing.");
+          alert(I18N.selectTestBeforeContinuing);
           return;
         }
 
@@ -1226,12 +1327,12 @@ showStep(nextStep);
         const targetStep = Number(indicator.dataset.stepTarget);
 
         if (targetStep > 1 && !getSelectedPurpose()) {
-          alert("Please select a purpose first.");
+          alert(I18N.selectPurposeFirst);
           return;
         }
 
         if (targetStep > 2 && getSelectedTests().length === 0) {
-          alert("Please select at least one test first.");
+          alert(I18N.selectTestFirst);
           return;
         }
 
@@ -1259,14 +1360,14 @@ testInputs.forEach((input) => {
       if (!getSelectedPurpose()) {
         event.preventDefault();
         showStep(1);
-        alert("Please select a purpose.");
+        alert(I18N.selectPurpose);
         return;
       }
 
       if (!selectedTests.length) {
         event.preventDefault();
         showStep(2);
-        alert("Please select at least one test.");
+        alert(I18N.selectTest);
         return;
       }
     });

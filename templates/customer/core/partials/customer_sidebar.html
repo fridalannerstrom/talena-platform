@@ -1,135 +1,167 @@
-{% load static %}
+{% load static i18n %}
 
 <div id="layoutSidenav_nav">
-    <nav class="sidenav sidenav-light talena-sidebar">
-        <div id="layoutSidenav_nav">
-    <nav class="sidenav sidenav-light talena-sidebar">
+  <nav class="sidenav sidenav-light talena-sidebar">
 
-        <!-- Sidebar Brand -->
-        <div class="talena-sidebar-brand">
-            <a href="{% url 'core:customer_dashboard' %}" class="talena-brand-link">
-                <img src="{% static 'images/symbol.svg' %}" alt="Talena" class="talena-sidebar-logo">
-            </a>
+    <!-- Sidebar brand -->
+    <div class="talena-sidebar-brand">
+      <a
+        href="{% url 'core:customer_dashboard' %}"
+        class="talena-brand-link"
+      >
+        <img
+          src="{% static 'images/symbol.svg' %}"
+          alt="Talena"
+          class="talena-sidebar-logo"
+        >
+      </a>
+    </div>
+
+
+    <!-- Sidebar navigation -->
+    <div class="sidenav-menu">
+      <div
+        class="nav accordion talena-sidebar-nav"
+        id="accordionSidenav"
+      >
+
+        <div class="sidenav-menu-heading">
+          {% trans "General" %}
         </div>
 
-        <div class="sidenav-menu">
-            <div class="nav accordion talena-sidebar-nav" id="accordionSidenav">
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'customer_dashboard' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'core:customer_dashboard' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="grid"></i>
+          </div>
 
-                <div class="sidenav-menu-heading">General</div>
-
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" 
-                   href="{% url 'core:customer_dashboard' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="grid"></i>
-                    </div>
-                    <span>Dashboard</span>
-                </a>
-
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" 
-                   href="{% url 'portal:settings' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="settings"></i>
-                    </div>
-                    <span>Account settings</span>
-                </a>
-
-                <div class="sidenav-menu-heading">Assessments</div>
-
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}" 
-                   href="{% url 'processes:process_list' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="list"></i>
-                    </div>
-                    <span>Test processes</span>
-                </a>
-
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_create_v2' %}active{% endif %}" 
-                   href="{% url 'processes:process_create_v2' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="plus"></i>
-                    </div>
-                    <span>Create new test process</span>
-                </a>
+          <span>{% trans "Dashboard" %}</span>
+        </a>
 
 
-            <div class="sidenav-menu-heading">Candidates</div>
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'settings' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'portal:settings' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="settings"></i>
+          </div>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'candidates:candidate_list' %}active{% endif %}" 
-                   href="{% url 'candidates:candidate_list' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="grid"></i>
-                    </div>
-                    <span>All candidates</span>
-                </a>
+          <span>{% trans "Account settings" %}</span>
+        </a>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'teams:team_list' %}active{% endif %}" 
-                   href="{% url 'teams:team_list' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="settings"></i>
-                    </div>
-                    <span>Teams</span>
-                </a>
-            </div>
+
+        <div class="sidenav-menu-heading">
+          {% trans "Assessments" %}
         </div>
 
-        <div class="sidenav-footer talena-sidebar-footer">
-            <div class="sidenav-footer-content">
-                <div class="sidenav-footer-subtitle">Signed in as</div>
-                <div class="sidenav-footer-title">
-                    {{ request.user.get_full_name|default:request.user.email }}
-                </div>
-            </div>
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'process_list' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'processes:process_list' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="list"></i>
+          </div>
+
+          <span>{% trans "Test processes" %}</span>
+        </a>
+
+
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'process_create_v2' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'processes:process_create_v2' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="plus"></i>
+          </div>
+
+          <span>{% trans "Create new test process" %}</span>
+        </a>
+
+
+        <div class="sidenav-menu-heading">
+          {% trans "Candidates" %}
         </div>
 
-    </nav>
-</div>
-        <div class="sidenav-menu">
-            <div class="nav accordion talena-sidebar-nav" id="accordionSidenav">
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'candidate_list' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'candidates:candidate_list' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="users"></i>
+          </div>
 
-                <div class="sidenav-menu-heading">General</div>
+          <span>{% trans "All candidates" %}</span>
+        </a>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" 
-                   href="{% url 'core:customer_dashboard' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="grid"></i>
-                    </div>
-                    <span>Dashboard</span>
-                </a>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" 
-                   href="{% url 'portal:settings' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="settings"></i>
-                    </div>
-                    <span>Account settings</span>
-                </a>
+        <a
+          class="
+            nav-link
+            sidebar-link
+            {% if request.resolver_match.url_name == 'team_list' %}
+              active
+            {% endif %}
+          "
+          href="{% url 'teams:team_list' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="users"></i>
+          </div>
 
-                <div class="sidenav-menu-heading">Assessments</div>
+          <span>{% trans "Teams" %}</span>
+        </a>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}" 
-                   href="{% url 'processes:process_list' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="list"></i>
-                    </div>
-                    <span>Test processes</span>
-                </a>
+      </div>
+    </div>
 
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_create' %}active{% endif %}" 
-                   href="{% url 'processes:process_create' %}">
-                    <div class="nav-link-icon">
-                        <i data-feather="plus"></i>
-                    </div>
-                    <span>Create new test process</span>
-                </a>
 
-            </div>
+    <!-- Sidebar footer -->
+    <div class="sidenav-footer talena-sidebar-footer">
+      <div class="sidenav-footer-content">
+
+        <div class="sidenav-footer-subtitle">
+          {% trans "Signed in as" %}
         </div>
 
-        <div class="sidenav-footer talena-sidebar-footer">
-            <div class="sidenav-footer-content">
-                <div class="sidenav-footer-subtitle">Signed in as</div>
-                <div class="sidenav-footer-title">{{ request.user.get_full_name|default:request.user.email }}</div>
-            </div>
+        <div class="sidenav-footer-title">
+          {{ request.user.get_full_name|default:request.user.email }}
         </div>
-    </nav>
+
+      </div>
+    </div>
+
+  </nav>
 </div>

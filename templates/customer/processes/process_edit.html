@@ -1,18 +1,18 @@
 {% extends "customer/processes/process_base.html" %}
-{% load static %}
+{% load static i18n %}
 {% load dict_extras %}
 
 {% block process_content %}
 
   {% if error %}
     <div class="alert alert-danger">
-      Could not load SOVA setup data: {{ error }}
+      {% trans "Could not load SOVA setup data:" %} {{ error }}
     </div>
   {% endif %}
 
   {% if form.errors %}
     <div class="alert alert-danger">
-      Please check the fields below.
+      {% trans "Please check the fields below." %}
     </div>
   {% endif %}
 
@@ -23,10 +23,13 @@
       <div class="card process-section-card">
 
         <div class="card-header bg-white py-3 px-4">
-          <div class="fw-semibold">Process settings</div>
-          <div class="text-muted small">
-            Update the process details, purpose and selected assessments.
-          </div>
+<div class="fw-semibold">
+  {% trans "Process settings" %}
+</div>
+
+<div class="text-muted small">
+  {% trans "Update the process details, purpose and selected assessments." %}
+</div>
         </div>
 
         <div class="card-body p-4">
@@ -42,7 +45,12 @@
 
             <!-- Name -->
             <div class="mb-4">
-              <label class="form-label">Name</label>
+              <label
+  class="form-label"
+  for="{{ form.name.id_for_label }}"
+>
+  {% trans "Name" %}
+</label>
 
               {{ form.name }}
 
@@ -55,9 +63,15 @@
 
             <!-- Labels -->
             <div class="mb-4">
-              <label class="form-label">
-                Labels <span class="text-muted">(optional)</span>
-              </label>
+<label
+  class="form-label"
+  for="{{ form.labels_text.id_for_label }}"
+>
+  {% trans "Labels" %}
+  <span class="text-muted">
+    {% trans "(optional)" %}
+  </span>
+</label>
 
               {{ form.labels_text }}
 
@@ -79,25 +93,25 @@
 
               <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
                 <div>
-                  <div class="fw-semibold">Assessment setup</div>
+<div class="fw-semibold">
+  {% trans "Assessment setup" %}
+</div>
 
-                  <div class="text-muted small">
-                    Choose the purpose and the assessments that should be included
-                    in this process.
-                  </div>
+<div class="text-muted small">
+  {% trans "Choose the purpose and the assessments that should be included in this process." %}
+</div>
                 </div>
               </div>
 
               <!-- Purpose -->
               <div class="mb-4">
-                <label class="form-label">
-                  Purpose
-                </label>
+<label class="form-label">
+  {% trans "Purpose" %}
+</label>
 
-                <div class="text-muted small mb-3">
-                  Changing the purpose updates how Talena interprets and presents
-                  candidate results. It does not change assessments already sent.
-                </div>
+<div class="text-muted small mb-3">
+  {% trans "Changing the purpose updates how Talena interprets and presents candidate results. It does not change assessments already sent." %}
+</div>
 
                 <div class="template-select" role="radiogroup">
 
@@ -157,15 +171,14 @@
               <!-- Selected assessments -->
               <div class="mb-4">
 
-                <label class="form-label">
-                  Selected assessments
-                </label>
+<label class="form-label">
+  {% trans "Selected assessments" %}
+</label>
 
                 {% if template_locked %}
-                  <div class="text-muted small mb-3">
-                    The assessment selection cannot be changed because assessments
-                    have already been sent in this process.
-                  </div>
+<div class="text-muted small mb-3">
+  {% trans "The assessment selection cannot be changed because assessments have already been sent in this process." %}
+</div>
                 {% endif %}
 
                 
@@ -175,15 +188,15 @@
                     🔒
                   </div>
 
-                  <div>
-                    <strong>The selected assessments are locked.</strong>
-                    <br>
+<div>
+  <strong>
+    {% trans "The selected assessments are locked." %}
+  </strong>
 
-                    You can still update the process name, labels and purpose.
-                    Changing the purpose updates how Talena interprets and presents
-                    candidate reports, but the assessments already sent will remain
-                    unchanged.
-                  </div>
+  <br>
+
+  {% trans "You can still update the process name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
+</div>
                 </div>
 
                 <!--
@@ -255,9 +268,9 @@
                 {% endif %}
 
                 {% if not template_locked %}
-                  <div class="form-text mt-2">
-                    Tip: choose a purpose first, then adjust the assessments if needed.
-                  </div>
+<div class="form-text mt-2">
+  {% trans "Tip: choose a purpose first, then adjust the assessments if needed." %}
+</div>
                 {% endif %}
               </div>
 
@@ -265,15 +278,18 @@
 
             <div class="d-flex align-items-center gap-2 mt-4">
 
-              <button class="btn btn-primary" type="submit">
-                Save changes
-              </button>
+<button
+  class="btn btn-primary"
+  type="submit"
+>
+  {% trans "Save changes" %}
+</button>
 
               <a
                 class="btn btn-outline-secondary"
                 href="{% url 'processes:process_detail' process.id %}"
               >
-                Cancel
+                {% trans "Cancel" %}
               </a>
 
             </div>
@@ -289,47 +305,45 @@
       <div class="card process-section-card">
 
         <div class="card-header bg-white py-3 px-4">
-          <div class="fw-semibold">Tips</div>
-          <div class="text-muted small">
-            For a clear and organised process.
-          </div>
+<div class="fw-semibold">
+  {% trans "Tips" %}
+</div>
+
+<div class="text-muted small">
+  {% trans "For a clear and organised process." %}
+</div>
         </div>
 
         <div class="card-body small">
 
           <div class="tip-block mb-3">
-            <div class="fw-semibold text-dark mb-1">
-              Use labels to stay organised
-            </div>
+<div class="fw-semibold text-dark mb-1">
+  {% trans "Use labels to stay organised" %}
+</div>
 
-            <p class="mb-0">
-              Labels are for internal structure. You can use them to group
-              processes by department, role type, project, priority or
-              customer-specific categories.
-            </p>
+<p class="mb-0">
+  {% trans "Labels are for internal structure. You can use them to group processes by department, role type, project, priority or customer-specific categories." %}
+</p>
           </div>
 
           <div class="tip-block mb-3">
-            <div class="fw-semibold text-dark mb-1">
-              Purpose guides the report
-            </div>
+<div class="fw-semibold text-dark mb-1">
+  {% trans "Purpose guides the report" %}
+</div>
 
-            <p class="mb-0">
-              The selected purpose helps Talena understand how candidate results
-              should be interpreted and presented. You can update it later if the
-              focus of the process changes.
-            </p>
+<p class="mb-0">
+  {% trans "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the process changes." %}
+</p>
           </div>
 
           <div class="tip-block">
-            <div class="fw-semibold text-dark mb-1">
-              Locked assessments?
-            </div>
+<div class="fw-semibold text-dark mb-1">
+  {% trans "Locked assessments?" %}
+</div>
 
-            <p class="mb-0">
-              Once assessments have been sent, the assessment selection is locked
-              to protect the process history. The purpose can still be updated.
-            </p>
+<p class="mb-0">
+  {% trans "Once assessments have been sent, the assessment selection is locked to protect the process history. The purpose can still be updated." %}
+</p>
           </div>
 
         </div>

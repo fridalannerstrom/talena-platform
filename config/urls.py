@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
     # Django admin (om du behöver den)
     path("django-admin/", admin.site.urls),
 
