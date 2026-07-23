@@ -197,9 +197,6 @@ def mark_ai_content_outdated_if_language_changed(
 
 _AI_CONTENT_RESULT_FIELDS = {
     "purpose_fit": "ai_purpose_fit",
-    "response_style_guidance": (
-        "ai_response_style_guidance"
-    ),
 }
 
 # Talena personality language batch 1
@@ -250,17 +247,3 @@ def set_ai_content_language(
     owner.ai_content_languages = updated
     return updated
 
-def get_ai_language_update_fields(
-    owner: Any,
-) -> list[str]:
-    """
-    Return the optional language metadata field
-    that should be included when saving AI content.
-    """
-    if hasattr(
-        owner,
-        "ai_content_languages",
-    ):
-        return ["ai_content_languages"]
-
-    return []

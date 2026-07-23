@@ -1,5 +1,4 @@
-{% load i18n personality_i18n %}
-{# Talena personality UI and response styles language batch 1 #}
+
 {% if has_personality_results and not is_historical %}
   <section
     class="personality-questions-card"
@@ -16,7 +15,7 @@
 
         <div>
           <div class="insight-summary-kicker mt-4">
-             ✨ {% trans "AI-supported questions" %}
+            ✨ AI-supported questions
           </div>
 
           <h2 class="insight-summary-title mb-1">
@@ -24,7 +23,8 @@
           </h2>
 
           <p class="text-muted small mb-0">
-             {% blocktrans %}Explore selected personality traits through practical, purpose-aware questions.{% endblocktrans %}
+            Explore selected personality traits through practical,
+            purpose-aware questions.
           </p>
         </div>
 
@@ -45,7 +45,7 @@
   data-bs-placement="top"
   title="The selected traits, process purpose or context have changed."
 >
-  {% trans "Needs update" %}
+  Needs update
 </span>
 
           <button
@@ -83,7 +83,7 @@
           ></span>
 
           <span>
-             {% trans "Selecting relevant traits and creating questions…" %}
+            Selecting relevant traits and creating questions...
           </span>
 
         </div>
@@ -95,7 +95,7 @@
         class="alert alert-danger d-none mt-4"
         data-personality-questions-error
       >
-        {% trans "The personality questions could not be generated." %}
+        The personality questions could not be generated.
       </div>
 
 
@@ -112,11 +112,13 @@
 
             <div>
               <h3 class="personality-questions-section-title mb-1">
-                {% trans "Traits used for these questions" %}
+                Traits used for these questions
               </h3>
 
               <p class="small text-muted mb-0">
-                    {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+                    Talena generated the questions below using these personality traits,
+    the process purpose and any available context. Change the selection
+    to shape the next set of questions.
               </p>
             </div>
 
@@ -125,7 +127,7 @@
               class="btn btn-primary text-nowrap"
               data-personality-traits-edit
             >
-              {% trans "Change traits" %}
+              Change traits
             </button>
 
           </div>
@@ -137,7 +139,7 @@
           >
             {% for trait in personality_questions.selected_traits %}
               <span class="personality-trait-pill">
-                {{ trait|personality_label }}
+                {{ trait }}
               </span>
             {% endfor %}
           </div>
@@ -152,7 +154,7 @@
           data-personality-questions-list-section
         >
           <h3 class="personality-questions-section-title">
-            {% trans "Questions to explore" %}
+            Questions to explore
           </h3>
 
           <div
@@ -177,7 +179,7 @@
       {% if item.traits %}
         <div class="personality-question-card__traits">
           {% for trait in item.traits %}
-            <span>{{ trait|personality_label }}</span>
+            <span>{{ trait }}</span>
           {% endfor %}
         </div>
       {% endif %}
@@ -204,7 +206,7 @@
 
           <div>
             <div class="personality-question-card__detail-title">
-              {% trans "Why this matters" %}
+              Why this matters
             </div>
 
             <div class="personality-question-card__detail-text">
@@ -230,7 +232,7 @@
 
           <div>
             <div class="personality-question-card__detail-title">
-              {% trans "What to listen for" %}
+              What to listen for
             </div>
 
             <div class="personality-question-card__detail-text">
@@ -254,7 +256,7 @@
         <div class="personality-questions-context-note mt-4">
 
           <div class="personality-questions-context-note__title">
-            {% trans "How Talena created these questions" %}
+            How Talena created these questions
           </div>
 
           <div data-personality-questions-context-note>
@@ -297,7 +299,7 @@
           class="personality-traits-dialog__title"
           id="personalityTraitsDialogTitle"
         >
-          {% trans "Select traits to explore" %}
+          Select traits to explore
         </h3>
 
         <p class="personality-traits-dialog__description">
@@ -321,14 +323,14 @@
     <!-- SELECTION STATUS -->
     <div class="personality-traits-dialog__status">
       <span>
-        {% trans "Select up to 6 traits" %}
+        Select up to 6 traits
       </span>
 
       <span
         class="personality-traits-dialog__count"
         data-personality-traits-count
       >
-        {% trans "0 selected" %}
+        0 selected
       </span>
     </div>
 
@@ -394,7 +396,7 @@
         class="btn btn-light"
         data-personality-traits-cancel
       >
-        {% trans "Cancel" %}
+        Cancel
       </button>
 
 <button
@@ -402,7 +404,7 @@
   class="btn btn-primary"
   data-personality-traits-save
 >
-  {% trans "Save and generate" %}
+  Save and generate
 </button>
     </div>
 

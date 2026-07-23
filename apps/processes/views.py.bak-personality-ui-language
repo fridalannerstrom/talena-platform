@@ -182,11 +182,6 @@ from apps.reports.libraries.personality.resolver import build_personality_report
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
-from apps.reports.libraries.personality.response_styles import (
-    build_response_style_results as build_localized_response_style_results,
-)
-
-# Talena personality UI and response styles language batch 1
 
 from apps.reports.libraries.cognitive.builder import build_cognitive_reports_for_test
 
@@ -372,12 +367,222 @@ def build_cognitive_insight_results(
     return results
 
 
-def build_response_style_results(
-    personality_competencies,
-):
-    return build_localized_response_style_results(
-        personality_competencies
-    )
+def build_response_style_results(personality_competencies):
+    """
+    Build response-style results from Sova personality competencies.
+
+    Sova/API mapping:
+    - Social Desirability -> Social Desirability
+    - Fillers -> Profile Spread
+    - Reliability -> Ratings Spread
+
+    Values are displayed using rounded STEN scores from 1 to 10.
+
+    The scale starts from the centre:
+    - 1-5 extend towards the left
+    - 6-10 extend towards the right
+    """
+
+    competency_lookup = {
+        (item.get("competency") or "").strip().lower(): item
+        for item in personality_competencies
+    }
+
+    style_config = [
+        {
+            "key": "social_desirability",
+            "title": "Social Desirability",
+            "source_name": "social desirability",
+
+            "low_pole": (
+                "Tends to respond in a self-critical way. "
+                "May have clearer preferences than the results suggest."
+            ),
+            "high_pole": (
+                "Presented themselves in a positive way. "
+                "Some preferences may be less distinct than the results suggest."
+            ),
+
+            "low_text": (
+                "The response pattern suggests a relatively self-critical "
+                "presentation. Some preferences may be more pronounced than "
+                "the results indicate."
+            ),
+            "middle_text": (
+                "The response pattern appears reasonably balanced, with no "
+                "clear tendency towards either self-critical or overly "
+                "positive self-presentation."
+            ),
+            "high_text": (
+                "The response pattern suggests a positive self-presentation. "
+                "Some preferences may be less pronounced than the results "
+                "indicate."
+            ),
+        },
+        {
+            "key": "profile_spread",
+            "title": "Profile Spread",
+            "source_name": "fillers",
+
+            "low_pole": (
+                "The responses show less differentiation between personality "
+                "traits. This may reflect less consistency or limited "
+                "self-insight."
+            ),
+            "high_pole": (
+                "The responses show clear strengths and development needs, "
+                "with a broad spread of scores across personality traits."
+            ),
+
+            "low_text": (
+                "The responses show less differentiation across personality "
+                "traits. This may reflect a more general response pattern or "
+                "less consistency between related responses."
+            ),
+            "middle_text": (
+                "The profile contains a mixture of differentiated and less "
+                "differentiated responses. The candidate is likely to recognise "
+                "some parts of the profile more strongly than others."
+            ),
+            "high_text": (
+                "The responses show clear differentiation across personality "
+                "traits, producing a profile with distinct strengths and areas "
+                "that may be more demanding."
+            ),
+        },
+        {
+            "key": "ratings_spread",
+            "title": "Ratings Spread",
+            "source_name": "reliability",
+
+            "low_pole": (
+                "The questionnaire responses show less use of extreme options "
+                "and a tendency to choose from a relatively narrow range of ratings."
+            ),
+            "high_pole": (
+                "The questionnaire responses show clear differentiation, "
+                "with greater use of extreme response options."
+            ),
+
+            "low_text": (
+                "The candidate used fewer extreme response options and tended "
+                "to select a relatively narrow range of ratings."
+            ),
+            "middle_text": (
+                "The candidate appears to have used the full response scale "
+                "without a strong preference for either middle or extreme "
+                "response options."
+            ),
+            "high_text": (
+                "The candidate used a wide range of response options, with "
+                "greater use of the extreme ends of the rating scale."
+            ),
+        },
+    ]
+
+    response_styles = []
+
+    for config in style_config:
+        source = competency_lookup.get(config["source_name"])
+
+        raw_value = (
+            source.get("sten_rounded")
+            if source
+            else None
+        )
+
+        try:
+            value = (
+                int(round(float(raw_value)))
+                if raw_value is not None
+                else None
+            )
+        except (TypeError, ValueError):
+            value = None
+
+        if value is not None:
+            value = max(1, min(10, value))
+
+        # -------------------------------------------------
+        # RESULT BAND AND INTERPRETATION
+        # -------------------------------------------------
+
+        if value is None:
+            band_key = "missing"
+            band_label = "Not available"
+            interpretation = (
+                "No response-style result is available for this assessment."
+            )
+
+        elif value <= 3:
+            band_key = "low"
+            band_label = "Low"
+            interpretation = config["low_text"]
+
+        elif value <= 7:
+            band_key = "middle"
+            band_label = "Typical"
+            interpretation = config["middle_text"]
+
+        else:
+            band_key = "high"
+            band_label = "High"
+            interpretation = config["high_text"]
+
+        # -------------------------------------------------
+        # CENTRED SCALE
+        #
+        # 1  = five segments towards the left
+        # 5  = one segment towards the left
+        # 6  = one segment towards the right
+        # 10 = five segments towards the right
+        # -------------------------------------------------
+
+        if value is None:
+            scale_side = None
+            scale_strength = 0
+
+        elif value <= 5:
+            scale_side = "left"
+            scale_strength = 6 - value
+
+        else:
+            scale_side = "right"
+            scale_strength = value - 5
+
+        response_styles.append({
+            "key": config["key"],
+            "title": config["title"],
+
+            # Static descriptions of both sides of the scale.
+            "low_pole": config["low_pole"],
+            "high_pole": config["high_pole"],
+
+            # Candidate-specific result.
+            "value": value,
+            "available": value is not None,
+            "band_key": band_key,
+            "band_label": band_label,
+            "interpretation": interpretation,
+
+            # Used by the centred scale in the template.
+            "scale_side": scale_side,
+            "scale_strength": scale_strength,
+
+            # Original Sova information.
+            "source_name": (
+                source.get("competency")
+                if source
+                else None
+            ),
+            "percentile": (
+                source.get("percentile")
+                if source
+                else None
+            ),
+        })
+
+    return response_styles
 
 
 def build_personality_results_for_ai_owner(
@@ -7060,13 +7265,6 @@ def process_candidate_detail(request, process_id, candidate_id):
 
         mark_ai_content_outdated_if_language_changed(
             invitation,
-            content_key="response_style_guidance",
-            result_field="ai_response_style_guidance",
-            status_field="ai_response_style_guidance_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
             content_key="personality_interpretation",
             result_field="ai_personality_interpretation",
             status_field="ai_personality_interpretation_status",
@@ -7398,15 +7596,6 @@ def process_candidate_response_style_guidance_stream(
             candidate_id=candidate_id,
         )
 
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        guidance_owner,
-        content_key="response_style_guidance",
-        result_field="ai_response_style_guidance",
-        status_field="ai_response_style_guidance_status",
-        language_code=language_code,
-    )
-
     # ---------------------------------------------------------
     # BUILD RESPONSE-STYLE RESULTS
     # ---------------------------------------------------------
@@ -7479,11 +7668,6 @@ def process_candidate_response_style_guidance_stream(
     if (
         saved_guidance
         and current_status == "completed"
-        and ai_content_language_matches(
-            guidance_owner,
-            "response_style_guidance",
-            language_code,
-        )
     ):
         def existing_generator():
             yield json.dumps(
@@ -7535,8 +7719,7 @@ def process_candidate_response_style_guidance_stream(
     def generator():
         guidance = (
             create_empty_response_style_guidance(
-                guidance_owner,
-                language_code=language_code,
+                guidance_owner
             )
         )
 
@@ -7546,7 +7729,6 @@ def process_candidate_response_style_guidance_stream(
             for event in stream_response_style_guidance(
                 guidance_owner=guidance_owner,
                 response_styles=available_response_styles,
-                language_code=language_code,
             ):
                 guidance = (
                     apply_response_style_guidance_event(
@@ -7581,7 +7763,6 @@ def process_candidate_response_style_guidance_stream(
             save_response_style_guidance(
                 guidance_owner=guidance_owner,
                 guidance=guidance,
-                language_code=language_code,
             )
 
         except Exception as error:

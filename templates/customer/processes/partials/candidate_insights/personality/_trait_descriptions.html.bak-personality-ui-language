@@ -1,5 +1,4 @@
-{% load i18n %}
-{# Talena personality UI and response styles language batch 1 #}
+
 <!-- PERSONALITY TRAIT DESCRIPTIONS -->
 
 
@@ -64,6 +63,8 @@
 
     <!-- FOOTER -->
     <div class="small text-muted border-top pt-3 mt-4">
-      {% blocktrans %}Personality descriptions summarise likely behavioural preferences. They should be interpreted alongside the full profile, response-style indicators and other available assessment information.{% endblocktrans %}
+      Personality descriptions summarise likely behavioural preferences.
+      They should be interpreted alongside the full profile, response-style
+      indicators and other available assessment information.
     </div>
 <!-- /PERSONALITY TRAIT DESCRIPTIONS -->

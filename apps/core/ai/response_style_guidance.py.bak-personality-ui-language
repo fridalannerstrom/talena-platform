@@ -14,46 +14,6 @@ from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-
-# Talena personality UI and response styles language batch 1
-def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
-    language_code = normalize_ai_language(language_code)
-    if language_code == "sv":
-        return {
-            "title": "Så kan profilen tolkas",
-            "label": "AI-stödd tolkning",
-            "summary_1": "Första delen av tolkningen. ",
-            "summary_2": "Nästa del av tolkningen. ",
-            "how": "Vad som bör finnas i åtanke när personlighetsprofilen läses.",
-            "approach": "Hur intervju- eller återkopplingssamtalet kan genomföras.",
-            "question_1": "Första öppna frågan",
-            "question_2": "Andra öppna frågan",
-            "question_3": "Tredje öppna frågan",
-            "combination": "Om ett känt kombinationsmönster är relevant och vad som kan utforskas.",
-            "context": "Hur råden anpassades till syfte och eventuell processkontext.",
-        }
-    return {
-        "title": "How to approach this profile",
-        "label": "AI-supported interpretation",
-        "summary_1": "First part of the interpretation. ",
-        "summary_2": "Next part of the interpretation. ",
-        "how": "What should be kept in mind when reading the personality traits.",
-        "approach": "How to approach the interview or feedback conversation.",
-        "question_1": "Question one",
-        "question_2": "Question two",
-        "question_3": "Question three",
-        "combination": "Whether a known combination applies and what may be useful to explore.",
-        "context": "Whether the advice was adapted to purpose or added context.",
-    }
-
 
 
 
@@ -275,7 +235,6 @@ def build_response_style_guidance_prompt(
     *,
     guidance_owner,
     response_styles: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> str:
     """
     Build the AI prompt for the response-style interpretation box.
@@ -284,10 +243,6 @@ def build_response_style_guidance_prompt(
     - TestInvitation
     - HistoricalProcessCandidate
     """
-
-    language_code = normalize_ai_language(language_code)
-    language_instruction = get_ai_language_instruction(language_code)
-    output_examples = _get_response_style_output_examples(language_code)
 
     shared_context = build_shared_ai_context(
         guidance_owner
@@ -391,7 +346,7 @@ IMPORTANT SAFETY AND INTERPRETATION RULES
   "may be useful to explore",
   "should be validated with the candidate".
 - Write about the candidate using their first name where natural.
-{language_instruction}
+- Write in clear, professional English.
 - Keep the guidance practical and reasonably concise.
 - Do not overstate known combination rules.
 - When no known combination applies, say so neutrally instead of
@@ -410,12 +365,12 @@ Return events in this exact order:
 
 1. One meta event:
 
-{{"type":"meta","title":"{output_examples["title"]}","label":"{output_examples["label"]}"}}
+{{"type":"meta","title":"How to approach this profile","label":"AI-supported interpretation"}}
 
 2. Between 3 and 6 summary_delta events:
 
-{{"type":"summary_delta","text":"{output_examples["summary_1"]}"}}
-{{"type":"summary_delta","text":"{output_examples["summary_2"]}"}}
+{{"type":"summary_delta","text":"First part of the interpretation. "}}
+{{"type":"summary_delta","text":"Next part of the interpretation. "}}
 
 Together, the summary should be approximately 80 to 130 words.
 It should explain the overall combined response pattern and the most
@@ -423,15 +378,15 @@ important implication for reading the personality profile.
 
 3. One how_to_interpret event:
 
-{{"type":"how_to_interpret","text":"{output_examples["how"]}"}}
+{{"type":"how_to_interpret","text":"One or two concise sentences explaining what should be kept in mind when reading the personality traits."}}
 
 4. One recommended_approach event:
 
-{{"type":"recommended_approach","text":"{output_examples["approach"]}"}}
+{{"type":"recommended_approach","text":"One or two concise sentences describing how to approach the interview or feedback conversation."}}
 
 5. One questions event containing exactly 3 questions:
 
-{{"type":"questions","items":["{output_examples["question_1"]}","{output_examples["question_2"]}","{output_examples["question_3"]}"]}}
+{{"type":"questions","items":["Question one","Question two","Question three"]}}
 
 The questions must:
 - be phrased directly to the candidate
@@ -441,11 +396,11 @@ The questions must:
 
 6. One combination_note event:
 
-{{"type":"combination_note","text":"{output_examples["combination"]}"}}
+{{"type":"combination_note","text":"Explain whether a known combination pattern applies and what it may be useful to explore. If no known combination applies, provide a short neutral note."}}
 
 7. One context_note event:
 
-{{"type":"context_note","text":"{output_examples["context"]}"}}
+{{"type":"context_note","text":"Briefly explain whether the advice was adapted to process purpose or added context."}}
 
 8. One final done event:
 
@@ -455,13 +410,10 @@ The questions must:
 
 def create_empty_response_style_guidance(
     guidance_owner,
-    *,
-    language_code: str = "en",
 ) -> dict[str, Any]:
-    output_examples = _get_response_style_output_examples(language_code)
     return {
-        "title": output_examples["title"],
-        "label": output_examples["label"],
+        "title": "How to approach this profile",
+        "label": "AI-supported interpretation",
         "summary": "",
         "how_to_interpret": "",
         "recommended_approach": "",
@@ -576,7 +528,6 @@ def stream_response_style_guidance(
     *,
     guidance_owner,
     response_styles: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Stream parsed response-style guidance events from OpenAI.
@@ -585,12 +536,9 @@ def stream_response_style_guidance(
     dictionary into NDJSON for the browser.
     """
 
-    language_code = normalize_ai_language(language_code)
-    system_language_instruction = get_ai_system_language_instruction(language_code)
     prompt = build_response_style_guidance_prompt(
         guidance_owner=guidance_owner,
         response_styles=response_styles,
-        language_code=language_code,
     )
 
     client = get_openai_client()
@@ -604,8 +552,7 @@ def stream_response_style_guidance(
                     "You are a careful psychometric assessment "
                     "interpretation assistant. Follow the requested "
                     "NDJSON format exactly and do not make unsupported "
-                    "claims. "
-                    f"{system_language_instruction}"
+                    "claims."
                 ),
             },
             {
@@ -655,20 +602,11 @@ def save_response_style_guidance(
     *,
     guidance_owner,
     guidance: dict[str, Any],
-    language_code: str = "en",
 ):
     """
     Save completed response-style guidance on either a
     TestInvitation or HistoricalProcessCandidate.
     """
-
-    language_code = normalize_ai_language(language_code)
-    guidance["_language"] = language_code
-    set_ai_content_language(
-        guidance_owner,
-        "response_style_guidance",
-        language_code,
-    )
 
     guidance["summary"] = (
         guidance.get("summary")
@@ -726,11 +664,9 @@ def save_response_style_guidance(
         )
     )
 
-    update_fields = [
+    guidance_owner.save(update_fields=[
         "ai_response_style_guidance",
         "ai_response_style_guidance_status",
         "ai_response_style_guidance_generated_at",
         "ai_response_style_guidance_purpose",
-    ]
-    update_fields.extend(get_ai_language_update_fields(guidance_owner))
-    guidance_owner.save(update_fields=update_fields)
+    ])

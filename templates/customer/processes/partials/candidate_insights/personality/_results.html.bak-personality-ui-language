@@ -1,5 +1,4 @@
-{% load i18n %}
-{# Talena personality UI and response styles language batch 1 #}
+
 <div
   class="personality-profile"
   data-personality-profile-root
@@ -21,11 +20,13 @@
 
         <div>
           <h2 class="insight-summary-title mb-1">
-             {% trans "Response styles" %}
+            Response styles
           </h2>
 
           <p class="text-muted small mb-0">
-             {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
+            These indicators describe how {{ candidate.first_name }} used the
+            questionnaire response scale. They provide context for interpreting
+            the personality profile and are not personality traits themselves.
           </p>
         </div>
 
@@ -54,7 +55,7 @@
                 </h3>
 
                 <div class="response-style-item__subtitle">
-                   {% trans "Questionnaire response pattern" %}
+                  Questionnaire response pattern
                 </div>
               </div>
 
@@ -71,7 +72,7 @@
                     response-style-item__badge--missing
                   "
                 >
-                   {% trans "Not available" %}
+                  Not available
                 </span>
               {% endif %}
 
@@ -87,7 +88,7 @@
                 <div class="response-style-profile__pole">
 
                   <div class="personality-trait-card__pole-label">
-                    {% trans "Left score" %}
+                    Left score
                   </div>
 
                   <p class="response-style-profile__pole-text">
@@ -140,13 +141,13 @@
 
   <div class="response-style-scale__labels">
     <span class="response-style-scale__label response-style-scale__label--left">
-      {% trans "Left" %}
+      Left
     </span>
     <span class="response-style-scale__label response-style-scale__label--center">
-      {% trans "Typical" %}
+      Typical
     </span>
     <span class="response-style-scale__label response-style-scale__label--right">
-      {% trans "Right" %}
+      Right
     </span>
   </div>
 </div>
@@ -161,7 +162,7 @@
                 >
 
                   <div class="personality-trait-card__pole-label align-right">
-                    {% trans "Right score" %}
+                    Right score
                   </div>
 
                   <p class="response-style-profile__pole-text align-right">
@@ -190,13 +191,13 @@
 
           <div class="response-style-ai-card__heading">
     <div class="insight-summary-kicker">
-       ✨ {% trans "AI-generated insight" %}
+      ✨ AI-generated insight
     </div>
             <h3
               class="response-style-item__title"
               data-guidance-title
             >
-             {% blocktrans with candidate_name=candidate.first_name %}What does this mean for {{ candidate_name }}?{% endblocktrans %}
+            What does this mean for {{ candidate.first_name }}?
             </h3>
 
           </div>
@@ -218,7 +219,7 @@
           </span>
 
           <span data-guidance-thinking-text>
-             {% trans "Analysing the response pattern and preparing practical guidance…" %}
+            Analysing the response pattern and preparing practical guidance...
           </span>
 
         </div>
@@ -231,7 +232,7 @@
           hidden
         >
           <div>
-             {% trans "The interpretation could not be generated." %}
+            The interpretation could not be generated.
           </div>
 
           <button
@@ -239,7 +240,7 @@
             class="btn btn-sm btn-outline-secondary"
             data-guidance-retry
           >
-             {% trans "Try again" %}
+            Try again
           </button>
         </div>
 
@@ -268,7 +269,7 @@
   >
 
     <div class="response-style-ai-content__label">
-       {% trans "Keep in mind when reading the profile" %}
+      Keep in mind when reading the profile
     </div>
 
     <p
@@ -289,7 +290,7 @@
   >
 
     <div class="response-style-ai-content__label">
-       {% trans "Practical approach" %}
+      Practical approach
     </div>
 
     <p
@@ -310,7 +311,7 @@
   >
 
     <summary class="response-style-ai-content__questions-toggle">
-       {% trans "Questions to explore" %}
+      Questions to explore
     </summary>
 
     <ul
@@ -332,7 +333,8 @@
 
       <!-- FOOTER -->
       <div class="small text-muted border-bottom mt-4 pb-4">
-         {% blocktrans %}Response-style indicators should be used as interpretive context rather than as measures of ability, suitability or honesty.{% endblocktrans %}
+        Response-style indicators should be used as interpretive context rather
+        than as measures of ability, suitability or honesty.
       </div>
 
   </section>
@@ -346,11 +348,12 @@
 
         <div>
           <h2 class="insight-summary-title mb-1">
-             {% trans "Personality profile" %}
+            Personality profile
           </h2>
 
           <p class="text-muted small mb-0">
-   {% blocktrans %}Explore the candidate’s overall personality traits and the detailed indicators that contribute to each result.{% endblocktrans %}
+  Explore the candidate’s overall personality traits and the
+  detailed indicators that contribute to each result.
           </p>
         </div>
 
@@ -376,7 +379,7 @@
     data-personality-view-tab="quick"
   >
     <i data-feather="align-justify" aria-hidden="true"></i>
-     <span>{% trans "Trait Profile" %}</span>
+    <span>Trait Profile</span>
   </button>
 
   <button
@@ -389,7 +392,7 @@
     data-personality-view-tab="detailed"
   >
     <i data-feather="list" aria-hidden="true"></i>
-     <span>{% trans "Trait & Indicator Profile" %}</span>
+    <span>Trait &amp; Indicator Profile</span>
   </button>
 
   <button
@@ -402,7 +405,7 @@
   data-personality-view-tab="descriptions"
 >
   <i data-feather="book-open" aria-hidden="true"></i>
-   <span>{% trans "Trait Descriptions" %}</span>
+  <span>Trait Descriptions</span>
 </button>
 
 </div>
@@ -450,7 +453,7 @@
   <div class="personality-trait-card__pole">
 
     <div class="personality-trait-card__pole-label">
-      {% trans "Left Score" %}
+      Left Score
     </div>
 
     {% if trait.low_pole %}
@@ -459,7 +462,7 @@
       </p>
     {% else %}
       <p class="text-muted">
-                   {% trans "Description is not yet available." %}
+        Description is not yet available.
       </p>
     {% endif %}
 
@@ -512,7 +515,7 @@
   >
 
     <div class="personality-trait-card__pole-label align-right">
-      {% trans "Right Score" %}
+      Right Score
     </div>
 
     {% if trait.high_pole %}
@@ -521,7 +524,7 @@
       </p>
     {% else %}
       <p class="text-muted align-right">
-                   {% trans "Description is not yet available." %}
+        Description is not yet available.
       </p>
     {% endif %}
 
@@ -535,7 +538,7 @@
   <div class="personality-trait-card__summary">
 
     <div class="personality-trait-card__summary-label">
-       {% blocktrans with candidate_name=candidate.first_name %}How this trait may show up for {{ candidate_name }}{% endblocktrans %}
+      How this trait may show up for {{ candidate.first_name }}
     </div>
 
     <p class="personality-trait-card__summary-text">
@@ -573,7 +576,7 @@
     <div class="personality-indicator-row__pole">
 
       <span class="personality-indicator-row__pole-label">
-        {% trans "Left Score" %}
+        Left Score
       </span>
 
       <p>
@@ -660,15 +663,15 @@
   <div class="personality-indicator-scale__labels">
 
     <span class="personality-indicator-scale__label--left">
-      {% trans "Left" %}
+      Left
     </span>
 
     <span class="personality-indicator-scale__label--center">
-      {% trans "Average" %}
+      Average
     </span>
 
     <span class="personality-indicator-scale__label--right">
-      {% trans "Right" %}
+      Right
     </span>
 
   </div>
@@ -680,7 +683,7 @@
     ">
 
       <span class="personality-indicator-row__pole-label">
-        {% trans "Right score" %}
+        Right score
       </span>
 
       <p>
@@ -748,7 +751,7 @@
                 {% if trait.low_pole %}
                   {{ trait.low_pole }}
                 {% else %}
-                  {% trans "Description is not yet available." %}
+                  Description is not yet available.
                 {% endif %}
               </p>
 
@@ -823,7 +826,7 @@
                 {% if trait.high_pole %}
                   {{ trait.high_pole }}
                 {% else %}
-                  {% trans "Description is not yet available." %}
+                  Description is not yet available.
                 {% endif %}
               </p>
 
