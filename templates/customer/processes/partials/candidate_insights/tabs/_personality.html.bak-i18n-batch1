@@ -1,8 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
-{% trans "No personality assessment available" as no_personality_title %}
-{% trans "Include a Personality assessment in future processes to unlock a detailed trait profile, response-style guidance, team-style insights, AI-supported interpretation and tailored follow-up questions." as no_personality_description %}
-{% trans "Available with Personality assessment" as personality_unlock_label %}
 {% if personality_profile and personality_profile.sections %}
 
   <div
@@ -18,7 +13,7 @@
     <div
       class="candidate-insights-view-switcher"
       role="tablist"
-      aria-label="{% trans 'Personality insight areas' %}"
+      aria-label="Personality insight areas"
     >
 
       <button
@@ -30,7 +25,7 @@
         data-insights-subtab="results"
       >
         <i data-feather="bar-chart-2"></i>
-        <span>{% trans "Results" %}</span>
+        <span>Results</span>
       </button>
 
       <button
@@ -42,7 +37,7 @@
         data-insights-subtab="interpretation"
       >
         <i data-feather="zap"></i>
-        <span>{% trans "Interpretation" %}</span>
+        <span>Interpretation</span>
       </button>
 
       <button
@@ -54,7 +49,7 @@
         data-insights-subtab="questions"
       >
         <i data-feather="help-circle"></i>
-        <span>{% trans "Questions" %}</span>
+        <span>Questions</span>
       </button>
 
     </div>
@@ -106,12 +101,12 @@
 {% elif has_personality_results %}
 
   <div class="alert alert-light border">
-    {% trans "Personality results exist, but the personality profile could not be built." %}
+    Personality results exist, but the personality profile could not be built.
   </div>
 
 
 {% else %}
 
-{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="user" missing_title=no_personality_title missing_description=no_personality_description missing_unlock_label=personality_unlock_label %}
+{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="user" missing_title="No personality assessment available" missing_description="Include a Personality assessment in future processes to unlock a detailed trait profile, response-style guidance, team-style insights, AI-supported interpretation and tailored follow-up questions." missing_unlock_label="Available with Personality assessment" %}
 
 {% endif %}

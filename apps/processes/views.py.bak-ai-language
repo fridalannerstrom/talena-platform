@@ -113,13 +113,6 @@ from apps.core.ai.purpose_fit import (
     stream_candidate_purpose_fit,
     save_candidate_purpose_fit,
 )
-from apps.core.ai.language import (
-    ai_content_language_matches,
-    get_request_ai_language,
-    mark_ai_content_outdated_if_language_changed,
-)
-
-# Talena personality language batch 1
 
 from apps.processes.services.historical_assessment_import import import_historical_assessment_file
 from django.db.models import Count, OuterRef, Subquery, IntegerField
@@ -2787,11 +2780,7 @@ def build_candidate_ai_update_state(
     }
 
 
-def build_candidate_detail_context(
-    process,
-    invitation,
-    language="sv",
-):
+def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
     payload = invitation.sova_payload or {}
 
@@ -3499,7 +3488,7 @@ def build_candidate_detail_context(
     personality_profile = (
         build_profile_from_resolved_report(
             resolved_report=personality_profile_report,
-            language=language,
+            language="sv",
             include_missing_traits=False,
         )
         if personality_profile_report
@@ -7199,7 +7188,6 @@ def process_candidate_detail(request, process_id, candidate_id):
         return HttpResponseForbidden("You do not have access to this process.")
 
     is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
-    language_code = get_request_ai_language(request)
 
     if process.is_historical:
         historical_candidate = get_object_or_404(
@@ -7218,18 +7206,9 @@ def process_candidate_detail(request, process_id, candidate_id):
             candidate_id=candidate_id,
         )
 
-        mark_ai_content_outdated_if_language_changed(
-            historical_candidate,
-            content_key="personality_interpretation",
-            result_field="ai_personality_interpretation",
-            status_field="ai_personality_interpretation_status",
-            language_code=language_code,
-        )
-
         ctx = build_historical_candidate_detail_context(
             process=process,
             historical_candidate=historical_candidate,
-            language=language_code,
         )
 
         return render(
@@ -7255,33 +7234,9 @@ def process_candidate_detail(request, process_id, candidate_id):
             candidate_id=candidate_id,
         )
 
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="purpose_fit",
-            result_field="ai_purpose_fit",
-            status_field="ai_purpose_fit_status",
-            language_code=get_request_ai_language(request),
-        )
-
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="personality_interpretation",
-            result_field="ai_personality_interpretation",
-            status_field="ai_personality_interpretation_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="personality_questions",
-            result_field="ai_personality_questions",
-            status_field="ai_personality_questions_status",
-            language_code=language_code,
-        )
-
         ctx = build_candidate_detail_context(
             process=process,
             invitation=invitation,
-            language=language_code,
         )
 
         ctx["is_historical"] = False
@@ -7945,16 +7900,6 @@ def process_candidate_purpose_fit_stream(
         candidate_id=candidate_id,
     )
 
-    language_code = get_request_ai_language(request)
-
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="purpose_fit",
-        result_field="ai_purpose_fit",
-        status_field="ai_purpose_fit_status",
-        language_code=language_code,
-    )
-
     print(
         f"[PURPOSE FIT] Invitation found: "
         f"id={invitation.id}, "
@@ -7979,16 +7924,9 @@ def process_candidate_purpose_fit_stream(
             status=400,
         )
 
-    if (
-        ai_content_language_matches(
-            invitation,
-            "purpose_fit",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            invitation.ai_purpose_fit,
-            invitation.ai_purpose_fit_status,
-        )
+    if should_return_saved_ai_result(
+        invitation.ai_purpose_fit,
+        invitation.ai_purpose_fit_status,
     ):
         print(
             "[PURPOSE FIT] Returning saved result",
@@ -8051,8 +7989,7 @@ def process_candidate_purpose_fit_stream(
             )
 
             for event in stream_candidate_purpose_fit(
-                invitation,
-                language_code=language_code,
+                invitation
             ):
                 print(
                     "[PURPOSE FIT] Event received:",
@@ -8091,7 +8028,6 @@ def process_candidate_purpose_fit_stream(
             save_candidate_purpose_fit(
                 invitation,
                 purpose_fit,
-                language_code=language_code,
             )
 
             print(
@@ -8587,7 +8523,6 @@ def get_historical_five_point_score(
 def build_historical_candidate_detail_context(
     process,
     historical_candidate,
-    language="sv",
 ):
     """
     Build candidate sheet context for a historical candidate.
@@ -9029,7 +8964,7 @@ def build_historical_candidate_detail_context(
                     resolved_report=(
                         personality_profile_report
                     ),
-                    language=language,
+                    language="sv",
                     include_missing_traits=False,
                 )
             )
@@ -10781,15 +10716,6 @@ def process_candidate_personality_interpretation_stream(
                 status=400,
             )
 
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        owner,
-        content_key="personality_interpretation",
-        result_field="ai_personality_interpretation",
-        status_field="ai_personality_interpretation_status",
-        language_code=language_code,
-    )
-
     # ---------------------------------------------------------
     # BUILD PERSONALITY EVIDENCE
     # ---------------------------------------------------------
@@ -10854,16 +10780,9 @@ def process_candidate_personality_interpretation_stream(
     # RETURN SAVED RESULT
     # ---------------------------------------------------------
 
-    if (
-        ai_content_language_matches(
-            owner,
-            "personality_interpretation",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_interpretation,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_interpretation,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -10917,8 +10836,7 @@ def process_candidate_personality_interpretation_stream(
     def generator():
         interpretation = (
             create_empty_personality_interpretation(
-                owner,
-                language_code=language_code,
+                owner
             )
         )
 
@@ -10928,7 +10846,6 @@ def process_candidate_personality_interpretation_stream(
             for event in stream_personality_interpretation(
                 owner=owner,
                 personality_results=personality_results,
-                language_code=language_code,
             ):
                 interpretation = (
                     apply_personality_interpretation_event(
@@ -10967,7 +10884,6 @@ def process_candidate_personality_interpretation_stream(
             save_personality_interpretation(
                 owner=owner,
                 interpretation=interpretation,
-                language_code=language_code,
             )
 
         except Exception as error:
@@ -11124,15 +11040,6 @@ def process_candidate_personality_questions_stream(
         candidate_id=candidate_id,
     )
 
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="personality_questions",
-        result_field="ai_personality_questions",
-        status_field="ai_personality_questions_status",
-        language_code=language_code,
-    )
-
     if invitation.status != "completed":
         return JsonResponse(
             {
@@ -11196,16 +11103,9 @@ def process_candidate_personality_questions_stream(
             "ai_personality_questions_status",
         ])
 
-    if (
-        ai_content_language_matches(
-            invitation,
-            "personality_questions",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -11250,8 +11150,7 @@ def process_candidate_personality_questions_stream(
 
     def generator():
         result = create_empty_personality_questions(
-            invitation,
-            language_code=language_code,
+            invitation
         )
 
         received_done_event = False
@@ -11260,7 +11159,6 @@ def process_candidate_personality_questions_stream(
             for event in stream_personality_questions(
                 owner=invitation,
                 personality_results=personality_results,
-                language_code=language_code,
             ):
                 result = apply_personality_questions_event(
                     result,
@@ -11345,7 +11243,6 @@ def process_candidate_personality_questions_stream(
             save_personality_questions(
                 owner=invitation,
                 result=result,
-                language_code=language_code,
             )
 
         except Exception as error:

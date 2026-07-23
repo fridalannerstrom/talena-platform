@@ -210,14 +210,6 @@ class TestInvitation(models.Model):
     ai_summary_status = models.CharField(max_length=30, blank=True, default="not_started")
 
     # ------------------------------------------------------------
-    # AI content language metadata
-    # ------------------------------------------------------------
-    ai_content_languages = models.JSONField(
-        default=dict,
-        blank=True,
-    )
-
-    # ------------------------------------------------------------
     # AI purpose fit
     # ------------------------------------------------------------
     ai_purpose_fit = models.JSONField(

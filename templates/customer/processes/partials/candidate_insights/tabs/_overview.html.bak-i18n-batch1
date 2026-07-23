@@ -1,5 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
 
 {% if not is_historical and all_assessments_completed %}
   {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
@@ -14,18 +12,19 @@
 
   <div class="ai-overview-header__content">
     <div class="insight-summary-kicker">
-      ✨ {% trans "AI-generated insight" %}
+      ✨ AI-generated insight
     </div>
 
     <h2
       class="insight-summary-title mb-1"
       id="purposeFitTitle"
     >
-      {% trans "AI Summary" %}
+      AI Summary
     </h2>
 
     <div class="text-muted small">
-      {% blocktrans %}A combined interpretation of the candidate’s available assessment results, selected process purpose and any added process context.{% endblocktrans %}
+      A combined interpretation of the candidate’s available assessment
+      results, selected process purpose and any added process context.
     </div>
   </div>
 
@@ -42,7 +41,7 @@
       "
     >
       {% if invitation.ai_purpose_fit_status == "outdated" %}
-        {% trans "Needs update" %}
+        Needs update
       {% endif %}
     </span>
 
@@ -52,8 +51,8 @@
       data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
       data-bs-toggle="tooltip"
       data-bs-placement="top"
-      title="{% trans 'Generate a new overview using the latest assessment results, purpose and process context.' %}"
-      aria-label="{% trans 'Generate a new AI overview' %}"
+      title="Generate a new overview using the latest assessment results, purpose and process context."
+      aria-label="Generate a new AI overview"
     >
       <i data-feather="refresh-cw"></i>
     </button>
@@ -82,7 +81,7 @@
             ></span>
 
             <span id="purposeFitLoadingText">
-              {% trans "Analysing assessment results and process context…" %}
+              Analysing assessment results and process context...
             </span>
           </div>
         </div>
@@ -100,7 +99,7 @@
   <!-- OVERALL INTERPRETATION -->
   <section class="purpose-fit-section mb-4">
     <div class="purpose-fit-section-title">
-      {% trans "Overall interpretation" %}
+      Overall interpretation
     </div>
 
 <div
@@ -116,15 +115,15 @@
       <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
 
         <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-          <span>{% trans "What supports the purpose" %}</span>
+          <span>What supports the purpose</span>
 
           <button
             type="button"
             class="purpose-fit-help"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="{% trans 'Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance.' %}"
-            aria-label="{% trans 'More information about supporting evidence' %}"
+            title="Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance."
+            aria-label="More information about supporting evidence"
           >
             <i data-feather="info"></i>
           </button>
@@ -152,15 +151,15 @@
       <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
 
         <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-          <span>{% trans "What to explore or consider" %}</span>
+          <span>What to explore or consider</span>
 
           <button
             type="button"
             class="purpose-fit-help"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="{% trans 'Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses.' %}"
-            aria-label="{% trans 'More information about areas to explore' %}"
+            title="Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses."
+            aria-label="More information about areas to explore"
           >
             <i data-feather="info"></i>
           </button>
@@ -211,7 +210,7 @@
 <details class="purpose-fit-explainer mb-4">
 
   <summary class="purpose-fit-explainer__title">
-    {% trans "How Talena created this summary" %}
+    How Talena created this summary
   </summary>
 
   <div class="purpose-fit-explainer__content mt-3">
@@ -226,29 +225,29 @@
     <div class="purpose-fit-inputs mt-3">
 
       <span class="purpose-fit-inputs__label">
-        {% trans "Based on" %}
+        Based on
       </span>
 
       <span class="purpose-fit-input-pill">
-        {% trans "Assessment results" %}
+        Assessment results
       </span>
 
       <span class="purpose-fit-input-pill">
-        {% trans "Selected purpose" %}
+        Selected purpose
       </span>
 
       {% if has_purpose_context %}
         <span class="purpose-fit-input-pill">
-          {% trans "Process context" %}
+          Process context
         </span>
       {% else %}
         <span
           class="purpose-fit-input-pill purpose-fit-input-pill--muted"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          title="{% trans 'No additional process context has been added.' %}"
+          title="No additional process context has been added."
         >
-          {% trans "No added context" %}
+          No added context
         </span>
       {% endif %}
 
@@ -263,7 +262,10 @@
     <i data-feather="info"></i>
 
     <div>
-      {% blocktrans %}This is an AI-generated interpretation of assessment evidence, not a final decision or prediction of future performance. Use it together with relevant conversations, experience and other available information.{% endblocktrans %}
+      This is an AI-generated interpretation of assessment evidence,
+      not a final decision or prediction of future performance.
+      Use it together with relevant conversations, experience and
+      other available information.
     </div>
   </div>
 
@@ -319,16 +321,16 @@
 
       {% if has_purpose_context %}
         <span class="purpose-fit-input-pill">
-          {% trans "Process context" %}
+          Process context
         </span>
       {% else %}
         <span
           class="purpose-fit-input-pill purpose-fit-input-pill--muted"
           data-bs-toggle="tooltip"
           data-bs-placement="top"
-          title="{% trans 'No additional process context has been added.' %}"
+          title="No additional process context has been added."
         >
-          {% trans "No added context" %}
+          No added context
         </span>
       {% endif %}
 
@@ -343,7 +345,8 @@
           class="alert alert-danger d-none mb-0"
           id="purposeFitError"
         >
-          {% blocktrans %}The purpose-fit interpretation could not be generated. Use the refresh button to try again.{% endblocktrans %}
+          The purpose-fit interpretation could not be generated.
+          Use the refresh button to try again.
         </div>
 
 
@@ -358,15 +361,17 @@
       <div class="card-body">
 
         <div class="insight-summary-kicker">
-          {% trans "Assessment overview" %}
+          Assessment overview
         </div>
 
         <h2 class="insight-summary-title mb-1">
-          {% trans "No purpose-specific overview available" %}
+          No purpose-specific overview available
         </h2>
 
         <p class="text-muted mb-0">
-          {% blocktrans %}A combined AI overview requires a specific process purpose. The available assessment results can still be explored through the Personality, Motivation, Cognitive abilities and Team styles tabs.{% endblocktrans %}
+          A combined AI overview requires a specific process purpose.
+          The available assessment results can still be explored through
+          the Personality, Motivation, Cognitive abilities and Team styles tabs.
         </p>
 
       </div>
@@ -383,15 +388,16 @@
       <div class="card-body">
 
         <div class="insight-summary-kicker">
-          {% trans "Imported assessment data" %}
+          Imported assessment data
         </div>
 
         <h2 class="insight-summary-title mb-1">
-          {% trans "Historical candidate overview" %}
+          Historical candidate overview
         </h2>
 
         <p class="text-muted mb-0">
-          {% blocktrans %}This candidate uses imported assessment data. Explore the available assessment areas through the tabs above.{% endblocktrans %}
+          This candidate uses imported assessment data. Explore the available
+          assessment areas through the tabs above.
         </p>
 
       </div>

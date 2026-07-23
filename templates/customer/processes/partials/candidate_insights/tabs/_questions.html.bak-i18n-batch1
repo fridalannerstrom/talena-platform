@@ -1,5 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
 <section
   class="
     mb-4
@@ -16,11 +14,13 @@
     <div>
 
 <h2 class="insight-summary-title mb-1">
-  {% trans "All assessment questions" %}
+  All assessment questions
 </h2>
 
 <p class="text-muted small mb-0">
-  {% blocktrans %}This page brings together all saved questions from Personality, Motivation and Cognitive in one place. The same questions are also available inside each assessment category.{% endblocktrans %}
+  This page brings together all saved questions from Personality,
+  Motivation and Cognitive in one place. The same questions are also
+  available inside each assessment category.
 </p>
 
     </div>
@@ -29,11 +29,8 @@
     {% if has_combined_questions %}
 
       <span class="personality-trait-pill text-nowrap">
-        {% blocktrans count question_count=combined_question_count %}
-          {{ question_count }} question
-        {% plural %}
-          {{ question_count }} questions
-        {% endblocktrans %}
+        {{ combined_question_count }}
+        question{{ combined_question_count|pluralize }}
       </span>
 
     {% endif %}
@@ -57,11 +54,14 @@
         <div>
 
           <div class="personality-questions-context-note__title">
-            {% trans "How to use these questions" %}
+            How to use these questions
           </div>
 
           <div>
-            {% blocktrans %}Use the questions to explore assessment indications through concrete examples, reflections and practical experience. They should support a structured conversation rather than replace professional judgement.{% endblocktrans %}
+            Use the questions to explore assessment indications through
+            concrete examples, reflections and practical experience.
+            They should support a structured conversation rather than
+            replace professional judgement.
           </div>
 
         </div>
@@ -102,11 +102,8 @@
 <div class="combined-question-section__badges">
 
   <span class="personality-trait-pill text-nowrap">
-    {% blocktrans count question_count=section.question_count %}
-      {{ question_count }} question
-    {% plural %}
-      {{ question_count }} questions
-    {% endblocktrans %}
+    {{ section.question_count }}
+    question{{ section.question_count|pluralize }}
   </span>
 
 </div>
@@ -160,7 +157,7 @@
                         <div>
 
                           <div class="personality-question-card__detail-title">
-                            {% trans "Why this matters" %}
+                            Why this matters
                           </div>
 
                           <div class="personality-question-card__detail-text">
@@ -190,7 +187,7 @@
                         <div>
 
                           <div class="personality-question-card__detail-title">
-                            {% trans "What to listen for" %}
+                            What to listen for
                           </div>
 
                           <div class="personality-question-card__detail-text">
@@ -226,7 +223,9 @@
       <i data-feather="info"></i>
 
 <div>
-  {% blocktrans %}These questions bring together the currently saved question sets from the available assessment areas. Use them to explore and validate assessment indications rather than as standalone evidence.{% endblocktrans %}
+  These questions bring together the currently saved question sets
+  from the available assessment areas. Use them to explore and
+  validate assessment indications rather than as standalone evidence.
 </div>
 
     </div>
@@ -246,11 +245,13 @@
       </div>
 
       <h3 class="personality-questions-section-title mb-2">
-        {% trans "No assessment questions are available yet" %}
+        No assessment questions are available yet
       </h3>
 
 <p class="text-muted small mb-0">
-  {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
+  This page brings together the candidate’s currently saved questions
+  from Personality, Motivation and Cognitive abilities. Questions can
+  be changed or regenerated within each assessment category.
 </p>
 
     </div>

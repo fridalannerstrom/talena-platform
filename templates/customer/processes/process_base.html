@@ -1,13 +1,146 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 
 {% block content %}
-{% load static %}
+{% load static i18n %}
+
+{% trans "Self-registration" as js_self_registration %}
+{% trans "Share this link with candidates. Candidates who register through the link will start the assessment automatically after registration." as js_self_registration_help %}
+{% trans "Self-registration link" as js_self_registration_link %}
+{% trans "Copy link" as js_copy_link %}
+{% trans "Close" as js_close %}
+{% trans "Copied!" as js_copied %}
+{% trans "Could not copy." as js_could_not_copy %}
+{% trans "An unexpected error occurred." as js_unexpected_error %}
+
+{% trans "Candidate" as js_candidate %}
+{% trans "Loading…" as js_loading %}
+{% trans "Could not load candidate details" as js_could_not_load_candidate_details %}
+
+{% trans "Explore" as js_explore %}
+{% trans "Lead" as js_lead %}
+{% trans "Deliver" as js_deliver %}
+{% trans "Critically review" as js_critically_review %}
+{% trans "Team style" as js_team_style %}
+{% trans "Result" as js_result %}
+
+{% trans "Motivation factor" as js_motivation_factor %}
+{% trans "Motivation" as js_motivation %}
+{% trans "Motivation profile" as js_motivation_profile %}
+{% trans "Area" as js_area %}
+{% trans "No motivation results are available for the overview." as js_no_motivation_overview_results %}
+
+{% trans "Not specified" as js_not_specified %}
+
+{% trans "Waiting" as js_waiting %}
+{% trans "Updating…" as js_updating %}
+{% trans "Updated" as js_updated %}
+{% trans "Failed" as js_failed %}
+{% trans "of" as js_of %}
+{% trans "Preparing AI insights…" as js_preparing_ai_insights %}
+
+{% trans "AI insights are already up to date" as js_ai_insights_up_to_date %}
+{% trans "No AI-generated sections currently require updating." as js_no_ai_sections_require_updating %}
+
+{% trans "The update request could not be completed." as js_update_request_failed %}
+{% trans "No AI stream URL was returned." as js_no_ai_stream_url %}
+{% trans "The AI insight could not be generated." as js_ai_insight_could_not_be_generated %}
+{% trans "This section could not be updated." as js_section_could_not_be_updated %}
+{% trans "Some AI insights could not be updated" as js_some_ai_insights_could_not_be_updated %}
+{% trans "COMPLETED of TOTAL sections were updated successfully." as js_sections_updated_successfully %}
+{% trans "One section could not be updated. Reload the candidate and try that section again individually." as js_one_section_could_not_be_updated %}
+{% trans "COUNT sections could not be updated. Reload the candidate and try those sections again individually." as js_sections_could_not_be_updated %}
+{% trans "All AI insights have been updated" as js_all_ai_insights_updated %}
+{% trans "The new insights were generated using the latest process purpose and context. Reloading the candidate now…" as js_new_insights_generated_reloading %}
+{% trans "The AI update could not be started." as js_ai_update_could_not_start %}
+{% trans "Generating candidate summary…" as js_generating_candidate_summary %}
+{% trans "The summary could not be generated" as js_summary_could_not_be_generated %}
+{% trans "Use the refresh button to try again." as js_use_refresh_button_try_again %}
+{% trans "The browser did not receive a response stream." as js_browser_no_response_stream %}
+{% trans "No summary was generated." as js_no_summary_generated %}
+{% trans "An error occurred while generating the summary" as js_summary_generation_error %}
+{% trans "The summary could not be regenerated." as js_summary_could_not_be_regenerated %}
+{% trans "An error occurred while regenerating the summary." as js_summary_regeneration_error %}
+{% trans "Completed" as js_completed %}
+{% trans "Started" as js_started %}
+{% trans "Sent" as js_sent %}
+{% trans "Not sent" as js_not_sent %}
+{% trans "Could not load the form." as js_could_not_load_form %}
+{% trans "Network error. Please try again." as js_network_error_try_again %}
+{% trans "Talena AI could not generate a response." as js_talena_ai_no_response %}
+{% trans "Something went wrong while generating the response." as js_ai_response_error %}
+{% trans "Talena AI is thinking" as js_talena_ai_thinking %}
+{% trans "AI-supported interpretation" as js_ai_supported_interpretation %}
+{% trans "AI-supported questions" as js_ai_supported_questions %}
+{% trans "Personality interpretation" as js_personality_interpretation %}
+{% trans "The personality interpretation could not be generated." as js_personality_interpretation_could_not_be_generated %}
+{% trans "The personality interpretation is already being generated." as js_personality_interpretation_already_generating %}
+{% trans "Streaming is not supported by this browser." as js_streaming_not_supported %}
+{% trans "The interpretation could not be regenerated." as js_interpretation_could_not_be_regenerated %}
+{% trans "Motivation interpretation" as js_motivation_interpretation %}
+{% trans "Motivation interpretation failed." as js_motivation_interpretation_failed %}
+{% trans "The motivation interpretation could not be generated." as js_motivation_interpretation_could_not_be_generated %}
+{% trans "The interpretation is already being generated." as js_interpretation_already_generating %}
+{% trans "Motivation questions" as js_motivation_questions %}
+{% trans "Why this matters" as js_why_this_matters %}
+{% trans "What to look for in the answer" as js_what_to_look_for %}
+{% trans "The motivation questions could not be generated." as js_motivation_questions_could_not_be_generated %}
+{% trans "The motivation questions are already being generated." as js_motivation_questions_already_generating %}
+{% trans "The motivation questions could not be regenerated." as js_motivation_questions_could_not_be_regenerated %}
+{% trans "Cognitive interpretation" as js_cognitive_interpretation %}
+{% trans "The cognitive interpretation could not be generated." as js_cognitive_interpretation_could_not_be_generated %}
+{% trans "The cognitive interpretation is already being generated." as js_cognitive_interpretation_already_generating %}
+{% trans "Cognitive questions" as js_cognitive_questions %}
+{% trans "The cognitive questions could not be generated." as js_cognitive_questions_could_not_be_generated %}
+{% trans "The cognitive questions are already being generated." as js_cognitive_questions_already_generating %}
+{% trans "The cognitive questions could not be regenerated." as js_cognitive_questions_could_not_be_regenerated %}
+{% trans "AI Overview" as js_ai_overview %}
+{% trans "Needs update" as js_needs_update %}
+{% trans "Creating an overview from the available assessment results…" as js_creating_ai_overview %}
+{% trans "Could not generate AI overview." as js_could_not_generate_ai_overview %}
+{% trans "Could not regenerate AI overview." as js_could_not_regenerate_ai_overview %}
+{% trans "Talena will choose" as js_talena_will_choose %}
+{% trans "COUNT selected" as js_count_selected %}
+{% trans "Automatic selection by Talena" as js_automatic_selection_by_talena %}
+{% trans "What to listen for" as js_what_to_listen_for %}
+{% trans "Personality questions" as js_personality_questions %}
+{% trans "Personality question generation failed." as js_personality_question_generation_failed %}
+{% trans "The personality questions are already being generated." as js_personality_questions_already_generating %}
+{% trans "The personality questions could not be generated." as js_personality_questions_could_not_be_generated %}
+{% trans "The personality questions could not be regenerated." as js_personality_questions_could_not_be_regenerated %}
+{% trans "The trait selection could not be saved." as js_trait_selection_could_not_be_saved %}
+{% trans "How to approach this profile" as js_how_to_approach_profile %}
+{% trans "Saved interpretation" as js_saved_interpretation %}
+{% trans "Updating interpretation" as js_updating_interpretation %}
+{% trans "Generating interpretation" as js_generating_interpretation %}
+{% trans "The interpretation could not be generated." as js_interpretation_could_not_be_generated %}
+{% trans "Previous interpretation shown" as js_previous_interpretation_shown %}
+{% trans "Generation failed" as js_generation_failed %}
+{% trans "Hide indicators" as js_hide_indicators %}
+{% trans "Show indicators" as js_show_indicators %}
+{% trans "Hide all indicators" as js_hide_all_indicators %}
+{% trans "Show all indicators" as js_show_all_indicators %}
+{% trans "Generating…" as js_generating %}
+{% trans "The updated decision support could not be loaded." as js_updated_decision_support_could_not_be_loaded %}
+{% trans "The updated decision support markup was missing." as js_updated_decision_support_markup_missing %}
+{% trans "The decision support could not be generated." as js_decision_support_could_not_be_generated %}
+{% trans "The pre-interview decision support could not be generated." as js_pre_interview_support_could_not_be_generated %}
+{% trans "The decision support could not be regenerated." as js_decision_support_could_not_be_regenerated %}
+{% trans "COUNT / 30,000 characters" as js_character_count %}
+{% trans "Unsaved changes" as js_unsaved_changes %}
+{% trans "Saving…" as js_saving %}
+{% trans "The interview notes could not be saved." as js_interview_notes_could_not_be_saved %}
+{% trans "Saved" as js_saved %}
+{% trans "Last saved DATE" as js_last_saved %}
+{% trans "Save interview notes" as js_save_interview_notes %}
+{% trans "Generate post-interview decision support" as js_generate_post_interview_support %}
+{% trans "The post-interview decision support could not be generated." as js_post_interview_support_could_not_be_generated %}
+{% trans "The post-interview decision support could not be regenerated." as js_post_interview_support_could_not_be_regenerated %}
 
 <div class="container-fluid px-2 px-md-4 process-page">
 
   <a href="{% url 'processes:process_list' %}"
      class="text-muted small text-decoration-none d-inline-flex align-items-center gap-1 mb-3">
-    ← Back to processes
+    ← {% trans "Back to processes" %}
   </a>
 
   {% with current_active=active|default:"overview" %}
@@ -24,14 +157,26 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="d-flex flex-column">
-          <div class="subheading mb-1">Add candidate</div>
-          <div class="text-muted small">Invite a candidate to this test process.</div>
+<div class="subheading mb-1">
+  {% trans "Add candidate" %}
+</div>
+
+<div class="text-muted small">
+  {% trans "Invite a candidate to this test process." %}
+</div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+  type="button"
+  class="btn-close"
+  data-bs-dismiss="modal"
+  aria-label="{% trans 'Close' %}"
+></button>
       </div>
 
       <div class="modal-body" id="addCandidateModalBody">
-        <div class="text-muted">Loading…</div>
+        <div class="text-muted">
+  {% trans "Loading…" %}
+</div>
       </div>
     </div>
   </div>
@@ -52,6 +197,166 @@
   const SELF_REG_URL = "{{ self_reg_url|escapejs }}";
   const CAN_EDIT = {{ can_edit|yesno:"true,false" }};
   const POLL_MS = 5000;
+
+  window.TALENA_PROCESS_I18N = Object.freeze({
+    selfRegistration: "{{ js_self_registration|escapejs }}",
+    selfRegistrationHelp: "{{ js_self_registration_help|escapejs }}",
+    selfRegistrationLink: "{{ js_self_registration_link|escapejs }}",
+    copyLink: "{{ js_copy_link|escapejs }}",
+    close: "{{ js_close|escapejs }}",
+    copied: "{{ js_copied|escapejs }}",
+    couldNotCopy: "{{ js_could_not_copy|escapejs }}",
+    candidate: "{{ js_candidate|escapejs }}",
+loading: "{{ js_loading|escapejs }}",
+couldNotLoadCandidateDetails:
+  "{{ js_could_not_load_candidate_details|escapejs }}",
+  unexpectedError:
+  "{{ js_unexpected_error|escapejs }}",
+  explore: "{{ js_explore|escapejs }}",
+lead: "{{ js_lead|escapejs }}",
+deliver: "{{ js_deliver|escapejs }}",
+criticallyReview: "{{ js_critically_review|escapejs }}",
+teamStyle: "{{ js_team_style|escapejs }}",
+result: "{{ js_result|escapejs }}",
+motivationFactor:
+  "{{ js_motivation_factor|escapejs }}",
+
+motivation:
+  "{{ js_motivation|escapejs }}",
+
+motivationProfile:
+  "{{ js_motivation_profile|escapejs }}",
+
+area:
+  "{{ js_area|escapejs }}",
+
+noMotivationOverviewResults:
+  "{{ js_no_motivation_overview_results|escapejs }}",
+  notSpecified:
+  "{{ js_not_specified|escapejs }}",
+
+waiting:
+  "{{ js_waiting|escapejs }}",
+
+updating:
+  "{{ js_updating|escapejs }}",
+
+updated:
+  "{{ js_updated|escapejs }}",
+
+failed:
+  "{{ js_failed|escapejs }}",
+
+of:
+  "{{ js_of|escapejs }}",
+
+preparingAiInsights:
+  "{{ js_preparing_ai_insights|escapejs }}",
+
+  aiInsightsUpToDate:
+  "{{ js_ai_insights_up_to_date|escapejs }}",
+
+noAiSectionsRequireUpdating:
+  "{{ js_no_ai_sections_require_updating|escapejs }}",
+
+    updateRequestFailed: "{{ js_update_request_failed|escapejs }}",
+    noAiStreamUrl: "{{ js_no_ai_stream_url|escapejs }}",
+    aiInsightCouldNotBeGenerated: "{{ js_ai_insight_could_not_be_generated|escapejs }}",
+    sectionCouldNotBeUpdated: "{{ js_section_could_not_be_updated|escapejs }}",
+    someAiInsightsCouldNotBeUpdated: "{{ js_some_ai_insights_could_not_be_updated|escapejs }}",
+    sectionsUpdatedSuccessfully: "{{ js_sections_updated_successfully|escapejs }}",
+    oneSectionCouldNotBeUpdated: "{{ js_one_section_could_not_be_updated|escapejs }}",
+    sectionsCouldNotBeUpdated: "{{ js_sections_could_not_be_updated|escapejs }}",
+    allAiInsightsUpdated: "{{ js_all_ai_insights_updated|escapejs }}",
+    newInsightsGeneratedReloading: "{{ js_new_insights_generated_reloading|escapejs }}",
+    aiUpdateCouldNotStart: "{{ js_ai_update_could_not_start|escapejs }}",
+    generatingCandidateSummary: "{{ js_generating_candidate_summary|escapejs }}",
+    summaryCouldNotBeGenerated: "{{ js_summary_could_not_be_generated|escapejs }}",
+    useRefreshButtonTryAgain: "{{ js_use_refresh_button_try_again|escapejs }}",
+    browserNoResponseStream: "{{ js_browser_no_response_stream|escapejs }}",
+    noSummaryGenerated: "{{ js_no_summary_generated|escapejs }}",
+    summaryGenerationError: "{{ js_summary_generation_error|escapejs }}",
+    summaryCouldNotBeRegenerated: "{{ js_summary_could_not_be_regenerated|escapejs }}",
+    summaryRegenerationError: "{{ js_summary_regeneration_error|escapejs }}",
+    completed: "{{ js_completed|escapejs }}",
+    started: "{{ js_started|escapejs }}",
+    sent: "{{ js_sent|escapejs }}",
+    notSent: "{{ js_not_sent|escapejs }}",
+    couldNotLoadForm: "{{ js_could_not_load_form|escapejs }}",
+    networkErrorTryAgain: "{{ js_network_error_try_again|escapejs }}",
+    talenaAiNoResponse: "{{ js_talena_ai_no_response|escapejs }}",
+    aiResponseError: "{{ js_ai_response_error|escapejs }}",
+    talenaAiThinking: "{{ js_talena_ai_thinking|escapejs }}",
+    aiSupportedInterpretation: "{{ js_ai_supported_interpretation|escapejs }}",
+    aiSupportedQuestions: "{{ js_ai_supported_questions|escapejs }}",
+    personalityInterpretation: "{{ js_personality_interpretation|escapejs }}",
+    personalityInterpretationCouldNotBeGenerated: "{{ js_personality_interpretation_could_not_be_generated|escapejs }}",
+    personalityInterpretationAlreadyGenerating: "{{ js_personality_interpretation_already_generating|escapejs }}",
+    streamingNotSupported: "{{ js_streaming_not_supported|escapejs }}",
+    interpretationCouldNotBeRegenerated: "{{ js_interpretation_could_not_be_regenerated|escapejs }}",
+    motivationInterpretation: "{{ js_motivation_interpretation|escapejs }}",
+    motivationInterpretationFailed: "{{ js_motivation_interpretation_failed|escapejs }}",
+    motivationInterpretationCouldNotBeGenerated: "{{ js_motivation_interpretation_could_not_be_generated|escapejs }}",
+    interpretationAlreadyGenerating: "{{ js_interpretation_already_generating|escapejs }}",
+    motivationQuestions: "{{ js_motivation_questions|escapejs }}",
+    whyThisMatters: "{{ js_why_this_matters|escapejs }}",
+    whatToLookFor: "{{ js_what_to_look_for|escapejs }}",
+    motivationQuestionsCouldNotBeGenerated: "{{ js_motivation_questions_could_not_be_generated|escapejs }}",
+    motivationQuestionsAlreadyGenerating: "{{ js_motivation_questions_already_generating|escapejs }}",
+    motivationQuestionsCouldNotBeRegenerated: "{{ js_motivation_questions_could_not_be_regenerated|escapejs }}",
+    cognitiveInterpretation: "{{ js_cognitive_interpretation|escapejs }}",
+    cognitiveInterpretationCouldNotBeGenerated: "{{ js_cognitive_interpretation_could_not_be_generated|escapejs }}",
+    cognitiveInterpretationAlreadyGenerating: "{{ js_cognitive_interpretation_already_generating|escapejs }}",
+    cognitiveQuestions: "{{ js_cognitive_questions|escapejs }}",
+    cognitiveQuestionsCouldNotBeGenerated: "{{ js_cognitive_questions_could_not_be_generated|escapejs }}",
+    cognitiveQuestionsAlreadyGenerating: "{{ js_cognitive_questions_already_generating|escapejs }}",
+    cognitiveQuestionsCouldNotBeRegenerated: "{{ js_cognitive_questions_could_not_be_regenerated|escapejs }}",
+    aiOverview: "{{ js_ai_overview|escapejs }}",
+    needsUpdate: "{{ js_needs_update|escapejs }}",
+    creatingAiOverview: "{{ js_creating_ai_overview|escapejs }}",
+    couldNotGenerateAiOverview: "{{ js_could_not_generate_ai_overview|escapejs }}",
+    couldNotRegenerateAiOverview: "{{ js_could_not_regenerate_ai_overview|escapejs }}",
+    talenaWillChoose: "{{ js_talena_will_choose|escapejs }}",
+    countSelected: "{{ js_count_selected|escapejs }}",
+    automaticSelectionByTalena: "{{ js_automatic_selection_by_talena|escapejs }}",
+    whatToListenFor: "{{ js_what_to_listen_for|escapejs }}",
+    personalityQuestions: "{{ js_personality_questions|escapejs }}",
+    personalityQuestionGenerationFailed: "{{ js_personality_question_generation_failed|escapejs }}",
+    personalityQuestionsAlreadyGenerating: "{{ js_personality_questions_already_generating|escapejs }}",
+    personalityQuestionsCouldNotBeGenerated: "{{ js_personality_questions_could_not_be_generated|escapejs }}",
+    personalityQuestionsCouldNotBeRegenerated: "{{ js_personality_questions_could_not_be_regenerated|escapejs }}",
+    traitSelectionCouldNotBeSaved: "{{ js_trait_selection_could_not_be_saved|escapejs }}",
+    howToApproachProfile: "{{ js_how_to_approach_profile|escapejs }}",
+    savedInterpretation: "{{ js_saved_interpretation|escapejs }}",
+    updatingInterpretation: "{{ js_updating_interpretation|escapejs }}",
+    generatingInterpretation: "{{ js_generating_interpretation|escapejs }}",
+    interpretationCouldNotBeGenerated: "{{ js_interpretation_could_not_be_generated|escapejs }}",
+    previousInterpretationShown: "{{ js_previous_interpretation_shown|escapejs }}",
+    generationFailed: "{{ js_generation_failed|escapejs }}",
+    hideIndicators: "{{ js_hide_indicators|escapejs }}",
+    showIndicators: "{{ js_show_indicators|escapejs }}",
+    hideAllIndicators: "{{ js_hide_all_indicators|escapejs }}",
+    showAllIndicators: "{{ js_show_all_indicators|escapejs }}",
+    generating: "{{ js_generating|escapejs }}",
+    updatedDecisionSupportCouldNotBeLoaded: "{{ js_updated_decision_support_could_not_be_loaded|escapejs }}",
+    updatedDecisionSupportMarkupMissing: "{{ js_updated_decision_support_markup_missing|escapejs }}",
+    decisionSupportCouldNotBeGenerated: "{{ js_decision_support_could_not_be_generated|escapejs }}",
+    preInterviewSupportCouldNotBeGenerated: "{{ js_pre_interview_support_could_not_be_generated|escapejs }}",
+    decisionSupportCouldNotBeRegenerated: "{{ js_decision_support_could_not_be_regenerated|escapejs }}",
+    characterCount: "{{ js_character_count|escapejs }}",
+    unsavedChanges: "{{ js_unsaved_changes|escapejs }}",
+    saving: "{{ js_saving|escapejs }}",
+    interviewNotesCouldNotBeSaved: "{{ js_interview_notes_could_not_be_saved|escapejs }}",
+    saved: "{{ js_saved|escapejs }}",
+    lastSaved: "{{ js_last_saved|escapejs }}",
+    saveInterviewNotes: "{{ js_save_interview_notes|escapejs }}",
+    generatePostInterviewSupport: "{{ js_generate_post_interview_support|escapejs }}",
+    postInterviewSupportCouldNotBeGenerated: "{{ js_post_interview_support_could_not_be_generated|escapejs }}",
+    postInterviewSupportCouldNotBeRegenerated: "{{ js_post_interview_support_could_not_be_regenerated|escapejs }}",
+  });
+
+  const PROCESS_I18N =
+    window.TALENA_PROCESS_I18N;
 
   document.addEventListener("DOMContentLoaded", () => {
     initIconsAndTooltips(document);
@@ -314,10 +619,7 @@ if (modal.parentElement !== document.body) {
       const message =
         await getResponseError(
           response,
-          (
-            "The update request could " +
-            "not be completed."
-          )
+          window.TALENA_PROCESS_I18N.updateRequestFailed
         );
 
       throw new Error(message);
@@ -333,7 +635,7 @@ if (modal.parentElement !== document.body) {
   ) {
     if (!streamUrl) {
       throw new Error(
-        "No AI stream URL was returned."
+        window.TALENA_PROCESS_I18N.noAiStreamUrl
       );
     }
 
@@ -361,10 +663,7 @@ if (modal.parentElement !== document.body) {
       const message =
         await getResponseError(
           response,
-          (
-            "The AI insight could not " +
-            "be generated."
-          )
+          window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated
         );
 
       throw new Error(message);
@@ -396,10 +695,7 @@ if (modal.parentElement !== document.body) {
           if (event.type === "error") {
             throw new Error(
               event.message ||
-              (
-                "The AI insight could " +
-                "not be generated."
-              )
+              window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated
             );
           }
 
@@ -453,10 +749,7 @@ if (modal.parentElement !== document.body) {
       if (event.type === "error") {
         throw new Error(
           event.message ||
-          (
-            "The AI insight could not " +
-            "be generated."
-          )
+          window.TALENA_PROCESS_I18N.aiInsightCouldNotBeGenerated
         );
       }
     }
@@ -535,8 +828,8 @@ if (modal.parentElement !== document.body) {
     status.className =
       "badge rounded-pill bg-light text-dark border";
 
-    status.textContent =
-      "Waiting";
+status.textContent =
+  PROCESS_I18N.waiting;
 
 
     const message =
@@ -606,8 +899,8 @@ if (modal.parentElement !== document.body) {
         "text-warning-emphasis"
       );
 
-      status.textContent =
-        "Updating...";
+status.textContent =
+  PROCESS_I18N.updating;
 
     } else if (state === "success") {
       status.classList.add(
@@ -615,8 +908,8 @@ if (modal.parentElement !== document.body) {
         "text-success-emphasis"
       );
 
-      status.textContent =
-        "Updated";
+status.textContent =
+  PROCESS_I18N.updated;
 
     } else if (state === "failed") {
       status.classList.add(
@@ -624,8 +917,8 @@ if (modal.parentElement !== document.body) {
         "text-danger-emphasis"
       );
 
-      status.textContent =
-        "Failed";
+status.textContent =
+  PROCESS_I18N.failed;
 
     } else {
       status.classList.add(
@@ -634,8 +927,8 @@ if (modal.parentElement !== document.body) {
         "border"
       );
 
-      status.textContent =
-        "Waiting";
+status.textContent =
+  PROCESS_I18N.waiting;
     }
 
 
@@ -674,8 +967,8 @@ if (modal.parentElement !== document.body) {
       : 0;
 
 
-    progressCount.textContent =
-      `${completed} of ${total}`;
+progressCount.textContent =
+  `${completed} ${PROCESS_I18N.of} ${total}`;
 
 
     progressBar.style.width =
@@ -689,12 +982,12 @@ if (modal.parentElement !== document.body) {
 
 
     if (currentLabel) {
-      progressText.textContent =
-        `Updating ${currentLabel}...`;
+progressText.textContent =
+  `${PROCESS_I18N.updating} ${currentLabel}`;
 
     } else {
-      progressText.textContent =
-        "Preparing AI insights...";
+progressText.textContent =
+  PROCESS_I18N.preparingAiInsights;
     }
   }
 
@@ -807,14 +1100,11 @@ if (modal.parentElement !== document.body) {
             false
           );
 
-          completeTitle.textContent =
-            "AI insights are already up to date";
+completeTitle.textContent =
+  PROCESS_I18N.aiInsightsUpToDate;
 
-          completeText.textContent =
-            (
-              "No AI-generated sections " +
-              "currently require updating."
-            );
+completeText.textContent =
+  PROCESS_I18N.noAiSectionsRequireUpdating;
 
           setHidden(
             confirmButton,
@@ -904,10 +1194,7 @@ if (modal.parentElement !== document.body) {
 
             const message =
               error.message ||
-              (
-                "This section could " +
-                "not be updated."
-              );
+              window.TALENA_PROCESS_I18N.sectionCouldNotBeUpdated;
 
             failures.push({
               key: section.key,
@@ -955,27 +1242,30 @@ if (modal.parentElement !== document.body) {
 
         if (failures.length) {
           completeTitle.textContent =
-            "Some AI insights could not be updated";
+            window.TALENA_PROCESS_I18N.someAiInsightsCouldNotBeUpdated;
 
-          completeText.textContent = (
-            `${completedCount - failures.length} ` +
-            `of ${completedCount} sections were ` +
-            "updated successfully."
-          );
+          completeText.textContent =
+            window.TALENA_PROCESS_I18N.sectionsUpdatedSuccessfully
+              .replace(
+                "COMPLETED",
+                String(
+                  completedCount -
+                  failures.length
+                )
+              )
+              .replace(
+                "TOTAL",
+                String(completedCount)
+              );
 
-          errorBox.textContent = (
-            `${failures.length} section` +
-            (
-              failures.length === 1
-                ? ""
-                : "s"
-            ) +
-            " could not be updated. " +
-            (
-              "Reload the candidate and try those " +
-              "sections again individually."
-            )
-          );
+          errorBox.textContent =
+            failures.length === 1
+              ? window.TALENA_PROCESS_I18N.oneSectionCouldNotBeUpdated
+              : window.TALENA_PROCESS_I18N.sectionsCouldNotBeUpdated
+                  .replace(
+                    "COUNT",
+                    String(failures.length)
+                  );
 
           setHidden(
             errorBox,
@@ -993,15 +1283,10 @@ if (modal.parentElement !== document.body) {
 
         } else {
           completeTitle.textContent =
-            "All AI insights have been updated";
+            window.TALENA_PROCESS_I18N.allAiInsightsUpdated;
 
           completeText.textContent =
-            (
-              "The new insights were generated " +
-              "using the latest process purpose " +
-              "and context. Reloading the " +
-              "candidate now..."
-            );
+            window.TALENA_PROCESS_I18N.newInsightsGeneratedReloading;
 
           refreshIcons();
 
@@ -1022,10 +1307,7 @@ if (modal.parentElement !== document.body) {
 
         showInitialError(
           error.message ||
-          (
-            "The AI update could not " +
-            "be started."
-          )
+          window.TALENA_PROCESS_I18N.aiUpdateCouldNotStart
         );
       }
     }
@@ -1063,61 +1345,102 @@ if (modal.parentElement !== document.body) {
   // ------------------------------------------------------------
 
   function initSelfRegistrationModal() {
-    const buttons = document.querySelectorAll(".js-selfreg");
+  const buttons =
+    document.querySelectorAll(".js-selfreg");
 
-    if (!buttons.length) {
-      return;
-    }
+  if (!buttons.length) {
+    return;
+  }
 
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        openAppModal({
-          title: "Self-registration",
-          bodyHtml: `
-            <p class="mb-2">
-              Share this link with candidates. Candidates who register through the link
-              will start the assessment automatically after registration.
-            </p>
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openAppModal({
+        title:
+          PROCESS_I18N.selfRegistration,
 
-            <label class="form-label">Self-registration link</label>
-            <input type="text" class="form-control" value="${SELF_REG_URL}" readonly>
+        bodyHtml: `
+          <p class="mb-2">
+            ${PROCESS_I18N.selfRegistrationHelp}
+          </p>
 
-            <div class="d-flex align-items-center gap-3 mt-2">
-              <button class="btn btn-primary" type="button" id="copySelfRegLinkBtn">
-                Copy link
-              </button>
-              <span id="copyStatus" class="small text-muted"></span>
-            </div>
-          `,
-          footerHtml: `
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-          `
-        });
+          <label class="form-label">
+            ${PROCESS_I18N.selfRegistrationLink}
+          </label>
 
-        setTimeout(() => {
-          const copyBtn = document.getElementById("copySelfRegLinkBtn");
-          const status = document.getElementById("copyStatus");
+          <input
+            type="text"
+            class="form-control"
+            value="${SELF_REG_URL}"
+            readonly
+          >
 
-          if (!copyBtn) {
-            return;
-          }
+          <div class="d-flex align-items-center gap-3 mt-2">
+            <button
+              class="btn btn-primary"
+              type="button"
+              id="copySelfRegLinkBtn"
+            >
+              ${PROCESS_I18N.copyLink}
+            </button>
 
-          copyBtn.addEventListener("click", async () => {
+            <span
+              id="copyStatus"
+              class="small text-muted"
+            ></span>
+          </div>
+        `,
+
+        footerHtml: `
+          <button
+            type="button"
+            class="btn btn-light"
+            data-bs-dismiss="modal"
+          >
+            ${PROCESS_I18N.close}
+          </button>
+        `,
+      });
+
+      setTimeout(() => {
+        const copyBtn =
+          document.getElementById(
+            "copySelfRegLinkBtn"
+          );
+
+        const status =
+          document.getElementById(
+            "copyStatus"
+          );
+
+        if (!copyBtn) {
+          return;
+        }
+
+        copyBtn.addEventListener(
+          "click",
+          async () => {
             try {
-              await copyText(SELF_REG_URL);
+              await copyText(
+                SELF_REG_URL
+              );
+
               if (status) {
-                status.textContent = "Copied!";
+                status.textContent =
+                  PROCESS_I18N.copied;
               }
+
             } catch (error) {
               if (status) {
-                status.textContent = "Could not copy.";
+                status.textContent =
+                  PROCESS_I18N.couldNotCopy;
               }
             }
-          });
-        }, 0);
-      });
+          }
+        );
+      }, 0);
     });
-  }
+  });
+}
 
   // ------------------------------------------------------------
   // Candidate sheet / offcanvas
@@ -1152,10 +1475,16 @@ if (modal.parentElement !== document.body) {
 
       const link = links[currentIndex];
       const url = link.dataset.sheetUrl || link.getAttribute("href");
-      const name = link.dataset.candidateName || "Candidate";
+      const name =
+  link.dataset.candidateName ||
+  PROCESS_I18N.candidate;
 
       sheetTitle.textContent = name;
-      sheetBody.innerHTML = `<div class="text-muted">Loading…</div>`;
+      sheetBody.innerHTML = `
+  <div class="text-muted">
+    ${PROCESS_I18N.loading}
+  </div>
+`;
 
       sheet.show();
       updateCandidateSheetNav();
@@ -1168,11 +1497,12 @@ if (modal.parentElement !== document.body) {
         });
 
         if (!response.ok) {
-          sheetBody.innerHTML = `
-            <div class="alert alert-danger mb-0">
-              Could not load candidate details (${response.status}).
-            </div>
-          `;
+sheetBody.innerHTML = `
+  <div class="alert alert-danger mb-0">
+    ${PROCESS_I18N.couldNotLoadCandidateDetails}
+    (${response.status}).
+  </div>
+`;
           return;
         }
 
@@ -1263,14 +1593,21 @@ await initCandidateMotivationQuestions(
 }
 
 
-      } catch (error) {
-  console.error("Candidate sheet load error:", error);
+} catch (error) {
+  console.error(
+    "Candidate sheet load error:",
+    error
+  );
 
   sheetBody.innerHTML = `
     <div class="alert alert-danger mb-0">
-      Could not load candidate details.
+      ${PROCESS_I18N.couldNotLoadCandidateDetails}.
+
       <div class="small mt-2">
-        ${error.message || "An unexpected error occurred."}
+        ${
+          error.message ||
+          PROCESS_I18N.unexpectedError
+        }
       </div>
     </div>
   `;
@@ -1399,7 +1736,7 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
     ctx.fillStyle = "#b11778";
     ctx.textAlign = "left";
     ctx.fillText(
-      "Explore",
+      PROCESS_I18N.explore,
       centerX - offsetX,
       centerY - offsetY
     );
@@ -1408,7 +1745,7 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
     ctx.fillStyle = "#3e8ee6";
     ctx.textAlign = "right";
     ctx.fillText(
-      "Lead",
+      PROCESS_I18N.lead,
       centerX + offsetX,
       centerY - offsetY
     );
@@ -1417,7 +1754,7 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
     ctx.fillStyle = "#2337b4";
     ctx.textAlign = "right";
     ctx.fillText(
-      "Deliver",
+      PROCESS_I18N.deliver,
       centerX + offsetX,
       centerY + offsetY
     );
@@ -1426,7 +1763,7 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
     ctx.fillStyle = "#6f3cb7";
     ctx.textAlign = "left";
     ctx.fillText(
-      "Critically review",
+      PROCESS_I18N.criticallyReview,
       centerX - offsetX,
       centerY + offsetY
     );
@@ -1622,10 +1959,13 @@ const chartInstance = new window.TeamStyleChartJS(
 
           callbacks: {
             title(context) {
-              return context[0]?.label || "Team style";
+              return (
+  context[0]?.label ||
+  PROCESS_I18N.teamStyle
+);
             },
             label(context) {
-              return `Result: ${context.raw} / 5`;
+              return `${PROCESS_I18N.result}: ${context.raw} / 5`;
             },
           },
         },
@@ -1721,13 +2061,13 @@ async function initMotivationRoseChart(
       );
 
       return {
-        name:
-          element.dataset.factorName
-          || "Motivation factor",
+name:
+  element.dataset.factorName
+  || PROCESS_I18N.motivationFactor,
 
-        domain:
-          element.dataset.factorDomain
-          || "Motivation",
+domain:
+  element.dataset.factorDomain
+  || PROCESS_I18N.motivation,
 
         domainIndex:
           Number.isFinite(domainIndex)
@@ -1747,8 +2087,8 @@ async function initMotivationRoseChart(
 
   if (!items.length) {
     if (emptyState) {
-      emptyState.textContent =
-        "No motivation results are available for the overview.";
+emptyState.textContent =
+  PROCESS_I18N.noMotivationOverviewResults;
 
       emptyState.classList.remove(
         "d-none"
@@ -2200,7 +2540,8 @@ async function initMotivationRoseChart(
 
         datasets: [
           {
-            label: "Motivation profile",
+            label:
+  PROCESS_I18N.motivationProfile,
             data: scores,
 
             backgroundColor:
@@ -2300,17 +2641,17 @@ async function initMotivationRoseChart(
 
             callbacks: {
               title(context) {
-                return (
-                  context[0]?.label
-                  || "Motivation factor"
-                );
+return (
+  context[0]?.label
+  || PROCESS_I18N.motivationFactor
+);
               },
 
               label(context) {
-                return (
-                  `Result: ` +
-                  `${context.raw} / 5`
-                );
+return (
+  `${PROCESS_I18N.result}: ` +
+  `${context.raw} / 5`
+);
               },
 
               afterLabel(context) {
@@ -2319,9 +2660,9 @@ async function initMotivationRoseChart(
                     context.dataIndex
                   ];
 
-                return item?.domain
-                  ? `Area: ${item.domain}`
-                  : "";
+return item?.domain
+  ? `${PROCESS_I18N.area}: ${item.domain}`
+  : "";
               },
             },
           },
@@ -2390,7 +2731,8 @@ function initCandidateSheetInteractions(container) {
         try {
           await copyText(input.value);
 
-          this.innerText = "Copied!";
+          this.innerText =
+  PROCESS_I18N.copied;
           this.classList.remove("btn-outline-dark");
           this.classList.add("btn-dark");
 
@@ -2400,7 +2742,8 @@ function initCandidateSheetInteractions(container) {
             this.classList.add("btn-primary");
           }, 1400);
         } catch (error) {
-          this.innerText = "Could not copy";
+          this.innerText =
+  PROCESS_I18N.couldNotCopy;
 
           setTimeout(() => {
             this.innerText = originalText;
@@ -2429,11 +2772,15 @@ function initCandidateSheetInteractions(container) {
     container.querySelectorAll(".js-open-email-modal").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (toEl) {
-          toEl.textContent = btn.dataset.emailTo || "Not specified";
+          toEl.textContent =
+  btn.dataset.emailTo ||
+  PROCESS_I18N.notSpecified;
         }
 
         if (subjectEl) {
-          subjectEl.textContent = btn.dataset.emailSubject || "Not specified";
+          subjectEl.textContent =
+  btn.dataset.emailSubject ||
+  PROCESS_I18N.notSpecified;
         }
 
         if (bodyEl) {
@@ -2844,7 +3191,7 @@ async function initCandidateSummaryStream(container = document) {
         </span>
 
         <span>
-          Generating candidate summary...
+          ${window.TALENA_PROCESS_I18N.generatingCandidateSummary}
         </span>
       </div>
     `;
@@ -2886,11 +3233,11 @@ const hideOutdatedState = () => {
         summaryEl.innerHTML = `
           <div class="alert alert-light border mb-0">
             <div class="fw-semibold mb-1">
-              The summary could not be generated
+              ${window.TALENA_PROCESS_I18N.summaryCouldNotBeGenerated}
             </div>
 
             <div class="small text-muted">
-              Use the refresh button to try again.
+              ${window.TALENA_PROCESS_I18N.useRefreshButtonTryAgain}
             </div>
           </div>
         `;
@@ -2908,7 +3255,7 @@ const hideOutdatedState = () => {
 
       if (!response.body) {
         throw new Error(
-          "The browser did not receive a response stream."
+          window.TALENA_PROCESS_I18N.browserNoResponseStream
         );
       }
 
@@ -2939,7 +3286,7 @@ const hideOutdatedState = () => {
       if (!fullText.trim()) {
         summaryEl.innerHTML = `
           <div class="text-muted">
-            No summary was generated.
+            ${window.TALENA_PROCESS_I18N.noSummaryGenerated}
           </div>
         `;
 
@@ -2957,11 +3304,11 @@ hideOutdatedState();
       summaryEl.innerHTML = `
         <div class="alert alert-light border mb-0">
           <div class="fw-semibold mb-1">
-            An error occurred while generating the summary
+            ${window.TALENA_PROCESS_I18N.summaryGenerationError}
           </div>
 
           <div class="small text-muted">
-            Use the refresh button to try again.
+            ${window.TALENA_PROCESS_I18N.useRefreshButtonTryAgain}
           </div>
         </div>
       `;
@@ -3052,7 +3399,7 @@ hideOutdatedState();
             );
 
             window.alert(
-              "The summary could not be regenerated."
+              window.TALENA_PROCESS_I18N.summaryCouldNotBeRegenerated
             );
 
             return;
@@ -3079,7 +3426,7 @@ hideOutdatedState();
           );
 
           window.alert(
-            "An error occurred while regenerating the summary."
+            window.TALENA_PROCESS_I18N.summaryRegenerationError
           );
 
         } finally {
@@ -3112,13 +3459,13 @@ hideOutdatedState();
     function labelFor(status) {
       switch ((status || "").toLowerCase()) {
         case "completed":
-          return "Completed";
+          return window.TALENA_PROCESS_I18N.completed;
         case "started":
-          return "Started";
+          return window.TALENA_PROCESS_I18N.started;
         case "sent":
-          return "Sent";
+          return window.TALENA_PROCESS_I18N.sent;
         case "created":
-          return "Not sent";
+          return window.TALENA_PROCESS_I18N.notSent;
         default:
           return status || "-";
       }
@@ -3217,7 +3564,7 @@ hideOutdatedState();
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
     async function loadForm(url) {
-      bodyEl.innerHTML = `<div class="text-muted">Loading…</div>`;
+      bodyEl.innerHTML = `<div class="text-muted">${window.TALENA_PROCESS_I18N.loading}</div>`;
       modal.show();
 
       try {
@@ -3232,7 +3579,7 @@ hideOutdatedState();
       } catch (error) {
         bodyEl.innerHTML = `
           <div class="alert alert-danger mb-0">
-            Could not load the form.
+            ${window.TALENA_PROCESS_I18N.couldNotLoadForm}
           </div>
         `;
         console.error("Add candidate form load error:", error);
@@ -3276,7 +3623,7 @@ hideOutdatedState();
       } catch (error) {
         bodyEl.innerHTML = `
           <div class="alert alert-danger mb-0">
-            Network error. Please try again.
+            ${window.TALENA_PROCESS_I18N.networkErrorTryAgain}
           </div>
         `;
         console.error("Add candidate submit error:", error);
@@ -3551,7 +3898,7 @@ if (hasReceivedText) {
   );
 
   assistantMessage.textContent =
-    "Talena AI could not generate a response.";
+    window.TALENA_PROCESS_I18N.talenaAiNoResponse;
 }
 
     } catch (error) {
@@ -3565,7 +3912,7 @@ assistantMessage.classList.remove(
 );
 
 assistantMessage.textContent =
-  "Something went wrong while generating the response.";
+  window.TALENA_PROCESS_I18N.aiResponseError;
 
     } finally {
       submitButton.disabled = false;
@@ -3637,7 +3984,7 @@ function appendCandidateThinkingMessage(container) {
   message.innerHTML = `
     <div
       class="candidate-ai-thinking"
-      aria-label="Talena AI is thinking"
+      aria-label="${window.TALENA_PROCESS_I18N.talenaAiThinking}"
     >
       <span></span>
       <span></span>
@@ -4015,10 +4362,10 @@ iconWrapper.className =
   function createEmptyDraft() {
     return {
       title:
-        "Personality interpretation",
+        window.TALENA_PROCESS_I18N.personalityInterpretation,
 
       label:
-        "AI-supported interpretation",
+        window.TALENA_PROCESS_I18N.aiSupportedInterpretation,
 
       interpretation: "",
 
@@ -4206,10 +4553,7 @@ iconWrapper.className =
       case "error":
         throw new Error(
           event.message ||
-          (
-            "The personality interpretation " +
-            "could not be generated."
-          )
+          window.TALENA_PROCESS_I18N.personalityInterpretationCouldNotBeGenerated
         );
 
 
@@ -4267,20 +4611,14 @@ iconWrapper.className =
 
       if (response.status === 409) {
         throw new Error(
-          (
-            "The personality interpretation " +
-            "is already being generated."
-          )
+          window.TALENA_PROCESS_I18N.personalityInterpretationAlreadyGenerating
         );
       }
 
 
       if (!response.ok) {
         let message =
-          (
-            "The personality interpretation " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.personalityInterpretationCouldNotBeGenerated;
 
         try {
           const data =
@@ -4300,10 +4638,7 @@ iconWrapper.className =
 
       if (!response.body) {
         throw new Error(
-          (
-            "Streaming is not supported " +
-            "by this browser."
-          )
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -4429,10 +4764,7 @@ notifyCandidateAiContentUpdated(
 
       errorBox.textContent =
         error.message ||
-        (
-          "The personality interpretation " +
-          "could not be generated."
-        );
+        window.TALENA_PROCESS_I18N.personalityInterpretationCouldNotBeGenerated;
 
       root.dataset.status =
         "failed";
@@ -4486,10 +4818,7 @@ notifyCandidateAiContentUpdated(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            (
-              "The interpretation could " +
-              "not be regenerated."
-            )
+            window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
           );
         }
 
@@ -4514,10 +4843,7 @@ notifyCandidateAiContentUpdated(
 
         errorBox.textContent =
           error.message ||
-          (
-            "The interpretation could " +
-            "not be regenerated."
-          );
+          window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated;
 
       } finally {
         regenerateButton.disabled =
@@ -5064,7 +5390,7 @@ async function initCandidateMotivationInterpretation(
       case "error":
         throw new Error(
           event.message ||
-          "Motivation interpretation failed."
+          window.TALENA_PROCESS_I18N.motivationInterpretationFailed
         );
 
       default:
@@ -5089,8 +5415,8 @@ async function initCandidateMotivationInterpretation(
     regenerateButton.disabled = true;
 
 let draft = {
-  title: "Motivation interpretation",
-  label: "AI-supported interpretation",
+  title: window.TALENA_PROCESS_I18N.motivationInterpretation,
+  label: window.TALENA_PROCESS_I18N.aiSupportedInterpretation,
   interpretation: "",
   engagement_conditions: [],
   areas_to_clarify: [],
@@ -5110,13 +5436,13 @@ let draft = {
 
       if (response.status === 409) {
         throw new Error(
-          "The interpretation is already being generated."
+          window.TALENA_PROCESS_I18N.interpretationAlreadyGenerating
         );
       }
 
       if (!response.ok) {
         let message =
-          "The motivation interpretation could not be generated.";
+          window.TALENA_PROCESS_I18N.motivationInterpretationCouldNotBeGenerated;
 
         try {
           const data = await response.json();
@@ -5133,7 +5459,7 @@ let draft = {
 
       if (!response.body) {
         throw new Error(
-          "Streaming is not supported by this browser."
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -5243,7 +5569,7 @@ notifyCandidateAiContentUpdated(
 
       errorBox.textContent =
         error.message ||
-        "The motivation interpretation could not be generated.";
+        window.TALENA_PROCESS_I18N.motivationInterpretationCouldNotBeGenerated;
 
       root.dataset.status =
         "failed";
@@ -5288,7 +5614,7 @@ notifyCandidateAiContentUpdated(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            "The interpretation could not be regenerated."
+            window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
           );
         }
 
@@ -5306,7 +5632,7 @@ notifyCandidateAiContentUpdated(
 
         errorBox.textContent =
           error.message ||
-          "The interpretation could not be regenerated.";
+          window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated;
 
       } finally {
         regenerateButton.disabled = false;
@@ -5463,10 +5789,10 @@ async function initCandidateMotivationQuestions(
   function createEmptyDraft() {
     return {
       title:
-        "Motivation questions",
+        window.TALENA_PROCESS_I18N.motivationQuestions,
 
       label:
-        "AI-supported questions",
+        window.TALENA_PROCESS_I18N.aiSupportedQuestions,
 
       questions: [],
 
@@ -5644,7 +5970,7 @@ async function initCandidateMotivationQuestions(
               createDetailBox({
                 type: "why",
                 iconName: "compass",
-                title: "Why this matters",
+                title: window.TALENA_PROCESS_I18N.whyThisMatters,
                 text: item.why,
               })
             );
@@ -5657,7 +5983,7 @@ async function initCandidateMotivationQuestions(
                 type: "listen",
                 iconName: "headphones",
                 title:
-                  "What to look for in the answer",
+                  window.TALENA_PROCESS_I18N.whatToLookFor,
                 text:
                   item.listen_for,
               })
@@ -5799,10 +6125,7 @@ async function initCandidateMotivationQuestions(
       case "error":
         throw new Error(
           event.message ||
-          (
-            "The motivation questions " +
-            "could not be generated."
-          )
+          window.TALENA_PROCESS_I18N.motivationQuestionsCouldNotBeGenerated
         );
 
 
@@ -5863,20 +6186,14 @@ async function initCandidateMotivationQuestions(
 
       if (response.status === 409) {
         throw new Error(
-          (
-            "The motivation questions " +
-            "are already being generated."
-          )
+          window.TALENA_PROCESS_I18N.motivationQuestionsAlreadyGenerating
         );
       }
 
 
       if (!response.ok) {
         let message =
-          (
-            "The motivation questions " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.motivationQuestionsCouldNotBeGenerated;
 
         try {
           const data =
@@ -5896,10 +6213,7 @@ async function initCandidateMotivationQuestions(
 
       if (!response.body) {
         throw new Error(
-          (
-            "Streaming is not supported " +
-            "by this browser."
-          )
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -6036,10 +6350,7 @@ async function initCandidateMotivationQuestions(
       if (errorBox) {
         errorBox.textContent =
           error.message ||
-          (
-            "The motivation questions " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.motivationQuestionsCouldNotBeGenerated;
       }
 
       root.dataset.status =
@@ -6096,10 +6407,7 @@ async function initCandidateMotivationQuestions(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            (
-              "The motivation questions " +
-              "could not be regenerated."
-            )
+            window.TALENA_PROCESS_I18N.motivationQuestionsCouldNotBeRegenerated
           );
         }
 
@@ -6125,10 +6433,7 @@ async function initCandidateMotivationQuestions(
         if (errorBox) {
           errorBox.textContent =
             error.message ||
-            (
-              "The motivation questions " +
-              "could not be regenerated."
-            );
+            window.TALENA_PROCESS_I18N.motivationQuestionsCouldNotBeRegenerated;
         }
 
       } finally {
@@ -6381,10 +6686,10 @@ async function initCandidateCognitiveInterpretation(
   function createEmptyDraft() {
     return {
       title:
-        "Cognitive interpretation",
+        window.TALENA_PROCESS_I18N.cognitiveInterpretation,
 
       label:
-        "AI-supported interpretation",
+        window.TALENA_PROCESS_I18N.aiSupportedInterpretation,
 
       interpretation: "",
 
@@ -6522,10 +6827,7 @@ async function initCandidateCognitiveInterpretation(
       case "error":
         throw new Error(
           event.message ||
-          (
-            "The cognitive interpretation " +
-            "could not be generated."
-          )
+          window.TALENA_PROCESS_I18N.cognitiveInterpretationCouldNotBeGenerated
         );
 
 
@@ -6586,20 +6888,14 @@ async function initCandidateCognitiveInterpretation(
 
       if (response.status === 409) {
         throw new Error(
-          (
-            "The cognitive interpretation " +
-            "is already being generated."
-          )
+          window.TALENA_PROCESS_I18N.cognitiveInterpretationAlreadyGenerating
         );
       }
 
 
       if (!response.ok) {
         let message =
-          (
-            "The cognitive interpretation " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.cognitiveInterpretationCouldNotBeGenerated;
 
         try {
           const data =
@@ -6619,10 +6915,7 @@ async function initCandidateCognitiveInterpretation(
 
       if (!response.body) {
         throw new Error(
-          (
-            "Streaming is not supported " +
-            "by this browser."
-          )
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -6743,10 +7036,7 @@ async function initCandidateCognitiveInterpretation(
       if (errorBox) {
         errorBox.textContent =
           error.message ||
-          (
-            "The cognitive interpretation " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.cognitiveInterpretationCouldNotBeGenerated;
       }
 
       root.dataset.status =
@@ -6802,10 +7092,7 @@ async function initCandidateCognitiveInterpretation(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            (
-              "The interpretation could " +
-              "not be regenerated."
-            )
+            window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated
           );
         }
 
@@ -6831,10 +7118,7 @@ async function initCandidateCognitiveInterpretation(
         if (errorBox) {
           errorBox.textContent =
             error.message ||
-            (
-              "The interpretation could " +
-              "not be regenerated."
-            );
+            window.TALENA_PROCESS_I18N.interpretationCouldNotBeRegenerated;
         }
 
       } finally {
@@ -6996,10 +7280,10 @@ async function initCandidateCognitiveQuestions(
   function createEmptyDraft() {
     return {
       title:
-        "Cognitive questions",
+        window.TALENA_PROCESS_I18N.cognitiveQuestions,
 
       label:
-        "AI-supported questions",
+        window.TALENA_PROCESS_I18N.aiSupportedQuestions,
 
       questions: [],
 
@@ -7178,7 +7462,7 @@ async function initCandidateCognitiveQuestions(
               createDetailBox({
                 type: "why",
                 iconName: "compass",
-                title: "Why this matters",
+                title: window.TALENA_PROCESS_I18N.whyThisMatters,
                 text: item.why,
               })
             );
@@ -7191,7 +7475,7 @@ async function initCandidateCognitiveQuestions(
                 type: "listen",
                 iconName: "headphones",
                 title:
-                  "What to look for in the answer",
+                  window.TALENA_PROCESS_I18N.whatToLookFor,
                 text:
                   item.listen_for,
               })
@@ -7333,10 +7617,7 @@ async function initCandidateCognitiveQuestions(
       case "error":
         throw new Error(
           event.message ||
-          (
-            "The cognitive questions " +
-            "could not be generated."
-          )
+          window.TALENA_PROCESS_I18N.cognitiveQuestionsCouldNotBeGenerated
         );
 
 
@@ -7397,20 +7678,14 @@ async function initCandidateCognitiveQuestions(
 
       if (response.status === 409) {
         throw new Error(
-          (
-            "The cognitive questions " +
-            "are already being generated."
-          )
+          window.TALENA_PROCESS_I18N.cognitiveQuestionsAlreadyGenerating
         );
       }
 
 
       if (!response.ok) {
         let message =
-          (
-            "The cognitive questions " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.cognitiveQuestionsCouldNotBeGenerated;
 
         try {
           const data =
@@ -7430,10 +7705,7 @@ async function initCandidateCognitiveQuestions(
 
       if (!response.body) {
         throw new Error(
-          (
-            "Streaming is not supported " +
-            "by this browser."
-          )
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -7554,10 +7826,7 @@ async function initCandidateCognitiveQuestions(
       if (errorBox) {
         errorBox.textContent =
           error.message ||
-          (
-            "The cognitive questions " +
-            "could not be generated."
-          );
+          window.TALENA_PROCESS_I18N.cognitiveQuestionsCouldNotBeGenerated;
       }
 
       root.dataset.status =
@@ -7613,10 +7882,7 @@ async function initCandidateCognitiveQuestions(
         if (!response.ok) {
           throw new Error(
             data.error ||
-            (
-              "The cognitive questions " +
-              "could not be regenerated."
-            )
+            window.TALENA_PROCESS_I18N.cognitiveQuestionsCouldNotBeRegenerated
           );
         }
 
@@ -7642,10 +7908,7 @@ async function initCandidateCognitiveQuestions(
         if (errorBox) {
           errorBox.textContent =
             error.message ||
-            (
-              "The cognitive questions " +
-              "could not be regenerated."
-            );
+            window.TALENA_PROCESS_I18N.cognitiveQuestionsCouldNotBeRegenerated;
         }
 
       } finally {
@@ -7798,7 +8061,7 @@ async function initCandidatePurposeFitStream(container = document) {
 
 function resetPurposeFit() {
   if (title) {
-    title.textContent = "AI Overview";
+    title.textContent = window.TALENA_PROCESS_I18N.aiOverview;
   }
 
   if (summary) {
@@ -7860,7 +8123,7 @@ function resetPurposeFit() {
     }
 
     function applySavedResult(data) {
-        title.textContent = data.title || "AI Overview";
+        title.textContent = data.title || window.TALENA_PROCESS_I18N.aiOverview;
         summary.textContent = data.summary || "";
 
         renderList(
@@ -7893,7 +8156,7 @@ case "saved_result":
     applySavedResult(event.data || {});
 
     if (event.status === "outdated") {
-        setStatus("Needs update", "warning");
+        setStatus(window.TALENA_PROCESS_I18N.needsUpdate, "warning");
     } else if (statusBadge) {
         statusBadge.classList.add("d-none");
     }
@@ -7901,7 +8164,7 @@ case "saved_result":
 
             case "meta":
                 title.textContent =
-                    title.textContent = "AI Overview";
+                    title.textContent = window.TALENA_PROCESS_I18N.aiOverview;
 
                 loading.classList.add("d-none");
                 result.classList.remove("d-none");
@@ -7971,7 +8234,7 @@ case "done":
 
         loading.classList.remove("d-none");
 loadingText.textContent =
-    "Creating an overview from the available assessment results...";
+    window.TALENA_PROCESS_I18N.creatingAiOverview;
 
 if (statusBadge) {
     statusBadge.classList.add("d-none");
@@ -7993,13 +8256,13 @@ refreshButton.disabled = true;
               throw new Error(
                   errorData.error ||
                   errorData.message ||
-                  "Could not generate AI overview."
+                  window.TALENA_PROCESS_I18N.couldNotGenerateAiOverview
               );
             }
 
             if (!response.body) {
                 throw new Error(
-                    "Streaming is not supported by the browser."
+                    window.TALENA_PROCESS_I18N.streamingNotSupported
                 );
             }
 
@@ -8045,7 +8308,7 @@ refreshButton.disabled = true;
             loading.classList.add("d-none");
             errorBox.classList.remove("d-none");
 
-            setStatus("Failed", "danger");
+            setStatus(window.TALENA_PROCESS_I18N.failed, "danger");
         } finally {
             isStreaming = false;
             refreshButton.disabled = false;
@@ -8077,7 +8340,7 @@ refreshButton.disabled = true;
             if (!response.ok) {
                 throw new Error(
                     data.error ||
-                    "Could not regenerate purpose fit."
+                    window.TALENA_PROCESS_I18N.couldNotRegenerateAiOverview
                 );
             }
 
@@ -8090,7 +8353,7 @@ refreshButton.disabled = true;
             );
 
             errorBox.classList.remove("d-none");
-            setStatus("Failed", "danger");
+            setStatus(window.TALENA_PROCESS_I18N.failed, "danger");
         } finally {
             refreshButton.disabled = false;
         }
@@ -8304,8 +8567,12 @@ function setCheckedTraits(traits) {
 
 countEl.textContent =
   count === 0
-    ? "Talena will choose"
-    : `${count} selected`;
+    ? window.TALENA_PROCESS_I18N.talenaWillChoose
+    : window.TALENA_PROCESS_I18N.countSelected
+        .replace(
+          "COUNT",
+          String(count)
+        );
 
 saveButton.disabled =
   count > 6;
@@ -8338,7 +8605,7 @@ function renderSelectedTraits(traits) {
       "personality-trait-pill personality-trait-pill--automatic";
 
     automaticPill.textContent =
-      "Automatic selection by Talena";
+      window.TALENA_PROCESS_I18N.automaticSelectionByTalena;
 
     selectedTraitsContainer.appendChild(
       automaticPill
@@ -8497,7 +8764,7 @@ function renderSelectedTraits(traits) {
           "personality-question-card__detail-title";
 
         title.textContent =
-          "Why this matters";
+          window.TALENA_PROCESS_I18N.whyThisMatters;
 
 
         const text =
@@ -8549,7 +8816,7 @@ function renderSelectedTraits(traits) {
           "personality-question-card__detail-title";
 
         title.textContent =
-          "What to listen for";
+          window.TALENA_PROCESS_I18N.whatToListenFor;
 
 
         const text =
@@ -8699,7 +8966,7 @@ case "selected_traits":
       case "error":
         throw new Error(
           event.message ||
-          "Personality question generation failed."
+          window.TALENA_PROCESS_I18N.personalityQuestionGenerationFailed
         );
 
       default:
@@ -8726,8 +8993,8 @@ case "selected_traits":
     editButton.disabled = true;
 
     let draft = {
-      title: "Personality questions",
-      label: "AI-supported questions",
+      title: window.TALENA_PROCESS_I18N.personalityQuestions,
+      label: window.TALENA_PROCESS_I18N.aiSupportedQuestions,
       suggested_traits: [],
       selected_traits: [],
       questions: [],
@@ -8746,13 +9013,13 @@ case "selected_traits":
 
       if (response.status === 409) {
         throw new Error(
-          "The personality questions are already being generated."
+          window.TALENA_PROCESS_I18N.personalityQuestionsAlreadyGenerating
         );
       }
 
       if (!response.ok) {
         let message =
-          "The personality questions could not be generated.";
+          window.TALENA_PROCESS_I18N.personalityQuestionsCouldNotBeGenerated;
 
         try {
           const data = await response.json();
@@ -8769,7 +9036,7 @@ case "selected_traits":
 
       if (!response.body) {
         throw new Error(
-          "Streaming is not supported by this browser."
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -8875,7 +9142,7 @@ notifyCandidateAiContentUpdated(
 
       errorBox.textContent =
         error.message ||
-        "The personality questions could not be generated.";
+        window.TALENA_PROCESS_I18N.personalityQuestionsCouldNotBeGenerated;
 
       root.dataset.status =
         "failed";
@@ -8998,10 +9265,7 @@ async function regeneratePersonalityQuestions() {
     if (!response.ok) {
       throw new Error(
         data.error ||
-        (
-          "The personality questions " +
-          "could not be regenerated."
-        )
+        window.TALENA_PROCESS_I18N.personalityQuestionsCouldNotBeRegenerated
       );
     }
 
@@ -9036,10 +9300,7 @@ async function regeneratePersonalityQuestions() {
     if (errorBox) {
       errorBox.textContent =
         error.message ||
-        (
-          "The personality questions " +
-          "could not be regenerated."
-        );
+        window.TALENA_PROCESS_I18N.personalityQuestionsCouldNotBeRegenerated;
     }
 
     return false;
@@ -9114,10 +9375,7 @@ saveButton.addEventListener(
       if (!response.ok) {
         throw new Error(
           data.error ||
-          (
-            "The trait selection " +
-            "could not be saved."
-          )
+          window.TALENA_PROCESS_I18N.traitSelectionCouldNotBeSaved
         );
       }
 
@@ -9174,10 +9432,7 @@ saveButton.addEventListener(
       if (errorBox) {
         errorBox.textContent =
           error.message ||
-          (
-            "The trait selection " +
-            "could not be saved."
-          );
+          window.TALENA_PROCESS_I18N.traitSelectionCouldNotBeSaved;
       }
 
     } finally {
@@ -9268,8 +9523,8 @@ regenerateButton?.addEventListener(
 
   function createEmptyGuidance() {
     return {
-      title: "How to approach this profile",
-      label: "AI-supported interpretation",
+      title: window.TALENA_PROCESS_I18N.howToApproachProfile,
+      label: window.TALENA_PROCESS_I18N.aiSupportedInterpretation,
       summary: "",
       how_to_interpret: "",
       recommended_approach: "",
@@ -9336,12 +9591,12 @@ regenerateButton?.addEventListener(
 
     setText(
       find(root, "[data-guidance-title]"),
-      guidance.title || "How to approach this profile"
+      guidance.title || window.TALENA_PROCESS_I18N.howToApproachProfile
     );
 
     setText(
       find(root, "[data-guidance-label]"),
-      guidance.label || "AI-supported interpretation"
+      guidance.label || window.TALENA_PROCESS_I18N.aiSupportedInterpretation
     );
 
     setText(
@@ -9497,7 +9752,7 @@ regenerateButton?.addEventListener(
     ) {
       setText(
         find(root, "[data-guidance-state]"),
-        "Saved interpretation"
+        window.TALENA_PROCESS_I18N.savedInterpretation
       );
 
       return;
@@ -9533,8 +9788,8 @@ regenerateButton?.addEventListener(
     setText(
       state,
       currentStatus === "outdated"
-        ? "Updating interpretation"
-        : "Generating interpretation"
+        ? window.TALENA_PROCESS_I18N.updatingInterpretation
+        : window.TALENA_PROCESS_I18N.generatingInterpretation
     );
 
     let draft = createEmptyGuidance();
@@ -9554,7 +9809,7 @@ regenerateButton?.addEventListener(
 
         setText(
           state,
-          "Generating interpretation"
+          window.TALENA_PROCESS_I18N.generatingInterpretation
         );
 
         if (retryCount < 12) {
@@ -9571,7 +9826,7 @@ regenerateButton?.addEventListener(
 
       if (!response.ok) {
         let message =
-          "The interpretation could not be generated.";
+          window.TALENA_PROCESS_I18N.interpretationCouldNotBeGenerated;
 
         try {
           const errorData = await response.json();
@@ -9588,7 +9843,7 @@ regenerateButton?.addEventListener(
 
       if (!response.body) {
         throw new Error(
-          "Streaming is not supported by this browser."
+          window.TALENA_PROCESS_I18N.streamingNotSupported
         );
       }
 
@@ -9628,7 +9883,7 @@ regenerateButton?.addEventListener(
           if (event.type === "error") {
             throw new Error(
               event.message ||
-              "The interpretation could not be generated."
+              window.TALENA_PROCESS_I18N.interpretationCouldNotBeGenerated
             );
           }
 
@@ -9670,7 +9925,7 @@ regenerateButton?.addEventListener(
         if (event.type === "error") {
           throw new Error(
             event.message ||
-            "The interpretation could not be generated."
+            window.TALENA_PROCESS_I18N.interpretationCouldNotBeGenerated
           );
         }
 
@@ -9698,7 +9953,7 @@ regenerateButton?.addEventListener(
 
       setText(
         state,
-        "Saved interpretation"
+        window.TALENA_PROCESS_I18N.savedInterpretation
       );
 
     } catch (error) {
@@ -9713,7 +9968,7 @@ regenerateButton?.addEventListener(
           "[data-guidance-error] div"
         ),
         error.message ||
-        "The interpretation could not be generated."
+        window.TALENA_PROCESS_I18N.interpretationCouldNotBeGenerated
       );
 
       setHidden(error, false);
@@ -9725,8 +9980,8 @@ regenerateButton?.addEventListener(
       setText(
         state,
         hasSavedGuidance
-          ? "Previous interpretation shown"
-          : "Generation failed"
+          ? window.TALENA_PROCESS_I18N.previousInterpretationShown
+          : window.TALENA_PROCESS_I18N.generationFailed
       );
 
     } finally {
@@ -9852,8 +10107,8 @@ document.addEventListener("click", function (event) {
 
     if (label) {
       label.textContent = shouldExpand
-        ? "Hide indicators"
-        : "Show indicators";
+        ? window.TALENA_PROCESS_I18N.hideIndicators
+        : window.TALENA_PROCESS_I18N.showIndicators;
     }
 
     updatePersonalityGlobalToggle();
@@ -9899,8 +10154,8 @@ document.addEventListener("click", function (event) {
 
       if (label) {
         label.textContent = shouldExpand
-          ? "Hide indicators"
-          : "Show indicators";
+          ? window.TALENA_PROCESS_I18N.hideIndicators
+          : window.TALENA_PROCESS_I18N.showIndicators;
       }
     });
 
@@ -9908,8 +10163,8 @@ document.addEventListener("click", function (event) {
       String(shouldExpand);
 
     toggleAllButton.textContent = shouldExpand
-      ? "Hide all indicators"
-      : "Show all indicators";
+      ? window.TALENA_PROCESS_I18N.hideAllIndicators
+      : window.TALENA_PROCESS_I18N.showAllIndicators;
   }
 });
 
@@ -9936,7 +10191,7 @@ function updatePersonalityGlobalToggle() {
 
     if (!indicatorButtons.length) {
       toggleAllButton.dataset.expanded = "false";
-      toggleAllButton.textContent = "Show all indicators";
+      toggleAllButton.textContent = window.TALENA_PROCESS_I18N.showAllIndicators;
       return;
     }
 
@@ -9948,8 +10203,8 @@ function updatePersonalityGlobalToggle() {
       String(allExpanded);
 
     toggleAllButton.textContent = allExpanded
-      ? "Hide all indicators"
-      : "Show all indicators";
+      ? window.TALENA_PROCESS_I18N.hideAllIndicators
+      : window.TALENA_PROCESS_I18N.showAllIndicators;
   });
 }
 </script>
@@ -10366,7 +10621,7 @@ function initialiseDecisionSupportRoot(
               role="status"
               aria-hidden="true"
             ></span>
-            Generating...
+            ${window.TALENA_PROCESS_I18N.generating}
           `;
         }
       }
@@ -10421,7 +10676,7 @@ function initialiseDecisionSupportRoot(
 
       if (!response.ok) {
         throw new Error(
-          "The updated decision support could not be loaded."
+          window.TALENA_PROCESS_I18N.updatedDecisionSupportCouldNotBeLoaded
         );
       }
 
@@ -10443,7 +10698,7 @@ function initialiseDecisionSupportRoot(
 
       if (!replacement) {
         throw new Error(
-          "The updated decision support markup was missing."
+          window.TALENA_PROCESS_I18N.updatedDecisionSupportMarkupMissing
         );
       }
 
@@ -10502,7 +10757,7 @@ function initialiseDecisionSupportRoot(
 
         if (!response.ok) {
           let message =
-            "The decision support could not be generated.";
+            window.TALENA_PROCESS_I18N.decisionSupportCouldNotBeGenerated;
 
           try {
             const data =
@@ -10521,7 +10776,7 @@ function initialiseDecisionSupportRoot(
 
         if (!response.body) {
           throw new Error(
-            "The browser did not receive a response stream."
+            window.TALENA_PROCESS_I18N.browserNoResponseStream
           );
         }
 
@@ -10549,7 +10804,7 @@ function initialiseDecisionSupportRoot(
           if (event.type === "error") {
             throw new Error(
               event.message ||
-              "The decision support could not be generated."
+              window.TALENA_PROCESS_I18N.decisionSupportCouldNotBeGenerated
             );
           }
         }
@@ -10610,10 +10865,7 @@ function initialiseDecisionSupportRoot(
         if (errorBox) {
           errorBox.textContent =
             error.message ||
-            (
-              "The pre-interview decision " +
-              "support could not be generated."
-            );
+            window.TALENA_PROCESS_I18N.preInterviewSupportCouldNotBeGenerated;
         }
 
       } finally {
@@ -10683,7 +10935,7 @@ function initialiseDecisionSupportRoot(
 
             if (!response.ok) {
               let message =
-                "The decision support could not be regenerated.";
+                window.TALENA_PROCESS_I18N.decisionSupportCouldNotBeRegenerated;
 
               try {
                 const data =
@@ -10784,7 +11036,13 @@ function initialiseDecisionSupportRoot(
       }
 
       notesCount.textContent =
-        `${notesInput.value.length} / 30,000 characters`;
+        window.TALENA_PROCESS_I18N.characterCount
+          .replace(
+            "COUNT",
+            String(
+              notesInput.value.length
+            )
+          );
     }
 
 
@@ -10796,7 +11054,7 @@ function initialiseDecisionSupportRoot(
 
           if (notesStatus) {
             notesStatus.textContent =
-              "Unsaved changes";
+              window.TALENA_PROCESS_I18N.unsavedChanges;
 
             notesStatus.className =
               "small ms-2 text-warning";
@@ -10828,7 +11086,7 @@ function initialiseDecisionSupportRoot(
               role="status"
               aria-hidden="true"
             ></span>
-            Saving...
+            ${window.TALENA_PROCESS_I18N.saving}
           `;
 
           setHidden(
@@ -10869,7 +11127,7 @@ function initialiseDecisionSupportRoot(
 
             if (!response.ok) {
               let message =
-                "The interview notes could not be saved.";
+                window.TALENA_PROCESS_I18N.interviewNotesCouldNotBeSaved;
 
               try {
                 const data =
@@ -10900,7 +11158,7 @@ function initialiseDecisionSupportRoot(
 
             if (notesStatus) {
               notesStatus.textContent =
-                "Saved";
+                window.TALENA_PROCESS_I18N.saved;
 
               notesStatus.className =
                 "small ms-2 text-success";
@@ -10917,10 +11175,11 @@ function initialiseDecisionSupportRoot(
                 );
 
               notesLastSaved.textContent =
-                (
-                  "Last saved " +
-                  savedDate.toLocaleString()
-                );
+                window.TALENA_PROCESS_I18N.lastSaved
+                  .replace(
+                    "DATE",
+                    savedDate.toLocaleString()
+                  );
             }
 
           await replaceDecisionSupportRoot();
@@ -10939,10 +11198,7 @@ function initialiseDecisionSupportRoot(
             if (notesError) {
               notesError.textContent =
                 error.message ||
-                (
-                  "The interview notes " +
-                  "could not be saved."
-                );
+                window.TALENA_PROCESS_I18N.interviewNotesCouldNotBeSaved;
             }
 
           } finally {
@@ -10951,7 +11207,7 @@ function initialiseDecisionSupportRoot(
 
             notesSaveButton.innerHTML = `
               <i data-feather="save"></i>
-              Save interview notes
+              ${window.TALENA_PROCESS_I18N.saveInterviewNotes}
             `;
 
             refreshFeatherIcons();
@@ -11025,7 +11281,7 @@ function restorePostGenerateButton() {
   } else {
     postGenerateButton.innerHTML = `
       <i data-feather="star"></i>
-      Generate post-interview decision support
+      ${window.TALENA_PROCESS_I18N.generatePostInterviewSupport}
     `;
   }
 
@@ -11050,7 +11306,7 @@ function setPostGeneratingState(
           role="status"
           aria-hidden="true"
         ></span>
-        Generating...
+        ${window.TALENA_PROCESS_I18N.generating}
       `;
     } else {
       restorePostGenerateButton();
@@ -11113,10 +11369,7 @@ async function consumePostInterviewStream(
 
     if (!response.ok) {
       let message =
-        (
-          "The post-interview decision " +
-          "support could not be generated."
-        );
+        window.TALENA_PROCESS_I18N.postInterviewSupportCouldNotBeGenerated;
 
       try {
         const data =
@@ -11138,10 +11391,7 @@ async function consumePostInterviewStream(
 
     if (!response.body) {
       throw new Error(
-        (
-          "The browser did not receive " +
-          "a response stream."
-        )
+        window.TALENA_PROCESS_I18N.browserNoResponseStream
       );
     }
 
@@ -11173,10 +11423,7 @@ async function consumePostInterviewStream(
       if (event.type === "error") {
         throw new Error(
           event.message ||
-          (
-            "The post-interview decision " +
-            "support could not be generated."
-          )
+          window.TALENA_PROCESS_I18N.postInterviewSupportCouldNotBeGenerated
         );
       }
     }
@@ -11247,10 +11494,7 @@ async function consumePostInterviewStream(
     if (postErrorBox) {
       postErrorBox.textContent =
         error.message ||
-        (
-          "The post-interview decision " +
-          "support could not be generated."
-        );
+        window.TALENA_PROCESS_I18N.postInterviewSupportCouldNotBeGenerated;
     }
 
   } finally {
@@ -11326,10 +11570,7 @@ if (postGenerateButton) {
 
         if (!response.ok) {
           let message =
-            (
-              "The post-interview decision " +
-              "support could not be regenerated."
-            );
+            window.TALENA_PROCESS_I18N.postInterviewSupportCouldNotBeRegenerated;
 
           try {
             const data =
@@ -11384,10 +11625,7 @@ if (postGenerateButton) {
         if (postErrorBox) {
           postErrorBox.textContent =
             error.message ||
-            (
-              "The post-interview decision " +
-              "support could not be regenerated."
-            );
+            window.TALENA_PROCESS_I18N.postInterviewSupportCouldNotBeRegenerated;
         }
       }
     }

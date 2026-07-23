@@ -1,5 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
 <section class="candidate-insights-navigation">
 
   <div class="candidate-profile-tabs-wrap">
@@ -7,7 +5,7 @@
     <div
       class="candidate-profile-tabs"
       role="tablist"
-      aria-label="{% trans 'Candidate insight areas' %}"
+      aria-label="Candidate insight areas"
     >
 
       <button
@@ -18,7 +16,7 @@
         aria-controls="candidate-insights-panel-overview"
         data-insights-tab="overview"
       >
-        {% trans "Summary" %}
+        Summary
       </button>
 
 
@@ -30,7 +28,7 @@
         aria-controls="candidate-insights-panel-personality"
         data-insights-tab="personality"
       >
-        {% trans "Personality" %}
+        Personality
       </button>
 
 
@@ -42,7 +40,7 @@
         aria-controls="candidate-insights-panel-motivation"
         data-insights-tab="motivation"
       >
-        {% trans "Motivation" %}
+        Motivation
       </button>
 
 
@@ -54,7 +52,7 @@
         aria-controls="candidate-insights-panel-cognitive"
         data-insights-tab="cognitive"
       >
-        {% trans "Cognitive abilities" %}
+        Cognitive abilities
       </button>
 
 
@@ -66,7 +64,7 @@
         aria-controls="candidate-insights-panel-team-styles"
         data-insights-tab="team-styles"
       >
-        {% trans "Team styles" %}
+        Team styles
       </button>
 
 
@@ -78,7 +76,7 @@
         aria-controls="candidate-insights-panel-questions"
         data-insights-tab="questions"
       >
-        {% trans "Questions" %}
+        Questions
       </button>
 
 
@@ -90,7 +88,7 @@
         aria-controls="candidate-insights-panel-final-output"
         data-insights-tab="final-output"
       >
-        {% trans "Final output" %}
+        Final output
       </button>
 
     </div>

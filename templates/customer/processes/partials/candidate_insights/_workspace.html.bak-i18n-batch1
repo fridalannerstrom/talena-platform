@@ -1,7 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
-{% trans "context" as context_fallback %}
-{% trans "Add context" as add_context_fallback %}
 {% if show_context_prompt %}
 
   <div class="card mb-4 role-context-prompt-card">
@@ -18,15 +14,16 @@
         <div class="role-context-prompt__content">
 
           <div class="text-muted small mb-1">
-            {% trans "Improve candidate insights" %}
+            Improve candidate insights
           </div>
 
           <h2 class="h5 mb-1">
-            Add {{ context_config.tab_label|default:context_fallback|lower }}
+            Add {{ context_config.tab_label|default:"context"|lower }}
           </h2>
 
           <p class="text-muted mb-0">
-            {% blocktrans %}Add context to make the candidate insights more relevant to this process.{% endblocktrans %}
+            Add context to make the candidate insights more relevant
+            to this process.
           </p>
 
         </div>
@@ -38,7 +35,7 @@
             href="{% url 'processes:process_role_context' process.id %}"
             class="btn btn-primary"
           >
-            {{ context_config.add_cta|default:add_context_fallback }}
+            {{ context_config.add_cta|default:"Add context" }}
           </a>
 
         </div>
@@ -62,14 +59,15 @@
     </div>
 
     <h2 class="personality-questions-section-title mb-2">
-      {% trans "No results yet" %}
+      No results yet
     </h2>
 
     <p
       class="text-muted small mb-0 mx-auto"
       style="max-width: 580px;"
     >
-      {% blocktrans %}Candidate insights will appear here when assessment data becomes available.{% endblocktrans %}
+      Candidate insights will appear here when assessment data
+      becomes available.
     </p>
 
   </section>
@@ -85,14 +83,15 @@
     </div>
 
     <h2 class="personality-questions-section-title mb-2">
-      {% trans "Candidate insights are not available yet" %}
+      Candidate insights are not available yet
     </h2>
 
     <p
       class="text-muted small mb-0 mx-auto"
       style="max-width: 580px;"
     >
-      {% blocktrans %}The candidate insights will appear when all assessments included in the process have been completed.{% endblocktrans %}
+      The candidate insights will appear when all assessments
+      included in the process have been completed.
     </p>
 
   </section>
@@ -233,7 +232,7 @@
       >
 
         <span>
-          {% trans "Reports" %}
+          Reports
         </span>
 
 
@@ -242,7 +241,7 @@
           {% if historical_reports %}
 
             <span class="badge rounded-pill text-bg-light border">
-              {{ historical_reports|length }} {% trans "available" %}
+              {{ historical_reports|length }} available
             </span>
 
           {% endif %}
@@ -252,7 +251,7 @@
           {% if sova_reports_for_ui %}
 
             <span class="badge rounded-pill text-bg-light border">
-              {{ sova_reports_for_ui|length }} {% trans "available" %}
+              {{ sova_reports_for_ui|length }} available
             </span>
 
           {% endif %}
@@ -290,7 +289,7 @@
                   </div>
 
                   <div class="small text-muted">
-                    {% trans "Uploaded historical assessment report" %}
+                    Uploaded historical assessment report
                   </div>
 
                 </div>
@@ -304,7 +303,7 @@
                     rel="noopener noreferrer"
                     class="btn btn-sm btn-outline-dark flex-shrink-0"
                   >
-                    {% trans "Open report" %}
+                    Open report
                   </a>
 
                 {% endif %}
@@ -314,7 +313,7 @@
             {% empty %}
 
               <div class="text-muted small py-3">
-                {% trans "No historical reports have been uploaded." %}
+                No historical reports have been uploaded.
               </div>
 
             {% endfor %}
@@ -356,7 +355,7 @@
                   rel="noopener noreferrer"
                   class="btn btn-sm btn-outline-dark flex-shrink-0"
                 >
-                  {% trans "Open report" %}
+                  Open report
                 </a>
 
               </div>
@@ -364,7 +363,7 @@
             {% empty %}
 
               <div class="text-muted small py-3">
-                {% trans "No assessment reports are currently available." %}
+                No assessment reports are currently available.
               </div>
 
             {% endfor %}

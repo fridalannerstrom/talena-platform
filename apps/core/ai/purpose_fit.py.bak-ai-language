@@ -10,15 +10,6 @@ from .shared_context import (
 from django.utils import timezone
 
 from .openai_client import get_openai_client, get_chat_model
-from .language import (
-    get_ai_language_instruction,
-    get_ai_system_language_instruction,
-    get_purpose_fit_output_examples,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-# Talena AI Overview language batch 1
 
 
 PURPOSE_FIT_TITLES = {
@@ -224,11 +215,7 @@ def calculate_max_confidence(
     return "Medium"
 
 
-def build_purpose_fit_prompt(
-    invitation,
-    *,
-    language_code: str = "en",
-) -> str:
+def build_purpose_fit_prompt(invitation) -> str:
     """
     Build the prompt for Talena's combined AI Overview.
 
@@ -241,16 +228,6 @@ def build_purpose_fit_prompt(
     streaming and storage structure while the feature is gradually
     renamed to AI Overview.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
-    output_examples = get_purpose_fit_output_examples(
-        language_code
-    )
 
     shared_context = build_shared_ai_context(
         invitation
@@ -359,7 +336,14 @@ CORE INTERPRETATION RULES
 - Keep the language practical and useful for the person reviewing the results.
 
 LANGUAGE AND TONE
-{language_instruction}
+- Write in professional, clear English.
+- Use cautious formulations such as:
+  "may indicate",
+  "suggests",
+  "appears to",
+  "could mean",
+  "may be relevant",
+  "could be useful to explore".
 - Avoid repeatedly writing "the candidate is".
 - Refer to the candidate by first name where natural.
 - Keep the tone balanced and non-judgemental.
@@ -450,30 +434,30 @@ The recommendation and confidence properties are temporary legacy fields
 used for technical compatibility. Always return the exact values below.
 They are not displayed as a verdict in the AI Overview.
 
-{{"type":"meta","title":"{output_examples["title"]}","recommendation":"Insufficient context","confidence":"Low"}}
+{{"type":"meta","title":"AI Overview","recommendation":"Insufficient context","confidence":"Low"}}
 
 2. Between 3 and 6 summary_delta events.
 
 Together, these events must form the complete overall interpretation.
 
-{{"type":"summary_delta","text":"{output_examples["summary_1"]}"}}
-{{"type":"summary_delta","text":"{output_examples["summary_2"]}"}}
+{{"type":"summary_delta","text":"First part of the interpretation. "}}
+{{"type":"summary_delta","text":"Next part of the interpretation. "}}
 
 3. One key_alignment event containing exactly 3 items.
 
-{{"type":"key_alignment","items":["{output_examples["support_1"]}","{output_examples["support_2"]}","{output_examples["support_3"]}"]}}
+{{"type":"key_alignment","items":["Supporting point one","Supporting point two","Supporting point three"]}}
 
 4. One areas_to_verify event containing exactly 3 items.
 
-{{"type":"areas_to_verify","items":["{output_examples["consider_1"]}","{output_examples["consider_2"]}","{output_examples["consider_3"]}"]}}
+{{"type":"areas_to_verify","items":["Consideration one","Consideration two","Consideration three"]}}
 
 5. One suggested_next_step event.
 
-{{"type":"suggested_next_step","text":"{output_examples["next_step"]}"}}
+{{"type":"suggested_next_step","text":"One practical and purpose-relevant next step."}}
 
 6. One context_note event.
 
-{{"type":"context_note","text":"{output_examples["context_note"]}"}}
+{{"type":"context_note","text":"Brief explanation of the assessment evidence and process context used."}}
 
 7. One final done event.
 
@@ -596,8 +580,6 @@ def _parse_event_line(
 
 def stream_candidate_purpose_fit(
     invitation,
-    *,
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Stream purpose-fit events from OpenAI.
@@ -612,21 +594,9 @@ def stream_candidate_purpose_fit(
             "Flexible processes do not support purpose-fit analysis."
         )
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
-            language_code
-        )
-    )
-
     client = get_openai_client()
 
-    prompt = build_purpose_fit_prompt(
-        invitation,
-        language_code=language_code,
-    )
+    prompt = build_purpose_fit_prompt(invitation)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
@@ -637,8 +607,7 @@ def stream_candidate_purpose_fit(
                     "You are a careful and experienced assessment "
                     "interpretation consultant. Treat test results as "
                     "indicators rather than facts, do not invent context, "
-                    "and follow the requested NDJSON streaming format exactly. "
-                    f"{system_language_instruction}"
+                    "and follow the requested NDJSON streaming format exactly."
                 ),
             },
             {
@@ -683,8 +652,6 @@ def stream_candidate_purpose_fit(
 def save_candidate_purpose_fit(
     invitation,
     purpose_fit: dict[str, Any],
-    *,
-    language_code: str = "en",
 ):
     """
     Save the completed purpose-fit interpretation.
@@ -694,12 +661,6 @@ def save_candidate_purpose_fit(
         purpose_fit.get("summary")
         or ""
     ).strip()
-
-    set_ai_content_language(
-        invitation,
-        "purpose_fit",
-        language_code,
-    )
 
     invitation.ai_purpose_fit = purpose_fit
     invitation.ai_purpose_fit_status = "completed"
@@ -716,6 +677,5 @@ def save_candidate_purpose_fit(
         "ai_purpose_fit",
         "ai_purpose_fit_status",
         "ai_purpose_fit_generated_at",
-                "ai_purpose_fit_purpose",
-        "ai_content_languages",
+        "ai_purpose_fit_purpose",
     ])

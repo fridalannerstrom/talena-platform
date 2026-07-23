@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import TestProcess, Candidate
 from .models import ProcessRoleContext
 from apps.accounts.models import OrgUnit
@@ -115,39 +116,47 @@ class SelfRegisterForm(forms.Form):
 class TestProcessWizardCreateForm(forms.Form):
     purpose = forms.CharField(
         max_length=80,
-        widget=forms.HiddenInput()
+        widget=forms.HiddenInput(),
     )
 
     selected_tests = forms.MultipleChoiceField(
         choices=[
-            ("personality", "Personality"),
-            ("motivation", "Motivation"),
-            ("verbal", "Verbal"),
-            ("logical", "Logical"),
-            ("numerical", "Numerical"),
+            ("personality", _("Personality")),
+            ("motivation", _("Motivation")),
+            ("verbal", _("Verbal")),
+            ("logical", _("Logical")),
+            ("numerical", _("Numerical")),
         ],
         required=False,
-        widget=forms.CheckboxSelectMultiple
+        widget=forms.CheckboxSelectMultiple,
     )
 
     name = forms.CharField(
         max_length=255,
         required=False,
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": "e.g. Leadership potential"
-        })
+        label=_("Process name"),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("e.g. Leadership potential"),
+            }
+        ),
     )
 
     labels_text = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": "e.g. Admin, Interim, Priority"
-        }),
-        help_text="Enter one or more tags that describe the testing process. Separate the tags with commas."
+        label=_("Labels"),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": _("e.g. Admin, Interim, Priority"),
+            }
+        ),
+        help_text=_(
+            "Enter one or more labels that describe the test process. "
+            "Separate the labels with commas."
+        ),
     )
-
 
 class ProcessRoleContextForm(forms.ModelForm):
     class Meta:

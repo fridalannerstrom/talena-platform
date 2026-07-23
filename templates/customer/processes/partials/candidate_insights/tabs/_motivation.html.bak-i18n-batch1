@@ -1,7 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
-{% trans "No motivation assessment available" as no_motivation_title %}
-{% trans "A motivation assessment could provide additional insight into likely sources of energy, engagement and preferred working conditions." as no_motivation_description %}
 {% if has_motivation_results and motivation_insights %}
 
   <div
@@ -17,7 +13,7 @@
         <div
           class="candidate-insights-view-switcher"
           role="tablist"
-          aria-label="{% trans 'Motivation insight areas' %}"
+          aria-label="Motivation insight areas"
         >
 
           <!-- RESULTS -->
@@ -31,7 +27,7 @@
             data-insights-subtab="results"
           >
             <i data-feather="bar-chart-2"></i>
-            <span>{% trans "Results" %}</span>
+            <span>Results</span>
           </button>
 
 
@@ -48,7 +44,7 @@
               data-insights-subtab="interpretation"
             >
               <i data-feather="zap"></i>
-              <span>{% trans "Interpretation" %}</span>
+              <span>Interpretation</span>
             </button>
 
 
@@ -63,7 +59,7 @@
               data-insights-subtab="questions"
             >
               <i data-feather="help-circle"></i>
-              <span>{% trans "Questions" %}</span>
+              <span>Questions</span>
             </button>
 
           {% endif %}
@@ -116,15 +112,16 @@
       <div>
 
         <div class="insight-summary-kicker mt-4">
-          ✨ {% trans "AI-generated insight" %}
+          ✨ AI-generated insight
         </div>
 
         <h2 class="insight-summary-title mb-1">
-          {% trans "Motivation interpretation" %}
+          Motivation interpretation
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}A practical interpretation of the motivation profile in relation to the selected purpose and process context.{% endblocktrans %}
+          A practical interpretation of the motivation profile
+          in relation to the selected purpose and process context.
         </p>
 
       </div>
@@ -144,15 +141,15 @@
           "
           data-motivation-ai-status-badge
         >
-          {% trans "Needs update" %}
+          Needs update
         </span>
 
         <button
           type="button"
           class="btn btn-icon btn-light"
           data-motivation-ai-regenerate
-          title="{% trans 'Generate a new motivation interpretation' %}"
-          aria-label="{% trans 'Generate a new motivation interpretation' %}"
+          title="Generate a new motivation interpretation"
+          aria-label="Generate a new motivation interpretation"
         >
           <i data-feather="refresh-cw"></i>
         </button>
@@ -184,7 +181,7 @@
         ></span>
 
         <span>
-          {% trans "Interpreting the motivation profile…" %}
+          Interpreting the motivation profile...
         </span>
 
       </div>
@@ -197,7 +194,7 @@
       class="alert alert-danger d-none mt-4"
       data-motivation-ai-error
     >
-      {% trans "The motivation interpretation could not be generated." %}
+      The motivation interpretation could not be generated.
     </div>
 
 
@@ -239,15 +236,16 @@
       <div>
 
         <div class="insight-summary-kicker mt-4">
-          ✨ {% trans "AI-supported questions" %}
+          ✨ AI-supported questions
         </div>
 
         <h2 class="insight-summary-title mb-1">
-          {% trans "Motivation questions" %}
+          Motivation questions
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}Practical questions for exploring how the motivation profile may appear in relevant work situations.{% endblocktrans %}
+          Practical questions for exploring how the motivation
+          profile may appear in relevant work situations.
         </p>
 
       </div>
@@ -267,15 +265,15 @@
           "
           data-motivation-questions-status-badge
         >
-          {% trans "Needs update" %}
+          Needs update
         </span>
 
         <button
           type="button"
           class="btn btn-icon btn-light"
           data-motivation-questions-regenerate
-          title="{% trans 'Generate new motivation questions' %}"
-          aria-label="{% trans 'Generate new motivation questions' %}"
+          title="Generate new motivation questions"
+          aria-label="Generate new motivation questions"
         >
           <i data-feather="refresh-cw"></i>
         </button>
@@ -308,11 +306,13 @@
         <div>
 
           <div class="fw-semibold small mb-1">
-            {% trans "The process information has changed" %}
+            The process information has changed
           </div>
 
           <div class="small">
-            {% blocktrans %}These questions were generated using an earlier process purpose or context. Refresh them to include the latest information.{% endblocktrans %}
+            These questions were generated using an earlier
+            process purpose or context. Refresh them to include
+            the latest information.
           </div>
 
         </div>
@@ -337,7 +337,7 @@
         ></span>
 
         <span>
-          {% trans "Generating motivation questions…" %}
+          Generating motivation questions...
         </span>
 
       </div>
@@ -350,7 +350,7 @@
       class="alert alert-danger d-none mt-4"
       data-motivation-questions-error
     >
-      {% trans "The motivation questions could not be generated." %}
+      The motivation questions could not be generated.
     </div>
 
 
@@ -375,12 +375,12 @@
 {% elif has_motivation_results %}
 
   <div class="alert alert-light border">
-    {% trans "Motivation results exist, but the motivation profile could not be built." %}
+    Motivation results exist, but the motivation profile could not be built.
   </div>
 
 
 {% else %}
 
-  {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_title=no_motivation_title missing_description=no_motivation_description %}
+  {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_title="No motivation assessment available" missing_description="A motivation assessment could provide additional insight into likely sources of energy, engagement and preferred working conditions." %}
 
 {% endif %}

@@ -1,5 +1,3 @@
-{% load i18n %}
-{# Talena candidate i18n batch 1 #}
 {% if has_outdated_ai_insights and not is_historical %}
 
   <!-- ================================================== -->
@@ -57,14 +55,16 @@
         <div>
 
       <h2 class="response-style-item__title mb-2">
-        {% trans "Process information has changed" %}
+        Process information has changed
       </h2>
 
       <p
         class="mb-0"
         style="max-width: 700px;"
       >
-        {% blocktrans %}The process purpose and/or context have changed since some AI insights were generated. Update them to reflect the latest information.{% endblocktrans %}
+        The process purpose and/or context have changed since
+        some AI insights were generated. Update them to reflect
+        the latest information.
       </p>
 
     </div>
@@ -88,7 +88,7 @@
       <i data-feather="refresh-cw"></i>
 
       <span>
-        {% trans "Update all AI insights" %}
+        Update all AI insights
       </span>
     </button>
 
@@ -135,7 +135,7 @@
             class="response-style-item__title"
             id="globalAiUpdateModalLabel-{{ candidate.id }}"
           >
-            {% trans "Update all AI insights?" %}
+            Update all AI insights?
           </h2>
 
 
@@ -143,7 +143,7 @@
             type="button"
             class="btn-close"
             data-bs-dismiss="modal"
-            aria-label="{% trans 'Close' %}"
+            aria-label="Close"
           ></button>
 
         </div>
@@ -163,21 +163,21 @@
               <div>
 
                 <div class="fw-semibold mb-2 text-dark">
-                  {% trans "Existing AI-generated content will be replaced" %}
+                  Existing AI-generated content will be replaced
                 </div>
 
 
                 <p class="text-muted mb-3 text-dark">
-                  {% blocktrans %}The affected interpretations, guidance and questions will be regenerated using the current process purpose and context.{% endblocktrans %}
+                  The affected interpretations, guidance and questions
+                  will be regenerated using the current process purpose
+                  and context.
                 </p>
 
 
                 <div class="fw-semibold mb-2 text-dark">
-                  {% blocktrans count section_count=outdated_ai_section_count %}
-                    {{ section_count }} section will be updated:
-                  {% plural %}
-                    {{ section_count }} sections will be updated:
-                  {% endblocktrans %}
+                  {{ outdated_ai_section_count }}
+                  section{{ outdated_ai_section_count|pluralize }}
+                  will be updated:
                 </div>
 
 
@@ -199,7 +199,8 @@
 purpose-fit-section
                   "
                 >
-                  {% blocktrans %}Assessment results, PDF reports, interview notes and other source data will not be changed.{% endblocktrans %}
+                  Assessment results, PDF reports, interview notes and
+                  other source data will not be changed.
                 </div>
 
               </div>
@@ -230,7 +231,7 @@ purpose-fit-section
                 class="fw-semibold"
                 data-global-ai-update-progress-text
               >
-                {% trans "Preparing AI insights…" %}
+                Preparing AI insights...
               </div>
 
 
@@ -238,7 +239,7 @@ purpose-fit-section
                 class="small text-muted flex-shrink-0"
                 data-global-ai-update-progress-count
               >
-                {% trans "0 of 0" %}
+                0 of 0
               </div>
 
             </div>
@@ -247,7 +248,7 @@ purpose-fit-section
             <div
               class="progress mb-4"
               role="progressbar"
-              aria-label="{% trans 'AI insight update progress' %}"
+              aria-label="AI insight update progress"
               aria-valuemin="0"
               aria-valuemax="100"
               aria-valuenow="0"
@@ -302,7 +303,7 @@ purpose-fit-section
               class="h5 mb-2"
               data-global-ai-update-complete-title
             >
-              {% trans "AI insights updated" %}
+              AI insights updated
             </h3>
 
 
@@ -311,7 +312,8 @@ purpose-fit-section
               style="max-width: 420px;"
               data-global-ai-update-complete-text
             >
-              {% blocktrans %}The candidate insights have been updated using the latest process information.{% endblocktrans %}
+              The candidate insights have been updated using the latest
+              process information.
             </p>
 
           </div>
@@ -343,7 +345,7 @@ purpose-fit-section
             data-bs-dismiss="modal"
             data-global-ai-update-cancel
           >
-            {% trans "Keep existing insights" %}
+            Keep existing insights
           </button>
 
 
@@ -352,7 +354,7 @@ purpose-fit-section
             class="btn btn-primary"
             data-global-ai-update-confirm
           >
-            {% trans "Update all AI insights" %}
+            Update all AI insights
           </button>
 
 
@@ -361,7 +363,7 @@ purpose-fit-section
             class="btn btn-primary d-none"
             data-global-ai-update-reload
           >
-            {% trans "Reload candidate insights" %}
+            Reload candidate insights
           </button>
 
         </div>

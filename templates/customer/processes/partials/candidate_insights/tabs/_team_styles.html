@@ -1,9 +1,14 @@
+{% load i18n %}
+{# Talena candidate i18n batch 1 #}
+{% trans "No team-style profile available" as no_team_style_title %}
+{% trans "Team-style insights are generated from the Personality assessment. Include it in future processes to explore how the candidate may contribute, communicate, build trust and collaborate within a team." as no_team_style_description %}
+{% trans "Available with Personality assessment" as team_style_unlock_label %}
 {% if team_style_profile.available %}
 
   {% include "customer/processes/partials/_team_styles.html" %}
 
 {% else %}
 
-{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="users" missing_title="No team-style profile available" missing_description="Team-style insights are generated from the Personality assessment. Include it in future processes to explore how the candidate may contribute, communicate, build trust and collaborate within a team." missing_unlock_label="Available with Personality assessment" %}
+{% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_icon="users" missing_title=no_team_style_title missing_description=no_team_style_description missing_unlock_label=team_style_unlock_label %}
 
 {% endif %}

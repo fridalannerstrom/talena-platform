@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 
 <style>
     .process-page {
@@ -313,9 +313,9 @@
           {% endif %}
 
           {% if process.is_historical %}
-            <span class="process-label">
-              Historical
-            </span>
+<span class="process-label">
+  {% trans "Historical" %}
+</span>
           {% endif %}
         </div>
 
@@ -323,15 +323,16 @@
           {{ process.name }}
         </h1>
 
-        <div class="text-muted small">
-          Created by
-          <span class="fw-semibold">
-            {% if process.created_by %}
-              {{ process.created_by.get_full_name|default:process.created_by.email }}
-            {% else %}
-              Unknown user
-            {% endif %}
-          </span>
+<div class="text-muted small">
+  {% trans "Created by" %}
+
+  <span class="fw-semibold">
+    {% if process.created_by %}
+      {{ process.created_by.get_full_name|default:process.created_by.email }}
+    {% else %}
+      {% trans "Unknown user" %}
+    {% endif %}
+  </span>
 
           {% if process.created_at %}
             · {{ process.created_at|date:"Y-m-d H:i" }}
@@ -342,26 +343,32 @@
 
           {% if not process.is_historical %}
             <div class="process-mini-info">
-              <div class="text-muted small mb-1">Purpose</div>
+              <div class="text-muted small mb-1">
+  {% trans "Purpose" %}
+</div>
               <div class="quick-card-title mt-0">
                 {% if process_purpose %}
                   {{ process_purpose.label }}
                 {% else %}
-                  Not selected
+                  {% trans "Not selected" %}
                 {% endif %}
               </div>
             </div>
           {% endif %}
 
           <div class="process-mini-info">
-            <div class="text-muted small mb-1">Assessments</div>
-            <div class="quick-card-title mt-0">
-              {% if process.is_historical %}
-                Tests
-              {% else %}
-                {{ meta.tests|default:"Not specified" }}
-              {% endif %}
-            </div>
+            <div class="text-muted small mb-1">
+  {% trans "Assessments" %}
+</div>
+<div class="quick-card-title mt-0">
+  {% if process.is_historical %}
+    {% trans "Tests" %}
+  {% elif meta.tests %}
+    {{ meta.tests }}
+  {% else %}
+    {% trans "Not specified" %}
+  {% endif %}
+</div>
           </div>
 
         </div>
@@ -373,25 +380,25 @@
       {% if process.is_historical %}
         <span class="process-readonly-pill">
           <i class="fa-regular fa-eye me-1"></i>
-          Read-only archive
+          {% trans "Read-only archive" %}
         </span>
       {% elif can_edit %}
         <button type="button"
                 class="btn btn-outline-secondary js-selfreg">
           <i class="fa-solid fa-link me-2"></i>
-          Self-registration
+          {% trans "Self-registration" %}
         </button>
 
         <button type="button"
                 class="btn btn-primary js-add-candidate"
                 data-url="{% url 'processes:process_add_candidate' process.id %}">
           <i class="fa-solid fa-user-plus me-2"></i>
-          Add candidate
+          {% trans "Add candidate" %}
         </button>
       {% else %}
         <span class="process-readonly-pill">
           <i class="fa-regular fa-eye me-1"></i>
-          Read-only
+          {% trans "Read-only" %}
         </span>
       {% endif %}
     </div>
@@ -402,23 +409,27 @@
 
     <a class="process-nav__item {% if active == 'overview' %}is-active{% endif %}"
        href="{% url 'processes:process_detail' process.id %}">
-      Overview
+      {% trans "Overview" %}
     </a>
 
     {% if not process.is_historical %}
       <a class="process-nav__item {% if active == 'context' %}is-active{% endif %}"
          href="{% url 'processes:process_role_context' process.id %}">
-        {{ context_config.tab_label|default:"Process context" }}
+        {% if context_config.tab_label %}
+  {{ context_config.tab_label }}
+{% else %}
+  {% trans "Process context" %}
+{% endif %}
       </a>
 
       <a class="process-nav__item {% if active == 'email_templates' %}is-active{% endif %}"
          href="{% url 'emails:edit_process_invitation_template' process.id %}">
-        Email templates
+        {% trans "Email templates" %}
       </a>
 
       <a class="process-nav__item {% if active == 'settings' %}is-active{% endif %}"
          href="{% url 'processes:process_update' process.id %}">
-        Settings
+       {% trans "Settings" %}
       </a>
     {% endif %}
 
