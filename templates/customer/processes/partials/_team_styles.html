@@ -1,3 +1,5 @@
+{% load i18n %}
+
 {% if team_style_profile.available %}
   <section class="mb-4 purpose-fit-card team-styles-section">
     <div>
@@ -6,218 +8,235 @@
       <header class="team-styles-header mb-4">
 
         <h2 class="insight-summary-title mb-1">
-          Team styles
+          {% trans "Team styles" %}
         </h2>
 
         <p class="text-muted small mb-0">
-          The profile shows how the candidate may approach eight roles commonly
-          observed in teams. Results use Sova's five-point team-style scale.
+          {% blocktrans trimmed %}
+            The profile shows how the candidate may approach eight roles
+            commonly observed in teams. Results use Sova's five-point
+            team-style scale.
+          {% endblocktrans %}
         </p>
       </header>
 
-      <!-- FULL-WIDTH RADAR CHART -->
-<div class="team-style-chart-card mb-4">
-  <div class="team-style-polar-wrap">
-    <canvas id="teamStylePolarChart" aria-label="Team role profile chart"></canvas>
-  </div>
-</div>
+      <!-- FULL-WIDTH POLAR CHART -->
+      <div class="team-style-chart-card mb-4">
+        <div class="team-style-polar-wrap">
+          <canvas
+            id="teamStylePolarChart"
+            aria-label="{% trans 'Team role profile chart' %}"
+          ></canvas>
+        </div>
+      </div>
 
-{{ team_style_profile.chart.labels|json_script:"team-style-chart-labels" }}
-{{ team_style_profile.chart.values|json_script:"team-style-chart-values" }}
-{{ team_style_profile.chart.backgrounds|json_script:"team-style-chart-backgrounds" }}
-{{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
+      {{ team_style_profile.chart.labels|json_script:"team-style-chart-labels" }}
+      {{ team_style_profile.chart.values|json_script:"team-style-chart-values" }}
+      {{ team_style_profile.chart.backgrounds|json_script:"team-style-chart-backgrounds" }}
+      {{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
 
       <!-- ALL TEAM STYLES, RANKED -->
+      <div class="response-style-card team-style-ranked-list">
 
+        {% for style in team_style_profile.styles %}
 
-        <div class="response-style-card team-style-ranked-list">
+          {% blocktrans trimmed with title=style.title value=style.display_value asvar team_style_aria %}
+            {{ title }}: {{ value }} out of 5
+          {% endblocktrans %}
 
-          {% for style in team_style_profile.styles %}
-            <article
-              class="insight-summary-content mb-4"
-            >
+          <article class="insight-summary-content mb-4">
 
-              <!-- STYLE HEADER -->
-              <div class="response-style-item__header">
+            <!-- STYLE HEADER -->
+            <div class="response-style-item__header">
 
+              <div>
+                <h4 class="response-style-item__title">
+                  {{ style.title }}
+                </h4>
+
+                <div class="response-style-item__subtitle">
+                  {% blocktrans trimmed with quadrant=style.quadrant_label %}
+                    {{ quadrant }} team style
+                  {% endblocktrans %}
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RESULT -->
+            <div class="team-style-result">
+
+              <div class="team-style-result__header">
                 <div>
-                  <h4 class="response-style-item__title">
-                    {{ style.title }}
-                  </h4>
-
-                  <div class="response-style-item__subtitle">
-                    {{ style.quadrant_label }} team style
+                  <div class="team-style-result__label">
+                    {% trans "Team style result" %}
                   </div>
+                </div>
+
+                <div class="team-style-result__value">
+                  {{ style.display_value }}/5
+                </div>
+              </div>
+
+              <div
+                class="
+                  response-style-scale
+                  response-style-scale--linear
+                  team-style-result__scale
+                "
+                role="meter"
+                aria-label="{{ team_style_aria }}"
+                aria-valuemin="1"
+                aria-valuemax="5"
+                aria-valuenow="{{ style.display_value }}"
+              >
+
+                <div class="response-style-scale__segments">
+
+                  {% for segment in style.scale_segments %}
+                    <span
+                      class="
+                        response-style-scale__segment
+
+                        {% if segment == style.display_value %}
+                          response-style-scale__segment--marker
+                        {% endif %}
+
+                        {% if segment <= style.display_value %}
+                          response-style-scale__segment--filled
+                        {% endif %}
+                      "
+                    ></span>
+                  {% endfor %}
+
+                </div>
+
+                <div class="response-style-scale__labels">
+                  <span>{% trans "Less likely" %}</span>
+                  <span>{% trans "Typical" %}</span>
+                  <span>{% trans "More likely" %}</span>
                 </div>
 
               </div>
 
-              <!-- CONTRIBUTION + SCALE + COMMUNICATION -->
-<!-- RESULT SCALE -->
+            </div>
 
+            <!-- TEAM STYLE DESCRIPTION -->
+            <div class="team-style-description">
 
+              <div>
+                <div class="team-style-description__label">
+                  {% trans "About this team style" %}
+                </div>
 
-<!-- RESULT -->
-<div class="team-style-result">
+                <p class="team-style-description__text">
+                  {{ style.contribution }}
+                </p>
+              </div>
 
-  <div class="team-style-result__header">
-    <div>
-      <div class="team-style-result__label">
-        Team style result
+            </div>
+
+            <!-- PRACTICAL GUIDANCE -->
+            <div class="team-style-guidance">
+
+              <div class="team-style-guidance__header">
+                <div class="team-style-guidance__label">
+                  {% trans "Practical guidance" %}
+                </div>
+
+                {% if style.relevance.guidance_intro %}
+                  <p>
+                    {{ style.relevance.guidance_intro }}
+                  </p>
+                {% else %}
+                  <p>
+                    {% trans "Points to consider when working and communicating with this candidate." %}
+                  </p>
+                {% endif %}
+              </div>
+
+              <div class="team-style-guidance__grid">
+
+                <div class="team-style-guidance__item">
+
+                  <div class="team-style-guidance__item-header">
+                    <i
+                      data-feather="message-circle"
+                      aria-hidden="true"
+                    ></i>
+                    <span>{% trans "Communication style" %}</span>
+                  </div>
+
+                  <p>
+                    {{ style.communication_tendency }}
+                  </p>
+
+                </div>
+
+                <div class="team-style-guidance__item">
+
+                  <div class="team-style-guidance__item-header">
+                    <i
+                      data-feather="alert-circle"
+                      aria-hidden="true"
+                    ></i>
+                    <span>{% trans "Possible limitations" %}</span>
+                  </div>
+
+                  <p>
+                    {{ style.possible_overuse }}
+                  </p>
+
+                </div>
+
+                <div class="team-style-guidance__item">
+
+                  <div class="team-style-guidance__item-header">
+                    <i
+                      data-feather="shield"
+                      aria-hidden="true"
+                    ></i>
+                    <span>{% trans "Build trust by" %}</span>
+                  </div>
+
+                  <p>
+                    {{ style.build_trust }}
+                  </p>
+
+                </div>
+
+                <div class="team-style-guidance__item">
+
+                  <div class="team-style-guidance__item-header">
+                    <i
+                      data-feather="x-circle"
+                      aria-hidden="true"
+                    ></i>
+                    <span>{% trans "Try to avoid" %}</span>
+                  </div>
+
+                  <p>
+                    {{ style.avoid }}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </article>
+        {% endfor %}
+
       </div>
-    </div>
-
-    <div class="team-style-result__value">
-      {{ style.display_value }}/5
-    </div>
-  </div>
-
-<div
-  class="
-    response-style-scale
-    response-style-scale--linear
-    team-style-result__scale
-  "
-    role="meter"
-    aria-label="{{ style.title }}: {{ style.display_value }} out of 5"
-    aria-valuemin="1"
-    aria-valuemax="5"
-    aria-valuenow="{{ style.display_value }}"
-  >
-
-    <div class="response-style-scale__segments">
-
-      {% for segment in style.scale_segments %}
-        <span
-          class="
-            response-style-scale__segment
-
-            {% if segment == style.display_value %}
-              response-style-scale__segment--marker
-            {% endif %}
-
-            {% if segment <= style.display_value %}
-              response-style-scale__segment--filled
-            {% endif %}
-          "
-        ></span>
-      {% endfor %}
-
-    </div>
-
-    <div class="response-style-scale__labels">
-      <span>Less likely</span>
-      <span>Typical</span>
-      <span>More likely</span>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- TEAM STYLE DESCRIPTION -->
-<div class="team-style-description">
-
-  <div>
-    <div class="team-style-description__label">
-      About this team style
-    </div>
-
-    <p class="team-style-description__text">
-      {{ style.contribution }}
-    </p>
-  </div>
-
-</div>
-
-
-
-
-<!-- PRACTICAL GUIDANCE -->
-<div class="team-style-guidance">
-
-  <div class="team-style-guidance__header">
-    <div class="team-style-guidance__label">
-      Practical guidance
-    </div>
-
-    <p>
-      Points to consider when working and communicating with this candidate.
-    </p>
-  </div>
-
-  <div class="team-style-guidance__grid">
-
-    <div class="team-style-guidance__item">
-
-      <div class="team-style-guidance__item-header">
-        <i data-feather="message-circle" aria-hidden="true"></i>
-        <span>Communication style</span>
-      </div>
-
-      <p>
-        {{ style.communication_tendency }}
-      </p>
-
-    </div>
-
-
-    <div class="team-style-guidance__item">
-
-      <div class="team-style-guidance__item-header">
-        <i data-feather="alert-circle" aria-hidden="true"></i>
-        <span>Possible limitations</span>
-      </div>
-
-      <p>
-        {{ style.possible_overuse }}
-      </p>
-
-    </div>
-
-
-    <div class="team-style-guidance__item">
-
-      <div class="team-style-guidance__item-header">
-        <i data-feather="shield" aria-hidden="true"></i>
-        <span>Build trust by</span>
-      </div>
-
-      <p>
-        {{ style.build_trust }}
-      </p>
-
-    </div>
-
-
-    <div class="team-style-guidance__item">
-
-      <div class="team-style-guidance__item-header">
-        <i data-feather="x-circle" aria-hidden="true"></i>
-        <span>Try to avoid</span>
-      </div>
-
-      <p>
-        {{ style.avoid }}
-      </p>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-            </article>
-          {% endfor %}
-
-        </div>
 
       <footer class="team-styles-footer">
-        Team-style results describe likely preferences rather than fixed
-        behaviour or ability. Ordering uses the underlying Sova result, while
-        the displayed values are rounded. Small score differences should not be
-        overinterpreted.
+        {% blocktrans trimmed %}
+          Team-style results describe likely preferences rather than fixed
+          behaviour or ability. Ordering uses the underlying Sova result,
+          while the displayed values are rounded. Small score differences
+          should not be overinterpreted.
+        {% endblocktrans %}
       </footer>
 
     </div>

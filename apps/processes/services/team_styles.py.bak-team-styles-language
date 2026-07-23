@@ -1,64 +1,5 @@
 import math
 
-from django.utils.translation import gettext as _, gettext_noop
-
-# Talena team styles language batch 1
-
-_TEAM_STYLE_TRANSLATION_STRINGS = (
-    gettext_noop('Catalyst'),
-    gettext_noop('Director'),
-    gettext_noop('Energiser'),
-    gettext_noop('Architect'),
-    gettext_noop('Harmoniser'),
-    gettext_noop('Analyst'),
-    gettext_noop('Auditor'),
-    gettext_noop('Connector'),
-    gettext_noop('Explore'),
-    gettext_noop('Lead'),
-    gettext_noop('Deliver'),
-    gettext_noop('Critically review'),
-    gettext_noop('Looks for creative and innovative solutions and ideas. Brings new insight and new approaches to the team.'),
-    gettext_noop('May dismiss established approaches too quickly, overcomplicate issues or develop solutions that are more complex than necessary.'),
-    gettext_noop('May communicate spontaneously and move quickly between ideas.'),
-    gettext_noop('Show genuine interest, allow room for creativity and ask questions that help develop the idea.'),
-    gettext_noop('Rejecting ideas before exploring them, or moving immediately into detailed facts and restrictions.'),
-    gettext_noop('Coordinates the group, clarifies needs and goals, and delegates accordingly. Brings clarity and decisiveness to the team.'),
-    gettext_noop('May become overly directive, move ahead too quickly or pursue their own agenda without giving enough space to other views.'),
-    gettext_noop('May focus on tasks, direction and strategy and can sometimes appear relatively businesslike or distant.'),
-    gettext_noop('Be clear, rational and businesslike. Focus on the task, expected outcomes and areas of responsibility.'),
-    gettext_noop('Losing focus on the task, becoming overly personal or failing to deliver what has been agreed.'),
-    gettext_noop('Gets things done and drives the team forward. Brings energy and a sense of motivation to the team.'),
-    gettext_noop('May weaken focus by pursuing too many things at once or changing direction quickly. Can appear forceful or impatient with people who work at a slower pace.'),
-    gettext_noop('May communicate quickly, directly and with a strong sense of pace.'),
-    gettext_noop('Maintain momentum, focus on the most important details, show confidence and involve them in decisions.'),
-    gettext_noop('Responding too slowly, being excessively cautious or spending too much time on minor details.'),
-    gettext_noop('Turns ideas into practical actions and plans. Brings efficiency, planning and organisation to the team.'),
-    gettext_noop('May delay delivery through too much planning and preparation, and may find it difficult to adapt plans when requirements or priorities change.'),
-    gettext_noop('May prefer concrete discussions about how ideas will be turned into actions.'),
-    gettext_noop('Be specific, present a clear plan and describe the actions, responsibilities and practical next steps.'),
-    gettext_noop('Discussing strategy without a practical plan, changing direction after work has started or setting unrealistic timelines.'),
-    gettext_noop("Considers other people's needs and feelings. Brings cohesion and a sense of belonging to the team."),
-    gettext_noop('May try too hard to please others, find it difficult to say no or set realistic boundaries, and may be less comfortable working independently.'),
-    gettext_noop('May pay close attention to relationships, inclusion and how other people are feeling.'),
-    gettext_noop('Show consideration, recognise individual needs and offer sincere appreciation and support.'),
-    gettext_noop('Ignoring relationship concerns, communicating impersonally or placing excessive demands on people who are already under strain.'),
-    gettext_noop('Considers alternatives and takes a critical view of ideas and plans. Brings objectivity and critical analysis to the team.'),
-    gettext_noop('May spend so much time analysing and evaluating that decisions are delayed or opportunities pass. May appear overly negative or reluctant to accept other perspectives.'),
-    gettext_noop('May focus on facts, evidence, sources and the reliability of available information.'),
-    gettext_noop('Be factual and well prepared, provide sufficient detail and allow time to examine or verify important information.'),
-    gettext_noop('Making unsupported claims, appearing careless or disorganised, withholding relevant information or setting unrealistic deadlines.'),
-    gettext_noop('Looks for inaccuracies and shortcomings and focuses on delivering what was promised. Brings quality awareness and attention to detail to the team.'),
-    gettext_noop('May devote too much time to minor details, overwork to maintain standards or follow rules and procedures so closely that delivery becomes less flexible.'),
-    gettext_noop('May communicate carefully and methodically and prefer time to consider information before responding.'),
-    gettext_noop('Be calm and systematic, explain the reasons for changes and be clear about deadlines, safety and follow-up.'),
-    gettext_noop('Leaving deadlines unclear, demanding immediate answers or using a forceful approach without explaining why.'),
-    gettext_noop('Builds, develops and uses networks and other useful resources. Brings new contacts and connections to the team.'),
-    gettext_noop('May spend too much time interacting and networking at the expense of other goals, or involve others before the process is sufficiently clear.'),
-    gettext_noop('May communicate in a friendly and relationship-focused way and place value on personal connection.'),
-    gettext_noop('Explain what you want clearly, allow time for conversation, show appreciation and ask about their perspective.'),
-    gettext_noop('Taking over the conversation, withholding information, showing little engagement or using a cold or dismissive tone.'),
-)
-
 
 CHART_CENTER = 200
 
@@ -469,9 +410,9 @@ def _build_team_style_relevance(display_value):
     if display_value >= 4:
         return {
             "key": "prominent",
-            "label": _("Prominent style"),
+            "label": "Prominent style",
             "show_guidance": True,
-            "guidance_intro": _(
+            "guidance_intro": (
                 "This is a prominent preference in the candidate's profile. "
                 "The guidance below is therefore likely to be particularly "
                 "relevant."
@@ -481,9 +422,9 @@ def _build_team_style_relevance(display_value):
     if display_value == 3:
         return {
             "key": "situational",
-            "label": _("Situational style"),
+            "label": "Situational style",
             "show_guidance": True,
-            "guidance_intro": _(
+            "guidance_intro": (
                 "This preference is around the middle of the scale. "
                 "The guidance may be relevant depending on the situation "
                 "and team context."
@@ -492,9 +433,9 @@ def _build_team_style_relevance(display_value):
 
     return {
         "key": "less_likely",
-        "label": _("Less likely style"),
+        "label": "Less likely style",
         "show_guidance": True,
-        "guidance_intro": _(
+        "guidance_intro": (
             "This is a less prominent preference in the candidate's profile. "
             "The guidance below may therefore be less characteristic of their "
             "usual approach, but can still be relevant in certain situations."
@@ -524,18 +465,6 @@ def build_team_style_profile(personality_competencies):
     chart_styles = []
 
     for config_index, config in enumerate(TEAM_STYLE_CONFIG):
-        config = {
-            **config,
-            "title": _(config["title"]),
-            "quadrant_label": _(config["quadrant_label"]),
-            "contribution": _(config["contribution"]),
-            "possible_overuse": _(config["possible_overuse"]),
-            "communication_tendency": _(
-                config["communication_tendency"]
-            ),
-            "build_trust": _(config["build_trust"]),
-            "avoid": _(config["avoid"]),
-        }
         source = None
 
         for source_name in config["source_names"]:
