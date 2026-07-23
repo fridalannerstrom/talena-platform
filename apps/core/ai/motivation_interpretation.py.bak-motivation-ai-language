@@ -8,15 +8,6 @@ from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-# Talena motivation AI language batch 1
 
 from .shared_context import (
     build_shared_ai_context,
@@ -260,19 +251,10 @@ def build_motivation_evidence_text(
 def build_motivation_interpretation_prompt(
     invitation,
     motivation_results: list[dict[str, Any]],
-    *,
-    language_code: str = "en",
 ) -> str:
     """
     Build the prompt for Talena's motivation interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
 
     shared_context = build_shared_ai_context(
         invitation
@@ -432,8 +414,7 @@ IMPORTANT DISTINCTIONS
 - Motivation can change over time and across situations.
 
 LANGUAGE AND TONE
-{language_instruction}
-- Translate every user-facing JSON string, including title and label.
+- Write in professional, clear English.
 - Be practical, balanced and non-judgemental.
 - Use cautious formulations such as:
   "may indicate",
@@ -548,24 +529,10 @@ Together, these events form the complete overall interpretation.
 
 def create_empty_motivation_interpretation(
     owner,
-    *,
-    language_code: str = "en",
 ) -> dict[str, Any]:
-    language_code = normalize_ai_language(
-        language_code
-    )
-
     return {
-        "title": (
-            "Motivationstolkning"
-            if language_code == "sv"
-            else "Motivation interpretation"
-        ),
-        "label": (
-            "AI-stödd tolkning"
-            if language_code == "sv"
-            else "AI-supported interpretation"
-        ),
+        "title": "Motivation interpretation",
+        "label": "AI-supported interpretation",
         "interpretation": "",
         "engagement_conditions": [],
         "areas_to_clarify": [],
@@ -670,7 +637,6 @@ def stream_motivation_interpretation(
     *,
     owner,
     motivation_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Stream motivation interpretation events from OpenAI.
@@ -684,21 +650,11 @@ def stream_motivation_interpretation(
             "No motivation assessment results are available."
         )
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
-            language_code
-        )
-    )
-
     client = get_openai_client()
 
     prompt = build_motivation_interpretation_prompt(
         invitation=owner,
         motivation_results=motivation_results,
-        language_code=language_code,
     )
 
     stream = client.chat.completions.create(
@@ -712,8 +668,7 @@ def stream_motivation_interpretation(
                     "motivation assessment consultant. Treat motivation "
                     "results as indicators rather than facts, never "
                     "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
-                    f"{system_language_instruction}"
+                    "streaming format exactly."
                 ),
             },
             {
@@ -779,22 +734,10 @@ def save_motivation_interpretation(
     *,
     owner,
     interpretation: dict[str, Any],
-    language_code: str = "en",
 ):
     """
     Save the completed motivation interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    interpretation["_language"] = language_code
-
-    set_ai_content_language(
-        owner,
-        "motivation_interpretation",
-        language_code,
-    )
 
     interpretation["interpretation"] = (
         interpretation.get("interpretation")
@@ -825,13 +768,3 @@ def save_motivation_interpretation(
         "ai_motivation_interpretation_generated_at",
         "ai_motivation_interpretation_purpose",
     ])
-
-    language_update_fields = (
-        get_ai_language_update_fields(
-            owner
-        )
-    )
-    if language_update_fields:
-        owner.save(
-            update_fields=language_update_fields
-        )

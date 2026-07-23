@@ -14,15 +14,6 @@ from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-# Talena cognitive AI language batch 1
 
 
 
@@ -181,19 +172,10 @@ def build_cognitive_evidence_text(
 def build_cognitive_interpretation_prompt(
     invitation,
     cognitive_results: list[dict[str, Any]],
-    *,
-    language_code: str = "en",
 ) -> str:
     """
     Build the prompt for the cognitive interpretation section.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
 
     shared_context = build_shared_ai_context(
         invitation
@@ -323,8 +305,7 @@ Do not describe these levels as better or worse.
 The relevance depends on the actual work demands.
 
 LANGUAGE AND TONE
-{language_instruction}
-- Translate every user-facing JSON string, including title and label.
+- Write in professional, clear English.
 - Be balanced, practical and non-judgemental.
 - Use formulations such as:
   "may indicate",
@@ -425,24 +406,10 @@ Together, these events form the complete practical interpretation.
 
 def create_empty_cognitive_interpretation(
     owner,
-    *,
-    language_code: str = "en",
 ) -> dict[str, Any]:
-    language_code = normalize_ai_language(
-        language_code
-    )
-
     return {
-        "title": (
-            "Kognitiv tolkning"
-            if language_code == "sv"
-            else "Cognitive interpretation"
-        ),
-        "label": (
-            "AI-stödd tolkning"
-            if language_code == "sv"
-            else "AI-supported interpretation"
-        ),
+        "title": "Cognitive interpretation",
+        "label": "AI-supported interpretation",
         "interpretation": "",
         "considerations": [],
         "questions": [],
@@ -567,7 +534,6 @@ def stream_cognitive_interpretation(
     *,
     owner,
     cognitive_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Stream cognitive interpretation events from OpenAI.
@@ -578,21 +544,11 @@ def stream_cognitive_interpretation(
             "No cognitive assessment results are available."
         )
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
-            language_code
-        )
-    )
-
     client = get_openai_client()
 
     prompt = build_cognitive_interpretation_prompt(
         invitation=owner,
         cognitive_results=cognitive_results,
-        language_code=language_code,
     )
 
     stream = client.chat.completions.create(
@@ -605,8 +561,7 @@ def stream_cognitive_interpretation(
                     "assessment interpretation consultant. Treat test "
                     "results as indicators rather than facts, do not "
                     "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
-                    f"{system_language_instruction}"
+                    "streaming format exactly."
                 ),
             },
             {
@@ -653,22 +608,10 @@ def save_cognitive_interpretation(
     *,
     owner,
     interpretation: dict[str, Any],
-    language_code: str = "en",
 ):
     """
     Save the completed cognitive interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    interpretation["_language"] = language_code
-
-    set_ai_content_language(
-        owner,
-        "cognitive_interpretation",
-        language_code,
-    )
 
     interpretation["interpretation"] = (
         interpretation.get("interpretation")
@@ -699,13 +642,3 @@ def save_cognitive_interpretation(
         "ai_cognitive_interpretation_generated_at",
         "ai_cognitive_interpretation_purpose",
     ])
-
-    language_update_fields = (
-        get_ai_language_update_fields(
-            owner
-        )
-    )
-    if language_update_fields:
-        owner.save(
-            update_fields=language_update_fields
-        )

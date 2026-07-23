@@ -206,12 +206,6 @@ _AI_CONTENT_RESULT_FIELDS = {
     "motivation_questions": (
         "ai_motivation_questions"
     ),
-    "cognitive_interpretation": (
-        "ai_cognitive_interpretation"
-    ),
-    "cognitive_questions": (
-        "ai_cognitive_questions"
-    ),
 }
 
 # Talena personality language batch 1

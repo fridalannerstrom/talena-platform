@@ -1,5 +1,3 @@
-{% load i18n %}
-{# Talena motivation Results language batch 1 #}
 <div
   class="personality-question-list"
   data-motivation-questions-list
@@ -50,7 +48,7 @@
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  {% trans "Why this matters" %}
+                  Why this matters
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -80,7 +78,7 @@
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  {% trans "What to look for in the answer" %}
+                  What to look for in the answer
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -110,7 +108,9 @@
   <i data-feather="info"></i>
 
   <div>
-    {% blocktrans %}Motivation results indicate possible sources of energy and preference. Use these questions to gather concrete examples and the candidate’s own perspective rather than treating assessment indications as confirmed facts.{% endblocktrans %}
+    Motivation results indicate possible sources of energy and preference.
+    Use these questions to gather concrete examples and the candidate’s own
+    perspective rather than treating assessment indications as confirmed facts.
   </div>
 
 </div>

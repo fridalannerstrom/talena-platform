@@ -1,10 +1,8 @@
-{% load i18n %}
-
 <!-- PRACTICAL INTERPRETATION -->
 <section class="cognitive-ai-section purpose-fit-section">
 
   <h3 class="cognitive-ai-section__title">
-    {% trans "Practical interpretation" %}
+    Practical interpretation
   </h3>
 
   <div
@@ -24,7 +22,7 @@
 >
 
   <h3 class="cognitive-ai-section__title">
-    {% trans "Relevant considerations" %}
+    Relevant considerations
   </h3>
 
   <ul
@@ -49,7 +47,7 @@
 <div class="cognitive-ai-context-note mt-4">
 
   <div class="cognitive-ai-context-note__title">
-    {% trans "How Talena created this interpretation" %}
+    How Talena created this interpretation
   </div>
 
   <div data-cognitive-ai-context-note>
@@ -65,12 +63,10 @@
   <i data-feather="info"></i>
 
   <div>
-    {% blocktrans trimmed %}
-      Cognitive assessment results describe relative performance on specific
-      reasoning tasks. They do not measure personality, motivation, experience
-      or overall intelligence, and should be considered together with other
-      relevant evidence.
-    {% endblocktrans %}
+    Cognitive assessment results describe relative performance on
+    specific reasoning tasks. They do not measure personality,
+    motivation, experience or overall intelligence, and should be
+    considered together with other relevant evidence.
   </div>
 
 </div>

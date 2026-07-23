@@ -31,7 +31,6 @@ from apps.core.ai.decision_support import (
     save_post_interview_decision_support,
 )
 
-# Talena cognitive AI language batch 1
 from apps.core.ai.cognitive_interpretation import (
     extract_cognitive_results,
     create_empty_cognitive_interpretation,
@@ -132,7 +131,6 @@ from django.db import transaction
 from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
@@ -222,7 +220,6 @@ from apps.core.ai.personality_questions import (
     personality_questions_cover_all_traits,
 )
 
-# Talena cognitive results language batch 1
 def build_cognitive_insight_results(
     verbal_percentile=None,
     logical_percentile=None,
@@ -233,8 +230,6 @@ def build_cognitive_insight_results(
 
     All three assessment types are always returned so the template can show
     a grey placeholder when an assessment has not been completed.
-
-    Percentile calculations and thresholds are intentionally unchanged.
     """
 
     def normalise_percentile(value):
@@ -256,126 +251,102 @@ def build_cognitive_insight_results(
             return {
                 "completed": False,
                 "level_key": "missing",
-                "level_label": _("Not completed"),
+                "level_label": "Not completed",
             }
 
         if percentile <= 9:
             return {
                 "completed": True,
                 "level_key": "very-low",
-                "level_label": _("Very low"),
+                "level_label": "Very low",
             }
 
         if percentile <= 24:
             return {
                 "completed": True,
                 "level_key": "low",
-                "level_label": _("Low"),
+                "level_label": "Low",
             }
 
         if percentile <= 74:
             return {
                 "completed": True,
                 "level_key": "average",
-                "level_label": _("Typical range"),
+                "level_label": "Typical",
             }
 
         if percentile <= 90:
             return {
                 "completed": True,
                 "level_key": "high",
-                "level_label": _("High"),
+                "level_label": "High",
             }
 
         return {
             "completed": True,
             "level_key": "very-high",
-            "level_label": _("Very high"),
+            "level_label": "Very high",
         }
 
     def get_interpretation(test_key, percentile):
         if percentile is None:
-            return _(
-                "This candidate has not completed this assessment."
-            )
+            return "This candidate has not completed this assessment."
 
         ability_labels = {
-            "verbal": _(
-                "understand and evaluate written information"
-            ),
-            "logical": _(
-                "identify patterns and reach logical conclusions"
-            ),
-            "numerical": _(
-                "understand and work with numerical information"
-            ),
+            "verbal": "understand and evaluate written information",
+            "logical": "identify patterns and reach logical conclusions",
+            "numerical": "understand and work with numerical information",
         }
 
         ability_text = ability_labels[test_key]
 
         if percentile <= 9:
-            return _(
-                "The candidate may find it considerably more difficult "
-                "than most people in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
+            return (
+                f"The candidate may find it considerably more difficult than "
+                f"most people in the reference group to {ability_text}."
+            )
 
         if percentile <= 24:
-            return _(
-                "The candidate may find it more difficult than many "
-                "others in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
+            return (
+                f"The candidate may find it more difficult than many others "
+                f"in the reference group to {ability_text}."
+            )
 
         if percentile <= 74:
-            return _(
-                "The candidate is likely to find it about as easy as "
-                "most people in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
+            return (
+                f"The candidate is likely to find it about as easy as most "
+                f"people in the reference group to {ability_text}."
+            )
 
         if percentile <= 90:
-            return _(
-                "The candidate may find it easier than many others in "
-                "the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
+            return (
+                f"The candidate may find it easier than many others in the "
+                f"reference group to {ability_text}."
+            )
 
-        return _(
-            "The candidate may find it considerably easier than most "
-            "people in the reference group to %(ability)s."
-        ) % {
-            "ability": ability_text,
-        }
+        return (
+            f"The candidate may find it considerably easier than most people "
+            f"in the reference group to {ability_text}."
+        )
 
     test_config = [
         {
             "key": "logical",
-            "title": _("Logical reasoning"),
-            "measure_label": _("Logical reasoning ability"),
-            "percentile": normalise_percentile(
-                logical_percentile
-            ),
+            "title": "Logical reasoning",
+            "measure_label": "Logical reasoning ability",
+            "percentile": normalise_percentile(logical_percentile),
         },
         {
             "key": "numerical",
-            "title": _("Numerical reasoning"),
-            "measure_label": _("Numerical reasoning ability"),
-            "percentile": normalise_percentile(
-                numerical_percentile
-            ),
+            "title": "Numerical reasoning",
+            "measure_label": "Numerical reasoning ability",
+            "percentile": normalise_percentile(numerical_percentile),
         },
         {
             "key": "verbal",
-            "title": _("Verbal reasoning"),
-            "measure_label": _("Verbal reasoning ability"),
-            "percentile": normalise_percentile(
-                verbal_percentile
-            ),
+            "title": "Verbal reasoning",
+            "measure_label": "Verbal reasoning ability",
+            "percentile": normalise_percentile(verbal_percentile),
         },
     ]
 
@@ -384,22 +355,6 @@ def build_cognitive_insight_results(
     for test in test_config:
         percentile = test["percentile"]
         level = get_level(percentile)
-
-        if percentile is None:
-            percentile_aria_label = ""
-            missing_aria_label = _(
-                "%(title)s assessment not completed"
-            ) % {
-                "title": test["title"],
-            }
-        else:
-            percentile_aria_label = _(
-                "%(title)s percentile %(percentile)s"
-            ) % {
-                "title": test["title"],
-                "percentile": percentile,
-            }
-            missing_aria_label = ""
 
         results.append({
             "key": test["key"],
@@ -413,8 +368,6 @@ def build_cognitive_insight_results(
                 test_key=test["key"],
                 percentile=percentile,
             ),
-            "percentile_aria_label": percentile_aria_label,
-            "missing_aria_label": missing_aria_label,
         })
 
     return results
@@ -7115,20 +7068,6 @@ def process_candidate_detail(request, process_id, candidate_id):
         )
         mark_ai_content_outdated_if_language_changed(
             invitation,
-            content_key="cognitive_interpretation",
-            result_field="ai_cognitive_interpretation",
-            status_field="ai_cognitive_interpretation_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="cognitive_questions",
-            result_field="ai_cognitive_questions",
-            status_field="ai_cognitive_questions_status",
-            language_code=language_code,
-        )
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
             content_key="motivation_interpretation",
             result_field="ai_motivation_interpretation",
             status_field="ai_motivation_interpretation_status",
@@ -9406,17 +9345,6 @@ def process_candidate_cognitive_interpretation_stream(
             status=400,
         )
 
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="cognitive_interpretation",
-        result_field="ai_cognitive_interpretation",
-        status_field="ai_cognitive_interpretation_status",
-        language_code=language_code,
-    )
-
     cognitive_results = extract_cognitive_results(
         invitation
     )
@@ -9470,16 +9398,9 @@ def process_candidate_cognitive_interpretation_stream(
         ])
 
     # Return a completed saved result without a new OpenAI request.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "cognitive_interpretation",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_interpretation,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_interpretation,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -9525,8 +9446,7 @@ def process_candidate_cognitive_interpretation_stream(
     def generator():
         interpretation = (
             create_empty_cognitive_interpretation(
-                invitation,
-                language_code=language_code,
+                invitation
             )
         )
 
@@ -9536,7 +9456,6 @@ def process_candidate_cognitive_interpretation_stream(
             for event in stream_cognitive_interpretation(
                 owner=invitation,
                 cognitive_results=cognitive_results,
-                language_code=language_code,
             ):
                 interpretation = (
                     apply_cognitive_interpretation_event(
@@ -9574,7 +9493,6 @@ def process_candidate_cognitive_interpretation_stream(
             save_cognitive_interpretation(
                 owner=invitation,
                 interpretation=interpretation,
-                language_code=language_code,
             )
 
         except Exception as error:
@@ -9740,17 +9658,6 @@ def process_candidate_cognitive_questions_stream(
             status=400,
         )
 
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="cognitive_questions",
-        result_field="ai_cognitive_questions",
-        status_field="ai_cognitive_questions_status",
-        language_code=language_code,
-    )
-
     cognitive_results = extract_cognitive_results(
         invitation
     )
@@ -9805,16 +9712,9 @@ def process_candidate_cognitive_questions_stream(
         )
 
     # Return previously generated questions when available.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "cognitive_questions",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -9861,8 +9761,7 @@ def process_candidate_cognitive_questions_stream(
 
     def generator():
         result = create_empty_cognitive_questions(
-            invitation,
-            language_code=language_code,
+            invitation
         )
 
         received_done_event = False
@@ -9871,7 +9770,6 @@ def process_candidate_cognitive_questions_stream(
             for event in stream_cognitive_questions(
                 owner=invitation,
                 cognitive_results=cognitive_results,
-                language_code=language_code,
             ):
                 result = apply_cognitive_questions_event(
                     result,
@@ -9908,7 +9806,6 @@ def process_candidate_cognitive_questions_stream(
             save_cognitive_questions(
                 owner=invitation,
                 result=result,
-                language_code=language_code,
             )
 
         except Exception as error:

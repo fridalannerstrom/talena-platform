@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <div
   class="personality-question-list"
   data-cognitive-questions-list
@@ -16,7 +18,6 @@
           {{ forloop.counter }}
         </div>
 
-
         <div class="personality-question-card__heading">
 
           <div class="personality-question-card__text">
@@ -27,28 +28,22 @@
 
       </div>
 
-
       {% if item.why or item.listen_for %}
 
         <div class="personality-question-card__details">
 
           {% if item.why %}
 
-            <div
-              class="
-                personality-question-card__detail
-              "
-            >
+            <div class="personality-question-card__detail">
 
               <div class="personality-question-card__detail-icon">
                 <i data-feather="compass"></i>
               </div>
 
-
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  Why this matters
+                  {% trans "Why this matters" %}
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -61,24 +56,18 @@
 
           {% endif %}
 
-
           {% if item.listen_for %}
 
-            <div
-              class="
-                personality-question-card__detail
-              "
-            >
+            <div class="personality-question-card__detail">
 
               <div class="personality-question-card__detail-icon">
                 <i data-feather="headphones"></i>
               </div>
 
-
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  What to look for in the answer
+                  {% trans "What to look for in the answer" %}
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -107,11 +96,13 @@
   <i data-feather="info"></i>
 
   <div>
-    Use these questions to gather concrete examples of how the
-    candidate works with information and approaches problems.
-    Cognitive assessment results provide supporting evidence and
-    should not replace information from relevant experience,
-    structured interviews or other assessment methods.
+    {% blocktrans trimmed %}
+      Use these questions to gather concrete examples of how the candidate
+      works with information and approaches problems. Cognitive assessment
+      results provide supporting evidence and should not replace information
+      from relevant experience, structured interviews or other assessment
+      methods.
+    {% endblocktrans %}
   </div>
 
 </div>

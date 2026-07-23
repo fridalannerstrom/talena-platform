@@ -1,6 +1,3 @@
-{% load i18n motivation_i18n %}
-{% trans "The candidate" as motivation_candidate_fallback %}
-{# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
   <section class="purpose-fit-card motivation-profile-card">
@@ -10,11 +7,13 @@
       <header class="team-styles-header mb-4">
 
         <h2 class="insight-summary-title mb-1">
-          {{ motivation_insights.title|motivation_profile_title }}
+          {{ motivation_insights.title }}
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale.{% endblocktrans %}
+          The profile highlights the candidate's more prominent and less
+          central motivational drivers, followed by the complete motivation
+          profile. Results use Sova's rounded five-point STIVE scale.
         </p>
 
       </header>
@@ -41,7 +40,7 @@
     <canvas
       data-motivation-rose-chart
       role="img"
-      aria-label="{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}"
+      aria-label="Circular overview of the candidate's motivation profile"
     ></canvas>
 
   </div>
@@ -53,7 +52,7 @@
     class="motivation-rose-chart__empty"
     data-motivation-rose-chart-empty
   >
-    {% trans "Preparing motivation overview…" %}
+    Preparing motivation overview...
   </div>
 
 
@@ -72,9 +71,9 @@
 
           <span
             data-motivation-rose-item
-            data-factor-name="{{ item|motivation_name|escape }}"
+            data-factor-name="{{ item.name|escape }}"
             data-factor-score="{{ item.score }}"
-            data-factor-domain="{{ domain|motivation_domain_title|escape }}"
+            data-factor-domain="{{ domain.title|escape }}"
             data-domain-index="{{ forloop.parentloop.counter0 }}"
           ></span>
 
@@ -102,11 +101,11 @@
 
               <div>
 <h4 class="response-style-item__title">
-  {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s most prominent drivers{% endblocktrans %}
+  {{ candidate.first_name|default:"The candidate" }}’s most prominent drivers
 </h4>
 
                 <div class="response-style-item__subtitle">
-                  {% trans "Factors more likely to provide energy and engagement" %}
+                  Factors more likely to provide energy and engagement
                 </div>
               </div>
 
@@ -127,11 +126,11 @@
 
                     <div>
                       <div class="motivation-summary-item__name">
-                        {{ item|motivation_name }}
+                        {{ item.name }}
                       </div>
 
                       <p class="motivation-summary-item__description">
-                        {{ item|motivation_top_interpretation }}
+                        {{ item.interpretation }}
                       </p>
                     </div>
 
@@ -156,11 +155,12 @@
         <div>
 
           <h3 class="motivation-full-profile-heading__title mt-4">
-            {% trans "All motivation factors" %}
+            All motivation factors
           </h3>
 
           <p>
-            {% blocktrans %}Results are grouped according to the four areas in the motivation model.{% endblocktrans %}
+            Results are grouped according to the four areas in the
+            motivation model.
           </p>
         </div>
 
@@ -185,11 +185,11 @@
 
                 <div>
                   <h4 class="response-style-item__title">
-                    {{ domain|motivation_domain_title }}
+                    {{ domain.title }}
                   </h4>
 
                   <div class="response-style-item__subtitle">
-                    {{ domain|motivation_domain_subtitle }}
+                    {{ domain.subtitle }}
                   </div>
                 </div>
 
@@ -210,11 +210,11 @@
                     <div>
 
                       <h5 class="motivation-factor-result__name">
-                        {{ item|motivation_name }}
+                        {{ item.name }}
                       </h5>
 
                       <p class="team-style-result__description">
-                        {{ item|motivation_description }}
+                        {{ item.description }}
                       </p>
                     </div>
 
@@ -225,7 +225,7 @@
                       </div>
                     {% else %}
                       <div class="team-style-result__value motivation-factor-result__missing">
-                        {% trans "N/A" %}
+                        N/A
                       </div>
                     {% endif %}
 
@@ -242,7 +242,7 @@
     motivation-factor-result__scale
   "
   role="meter"
-  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
+  aria-label="{{ item.name }}: {{ item.score }} out of 5"
   aria-valuemin="1"
   aria-valuemax="5"
   aria-valuenow="{{ item.score }}"
@@ -269,9 +269,9 @@
                       </div>
 
                       <div class="response-style-scale__labels">
-                        <span>{% trans "Less central" %}</span>
-                        <span>{% trans "Mid-range" %}</span>
-                        <span>{% trans "More prominent" %}</span>
+                        <span>Less central</span>
+                        <span>Mid-range</span>
+                        <span>More prominent</span>
                       </div>
 
                     </div>
@@ -292,7 +292,10 @@
 
       <!-- FOOTER -->
       <footer class="team-styles-footer motivation-profile-footer">
-        {% blocktrans %}Motivation scores describe relative sources of energy and preference. Lower results do not indicate poor performance, weak values or limited capability. Results should be considered alongside role context, interview evidence and the candidate's own reflections.{% endblocktrans %}
+        Motivation scores describe relative sources of energy and preference.
+        Lower results do not indicate poor performance, weak values or limited
+        capability. Results should be considered alongside role context,
+        interview evidence and the candidate's own reflections.
       </footer>
 
     </div>

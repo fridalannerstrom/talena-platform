@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Talena Motivation AI language batch.
+# Talena Cognitive AI language batch.
 #
 # Run from the repository root:
-#   python apply_motivation_ai_language_batch.py --check
-#   python apply_motivation_ai_language_batch.py --apply
+#   python apply_cognitive_ai_language_batch.py --check
+#   python apply_cognitive_ai_language_batch.py --apply
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-MARKER = "Talena motivation AI language batch 1"
+MARKER = "Talena cognitive AI language batch 1"
 
 
 @dataclass(frozen=True)
@@ -31,8 +31,8 @@ def compile_python(source: str, path: Path) -> None:
     except SyntaxError as error:
         lines = source.splitlines()
         line_number = error.lineno or 1
-        start = max(1, line_number - 5)
-        end = min(len(lines), line_number + 5)
+        start = max(1, line_number - 6)
+        end = min(len(lines), line_number + 6)
         context = "\n".join(
             f"{number:>5}: {lines[number - 1]}"
             for number in range(start, end + 1)
@@ -79,25 +79,29 @@ def transform_function(
         function_name,
     )
     updated = transformer(block)
+
     if updated == block:
         raise RuntimeError(
             f"No changes were produced in {function_name}."
         )
+
     return text[:start] + updated + text[end:]
 
 
 def token_pattern(source: str) -> re.Pattern[str]:
     tokens = re.findall(
         r'"(?:\\.|[^"\\])*"'
-        r"|\'(?:\\.|[^\'\\])*\'"
+        r"|'(?:\\.|[^'\\])*'"
         r"|[A-Za-zÀ-ÖØ-öø-ÿ0-9_]+"
         r"|[^\sA-Za-zÀ-ÖØ-öø-ÿ0-9_]",
         source.strip(),
     )
+
     if not tokens:
         raise RuntimeError(
             "Cannot create a matcher for empty text."
         )
+
     return re.compile(
         r"\s*".join(
             re.escape(token)
@@ -116,38 +120,38 @@ def replace_once(
     exact_count = text.count(old)
 
     if exact_count == 1:
-        return text.replace(old, new, 1)
+        return text.replace(
+            old,
+            new,
+            1,
+        )
 
     if exact_count > 1:
         raise RuntimeError(
             f"{path}: expected 1 occurrence, found "
-            f"{exact_count} for:\n{old[:350]}"
+            f"{exact_count} for:\n{old[:500]}"
         )
 
     pattern = token_pattern(old)
-    matches = list(pattern.finditer(text))
+    matches = list(
+        pattern.finditer(text)
+    )
 
     if len(matches) != 1:
         raise RuntimeError(
             f"{path}: expected 1 flexible occurrence, found "
-            f"{len(matches)} for:\n{old[:350]}"
+            f"{len(matches)} for:\n{old[:500]}"
         )
 
     match = matches[0]
-
-    line_start = (
-        text.rfind(
-            "\n",
-            0,
-            match.start(),
-        )
-        + 1
-    )
-
+    line_start = text.rfind(
+        "\n",
+        0,
+        match.start(),
+    ) + 1
     leading_text = text[
         line_start:match.start()
     ]
-
     replacement_start = (
         line_start
         if not leading_text.strip()
@@ -166,6 +170,8 @@ def ensure_result_map_entries(text: str) -> str:
 
     for helper in (
         "get_request_ai_language",
+        "get_ai_language_instruction",
+        "get_ai_system_language_instruction",
         "ai_content_language_matches",
         "mark_ai_content_outdated_if_language_changed",
         "set_ai_content_language",
@@ -179,14 +185,15 @@ def ensure_result_map_entries(text: str) -> str:
 
     entries = (
         (
-            "motivation_interpretation",
-            "ai_motivation_interpretation",
+            "cognitive_interpretation",
+            "ai_cognitive_interpretation",
         ),
         (
-            "motivation_questions",
-            "ai_motivation_questions",
+            "cognitive_questions",
+            "ai_cognitive_questions",
         ),
     )
+
     missing = [
         entry
         for entry in entries
@@ -213,11 +220,13 @@ def ensure_result_map_entries(text: str) -> str:
         )
         for key, field in missing
     )
+
     replacement = (
         match.group(1)
         + addition
         + match.group(2)
     )
+
     return (
         text[:match.start()]
         + replacement
@@ -226,7 +235,7 @@ def ensure_result_map_entries(text: str) -> str:
 
 
 def transform_interpretation(text: str) -> str:
-    path = "apps/core/ai/motivation_interpretation.py"
+    path = "apps/core/ai/cognitive_interpretation.py"
 
     if MARKER in text:
         raise RuntimeError(
@@ -252,7 +261,7 @@ from .language import (
     set_ai_content_language,
 )
 
-# Talena motivation AI language batch 1
+# Talena cognitive AI language batch 1
 ''',
         path=path,
     )
@@ -260,14 +269,14 @@ from .language import (
     def prompt(block: str) -> str:
         block = replace_once(
             block,
-            '''def build_motivation_interpretation_prompt(
+            '''def build_cognitive_interpretation_prompt(
     invitation,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
 ) -> str:
 ''',
-            '''def build_motivation_interpretation_prompt(
+            '''def build_cognitive_interpretation_prompt(
     invitation,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
     *,
     language_code: str = "en",
 ) -> str:
@@ -307,18 +316,18 @@ from .language import (
 
     text = transform_function(
         text,
-        "build_motivation_interpretation_prompt",
+        "build_cognitive_interpretation_prompt",
         prompt,
     )
 
     def empty_result(block: str) -> str:
         block = replace_once(
             block,
-            '''def create_empty_motivation_interpretation(
+            '''def create_empty_cognitive_interpretation(
     owner,
 ) -> dict[str, Any]:
 ''',
-            '''def create_empty_motivation_interpretation(
+            '''def create_empty_cognitive_interpretation(
     owner,
     *,
     language_code: str = "en",
@@ -329,7 +338,7 @@ from .language import (
         block = replace_once(
             block,
             '''    return {
-        "title": "Motivation interpretation",
+        "title": "Cognitive interpretation",
         "label": "AI-supported interpretation",
 ''',
             '''    language_code = normalize_ai_language(
@@ -338,9 +347,9 @@ from .language import (
 
     return {
         "title": (
-            "Motivationstolkning"
+            "Kognitiv tolkning"
             if language_code == "sv"
-            else "Motivation interpretation"
+            else "Cognitive interpretation"
         ),
         "label": (
             "AI-stödd tolkning"
@@ -354,23 +363,23 @@ from .language import (
 
     text = transform_function(
         text,
-        "create_empty_motivation_interpretation",
+        "create_empty_cognitive_interpretation",
         empty_result,
     )
 
     def stream(block: str) -> str:
         block = replace_once(
             block,
-            '''def stream_motivation_interpretation(
+            '''def stream_cognitive_interpretation(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
 ) -> Iterable[dict[str, Any]]:
 ''',
-            '''def stream_motivation_interpretation(
+            '''def stream_cognitive_interpretation(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
     language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
 ''',
@@ -380,9 +389,9 @@ from .language import (
             block,
             '''    client = get_openai_client()
 
-    prompt = build_motivation_interpretation_prompt(
+    prompt = build_cognitive_interpretation_prompt(
         invitation=owner,
-        motivation_results=motivation_results,
+        cognitive_results=cognitive_results,
     )
 ''',
             '''    language_code = normalize_ai_language(
@@ -396,9 +405,9 @@ from .language import (
 
     client = get_openai_client()
 
-    prompt = build_motivation_interpretation_prompt(
+    prompt = build_cognitive_interpretation_prompt(
         invitation=owner,
-        motivation_results=motivation_results,
+        cognitive_results=cognitive_results,
         language_code=language_code,
     )
 ''',
@@ -406,11 +415,9 @@ from .language import (
         )
         block = replace_once(
             block,
-            '''                    "invent context, and follow the requested NDJSON "
-                    "streaming format exactly."
+            '''                    "streaming format exactly."
 ''',
-            '''                    "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
+            '''                    "streaming format exactly. "
                     f"{system_language_instruction}"
 ''',
             path=path,
@@ -419,20 +426,20 @@ from .language import (
 
     text = transform_function(
         text,
-        "stream_motivation_interpretation",
+        "stream_cognitive_interpretation",
         stream,
     )
 
     def save(block: str) -> str:
         block = replace_once(
             block,
-            '''def save_motivation_interpretation(
+            '''def save_cognitive_interpretation(
     *,
     owner,
     interpretation: dict[str, Any],
 ):
 ''',
-            '''def save_motivation_interpretation(
+            '''def save_cognitive_interpretation(
     *,
     owner,
     interpretation: dict[str, Any],
@@ -452,7 +459,7 @@ from .language import (
 
     set_ai_content_language(
         owner,
-        "motivation_interpretation",
+        "cognitive_interpretation",
         language_code,
     )
 
@@ -463,17 +470,17 @@ from .language import (
         block = replace_once(
             block,
             '''    owner.save(update_fields=[
-        "ai_motivation_interpretation",
-        "ai_motivation_interpretation_status",
-        "ai_motivation_interpretation_generated_at",
-        "ai_motivation_interpretation_purpose",
+        "ai_cognitive_interpretation",
+        "ai_cognitive_interpretation_status",
+        "ai_cognitive_interpretation_generated_at",
+        "ai_cognitive_interpretation_purpose",
     ])
 ''',
             '''    owner.save(update_fields=[
-        "ai_motivation_interpretation",
-        "ai_motivation_interpretation_status",
-        "ai_motivation_interpretation_generated_at",
-        "ai_motivation_interpretation_purpose",
+        "ai_cognitive_interpretation",
+        "ai_cognitive_interpretation_status",
+        "ai_cognitive_interpretation_generated_at",
+        "ai_cognitive_interpretation_purpose",
     ])
 
     language_update_fields = (
@@ -492,13 +499,13 @@ from .language import (
 
     return transform_function(
         text,
-        "save_motivation_interpretation",
+        "save_cognitive_interpretation",
         save,
     )
 
 
 def transform_questions(text: str) -> str:
-    path = "apps/core/ai/motivation_questions.py"
+    path = "apps/core/ai/cognitive_questions.py"
 
     if MARKER in text:
         raise RuntimeError(
@@ -508,13 +515,13 @@ def transform_questions(text: str) -> str:
     text = replace_once(
         text,
         '''from .openai_client import (
-    get_chat_model,
     get_openai_client,
+    get_chat_model,
 )
 ''',
         '''from .openai_client import (
-    get_chat_model,
     get_openai_client,
+    get_chat_model,
 )
 from .language import (
     get_ai_language_instruction,
@@ -524,7 +531,7 @@ from .language import (
     set_ai_content_language,
 )
 
-# Talena motivation AI language batch 1
+# Talena cognitive AI language batch 1
 ''',
         path=path,
     )
@@ -532,16 +539,16 @@ from .language import (
     def prompt(block: str) -> str:
         block = replace_once(
             block,
-            '''def build_motivation_questions_prompt(
+            '''def build_cognitive_questions_prompt(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
 ) -> str:
 ''',
-            '''def build_motivation_questions_prompt(
+            '''def build_cognitive_questions_prompt(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
     language_code: str = "en",
 ) -> str:
 ''',
@@ -568,15 +575,15 @@ from .language import (
         )
         block = replace_once(
             block,
-            '''OUTPUT FORMAT
-Return exactly one JSON object.
+            '''STREAMING OUTPUT FORMAT
+Return newline-delimited JSON, also called NDJSON.
 ''',
             '''LANGUAGE
 {language_instruction}
 Translate every user-facing JSON string, including title and label.
 
-OUTPUT FORMAT
-Return exactly one JSON object.
+STREAMING OUTPUT FORMAT
+Return newline-delimited JSON, also called NDJSON.
 ''',
             path=path,
         )
@@ -584,18 +591,18 @@ Return exactly one JSON object.
 
     text = transform_function(
         text,
-        "build_motivation_questions_prompt",
+        "build_cognitive_questions_prompt",
         prompt,
     )
 
     def empty_result(block: str) -> str:
         block = replace_once(
             block,
-            '''def create_empty_motivation_questions(
+            '''def create_empty_cognitive_questions(
     owner,
 ) -> dict[str, Any]:
 ''',
-            '''def create_empty_motivation_questions(
+            '''def create_empty_cognitive_questions(
     owner,
     *,
     language_code: str = "en",
@@ -606,7 +613,7 @@ Return exactly one JSON object.
         block = replace_once(
             block,
             '''    return {
-        "title": "Motivation questions",
+        "title": "Cognitive questions",
         "label": "AI-supported questions",
 ''',
             '''    language_code = normalize_ai_language(
@@ -615,9 +622,9 @@ Return exactly one JSON object.
 
     return {
         "title": (
-            "Motivationsfrågor"
+            "Kognitiva frågor"
             if language_code == "sv"
-            else "Motivation questions"
+            else "Cognitive questions"
         ),
         "label": (
             "AI-stödda frågor"
@@ -631,23 +638,23 @@ Return exactly one JSON object.
 
     text = transform_function(
         text,
-        "create_empty_motivation_questions",
+        "create_empty_cognitive_questions",
         empty_result,
     )
 
     def stream(block: str) -> str:
         block = replace_once(
             block,
-            '''def stream_motivation_questions(
+            '''def stream_cognitive_questions(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
 ) -> Iterable[dict[str, Any]]:
 ''',
-            '''def stream_motivation_questions(
+            '''def stream_cognitive_questions(
     *,
     owner,
-    motivation_results: list[dict[str, Any]],
+    cognitive_results: list[dict[str, Any]],
     language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
 ''',
@@ -657,9 +664,9 @@ Return exactly one JSON object.
             block,
             '''    client = get_openai_client()
 
-    prompt = build_motivation_questions_prompt(
+    prompt = build_cognitive_questions_prompt(
         owner=owner,
-        motivation_results=motivation_results,
+        cognitive_results=cognitive_results,
     )
 ''',
             '''    language_code = normalize_ai_language(
@@ -673,9 +680,9 @@ Return exactly one JSON object.
 
     client = get_openai_client()
 
-    prompt = build_motivation_questions_prompt(
+    prompt = build_cognitive_questions_prompt(
         owner=owner,
-        motivation_results=motivation_results,
+        cognitive_results=cognitive_results,
         language_code=language_code,
     )
 ''',
@@ -683,10 +690,36 @@ Return exactly one JSON object.
         )
         block = replace_once(
             block,
-            '''        "facts, never invent context and return valid JSON."
+            '''        "JSON output format exactly."
 ''',
-            '''        "facts, never invent context and return valid JSON. "
+            '''        "JSON output format exactly. "
         f"{system_language_instruction}"
+''',
+            path=path,
+        )
+        block = replace_once(
+            block,
+            '''    if meta_event is None:
+        meta_event = {
+            "type": "meta",
+            "title": "Cognitive questions",
+            "label": "AI-supported questions",
+        }
+''',
+            '''    if meta_event is None:
+        meta_event = {
+            "type": "meta",
+            "title": (
+                "Kognitiva frågor"
+                if language_code == "sv"
+                else "Cognitive questions"
+            ),
+            "label": (
+                "AI-stödda frågor"
+                if language_code == "sv"
+                else "AI-supported questions"
+            ),
+        }
 ''',
             path=path,
         )
@@ -694,20 +727,20 @@ Return exactly one JSON object.
 
     text = transform_function(
         text,
-        "stream_motivation_questions",
+        "stream_cognitive_questions",
         stream,
     )
 
     def save(block: str) -> str:
         block = replace_once(
             block,
-            '''def save_motivation_questions(
+            '''def save_cognitive_questions(
     *,
     owner,
     result: dict[str, Any],
 ):
 ''',
-            '''def save_motivation_questions(
+            '''def save_cognitive_questions(
     *,
     owner,
     result: dict[str, Any],
@@ -727,7 +760,7 @@ Return exactly one JSON object.
 
     set_ai_content_language(
         owner,
-        "motivation_questions",
+        "cognitive_questions",
         language_code,
     )
 
@@ -739,19 +772,19 @@ Return exactly one JSON object.
             block,
             '''    owner.save(
         update_fields=[
-            "ai_motivation_questions",
-            "ai_motivation_questions_status",
-            "ai_motivation_questions_generated_at",
-            "ai_motivation_questions_purpose",
+            "ai_cognitive_questions",
+            "ai_cognitive_questions_status",
+            "ai_cognitive_questions_generated_at",
+            "ai_cognitive_questions_purpose",
         ]
     )
 ''',
             '''    owner.save(
         update_fields=[
-            "ai_motivation_questions",
-            "ai_motivation_questions_status",
-            "ai_motivation_questions_generated_at",
-            "ai_motivation_questions_purpose",
+            "ai_cognitive_questions",
+            "ai_cognitive_questions_status",
+            "ai_cognitive_questions_generated_at",
+            "ai_cognitive_questions_purpose",
         ]
     )
 
@@ -771,7 +804,7 @@ Return exactly one JSON object.
 
     return transform_function(
         text,
-        "save_motivation_questions",
+        "save_cognitive_questions",
         save,
     )
 
@@ -792,6 +825,7 @@ def ensure_views_language_import(text: str) -> str:
         for line in match.group(1).splitlines()
         if line.strip()
     ]
+
     for required in (
         "ai_content_language_matches",
         "get_request_ai_language",
@@ -808,6 +842,7 @@ def ensure_views_language_import(text: str) -> str:
         )
         + ")"
     )
+
     return (
         text[:match.start()]
         + replacement
@@ -828,50 +863,57 @@ def transform_views(text: str) -> str:
     )
 
     marker_anchor = (
-        "from apps.core.ai.motivation_interpretation import ("
+        "from apps.core.ai.cognitive_interpretation import ("
     )
     if marker_anchor not in text:
         raise RuntimeError(
-            f"{path}: motivation import block was not found."
+            f"{path}: cognitive import block was not found."
         )
+
     text = text.replace(
         marker_anchor,
-        "# Talena motivation AI language batch 1\n"
+        "# Talena cognitive AI language batch 1\n"
         + marker_anchor,
         1,
     )
 
     def candidate_detail(block: str) -> str:
-        if 'content_key="motivation_interpretation"' in block:
+        if 'content_key="cognitive_interpretation"' in block:
             raise RuntimeError(
-                f"{path}: Motivation language checks already exist."
+                f"{path}: Cognitive language checks already exist."
             )
 
         anchor = '''        mark_ai_content_outdated_if_language_changed(
+            invitation,
+            content_key="motivation_interpretation",
+'''
+        if anchor not in block:
+            anchor = '''        mark_ai_content_outdated_if_language_changed(
             invitation,
             content_key="personality_interpretation",
 '''
         if anchor not in block:
             raise RuntimeError(
-                f"{path}: Personality language anchor was not found "
+                f"{path}: no existing AI language anchor was found "
                 "in process_candidate_detail."
             )
 
         addition = '''        mark_ai_content_outdated_if_language_changed(
             invitation,
-            content_key="motivation_interpretation",
-            result_field="ai_motivation_interpretation",
-            status_field="ai_motivation_interpretation_status",
+            content_key="cognitive_interpretation",
+            result_field="ai_cognitive_interpretation",
+            status_field="ai_cognitive_interpretation_status",
             language_code=language_code,
         )
         mark_ai_content_outdated_if_language_changed(
             invitation,
-            content_key="motivation_questions",
-            result_field="ai_motivation_questions",
-            status_field="ai_motivation_questions_status",
+            content_key="cognitive_questions",
+            result_field="ai_cognitive_questions",
+            status_field="ai_cognitive_questions_status",
             language_code=language_code,
         )
 '''
+
         return block.replace(
             anchor,
             addition + anchor,
@@ -885,7 +927,7 @@ def transform_views(text: str) -> str:
     )
 
     def interpretation_stream(block: str) -> str:
-        anchor = '''    motivation_results = extract_motivation_results(
+        anchor = '''    cognitive_results = extract_cognitive_results(
         invitation
     )
 '''
@@ -897,9 +939,9 @@ def transform_views(text: str) -> str:
     )
     mark_ai_content_outdated_if_language_changed(
         invitation,
-        content_key="motivation_interpretation",
-        result_field="ai_motivation_interpretation",
-        status_field="ai_motivation_interpretation_status",
+        content_key="cognitive_interpretation",
+        result_field="ai_cognitive_interpretation",
+        status_field="ai_cognitive_interpretation_status",
         language_code=language_code,
     )
 
@@ -916,7 +958,7 @@ def transform_views(text: str) -> str:
             '''    if (
         ai_content_language_matches(
             invitation,
-            "motivation_interpretation",
+            "cognitive_interpretation",
             language_code,
         )
         and should_return_saved_ai_result(
@@ -929,11 +971,11 @@ def transform_views(text: str) -> str:
         )
         block = replace_once(
             block,
-            '''            create_empty_motivation_interpretation(
+            '''            create_empty_cognitive_interpretation(
                 invitation
             )
 ''',
-            '''            create_empty_motivation_interpretation(
+            '''            create_empty_cognitive_interpretation(
                 invitation,
                 language_code=language_code,
             )
@@ -942,10 +984,10 @@ def transform_views(text: str) -> str:
         )
         block = replace_once(
             block,
-            '''                motivation_results=motivation_results,
+            '''                cognitive_results=cognitive_results,
             ):
 ''',
-            '''                motivation_results=motivation_results,
+            '''                cognitive_results=cognitive_results,
                 language_code=language_code,
             ):
 ''',
@@ -966,12 +1008,12 @@ def transform_views(text: str) -> str:
 
     text = transform_function(
         text,
-        "process_candidate_motivation_interpretation_stream",
+        "process_candidate_cognitive_interpretation_stream",
         interpretation_stream,
     )
 
     def questions_stream(block: str) -> str:
-        anchor = '''    motivation_results = extract_motivation_results(
+        anchor = '''    cognitive_results = extract_cognitive_results(
         invitation
     )
 '''
@@ -983,9 +1025,9 @@ def transform_views(text: str) -> str:
     )
     mark_ai_content_outdated_if_language_changed(
         invitation,
-        content_key="motivation_questions",
-        result_field="ai_motivation_questions",
-        status_field="ai_motivation_questions_status",
+        content_key="cognitive_questions",
+        result_field="ai_cognitive_questions",
+        status_field="ai_cognitive_questions_status",
         language_code=language_code,
     )
 
@@ -1002,7 +1044,7 @@ def transform_views(text: str) -> str:
             '''    if (
         ai_content_language_matches(
             invitation,
-            "motivation_questions",
+            "cognitive_questions",
             language_code,
         )
         and should_return_saved_ai_result(
@@ -1015,11 +1057,11 @@ def transform_views(text: str) -> str:
         )
         block = replace_once(
             block,
-            '''        result = create_empty_motivation_questions(
+            '''        result = create_empty_cognitive_questions(
             invitation
         )
 ''',
-            '''        result = create_empty_motivation_questions(
+            '''        result = create_empty_cognitive_questions(
             invitation,
             language_code=language_code,
         )
@@ -1028,10 +1070,10 @@ def transform_views(text: str) -> str:
         )
         block = replace_once(
             block,
-            '''                motivation_results=motivation_results,
+            '''                cognitive_results=cognitive_results,
             ):
 ''',
-            '''                motivation_results=motivation_results,
+            '''                cognitive_results=cognitive_results,
                 language_code=language_code,
             ):
 ''',
@@ -1052,7 +1094,7 @@ def transform_views(text: str) -> str:
 
     return transform_function(
         text,
-        "process_candidate_motivation_questions_stream",
+        "process_candidate_cognitive_questions_stream",
         questions_stream,
     )
 
@@ -1061,10 +1103,10 @@ def prepare_changes(root: Path) -> list[Change]:
     paths = {
         "language": root / "apps/core/ai/language.py",
         "interpretation": (
-            root / "apps/core/ai/motivation_interpretation.py"
+            root / "apps/core/ai/cognitive_interpretation.py"
         ),
         "questions": (
-            root / "apps/core/ai/motivation_questions.py"
+            root / "apps/core/ai/cognitive_questions.py"
         ),
         "views": root / "apps/processes/views.py",
     }
@@ -1079,6 +1121,7 @@ def prepare_changes(root: Path) -> list[Change]:
         key: path.read_text(encoding="utf-8")
         for key, path in paths.items()
     }
+
     updated = {
         "language": ensure_result_map_entries(
             originals["language"]
@@ -1121,11 +1164,11 @@ def apply_changes(changes: list[Change]) -> None:
     for change in changes:
         backup = change.path.with_suffix(
             change.path.suffix
-            + ".bak-motivation-ai-language"
+            + ".bak-cognitive-ai-language"
         )
         temporary = change.path.with_suffix(
             change.path.suffix
-            + ".tmp-motivation-ai-language"
+            + ".tmp-cognitive-ai-language"
         )
 
         if not backup.exists():
@@ -1207,7 +1250,7 @@ def main() -> int:
 
     if args.check:
         print(
-            "\nSuccess: Motivation Interpretation and Questions "
+            "\nSuccess: Cognitive Interpretation and Questions "
             "language support validated."
         )
         print(
@@ -1231,11 +1274,14 @@ def main() -> int:
         return 1
 
     print(
-        "\nSuccess: Motivation AI language support was applied."
+        "\nSuccess: Cognitive AI language support was applied."
     )
     print(
-        "Backups end with .bak-motivation-ai-language"
+        "Backups end with .bak-cognitive-ai-language"
     )
+    print("\nNext commands:")
+    print("python manage.py check")
+    print("git diff --check")
     return 0
 
 

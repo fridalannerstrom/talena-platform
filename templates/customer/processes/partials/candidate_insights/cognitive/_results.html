@@ -1,156 +1,159 @@
+{% load i18n %}
 
 <!-- COGNITIVE ASSESSMENT RESULTS -->
 {% if candidate_insights.cognitive_results %}
   <section class="purpose-fit-card">
 
-      <!-- RESULTS -->
-<div class="cognitive-results-grid mt-4">
+    <div class="cognitive-results-grid mt-4">
 
-  {% for result in candidate_insights.cognitive_results %}
+      {% for result in candidate_insights.cognitive_results %}
 
-    {% if result.completed %}
+        {% if result.completed %}
 
-      <!-- COMPLETED TEST -->
-      <article class="cognitive-result-card">
+          <!-- COMPLETED TEST -->
+          <article class="cognitive-result-card">
 
-        <div class="cognitive-result-card__header">
-          <div>
-            <h3 class="cognitive-result-card__title">
-              {{ result.title }}
-            </h3>
+            <div class="cognitive-result-card__header">
+              <div>
+                <h3 class="cognitive-result-card__title">
+                  {{ result.title }}
+                </h3>
 
-            <div class="cognitive-result-card__subtitle">
-              Cognitive assessment
+                <div class="cognitive-result-card__subtitle">
+                  {% trans "Cognitive assessment" %}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="cognitive-chart-wrapper">
+            <div class="cognitive-chart-wrapper">
 
-          <div
-            class="cognitive-doughnut"
-            style="--percentile: {{ result.percentile }};"
-            role="img"
-            aria-label="{{ result.title }} percentile {{ result.percentile }}"
+              <div
+                class="cognitive-doughnut"
+                style="--percentile: {{ result.percentile }};"
+                role="img"
+                aria-label="{{ result.percentile_aria_label }}"
+              >
+                <div class="cognitive-doughnut__inner">
+                  <div class="cognitive-doughnut__value">
+                    {{ result.percentile }}
+                  </div>
+
+                  <div class="cognitive-doughnut__label">
+                    {% trans "Percentile" %}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="cognitive-result-card__content">
+
+              {% if result.interpretation %}
+                <p class="cognitive-result-card__interpretation">
+                  {{ result.interpretation }}
+                </p>
+              {% endif %}
+
+            </div>
+
+            <div class="cognitive-comparison">
+
+              <div class="cognitive-comparison__label">
+                {% trans "Compared with the reference group" %}
+              </div>
+
+              <div class="cognitive-comparison__bar">
+                <div
+                  class="cognitive-comparison__fill"
+                  style="width: {{ result.percentile }}%;"
+                ></div>
+              </div>
+
+              <div class="cognitive-comparison__labels">
+                <span>{% trans "Lower" %}</span>
+                <span>{% trans "Typical range" %}</span>
+                <span>{% trans "Higher" %}</span>
+              </div>
+
+            </div>
+
+          </article>
+
+        {% else %}
+
+          <!-- NOT COMPLETED -->
+          <article
+            class="cognitive-result-card cognitive-result-card--missing"
           >
-            <div class="cognitive-doughnut__inner">
-              <div class="cognitive-doughnut__value">
-                {{ result.percentile }}
-              </div>
 
-              <div class="cognitive-doughnut__label">
-                Percentile
+            <div class="cognitive-result-card__header">
+              <div>
+                <h3 class="cognitive-result-card__title">
+                  {{ result.title }}
+                </h3>
+
+                <div class="cognitive-result-card__subtitle">
+                  {% trans "Cognitive assessment" %}
+                </div>
               </div>
             </div>
-          </div>
 
-        </div>
+            <div class="cognitive-chart-wrapper">
 
-        <div class="cognitive-result-card__content">
+              <div
+                class="cognitive-doughnut cognitive-doughnut--missing"
+                role="img"
+                aria-label="{{ result.missing_aria_label }}"
+              >
+                <div class="cognitive-doughnut__inner">
 
-          {% if result.interpretation %}
-            <p class="cognitive-result-card__interpretation">
-              {{ result.interpretation }}
-            </p>
-          {% endif %}
+                  <div class="cognitive-doughnut__missing-icon">
+                    —
+                  </div>
 
-        </div>
+                  <div class="cognitive-doughnut__label">
+                    {% trans "No result" %}
+                  </div>
 
-        <div class="cognitive-comparison">
-
-          <div class="cognitive-comparison__label">
-            Compared with the reference group
-          </div>
-
-          <div class="cognitive-comparison__bar">
-            <div
-              class="cognitive-comparison__fill"
-              style="width: {{ result.percentile }}%;"
-            ></div>
-          </div>
-
-          <div class="cognitive-comparison__labels">
-            <span>Lower</span>
-            <span>Typical</span>
-            <span>Higher</span>
-          </div>
-
-        </div>
-
-      </article>
-
-    {% else %}
-
-      <!-- NOT COMPLETED -->
-      <article class="cognitive-result-card cognitive-result-card--missing">
-
-        <div class="cognitive-result-card__header">
-          <div>
-            <h3 class="cognitive-result-card__title">
-              {{ result.title }}
-            </h3>
-
-            <div class="cognitive-result-card__subtitle">
-              Cognitive assessment
-            </div>
-          </div>
-
-
-        </div>
-
-        <div class="cognitive-chart-wrapper">
-
-          <div
-            class="cognitive-doughnut cognitive-doughnut--missing"
-            role="img"
-            aria-label="{{ result.title }} assessment not completed"
-          >
-            <div class="cognitive-doughnut__inner">
-
-              <div class="cognitive-doughnut__missing-icon">
-                —
-              </div>
-
-              <div class="cognitive-doughnut__label">
-                No result
+                </div>
               </div>
 
             </div>
-          </div>
 
-        </div>
+            <div class="cognitive-result-card__content">
 
-        <div class="cognitive-result-card__content">
+              {% if result.measure_label %}
+                <div class="cognitive-result-card__measure">
+                  {{ result.measure_label }}
+                </div>
+              {% endif %}
 
-          {% if result.measure_label %}
-            <div class="cognitive-result-card__measure">
-              {{ result.measure_label }}
+              {% if result.interpretation %}
+                <p class="cognitive-result-card__interpretation">
+                  {{ result.interpretation }}
+                </p>
+              {% endif %}
+
             </div>
-          {% endif %}
 
-          <p class="cognitive-result-card__interpretation">
-            This candidate has not completed this assessment.
-          </p>
+            <div class="cognitive-missing-note">
+              {% trans "No percentile result is available." %}
+            </div>
 
-        </div>
+          </article>
 
-        <div class="cognitive-missing-note">
-          No percentile result is available.
-        </div>
+        {% endif %}
 
-      </article>
+      {% endfor %}
 
-    {% endif %}
+    </div>
 
-  {% endfor %}
-
-</div>
-
-      <!-- FOOTER -->
-      <div class="small text-muted border-top pt-3 mt-4">
+    <div class="small text-muted border-top pt-3 mt-4">
+      {% blocktrans trimmed %}
         Percentiles describe relative performance compared with a reference
         group. They are not percentages of questions answered correctly.
-      </div>
+      {% endblocktrans %}
+    </div>
 
   </section>
 {% endif %}

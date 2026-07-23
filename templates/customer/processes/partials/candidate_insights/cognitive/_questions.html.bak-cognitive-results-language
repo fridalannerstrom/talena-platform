@@ -1,15 +1,13 @@
-{% load i18n %}
-{# Talena motivation Results language batch 1 #}
 <div
   class="personality-question-list"
-  data-motivation-questions-list
+  data-cognitive-questions-list
 >
 
-  {% for item in motivation_questions.questions %}
+  {% for item in cognitive_questions.questions %}
 
     <article
       class="purpose-fit-section"
-      data-motivation-question-card
+      data-cognitive-question-card
     >
 
       <div class="personality-question-card__header">
@@ -50,7 +48,7 @@
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  {% trans "Why this matters" %}
+                  Why this matters
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -80,7 +78,7 @@
               <div>
 
                 <div class="personality-question-card__detail-title">
-                  {% trans "What to look for in the answer" %}
+                  What to look for in the answer
                 </div>
 
                 <div class="personality-question-card__detail-text">
@@ -104,13 +102,16 @@
 </div>
 
 
-
 <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
 
   <i data-feather="info"></i>
 
   <div>
-    {% blocktrans %}Motivation results indicate possible sources of energy and preference. Use these questions to gather concrete examples and the candidate’s own perspective rather than treating assessment indications as confirmed facts.{% endblocktrans %}
+    Use these questions to gather concrete examples of how the
+    candidate works with information and approaches problems.
+    Cognitive assessment results provide supporting evidence and
+    should not replace information from relevant experience,
+    structured interviews or other assessment methods.
   </div>
 
 </div>

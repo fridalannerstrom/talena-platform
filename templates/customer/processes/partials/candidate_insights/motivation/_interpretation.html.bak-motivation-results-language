@@ -1,10 +1,8 @@
-{% load i18n %}
-{# Talena motivation Results language batch 1 #}
 <!-- OVERALL INTERPRETATION -->
 <section class="mt-4 purpose-fit-section">
 
   <h3 class="motivation-ai-section__title">
-    {% trans "Overall motivation interpretation" %}
+    Overall motivation interpretation
   </h3>
 
   <div
@@ -40,7 +38,7 @@
     <div>
 
       <h3 class="mb-2 purpose-fit-section-title">
-        {% trans "Realistic expectation setting" %}
+        Realistic expectation setting
       </h3>
 
       <div
@@ -72,7 +70,7 @@
     >
 
       <div class="purpose-fit-section-title">
-        {% trans "Conditions likely to support engagement" %}
+        Conditions likely to support engagement
       </div>
 
       <ul
@@ -113,7 +111,7 @@
     >
 
       <div class="purpose-fit-section-title">
-        {% trans "What to explore or clarify" %}
+        What to explore or clarify
       </div>
 
       <ul
@@ -145,7 +143,7 @@
 <div class="motivation-ai-context-note mt-4">
 
   <div class="motivation-ai-context-note__title">
-    {% trans "How Talena created this interpretation" %}
+    How Talena created this interpretation
   </div>
 
   <div data-motivation-ai-context-note>
@@ -161,7 +159,9 @@
   <i data-feather="info"></i>
 
   <div>
-    {% blocktrans %}Motivation results describe possible sources of energy, engagement and preference. Less central factors are not weaknesses and do not indicate limited capability or poor values.{% endblocktrans %}
+    Motivation results describe possible sources of energy,
+    engagement and preference. Less central factors are not
+    weaknesses and do not indicate limited capability or poor values.
   </div>
 
 </div>

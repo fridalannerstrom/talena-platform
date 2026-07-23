@@ -9,15 +9,6 @@ from .openai_client import (
     get_openai_client,
     get_chat_model,
 )
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-# Talena cognitive AI language batch 1
 
 from .shared_context import (
     build_shared_ai_context,
@@ -33,7 +24,6 @@ def build_cognitive_questions_prompt(
     *,
     owner,
     cognitive_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> str:
     """
     Build a prompt for practical, purpose-aware cognitive
@@ -42,13 +32,6 @@ def build_cognitive_questions_prompt(
     This module generates questions only. It does not generate
     or update the cognitive interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
 
     shared_context = build_shared_ai_context(
         owner
@@ -197,10 +180,6 @@ Briefly explain:
 - whether additional process context was available
 - that the questions are intended to gather supporting evidence
 
-LANGUAGE
-{language_instruction}
-Translate every user-facing JSON string, including title and label.
-
 STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
@@ -231,29 +210,15 @@ Return events in this exact order:
 
 def create_empty_cognitive_questions(
     owner,
-    *,
-    language_code: str = "en",
 ) -> dict[str, Any]:
     """
     Return the initial structure used while cognitive
     questions are being streamed.
     """
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-
     return {
-        "title": (
-            "Kognitiva frågor"
-            if language_code == "sv"
-            else "Cognitive questions"
-        ),
-        "label": (
-            "AI-stödda frågor"
-            if language_code == "sv"
-            else "AI-supported questions"
-        ),
+        "title": "Cognitive questions",
+        "label": "AI-supported questions",
         "questions": [],
         "context_note": "",
     }
@@ -626,7 +591,6 @@ def stream_cognitive_questions(
     *,
     owner,
     cognitive_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Generate cognitive questions and repair a missing or
@@ -638,21 +602,11 @@ def stream_cognitive_questions(
             "No cognitive assessment results are available."
         )
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
-            language_code
-        )
-    )
-
     client = get_openai_client()
 
     prompt = build_cognitive_questions_prompt(
         owner=owner,
         cognitive_results=cognitive_results,
-        language_code=language_code,
     )
 
     system_message = (
@@ -660,8 +614,7 @@ def stream_cognitive_questions(
         "assessment consultant. Treat assessment results "
         "as indicators rather than facts. Do not invent "
         "candidate or process context. Follow the requested "
-        "JSON output format exactly. "
-        f"{system_language_instruction}"
+        "JSON output format exactly."
     )
 
     stream = client.chat.completions.create(
@@ -904,16 +857,8 @@ ORIGINAL REQUEST
     if meta_event is None:
         meta_event = {
             "type": "meta",
-            "title": (
-                "Kognitiva frågor"
-                if language_code == "sv"
-                else "Cognitive questions"
-            ),
-            "label": (
-                "AI-stödda frågor"
-                if language_code == "sv"
-                else "AI-supported questions"
-            ),
+            "title": "Cognitive questions",
+            "label": "AI-supported questions",
         }
 
     yield meta_event
@@ -934,23 +879,11 @@ def save_cognitive_questions(
     *,
     owner,
     result: dict[str, Any],
-    language_code: str = "en",
 ):
     """
     Save completed cognitive questions independently from
     the cognitive interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    result["_language"] = language_code
-
-    set_ai_content_language(
-        owner,
-        "cognitive_questions",
-        language_code,
-    )
 
     questions = (
         _normalise_cognitive_questions(
@@ -995,13 +928,3 @@ def save_cognitive_questions(
             "ai_cognitive_questions_purpose",
         ]
     )
-
-    language_update_fields = (
-        get_ai_language_update_fields(
-            owner
-        )
-    )
-    if language_update_fields:
-        owner.save(
-            update_fields=language_update_fields
-        )

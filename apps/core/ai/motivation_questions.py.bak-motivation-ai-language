@@ -12,15 +12,6 @@ from .openai_client import (
     get_chat_model,
     get_openai_client,
 )
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-# Talena motivation AI language batch 1
 from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
@@ -31,18 +22,10 @@ def build_motivation_questions_prompt(
     *,
     owner,
     motivation_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> str:
     """
     Build a purpose-aware prompt for motivation questions only.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
 
     shared_context = build_shared_ai_context(
         owner
@@ -159,10 +142,6 @@ Also return a short context_note explaining:
 - whether additional process context was available
 - that the questions gather supporting evidence
 
-LANGUAGE
-{language_instruction}
-Translate every user-facing JSON string, including title and label.
-
 OUTPUT FORMAT
 Return exactly one JSON object.
 
@@ -199,28 +178,14 @@ Use this exact structure:
 
 def create_empty_motivation_questions(
     owner,
-    *,
-    language_code: str = "en",
 ) -> dict[str, Any]:
     """
     Return the initial motivation questions structure.
     """
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-
     return {
-        "title": (
-            "Motivationsfrågor"
-            if language_code == "sv"
-            else "Motivation questions"
-        ),
-        "label": (
-            "AI-stödda frågor"
-            if language_code == "sv"
-            else "AI-supported questions"
-        ),
+        "title": "Motivation questions",
+        "label": "AI-supported questions",
         "questions": [],
         "context_note": "",
     }
@@ -471,7 +436,6 @@ def stream_motivation_questions(
     *,
     owner,
     motivation_results: list[dict[str, Any]],
-    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Generate motivation questions independently from
@@ -483,28 +447,17 @@ def stream_motivation_questions(
             "No motivation assessment results are available."
         )
 
-    language_code = normalize_ai_language(
-        language_code
-    )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
-            language_code
-        )
-    )
-
     client = get_openai_client()
 
     prompt = build_motivation_questions_prompt(
         owner=owner,
         motivation_results=motivation_results,
-        language_code=language_code,
     )
 
     system_message = (
         "You are a careful workplace motivation assessment "
         "consultant. Treat results as indicators rather than "
-        "facts, never invent context and return valid JSON. "
-        f"{system_language_instruction}"
+        "facts, never invent context and return valid JSON."
     )
 
     stream = client.chat.completions.create(
@@ -614,23 +567,11 @@ def save_motivation_questions(
     *,
     owner,
     result: dict[str, Any],
-    language_code: str = "en",
 ):
     """
     Save motivation questions independently from
     the motivation interpretation.
     """
-
-    language_code = normalize_ai_language(
-        language_code
-    )
-    result["_language"] = language_code
-
-    set_ai_content_language(
-        owner,
-        "motivation_questions",
-        language_code,
-    )
 
     questions = (
         _normalise_questions(
@@ -677,13 +618,3 @@ def save_motivation_questions(
             "ai_motivation_questions_purpose",
         ]
     )
-
-    language_update_fields = (
-        get_ai_language_update_fields(
-            owner
-        )
-    )
-    if language_update_fields:
-        owner.save(
-            update_fields=language_update_fields
-        )
