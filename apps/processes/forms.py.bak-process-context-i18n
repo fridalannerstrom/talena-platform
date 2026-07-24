@@ -158,7 +158,6 @@ class TestProcessWizardCreateForm(forms.Form):
         ),
     )
 
-# Talena process context i18n batch 1
 class ProcessRoleContextForm(forms.ModelForm):
     class Meta:
         model = ProcessRoleContext
@@ -170,7 +169,7 @@ class ProcessRoleContextForm(forms.ModelForm):
             "context_text": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 18,
-                "placeholder": _(
+                "placeholder": (
                     "Describe the role, situation or development context.\n\n"
                     "You can include:\n"
                     "• responsibilities and expectations\n"
@@ -194,12 +193,12 @@ class ProcessRoleContextForm(forms.ModelForm):
 
         self.fields["context_text"].label = (
             config.get("context_field_label")
-            or _("Process context")
+            or "Process context"
         )
 
         self.fields["context_text"].help_text = (
             config.get("context_field_help")
-            or _(
+            or (
                 "Add the information that would help Talena interpret "
                 "the assessment results in relation to this process."
             )

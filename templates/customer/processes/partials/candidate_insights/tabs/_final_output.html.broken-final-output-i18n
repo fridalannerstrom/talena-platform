@@ -338,7 +338,7 @@
           </div>
 
           <div class="post-evidence-column__description">
-            {% blocktrans %}Assessment indications that may be particularly relevant to the purpose and context of this process.{% endblocktrans %}
+            {% blocktrans %}{% trans "Assessment indication" %}s that may be particularly relevant to the purpose and context of this process.{% endblocktrans %}
           </div>
 
         </div>
@@ -425,7 +425,7 @@
           </div>
 
           <div class="post-evidence-column__description">
-            {% blocktrans %}Assessment indications that require validation, context or additional behavioural evidence.{% endblocktrans %}
+            {% blocktrans %}{% trans "Assessment indication" %}s that require validation, context or additional behavioural evidence.{% endblocktrans %}
           </div>
 
         </div>
@@ -1217,7 +1217,7 @@
           </div>
 
           <div class="post-evidence-column__description">
-            {% blocktrans %}Interview evidence that supports patterns identified in the assessment results.{% endblocktrans %}
+            {% blocktrans %}{% trans "Interview evidence" %} that supports patterns identified in the assessment results.{% endblocktrans %}
           </div>
 
         </div>
@@ -1504,7 +1504,7 @@
                     <div class="post-evidence-interpretation__text mb-2">
 
                       <strong>
-                        {% trans "Interview evidence:" %}
+                        {% trans "{% trans "Interview evidence" %}:" %}
                       </strong>
 
                       {{ item.interview_evidence }}

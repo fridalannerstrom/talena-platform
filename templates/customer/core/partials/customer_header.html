@@ -120,82 +120,132 @@
         </li>
         {% endcomment %}
                 <!-- Language switcher -->
-        <li class="nav-item me-2">
-          <div
-            class="talena-language-switcher"
-            role="group"
-            aria-label="{% trans 'Choose language' %}"
-          >
+      <!-- Language switcher -->
+<li class="nav-item dropdown no-caret me-2">
 
-            <form
-              action="{% url 'set_language' %}"
-              method="post"
-              class="m-0"
-            >
-              {% csrf_token %}
+  <form
+    action="{% url 'set_language' %}"
+    method="post"
+    class="talena-language-dropdown m-0"
+  >
+    {% csrf_token %}
 
-              <input
-                type="hidden"
-                name="next"
-                value="{{ request.get_full_path }}"
-              >
+    <input
+      type="hidden"
+      name="next"
+      value="{{ request.get_full_path }}"
+    >
 
-              <input
-                type="hidden"
-                name="language"
-                value="sv"
-              >
+    <button
+      type="button"
+      class="talena-language-trigger"
+      id="talenaLanguageDropdown"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      aria-label="{% trans 'Choose language' %}"
+    >
+      <span class="talena-language-globe" aria-hidden="true">
+        <i data-feather="globe"></i>
+      </span>
 
-              <button
-                type="submit"
-                class="
-                  talena-language-button
-                  {% if CURRENT_LANGUAGE == 'sv' %}is-active{% endif %}
-                "
-                title="Svenska"
-                aria-label="Byt språk till svenska"
-                aria-pressed="{% if CURRENT_LANGUAGE == 'sv' %}true{% else %}false{% endif %}"
-              >
-                <span aria-hidden="true">🇸🇪</span>
-              </button>
-            </form>
+      <span class="talena-language-current-code">
+        {% if CURRENT_LANGUAGE == "sv" %}
+          SV
+        {% else %}
+          EN
+        {% endif %}
+      </span>
 
+      <span class="talena-language-current-label">
+        {% if CURRENT_LANGUAGE == "sv" %}
+          Svenska
+        {% else %}
+          English
+        {% endif %}
+      </span>
 
-            <form
-              action="{% url 'set_language' %}"
-              method="post"
-              class="m-0"
-            >
-              {% csrf_token %}
+      <span class="talena-language-chevron" aria-hidden="true">
+        <i data-feather="chevron-down"></i>
+      </span>
+    </button>
 
-              <input
-                type="hidden"
-                name="next"
-                value="{{ request.get_full_path }}"
-              >
+    <div
+      class="dropdown-menu dropdown-menu-end talena-language-menu"
+      aria-labelledby="talenaLanguageDropdown"
+    >
+      <div class="talena-language-menu-label">
+        {% trans "Choose language" %}
+      </div>
 
-              <input
-                type="hidden"
-                name="language"
-                value="en"
-              >
+      <button
+        type="submit"
+        name="language"
+        value="sv"
+        class="
+          talena-language-option
+          {% if CURRENT_LANGUAGE == 'sv' %}is-active{% endif %}
+        "
+        {% if CURRENT_LANGUAGE == "sv" %}
+          aria-current="true"
+        {% endif %}
+      >
+        <span class="talena-language-option-code">
+          SV
+        </span>
 
-              <button
-                type="submit"
-                class="
-                  talena-language-button
-                  {% if CURRENT_LANGUAGE == 'en' %}is-active{% endif %}
-                "
-                title="English"
-                aria-label="Change language to English"
-                aria-pressed="{% if CURRENT_LANGUAGE == 'en' %}true{% else %}false{% endif %}"
-              >
-                <span aria-hidden="true">🇬🇧</span>
-              </button>
-            </form>
+        <span class="talena-language-option-copy">
+          <span class="talena-language-option-name">
+            Svenska
+          </span>
 
-          </div>
-        </li>
+          <span class="talena-language-option-description">
+            Svenskt gränssnitt
+          </span>
+        </span>
+
+        {% if CURRENT_LANGUAGE == "sv" %}
+          <span class="talena-language-option-check" aria-hidden="true">
+            ✓
+          </span>
+        {% endif %}
+      </button>
+
+      <button
+        type="submit"
+        name="language"
+        value="en"
+        class="
+          talena-language-option
+          {% if CURRENT_LANGUAGE == 'en' %}is-active{% endif %}
+        "
+        {% if CURRENT_LANGUAGE == "en" %}
+          aria-current="true"
+        {% endif %}
+      >
+        <span class="talena-language-option-code">
+          EN
+        </span>
+
+        <span class="talena-language-option-copy">
+          <span class="talena-language-option-name">
+            English
+          </span>
+
+          <span class="talena-language-option-description">
+            English interface
+          </span>
+        </span>
+
+        {% if CURRENT_LANGUAGE == "en" %}
+          <span class="talena-language-option-check" aria-hidden="true">
+            ✓
+          </span>
+        {% endif %}
+      </button>
+    </div>
+  </form>
+
+</li>
 
         <!-- User Dropdown-->
         <li class="nav-item dropdown no-caret dropdown-user me-3 me-lg-4">

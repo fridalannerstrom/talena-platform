@@ -690,12 +690,6 @@ def save_candidate_purpose_fit(
     Save the completed purpose-fit interpretation.
     """
 
-    # Talena AI Overview result language stamp batch 1
-    language_code = normalize_ai_language(
-        language_code
-    )
-    purpose_fit["_language"] = language_code
-
     purpose_fit["summary"] = (
         purpose_fit.get("summary")
         or ""

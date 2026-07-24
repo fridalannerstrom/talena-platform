@@ -1760,7 +1760,6 @@ def _normalise_combined_question(
     }
 
 
-# Talena combined questions i18n batch 1
 def build_combined_candidate_questions(
     invitation,
 ) -> dict:
@@ -1777,8 +1776,8 @@ def build_combined_candidate_questions(
     question_sources = [
         {
             "key": "personality",
-            "title": _("Personality questions"),
-            "description": _(
+            "title": "Personality questions",
+            "description": (
                 "Explore how relevant personality preferences "
                 "appear in practical situations."
             ),
@@ -1793,8 +1792,8 @@ def build_combined_candidate_questions(
         },
         {
             "key": "motivation",
-            "title": _("Motivation questions"),
-            "description": _(
+            "title": "Motivation questions",
+            "description": (
                 "Explore what may create energy, engagement "
                 "and sustainable motivation."
             ),
@@ -1821,8 +1820,8 @@ def build_combined_candidate_questions(
         },
         {
             "key": "cognitive",
-            "title": _("Cognitive questions"),
-            "description": _(
+            "title": "Cognitive questions",
+            "description": (
                 "Explore how the cognitive assessment results "
                 "relate to practical demands and working methods."
             ),

@@ -5,15 +5,6 @@ from typing import Any, Iterable
 
 from django.utils import timezone
 
-# Talena final output pre-interview language batch 1
-from .language import (
-    get_ai_language_instruction,
-    get_ai_language_update_fields,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
 from .openai_client import (
     get_chat_model,
     get_openai_client,
@@ -512,93 +503,9 @@ def build_pre_interview_evidence(
 # ============================================================
 
 
-# Talena final output pre-interview language batch 1
-def _get_pre_interview_language_examples(
-    language_code: str | None,
-) -> dict[str, str]:
-    language_code = normalize_ai_language(
-        language_code
-    )
-
-    if language_code == "sv":
-        return {
-            "title": "Beslutsstöd inför intervjun",
-            "label": "AI-stött förberedande beslutsunderlag",
-            "synthesis_1": "Första delen av den övergripande syntesen. ",
-            "synthesis_2": "Nästa del av den övergripande syntesen. ",
-            "indication_title": "Kort tematisk rubrik",
-            "indication_interpretation": (
-                "Försiktig och praktisk tolkning av temat."
-            ),
-            "caution_title": "Område som kräver försiktig tolkning",
-            "caution_interpretation": (
-                "Detta behöver valideras och sättas i rätt sammanhang."
-            ),
-            "caution_reason": (
-                "Ytterligare beteendeexempel eller kontext saknas."
-            ),
-            "feedback_1": "Första konstruktiva återkopplingspunkten",
-            "feedback_2": "Andra konstruktiva återkopplingspunkten",
-            "focus_1": "Första fokusområdet för intervjun",
-            "focus_2": "Andra fokusområdet för intervjun",
-            "question": "Öppen och icke-ledande valideringsfråga",
-            "why": "Varför frågan hjälper till att nyansera underlaget",
-            "listen_for": (
-                "Vilka konkreta exempel och nyanser som är viktiga att lyssna efter"
-            ),
-            "gap_1": (
-                "Kandidatens exempel och intervjuunderlag har ännu inte lagts till."
-            ),
-            "gap_2": "Ytterligare relevant underlag som fortfarande saknas.",
-            "context_note": (
-                "Kort och transparent förklaring av vilket underlag som användes, "
-                "vad som saknas och att det slutliga beslutet fattas av en människa."
-            ),
-        }
-
-    return {
-        "title": "Pre-interview decision support",
-        "label": "AI-supported decision preparation",
-        "synthesis_1": "First part of the synthesis. ",
-        "synthesis_2": "Next part of the synthesis. ",
-        "indication_title": "Theme title",
-        "indication_interpretation": "Cautious practical interpretation",
-        "caution_title": "Area requiring caution",
-        "caution_interpretation": "What should be interpreted cautiously",
-        "caution_reason": "Why caution is required",
-        "feedback_1": "Feedback point one",
-        "feedback_2": "Feedback point two",
-        "focus_1": "Interview focus one",
-        "focus_2": "Interview focus two",
-        "question": "Open question",
-        "why": "Why this helps",
-        "listen_for": "What evidence or nuance to listen for",
-        "gap_1": (
-            "Candidate examples and interview evidence have not yet been added."
-        ),
-        "gap_2": "Another relevant evidence gap.",
-        "context_note": (
-            "Transparent explanation of the evidence used, evidence missing "
-            "and the human user's responsibility for the final decision."
-        ),
-    }
-
-
 def build_pre_interview_decision_support_prompt(
     owner,
-    *,
-    language_code: str | None = None,
 ) -> str:
-    language_code = normalize_ai_language(
-        language_code
-    )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
-    examples = _get_pre_interview_language_examples(
-        language_code
-    )
-
     shared_context = build_shared_ai_context(
         owner
     )
@@ -739,7 +646,7 @@ CORE INTERPRETATION RULES
 
 LANGUAGE AND TONE
 
-{language_instruction}
+- Write in professional, clear English.
 - Be balanced, practical and non-judgemental.
 - Use cautious language such as:
   "may indicate",
@@ -847,36 +754,36 @@ Return events in this exact order:
 
 1. One meta event:
 
-{{"type":"meta","title":"{examples['title']}","label":"{examples['label']}"}}
+{{"type":"meta","title":"Pre-interview decision support","label":"AI-supported decision preparation"}}
 
 2. Between 4 and 8 overall_synthesis_delta events:
 
-{{"type":"overall_synthesis_delta","text":"{examples['synthesis_1']}"}}
-{{"type":"overall_synthesis_delta","text":"{examples['synthesis_2']}"}}
+{{"type":"overall_synthesis_delta","text":"First part of the synthesis. "}}
+{{"type":"overall_synthesis_delta","text":"Next part of the synthesis. "}}
 
 3. One purpose_relevant_indications event:
 
-{{"type":"purpose_relevant_indications","items":[{{"title":"{examples['indication_title']}","interpretation":"{examples['indication_interpretation']}","evidence_sources":["AI Overview","Personality interpretation"]}}]}}
+{{"type":"purpose_relevant_indications","items":[{{"title":"Theme title","interpretation":"Cautious practical interpretation","evidence_sources":["AI Overview","Personality interpretation"]}}]}}
 
 4. One cautious_interpretations event:
 
-{{"type":"cautious_interpretations","items":[{{"title":"{examples['caution_title']}","interpretation":"{examples['caution_interpretation']}","reason_for_caution":"{examples['caution_reason']}"}}]}}
+{{"type":"cautious_interpretations","items":[{{"title":"Area requiring caution","interpretation":"What should be interpreted cautiously","reason_for_caution":"Why caution is required"}}]}}
 
 5. One discussion_guidance event:
 
-{{"type":"discussion_guidance","feedback_approach":["{examples['feedback_1']}","{examples['feedback_2']}"],"interview_focus":["{examples['focus_1']}","{examples['focus_2']}"]}}
+{{"type":"discussion_guidance","feedback_approach":["Feedback point one","Feedback point two"],"interview_focus":["Interview focus one","Interview focus two"]}}
 
 6. One validation_questions event:
 
-{{"type":"validation_questions","items":[{{"question":"{examples['question']}","why":"{examples['why']}","listen_for":"{examples['listen_for']}"}}]}}
+{{"type":"validation_questions","items":[{{"question":"Open question","why":"Why this helps","listen_for":"What evidence or nuance to listen for"}}]}}
 
 7. One evidence_gaps event:
 
-{{"type":"evidence_gaps","items":["{examples['gap_1']}","{examples['gap_2']}"]}}
+{{"type":"evidence_gaps","items":["Candidate examples and interview evidence have not yet been added.","Another relevant evidence gap."]}}
 
 8. One context_note event:
 
-{{"type":"context_note","text":"{examples['context_note']}"}}
+{{"type":"context_note","text":"Transparent explanation of the evidence used, evidence missing and the human user's responsibility for the final decision."}}
 
 9. One final done event:
 
@@ -891,20 +798,14 @@ Return events in this exact order:
 
 def create_empty_pre_interview_decision_support(
     owner,
-    *,
-    language_code: str | None = None,
 ) -> dict[str, Any]:
-    language_code = normalize_ai_language(
-        language_code
-    )
-    examples = _get_pre_interview_language_examples(
-        language_code
-    )
-
     return {
-        "_language": language_code,
-        "title": examples["title"],
-        "label": examples["label"],
+        "title": (
+            "Pre-interview decision support"
+        ),
+        "label": (
+            "AI-supported decision preparation"
+        ),
         "overall_synthesis": "",
         "purpose_relevant_indications": [],
         "cautious_interpretations": [],
@@ -1272,12 +1173,7 @@ def _parse_event_line(
 def stream_pre_interview_decision_support(
     *,
     owner,
-    language_code: str | None = None,
 ) -> Iterable[dict[str, Any]]:
-    language_code = normalize_ai_language(
-        language_code
-    )
-
     evidence = build_pre_interview_evidence(
         owner
     )
@@ -1292,8 +1188,7 @@ def stream_pre_interview_decision_support(
 
     prompt = (
         build_pre_interview_decision_support_prompt(
-            owner,
-            language_code=language_code,
+            owner
         )
     )
 
@@ -1303,11 +1198,7 @@ def stream_pre_interview_decision_support(
             {
                 "role": "system",
                 "content": (
-                    get_ai_system_language_instruction(
-                        language_code
-                    )
-                    + " "
-                    + "You are a careful and experienced "
+                    "You are a careful and experienced "
                     "assessment synthesis consultant. "
                     "You organise evidence and uncertainty "
                     "but never make a suitability, matching, "
@@ -1385,18 +1276,7 @@ def save_pre_interview_decision_support(
     *,
     owner,
     result: dict[str, Any],
-    language_code: str | None = None,
 ):
-    language_code = normalize_ai_language(
-        language_code
-    )
-    result["_language"] = language_code
-    set_ai_content_language(
-        owner,
-        "pre_interview_decision_support",
-        language_code,
-    )
-
     result["overall_synthesis"] = (
         _clean_text(
             result.get(
@@ -1508,9 +1388,6 @@ def save_pre_interview_decision_support(
             (
                 "ai_pre_interview_"
                 "decision_support_purpose"
-            ),
-            *get_ai_language_update_fields(
-                owner
             ),
         ]
     )
@@ -2332,445 +2209,3 @@ def save_post_interview_decision_support(
             ),
         ]
     )
-
-# ============================================================
-# Talena final output post-interview language batch 1
-# Post-interview language support
-# ============================================================
-
-from .language import (
-    get_ai_language_instruction as _post_get_ai_language_instruction,
-    get_ai_language_update_fields as _post_get_ai_language_update_fields,
-    get_ai_system_language_instruction as _post_get_ai_system_language_instruction,
-    normalize_ai_language as _post_normalize_ai_language,
-    set_ai_content_language as _post_set_ai_content_language,
-)
-
-_original_build_post_interview_decision_support_prompt = (
-    build_post_interview_decision_support_prompt
-)
-_original_save_post_interview_decision_support = (
-    save_post_interview_decision_support
-)
-
-
-def _get_post_interview_language_examples(
-    language_code: str | None,
-) -> dict[str, Any]:
-    language_code = _post_normalize_ai_language(
-        language_code
-    )
-
-    if language_code == "sv":
-        return {
-            "title": "Beslutsstöd efter intervjun",
-            "label": "Syntes av test- och intervjuunderlag",
-            "synthesis": "Första delen av den sammanvägda syntesen. ",
-            "supported": {
-                "title": "Indikation med stöd i intervjun",
-                "assessment_indication": (
-                    "Relevant indikation från testresultaten"
-                ),
-                "interview_evidence": (
-                    "Relevant exempel eller observation från intervjun"
-                ),
-                "interpretation": "Försiktig sammanvägd tolkning",
-            },
-            "nuance": {
-                "title": "Viktig nyans från intervjun",
-                "assessment_indication": (
-                    "Relevant indikation från testresultaten"
-                ),
-                "interview_evidence": (
-                    "Relevant intervjuunderlag som tillför sammanhang"
-                ),
-                "interpretation": (
-                    "Hur intervjuunderlaget nyanserar tolkningen"
-                ),
-            },
-            "contradiction": {
-                "title": "Spänning som behöver utforskas",
-                "assessment_evidence": "Underlag från testresultaten",
-                "interview_evidence": "Underlag från intervjun",
-                "interpretation": (
-                    "Balanserad förklaring av den möjliga spänningen"
-                ),
-            },
-            "uncertainties": [
-                "Första kvarstående osäkerheten",
-                "Andra kvarstående osäkerheten",
-            ],
-            "follow_up": [
-                "Första föreslagna uppföljningen",
-                "Andra föreslagna uppföljningen",
-            ],
-            "context_note": (
-                "Transparent förklaring av vilket underlag som användes, "
-                "dess begränsningar och människans ansvar för det slutliga beslutet."
-            ),
-        }
-
-    return {
-        "title": "Post-interview decision support",
-        "label": "Assessment and interview synthesis",
-        "synthesis": "First part of the synthesis. ",
-        "supported": {
-            "title": "Theme title",
-            "assessment_indication": "Relevant assessment indication",
-            "interview_evidence": "Relevant interview example",
-            "interpretation": "Cautious synthesis",
-        },
-        "nuance": {
-            "title": "Theme title",
-            "assessment_indication": "Relevant assessment indication",
-            "interview_evidence": "Relevant interview evidence",
-            "interpretation": "How the interview evidence adds nuance",
-        },
-        "contradiction": {
-            "title": "Tension title",
-            "assessment_evidence": "Assessment evidence",
-            "interview_evidence": "Interview evidence",
-            "interpretation": "Balanced explanation of the tension",
-        },
-        "uncertainties": [
-            "Uncertainty one",
-            "Uncertainty two",
-        ],
-        "follow_up": [
-            "Follow-up action one",
-            "Follow-up action two",
-        ],
-        "context_note": (
-            "Transparent explanation of the evidence used, limitations "
-            "and human responsibility for the final decision."
-        ),
-    }
-
-
-def _replace_post_prompt_once(
-    prompt: str,
-    old: str,
-    new: str,
-    *,
-    label: str,
-) -> str:
-    count = prompt.count(old)
-
-    if count != 1:
-        raise RuntimeError(
-            "Could not localise the post-interview prompt "
-            f"example {label!r}. Expected 1 occurrence, found {count}."
-        )
-
-    return prompt.replace(
-        old,
-        new,
-        1,
-    )
-
-
-def build_post_interview_decision_support_prompt(
-    owner,
-    *,
-    language_code: str | None = None,
-) -> str:
-    language_code = _post_normalize_ai_language(
-        language_code
-    )
-    examples = _get_post_interview_language_examples(
-        language_code
-    )
-
-    prompt = (
-        _original_build_post_interview_decision_support_prompt(
-            owner
-        )
-    )
-
-    prompt = _replace_post_prompt_once(
-        prompt,
-        "- Write in professional, clear English.",
-        _post_get_ai_language_instruction(
-            language_code
-        ),
-        label="language instruction",
-    )
-
-    replacements = [
-        (
-            '{"type":"meta","title":"Post-interview decision support","label":"Assessment and interview synthesis"}',
-            json.dumps(
-                {
-                    "type": "meta",
-                    "title": examples["title"],
-                    "label": examples["label"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "meta",
-        ),
-        (
-            '{"type":"overall_synthesis_delta","text":"First part of the synthesis. "}',
-            json.dumps(
-                {
-                    "type": "overall_synthesis_delta",
-                    "text": examples["synthesis"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "overall synthesis",
-        ),
-        (
-            '{"type":"supported_indications","items":[{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview example","interpretation":"Cautious synthesis"}]}',
-            json.dumps(
-                {
-                    "type": "supported_indications",
-                    "items": [examples["supported"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "supported indications",
-        ),
-        (
-            '{"type":"added_nuance","items":[{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview evidence","interpretation":"How the interview evidence adds nuance"}]}',
-            json.dumps(
-                {
-                    "type": "added_nuance",
-                    "items": [examples["nuance"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "added nuance",
-        ),
-        (
-            '{"type":"contradictions","items":[{"title":"Tension title","assessment_evidence":"Assessment evidence","interview_evidence":"Interview evidence","interpretation":"Balanced explanation of the tension"}]}',
-            json.dumps(
-                {
-                    "type": "contradictions",
-                    "items": [examples["contradiction"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "contradictions",
-        ),
-        (
-            '{"type":"remaining_uncertainties","items":["Uncertainty one","Uncertainty two"]}',
-            json.dumps(
-                {
-                    "type": "remaining_uncertainties",
-                    "items": examples["uncertainties"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "remaining uncertainties",
-        ),
-        (
-            '{"type":"suggested_follow_up","items":["Follow-up action one","Follow-up action two"]}',
-            json.dumps(
-                {
-                    "type": "suggested_follow_up",
-                    "items": examples["follow_up"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "suggested follow-up",
-        ),
-        (
-            '{"type":"context_note","text":"Transparent explanation of the evidence used, limitations and human responsibility for the final decision."}',
-            json.dumps(
-                {
-                    "type": "context_note",
-                    "text": examples["context_note"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "context note",
-        ),
-    ]
-
-    for old, new, label in replacements:
-        prompt = _replace_post_prompt_once(
-            prompt,
-            old,
-            new,
-            label=label,
-        )
-
-    return prompt
-
-
-def create_empty_post_interview_decision_support(
-    owner,
-    *,
-    language_code: str | None = None,
-) -> dict[str, Any]:
-    language_code = _post_normalize_ai_language(
-        language_code
-    )
-    examples = _get_post_interview_language_examples(
-        language_code
-    )
-
-    return {
-        "_language": language_code,
-        "title": examples["title"],
-        "label": examples["label"],
-        "overall_synthesis": "",
-        "supported_indications": [],
-        "added_nuance": [],
-        "contradictions": [],
-        "remaining_uncertainties": [],
-        "suggested_follow_up": [],
-        "context_note": "",
-    }
-
-
-def stream_post_interview_decision_support(
-    *,
-    owner,
-    language_code: str | None = None,
-) -> Iterable[dict[str, Any]]:
-    language_code = _post_normalize_ai_language(
-        language_code
-    )
-
-    interview_notes = _clean_text(
-        owner.interview_notes
-    )
-
-    if not interview_notes:
-        raise ValueError(
-            "Interview notes must be added before "
-            "post-interview decision support can be generated."
-        )
-
-    evidence = build_pre_interview_evidence(
-        owner
-    )
-
-    if not evidence["has_evidence"]:
-        raise ValueError(
-            "No completed Talena interpretations "
-            "are available for decision support."
-        )
-
-    client = get_openai_client()
-
-    prompt = build_post_interview_decision_support_prompt(
-        owner,
-        language_code=language_code,
-    )
-
-    stream = client.chat.completions.create(
-        model=get_chat_model(),
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    _post_get_ai_system_language_instruction(
-                        language_code
-                    )
-                    + " "
-                    + "You are a careful assessment synthesis "
-                    "consultant. Compare assessment indications "
-                    "with interview evidence without making a "
-                    "matching, suitability, selection, promotion "
-                    "or hiring decision. Follow the requested "
-                    "NDJSON format exactly."
-                ),
-            },
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
-        temperature=0.2,
-        stream=True,
-    )
-
-    buffer = ""
-
-    for response_event in stream:
-        delta = response_event.choices[0].delta
-
-        if not delta or not delta.content:
-            continue
-
-        buffer += delta.content
-
-        parsed_events, buffer = (
-            _extract_json_events_from_buffer(
-                buffer
-            )
-        )
-
-        for parsed_event in parsed_events:
-            yield parsed_event
-
-    parsed_events, buffer = (
-        _extract_json_events_from_buffer(
-            buffer
-        )
-    )
-
-    for parsed_event in parsed_events:
-        yield parsed_event
-
-    trailing_content = (
-        buffer
-        .replace("```json", "")
-        .replace("```ndjson", "")
-        .replace("```", "")
-        .strip()
-    )
-
-    if trailing_content:
-        final_event = _parse_event_line(
-            trailing_content
-        )
-
-        if final_event:
-            yield final_event
-
-
-def save_post_interview_decision_support(
-    *,
-    owner,
-    result: dict[str, Any],
-    language_code: str | None = None,
-):
-    language_code = _post_normalize_ai_language(
-        language_code
-    )
-    result["_language"] = language_code
-
-    _post_set_ai_content_language(
-        owner,
-        "post_interview_decision_support",
-        language_code,
-    )
-
-    _original_save_post_interview_decision_support(
-        owner=owner,
-        result=result,
-    )
-
-    language_update_fields = (
-        _post_get_ai_language_update_fields(
-            owner
-        )
-    )
-
-    if language_update_fields:
-        owner.save(
-            update_fields=language_update_fields
-        )
-

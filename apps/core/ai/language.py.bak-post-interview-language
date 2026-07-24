@@ -283,11 +283,3 @@ def get_ai_language_update_fields(
         return ["ai_content_languages"]
 
     return []
-
-# Talena final output post-interview language batch 1
-_AI_CONTENT_RESULT_FIELDS.update({
-    "post_interview_decision_support": (
-        "ai_post_interview_decision_support"
-    ),
-})
-

@@ -24973,6 +24973,259 @@ color: #6E63E3;
   transform: translateY(-0.5px);
 }
 
+<style>
+  .talena-language-dropdown {
+    position: relative;
+  }
+
+  .talena-language-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    min-height: 40px;
+    padding: 6px 11px 6px 8px;
+
+    color: #2a2340;
+    background: #ffffff;
+
+    border: 1px solid rgba(64, 51, 95, 0.14);
+    border-radius: 999px;
+
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1;
+
+    box-shadow:
+      0 1px 2px rgba(35, 24, 66, 0.03),
+      0 5px 16px rgba(35, 24, 66, 0.04);
+
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .talena-language-trigger:hover {
+    color: #4f2fc6;
+    background: #fbf9ff;
+    border-color: rgba(109, 58, 223, 0.28);
+
+    box-shadow:
+      0 2px 4px rgba(35, 24, 66, 0.04),
+      0 8px 22px rgba(91, 61, 171, 0.08);
+
+    transform: translateY(-1px);
+  }
+
+  .talena-language-trigger:focus-visible {
+    outline: none;
+
+    border-color: rgba(109, 58, 223, 0.55);
+
+    box-shadow:
+      0 0 0 4px rgba(109, 58, 223, 0.11),
+      0 8px 22px rgba(91, 61, 171, 0.08);
+  }
+
+  .talena-language-dropdown.show .talena-language-trigger {
+    color: #4f2fc6;
+    background: #f8f4ff;
+    border-color: rgba(109, 58, 223, 0.3);
+  }
+
+  .talena-language-globe {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 26px;
+    height: 26px;
+
+    color: #6941d9;
+    background: rgba(109, 58, 223, 0.09);
+
+    border-radius: 50%;
+  }
+
+  .talena-language-globe svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+  }
+
+  .talena-language-current-code {
+    display: none;
+  }
+
+  .talena-language-current-label {
+    white-space: nowrap;
+  }
+
+  .talena-language-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #8b839d;
+
+    transition: transform 160ms ease;
+  }
+
+  .talena-language-chevron svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.2;
+  }
+
+  .talena-language-dropdown.show .talena-language-chevron {
+    transform: rotate(180deg);
+  }
+
+  .talena-language-menu {
+    min-width: 230px;
+    margin-top: 9px !important;
+    padding: 8px;
+
+    background: rgba(255, 255, 255, 0.98);
+
+    border: 1px solid rgba(64, 51, 95, 0.1);
+    border-radius: 16px;
+
+    box-shadow:
+      0 18px 45px rgba(35, 24, 66, 0.13),
+      0 3px 10px rgba(35, 24, 66, 0.05);
+  }
+
+  .talena-language-menu-label {
+    padding: 7px 9px 9px;
+
+    color: #8b839d;
+
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .talena-language-option {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    padding: 9px;
+
+    color: #302942;
+    background: transparent;
+
+    border: 0;
+    border-radius: 11px;
+
+    text-align: left;
+
+    transition:
+      color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .talena-language-option:hover,
+  .talena-language-option:focus-visible {
+    color: #4f2fc6;
+    background: rgba(109, 58, 223, 0.065);
+    outline: none;
+  }
+
+  .talena-language-option.is-active {
+    color: #4f2fc6;
+    background: rgba(109, 58, 223, 0.09);
+  }
+
+  .talena-language-option-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    color: #6540d3;
+    background: #f1eaff;
+
+    border: 1px solid rgba(109, 58, 223, 0.1);
+    border-radius: 10px;
+
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+  }
+
+  .talena-language-option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .talena-language-option-name {
+    color: inherit;
+
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .talena-language-option-description {
+    overflow: hidden;
+
+    color: #8b839d;
+
+    font-size: 0.68rem;
+    font-weight: 450;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .talena-language-option-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 20px;
+    height: 20px;
+
+    color: #ffffff;
+    background: #6d3adf;
+
+    border-radius: 50%;
+
+    font-size: 0.68rem;
+    font-weight: 900;
+  }
+
+  @media (max-width: 575.98px) {
+    .talena-language-trigger {
+      width: 40px;
+      min-width: 40px;
+      padding: 6px;
+      justify-content: center;
+    }
+
+    .talena-language-globe,
+    .talena-language-chevron,
+    .talena-language-current-label {
+      display: none;
+    }
+
+    .talena-language-current-code {
+      display: inline;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+  }
+</style>
+
 /* =========================================================
    TEAM STYLES
    Designed to sit naturally beside Talena's response-style UI.

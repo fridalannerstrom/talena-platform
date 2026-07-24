@@ -1760,7 +1760,6 @@ def _normalise_combined_question(
     }
 
 
-# Talena combined questions i18n batch 1
 def build_combined_candidate_questions(
     invitation,
 ) -> dict:
@@ -1777,8 +1776,8 @@ def build_combined_candidate_questions(
     question_sources = [
         {
             "key": "personality",
-            "title": _("Personality questions"),
-            "description": _(
+            "title": "Personality questions",
+            "description": (
                 "Explore how relevant personality preferences "
                 "appear in practical situations."
             ),
@@ -1793,8 +1792,8 @@ def build_combined_candidate_questions(
         },
         {
             "key": "motivation",
-            "title": _("Motivation questions"),
-            "description": _(
+            "title": "Motivation questions",
+            "description": (
                 "Explore what may create energy, engagement "
                 "and sustainable motivation."
             ),
@@ -1821,8 +1820,8 @@ def build_combined_candidate_questions(
         },
         {
             "key": "cognitive",
-            "title": _("Cognitive questions"),
-            "description": _(
+            "title": "Cognitive questions",
+            "description": (
                 "Explore how the cognitive assessment results "
                 "relate to practical demands and working methods."
             ),
@@ -4353,20 +4352,6 @@ def process_candidate_pre_interview_decision_support_stream(
             status=400,
         )
 
-    # Talena final output pre-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="pre_interview_decision_support",
-        result_field="ai_pre_interview_decision_support",
-        status_field=(
-            "ai_pre_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
     current_status = (
         invitation
         .ai_pre_interview_decision_support_status
@@ -4412,16 +4397,9 @@ def process_candidate_pre_interview_decision_support_stream(
 
     # Return an already completed result without creating
     # another OpenAI request.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "pre_interview_decision_support",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -4472,8 +4450,7 @@ def process_candidate_pre_interview_decision_support_stream(
     def generator():
         result = (
             create_empty_pre_interview_decision_support(
-                invitation,
-                language_code=language_code,
+                invitation
             )
         )
 
@@ -4483,7 +4460,6 @@ def process_candidate_pre_interview_decision_support_stream(
             for event in (
                 stream_pre_interview_decision_support(
                     owner=invitation,
-                    language_code=language_code,
                 )
             ):
                 result = (
@@ -4538,7 +4514,6 @@ def process_candidate_pre_interview_decision_support_stream(
             save_pre_interview_decision_support(
                 owner=invitation,
                 result=result,
-                language_code=language_code,
             )
 
         except Exception as error:
@@ -4739,20 +4714,6 @@ def process_candidate_post_interview_decision_support_stream(
             status=400,
         )
 
-    # Talena final output post-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="post_interview_decision_support",
-        result_field="ai_post_interview_decision_support",
-        status_field=(
-            "ai_post_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
     current_status = (
         invitation
         .ai_post_interview_decision_support_status
@@ -4824,16 +4785,9 @@ def process_candidate_post_interview_decision_support_stream(
         )
 
     # Return an existing completed or outdated result.
-    if (
-        ai_content_language_matches(
-            invitation,
-            "post_interview_decision_support",
-            language_code,
-        )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
+    if should_return_saved_ai_result(
+        saved_result,
+        current_status,
     ):
         def existing_generator():
             yield json.dumps(
@@ -4884,8 +4838,7 @@ def process_candidate_post_interview_decision_support_stream(
     def generator():
         result = (
             create_empty_post_interview_decision_support(
-                invitation,
-                language_code=language_code,
+                invitation
             )
         )
 
@@ -4895,7 +4848,6 @@ def process_candidate_post_interview_decision_support_stream(
             for event in (
                 stream_post_interview_decision_support(
                     owner=invitation,
-                    language_code=language_code,
                 )
             ):
                 result = (
@@ -4973,7 +4925,6 @@ def process_candidate_post_interview_decision_support_stream(
             save_post_interview_decision_support(
                 owner=invitation,
                 result=result,
-                language_code=language_code,
             )
 
         except Exception as error:
@@ -5317,37 +5268,9 @@ def process_candidate_final_output(
         candidate_id=candidate_id,
     )
 
-    # Talena final output pre-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="pre_interview_decision_support",
-        result_field="ai_pre_interview_decision_support",
-        status_field=(
-            "ai_pre_interview_decision_support_status"
-        ),
-        language_code=language_code,
-    )
-
     pre_interview_decision_support = (
         invitation.ai_pre_interview_decision_support
         or {}
-    )
-
-    # Talena final output post-interview language batch 1
-    language_code = get_request_ai_language(
-        request
-    )
-    mark_ai_content_outdated_if_language_changed(
-        invitation,
-        content_key="post_interview_decision_support",
-        result_field="ai_post_interview_decision_support",
-        status_field=(
-            "ai_post_interview_decision_support_status"
-        ),
-        language_code=language_code,
     )
 
     post_interview_decision_support = (
@@ -7230,27 +7153,6 @@ def process_candidate_detail(request, process_id, candidate_id):
             content_key="personality_questions",
             result_field="ai_personality_questions",
             status_field="ai_personality_questions_status",
-            language_code=language_code,
-        )
-        # Talena final output pre-interview language batch 1
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="pre_interview_decision_support",
-            result_field="ai_pre_interview_decision_support",
-            status_field=(
-                "ai_pre_interview_decision_support_status"
-            ),
-            language_code=language_code,
-        )
-
-        # Talena final output post-interview language batch 1
-        mark_ai_content_outdated_if_language_changed(
-            invitation,
-            content_key="post_interview_decision_support",
-            result_field="ai_post_interview_decision_support",
-            status_field=(
-                "ai_post_interview_decision_support_status"
-            ),
             language_code=language_code,
         )
 

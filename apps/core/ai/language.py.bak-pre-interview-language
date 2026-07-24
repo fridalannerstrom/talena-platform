@@ -220,13 +220,6 @@ _AI_CONTENT_RESULT_FIELDS.update({
     "personality_questions": "ai_personality_questions",
 })
 
-# Talena final output pre-interview language batch 1
-_AI_CONTENT_RESULT_FIELDS.update({
-    "pre_interview_decision_support": (
-        "ai_pre_interview_decision_support"
-    ),
-})
-
 
 def get_saved_ai_content_language(
     owner: Any,
@@ -283,11 +276,3 @@ def get_ai_language_update_fields(
         return ["ai_content_languages"]
 
     return []
-
-# Talena final output post-interview language batch 1
-_AI_CONTENT_RESULT_FIELDS.update({
-    "post_interview_decision_support": (
-        "ai_post_interview_decision_support"
-    ),
-})
-

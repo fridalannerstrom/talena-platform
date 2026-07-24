@@ -1,7 +1,11 @@
 {% extends "customer/processes/process_base.html" %}
 {% load static i18n %}
 {# Talena process context i18n batch 1 #}
-{# Talena process context translated fallback repair 1 #}
+{% trans "Process context" as default_process_context %}
+{% trans "Add context to tailor Candidate Insights to this process." as default_context_intro %}
+{% trans "Flexible process" as default_flexible_process %}
+{% trans "Context" as default_context_tab %}
+{% trans "Save context" as default_save_context %}
 
 {% block process_content %}
 
@@ -17,11 +21,11 @@
         <div class="card-header purpose-context-header bg-white py-3 px-4">
 
           <div class="fw-semibold mb-1">
-            {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Process context" %}{% endif %}
+            {{ context_config.context_title|default:default_process_context }}
           </div>
 
           <div class="text-muted small">
-            {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this process." %}{% endif %}
+            {{ context_config.context_intro|default:default_context_intro }}
           </div>
 
         </div>
@@ -110,7 +114,7 @@
             </div>
 
             <div class="small text-muted">
-              {% if process_purpose.label %}{{ process_purpose.label }}{% elif process.purpose %}{{ process.purpose }}{% else %}{% trans "Flexible process" %}{% endif %}
+              {{ process_purpose.label|default:process.purpose|default:default_flexible_process }}
             </div>
 
           </div>
@@ -151,18 +155,18 @@
           <div>
 
             <div class="fw-semibold mb-1">
-              {% if context_config.context_title %}{{ context_config.context_title }}{% else %}{% trans "Process context" %}{% endif %}
+              {{ context_config.context_title|default:default_process_context }}
             </div>
 
             <div class="text-muted small">
-              {% if context_config.context_intro %}{{ context_config.context_intro }}{% else %}{% trans "Add context to tailor Candidate Insights to this process." %}{% endif %}
+              {{ context_config.context_intro|default:default_context_intro }}
             </div>
 
           </div>
 
 
           <span class="purpose-context-pill">
-            {% if context_config.tab_label %}{{ context_config.tab_label }}{% else %}{% trans "Context" %}{% endif %}
+            {{ context_config.tab_label|default:default_context_tab }}
           </span>
 
         </div>
@@ -237,7 +241,7 @@
               class="btn btn-primary"
               type="submit"
             >
-              {% if context_config.save_button %}{{ context_config.save_button }}{% else %}{% trans "Save context" %}{% endif %}
+              {{ context_config.save_button|default:default_save_context }}
             </button>
 
             <a
