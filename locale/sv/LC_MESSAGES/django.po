@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-24 22:02+0200\n"
+"POT-Creation-Date: 2026-07-24 23:12+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -33,7 +33,16 @@ msgid ""
 "\n"
 "Best regards,\n"
 "{sender_full_name}"
-msgstr "Hej {first_name},\n\nDu har blivit inbjuden att genomföra tester för {process_name}.\n\nKlicka på länken nedan för att börja:\n{assessment_url}\n\nVänliga hälsningar,\n{sender_full_name}"
+msgstr ""
+"Hej {first_name},\n"
+"\n"
+"Du har blivit inbjuden att genomföra tester för {process_name}.\n"
+"\n"
+"Klicka på länken nedan för att börja:\n"
+"{assessment_url}\n"
+"\n"
+"Vänliga hälsningar,\n"
+"{sender_full_name}"
 
 #: .\apps\emails\views.py:107
 msgid "No access."
@@ -87,58 +96,73 @@ msgstr "Rätta lösenordsfelen nedan."
 msgid "Unknown form submission."
 msgstr "Okänd formulärinlämning."
 
+#: .\apps\processes\forms.py:103 .\templates\shared\_settings_content.html:164
+msgid "First name"
+msgstr "Förnamn"
+
+#: .\apps\processes\forms.py:114 .\templates\shared\_settings_content.html:186
+msgid "Last name"
+msgstr "Efternamn"
+
 #: .\apps\processes\forms.py:124
+#: .\templates\customer\teams\team_detail.html:457
+#: .\templates\customer\teams\team_members_edit.html:88
+#: .\templates\shared\_settings_content.html:208
+msgid "Email"
+msgstr "E-post"
+
+#: .\apps\processes\forms.py:141
 #: .\apps\processes\services\process_recommendations.py:97
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:33
 msgid "Personality"
 msgstr "Personlighet"
 
-#: .\apps\processes\forms.py:125
+#: .\apps\processes\forms.py:142
 #: .\apps\processes\services\process_recommendations.py:106
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:45
 #: .\templates\customer\processes\process_base.html:27
 msgid "Motivation"
 msgstr "Motivation"
 
-#: .\apps\processes\forms.py:126
+#: .\apps\processes\forms.py:143
 #: .\apps\processes\services\process_recommendations.py:115
 #: .\apps\processes\services\process_recommendations.py:116
 msgid "Verbal"
 msgstr "Verbal förmåga"
 
-#: .\apps\processes\forms.py:127
+#: .\apps\processes\forms.py:144
 #: .\apps\processes\services\process_recommendations.py:124
 #: .\apps\processes\services\process_recommendations.py:125
 msgid "Logical"
 msgstr "Logisk förmåga"
 
-#: .\apps\processes\forms.py:128
+#: .\apps\processes\forms.py:145
 #: .\apps\processes\services\process_recommendations.py:133
 #: .\apps\processes\services\process_recommendations.py:134
 msgid "Numerical"
 msgstr "Numerisk förmåga"
 
-#: .\apps\processes\forms.py:137
+#: .\apps\processes\forms.py:154
 #: .\templates\customer\processes\process_create_v2.html:330
 #: .\templates\customer\processes\process_create_v2.html:338
 msgid "Process name"
 msgstr "Processnamn"
 
-#: .\apps\processes\forms.py:141
+#: .\apps\processes\forms.py:158
 msgid "e.g. Leadership potential"
 msgstr "t.ex. Ledarskapspotential"
 
-#: .\apps\processes\forms.py:148
+#: .\apps\processes\forms.py:165
 #: .\templates\customer\processes\process_create_v2.html:355
 #: .\templates\customer\processes\process_edit.html:70
 msgid "Labels"
 msgstr "Etiketter"
 
-#: .\apps\processes\forms.py:152
+#: .\apps\processes\forms.py:169
 msgid "e.g. Admin, Interim, Priority"
 msgstr "t.ex. Admin, Interim, Prioritet"
 
-#: .\apps\processes\forms.py:156
+#: .\apps\processes\forms.py:173
 msgid ""
 "Enter one or more labels that describe the test process. Separate the labels "
 "with commas."
@@ -146,7 +170,7 @@ msgstr ""
 "Ange en eller flera etiketter som beskriver testprocessen. Separera "
 "etiketterna med kommatecken."
 
-#: .\apps\processes\forms.py:174
+#: .\apps\processes\forms.py:191
 msgid ""
 "Describe the role, situation or development context.\n"
 "\n"
@@ -166,7 +190,7 @@ msgstr ""
 "• prioriteringar, utmaningar eller framgångskriterier\n"
 "• områden som du vill att Talena ska utforska"
 
-#: .\apps\processes\forms.py:197 .\apps\processes\purpose_context_config.py:313
+#: .\apps\processes\forms.py:214 .\apps\processes\purpose_context_config.py:313
 #: .\apps\processes\purpose_context_config.py:314
 #: .\templates\customer\processes\_process_header.html:421
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:242
@@ -176,7 +200,7 @@ msgstr ""
 msgid "Process context"
 msgstr "Processkontext"
 
-#: .\apps\processes\forms.py:203
+#: .\apps\processes\forms.py:220
 msgid ""
 "Add the information that would help Talena interpret the assessment results "
 "in relation to this process."
@@ -1796,6 +1820,30 @@ msgstr ""
 "Utforska hur resultaten från de kognitiva testerna hänger samman med "
 "praktiska krav och arbetssätt."
 
+#: .\apps\processes\views.py:6969
+#, python-brace-format
+msgid "{process_name}: Your assessment"
+msgstr "{process_name}: Ditt test"
+
+#: .\apps\processes\views.py:6976
+#, python-brace-format
+msgid ""
+"Hi {first_name}!\n"
+"\n"
+"Click the link below to start your assessment:\n"
+"{assessment_url}\n"
+"\n"
+"Best regards,\n"
+"Talena"
+msgstr ""
+"Hej {first_name}!\n"
+"\n"
+"Klicka på länken nedan för att starta ditt test:\n"
+"{assessment_url}\n"
+"\n"
+"Vänliga hälsningar,\n"
+"Talena"
+
 #: .\apps\teams\forms.py:20
 msgid "Example: Finance team, Leadership pool, Sales 2026"
 msgstr "Exempel: Ekonomiteamet, Ledarpoolen, Försäljning 2026"
@@ -2160,15 +2208,16 @@ msgstr "Ingen aktivitet ännu."
 msgid "Search"
 msgstr "Sök"
 
-#: .\templates\customer\core\partials\customer_header.html:128
+#: .\templates\customer\core\partials\customer_header.html:146
+#: .\templates\customer\core\partials\customer_header.html:188
 msgid "Choose language"
 msgstr "Välj språk"
 
-#: .\templates\customer\core\partials\customer_header.html:231
+#: .\templates\customer\core\partials\customer_header.html:301
 msgid "Account"
 msgstr "Konto"
 
-#: .\templates\customer\core\partials\customer_header.html:239
+#: .\templates\customer\core\partials\customer_header.html:309
 msgid "Log out"
 msgstr "Logga ut"
 
@@ -5686,6 +5735,62 @@ msgstr ""
 "testresultat när sammanfattningar, tolkningar, frågor och rekommenderade "
 "nästa steg genereras."
 
+#: .\templates\customer\processes\self_register_form.html:14
+#: .\templates\customer\processes\self_register_form.html:98
+#: .\templates\customer\processes\self_register_form.html:194
+msgid "Register"
+msgstr "Registrera dig"
+
+#: .\templates\customer\processes\self_register_form.html:58
+msgid "Switch to Swedish"
+msgstr "Byt till svenska"
+
+#: .\templates\customer\processes\self_register_form.html:78
+msgid "Switch to English"
+msgstr "Byt till engelska"
+
+#: .\templates\customer\processes\self_register_form.html:102
+msgid "Enter your details to take part in the process."
+msgstr "Fyll i dina uppgifter för att delta i processen."
+
+#: .\templates\customer\processes\self_register_form.html:198
+msgid "Your details are used to connect you to the correct assessment process."
+msgstr ""
+"Dina uppgifter används för att koppla dig till rätt testprocess."
+
+#: .\templates\customer\processes\self_register_form.html:223
+msgid "Enter your details"
+msgstr "Fyll i dina uppgifter"
+
+#: .\templates\customer\processes\self_register_form.html:227
+msgid ""
+"Enter your name and the email address that should be connected to the "
+"assessment process."
+msgstr ""
+"Ange ditt namn och den e-postadress som ska kopplas till testprocessen."
+
+#: .\templates\customer\processes\self_register_form.html:239
+msgid "View the included assessments"
+msgstr "Se vilka tester som ingår"
+
+#: .\templates\customer\processes\self_register_form.html:243
+msgid ""
+"After registering, you will continue directly to an overview of your "
+"assessments."
+msgstr ""
+"Efter registreringen kommer du direkt till en översikt över dina tester."
+
+#: .\templates\customer\processes\self_register_form.html:255
+msgid "Start when you are ready"
+msgstr "Börja när du är redo"
+
+#: .\templates\customer\processes\self_register_form.html:259
+msgid ""
+"You can start the assessments immediately and will receive clear "
+"instructions along the way."
+msgstr ""
+"Du kan starta testerna direkt och får tydliga instruktioner längs vägen."
+
 #: .\templates\customer\teams\team_detail.html:5
 msgid "Maximum"
 msgstr "Maxvärde"
@@ -5803,12 +5908,6 @@ msgstr "Kandidater kan tillhöra flera team i olika processer."
 #: .\templates\customer\teams\team_detail.html:447
 msgid "Add candidates"
 msgstr "Lägg till kandidater"
-
-#: .\templates\customer\teams\team_detail.html:457
-#: .\templates\customer\teams\team_members_edit.html:88
-#: .\templates\shared\_settings_content.html:208
-msgid "Email"
-msgstr "E-post"
 
 #: .\templates\customer\teams\team_detail.html:458
 msgid "Role in team"
@@ -5939,7 +6038,8 @@ msgstr "Mallinnehåll"
 
 #: .\templates\emails\admin_edit_invitation_template.html:36
 msgid "This email will be used when candidates are invited to this process."
-msgstr "Det här e-postmeddelandet används när kandidater bjuds in till processen."
+msgstr ""
+"Det här e-postmeddelandet används när kandidater bjuds in till processen."
 
 #: .\templates\emails\admin_edit_invitation_template.html:45
 msgid "Subject"
@@ -5983,7 +6083,9 @@ msgstr "Platshållare"
 #: .\templates\emails\edit_invitation_template.html:17
 msgid ""
 "Click a field to copy it, then paste it into the subject line or message."
-msgstr "Klicka på ett fält för att kopiera det och klistra sedan in det i ämnesraden eller meddelandet."
+msgstr ""
+"Klicka på ett fält för att kopiera det och klistra sedan in det i ämnesraden "
+"eller meddelandet."
 
 #: .\templates\emails\edit_invitation_template.html:26
 msgid "Candidate’s first name"
@@ -6026,7 +6128,9 @@ msgstr "Exempel"
 msgid ""
 "<code>Hi {first_name}</code> becomes <strong>Hi Anna</strong> when the email "
 "is sent."
-msgstr "<code>Hej {first_name}</code> blir <strong>Hej Anna</strong> när e-postmeddelandet skickas."
+msgstr ""
+"<code>Hej {first_name}</code> blir <strong>Hej Anna</strong> när e-"
+"postmeddelandet skickas."
 
 #: .\templates\emails\edit_invitation_template.html:85
 msgid "Invitation email template"
@@ -6054,7 +6158,9 @@ msgid ""
 "Make sure the message always includes <code>{assessment_url}</code>. Without "
 "it, the candidate will not receive their personal assessment link in the "
 "email."
-msgstr "Se till att meddelandet alltid innehåller <code>{assessment_url}</code>. Utan den får kandidaten inte sin personliga testlänk i e-postmeddelandet."
+msgstr ""
+"Se till att meddelandet alltid innehåller <code>{assessment_url}</code>. "
+"Utan den får kandidaten inte sin personliga testlänk i e-postmeddelandet."
 
 #: .\templates\emails\edit_invitation_template.html:224
 msgid "Copied:"
@@ -6087,14 +6193,6 @@ msgstr "Ladda upp profilbild"
 #: .\templates\shared\_settings_content.html:131
 msgid "Remove profile picture"
 msgstr "Ta bort profilbild"
-
-#: .\templates\shared\_settings_content.html:164
-msgid "First name"
-msgstr "Förnamn"
-
-#: .\templates\shared\_settings_content.html:186
-msgid "Last name"
-msgstr "Efternamn"
 
 #: .\templates\shared\_settings_content.html:255
 msgid "Password"

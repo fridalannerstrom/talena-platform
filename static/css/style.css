@@ -25109,27 +25109,23 @@ color: #6E63E3;
     text-transform: uppercase;
   }
 
-  .talena-language-option {
-    display: grid;
-    grid-template-columns: 34px minmax(0, 1fr) 20px;
-    align-items: center;
-    gap: 10px;
+.talena-language-option {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
 
-    width: 100%;
-    padding: 9px;
-
-    color: #302942;
-    background: transparent;
-
-    border: 0;
-    border-radius: 11px;
-
-    text-align: left;
-
-    transition:
-      color 150ms ease,
-      background-color 150ms ease;
-  }
+  width: 100%;
+  padding: 9px 10px;
+  color: #302942;
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+  text-align: left;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
 
   .talena-language-option:hover,
   .talena-language-option:focus-visible {
@@ -25204,6 +25200,35 @@ color: #6E63E3;
     font-weight: 900;
   }
 
+  .talena-language-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.talena-language-flag {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talena-language-option-flag {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talena-language-option-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
   @media (max-width: 575.98px) {
     .talena-language-trigger {
       width: 40px;
@@ -25224,7 +25249,49 @@ color: #6E63E3;
       font-weight: 800;
     }
   }
-</style>
+
+  .talena-language-option {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: 9px 10px;
+
+  color: #302942;
+  background: transparent;
+  border: 0;
+  border-radius: 11px;
+  text-align: left;
+
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.talena-language-current-flag,
+.talena-language-option-flag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talena-language-flag {
+  display: block;
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(48, 41, 66, 0.12);
+}
+
+.talena-language-option-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 /* =========================================================
    TEAM STYLES

@@ -132,7 +132,7 @@ from django.db import transaction
 from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, get_language
 from django.views.decorators.http import require_POST
 from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
@@ -6855,10 +6855,21 @@ def self_register(request, token):
     last_name = form.cleaned_data["last_name"].strip()
     email = form.cleaned_data["email"].strip().lower()
 
+    current_language = (
+        get_language()
+        or "sv"
+    ).split("-")[0]
+
+    lang = (
+        "en"
+        if current_language == "en"
+        else "sv"
+    )
+
     client = SovaClient()
 
     with transaction.atomic():
-        candidate, _ = Candidate.objects.get_or_create(
+        candidate, candidate_created = Candidate.objects.get_or_create(
             email=email,
             defaults={
                 "first_name": first_name,
@@ -6913,7 +6924,7 @@ def self_register(request, token):
         "first_name": candidate.first_name,
         "last_name": candidate.last_name,
         "email": candidate.email,
-        "language": "sv",
+        "language": lang,
         "job_title": process.job_title or process.name,
         "job_number": f"talena-{process.id}",
         "meta_data": {
@@ -6941,7 +6952,6 @@ def self_register(request, token):
         ])
 
         # Hämta mall
-        lang = "sv"
         template = (
             EmailTemplate.objects
             .filter(
@@ -6953,13 +6963,22 @@ def self_register(request, token):
             .first()
         )
 
-        subject_tpl = template.subject if template else "{process_name}: Ditt test"
-        body_tpl = template.body if template else (
-            "Hej {first_name}!\n\n"
-            "Klicka på länken för att starta testet:\n"
-            "{assessment_url}\n\n"
-            "Vänliga hälsningar,\n"
-            "Talena"
+        subject_tpl = (
+            template.subject
+            if template
+            else _("{process_name}: Your assessment")
+        )
+
+        body_tpl = (
+            template.body
+            if template
+            else _(
+                "Hi {first_name}!\n\n"
+                "Click the link below to start your assessment:\n"
+                "{assessment_url}\n\n"
+                "Best regards,\n"
+                "Talena"
+            )
         )
 
         ctx = {
