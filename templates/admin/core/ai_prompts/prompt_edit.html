@@ -1,0 +1,381 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% load static i18n %}
+
+{% block content %}
+
+<div class="container-fluid px-2 px-md-3">
+
+  <!-- Back -->
+
+  <div class="mb-3">
+
+    <a
+      href="{% url 'core:admin_ai_prompts' %}"
+      class="
+        text-decoration-none
+        small
+        d-inline-flex
+        align-items-center
+        gap-1
+      "
+    >
+      <i
+        data-feather="arrow-left"
+        style="width: 16px; height: 16px;"
+      ></i>
+
+      {% trans "Back to AI prompts" %}
+    </a>
+
+  </div>
+
+
+  <!-- Header -->
+
+  <div
+    class="
+      d-flex
+      align-items-start
+      justify-content-between
+      flex-wrap
+      gap-3
+      mb-4
+    "
+  >
+
+    <div>
+
+      <div
+        class="
+          text-uppercase
+          small
+          fw-semibold
+          text-muted
+          mb-1
+        "
+      >
+        {{ prompt_definition.category }}
+      </div>
+
+      <h1 class="mb-1">
+        {{ prompt_definition.name }}
+      </h1>
+
+      <p class="text-muted mb-0">
+        {{ language.flag }}
+        {{ language.label }}
+      </p>
+
+    </div>
+
+
+    <div>
+
+      {% if has_active_override %}
+
+        <span
+          class="
+            badge
+            rounded-pill
+            bg-primary-subtle
+            text-primary
+          "
+        >
+          {% trans "Global override active" %}
+        </span>
+
+      {% else %}
+
+        <span
+          class="
+            badge
+            rounded-pill
+            text-secondary
+            border
+          "
+        >
+          {% trans "Talena default active" %}
+        </span>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+
+  <!-- Global warning -->
+
+  <div class="alert alert-light border mb-4">
+
+    <div class="d-flex gap-3">
+
+      <div>
+        <i data-feather="globe"></i>
+      </div>
+
+      <div>
+
+        <div class="fw-semibold mb-1">
+          {% trans "Global prompt" %}
+        </div>
+
+        <div class="small text-muted">
+          {% trans "Changes made here affect future AI-generated content for all customers in Talena using this language." %}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="row g-4">
+
+    <!-- Editable side -->
+
+    <div class="col-12 col-xl-7">
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body">
+
+          <div
+            class="
+              d-flex
+              justify-content-between
+              align-items-start
+              gap-3
+              mb-3
+            "
+          >
+
+            <div>
+
+              <h4 class="mb-1">
+                {% trans "Global AI instructions" %}
+              </h4>
+
+              <div class="small text-muted">
+                {% trans "Edit how Talena should communicate and interpret this assessment area." %}
+              </div>
+
+            </div>
+
+            {% if has_active_override %}
+
+              <span
+                class="
+                  badge
+                  rounded-pill
+                  bg-primary-subtle
+                  text-primary
+                "
+              >
+                {% trans "Override" %}
+              </span>
+
+            {% endif %}
+
+          </div>
+
+
+          <form method="post">
+
+            {% csrf_token %}
+
+            <textarea
+              name="prompt_text"
+              class="form-control"
+              rows="22"
+              spellcheck="true"
+              style="
+                resize: vertical;
+                line-height: 1.6;
+                min-height: 500px;
+              "
+            >{{ editing_text }}</textarea>
+
+
+            <div
+              class="
+                d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3
+                mt-4
+              "
+            >
+
+              <div class="small text-muted">
+
+                {% if override and override.updated_at %}
+
+                  {% trans "Last changed" %}
+                  {{ override.updated_at|date:"Y-m-d H:i" }}
+
+                  {% if override.updated_by %}
+                    {% trans "by" %}
+                    {{ override.updated_by.get_full_name|default:override.updated_by.email }}
+                  {% endif %}
+
+                {% endif %}
+
+              </div>
+
+
+              <button
+                type="submit"
+                name="action"
+                value="save"
+                class="btn btn-primary rounded-pill px-4"
+              >
+                <i
+                  data-feather="save"
+                  class="me-1"
+                ></i>
+
+                {% trans "Save global override" %}
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Protected default -->
+
+    <div class="col-12 col-xl-5">
+
+      <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+          <div
+            class="
+              d-flex
+              align-items-start
+              justify-content-between
+              gap-3
+              mb-3
+            "
+          >
+
+            <div>
+
+              <h4 class="mb-1">
+                {% trans "Talena default" %}
+              </h4>
+
+              <div class="small text-muted">
+                {% trans "Protected fallback stored in Talena's application code." %}
+              </div>
+
+            </div>
+
+            <i data-feather="lock"></i>
+
+          </div>
+
+
+          <div
+            class="
+              rounded-3
+              p-3
+              small
+            "
+            style="
+              white-space: pre-line;
+              max-height: 420px;
+              overflow-y: auto;
+            "
+          >{{ default_prompt }}</div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Reset -->
+
+      <div class="card border-0 shadow-sm">
+
+        <div class="card-body">
+
+          <h5 class="mb-2">
+            {% trans "Restore default" %}
+          </h5>
+
+          <p class="small text-muted">
+            {% trans "Disable the global override and return this AI feature to Talena's protected default instructions." %}
+          </p>
+
+
+          {% if has_active_override %}
+
+            <form method="post">
+
+              {% csrf_token %}
+
+              <button
+                type="submit"
+                name="action"
+                value="reset"
+                class="
+                  btn
+                  btn-outline-secondary
+                  rounded-pill
+                "
+              >
+                <i
+                  data-feather="rotate-ccw"
+                  class="me-1"
+                ></i>
+
+                {% trans "Reset to Talena default" %}
+              </button>
+
+            </form>
+
+          {% else %}
+
+            <div
+              class="
+                small
+                text-success
+                fw-semibold
+              "
+            >
+              <i
+                data-feather="check"
+                style="
+                  width: 15px;
+                  height: 15px;
+                "
+                class="me-1"
+              ></i>
+
+              {% trans "Talena default is currently active." %}
+            </div>
+
+          {% endif %}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

@@ -14,6 +14,7 @@ from .models import (
     HistoricalAssessmentImport,
     HistoricalAssessmentResult,
     HistoricalAssessmentScore,
+    AIPromptTemplate,
 )
 
 @admin.register(TestProcess)
@@ -425,3 +426,88 @@ class HistoricalAssessmentScoreAdmin(admin.ModelAdmin):
         "category",
         "name",
     )
+
+
+@admin.register(AIPromptTemplate)
+class AIPromptTemplateAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "key",
+        "language",
+        "is_active",
+        "updated_by",
+        "updated_at",
+    )
+
+    list_filter = (
+        "language",
+        "is_active",
+        "updated_at",
+    )
+
+    search_fields = (
+        "name",
+        "key",
+        "description",
+        "prompt_text",
+    )
+
+    readonly_fields = (
+        "updated_by",
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = (
+        "name",
+        "language",
+    )
+
+    fieldsets = (
+        (
+            "Prompt identity",
+            {
+                "fields": (
+                    "name",
+                    "key",
+                    "description",
+                    "language",
+                ),
+            },
+        ),
+        (
+            "Editable instructions",
+            {
+                "fields": (
+                    "prompt_text",
+                    "is_active",
+                ),
+            },
+        ),
+        (
+            "Change information",
+            {
+                "fields": (
+                    "updated_by",
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+
+    def save_model(
+        self,
+        request,
+        obj,
+        form,
+        change,
+    ):
+        obj.updated_by = request.user
+
+        super().save_model(
+            request,
+            obj,
+            form,
+            change,
+        )

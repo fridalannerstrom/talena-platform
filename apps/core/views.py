@@ -1,9 +1,19 @@
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from apps.core.integrations.sova import SovaClient
 from apps.core.utils.auth import is_admin
+
+from apps.processes.models import AIPromptTemplate
+
+from apps.core.ai.prompt_templates import (
+    get_ai_prompt_definition,
+    get_default_ai_prompt,
+    list_ai_prompt_definitions,
+)
+
+from django.contrib import messages
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -381,6 +391,347 @@ def admin_dashboard(request):
         "latest_user_invites": latest_user_invites,
     })
 
+@login_required
+def admin_ai_prompts(request):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    definitions = list_ai_prompt_definitions()
+
+    prompt_keys = [
+        definition["key"]
+        for definition in definitions
+    ]
+
+    saved_overrides = (
+        AIPromptTemplate.objects
+        .filter(key__in=prompt_keys)
+        .select_related("updated_by")
+    )
+
+    override_map = {
+        (
+            prompt.key,
+            prompt.language,
+        ): prompt
+        for prompt in saved_overrides
+    }
+
+    language_config = [
+        {
+            "code": "sv",
+            "label": "Svenska",
+            "flag": "🇸🇪",
+        },
+        {
+            "code": "en",
+            "label": "English",
+            "flag": "🇬🇧",
+        },
+    ]
+
+    prompt_groups = []
+
+    for definition in definitions:
+        language_versions = []
+
+        for language in language_config:
+            language_code = language["code"]
+
+            override = override_map.get(
+                (
+                    definition["key"],
+                    language_code,
+                )
+            )
+
+            default_prompt = get_default_ai_prompt(
+                key=definition["key"],
+                language=language_code,
+            )
+
+            override_text = ""
+
+            if override:
+                override_text = (
+                    override.prompt_text
+                    or ""
+                ).strip()
+
+            uses_override = bool(
+                override
+                and override.is_active
+                and override_text
+            )
+
+            effective_prompt = (
+                override_text
+                if uses_override
+                else default_prompt
+            )
+
+            language_versions.append(
+                {
+                    "code": language_code,
+                    "label": language["label"],
+                    "flag": language["flag"],
+
+                    "default_prompt": default_prompt,
+                    "effective_prompt": effective_prompt,
+
+                    "override": override,
+                    "has_override": override is not None,
+                    "uses_override": uses_override,
+
+                    "source": (
+                        "override"
+                        if uses_override
+                        else "default"
+                    ),
+                }
+            )
+
+        prompt_groups.append(
+            {
+                "key": definition["key"],
+                "name": definition["name"],
+                "category": definition["category"],
+                "description": definition["description"],
+                "languages": language_versions,
+            }
+        )
+
+    return render(
+        request,
+        "admin/core/ai_prompts/prompt_list.html",
+        {
+            "prompt_groups": prompt_groups,
+        },
+    )
+
+@login_required
+def admin_ai_prompt_edit(
+    request,
+    key,
+    language,
+):
+    if not is_admin(request.user):
+        return HttpResponseForbidden("No access.")
+
+    # ---------------------------------------------
+    # Validate prompt
+    # ---------------------------------------------
+
+    try:
+        definition = get_ai_prompt_definition(
+            key
+        )
+
+    except KeyError:
+        raise Http404("Unknown AI prompt.")
+
+    # ---------------------------------------------
+    # Validate language
+    # ---------------------------------------------
+
+    language_code = (
+        str(language or "")
+        .strip()
+        .lower()
+        .replace("_", "-")
+        .split("-", 1)[0]
+    )
+
+    if language_code not in {
+        "sv",
+        "en",
+    }:
+        raise Http404("Unsupported AI prompt language.")
+
+    language_config = {
+        "sv": {
+            "label": "Svenska",
+            "flag": "🇸🇪",
+        },
+        "en": {
+            "label": "English",
+            "flag": "🇬🇧",
+        },
+    }
+
+    language_info = language_config[
+        language_code
+    ]
+
+    # ---------------------------------------------
+    # Protected Talena default
+    # ---------------------------------------------
+
+    default_prompt = get_default_ai_prompt(
+        key=key,
+        language=language_code,
+    )
+
+    # ---------------------------------------------
+    # Existing global override
+    # ---------------------------------------------
+
+    override = (
+        AIPromptTemplate.objects
+        .filter(
+            key=key,
+            language=language_code,
+        )
+        .select_related("updated_by")
+        .first()
+    )
+
+    # ---------------------------------------------
+    # POST
+    # ---------------------------------------------
+
+    if request.method == "POST":
+
+        action = (
+            request.POST.get("action")
+            or "save"
+        )
+
+        # -----------------------------------------
+        # Reset to Talena default
+        # -----------------------------------------
+
+        if action == "reset":
+
+            if override:
+                override.is_active = False
+                override.updated_by = request.user
+
+                override.save(
+                    update_fields=[
+                        "is_active",
+                        "updated_by",
+                        "updated_at",
+                    ]
+                )
+
+                messages.success(
+                    request,
+                    (
+                        "The global override was disabled. "
+                        "Talena is now using the protected default."
+                    ),
+                )
+
+            else:
+                messages.info(
+                    request,
+                    "Talena is already using the protected default.",
+                )
+
+            return redirect(
+                "core:admin_ai_prompt_edit",
+                key=key,
+                language=language_code,
+            )
+
+        # -----------------------------------------
+        # Save global override
+        # -----------------------------------------
+
+        prompt_text = (
+            request.POST.get("prompt_text")
+            or ""
+        ).strip()
+
+        if not prompt_text:
+            messages.error(
+                request,
+                "The global AI prompt cannot be empty.",
+            )
+
+        else:
+            override, created = (
+                AIPromptTemplate.objects.update_or_create(
+                    key=key,
+                    language=language_code,
+                    defaults={
+                        "name": definition["name"],
+                        "description": definition["description"],
+                        "prompt_text": prompt_text,
+                        "is_active": True,
+                        "updated_by": request.user,
+                    },
+                )
+            )
+
+            messages.success(
+                request,
+                (
+                    "Global AI prompt saved. "
+                    "Future generations for all customers "
+                    "will use this override."
+                ),
+            )
+
+            return redirect(
+                "core:admin_ai_prompt_edit",
+                key=key,
+                language=language_code,
+            )
+
+    # ---------------------------------------------
+    # Determine current state
+    # ---------------------------------------------
+
+    has_active_override = bool(
+        override
+        and override.is_active
+        and (
+            override.prompt_text
+            or ""
+        ).strip()
+    )
+
+    if override and (
+        override.prompt_text
+        or ""
+    ).strip():
+        editing_text = override.prompt_text.strip()
+
+    else:
+        editing_text = default_prompt
+
+    # Keep submitted text if validation failed.
+    if request.method == "POST":
+        editing_text = (
+            request.POST.get("prompt_text")
+            or ""
+        )
+
+    effective_prompt = (
+        override.prompt_text.strip()
+        if has_active_override
+        else default_prompt
+    )
+
+    return render(
+        request,
+        "admin/core/ai_prompts/prompt_edit.html",
+        {
+            "prompt_definition": definition,
+            "key": key,
+            "language_code": language_code,
+            "language": language_info,
+
+            "default_prompt": default_prompt,
+            "editing_text": editing_text,
+            "effective_prompt": effective_prompt,
+
+            "override": override,
+            "has_active_override": has_active_override,
+        },
+    )
 
 
 from django.http import JsonResponse

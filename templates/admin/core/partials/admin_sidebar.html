@@ -66,6 +66,28 @@
           <span>{% trans "Account settings" %}</span>
         </a>
 
+        <!-- AI -->
+<div class="sidenav-menu-heading">
+  {% trans "AI" %}
+</div>
+
+<a
+  class="
+    nav-link
+    sidebar-link
+{% if request.resolver_match.url_name == 'admin_ai_prompts' or request.resolver_match.url_name == 'admin_ai_prompt_edit' %}
+  active
+{% endif %}
+  "
+  href="{% url 'core:admin_ai_prompts' %}"
+>
+  <div class="nav-link-icon">
+    <i data-feather="cpu"></i>
+  </div>
+
+  <span>{% trans "AI prompts" %}</span>
+</a>
+
 
         <!-- Companies -->
         <div class="sidenav-menu-heading">

@@ -22,6 +22,8 @@ from .language import (
     set_ai_content_language,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 
 # Talena personality UI and response styles language batch 1
 def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
@@ -59,128 +61,7 @@ def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
 
 
 RESPONSE_STYLE_EXPERT_GUIDANCE = """
-GENERAL PRINCIPLE
 
-Response styles provide context for interpreting the personality
-profile. They are not personality traits, measures of ability,
-measures of suitability or proof of honesty.
-
-They may help the practitioner understand how the candidate approached
-the questionnaire and how much additional exploration may be useful.
-
-
-SOCIAL DESIRABILITY
-
-LOW
-- May indicate a relatively self-critical way of describing oneself.
-- Some personality preferences may be stronger than the displayed
-  profile initially suggests.
-- Do not assume low confidence or lack of capability.
-- A useful next step is to ask the candidate which two or three traits
-  someone who knows them well might rate more strongly.
-- Invite the candidate to identify qualities they may have understated.
-
-TYPICAL
-- Usually suggests a reasonably balanced self-presentation.
-- There is no clear tendency towards either overly critical or overly
-  positive self-description.
-- The personality profile may generally be interpreted in the usual way,
-  while still validating important findings with examples.
-
-HIGH
-- May indicate a positive self-presentation.
-- Some preferences may be less pronounced than the profile initially
-  suggests.
-- This must not be interpreted as dishonesty.
-- A useful next step is to ask which two or three traits the candidate
-  may possibly have rated somewhat generously.
-- Validate strong results through specific behavioural examples.
-
-
-PROFILE SPREAD
-
-LOW
-- The responses show less differentiation or consistency across
-  questions connected to the same personality traits.
-- This may have several possible explanations and none should be stated
-  as fact.
-- Possible areas to explore include:
-  - whether the current role matches the person's natural preferences
-  - a recent change of role, tasks, goals or responsibilities
-  - a role that requires several different behaviours
-  - strong situational adaptability
-  - the influence of the current environment, manager or team
-  - reluctance to take a firm position on some questions
-  - uncertainty about how the person typically behaves
-- Use neutral questions and explore context before drawing conclusions.
-
-TYPICAL
-- The candidate appears to have responded consistently in some parts
-  of the questionnaire and with more variation in others.
-- Clearer extremes in the personality profile may be the areas in which
-  the candidate responded most consistently.
-- Validate the most important findings and allow the candidate to add
-  situational nuance.
-
-HIGH
-- The profile shows clear differentiation across the personality traits.
-- The candidate appears to have responded consistently to questions
-  connected to the same traits.
-- The candidate may be more likely to recognise themselves in the
-  resulting personality profile.
-- Strong differences should still be explored rather than treated as
-  fixed behaviour.
-
-
-RATINGS SPREAD
-
-LOW
-- The candidate used a relatively narrow range of response options and
-  made less use of the extreme ends of the scale.
-- The candidate may be inclined to qualify answers or explain that their
-  behaviour depends on the situation.
-- Allow additional time during feedback.
-- Use concrete examples and follow-up questions to help the candidate
-  clarify where their preferences are strongest.
-
-TYPICAL
-- The candidate appears to have used the response scale without a strong
-  preference for either neutral or extreme options.
-- The profile may generally be interpreted in the usual way while still
-  validating important conclusions with examples.
-
-HIGH
-- The candidate used a broad range of response options, including the
-  more extreme ends of the scale.
-- The candidate may express preferences and positions relatively clearly.
-- Strong results should still be validated with examples and should not
-  automatically be interpreted as fixed or inflexible behaviour.
-
-
-KNOWN COMBINATION: PROFILE SPREAD HIGH AND RATINGS SPREAD HIGH
-
-- The candidate used a broad range of ratings and appears to have
-  responded consistently across related questions.
-- The candidate may be relatively likely to recognise themselves in the
-  personality profile.
-- Consider the candidate's current situation when discussing why
-  particular traits are especially pronounced.
-
-
-KNOWN COMBINATION: PROFILE SPREAD LOW AND RATINGS SPREAD HIGH
-
-- The candidate used clear or extreme ratings, while responses across
-  questions connected to the same traits showed less consistency.
-- Do not label this as poor self-awareness.
-- Explore whether the pattern may relate to:
-  - recent changes in role or responsibilities
-  - a role requiring several different behaviours
-  - strong situational adaptation
-  - the influence of a manager, team or working environment
-  - uncertainty about which situation to use as the reference point
-  - a wish to present oneself in a particular way
-- Treat the profile as a starting point for discussion and ask for
-  concrete examples from different situations.
 """.strip()
 
 
@@ -289,6 +170,11 @@ def build_response_style_guidance_prompt(
     language_instruction = get_ai_language_instruction(language_code)
     output_examples = _get_response_style_output_examples(language_code)
 
+    expert_guidance = get_ai_prompt_instructions(
+        key="response_style_guidance",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         guidance_owner
     )
@@ -350,7 +236,7 @@ RESPONSE-STYLE RESULTS
 {response_style_text}
 
 EXPERT INTERPRETATION GUIDANCE
-{RESPONSE_STYLE_EXPERT_GUIDANCE}
+{expert_guidance}
 
 CONTEXT INSTRUCTION
 {context_instruction}

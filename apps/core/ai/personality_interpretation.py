@@ -18,11 +18,75 @@ from .shared_context import (
 from .personality_questions import (
     build_personality_evidence_text,
 )
+from .language import (
+    get_ai_language_instruction,
+    get_ai_system_language_instruction,
+    normalize_ai_language,
+    set_ai_content_language,
+)
+
+from .prompt_templates import get_ai_prompt_instructions
+
+def _personality_interpretation_examples(
+    language_code: str,
+) -> dict[str, Any]:
+    if normalize_ai_language(language_code) == "sv":
+        return {
+            "title": "Personlighetstolkning",
+            "label": "AI-stödd tolkning",
+            "first": "Första delen av tolkningen. ",
+            "next": "Nästa del av tolkningen. ",
+            "dynamics": (
+                "En praktisk förklaring av hur viktiga "
+                "personlighetspreferenser kan samverka."
+            ),
+            "support": [
+                "Första potentiellt stödjande mönstret",
+                "Andra potentiellt stödjande mönstret",
+                "Tredje potentiellt stödjande mönstret",
+            ],
+            "explore": [
+                "Första området att utforska",
+                "Andra området att utforska",
+                "Tredje området att utforska",
+            ],
+            "context": (
+                "Kort förklaring av underlaget, kontexten "
+                "och tolkningens begränsningar."
+            ),
+        }
+
+    return {
+        "title": "Personality interpretation",
+        "label": "AI-supported interpretation",
+        "first": "First part of the interpretation. ",
+        "next": "Next part of the interpretation. ",
+        "dynamics": (
+            "A practical explanation of how important personality "
+            "preferences may work together."
+        ),
+        "support": [
+            "Pattern one",
+            "Pattern two",
+            "Pattern three",
+        ],
+        "explore": [
+            "Area one",
+            "Area two",
+            "Area three",
+        ],
+        "context": (
+            "Brief explanation of the evidence, context and limitations."
+        ),
+    }
+
 
 
 def build_personality_interpretation_prompt(
     owner,
     personality_results: list[dict[str, Any]],
+    *,
+    language_code: str = "en",
 ) -> str:
     """
     Build the prompt for Talena's combined personality interpretation.
@@ -30,6 +94,8 @@ def build_personality_interpretation_prompt(
     Response styles and interview questions are handled separately.
     This interpretation focuses on the personality trait profile as a whole.
     """
+
+    language_code = normalize_ai_language(language_code)
 
     shared_context = build_shared_ai_context(
         owner
@@ -68,7 +134,7 @@ State clearly that the practical relevance of the personality profile
 depends on the actual situation and should be explored further.
 """.strip()
 
-    return f"""
+    prompt = f"""
 You are generating an AI-supported personality interpretation for
 Talena, an assessment and talent management platform.
 
@@ -256,20 +322,96 @@ Together, these events form the complete overall interpretation.
 {{"type":"done"}}
 """.strip()
 
+    # Replace the base English language instruction with Talena's
+    # language-aware instruction while keeping technical JSON values stable.
+    prompt = prompt.replace(
+        "- Write in professional, clear English.",
+        get_ai_language_instruction(language_code),
+        1,
+    )
+
+    # Localize user-facing examples used in the required NDJSON output.
+    examples = _personality_interpretation_examples(language_code)
+
+    replacements = {
+        '"title":"Personality interpretation"': (
+            f'"title":"{examples["title"]}"'
+        ),
+        '"label":"AI-supported interpretation"': (
+            f'"label":"{examples["label"]}"'
+        ),
+        "First part of the interpretation. ": examples["first"],
+        "Next part of the interpretation. ": examples["next"],
+        (
+            "A practical explanation of how important personality "
+            "preferences may work together."
+        ): examples["dynamics"],
+        "Pattern one": examples["support"][0],
+        "Pattern two": examples["support"][1],
+        "Pattern three": examples["support"][2],
+        "Area one": examples["explore"][0],
+        "Area two": examples["explore"][1],
+        "Area three": examples["explore"][2],
+        (
+            "Brief explanation of the evidence, context and limitations."
+        ): examples["context"],
+    }
+
+    for old, new in replacements.items():
+        prompt = prompt.replace(old, new)
+
+    # Add administrator-editable guidance without exposing the protected
+    # evidence boundaries or technical streaming contract to administrators.
+    admin_instructions = get_ai_prompt_instructions(
+        key="personality_interpretation",
+        language=language_code,
+    )
+
+    admin_guidance_block = f"""
+ADMIN-EDITABLE GUIDANCE
+
+The following instructions control the desired tone, emphasis and style
+of this Talena interpretation.
+
+They may influence how the interpretation is expressed, but they must
+not override the evidence boundaries, interpretation rules, safety
+requirements or technical output format defined elsewhere in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes priority.
+""".strip()
+
+    output_format_marker = "STREAMING OUTPUT FORMAT"
+
+    if output_format_marker in prompt:
+        prompt = prompt.replace(
+            output_format_marker,
+            f"{admin_guidance_block}\n\n{output_format_marker}",
+            1,
+        )
+    else:
+        prompt = f"{prompt}\n\n{admin_guidance_block}"
+
+    return prompt
 
 def create_empty_personality_interpretation(
     owner,
+    *,
+    language_code: str = "en",
 ) -> dict[str, Any]:
+    examples = _personality_interpretation_examples(language_code)
+
     return {
-        "title": "Personality interpretation",
-        "label": "AI-supported interpretation",
+        "title": examples["title"],
+        "label": examples["label"],
         "interpretation": "",
         "profile_dynamics": "",
         "supportive_patterns": [],
         "areas_to_explore": [],
         "context_note": "",
     }
-
 
 def apply_personality_interpretation_event(
     interpretation: dict[str, Any],
@@ -332,7 +474,6 @@ def apply_personality_interpretation_event(
 
     return interpretation
 
-
 def _parse_event_line(
     raw_line: str,
 ) -> dict[str, Any] | None:
@@ -361,11 +502,11 @@ def _parse_event_line(
 
     return event
 
-
 def stream_personality_interpretation(
     *,
     owner,
     personality_results: list[dict[str, Any]],
+    language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
     Stream personality interpretation events from OpenAI.
@@ -376,11 +517,18 @@ def stream_personality_interpretation(
             "No personality assessment results are available."
         )
 
+    language_code = normalize_ai_language(language_code)
+
     client = get_openai_client()
 
     prompt = build_personality_interpretation_prompt(
         owner=owner,
         personality_results=personality_results,
+        language_code=language_code,
+    )
+
+    system_language_instruction = (
+        get_ai_system_language_instruction(language_code)
     )
 
     stream = client.chat.completions.create(
@@ -393,7 +541,8 @@ def stream_personality_interpretation(
                     "personality assessment consultant. Treat personality "
                     "results as hypotheses rather than facts, do not "
                     "invent context, and follow the requested NDJSON "
-                    "streaming format exactly."
+                    "streaming format exactly. "
+                    f"{system_language_instruction}"
                 ),
             },
             {
@@ -435,15 +584,17 @@ def stream_personality_interpretation(
     if final_event:
         yield final_event
 
-
 def save_personality_interpretation(
     *,
     owner,
     interpretation: dict[str, Any],
+    language_code: str = "en",
 ):
     """
-    Save a completed personality interpretation.
+    Save a completed personality interpretation and its language metadata.
     """
+
+    language_code = normalize_ai_language(language_code)
 
     interpretation["interpretation"] = (
         interpretation.get("interpretation")
@@ -486,6 +637,14 @@ def save_personality_interpretation(
         if str(item).strip()
     ]
 
+    interpretation["_language"] = language_code
+
+    set_ai_content_language(
+        owner,
+        "personality_interpretation",
+        language_code,
+    )
+
     owner.ai_personality_interpretation = (
         interpretation
     )
@@ -504,169 +663,18 @@ def save_personality_interpretation(
         )
     )
 
-    owner.save(update_fields=[
+    update_fields = [
         "ai_personality_interpretation",
         "ai_personality_interpretation_status",
         "ai_personality_interpretation_generated_at",
         "ai_personality_interpretation_purpose",
-    ])
+    ]
 
-# Talena personality language batch 1
-from contextvars import ContextVar as _ContextVar
-from .language import (
-    get_ai_language_instruction,
-    normalize_ai_language,
-    set_ai_content_language,
-)
-
-_personality_interpretation_language = _ContextVar(
-    "personality_interpretation_language",
-    default="en",
-)
-
-_original_build_personality_interpretation_prompt = (
-    build_personality_interpretation_prompt
-)
-_original_create_empty_personality_interpretation = (
-    create_empty_personality_interpretation
-)
-_original_stream_personality_interpretation = (
-    stream_personality_interpretation
-)
-_original_save_personality_interpretation = (
-    save_personality_interpretation
-)
-
-
-def _personality_interpretation_examples(language_code: str) -> dict[str, str]:
-    if normalize_ai_language(language_code) == "sv":
-        return {
-            "title": "Personlighetstolkning",
-            "label": "AI-stödd tolkning",
-            "first": "Första delen av tolkningen. ",
-            "next": "Nästa del av tolkningen. ",
-            "dynamics": (
-                "En praktisk förklaring av hur viktiga "
-                "personlighetspreferenser kan samverka."
-            ),
-            "support": [
-                "Första potentiellt stödjande mönstret",
-                "Andra potentiellt stödjande mönstret",
-                "Tredje potentiellt stödjande mönstret",
-            ],
-            "explore": [
-                "Första området att utforska",
-                "Andra området att utforska",
-                "Tredje området att utforska",
-            ],
-            "context": (
-                "Kort förklaring av underlaget, kontexten "
-                "och tolkningens begränsningar."
-            ),
-        }
-
-    return {
-        "title": "Personality interpretation",
-        "label": "AI-supported interpretation",
-    }
-
-
-def build_personality_interpretation_prompt(
-    owner,
-    personality_results: list[dict[str, Any]],
-    *,
-    language_code: str | None = None,
-) -> str:
-    language_code = normalize_ai_language(
-        language_code or _personality_interpretation_language.get()
-    )
-    prompt = _original_build_personality_interpretation_prompt(
-        owner,
-        personality_results,
-    )
-    prompt = prompt.replace(
-        "- Write in professional, clear English.",
-        get_ai_language_instruction(language_code),
-        1,
-    )
-
-    if language_code == "sv":
-        examples = _personality_interpretation_examples(language_code)
-        replacements = {
-            '"title":"Personality interpretation"': (
-                f'"title":"{examples["title"]}"'
-            ),
-            '"label":"AI-supported interpretation"': (
-                f'"label":"{examples["label"]}"'
-            ),
-            "First part of the interpretation. ": examples["first"],
-            "Next part of the interpretation. ": examples["next"],
-            (
-                "A practical explanation of how important personality "
-                "preferences may work together."
-            ): examples["dynamics"],
-            "Pattern one": examples["support"][0],
-            "Pattern two": examples["support"][1],
-            "Pattern three": examples["support"][2],
-            "Area one": examples["explore"][0],
-            "Area two": examples["explore"][1],
-            "Area three": examples["explore"][2],
-            (
-                "Brief explanation of the evidence, context and limitations."
-            ): examples["context"],
-        }
-        for old, new in replacements.items():
-            prompt = prompt.replace(old, new)
-
-    return prompt
-
-
-def create_empty_personality_interpretation(
-    owner,
-    *,
-    language_code: str = "en",
-) -> dict[str, Any]:
-    result = _original_create_empty_personality_interpretation(owner)
-    examples = _personality_interpretation_examples(language_code)
-    result["title"] = examples["title"]
-    result["label"] = examples["label"]
-    return result
-
-
-def stream_personality_interpretation(
-    *,
-    owner,
-    personality_results: list[dict[str, Any]],
-    language_code: str = "en",
-) -> Iterable[dict[str, Any]]:
-    language_code = normalize_ai_language(language_code)
-    token = _personality_interpretation_language.set(language_code)
-    try:
-        yield from _original_stream_personality_interpretation(
-            owner=owner,
-            personality_results=personality_results,
-        )
-    finally:
-        _personality_interpretation_language.reset(token)
-
-
-def save_personality_interpretation(
-    *,
-    owner,
-    interpretation: dict[str, Any],
-    language_code: str = "en",
-):
-    language_code = normalize_ai_language(language_code)
-    interpretation["_language"] = language_code
-    set_ai_content_language(
-        owner,
-        "personality_interpretation",
-        language_code,
-    )
-    _original_save_personality_interpretation(
-        owner=owner,
-        interpretation=interpretation,
-    )
     if hasattr(owner, "ai_content_languages"):
-        owner.save(update_fields=["ai_content_languages"])
+        update_fields.append(
+            "ai_content_languages"
+        )
 
+    owner.save(
+        update_fields=update_fields
+    )

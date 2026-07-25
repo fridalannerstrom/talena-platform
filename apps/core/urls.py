@@ -32,4 +32,14 @@ urlpatterns = [
         views.customer_activity,
         name="customer_activity",
     ),
+    path(
+        "admin-ai-prompts/",
+        views.admin_ai_prompts,
+        name="admin_ai_prompts",
+    ),
+    path(
+        "admin-ai-prompts/<str:key>/<str:language>/",
+        views.admin_ai_prompt_edit,
+        name="admin_ai_prompt_edit",
+    ),
 ]

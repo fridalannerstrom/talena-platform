@@ -1241,3 +1241,98 @@ class HistoricalAssessmentScore(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.score or self.percentile}"
+
+
+class AIPromptTemplate(models.Model):
+    """
+    Editable business instructions for an AI feature.
+
+    Technical instructions, safety rules and required output formats
+    should remain protected in the application code.
+    """
+
+    LANGUAGE_CHOICES = [
+        ("sv", "Swedish"),
+        ("en", "English"),
+    ]
+
+    key = models.CharField(
+        max_length=100,
+        help_text=(
+            "Stable technical key used by the application, "
+            "for example personality_interpretation."
+        ),
+    )
+
+    name = models.CharField(
+        max_length=200,
+        help_text="Human-readable name shown to administrators.",
+    )
+
+    description = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Explain what this prompt controls and where "
+            "the generated content is displayed."
+        ),
+    )
+
+    language = models.CharField(
+        max_length=10,
+        choices=LANGUAGE_CHOICES,
+        default="sv",
+    )
+
+    prompt_text = models.TextField(
+        help_text=(
+            "Editable instructions for tone, focus, length "
+            "and interpretation style."
+        ),
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "When inactive, Talena will fall back to the "
+            "protected default prompt in the code."
+        ),
+    )
+
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_ai_prompt_templates",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = [
+            "name",
+            "language",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "key",
+                    "language",
+                ],
+                name="unique_ai_prompt_key_language",
+            ),
+        ]
+
+        verbose_name = "AI prompt"
+        verbose_name_plural = "AI prompts"
+
+    def __str__(self):
+        return f"{self.name} ({self.language.upper()})"

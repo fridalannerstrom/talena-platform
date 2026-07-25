@@ -1,0 +1,329 @@
+{% extends "admin/core/layouts/admin_base.html" %}
+{% load static i18n %}
+
+{% block content %}
+
+<div class="container-fluid px-2 px-md-3">
+
+  <!-- Header -->
+
+  <div class="mb-4">
+
+    <h1 class="mb-1">
+      {% trans "AI prompts" %}
+    </h1>
+
+    <p class="text-muted mb-0">
+      {% trans "Manage Talena's global AI instructions and psychometric guidance." %}
+    </p>
+
+  </div>
+
+
+  <!-- Global information -->
+
+  <div class="alert alert-light border mb-4">
+
+    <div class="d-flex gap-3 align-items-start">
+
+      <div>
+        <i
+          data-feather="globe"
+          style="width: 18px; height: 18px;"
+        ></i>
+      </div>
+
+      <div>
+
+        <div class="fw-semibold mb-1">
+          {% trans "Global AI configuration" %}
+        </div>
+
+        <div class="small text-muted">
+          {% trans "Changes made here affect future AI-generated content for all customers in Talena. Protected defaults remain available as a fallback." %}
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  {% if prompt_groups %}
+
+    {% regroup prompt_groups by category as category_groups %}
+
+    <div class="d-flex flex-column gap-4">
+
+      {% for category in category_groups %}
+
+        <section>
+
+          <!-- Category heading -->
+
+          <div
+            class="
+              d-flex
+              align-items-center
+              gap-2
+              mb-2
+              px-1
+            "
+          >
+
+            <div
+              class="
+                text-uppercase
+                small
+                fw-semibold
+                text-muted
+              "
+            >
+              {{ category.grouper }}
+            </div>
+
+            <div
+              class="flex-grow-1 border-top"
+              style="opacity: 0.6;"
+            ></div>
+
+          </div>
+
+
+          <!-- Prompt list -->
+
+          <div
+            class="
+              card
+              border-0
+              shadow-sm
+              overflow-hidden
+            "
+          >
+
+            <div class="list-group list-group-flush">
+
+              {% for prompt in category.list %}
+
+                <div
+                  class="
+                    list-group-item
+                    px-4
+                    py-3
+                  "
+                >
+
+                  <div
+                    class="
+                      d-flex
+                      align-items-center
+                      justify-content-between
+                      flex-wrap
+                      gap-3
+                    "
+                  >
+
+                    <!-- Prompt information -->
+
+                    <div class="flex-grow-1">
+
+                      <div
+                        class="
+                          d-flex
+                          align-items-center
+                          flex-wrap
+                          gap-2
+                          mb-1
+                        "
+                      >
+
+                        <div class="fw-semibold">
+                          {{ prompt.name }}
+                        </div>
+
+                        <code
+                          class="small"
+                          style="font-size: 0.7rem;"
+                        >
+                          {{ prompt.key }}
+                        </code>
+
+                      </div>
+
+                      {% if prompt.description %}
+
+                        <div
+                          class="small text-muted"
+                          style="max-width: 760px;"
+                        >
+                          {{ prompt.description }}
+                        </div>
+
+                      {% endif %}
+
+                    </div>
+
+
+                    <!-- Languages -->
+
+                    <div
+                      class="
+                        d-flex
+                        align-items-center
+                        flex-wrap
+                        gap-2
+                      "
+                    >
+
+                      {% for version in prompt.languages %}
+
+                        <a
+                          href="{% url 'core:admin_ai_prompt_edit' prompt.key version.code %}"
+                          class="
+                            btn
+                            btn-sm
+                            rounded-pill
+                            d-inline-flex
+                            align-items-center
+                            gap-2
+
+                            {% if version.uses_override %}
+                              btn-outline-primary
+                            {% else %}
+                              btn-outline-secondary
+                            {% endif %}
+                          "
+                        >
+
+                          <span>
+                            {{ version.flag }}
+                          </span>
+
+                          <span>
+                            {% if version.code == "sv" %}
+                              SV
+                            {% else %}
+                              EN
+                            {% endif %}
+                          </span>
+
+
+                          {% if version.uses_override %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                bg-primary-subtle
+                                text-primary
+                              "
+                            >
+                              {% trans "Override" %}
+                            </span>
+
+                          {% else %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                border
+                                text-secondary
+                              "
+                            >
+                              {% trans "Default" %}
+                            </span>
+
+                          {% endif %}
+
+                        </a>
+
+                      {% endfor %}
+
+
+                      <i
+                        data-feather="chevron-right"
+                        class="text-muted ms-1"
+                        style="
+                          width: 18px;
+                          height: 18px;
+                        "
+                      ></i>
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- Inactive override warning -->
+
+                  {% for version in prompt.languages %}
+
+                    {% if version.has_override and not version.uses_override %}
+
+                      {% if not version.override.is_active %}
+
+                        <div
+                          class="
+                            small
+                            text-muted
+                            mt-2
+                          "
+                        >
+
+                          {{ version.flag }}
+
+                          {% trans "A saved override exists but is inactive. Talena is using the protected default." %}
+
+                        </div>
+
+                      {% endif %}
+
+                    {% endif %}
+
+                  {% endfor %}
+
+                </div>
+
+              {% endfor %}
+
+            </div>
+
+          </div>
+
+        </section>
+
+      {% endfor %}
+
+    </div>
+
+
+  {% else %}
+
+    <div class="card border-0 shadow-sm">
+
+      <div class="card-body p-5 text-center">
+
+        <i
+          data-feather="cpu"
+          class="mb-3"
+        ></i>
+
+        <h5>
+          {% trans "No AI features registered" %}
+        </h5>
+
+        <p class="text-muted mb-0">
+          {% trans "No administrator-editable AI prompts are currently registered in Talena." %}
+        </p>
+
+      </div>
+
+    </div>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}
