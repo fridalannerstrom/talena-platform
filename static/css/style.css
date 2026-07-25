@@ -32128,6 +32128,85 @@ color: #6E63E3;
   }
 }
 
+/* ==========================================================
+   TALENA MODE SWITCHER
+   Workspace / Admin
+   ========================================================== */
+
+.talena-mode-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+
+  margin: 0 16px 18px;
+  padding: 4px;
+
+  background: #f5f3f8;
+  border: 1px solid #ebe7f1;
+  border-radius: 12px;
+}
+
+.talena-mode-switcher__option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 9px;
+
+  border-radius: 9px;
+
+  color: #747b88;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.talena-mode-switcher__option:hover {
+  color: #373042;
+  background: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+}
+
+.talena-mode-switcher__option:focus-visible {
+  outline: 2px solid #8f75e8;
+  outline-offset: 2px;
+}
+
+.talena-mode-switcher__option.is-active {
+  color: #4f3d78;
+  background: #ffffff;
+  box-shadow:
+    0 1px 2px rgba(28, 20, 43, 0.06),
+    0 4px 12px rgba(73, 52, 110, 0.08);
+}
+
+.talena-mode-switcher__option:active {
+  transform: translateY(1px);
+}
+
+.talena-mode-switcher__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  stroke-width: 1.8;
+}
+
+@media (max-width: 991.98px) {
+  .talena-mode-switcher {
+    margin-right: 12px;
+    margin-left: 12px;
+  }
+}
 
 
 /* =========================================================

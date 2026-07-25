@@ -17,7 +17,7 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
-from django.core.paginator import Paginator
+
 
 from apps.core.ai.decision_support import (
     create_empty_pre_interview_decision_support,
@@ -8343,12 +8343,15 @@ def process_create_v2(request):
 
             if not resolved_template:
                 selected_labels = [
-                    test["label"]
+                    str(test["label"])
                     for test in AVAILABLE_TESTS
                     if test["key"] in selected_tests
                 ]
 
-                selected_label = " + ".join(selected_labels) or "the selected tests"
+                selected_label = (
+                    " + ".join(selected_labels)
+                    or _("the selected tests")
+                )
 
                 form.add_error(
                     "selected_tests",

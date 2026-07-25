@@ -1,32 +1,46 @@
-{% load static %}
+{% load static i18n %}
 
-<nav class="topnav navbar navbar-expand justify-content-between justify-content-sm-start navbar-light bg-white border"
-     id="sidenavAccordion">
+<nav
+  class="
+    topnav
+    navbar
+    navbar-expand
+    justify-content-between
+    navbar-light
+    bg-white
+    talena-topnav
+  "
+  id="sidenavAccordion"
+>
 
-    <!-- Sidenav Toggle Button -->
-    <button class="btn btn-icon btn-transparent-dark order-1 order-lg-0 me-2 ms-lg-2 me-lg-0"
-            id="sidebarToggle">
-        <i data-feather="menu"></i>
-    </button>
+  <!-- Navbar Search Input -->
+  <form class="me-3 d-none d-lg-block py-1">
+    <div class="position-relative nav-search">
 
-    <!-- Navbar Brand -->
-    <a class="navbar-brand pe-3 ps-4 ps-lg-2" href="{% url 'core:admin_dashboard' %}">
-        <img src="{% static 'images/talena-logo.svg' %}" alt="Talena" class="brand-logo">
-    </a>
+      <i
+        data-feather="search"
+        class="nav-search-icon"
+      ></i>
 
-    <!-- Navbar Search Input -->
-    <form class="me-3 d-none d-lg-block py-1">
-        <div class="position-relative nav-search" style="width: 420px;">
-            <input id="globalSearchInput"
-                   class="form-control"
-                   type="search"
-                   placeholder="Search"
-                   autocomplete="off">
-            <div id="globalSearchDropdown" class="dropdown-menu w-100"></div>
-        </div>
-    </form>
+      <input
+        id="globalSearchInput"
+        class="form-control"
+        type="search"
+        placeholder="{% trans 'Search' %}"
+        aria-label="{% trans 'Search' %}"
+        autocomplete="off"
+      >
 
-    <!-- Navbar Items -->
+      <div
+        id="globalSearchDropdown"
+        class="dropdown-menu w-100"
+      ></div>
+
+    </div>
+  </form>
+
+
+  <!-- Navbar Items -->
     <ul class="navbar-nav align-items-center ms-auto">
 
         {% comment %}
@@ -179,7 +193,10 @@
 
                 <div class="dropdown-divider"></div>
 
-                <a class="dropdown-item" href="{% url 'portal:settings' %}">
+                <a
+  class="dropdown-item"
+  href="{% url 'portal:settings' %}?mode=admin"
+>
                     <div class="dropdown-item-icon">
                         <i data-feather="settings"></i>
                     </div>

@@ -1,0 +1,52 @@
+{% load i18n %}
+
+{% if request.user.role == "admin" or request.user.is_staff or request.user.is_superuser %}
+
+  <nav
+    class="talena-mode-switcher"
+    aria-label="{% trans 'Talena mode' %}"
+  >
+    <a
+      href="{% url 'core:customer_dashboard' %}"
+      class="
+        talena-mode-switcher__option
+        {% if active_mode == 'workspace' %}
+          is-active
+        {% endif %}
+      "
+      {% if active_mode == "workspace" %}
+        aria-current="page"
+      {% endif %}
+    >
+      <i
+        data-feather="briefcase"
+        class="talena-mode-switcher__icon"
+        aria-hidden="true"
+      ></i>
+
+      <span>{% trans "Workspace" %}</span>
+    </a>
+
+    <a
+      href="{% url 'core:admin_dashboard' %}"
+      class="
+        talena-mode-switcher__option
+        {% if active_mode == 'admin' %}
+          is-active
+        {% endif %}
+      "
+      {% if active_mode == "admin" %}
+        aria-current="page"
+      {% endif %}
+    >
+      <i
+        data-feather="shield"
+        class="talena-mode-switcher__icon"
+        aria-hidden="true"
+      ></i>
+
+      <span>{% trans "Admin" %}</span>
+    </a>
+  </nav>
+
+{% endif %}

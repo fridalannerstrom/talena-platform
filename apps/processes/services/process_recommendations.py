@@ -1,5 +1,8 @@
 from django.utils.translation import gettext_lazy as _
 
+import re
+
+
 PROCESS_PURPOSES = [
     {
         "key": "hiring",
@@ -153,19 +156,46 @@ TEST_ORDER = (
 
 def extract_tests_from_project_name(project_name):
     """
-    Extract Talena test keys from a Sova project name.
+    Extract canonical Talena test keys from a Sova project name.
 
-    Example:
-    'Personality + Motivation + Logical'
-    becomes:
-    ['personality', 'motivation', 'logical']
+    Supports:
+    - English names
+    - Swedish names
+    - PQ and MQ abbreviations
+    - Common separators such as +, /, -, _ and |
     """
-    name = str(project_name or "").lower()
+    name = str(project_name or "").strip().lower()
+
+    if not name:
+        return []
+
+    searchable_name = re.sub(
+        r"[_+\-/|]+",
+        " ",
+        name,
+    )
+    searchable_name = " ".join(searchable_name.split())
+
+    detected_tests = set()
+
+    for alias, test_key in TEST_ALIASES.items():
+        if len(alias) <= 2:
+            # Avoid matching PQ or MQ inside unrelated words.
+            pattern = rf"(?<!\w){re.escape(alias)}(?!\w)"
+            is_match = re.search(
+                pattern,
+                searchable_name,
+            )
+        else:
+            is_match = alias in searchable_name
+
+        if is_match:
+            detected_tests.add(test_key)
 
     return [
         test_key
         for test_key in TEST_ORDER
-        if test_key in name
+        if test_key in detected_tests
     ]
 
 
@@ -177,8 +207,11 @@ TEST_ALIASES = {
     "logical": "logical",
     "numerical": "numerical",
 
-    # Swedish fallbacks, in case ProjectMeta contains Swedish names
+    # Swedish fallbacks
     "personlighet": "personality",
+    "personlighetstest": "personality",
+    "personlighetsformulär": "personality",
+    "motivation": "motivation",
     "motivationstest": "motivation",
     "verbal förmåga": "verbal",
     "logisk": "logical",

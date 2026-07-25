@@ -17,6 +17,8 @@
       </a>
     </div>
 
+    {% include "shared/partials/talena_mode_switcher.html" with active_mode="workspace" %}
+
 
     <!-- Sidebar navigation -->
     <div class="sidenav-menu">
@@ -55,7 +57,7 @@
               active
             {% endif %}
           "
-          href="{% url 'portal:settings' %}"
+          href="{% url 'portal:settings' %}?mode=workspace"
         >
           <div class="nav-link-icon">
             <i data-feather="settings"></i>
@@ -146,25 +148,6 @@
 
       </div>
     </div>
-
-    {% if request.user.role == "admin" or request.user.is_staff or request.user.is_superuser %}
-
-  <div class="sidenav-menu-heading">
-    {% trans "Administration" %}
-  </div>
-
-  <a
-    class="nav-link sidebar-link"
-    href="{% url 'core:admin_dashboard' %}"
-  >
-    <div class="nav-link-icon">
-      <i data-feather="shield"></i>
-    </div>
-
-    <span>{% trans "Admin dashboard" %}</span>
-  </a>
-
-{% endif %}
 
     <!-- Sidebar footer -->
     <div class="sidenav-footer talena-sidebar-footer">

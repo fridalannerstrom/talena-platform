@@ -17,10 +17,35 @@ def portal_settings(request):
 
     is_admin = is_admin_user(user)
 
+    requested_mode = (
+        request.GET.get("mode")
+        or ""
+    ).strip().lower()
+
     if is_admin:
-        template_name = "admin/portal/settings.html"
+        # Interna admins kan växla mellan workspace och admin.
+        if requested_mode in {"workspace", "admin"}:
+            request.session["talena_mode"] = requested_mode
+
+        active_mode = request.session.get(
+            "talena_mode",
+            "admin",
+        )
+
+        # Säker fallback om sessionen skulle innehålla något oväntat.
+        if active_mode not in {"workspace", "admin"}:
+            active_mode = "admin"
+            request.session["talena_mode"] = active_mode
+
     else:
-        template_name = "customer/portal/settings.html"
+        # Externa kunder får aldrig adminläget.
+        active_mode = "workspace"
+
+    template_name = (
+        "admin/portal/settings.html"
+        if active_mode == "admin"
+        else "customer/portal/settings.html"
+    )
 
     account_form = AccountForm(
         instance=user
@@ -165,5 +190,6 @@ def portal_settings(request):
             "image_form": image_form,
             "password_form": password_form,
             "is_admin": is_admin,
+            "active_mode": active_mode,
         },
     )
