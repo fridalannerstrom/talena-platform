@@ -1,75 +1,423 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+
 <!doctype html>
-<html lang="en">
+<html lang="{{ CURRENT_LANGUAGE }}">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Log in | Talena</title>
+  <meta charset="utf-8">
 
-  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>{% trans "Log in" %} | Talena</title>
+
+  <link
+    rel="stylesheet"
+    href="{% static 'css/auth.css' %}"
+  >
 </head>
 
 <body>
+
   <main class="auth-shell">
+
     <!-- LEFT -->
     <section class="auth-left">
-      <header class="brand">
-        <img src="{% static 'images/talena-logo.svg' %}" alt="Talena" class="brand-logo" />
+
+      <header class="brand registration-topbar">
+
+        <img
+          src="{% static 'images/talena-logo.svg' %}"
+          alt="Talena"
+          class="brand-logo"
+        >
+
+        <!-- Language dropdown -->
+        <div
+          class="registration-language-dropdown"
+          data-registration-language-dropdown
+        >
+          <button
+            type="button"
+            class="registration-language-trigger"
+            data-registration-language-trigger
+            aria-expanded="false"
+            aria-controls="loginLanguageMenu"
+            aria-label="{% trans 'Choose language' %}"
+          >
+            <span
+              class="registration-language-current-flag"
+              aria-hidden="true"
+            >
+              {% if CURRENT_LANGUAGE == "sv" %}
+                <img
+                  src="{% static 'images/flags/sv.svg' %}"
+                  alt=""
+                  class="registration-language-flag"
+                >
+              {% else %}
+                <img
+                  src="{% static 'images/flags/en.svg' %}"
+                  alt=""
+                  class="registration-language-flag"
+                >
+              {% endif %}
+            </span>
+
+            <span class="registration-language-current-label">
+              {% if CURRENT_LANGUAGE == "sv" %}
+                Svenska
+              {% else %}
+                English
+              {% endif %}
+            </span>
+
+            <span
+              class="registration-language-chevron"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 9L12 15L18 9"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+
+          <form
+            action="{% url 'set_language' %}"
+            method="post"
+            class="registration-language-menu"
+            id="loginLanguageMenu"
+            data-registration-language-menu
+            hidden
+          >
+            {% csrf_token %}
+
+            <input
+              type="hidden"
+              name="next"
+              value="{{ request.get_full_path }}"
+            >
+
+            <div class="registration-language-menu-label">
+              {% trans "Choose language" %}
+            </div>
+
+            <!-- Swedish -->
+            <button
+              type="submit"
+              name="language"
+              value="sv"
+              class="
+                registration-language-option
+                {% if CURRENT_LANGUAGE == 'sv' %}is-active{% endif %}
+              "
+              {% if CURRENT_LANGUAGE == "sv" %}
+                aria-current="true"
+              {% endif %}
+            >
+              <span
+                class="registration-language-option-flag"
+                aria-hidden="true"
+              >
+                <img
+                  src="{% static 'images/flags/sv.svg' %}"
+                  alt=""
+                  class="registration-language-flag"
+                >
+              </span>
+
+              <span class="registration-language-option-copy">
+                <span class="registration-language-option-name">
+                  Svenska
+                </span>
+              </span>
+
+              {% if CURRENT_LANGUAGE == "sv" %}
+                <span
+                  class="registration-language-option-check"
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              {% endif %}
+            </button>
+
+            <!-- English -->
+            <button
+              type="submit"
+              name="language"
+              value="en"
+              class="
+                registration-language-option
+                {% if CURRENT_LANGUAGE == 'en' %}is-active{% endif %}
+              "
+              {% if CURRENT_LANGUAGE == "en" %}
+                aria-current="true"
+              {% endif %}
+            >
+              <span
+                class="registration-language-option-flag"
+                aria-hidden="true"
+              >
+                <img
+                  src="{% static 'images/flags/en.svg' %}"
+                  alt=""
+                  class="registration-language-flag"
+                >
+              </span>
+
+              <span class="registration-language-option-copy">
+                <span class="registration-language-option-name">
+                  English
+                </span>
+              </span>
+
+              {% if CURRENT_LANGUAGE == "en" %}
+                <span
+                  class="registration-language-option-check"
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              {% endif %}
+            </button>
+
+          </form>
+        </div>
+
       </header>
 
       <div class="auth-card">
-        <h1 class="auth-title">Log in to Talena</h1>
-        <p class="auth-subtitle">Welcome! Log in to continue your work in Talena.</p>
 
-        <form method="post" class="auth-form" novalidate>
+        <h1 class="auth-title">
+          {% trans "Log in to Talena" %}
+        </h1>
+
+        <p class="auth-subtitle">
+          {% trans "Welcome! Log in to continue your work in Talena." %}
+        </p>
+
+        <form
+          method="post"
+          class="auth-form"
+          novalidate
+        >
           {% csrf_token %}
 
-          {% if form.non_field_errors %}
-          <div class="alert">
-            {{ form.non_field_errors }}
-          </div>
+          {% if next %}
+            <input
+              type="hidden"
+              name="next"
+              value="{{ next }}"
+            >
           {% endif %}
 
-          <div class="field">
-            <label class="label" for="{{ form.username.id_for_label }}">Email:</label>
+          {% if form.non_field_errors %}
+            <div class="alert" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div
+            class="
+              field
+              {% if form.username.errors %}has-error{% endif %}
+            "
+          >
+            <label
+              class="label"
+              for="{{ form.username.id_for_label }}"
+            >
+              {% trans "Email" %}
+            </label>
+
             {{ form.username }}
+
             {% if form.username.errors %}
-            <div class="field-error">{{ form.username.errors }}</div>
+              <div class="field-error">
+                {{ form.username.errors }}
+              </div>
             {% endif %}
           </div>
 
-          <div class="field">
-            <label class="label" for="{{ form.password.id_for_label }}">Password:</label>
+          <div
+            class="
+              field
+              {% if form.password.errors %}has-error{% endif %}
+            "
+          >
+            <label
+              class="label"
+              for="{{ form.password.id_for_label }}"
+            >
+              {% trans "Password" %}
+            </label>
+
             {{ form.password }}
+
             {% if form.password.errors %}
-            <div class="field-error">{{ form.password.errors }}</div>
+              <div class="field-error">
+                {{ form.password.errors }}
+              </div>
             {% endif %}
           </div>
 
-          <button class="btn" type="submit">Log in</button>
+          <button
+            class="btn"
+            type="submit"
+          >
+            {% trans "Log in" %}
+          </button>
 
           <p class="auth-foot">
-            Don’t have a Talena account?
-            <a class="link" href="">Get started here</a>
+            {% trans "Don't have a Talena account?" %}
+
+            <a class="link" href="">
+              {% trans "Get started here" %}
+            </a>
           </p>
+
         </form>
+
       </div>
+
     </section>
 
     <!-- RIGHT -->
-    <aside class="auth-right" aria-hidden="true"></aside>
+    <aside
+      class="auth-right"
+      aria-hidden="true"
+    ></aside>
+
   </main>
 
-  <!-- Small form widget fix: adds classes + placeholders if you do not want to change forms.py yet -->
+  <!-- Login fields -->
   <script>
     (function () {
-      const u = document.getElementById("id_username");
-      const p = document.getElementById("id_password");
-      if (u) { u.classList.add("input"); u.placeholder = ""; }
-      if (p) { p.classList.add("input"); p.placeholder = ""; }
+      const usernameField =
+        document.getElementById("id_username");
+
+      const passwordField =
+        document.getElementById("id_password");
+
+      if (usernameField) {
+        usernameField.classList.add("input");
+        usernameField.setAttribute(
+          "autocomplete",
+          "username"
+        );
+      }
+
+      if (passwordField) {
+        passwordField.classList.add("input");
+        passwordField.setAttribute(
+          "autocomplete",
+          "current-password"
+        );
+      }
     })();
   </script>
-</body>
 
+  <!-- Language dropdown -->
+  <script>
+    (function () {
+      const dropdown = document.querySelector(
+        "[data-registration-language-dropdown]"
+      );
+
+      if (!dropdown) {
+        return;
+      }
+
+      const trigger = dropdown.querySelector(
+        "[data-registration-language-trigger]"
+      );
+
+      const menu = dropdown.querySelector(
+        "[data-registration-language-menu]"
+      );
+
+      if (!trigger || !menu) {
+        return;
+      }
+
+      function openDropdown() {
+        menu.hidden = false;
+
+        trigger.setAttribute(
+          "aria-expanded",
+          "true"
+        );
+      }
+
+      function closeDropdown() {
+        menu.hidden = true;
+
+        trigger.setAttribute(
+          "aria-expanded",
+          "false"
+        );
+      }
+
+      function toggleDropdown() {
+        const isOpen =
+          trigger.getAttribute("aria-expanded") === "true";
+
+        if (isOpen) {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
+      }
+
+      trigger.addEventListener(
+        "click",
+        function (event) {
+          event.stopPropagation();
+          toggleDropdown();
+        }
+      );
+
+      menu.addEventListener(
+        "click",
+        function (event) {
+          event.stopPropagation();
+        }
+      );
+
+      document.addEventListener(
+        "click",
+        function () {
+          closeDropdown();
+        }
+      );
+
+      document.addEventListener(
+        "keydown",
+        function (event) {
+          if (event.key !== "Escape") {
+            return;
+          }
+
+          closeDropdown();
+          trigger.focus();
+        }
+      );
+    })();
+  </script>
+
+</body>
 </html>

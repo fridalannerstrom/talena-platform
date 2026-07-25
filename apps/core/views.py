@@ -35,7 +35,7 @@ from apps.projects.models import ProjectMeta
 
 from apps.accounts.models import Company, OrgUnit, CompanyMember, UserInvite
 
-
+from django.core.paginator import Paginator
 
 User = get_user_model()
 
@@ -188,6 +188,96 @@ def customer_dashboard(request):
             "activity_events": activity_events,
             "meta_by_key": meta_by_key,
         }
+    )
+
+
+@login_required
+def customer_activity(request):
+    """
+    Show activity from all test processes the current customer
+    has permission to access.
+    """
+
+    if request.user.is_staff or request.user.is_superuser:
+        return HttpResponseForbidden(
+            "Admins should use the admin dashboard."
+        )
+
+    company_id = (
+        CompanyMember.objects
+        .filter(user=request.user)
+        .values_list("company_id", flat=True)
+        .first()
+    )
+
+    company = get_object_or_404(
+        Company,
+        pk=company_id,
+    )
+
+    permissions = get_effective_orgunit_permissions(
+        request.user,
+        company,
+    )
+
+    own_org_unit_ids = [
+        org_unit_id
+        for org_unit_id, permission in permissions.items()
+        if permission == "own"
+    ]
+
+    accessible_org_unit_ids = [
+        org_unit_id
+        for org_unit_id, permission in permissions.items()
+        if permission in ("viewer", "editor")
+    ]
+
+    process_filter = Q(company=company) & (
+        Q(org_unit_id__in=accessible_org_unit_ids)
+        |
+        Q(
+            org_unit_id__in=own_org_unit_ids,
+            created_by=request.user,
+        )
+    )
+
+    accessible_process_ids = (
+        TestProcess.objects
+        .filter(process_filter)
+        .values_list("id", flat=True)
+    )
+
+    activity_queryset = (
+        ActivityEvent.objects
+        .filter(
+            company=company,
+            process_id__in=accessible_process_ids,
+        )
+        .select_related(
+            "actor",
+            "process",
+            "candidate",
+            "invitation",
+        )
+        .order_by("-created_at")
+    )
+
+    paginator = Paginator(
+        activity_queryset,
+        25,
+    )
+
+    page_obj = paginator.get_page(
+        request.GET.get("page")
+    )
+
+    return render(
+        request,
+        "customer/core/activity_list.html",
+        {
+            "activity_events": page_obj.object_list,
+            "page_obj": page_obj,
+        },
     )
 
 

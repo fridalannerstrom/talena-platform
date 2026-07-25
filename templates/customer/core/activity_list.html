@@ -1,0 +1,303 @@
+{% extends "customer/core/layouts/customer_base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% trans "Activity" %} | Talena
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-2 px-md-3 dashboard">
+
+  <!-- PAGE HEADER -->
+
+  <div
+    class="
+      d-flex
+      align-items-start
+      justify-content-between
+      mb-4
+      flex-wrap
+      gap-3
+    "
+  >
+    <div>
+      <h1 class="h4 mb-1">
+        {% trans "Activity" %}
+      </h1>
+
+      <div class="text-muted">
+        {% trans "Activity across the test processes you have access to." %}
+      </div>
+    </div>
+
+    <a
+      href="{% url 'core:customer_dashboard' %}"
+      class="btn btn-primary btn-sm rounded-pill"
+    >
+      <i
+        data-feather="arrow-left"
+        class="me-1"
+      ></i>
+
+      {% trans "Back to dashboard" %}
+    </a>
+  </div>
+
+
+  <!-- ACTIVITY CONTENT -->
+
+  <div class="row g-5 mt-1">
+
+    <div class="col-12 col-xl-8">
+
+      <div
+        class="
+          d-flex
+          align-items-center
+          justify-content-between
+          flex-wrap
+          gap-2
+          mb-3
+        "
+      >
+        <div>
+          <h3 class="mb-1">
+            {% trans "All activity" %}
+          </h3>
+
+          <div class="text-muted small">
+            {% blocktrans count event_count=page_obj.paginator.count %}
+              {{ event_count }} recorded event
+            {% plural %}
+              {{ event_count }} recorded events
+            {% endblocktrans %}
+          </div>
+        </div>
+      </div>
+
+
+      {% if activity_events %}
+
+        <div class="recent-activity-list">
+
+          {% for event in activity_events %}
+
+            <div class="recent-activity-item">
+
+              {% if event.process %}
+
+                <a
+                  href="{% url 'processes:process_detail' event.process.pk %}"
+                  class="recent-activity-card"
+                >
+
+              {% else %}
+
+                <div class="recent-activity-card">
+
+              {% endif %}
+
+
+                <div class="recent-activity-head">
+
+                  <span
+                    class="
+                      recent-activity-badge
+
+                      {% if event.verb == 'invite_sent' %}
+                        is-invite
+
+                      {% elif event.verb == 'candidate_added' %}
+                        is-added
+
+                      {% elif event.verb == 'status_changed' %}
+                        is-status
+
+                      {% elif event.verb == 'test_started' %}
+                        is-status
+
+                      {% elif event.verb == 'test_completed' %}
+                        is-status
+
+                      {% elif event.verb == 'all_tests_completed' %}
+                        is-status
+
+                      {% elif event.verb == 'process_created' %}
+                        is-created
+
+                      {% else %}
+                        is-default
+                      {% endif %}
+                    "
+                  >
+
+                    {% if event.verb == "invite_sent" %}
+
+                      {% trans "Invitation sent" %}
+
+                    {% elif event.verb == "candidate_added" %}
+
+                      {% trans "Candidate added" %}
+
+                    {% elif event.verb == "candidate_removed" %}
+
+                      {% trans "Candidate removed" %}
+
+                    {% elif event.verb == "test_started" %}
+
+                      {% trans "Assessment started" %}
+
+                    {% elif event.verb == "test_completed" %}
+
+                      {% trans "Assessment completed" %}
+
+                    {% elif event.verb == "all_tests_completed" %}
+
+                      {% trans "All assessments completed" %}
+
+                    {% elif event.verb == "status_changed" %}
+
+                      {% trans "Status updated" %}
+
+                    {% elif event.verb == "process_created" %}
+
+                      {% trans "Process created" %}
+
+                    {% elif event.verb == "process_archived" %}
+
+                      {% trans "Process archived" %}
+
+                    {% else %}
+
+                      {% trans "Activity" %}
+
+                    {% endif %}
+
+                  </span>
+
+
+                  <span class="recent-activity-time">
+                    {{ event.created_at|date:"Y-m-d H:i" }}
+                  </span>
+
+                </div>
+
+
+                <div class="recent-activity-title">
+                  {{ event.message }}
+                </div>
+
+
+                {% if event.process %}
+
+                  <div class="recent-activity-process">
+                    {% trans "Process:" %}
+
+                    {{ event.process.project_name_snapshot|default:event.process.project_code|default:event.process.name }}
+                  </div>
+
+                {% endif %}
+
+
+              {% if event.process %}
+
+                </a>
+
+              {% else %}
+
+                </div>
+
+              {% endif %}
+
+            </div>
+
+          {% endfor %}
+
+        </div>
+
+
+        <!-- PAGINATION -->
+
+        {% if page_obj.has_other_pages %}
+
+          <nav
+            class="
+              d-flex
+              align-items-center
+              justify-content-between
+              gap-3
+              mt-4
+            "
+            aria-label="{% trans 'Activity pages' %}"
+          >
+
+            <div>
+
+              {% if page_obj.has_previous %}
+
+                <a
+                  href="?page={{ page_obj.previous_page_number }}"
+                  class="btn btn-light btn-sm rounded-pill"
+                >
+                  <i
+                    data-feather="chevron-left"
+                    class="me-1"
+                  ></i>
+
+                  {% trans "Previous" %}
+                </a>
+
+              {% endif %}
+
+            </div>
+
+
+            <div class="text-muted small">
+              {% trans "Page" %}
+              {{ page_obj.number }}
+              {% trans "of" %}
+              {{ page_obj.paginator.num_pages }}
+            </div>
+
+
+            <div>
+
+              {% if page_obj.has_next %}
+
+                <a
+                  href="?page={{ page_obj.next_page_number }}"
+                  class="btn btn-light btn-sm rounded-pill"
+                >
+                  {% trans "Next" %}
+
+                  <i
+                    data-feather="chevron-right"
+                    class="ms-1"
+                  ></i>
+                </a>
+
+              {% endif %}
+
+            </div>
+
+          </nav>
+
+        {% endif %}
+
+
+      {% else %}
+
+        <div class="recent-activity-empty">
+          {% trans "No activity yet." %}
+        </div>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

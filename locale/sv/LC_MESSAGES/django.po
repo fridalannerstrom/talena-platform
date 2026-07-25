@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-24 23:12+0200\n"
+"POT-Creation-Date: 2026-07-25 12:24+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -104,7 +104,7 @@ msgstr "Förnamn"
 msgid "Last name"
 msgstr "Efternamn"
 
-#: .\apps\processes\forms.py:124
+#: .\apps\processes\forms.py:124 .\templates\accounts\login.html:244
 #: .\templates\customer\teams\team_detail.html:457
 #: .\templates\customer\teams\team_members_edit.html:88
 #: .\templates\shared\_settings_content.html:208
@@ -1890,6 +1890,38 @@ msgstr "Svenska"
 #: .\config\settings.py:278
 msgid "English"
 msgstr "Engelska"
+#: .\templates\accounts\login.html:15 .\templates\accounts\login.html:282
+msgid "Log in"
+msgstr "Logga in"
+
+#: .\templates\accounts\login.html:49 .\templates\accounts\login.html:115
+#: .\templates\customer\core\partials\customer_header.html:146
+#: .\templates\customer\core\partials\customer_header.html:188
+#: .\templates\customer\processes\self_register_form.html:47
+#: .\templates\customer\processes\self_register_form.html:113
+msgid "Choose language"
+msgstr "Välj språk"
+
+#: .\templates\accounts\login.html:206
+msgid "Log in to Talena"
+msgstr "Logga in på Talena"
+
+#: .\templates\accounts\login.html:210
+msgid "Welcome! Log in to continue your work in Talena."
+msgstr "Välkommen! Logga in för att fortsätta ditt arbete i Talena."
+
+#: .\templates\accounts\login.html:266
+#: .\templates\shared\_settings_content.html:255
+msgid "Password"
+msgstr "Lösenord"
+
+#: .\templates\accounts\login.html:286
+msgid "Don't have a Talena account?"
+msgstr "Har du inget Talena-konto?"
+
+#: .\templates\accounts\login.html:289
+msgid "Get started here"
+msgstr "Kom igång här"
 
 #: .\templates\customer\candidates\candidate_list.html:69
 #: .\templates\customer\core\partials\customer_sidebar.html:109
@@ -2207,11 +2239,6 @@ msgstr "Ingen aktivitet ännu."
 #: .\templates\customer\core\partials\customer_header.html:16
 msgid "Search"
 msgstr "Sök"
-
-#: .\templates\customer\core\partials\customer_header.html:146
-#: .\templates\customer\core\partials\customer_header.html:188
-msgid "Choose language"
-msgstr "Välj språk"
 
 #: .\templates\customer\core\partials\customer_header.html:301
 msgid "Account"
@@ -5736,55 +5763,46 @@ msgstr ""
 "nästa steg genereras."
 
 #: .\templates\customer\processes\self_register_form.html:14
-#: .\templates\customer\processes\self_register_form.html:98
-#: .\templates\customer\processes\self_register_form.html:194
+#: .\templates\customer\processes\self_register_form.html:204
+#: .\templates\customer\processes\self_register_form.html:300
 msgid "Register"
 msgstr "Registrera dig"
 
-#: .\templates\customer\processes\self_register_form.html:58
-msgid "Switch to Swedish"
-msgstr "Byt till svenska"
-
-#: .\templates\customer\processes\self_register_form.html:78
-msgid "Switch to English"
-msgstr "Byt till engelska"
-
-#: .\templates\customer\processes\self_register_form.html:102
+#: .\templates\customer\processes\self_register_form.html:208
 msgid "Enter your details to take part in the process."
 msgstr "Fyll i dina uppgifter för att delta i processen."
 
-#: .\templates\customer\processes\self_register_form.html:198
+#: .\templates\customer\processes\self_register_form.html:304
 msgid "Your details are used to connect you to the correct assessment process."
-msgstr ""
-"Dina uppgifter används för att koppla dig till rätt testprocess."
+msgstr "Dina uppgifter används för att koppla dig till rätt testprocess."
 
-#: .\templates\customer\processes\self_register_form.html:223
+#: .\templates\customer\processes\self_register_form.html:329
 msgid "Enter your details"
 msgstr "Fyll i dina uppgifter"
 
-#: .\templates\customer\processes\self_register_form.html:227
+#: .\templates\customer\processes\self_register_form.html:333
 msgid ""
 "Enter your name and the email address that should be connected to the "
 "assessment process."
 msgstr ""
 "Ange ditt namn och den e-postadress som ska kopplas till testprocessen."
 
-#: .\templates\customer\processes\self_register_form.html:239
+#: .\templates\customer\processes\self_register_form.html:345
 msgid "View the included assessments"
 msgstr "Se vilka tester som ingår"
 
-#: .\templates\customer\processes\self_register_form.html:243
+#: .\templates\customer\processes\self_register_form.html:349
 msgid ""
 "After registering, you will continue directly to an overview of your "
 "assessments."
 msgstr ""
 "Efter registreringen kommer du direkt till en översikt över dina tester."
 
-#: .\templates\customer\processes\self_register_form.html:255
+#: .\templates\customer\processes\self_register_form.html:361
 msgid "Start when you are ready"
 msgstr "Börja när du är redo"
 
-#: .\templates\customer\processes\self_register_form.html:259
+#: .\templates\customer\processes\self_register_form.html:365
 msgid ""
 "You can start the assessments immediately and will receive clear "
 "instructions along the way."
@@ -6194,10 +6212,6 @@ msgstr "Ladda upp profilbild"
 msgid "Remove profile picture"
 msgstr "Ta bort profilbild"
 
-#: .\templates\shared\_settings_content.html:255
-msgid "Password"
-msgstr "Lösenord"
-
 #: .\templates\shared\_settings_content.html:259
 msgid "Update your password to keep your account secure."
 msgstr "Uppdatera ditt lösenord för att hålla kontot säkert."
@@ -6217,3 +6231,9 @@ msgstr "Bekräfta nytt lösenord"
 #: .\templates\shared\_settings_content.html:349
 msgid "Update password"
 msgstr "Uppdatera lösenord"
+
+#~ msgid "Switch to Swedish"
+#~ msgstr "Byt till svenska"
+
+#~ msgid "Switch to English"
+#~ msgstr "Byt till engelska"

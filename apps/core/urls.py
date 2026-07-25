@@ -27,4 +27,9 @@ urlpatterns = [
 
     path("webhooks/sova/", sova_webhook, name="sova_webhook"),
     path("search/", views.global_search, name="global_search"),
+    path(
+        "activity/",
+        views.customer_activity,
+        name="customer_activity",
+    ),
 ]

@@ -17,7 +17,7 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
-
+from django.core.paginator import Paginator
 
 from apps.core.ai.decision_support import (
     create_empty_pre_interview_decision_support,
