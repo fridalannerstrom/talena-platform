@@ -4,362 +4,1395 @@
 
 {% block content %}
 
-<div class="container-fluid px-2 px-md-4">
+<div class="container-fluid usage-page px-2 px-md-4">
 
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <!-- =========================================================
+       PAGE HEADER
+       ========================================================= -->
+
+  <header class="usage-page-header">
     <div>
-      <h1 class="h3 mb-1">Usage & Billing</h1>
-      <div class="text-muted small">
-        Completed assessments are billable. Use filters to prepare invoicing data.
-      </div>
+      <h1 class="usage-page-title">
+        Usage & Billing
+      </h1>
+
+      <p class="usage-page-description">
+        Review assessment usage and prepare invoicing data.
+        Completed assessments are billable.
+      </p>
     </div>
-  </div>
 
-  <!-- Filters -->
-  <div class="card mb-3">
-    <div class="card-body">
-      <form method="get" class="row g-2 align-items-end">
+    <div class="usage-period-badge">
+      {{ lifecycle_label }}
+    </div>
+  </header>
 
-        <div class="col-12 col-md-3 col-xl-2">
-          <label class="form-label small text-muted">Date from</label>
-          <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
-        </div>
 
-        <div class="col-12 col-md-3 col-xl-2">
-          <label class="form-label small text-muted">Date to</label>
-          <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
-        </div>
+  <!-- =========================================================
+       FILTERS
+       ========================================================= -->
 
-        <div class="col-12 col-md-6 col-xl-3">
-          <label class="form-label small text-muted">Search</label>
+  <section class="usage-filter-card">
+
+    <form method="get">
+
+      <div class="usage-filter-primary">
+
+        <!-- Date from -->
+
+        <div class="usage-field">
+          <label class="usage-label">
+            Date from
+          </label>
+
           <input
-            type="text"
-            name="q"
+            type="date"
+            name="date_from"
             class="form-control"
-            placeholder="Company, account, process, candidate..."
-            value="{{ q }}"
+            value="{{ date_from }}"
           >
         </div>
 
-        <div class="col-12 col-md-4 col-xl-2">
-          <label class="form-label small text-muted">Company</label>
-          <select name="company" class="form-select">
-            <option value="">All companies</option>
-            {% for company in companies %}
-              <option value="{{ company.id }}" {% if selected_company_id == company.id|stringformat:"s" %}selected{% endif %}>
-                {{ company.name }}
-              </option>
-            {% endfor %}
-          </select>
+
+        <!-- Date to -->
+
+        <div class="usage-field">
+          <label class="usage-label">
+            Date to
+          </label>
+
+          <input
+            type="date"
+            name="date_to"
+            class="form-control"
+            value="{{ date_to }}"
+          >
         </div>
 
-        <div class="col-12 col-md-4 col-xl-3">
-          <label class="form-label small text-muted">Account / unit</label>
-          <select name="org_unit" class="form-select">
-            <option value="">All accounts</option>
-            {% for unit in org_units %}
-              <option value="{{ unit.id }}" {% if selected_org_unit_id == unit.id|stringformat:"s" %}selected{% endif %}>
-                {{ unit.company.name }} · {{ unit.full_path }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
 
-        <div class="col-12 col-md-4 col-xl-2">
-          <label class="form-label small text-muted">Label</label>
-          <select name="label" class="form-select">
-            <option value="">All labels</option>
-            {% for label in labels %}
-              <option value="{{ label.id }}" {% if selected_label_id == label.id|stringformat:"s" %}selected{% endif %}>
-                {{ label.company.name }} · {{ label.name }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
+        <!-- Activity -->
 
-        <div class="col-12 col-md-4 col-xl-2">
-          <label class="form-label small text-muted">Created by</label>
-          <select name="created_by" class="form-select">
-            <option value="">Anyone</option>
-            {% for user in creators %}
-              <option value="{{ user.id }}" {% if selected_created_by_id == user.id|stringformat:"s" %}selected{% endif %}>
-                {{ user.get_full_name|default:user.email }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
+        <div class="usage-field">
+          <label class="usage-label">
+            Activity
+          </label>
 
-        <div class="col-12 col-md-4 col-xl-2">
-          <label class="form-label small text-muted">Test type</label>
-          <select name="test_type" class="form-select">
-            <option value="">All test types</option>
-            {% for value, label in test_types %}
-              <option value="{{ value }}" {% if selected_test_type == value %}selected{% endif %}>
+          <select
+            name="lifecycle"
+            class="form-select"
+          >
+            {% for value, label in lifecycle_options %}
+              <option
+                value="{{ value }}"
+                {% if selected_lifecycle == value %}
+                  selected
+                {% endif %}
+              >
                 {{ label }}
               </option>
             {% endfor %}
           </select>
         </div>
 
-        <div class="col-12 col-md-4 col-xl-2">
-          <div class="form-check mt-4">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              name="include_internal"
-              value="1"
-              id="includeInternal"
-              {% if include_internal %}checked{% endif %}
-            >
-            <label class="form-check-label small" for="includeInternal">
-              Include internal/demo
+
+        <!-- Company -->
+
+        <div class="usage-field">
+          <label class="usage-label">
+            Company
+          </label>
+
+          <select
+            name="company"
+            class="form-select"
+          >
+            <option value="">
+              All companies
+            </option>
+
+            {% for company in companies %}
+              <option
+                value="{{ company.id }}"
+                {% if selected_company_id == company.id|stringformat:"s" %}
+                  selected
+                {% endif %}
+              >
+                {{ company.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+      </div>
+
+
+      <!-- Date basis -->
+
+      <div class="usage-date-basis">
+        {{ date_basis_label }}
+      </div>
+
+
+      <!-- Filter actions -->
+
+      <div class="usage-filter-actions">
+
+        <button
+          class="btn btn-dark usage-apply-button"
+          type="submit"
+        >
+          Apply filters
+        </button>
+
+        <a
+          href="{% url 'accounts:admin_usage_billing' %}"
+          class="btn btn-outline-secondary"
+        >
+          Reset
+        </a>
+
+        <button
+          class="btn btn-link usage-more-button"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#usageAdvancedFilters"
+          aria-controls="usageAdvancedFilters"
+          aria-expanded="
+            {% if q or selected_org_unit_id or selected_label_id or selected_sent_by_id or selected_test_type or include_internal %}
+              true
+            {% else %}
+              false
+            {% endif %}
+          "
+        >
+          More filters
+        </button>
+
+      </div>
+
+
+      <!-- Advanced filters -->
+
+      <div
+        id="usageAdvancedFilters"
+        class="
+          collapse
+          {% if q or selected_org_unit_id or selected_label_id or selected_sent_by_id or selected_test_type or include_internal %}
+            show
+          {% endif %}
+        "
+      >
+
+        <div class="usage-advanced-divider"></div>
+
+        <div class="usage-filter-advanced">
+
+          <!-- Search -->
+
+          <div class="usage-field usage-field--wide">
+            <label class="usage-label">
+              Search
             </label>
+
+            <input
+              type="text"
+              name="q"
+              class="form-control"
+              placeholder="Company, project, candidate or sender"
+              value="{{ q }}"
+            >
           </div>
+
+
+          <!-- Account -->
+
+          <div class="usage-field">
+            <label class="usage-label">
+              Account / unit
+            </label>
+
+            <select
+              name="org_unit"
+              class="form-select"
+            >
+              <option value="">
+                All accounts
+              </option>
+
+              {% for unit in org_units %}
+                <option
+                  value="{{ unit.id }}"
+                  {% if selected_org_unit_id == unit.id|stringformat:"s" %}
+                    selected
+                  {% endif %}
+                >
+                  {{ unit.company.name }} · {{ unit.full_path }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- Label -->
+
+          <div class="usage-field">
+            <label class="usage-label">
+              Label
+            </label>
+
+            <select
+              name="label"
+              class="form-select"
+            >
+              <option value="">
+                All labels
+              </option>
+
+              {% for label in labels %}
+                <option
+                  value="{{ label.id }}"
+                  {% if selected_label_id == label.id|stringformat:"s" %}
+                    selected
+                  {% endif %}
+                >
+                  {{ label.company.name }} · {{ label.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- Sent by -->
+
+          <div class="usage-field">
+            <label class="usage-label">
+              Sent by
+            </label>
+
+            <select
+              name="sent_by"
+              class="form-select"
+            >
+              <option value="">
+                Anyone
+              </option>
+
+              {% for user in senders %}
+                <option
+                  value="{{ user.id }}"
+                  {% if selected_sent_by_id == user.id|stringformat:"s" %}
+                    selected
+                  {% endif %}
+                >
+                  {{ user.get_full_name|default:user.email }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+
+          <!-- Test type -->
+
+          <div class="usage-field">
+            <label class="usage-label">
+              Test type
+            </label>
+
+            <select
+              name="test_type"
+              class="form-select"
+            >
+              <option value="">
+                All test types
+              </option>
+
+              {% for value, label in test_types %}
+                <option
+                  value="{{ value }}"
+                  {% if selected_test_type == value %}
+                    selected
+                  {% endif %}
+                >
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
         </div>
 
-        <div class="col-12 col-xl-2 d-flex gap-2">
-          <button class="btn btn-primary flex-fill" type="submit">
-            Apply
-          </button>
 
-          <a href="{% url 'accounts:admin_usage_billing' %}"
-             class="btn btn-outline-secondary">
-            Reset
-          </a>
+        <!-- Internal tests -->
+
+        <div class="usage-internal-filter">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="include_internal"
+            value="1"
+            id="includeInternal"
+            {% if include_internal %}
+              checked
+            {% endif %}
+          >
+
+          <label
+            class="form-check-label"
+            for="includeInternal"
+          >
+            Include internal, demo and non-billable processes
+          </label>
         </div>
 
-      </form>
-    </div>
-  </div>
-
-  <!-- KPI cards -->
-  <div class="kpi-grid mb-3">
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Billable tests</div>
-        <div class="h3 mb-1">{{ totals.billable|default:0 }}</div>
-        <div class="kpi-subtext">Completed assessments</div>
       </div>
-    </div>
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Sent assessments</div>
-        <div class="h3 mb-1">{{ totals.sent|default:0 }}</div>
+    </form>
+
+  </section>
+
+
+  <!-- =========================================================
+       SUMMARY
+       ========================================================= -->
+
+  <section class="usage-summary-grid">
+
+    <article class="usage-summary-card usage-summary-card--primary">
+
+      <div class="usage-summary-label">
+        {% if selected_lifecycle == "completed" %}
+          Billable tests
+        {% else %}
+          Selected tests
+        {% endif %}
       </div>
-    </div>
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Started assessments</div>
-        <div class="h3 mb-1">{{ totals.started|default:0 }}</div>
+      <div class="usage-summary-value">
+        {{ totals.selected_count|default:0 }}
       </div>
-    </div>
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Unfinished</div>
-        <div class="h3 mb-1">{{ totals.unfinished|default:0 }}</div>
+      <div class="usage-summary-meta">
+        {{ lifecycle_label }}
       </div>
-    </div>
 
-    <div class="card h-100">
-      <div class="card-body">
-        <div class="text-muted small">Processes</div>
-        <div class="h3 mb-1">{{ totals.process_count|default:0 }}</div>
+    </article>
+
+
+    <article class="usage-summary-card">
+
+      <div class="usage-summary-label">
+        Candidates
       </div>
-    </div>
-  </div>
 
-  <!-- Assessment type summary -->
-  <div class="card mb-3">
-    <div class="card-header">
-      <div class="fw-semibold">Billable assessments by type</div>
-      <div class="text-muted small">These columns count completed assessments only.</div>
-    </div>
-
-    <div class="card-body">
-      <div class="usage-type-grid">
-        <div class="usage-type-card">
-          <div class="text-muted small">Personality</div>
-          <div class="h4 mb-0">{{ totals.personality|default:0 }}</div>
-        </div>
-
-        <div class="usage-type-card">
-          <div class="text-muted small">Motivation</div>
-          <div class="h4 mb-0">{{ totals.motivation|default:0 }}</div>
-        </div>
-
-        <div class="usage-type-card">
-          <div class="text-muted small">Verbal</div>
-          <div class="h4 mb-0">{{ totals.verbal|default:0 }}</div>
-        </div>
-
-        <div class="usage-type-card">
-          <div class="text-muted small">Numerical</div>
-          <div class="h4 mb-0">{{ totals.numerical|default:0 }}</div>
-        </div>
-
-        <div class="usage-type-card">
-          <div class="text-muted small">Logical</div>
-          <div class="h4 mb-0">{{ totals.logical|default:0 }}</div>
-        </div>
-
-        <div class="usage-type-card">
-          <div class="text-muted small">Other</div>
-          <div class="h4 mb-0">{{ totals.other|default:0 }}</div>
-        </div>
+      <div class="usage-summary-value">
+        {{ totals.candidate_count|default:0 }}
       </div>
-    </div>
-  </div>
 
-  <!-- Rows -->
-  <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="usage-summary-meta">
+        In the selected results
+      </div>
+
+    </article>
+
+
+    <article class="usage-summary-card">
+
+      <div class="usage-summary-label">
+        Processes
+      </div>
+
+      <div class="usage-summary-value">
+        {{ totals.process_count|default:0 }}
+      </div>
+
+      <div class="usage-summary-meta">
+        With matching usage
+      </div>
+
+    </article>
+
+
+    <article class="usage-summary-card">
+
+      {% if selected_lifecycle == "completed" %}
+
+<div class="usage-summary-label">
+  Completed with historical date
+</div>
+
+<div class="usage-summary-value">
+  {{ totals.estimated_completed|default:0 }}
+</div>
+
+<div class="usage-summary-meta">
+  Billable tests using an older invitation timestamp
+</div>
+
+      {% else %}
+
+        <div class="usage-summary-label">
+          Unfinished
+        </div>
+
+        <div class="usage-summary-value">
+          {{ totals.unfinished|default:0 }}
+        </div>
+
+        <div class="usage-summary-meta">
+          Sent but not completed
+        </div>
+
+      {% endif %}
+
+    </article>
+
+  </section>
+
+
+  <!-- =========================================================
+       TEST TYPE BREAKDOWN
+       ========================================================= -->
+
+  <section class="usage-breakdown-card">
+
+    <div class="usage-section-heading">
+
       <div>
-        <div class="fw-semibold">Usage by process</div>
-        <div class="text-muted small">
-          Grouped by company, account and test process.
+        <h2 class="usage-section-title">
+          Test type breakdown
+        </h2>
+
+        <div class="usage-section-description">
+          Distribution within the currently selected results.
         </div>
       </div>
 
-      <span class="badge bg-light text-dark">
-        {{ rows|length }} rows
-      </span>
+      <div class="usage-section-total">
+        {{ totals.selected_count|default:0 }} tests
+      </div>
+
     </div>
+
+
+    <div class="usage-breakdown-list">
+
+      {% if totals.personality %}
+        <div class="usage-breakdown-item">
+          <span>Personality</span>
+          <strong>{{ totals.personality }}</strong>
+        </div>
+      {% endif %}
+
+      {% if totals.motivation %}
+        <div class="usage-breakdown-item">
+          <span>Motivation</span>
+          <strong>{{ totals.motivation }}</strong>
+        </div>
+      {% endif %}
+
+      {% if totals.verbal %}
+        <div class="usage-breakdown-item">
+          <span>Verbal</span>
+          <strong>{{ totals.verbal }}</strong>
+        </div>
+      {% endif %}
+
+      {% if totals.numerical %}
+        <div class="usage-breakdown-item">
+          <span>Numerical</span>
+          <strong>{{ totals.numerical }}</strong>
+        </div>
+      {% endif %}
+
+      {% if totals.logical %}
+        <div class="usage-breakdown-item">
+          <span>Logical</span>
+          <strong>{{ totals.logical }}</strong>
+        </div>
+      {% endif %}
+
+      {% if totals.other %}
+        <div class="usage-breakdown-item">
+          <span>Other</span>
+          <strong>{{ totals.other }}</strong>
+        </div>
+      {% endif %}
+
+      {% if not totals.selected_count %}
+        <div class="text-muted small">
+          No tests found for the selected filters.
+        </div>
+      {% endif %}
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       USAGE TABLE
+       ========================================================= -->
+
+  <section class="usage-table-card">
+
+    <div class="usage-section-heading usage-table-heading">
+
+      <div>
+        <h2 class="usage-section-title">
+          Usage by process
+        </h2>
+
+        <div class="usage-section-description">
+          Grouped by company, account, process and sender.
+        </div>
+      </div>
+
+      <div class="usage-row-count">
+        {{ rows|length }} rows
+      </div>
+
+    </div>
+
 
     <div class="table-responsive">
-      <table class="table table-striped align-middle mb-0 usage-table">
+
+      <table class="table align-middle mb-0 usage-clean-table">
+
         <thead>
           <tr>
-            <th>Company</th>
-            <th>Account</th>
+            <th>Company / account</th>
             <th>Process</th>
-            <th>Labels</th>
-            <th>Created by</th>
-            <th class="text-end">Sent</th>
-            <th class="text-end">Started</th>
-            <th class="text-end">Completed</th>
-            <th class="text-end">Unfinished</th>
-            <th class="text-end">Billable</th>
-            <th class="text-end">Personality</th>
-            <th class="text-end">Motivation</th>
-            <th class="text-end">Verbal</th>
-            <th class="text-end">Numerical</th>
-            <th class="text-end">Logical</th>
-            <th class="text-end">Other</th>
+            <th>Sent by</th>
+            <th class="text-center">Candidates</th>
+            <th class="text-center">Tests</th>
+            <th>Test types</th>
+
+            {% if selected_lifecycle == "completed" %}
+              <th>Status</th>
+            {% endif %}
           </tr>
         </thead>
 
+
         <tbody>
+
           {% for row in rows %}
+
             <tr>
-              <td class="fw-semibold">
-                {{ row.company_name }}
-              </td>
+
+              <!-- Company and account -->
 
               <td>
-                <div class="fw-semibold">{{ row.account_name }}</div>
-                {% if row.account_code %}
-                  <div class="text-muted small">{{ row.account_code }}</div>
-                {% endif %}
+                <div class="usage-cell-primary">
+                  {{ row.company_name }}
+                </div>
+
+                <div class="usage-cell-secondary">
+                  {{ row.account_name }}
+
+                  {% if row.account_code %}
+                    · {{ row.account_code }}
+                  {% endif %}
+                </div>
               </td>
 
-              <td>
-                <div class="fw-semibold">{{ row.process_name }}</div>
-                <div class="text-muted small">{{ row.project_name }}</div>
-              </td>
 
-              <td>
+              <!-- Process -->
+
+              <td class="usage-process-cell">
+
+                <div class="usage-cell-primary">
+                  {{ row.process_name }}
+                </div>
+
+                <div class="usage-cell-secondary">
+                  {{ row.project_name }}
+                </div>
+
                 {% if row.labels %}
-                  <div class="d-flex flex-wrap gap-1">
+                  <div class="usage-label-list">
+
                     {% for label in row.labels %}
-                      <span class="talena-pill talena-pill-soft">
+                      <span class="usage-mini-label">
                         {{ label.name }}
                       </span>
                     {% endfor %}
+
                   </div>
-                {% else %}
-                  <span class="text-muted">—</span>
                 {% endif %}
+
               </td>
+
+
+              <!-- Sender -->
 
               <td>
-                {% if row.created_by %}
-                  <div class="fw-semibold">
-                    {{ row.created_by.get_full_name|default:row.created_by.email }}
+                {% if row.sent_by %}
+                  <div class="usage-cell-primary">
+                    {{ row.sent_by.get_full_name|default:row.sent_by.email }}
                   </div>
                 {% else %}
-                  <span class="text-muted">Unknown</span>
-                {% endif %}
-
-                {% if row.created_by_admin %}
-                  <div class="text-muted small">
-                    Admin: {{ row.created_by_admin.get_full_name|default:row.created_by_admin.email }}
-                  </div>
+                  <span class="usage-muted-value">
+                    Unknown / historical
+                  </span>
                 {% endif %}
               </td>
 
-              <td class="text-end">{{ row.sent }}</td>
-              <td class="text-end">{{ row.started }}</td>
-              <td class="text-end">{{ row.completed }}</td>
-              <td class="text-end">{{ row.unfinished }}</td>
-              <td class="text-end fw-bold">{{ row.billable }}</td>
-              <td class="text-end">{{ row.personality }}</td>
-              <td class="text-end">{{ row.motivation }}</td>
-              <td class="text-end">{{ row.verbal }}</td>
-              <td class="text-end">{{ row.numerical }}</td>
-              <td class="text-end">{{ row.logical }}</td>
-              <td class="text-end">{{ row.other }}</td>
+
+              <!-- Candidate count -->
+
+              <td class="text-center">
+                <span class="usage-number">
+                  {{ row.candidate_count }}
+                </span>
+              </td>
+
+
+              <!-- Test count -->
+
+              <td class="text-center">
+                <span class="usage-test-count">
+                  {{ row.selected_count }}
+                </span>
+              </td>
+
+
+              <!-- Type breakdown -->
+
+              <td>
+                <div class="usage-type-pills">
+
+                  {% if row.personality %}
+                    <span class="usage-type-pill">
+                      Personality
+                      <strong>{{ row.personality }}</strong>
+                    </span>
+                  {% endif %}
+
+                  {% if row.motivation %}
+                    <span class="usage-type-pill">
+                      Motivation
+                      <strong>{{ row.motivation }}</strong>
+                    </span>
+                  {% endif %}
+
+                  {% if row.verbal %}
+                    <span class="usage-type-pill">
+                      Verbal
+                      <strong>{{ row.verbal }}</strong>
+                    </span>
+                  {% endif %}
+
+                  {% if row.numerical %}
+                    <span class="usage-type-pill">
+                      Numerical
+                      <strong>{{ row.numerical }}</strong>
+                    </span>
+                  {% endif %}
+
+                  {% if row.logical %}
+                    <span class="usage-type-pill">
+                      Logical
+                      <strong>{{ row.logical }}</strong>
+                    </span>
+                  {% endif %}
+
+                  {% if row.other %}
+                    <span class="usage-type-pill">
+                      Other
+                      <strong>{{ row.other }}</strong>
+                    </span>
+                  {% endif %}
+
+                </div>
+              </td>
+
+
+              <!-- Completion quality -->
+
+{% if selected_lifecycle == "completed" %}
+
+  <td>
+    <div class="usage-completion-status">
+
+      <span class="usage-quality usage-quality--completed">
+        Completed &amp; billable
+      </span>
+
+      {% if row.estimated_completed %}
+
+        {% if row.estimated_completed == row.selected_count %}
+
+          <div class="usage-completion-note">
+            Historical completion date
+          </div>
+
+        {% else %}
+
+          <div class="usage-completion-note">
+            {{ row.estimated_completed }}
+            of {{ row.selected_count }}
+            use historical dates
+          </div>
+
+        {% endif %}
+
+      {% else %}
+
+        <div class="usage-completion-note">
+          Recorded per assessment
+        </div>
+
+      {% endif %}
+
+    </div>
+  </td>
+
+{% endif %}
+
             </tr>
+
           {% empty %}
+
             <tr>
-              <td colspan="16" class="text-muted p-4 text-center">
+              <td
+                colspan="
+                  {% if selected_lifecycle == 'completed' %}
+                    7
+                  {% else %}
+                    6
+                  {% endif %}
+                "
+                class="usage-empty-state"
+              >
                 No usage found for the selected filters.
               </td>
             </tr>
+
           {% endfor %}
+
         </tbody>
+
       </table>
+
     </div>
-  </div>
+
+  </section>
 
 </div>
 
+
 <style>
-  .usage-type-grid {
+
+  /* ============================================================
+     PAGE
+     ============================================================ */
+
+  .usage-page {
+    --usage-border: rgba(24, 32, 54, 0.10);
+    --usage-muted: #71798b;
+    --usage-surface: #ffffff;
+    --usage-soft: #f6f7fb;
+    --usage-text: #172033;
+    --usage-accent: #6256d9;
+
+    padding-bottom: 3rem;
+  }
+
+
+  .usage-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+
+    margin-bottom: 1.5rem;
+  }
+
+
+  .usage-page-title {
+    margin: 0 0 0.3rem;
+
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+
+    color: var(--usage-text);
+  }
+
+
+  .usage-page-description {
+    margin: 0;
+
+    font-size: 0.9rem;
+
+    color: var(--usage-muted);
+  }
+
+
+  .usage-period-badge {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 34px;
+    padding: 0.4rem 0.8rem;
+
+    border: 1px solid var(--usage-border);
+    border-radius: 999px;
+
+    background: var(--usage-surface);
+    color: var(--usage-text);
+
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+
+  /* ============================================================
+     FILTERS
+     ============================================================ */
+
+  .usage-filter-card {
+    margin-bottom: 1rem;
+    padding: 1.25rem;
+
+    border: 1px solid var(--usage-border);
+    border-radius: 16px;
+
+    background: var(--usage-surface);
+  }
+
+
+  .usage-filter-primary {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.75rem;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 1rem;
   }
 
-  .usage-type-card {
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 14px;
-    padding: 1rem;
-    background: #fff;
+
+  .usage-filter-advanced {
+    display: grid;
+    grid-template-columns:
+      minmax(260px, 1.5fr)
+      repeat(4, minmax(180px, 1fr));
+    gap: 1rem;
   }
 
-  .usage-table th,
-  .usage-table td {
+
+  .usage-field {
+    min-width: 0;
+  }
+
+
+  .usage-label {
+    display: block;
+
+    margin-bottom: 0.4rem;
+
+    color: #555e72;
+
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+
+  .usage-filter-card .form-control,
+  .usage-filter-card .form-select {
+    min-height: 44px;
+
+    border-color: #d9ddea;
+    border-radius: 10px;
+
+    font-size: 0.88rem;
+  }
+
+
+  .usage-date-basis {
+    margin-top: 0.65rem;
+
+    color: var(--usage-muted);
+
+    font-size: 0.76rem;
+  }
+
+
+  .usage-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+
+    margin-top: 1rem;
+  }
+
+
+  .usage-apply-button {
+    min-width: 135px;
+  }
+
+
+  .usage-more-button {
+    padding-inline: 0.4rem;
+
+    color: #565f73;
+
+    font-size: 0.82rem;
+    text-decoration: none;
+  }
+
+
+  .usage-more-button:hover {
+    color: #161b28;
+  }
+
+
+  .usage-advanced-divider {
+    height: 1px;
+
+    margin: 1.2rem 0;
+
+    background: var(--usage-border);
+  }
+
+
+  .usage-internal-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    margin-top: 1rem;
+
+    color: #596174;
+
+    font-size: 0.82rem;
+  }
+
+
+  /* ============================================================
+     SUMMARY
+     ============================================================ */
+
+  .usage-summary-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+
+    margin-bottom: 1rem;
+  }
+
+
+  .usage-summary-card {
+    min-height: 130px;
+    padding: 1.15rem;
+
+    border: 1px solid var(--usage-border);
+    border-radius: 15px;
+
+    background: var(--usage-surface);
+  }
+
+
+  .usage-summary-card--primary {
+    border-color: rgba(98, 86, 217, 0.24);
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(98, 86, 217, 0.09),
+        rgba(255, 255, 255, 0.95)
+      );
+  }
+
+
+  .usage-summary-label {
+    color: var(--usage-muted);
+
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+
+  .usage-summary-value {
+    margin-top: 0.45rem;
+
+    color: var(--usage-text);
+
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+
+  .usage-summary-meta {
+    margin-top: 0.6rem;
+
+    color: var(--usage-muted);
+
+    font-size: 0.76rem;
+  }
+
+
+  /* ============================================================
+     COMMON SECTIONS
+     ============================================================ */
+
+  .usage-breakdown-card,
+  .usage-table-card {
+    margin-bottom: 1rem;
+
+    border: 1px solid var(--usage-border);
+    border-radius: 16px;
+
+    background: var(--usage-surface);
+
+    overflow: hidden;
+  }
+
+
+  .usage-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 1rem 1.25rem;
+
+    border-bottom: 1px solid var(--usage-border);
+  }
+
+
+  .usage-section-title {
+    margin: 0 0 0.2rem;
+
+    color: var(--usage-text);
+
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+
+  .usage-section-description {
+    color: var(--usage-muted);
+
+    font-size: 0.76rem;
+  }
+
+
+  .usage-section-total,
+  .usage-row-count {
+    flex: 0 0 auto;
+
+    padding: 0.3rem 0.65rem;
+
+    border-radius: 999px;
+
+    background: var(--usage-soft);
+    color: #4d5568;
+
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+
+
+  /* ============================================================
+     BREAKDOWN
+     ============================================================ */
+
+  .usage-breakdown-list {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+
+    padding: 1rem 1.25rem;
+  }
+
+
+  .usage-breakdown-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    min-height: 38px;
+    padding: 0.45rem 0.75rem;
+
+    border: 1px solid var(--usage-border);
+    border-radius: 10px;
+
+    color: #4f576a;
+
+    font-size: 0.78rem;
+  }
+
+
+  .usage-breakdown-item strong {
+    color: var(--usage-text);
+
+    font-size: 0.9rem;
+  }
+
+
+  /* ============================================================
+     TABLE
+     ============================================================ */
+
+  .usage-clean-table {
+    color: #3e4659;
+
+    font-size: 0.8rem;
+  }
+
+
+  .usage-clean-table thead th {
+    padding: 0.8rem 1rem;
+
+    border-bottom: 1px solid var(--usage-border);
+
+    background: #fafbfc;
+    color: #687084;
+
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+
     white-space: nowrap;
   }
 
-  .usage-table td:nth-child(3) {
+
+  .usage-clean-table tbody td {
+    padding: 1rem;
+
+    border-bottom-color: var(--usage-border);
+
+    vertical-align: middle;
+  }
+
+
+  .usage-clean-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+
+  .usage-clean-table tbody tr:hover {
+    background: rgba(98, 86, 217, 0.025);
+  }
+
+
+  .usage-process-cell {
+    min-width: 250px;
+  }
+
+
+  .usage-cell-primary {
+    color: #30384a;
+
+    font-weight: 600;
+  }
+
+
+  .usage-cell-secondary {
+    margin-top: 0.15rem;
+
+    color: var(--usage-muted);
+
+    font-size: 0.73rem;
+  }
+
+
+  .usage-muted-value {
+    color: var(--usage-muted);
+
+    font-size: 0.76rem;
+  }
+
+
+  .usage-label-list {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+
+    margin-top: 0.45rem;
+  }
+
+
+  .usage-mini-label {
+    padding: 0.18rem 0.45rem;
+
+    border: 1px solid rgba(98, 86, 217, 0.17);
+    border-radius: 999px;
+
+    background: rgba(98, 86, 217, 0.07);
+    color: #6256b8;
+
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+
+
+  .usage-number {
+    color: #394154;
+
+    font-weight: 600;
+  }
+
+
+  .usage-test-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 34px;
+    height: 34px;
+    padding: 0 0.5rem;
+
+    border-radius: 10px;
+
+    background: #f0effb;
+    color: #574cad;
+
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+
+  .usage-type-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+
     min-width: 220px;
   }
 
-  @media (max-width: 1200px) {
-    .usage-type-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+
+  .usage-type-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    padding: 0.28rem 0.5rem;
+
+    border-radius: 7px;
+
+    background: #f4f5f8;
+    color: #586074;
+
+    font-size: 0.68rem;
+    white-space: nowrap;
   }
 
-  @media (max-width: 768px) {
-    .usage-type-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+
+  .usage-type-pill strong {
+    color: #252c3b;
   }
+
+
+  .usage-quality {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.28rem 0.55rem;
+
+    border-radius: 999px;
+
+    font-size: 0.68rem;
+    font-weight: 600;
+
+    white-space: nowrap;
+  }
+
+
+  .usage-quality--estimated {
+    background: #fff5db;
+    color: #936200;
+  }
+
+
+  .usage-quality--observed {
+    background: #eaf7ef;
+    color: #34734d;
+  }
+
+
+  .usage-empty-state {
+    padding: 3rem !important;
+
+    color: var(--usage-muted) !important;
+
+    text-align: center;
+  }
+
+  .usage-completion-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+
+.usage-quality--completed {
+  background: #eaf7ef;
+  color: #34734d;
+}
+
+
+.usage-completion-note {
+  color: var(--usage-muted);
+
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+
+  @media (max-width: 1200px) {
+
+    .usage-filter-primary {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+    .usage-filter-advanced {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+    .usage-summary-grid {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+  }
+
+
+  @media (max-width: 700px) {
+
+    .usage-page-header {
+      flex-direction: column;
+    }
+
+    .usage-filter-primary,
+    .usage-filter-advanced,
+    .usage-summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .usage-summary-card {
+      min-height: auto;
+    }
+
+    .usage-section-heading {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+  }
+
 </style>
 
 {% endblock %}

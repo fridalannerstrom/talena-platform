@@ -9,6 +9,9 @@ from apps.emails.utils import render_placeholders  # justera import om din ligge
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
+from apps.processes.services.assessment_usage import (
+    register_sent_assessments,
+)
 
 def send_assessments_and_emails(*, process, invitations, actor_user, context="customer"):
     """
@@ -147,13 +150,24 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 raise
             
             # --- Update invitation ---
+
+            sent_at = timezone.now()
+
             inv.status = "sent"
-            inv.invited_at = timezone.now()
+            inv.invited_at = sent_at
+            inv.invited_by = actor_user
             inv.sova_payload = resp
             inv.request_id = request_id
             inv.assessment_url = test_url
 
-            update_fields = ["status", "invited_at", "sova_payload", "request_id", "assessment_url"]
+            update_fields = [
+                "status",
+                "invited_at",
+                "invited_by",
+                "sova_payload",
+                "request_id",
+                "assessment_url",
+            ]
 
             log_event(
                 company=process.company,
@@ -174,6 +188,13 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 update_fields.append("sova_project_id")
 
             inv.save(update_fields=update_fields)
+
+            register_sent_assessments(
+                invitation=inv,
+                sent_by=actor_user,
+                sent_at=sent_at,
+                sova_request_id=request_id,
+            )
 
             sent_count += 1
 

@@ -25,6 +25,7 @@ from django.db.models import Count, OuterRef, Subquery, IntegerField
 from django.db.models.functions import Coalesce
 
 from apps.processes.models import (
+    AssessmentUsage,
     Candidate,
     TestProcess,
     TestInvitation,
@@ -302,226 +303,617 @@ def empty_usage_row(company, org_unit, process):
         "candidates": set(),
     }
 
-
 @login_required
 @admin_required
 def admin_usage_billing(request):
     today = timezone.localdate()
     default_start = today.replace(day=1)
 
-    date_from = parse_date_param(request.GET.get("date_from")) or default_start
-    date_to = parse_date_param(request.GET.get("date_to")) or today
+    date_from = (
+        parse_date_param(
+            request.GET.get("date_from")
+        )
+        or default_start
+    )
+
+    date_to = (
+        parse_date_param(
+            request.GET.get("date_to")
+        )
+        or today
+    )
 
     start_dt = make_aware_start(date_from)
     end_dt = make_aware_end(date_to)
 
-    q = (request.GET.get("q") or "").strip()
-    company_id = (request.GET.get("company") or "").strip()
-    org_unit_id = (request.GET.get("org_unit") or "").strip()
-    label_id = (request.GET.get("label") or "").strip()
-    created_by_id = (request.GET.get("created_by") or "").strip()
-    test_type = (request.GET.get("test_type") or "").strip()
-    include_internal = request.GET.get("include_internal") == "1"
+    q = (
+        request.GET.get("q")
+        or ""
+    ).strip()
 
-    invitations = (
-        TestInvitation.objects
+    company_id = (
+        request.GET.get("company")
+        or ""
+    ).strip()
+
+    org_unit_id = (
+        request.GET.get("org_unit")
+        or ""
+    ).strip()
+
+    label_id = (
+        request.GET.get("label")
+        or ""
+    ).strip()
+
+    sent_by_id = (
+        request.GET.get("sent_by")
+        or request.GET.get("created_by")
+        or ""
+    ).strip()
+
+    test_type = (
+        request.GET.get("test_type")
+        or ""
+    ).strip()
+
+    lifecycle = (
+        request.GET.get("lifecycle")
+        or "completed"
+    ).strip().lower()
+
+    valid_lifecycles = {
+        "sent",
+        "started",
+        "completed",
+        "all",
+    }
+
+    if lifecycle not in valid_lifecycles:
+        lifecycle = "completed"
+
+    include_internal = (
+        request.GET.get("include_internal")
+        == "1"
+    )
+
+    usages = (
+        AssessmentUsage.objects
         .select_related(
-            "candidate",
+            "company",
+            "org_unit",
             "process",
-            "process__company",
-            "process__org_unit",
-            "process__created_by",
-            "process__created_by_admin",
+            "candidate",
+            "invitation",
+            "sent_by",
         )
-        .prefetch_related("process__labels")
-        .filter(process__company__isnull=False)
+        .prefetch_related(
+            "process__labels"
+        )
+        .filter(
+            company__isnull=False,
+        )
     )
 
-    # We include invitations that were sent OR completed in the selected period.
-    # Sent/started numbers use invited_at; completed/billable uses completed_at.
-    period_filter = (
-        Q(invited_at__gte=start_dt, invited_at__lte=end_dt)
-        | Q(completed_at__gte=start_dt, completed_at__lte=end_dt)
-    )
-    invitations = invitations.filter(period_filter)
+    # ------------------------------------------------------------
+    # General filters
+    # ------------------------------------------------------------
 
     if q:
-        invitations = invitations.filter(
-            Q(process__company__name__icontains=q)
-            | Q(process__org_unit__name__icontains=q)
-            | Q(process__org_unit__unit_code__icontains=q)
-            | Q(process__name__icontains=q)
-            | Q(process__project_name_snapshot__icontains=q)
-            | Q(process__project_code__icontains=q)
-            | Q(candidate__email__icontains=q)
-            | Q(candidate__first_name__icontains=q)
-            | Q(candidate__last_name__icontains=q)
+        usages = usages.filter(
+            Q(
+                company_name_snapshot__icontains=q
+            )
+            | Q(
+                company__name__icontains=q
+            )
+            | Q(
+                org_unit_name_snapshot__icontains=q
+            )
+            | Q(
+                org_unit__name__icontains=q
+            )
+            | Q(
+                process_name_snapshot__icontains=q
+            )
+            | Q(
+                process__name__icontains=q
+            )
+            | Q(
+                project_name_snapshot__icontains=q
+            )
+            | Q(
+                process__project_code__icontains=q
+            )
+            | Q(
+                candidate_name_snapshot__icontains=q
+            )
+            | Q(
+                candidate_email_snapshot__icontains=q
+            )
+            | Q(
+                candidate__email__icontains=q
+            )
+            | Q(
+                sent_by__first_name__icontains=q
+            )
+            | Q(
+                sent_by__last_name__icontains=q
+            )
+            | Q(
+                sent_by__email__icontains=q
+            )
         )
 
     if company_id:
-        invitations = invitations.filter(process__company_id=company_id)
+        usages = usages.filter(
+            company_id=company_id
+        )
 
     if org_unit_id:
-        invitations = invitations.filter(process__org_unit_id=org_unit_id)
+        usages = usages.filter(
+            org_unit_id=org_unit_id
+        )
 
     if label_id:
-        invitations = invitations.filter(process__labels__id=label_id)
+        usages = usages.filter(
+            process__labels__id=label_id
+        )
 
-    if created_by_id:
-        invitations = invitations.filter(
-            Q(process__created_by_id=created_by_id)
-            | Q(process__created_by_admin_id=created_by_id)
+    if sent_by_id:
+        usages = usages.filter(
+            sent_by_id=sent_by_id
+        )
+
+    if test_type:
+        usages = usages.filter(
+            assessment_type=test_type
         )
 
     if not include_internal:
-        invitations = invitations.exclude(
-            Q(process__labels__name__iexact="internal")
-            | Q(process__labels__name__iexact="demo")
-            | Q(process__labels__name__iexact="do not invoice")
-            | Q(process__labels__name__iexact="not billable")
+        usages = usages.exclude(
+            Q(
+                process__labels__name__iexact=(
+                    "internal"
+                )
+            )
+            | Q(
+                process__labels__name__iexact=(
+                    "demo"
+                )
+            )
+            | Q(
+                process__labels__name__iexact=(
+                    "do not invoice"
+                )
+            )
+            | Q(
+                process__labels__name__iexact=(
+                    "not billable"
+                )
+            )
         )
 
-    invitations = invitations.distinct().order_by(
-        "process__company__name",
-        "process__org_unit__name",
-        "process__name",
+    usages = usages.distinct()
+
+    # ------------------------------------------------------------
+    # Separate lifecycle periods
+    #
+    # Each filter uses the timestamp belonging to that event.
+    # ------------------------------------------------------------
+
+    sent_period = usages.filter(
+        sent_at__gte=start_dt,
+        sent_at__lte=end_dt,
     )
 
-    rows_by_process = {}
+    started_period = usages.filter(
+        started_at__gte=start_dt,
+        started_at__lte=end_dt,
+    )
+
+    completed_period = usages.filter(
+        completed_at__gte=start_dt,
+        completed_at__lte=end_dt,
+        billing_excluded=False,
+    )
+
+    if lifecycle == "sent":
+        selected_usages = sent_period
+        lifecycle_label = "Sent"
+        date_basis_label = "Filtered by sent date"
+
+    elif lifecycle == "started":
+        selected_usages = started_period
+        lifecycle_label = "Started"
+        date_basis_label = "Filtered by started date"
+
+    elif lifecycle == "all":
+        selected_usages = usages.filter(
+            Q(
+                sent_at__gte=start_dt,
+                sent_at__lte=end_dt,
+            )
+            | Q(
+                started_at__gte=start_dt,
+                started_at__lte=end_dt,
+            )
+            | Q(
+                completed_at__gte=start_dt,
+                completed_at__lte=end_dt,
+            )
+        ).distinct()
+
+        lifecycle_label = "All activity"
+        date_basis_label = (
+            "Filtered by sent, started or completed date"
+        )
+
+    else:
+        selected_usages = completed_period
+        lifecycle_label = "Completed / billable"
+        date_basis_label = (
+            "Filtered by individual completion date"
+        )
+
+    selected_usages = (
+        selected_usages
+        .order_by(
+            "company__name",
+            "org_unit__name",
+            "process__name",
+            "sent_by__first_name",
+            "sent_by__last_name",
+            "assessment_type",
+        )
+    )
+
+    # ------------------------------------------------------------
+    # Totals
+    # ------------------------------------------------------------
 
     totals = {
-        "sent": 0,
-        "started": 0,
-        "completed": 0,
-        "unfinished": 0,
-        "billable": 0,
+        "sent": sent_period.count(),
+        "started": started_period.count(),
+        "completed": completed_period.count(),
+        "billable": completed_period.count(),
+
+        "unfinished": sent_period.filter(
+            completed_at__isnull=True,
+        ).count(),
+
+        "estimated_completed": (
+            completed_period
+            .filter(
+                completed_at_is_estimated=True
+            )
+            .count()
+        ),
+
+        "selected_count": (
+            selected_usages.count()
+        ),
+
         "personality": 0,
         "motivation": 0,
         "verbal": 0,
         "numerical": 0,
         "logical": 0,
         "other": 0,
+
         "candidates": set(),
         "processes": set(),
     }
 
-    for invitation in invitations:
-        process = invitation.process
-        company = process.company
-        org_unit = process.org_unit
+    # ------------------------------------------------------------
+    # Group rows by process and actual sender
+    # ------------------------------------------------------------
 
-        key = process.id
+    rows_by_key = {}
 
-        if key not in rows_by_process:
-            rows_by_process[key] = empty_usage_row(company, org_unit, process)
+    for usage in selected_usages:
+        process = usage.process
+        company = usage.company
+        org_unit = usage.org_unit
 
-        row = rows_by_process[key]
-
-        counts = count_activities_by_status(invitation)
-
-        # Sent/started should only count if the invitation was sent in the period.
-        invited_in_period = (
-            invitation.invited_at
-            and start_dt <= invitation.invited_at <= end_dt
+        key = (
+            usage.process_id,
+            usage.sent_by_id,
         )
 
-        # Completed/billable should only count if the invitation was completed in the period.
-        completed_in_period = (
-            invitation.completed_at
-            and start_dt <= invitation.completed_at <= end_dt
+        if key not in rows_by_key:
+            rows_by_key[key] = {
+                "company": company,
+                "org_unit": org_unit,
+                "process": process,
+                "sent_by": usage.sent_by,
+
+                "company_name": (
+                    usage.company_name_snapshot
+                    or company.name
+                    or "No company"
+                ),
+
+                "account_name": (
+                    usage.org_unit_name_snapshot
+                    or (
+                        org_unit.name
+                        if org_unit
+                        else "No account"
+                    )
+                ),
+
+                "account_code": (
+                    org_unit.unit_code
+                    if org_unit
+                    else ""
+                ),
+
+                "process_name": (
+                    usage.process_name_snapshot
+                    or process.name
+                    or "No process"
+                ),
+
+                "project_name": (
+                    usage.project_name_snapshot
+                    or process.project_name_snapshot
+                    or process.project_code
+                    or "Assessment"
+                ),
+
+                "labels": list(
+                    process.labels.all()
+                ),
+
+                "selected_count": 0,
+
+                "sent": 0,
+                "started": 0,
+                "completed": 0,
+                "unfinished": 0,
+                "billable": 0,
+
+                "estimated_completed": 0,
+
+                "personality": 0,
+                "motivation": 0,
+                "verbal": 0,
+                "numerical": 0,
+                "logical": 0,
+                "other": 0,
+
+                "candidates": set(),
+            }
+
+        row = rows_by_key[key]
+
+        row["selected_count"] += 1
+
+        assessment_type = (
+            usage.assessment_type
+            if usage.assessment_type in {
+                "personality",
+                "motivation",
+                "verbal",
+                "numerical",
+                "logical",
+                "other",
+            }
+            else "other"
         )
 
-        if invited_in_period:
-            row["sent"] += counts["sent"]
-            row["started"] += counts["started"]
+        row[assessment_type] += 1
+        totals[assessment_type] += 1
 
-        if completed_in_period:
-            row["completed"] += counts["completed"]
-            row["billable"] += counts["billable"]
+        if (
+            usage.sent_at
+            and start_dt
+            <= usage.sent_at
+            <= end_dt
+        ):
+            row["sent"] += 1
 
-            row["personality"] += counts["personality"]
-            row["motivation"] += counts["motivation"]
-            row["verbal"] += counts["verbal"]
-            row["numerical"] += counts["numerical"]
-            row["logical"] += counts["logical"]
-            row["other"] += counts["other"]
+        if (
+            usage.started_at
+            and start_dt
+            <= usage.started_at
+            <= end_dt
+        ):
+            row["started"] += 1
 
-        row["candidates"].add(invitation.candidate_id)
+        if (
+            usage.completed_at
+            and start_dt
+            <= usage.completed_at
+            <= end_dt
+            and not usage.billing_excluded
+        ):
+            row["completed"] += 1
+            row["billable"] += 1
 
-    rows = list(rows_by_process.values())
+            if usage.completed_at_is_estimated:
+                row["estimated_completed"] += 1
 
-    # Apply test type filter after counting.
-    if test_type:
-        rows = [row for row in rows if row.get(test_type, 0) > 0]
+        if usage.completed_at is None:
+            row["unfinished"] += 1
 
-    for row in rows:
-        row["unfinished"] = max(row["sent"] - row["completed"], 0)
-        row["candidate_count"] = len(row["candidates"])
-
-        for key in [
-            "sent",
-            "started",
-            "completed",
-            "unfinished",
-            "billable",
-            "personality",
-            "motivation",
-            "verbal",
-            "numerical",
-            "logical",
-            "other",
-        ]:
-            totals[key] += row[key]
-
-        totals["candidates"].update(row["candidates"])
-        totals["processes"].add(row["process"].id)
-
-    totals["candidate_count"] = len(totals["candidates"])
-    totals["process_count"] = len(totals["processes"])
-
-    companies = Company.objects.order_by("name")
-    org_units = OrgUnit.objects.select_related("company").order_by("company__name", "name")
-    labels = ProcessLabel.objects.select_related("company").order_by("company__name", "name")
-
-    User = get_user_model()
-    creators = (
-        User.objects
-        .filter(
-            Q(test_processes__isnull=False)
-            | Q(test_processes_created_as_admin__isnull=False)
+        row["candidates"].add(
+            usage.candidate_id
         )
-        .distinct()
-        .order_by("first_name", "last_name", "email")
+
+        totals["candidates"].add(
+            usage.candidate_id
+        )
+
+        totals["processes"].add(
+            usage.process_id
+        )
+
+    rows = list(
+        rows_by_key.values()
     )
 
-    return render(request, "admin/accounts/usage_billing.html", {
-        "rows": rows,
-        "totals": totals,
+    for row in rows:
+        row["candidate_count"] = len(
+            row["candidates"]
+        )
 
-        "date_from": date_from.strftime("%Y-%m-%d"),
-        "date_to": date_to.strftime("%Y-%m-%d"),
-        "q": q,
-        "selected_company_id": company_id,
-        "selected_org_unit_id": org_unit_id,
-        "selected_label_id": label_id,
-        "selected_created_by_id": created_by_id,
-        "selected_test_type": test_type,
-        "include_internal": include_internal,
+    totals["candidate_count"] = len(
+        totals["candidates"]
+    )
 
-        "companies": companies,
-        "org_units": org_units,
-        "labels": labels,
-        "creators": creators,
+    totals["process_count"] = len(
+        totals["processes"]
+    )
 
-        "test_types": [
-            ("personality", "Personality"),
-            ("motivation", "Motivation"),
-            ("verbal", "Verbal"),
-            ("numerical", "Numerical"),
-            ("logical", "Logical"),
-            ("other", "Other"),
-        ],
-    })
+    # ------------------------------------------------------------
+    # Filter choices
+    # ------------------------------------------------------------
+
+    companies = Company.objects.order_by(
+        "name"
+    )
+
+    org_units = (
+        OrgUnit.objects
+        .select_related("company")
+        .order_by(
+            "company__name",
+            "name",
+        )
+    )
+
+    labels = (
+        ProcessLabel.objects
+        .select_related("company")
+        .order_by(
+            "company__name",
+            "name",
+        )
+    )
+
+    User = get_user_model()
+
+    senders = (
+        User.objects
+        .filter(
+            assessment_usages_sent__isnull=False
+        )
+        .distinct()
+        .order_by(
+            "first_name",
+            "last_name",
+            "email",
+        )
+    )
+
+    return render(
+        request,
+        "admin/accounts/usage_billing.html",
+        {
+            "rows": rows,
+            "totals": totals,
+
+            "date_from": (
+                date_from.strftime("%Y-%m-%d")
+            ),
+
+            "date_to": (
+                date_to.strftime("%Y-%m-%d")
+            ),
+
+            "q": q,
+
+            "selected_company_id": (
+                company_id
+            ),
+
+            "selected_org_unit_id": (
+                org_unit_id
+            ),
+
+            "selected_label_id": (
+                label_id
+            ),
+
+            "selected_sent_by_id": (
+                sent_by_id
+            ),
+
+            "selected_test_type": (
+                test_type
+            ),
+
+            "selected_lifecycle": (
+                lifecycle
+            ),
+
+            "lifecycle_label": (
+                lifecycle_label
+            ),
+
+            "date_basis_label": (
+                date_basis_label
+            ),
+
+            "include_internal": (
+                include_internal
+            ),
+
+            "companies": companies,
+            "org_units": org_units,
+            "labels": labels,
+            "senders": senders,
+
+            "lifecycle_options": [
+                (
+                    "completed",
+                    "Completed / billable",
+                ),
+                (
+                    "sent",
+                    "Sent",
+                ),
+                (
+                    "started",
+                    "Started",
+                ),
+                (
+                    "all",
+                    "All activity",
+                ),
+            ],
+
+            "test_types": [
+                (
+                    "personality",
+                    "Personality",
+                ),
+                (
+                    "motivation",
+                    "Motivation",
+                ),
+                (
+                    "verbal",
+                    "Verbal",
+                ),
+                (
+                    "numerical",
+                    "Numerical",
+                ),
+                (
+                    "logical",
+                    "Logical",
+                ),
+                (
+                    "other",
+                    "Other",
+                ),
+            ],
+        },
+    )
+
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate

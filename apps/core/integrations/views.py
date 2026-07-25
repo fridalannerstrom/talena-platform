@@ -10,6 +10,10 @@ from apps.core.integrations.sova import SovaClient
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
+from apps.processes.services.assessment_usage import (
+    sync_assessment_usage_from_activities,
+)
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -147,6 +151,7 @@ def sova_ingest(request):
     print(f"✅ Found invitation: {invitation.id}")
 
     old_status = invitation.status
+    observed_at = timezone.now()
 
     # ✅ Extract activities from either top level or phases
     activities = list(payload.get("activities") or [])
@@ -168,6 +173,11 @@ def sova_ingest(request):
             "sova_activities",
             "sova_reports",
         ]
+    )
+    sync_assessment_usage_from_activities(
+        invitation=invitation,
+        activities=activities,
+        observed_at=observed_at,
     )
     # ✅ Spara overall_status och andra SOVA-fält
     if overall_raw:
@@ -206,13 +216,40 @@ def sova_ingest(request):
         reason = f"no mapping hit (overall={overall})"
     
     print("🧠 Normalized status:", normalized, "| reason:", reason)
+    
+    # ✅ Update invitation lifecycle status
 
-    # ✅ Uppdatera status
     if normalized == "started":
-        if invitation.status not in {"started", "completed"}:
+        update_fields = []
+
+        status_changed = (
+            invitation.status
+            not in {
+                "started",
+                "completed",
+            }
+        )
+
+        if status_changed:
             invitation.status = "started"
-            invitation.save(update_fields=["status"])
-            print(f"✅ Updated invitation to STARTED: {invitation.id}")
+            update_fields.append("status")
+
+        if invitation.started_at is None:
+            invitation.started_at = observed_at
+            update_fields.append(
+                "started_at"
+            )
+
+        if update_fields:
+            invitation.save(
+                update_fields=update_fields
+            )
+
+        if status_changed:
+            print(
+                "✅ Updated invitation to STARTED: "
+                f"{invitation.id}"
+            )
 
             log_event(
                 company=invitation.process.company,
@@ -228,14 +265,47 @@ def sova_ingest(request):
                 },
             )
         else:
-            print(f"ℹ️ Skip STARTED update (already {invitation.status})")
+            print(
+                "ℹ️ Skip STARTED status update "
+                f"(already {invitation.status})"
+            )
 
     elif normalized == "completed":
-        if invitation.status != "completed":
+        update_fields = []
+
+        status_changed = (
+            invitation.status != "completed"
+        )
+
+        if status_changed:
             invitation.status = "completed"
-            invitation.completed_at = timezone.now()
-            invitation.save(update_fields=["status", "completed_at"])
-            print(f"✅ Updated invitation to COMPLETED: {invitation.id}")
+            update_fields.append("status")
+
+        # A completed invitation must have been started,
+        # even if Talena did not receive an earlier webhook.
+        if invitation.started_at is None:
+            invitation.started_at = observed_at
+            update_fields.append(
+                "started_at"
+            )
+
+        # Preserve the first observed completion time.
+        if invitation.completed_at is None:
+            invitation.completed_at = observed_at
+            update_fields.append(
+                "completed_at"
+            )
+
+        if update_fields:
+            invitation.save(
+                update_fields=update_fields
+            )
+
+        if status_changed:
+            print(
+                "✅ Updated invitation to COMPLETED: "
+                f"{invitation.id}"
+            )
 
             log_event(
                 company=invitation.process.company,
@@ -251,9 +321,16 @@ def sova_ingest(request):
                 },
             )
         else:
-            print("ℹ️ Skip COMPLETED update (already completed)")
+            print(
+                "ℹ️ Skip COMPLETED status update "
+                "(already completed)"
+            )
+
     else:
-        print("ℹ️ Nothing to update for status.")
+        print(
+            "ℹ️ Nothing to update for "
+            "invitation status."
+        )
 
     # ✅ Results: spara om payload har project_results
     if isinstance(payload.get("project_results"), dict):

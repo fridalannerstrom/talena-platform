@@ -577,6 +577,293 @@ class TestInvitation(models.Model):
         related_name="sent_invitations",
     )
 
+class AssessmentUsage(models.Model):
+    """
+    Represents one individual assessment sent to one candidate.
+
+    Example:
+    A candidate receives Personality + Motivation + Logical.
+    That creates three AssessmentUsage records.
+
+    The record follows the assessment through its lifecycle:
+
+        sent -> started -> completed
+
+    Billing rule:
+    An assessment becomes billable when it is completed.
+    """
+
+    class AssessmentType(models.TextChoices):
+        PERSONALITY = "personality", "Personality"
+        MOTIVATION = "motivation", "Motivation"
+        VERBAL = "verbal", "Verbal"
+        LOGICAL = "logical", "Logical"
+        NUMERICAL = "numerical", "Numerical"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        SENT = "sent", "Sent"
+        STARTED = "started", "Started"
+        COMPLETED = "completed", "Completed"
+
+    # ------------------------------------------------------------
+    # Relations
+    # ------------------------------------------------------------
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.PROTECT,
+        related_name="assessment_usages",
+    )
+
+    org_unit = models.ForeignKey(
+        OrgUnit,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="assessment_usages",
+    )
+
+    process = models.ForeignKey(
+        TestProcess,
+        on_delete=models.PROTECT,
+        related_name="assessment_usages",
+    )
+
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.PROTECT,
+        related_name="assessment_usages",
+    )
+
+    invitation = models.ForeignKey(
+        TestInvitation,
+        on_delete=models.PROTECT,
+        related_name="assessment_usages",
+    )
+
+    # ------------------------------------------------------------
+    # Assessment
+    # ------------------------------------------------------------
+
+    assessment_type = models.CharField(
+        max_length=30,
+        choices=AssessmentType.choices,
+        db_index=True,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.SENT,
+        db_index=True,
+    )
+
+    # ------------------------------------------------------------
+    # Lifecycle timestamps
+    # ------------------------------------------------------------
+
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    completed_at_is_estimated = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "True when completed_at is based on an "
+            "invitation-level historical timestamp rather "
+            "than an individual assessment completion event."
+        ),
+    )
+
+    # ------------------------------------------------------------
+    # Who sent it?
+    # ------------------------------------------------------------
+
+    sent_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assessment_usages_sent",
+    )
+
+    # ------------------------------------------------------------
+    # Sova references
+    # ------------------------------------------------------------
+
+    sova_request_id = models.CharField(
+        max_length=512,
+        blank=True,
+        default="",
+        db_index=True,
+    )
+
+    sova_activity_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    sova_activity_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
+    # Billing
+    # ------------------------------------------------------------
+
+    billing_excluded = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "Exclude this assessment from billing even if completed."
+        ),
+    )
+
+    billing_exclusion_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    # ------------------------------------------------------------
+    # Historical snapshots
+    #
+    # These preserve what the billing record looked like at the
+    # time of usage even if names are changed later.
+    # ------------------------------------------------------------
+
+    company_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    org_unit_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    process_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    project_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    candidate_name_snapshot = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
+    candidate_email_snapshot = models.EmailField(
+        blank=True,
+        default="",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = [
+            "-completed_at",
+            "-sent_at",
+            "-created_at",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "invitation",
+                    "assessment_type",
+                ],
+                name=(
+                    "uniq_assessment_usage_"
+                    "invitation_type"
+                ),
+            ),
+        ]
+
+        indexes = [
+            models.Index(
+                fields=[
+                    "company",
+                    "completed_at",
+                ],
+            ),
+            models.Index(
+                fields=[
+                    "company",
+                    "sent_at",
+                ],
+            ),
+            models.Index(
+                fields=[
+                    "process",
+                    "assessment_type",
+                ],
+            ),
+            models.Index(
+                fields=[
+                    "status",
+                    "completed_at",
+                ],
+            ),
+        ]
+
+    @property
+    def is_billable(self):
+        """
+        An assessment is billable when completed,
+        unless it has explicitly been excluded.
+        """
+        return (
+            self.completed_at is not None
+            and not self.billing_excluded
+        )
+
+    def __str__(self):
+        candidate_name = (
+            self.candidate_name_snapshot
+            or str(self.candidate)
+        )
+
+        return (
+            f"{candidate_name} · "
+            f"{self.get_assessment_type_display()} · "
+            f"{self.get_status_display()}"
+        )
+
 
 class SelfRegistration(models.Model):
     process = models.ForeignKey(TestProcess, on_delete=models.CASCADE, related_name="self_registrations")
