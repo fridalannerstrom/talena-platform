@@ -192,16 +192,12 @@ def customer_dashboard(request):
 
 
 @login_required
+@login_required
 def customer_activity(request):
     """
-    Show activity from all test processes the current customer
+    Show activity from all test processes the current user
     has permission to access.
     """
-
-    if request.user.is_staff or request.user.is_superuser:
-        return HttpResponseForbidden(
-            "Admins should use the admin dashboard."
-        )
 
     company_id = (
         CompanyMember.objects
