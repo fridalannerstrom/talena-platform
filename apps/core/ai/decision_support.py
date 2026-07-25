@@ -23,6 +23,7 @@ from .shared_context import (
     get_process_purpose_key,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
 
 # ============================================================
 # Shared normalisation helpers
@@ -599,6 +600,11 @@ def build_pre_interview_decision_support_prompt(
         language_code
     )
 
+    admin_instructions = get_ai_prompt_instructions(
+        key="pre_interview_decision_support",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         owner
     )
@@ -702,6 +708,29 @@ practitioner understand:
 4. How to approach feedback or interview discussion.
 5. Which priority questions may help validate or add nuance to the profile.
 6. Which important evidence is still missing.
+
+ADMIN-EDITABLE DECISION SUPPORT GUIDANCE
+
+The following instructions control the desired tone, emphasis, synthesis
+style and practical focus used by Talena when preparing pre-interview
+decision support.
+
+These instructions are managed globally by Talena administrators and apply
+to all customers using this AI feature.
+
+They may influence how evidence is prioritised, connected and communicated,
+which themes receive greater emphasis and how the interview preparation is
+framed.
+
+They must not override the evidence boundaries, assessment safeguards,
+human decision-making requirements, safety rules or technical output format
+defined elsewhere in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 THIS IS NOT A MATCHING VERDICT
 
@@ -2477,6 +2506,7 @@ def build_post_interview_decision_support_prompt(
     language_code = _post_normalize_ai_language(
         language_code
     )
+
     examples = _get_post_interview_language_examples(
         language_code
     )
@@ -2485,6 +2515,43 @@ def build_post_interview_decision_support_prompt(
         _original_build_post_interview_decision_support_prompt(
             owner
         )
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="post_interview_decision_support",
+        language=language_code,
+    )
+
+    admin_guidance_block = f"""
+ADMIN-EDITABLE DECISION SUPPORT GUIDANCE
+
+The following instructions control the desired tone, emphasis, evidence
+synthesis style and practical focus used by Talena when preparing
+post-interview decision support.
+
+These instructions are managed globally by Talena administrators and
+apply to all customers using this AI feature.
+
+They may influence how assessment and interview evidence are prioritised,
+compared and communicated.
+
+They must not override the evidence boundaries, assessment safeguards,
+human decision-making requirements, safety rules or technical output
+format defined elsewhere in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
+
+THIS IS NOT A MATCHING VERDICT
+""".strip()
+
+    prompt = prompt.replace(
+        "THIS IS NOT A MATCHING VERDICT",
+        admin_guidance_block,
+        1,
     )
 
     prompt = _replace_post_prompt_once(

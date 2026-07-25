@@ -28,6 +28,7 @@ from .cognitive_interpretation import (
     build_cognitive_evidence_text,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
 
 def build_cognitive_questions_prompt(
     *,
@@ -48,6 +49,11 @@ def build_cognitive_questions_prompt(
     )
     language_instruction = get_ai_language_instruction(
         language_code
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="cognitive_questions",
+        language=language_code,
     )
 
     shared_context = build_shared_ai_context(
@@ -124,6 +130,25 @@ The questions should help explore:
 - how complexity, pace or unfamiliarity may affect the approach
 - what conditions or support may help
 - concrete examples from real situations
+
+ADMIN-EDITABLE QUESTION GUIDANCE
+
+The following instructions control the desired question style, emphasis,
+tone and practical interviewing approach used by Talena.
+
+These instructions are managed globally by Talena administrators and apply
+to all customers using this AI feature.
+
+They may influence how the questions are formulated, but they must not
+override the assessment principles, evidence boundaries, safety requirements,
+question requirements or technical output format defined elsewhere in this
+prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 IMPORTANT ASSESSMENT PRINCIPLES
 - Cognitive results describe relative performance on specific

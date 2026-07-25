@@ -13,6 +13,8 @@ from apps.core.ai.prompt_templates import (
     list_ai_prompt_definitions,
 )
 
+import inspect
+
 from django.contrib import messages
 
 from django.contrib.auth import get_user_model
@@ -715,6 +717,32 @@ def admin_ai_prompt_edit(
         else default_prompt
     )
 
+    full_prompt_source = ""
+    system_prompt_preview = ""
+
+    if key == "motivation_interpretation":
+        from apps.core.ai.motivation_interpretation import (
+            build_motivation_interpretation_prompt,
+            get_motivation_interpretation_system_prompt,
+        )
+
+        try:
+            full_prompt_source = inspect.getsource(
+                build_motivation_interpretation_prompt
+            )
+
+        except (OSError, TypeError):
+            full_prompt_source = (
+                "The prompt source could not be loaded "
+                "in this environment."
+            )
+
+        system_prompt_preview = (
+            get_motivation_interpretation_system_prompt(
+                language_code
+            )
+        )
+
     return render(
         request,
         "admin/core/ai_prompts/prompt_edit.html",
@@ -730,6 +758,8 @@ def admin_ai_prompt_edit(
 
             "override": override,
             "has_active_override": has_active_override,
+            "full_prompt_source": full_prompt_source,
+            "system_prompt_preview": system_prompt_preview,
         },
     )
 

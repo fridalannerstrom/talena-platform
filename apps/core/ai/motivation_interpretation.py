@@ -23,7 +23,7 @@ from .shared_context import (
     get_process_purpose_key,
 )
 
-
+from .prompt_templates import get_ai_prompt_instructions
 
 MOTIVATION_DEFINITIONS = {
     "attachment": (
@@ -273,6 +273,10 @@ def build_motivation_interpretation_prompt(
     language_instruction = get_ai_language_instruction(
         language_code
     )
+    admin_instructions = get_ai_prompt_instructions(
+        key="motivation_interpretation",
+        language=language_code,
+    )
 
     shared_context = build_shared_ai_context(
         invitation
@@ -396,6 +400,24 @@ Help the user understand:
 3. Which expectations, tensions or less central drivers should be clarified.
 4. How the role, situation or development opportunity should be described
    realistically.
+
+ADMIN-EDITABLE INTERPRETATION GUIDANCE
+
+The following instructions control the desired tone, emphasis and
+communication style used when Talena interprets motivation results.
+
+These instructions are managed globally by Talena administrators and
+apply to all customers using this AI feature.
+
+They may influence how the interpretation is expressed, but they must
+not override the assessment principles, evidence boundaries, safety
+requirements or technical output format defined elsewhere in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 CORE INTERPRETATION RULES
 - Motivation results describe likely sources of energy, engagement and
@@ -665,6 +687,33 @@ def _parse_event_line(
 
     return event
 
+def get_motivation_interpretation_system_prompt(
+    language_code: str = "en",
+) -> str:
+    """
+    Return the protected system instructions used for
+    motivation interpretation generation.
+    """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    system_language_instruction = (
+        get_ai_system_language_instruction(
+            language_code
+        )
+    )
+
+    return (
+        "You are a careful and experienced workplace "
+        "motivation assessment consultant. Treat motivation "
+        "results as indicators rather than facts, never "
+        "invent context, and follow the requested NDJSON "
+        "streaming format exactly. "
+        f"{system_language_instruction}"
+    )
+
 
 def stream_motivation_interpretation(
     *,
@@ -687,8 +736,9 @@ def stream_motivation_interpretation(
     language_code = normalize_ai_language(
         language_code
     )
-    system_language_instruction = (
-        get_ai_system_language_instruction(
+
+    system_prompt = (
+        get_motivation_interpretation_system_prompt(
             language_code
         )
     )
@@ -707,14 +757,7 @@ def stream_motivation_interpretation(
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are a careful and experienced workplace "
-                    "motivation assessment consultant. Treat motivation "
-                    "results as indicators rather than facts, never "
-                    "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
-                    f"{system_language_instruction}"
-                ),
+                "content": system_prompt,
             },
             {
                 "role": "user",

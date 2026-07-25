@@ -22,6 +22,8 @@ from .language import (
     set_ai_content_language,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 # Talena cognitive AI language batch 1
 
 
@@ -195,6 +197,11 @@ def build_cognitive_interpretation_prompt(
         language_code
     )
 
+    admin_instructions = get_ai_prompt_instructions(
+        key="cognitive_interpretation",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -276,6 +283,25 @@ The interpretation should help the user understand:
 2. Which types of work demands may make the result more or less relevant.
 3. Which conditions, strategies or support may be useful to consider.
 4. Which questions could help gather concrete behavioural evidence.
+
+ADMIN-EDITABLE INTERPRETATION GUIDANCE
+
+The following instructions control the desired tone, emphasis and
+communication style used when Talena interprets cognitive assessment
+results.
+
+These instructions are managed globally by Talena administrators and
+apply to all customers using this AI feature.
+
+They may influence how the interpretation is expressed, but they must
+not override the assessment principles, evidence boundaries, safety
+requirements or technical output format defined elsewhere in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 IMPORTANT INTERPRETATION PRINCIPLES
 - Cognitive assessment results describe relative performance on specific

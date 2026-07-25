@@ -26,6 +26,8 @@ from .shared_context import (
     get_process_purpose_key,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 
 def build_motivation_questions_prompt(
     *,
@@ -42,6 +44,11 @@ def build_motivation_questions_prompt(
     )
     language_instruction = get_ai_language_instruction(
         language_code
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="motivation_questions",
+        language=language_code,
     )
 
     shared_context = build_shared_ai_context(
@@ -107,6 +114,25 @@ Cover different themes, such as:
 - tensions between motivational preferences
 - expectations or working conditions that should be clarified
 - sustainable motivation over time
+
+ADMIN-EDITABLE QUESTION GUIDANCE
+
+The following instructions control the desired question style, emphasis,
+tone and practical interviewing approach used by Talena.
+
+These instructions are managed globally by Talena administrators and apply
+to all customers using this AI feature.
+
+They may influence how the questions are formulated, but they must not
+override the assessment principles, evidence boundaries, safety requirements,
+question requirements or technical output format defined elsewhere in this
+prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 ASSESSMENT PRINCIPLES
 - Motivation results describe likely sources of energy, engagement

@@ -15,6 +15,8 @@ from .openai_client import (
     get_chat_model,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 
 
 EXCLUDED_PERSONALITY_COMPETENCIES = {
@@ -334,6 +336,8 @@ def personality_questions_cover_all_traits(
 def build_personality_questions_prompt(
     invitation,
     personality_results: list[dict[str, Any]],
+    *,
+    language_code: str = "en",
 ) -> str:
     """
     Build the prompt for trait suggestions and purpose-aware questions.
@@ -390,6 +394,7 @@ included in the supplied context.
 Do not invent role requirements, company culture, leadership demands,
 team conditions or candidate experience.
 """.strip()
+
     else:
         context_instruction = """
 No additional process context has been supplied.
@@ -413,6 +418,7 @@ Do not replace them with different traits.
 Return the same selected traits in the selected_traits event.
 Suggested traits may still explain why those traits are relevant.
 """.strip()
+
     else:
         selection_instruction = """
 No user-selected traits are currently saved.
@@ -424,6 +430,11 @@ scores.
 
 The questions must be based on those suggested traits.
 """.strip()
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="personality_questions",
+        language=language_code,
+    )
 
     return f"""
 You are generating AI-supported personality questions for Talena,
@@ -466,6 +477,25 @@ The output must help the user understand:
 3. Which behavioural questions can test or deepen the assessment
    hypotheses.
 4. What useful evidence or nuance the user should listen for.
+
+ADMIN-EDITABLE QUESTION GUIDANCE
+
+The following instructions control the desired question style, emphasis,
+tone and practical interviewing approach used by Talena.
+
+These instructions are managed globally by Talena administrators and apply
+to all customers using this AI feature.
+
+They may influence how the questions are formulated, but they must not
+override the evidence boundaries, trait-selection safeguards, assessment
+principles, safety requirements or technical output format defined elsewhere
+in this prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 CORE INTERPRETATION RULES
 - Personality results describe likely behavioural preferences or
@@ -1601,6 +1631,7 @@ def build_personality_questions_prompt(
     prompt = _original_build_personality_questions_prompt(
         invitation,
         personality_results,
+        language_code=language_code,
     )
     prompt = _localize_question_prompt(prompt, language_code)
     prompt = prompt.replace(

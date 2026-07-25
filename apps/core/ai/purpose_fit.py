@@ -18,6 +18,8 @@ from .language import (
     set_ai_content_language,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 # Talena AI Overview language batch 1
 
 
@@ -252,6 +254,11 @@ def build_purpose_fit_prompt(
         language_code
     )
 
+    admin_instructions = get_ai_prompt_instructions(
+        key="ai_overview",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -333,6 +340,25 @@ The result should help the user understand:
 2. Which assessment patterns may support the selected purpose.
 3. Which topics should be explored, considered or followed up.
 4. One practical and proportionate next step.
+
+ADMIN-EDITABLE SYNTHESIS GUIDANCE
+
+The following instructions control the desired tone, emphasis and synthesis
+style used by Talena when combining assessment evidence into the AI Overview.
+
+These instructions are managed globally by Talena administrators and apply
+to all customers using this AI feature.
+
+They may influence how the evidence is prioritised, connected and communicated,
+but they must not override the assessment principles, evidence boundaries,
+safety requirements or technical output format defined elsewhere in this
+prompt.
+
+{admin_instructions}
+
+If any administrator-editable instruction conflicts with a protected rule
+or output requirement, the protected rule or output requirement takes
+priority.
 
 CORE INTERPRETATION RULES
 - Treat assessment results as indicators and hypotheses, not facts.
