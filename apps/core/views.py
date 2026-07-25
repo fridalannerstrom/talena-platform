@@ -80,9 +80,9 @@ def _get_sova_accounts():
 
 @login_required
 def customer_dashboard(request):
-    # Admins ska inte hit
-    if request.user.is_staff or request.user.is_superuser:
-        return HttpResponseForbidden("Admins should use the admin dashboard.")
+    # Customer och admin använder samma Talena-workspace.
+    # Företag och datatillgång styrs via CompanyMember
+    # och användarens OrgUnit-behörigheter.
 
     # 1) Hämta SOVA-accounts
     accounts, error = _get_sova_accounts()

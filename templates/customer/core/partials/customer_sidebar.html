@@ -147,6 +147,24 @@
       </div>
     </div>
 
+    {% if request.user.role == "admin" or request.user.is_staff or request.user.is_superuser %}
+
+  <div class="sidenav-menu-heading">
+    {% trans "Administration" %}
+  </div>
+
+  <a
+    class="nav-link sidebar-link"
+    href="{% url 'core:admin_dashboard' %}"
+  >
+    <div class="nav-link-icon">
+      <i data-feather="shield"></i>
+    </div>
+
+    <span>{% trans "Admin dashboard" %}</span>
+  </a>
+
+{% endif %}
 
     <!-- Sidebar footer -->
     <div class="sidenav-footer talena-sidebar-footer">

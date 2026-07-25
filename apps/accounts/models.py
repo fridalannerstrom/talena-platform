@@ -12,11 +12,27 @@ from django.core.exceptions import ValidationError
 # ============================================================================
 
 class User(AbstractUser):
+    """
+    Global roll i Talena.
+
+    Detta är användarens roll i själva plattformen och ska inte
+    blandas ihop med CompanyMember.role, som beskriver användarens
+    roll inom ett specifikt företag.
+    """
+
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         CUSTOMER = "customer", "Customer"
 
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.CUSTOMER,
+        db_index=True,
+        verbose_name="Plattformsroll",
+    )
 
+    
 # ============================================================================
 # COMPANY + MEMBERS
 # ============================================================================

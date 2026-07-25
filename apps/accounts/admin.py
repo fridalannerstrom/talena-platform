@@ -51,11 +51,40 @@ class CustomUserAdmin(BaseUserAdmin):
         "username",
         "first_name",
         "last_name",
+        "role",
         "is_staff",
         "is_active",
         "orgunit_info",
     )
-    list_filter = ("is_staff", "is_active")
+
+    list_filter = (
+        "role",
+        "is_staff",
+        "is_active",
+    )
+
+    fieldsets = BaseUserAdmin.fieldsets + (
+        (
+            "Talena",
+            {
+                "fields": (
+                    "role",
+                ),
+            },
+        ),
+    )
+
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        (
+            "Talena",
+            {
+                "fields": (
+                    "role",
+                ),
+            },
+        ),
+    )
+    
     search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("email",)
 
