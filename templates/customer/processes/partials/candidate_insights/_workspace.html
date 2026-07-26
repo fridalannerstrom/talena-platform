@@ -74,31 +74,6 @@
 
   </section>
 
-
-
-{% elif not all_assessments_completed %}
-
-  <section class="combined-questions-empty-state mb-4">
-
-    <div class="combined-questions-empty-state__icon">
-      <i data-feather="loader"></i>
-    </div>
-
-    <h2 class="personality-questions-section-title mb-2">
-      {% trans "Candidate insights are not available yet" %}
-    </h2>
-
-    <p
-      class="text-muted small mb-0 mx-auto"
-      style="max-width: 580px;"
-    >
-      {% blocktrans %}The candidate insights will appear when all assessments included in the process have been completed.{% endblocktrans %}
-    </p>
-
-  </section>
-
-
-
 {% else %}
 
   <!-- ================================================== -->

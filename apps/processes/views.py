@@ -4159,17 +4159,6 @@ def process_candidate_global_ai_update_plan(
         candidate_id=candidate_id,
     )
 
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
     purpose_context = getattr(
         process,
         "role_context",
@@ -9515,17 +9504,6 @@ def process_candidate_cognitive_interpretation_stream(
         candidate_id=candidate_id,
     )
 
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
     language_code = get_request_ai_language(
         request
     )
@@ -9848,17 +9826,6 @@ def process_candidate_cognitive_questions_stream(
         process=process,
         candidate_id=candidate_id,
     )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
 
     language_code = get_request_ai_language(
         request
@@ -10187,17 +10154,6 @@ def process_candidate_motivation_interpretation_stream(
         candidate_id=candidate_id,
     )
 
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
     language_code = get_request_ai_language(
         request
     )
@@ -10517,17 +10473,6 @@ def process_candidate_motivation_questions_stream(
         process=process,
         candidate_id=candidate_id,
     )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
 
     language_code = get_request_ai_language(
         request
@@ -10868,17 +10813,6 @@ def process_candidate_personality_interpretation_stream(
             process=process,
             candidate_id=candidate_id,
         )
-
-        if owner.status != "completed":
-            return JsonResponse(
-                {
-                    "error": (
-                        "The candidate has not completed "
-                        "the assessments yet."
-                    )
-                },
-                status=400,
-            )
 
     language_code = get_request_ai_language(request)
     mark_ai_content_outdated_if_language_changed(
@@ -11231,17 +11165,6 @@ def process_candidate_personality_questions_stream(
         status_field="ai_personality_questions_status",
         language_code=language_code,
     )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
 
     personality_results = (
         extract_personality_question_traits(

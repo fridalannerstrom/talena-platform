@@ -219,7 +219,6 @@ def calculate_max_confidence(
 
     return "Medium"
 
-
 def build_purpose_fit_prompt(
     invitation,
     *,
@@ -228,10 +227,14 @@ def build_purpose_fit_prompt(
     """
     Build the prompt for Talena's combined AI Overview.
 
-    The overview is based on:
-    - all available assessment results
-    - the selected process purpose
+    The overview always uses the available assessment evidence.
+
+    When available, Talena may also use:
+    - a specific process purpose
     - optional process context
+
+    Flexible/general processes receive a general assessment-based
+    overview instead of being excluded from AI interpretation.
 
     The output remains compatible with the existing purpose-fit
     streaming and storage structure while the feature is gradually
@@ -241,9 +244,11 @@ def build_purpose_fit_prompt(
     language_code = normalize_ai_language(
         language_code
     )
+
     language_instruction = get_ai_language_instruction(
         language_code
     )
+
     output_examples = get_purpose_fit_output_examples(
         language_code
     )
@@ -258,7 +263,6 @@ def build_purpose_fit_prompt(
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
 
     purpose_key = shared_context["purpose_key"]
     purpose_label = shared_context["purpose_label"]
@@ -267,15 +271,40 @@ def build_purpose_fit_prompt(
     context_data = shared_context["context_data"]
 
     assessment_text, assessment_type_count = (
-        build_assessment_evidence(invitation)
+        build_assessment_evidence(
+            invitation
+        )
     )
 
-    has_context = bool(context_data)
+    # ---------------------------------------------------------
+    # Determine interpretation scope
+    # ---------------------------------------------------------
 
-    if has_context:
+    has_context = bool(
+        context_data
+    )
+
+    general_purpose_keys = {
+        "",
+        "flexible",
+        "unsure",
+        "general",
+    }
+
+    has_specific_purpose = (
+        purpose_key not in general_purpose_keys
+    )
+
+    # ---------------------------------------------------------
+    # 1. Specific purpose + context
+    # ---------------------------------------------------------
+
+    if has_specific_purpose and has_context:
         context_instruction = """
-Use the supplied process context to explain how the assessment
-indications may be relevant to this specific purpose and situation.
+A specific process purpose and additional process context are available.
+
+Use both to explain how the assessment indications may be relevant to
+this purpose and situation.
 
 Clearly distinguish between:
 - information stated in the process context
@@ -285,19 +314,150 @@ Clearly distinguish between:
 Do not invent requirements, responsibilities or candidate experience
 that are not present in the supplied information.
 """.strip()
-    else:
-        context_instruction = """
-No additional process context has been supplied.
 
-Base the overview on the available assessment results and the selected
-process purpose only.
+        overview_scope = (
+            "in relation to the selected process purpose and supplied "
+            "process context"
+        )
+
+        support_heading = (
+            "WHAT MAY SUPPORT THE PURPOSE"
+        )
+
+        support_relevance_instruction = (
+            "explain possible relevance to the selected purpose or "
+            "supplied context"
+        )
+
+        next_step_instruction = (
+            "Return one practical and proportionate next step appropriate "
+            "to the selected purpose and supplied context."
+        )
+
+    # ---------------------------------------------------------
+    # 2. Specific purpose, no context
+    # ---------------------------------------------------------
+
+    elif has_specific_purpose:
+        context_instruction = """
+A specific process purpose is available, but no additional process
+context has been supplied.
+
+Use the selected purpose to add relevance while keeping the
+interpretation broad.
 
 Do not invent specific role requirements, responsibilities, team
-conditions or organisational circumstances.
+conditions, organisational circumstances or candidate experience.
 
-Clearly state that the interpretation is broader and that specific
-relevance should be explored using additional context or conversation.
+Clearly state where more context or real-world examples would be useful
+for understanding the practical relevance of the results.
 """.strip()
+
+        overview_scope = (
+            "in relation to the selected process purpose, without assuming "
+            "requirements or circumstances that have not been supplied"
+        )
+
+        support_heading = (
+            "WHAT MAY SUPPORT THE PURPOSE"
+        )
+
+        support_relevance_instruction = (
+            "explain possible relevance to the selected purpose without "
+            "inventing specific requirements"
+        )
+
+        next_step_instruction = (
+            "Return one practical and proportionate next step appropriate "
+            "to the selected purpose."
+        )
+
+    # ---------------------------------------------------------
+    # 3. General purpose + context
+    # ---------------------------------------------------------
+
+    elif has_context:
+        context_instruction = """
+No specific process purpose has been selected.
+
+Use the supplied process context only where it adds practical meaning
+to the assessment results.
+
+Do not infer or invent a recruitment, development, leadership, team or
+other purpose.
+
+Do not assess fit or suitability.
+
+The overview should remain a general assessment-based interpretation,
+with the supplied context used only to add supported practical nuance.
+""".strip()
+
+        overview_scope = (
+            "as a general assessment-based profile, using the supplied "
+            "process context only where it adds supported practical nuance"
+        )
+
+        support_heading = (
+            "POTENTIALLY SUPPORTIVE PATTERNS"
+        )
+
+        support_relevance_instruction = (
+            "describe patterns that may be practically useful or supportive, "
+            "using supplied context only where directly supported"
+        )
+
+        next_step_instruction = (
+            "Return one practical and proportionate next step based on the "
+            "assessment evidence and supplied context, without assuming a "
+            "specific purpose."
+        )
+
+    # ---------------------------------------------------------
+    # 4. General purpose, no context
+    # ---------------------------------------------------------
+
+    else:
+        context_instruction = """
+No specific process purpose or additional process context has been
+supplied.
+
+Base the overview only on the available assessment evidence.
+
+Provide a general interpretation of the most important patterns across
+the available results.
+
+Describe possible workplace meaning without assuming any particular
+role, organisation, team, career goal or development situation.
+
+Do not assess fit or suitability.
+
+Do not invent requirements, responsibilities, candidate experience or
+organisational circumstances.
+""".strip()
+
+        overview_scope = (
+            "as a general assessment-based profile without assuming any "
+            "specific role, purpose, team, organisation or development "
+            "situation"
+        )
+
+        support_heading = (
+            "POTENTIALLY SUPPORTIVE PATTERNS"
+        )
+
+        support_relevance_instruction = (
+            "describe patterns that may be practically useful or supportive "
+            "in some workplace situations"
+        )
+
+        next_step_instruction = (
+            "Return one practical and proportionate next step for understanding "
+            "or validating the profile without assuming a specific purpose."
+        )
+
+    # ---------------------------------------------------------
+    # Build final prompt
+    # ---------------------------------------------------------
 
     return f"""
 You are generating the AI Overview for Talena, an assessment and
@@ -311,7 +471,7 @@ conversations.
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
-SELECTED PROCESS PURPOSE
+PROCESS PURPOSE
 Purpose: {purpose_label}
 
 OPTIONAL PROCESS CONTEXT
@@ -325,13 +485,12 @@ CONTEXT INSTRUCTION
 
 YOUR TASK
 Create one balanced and practical overview of all available assessment
-evidence in relation to the selected process purpose and any supplied
-process context.
+evidence {overview_scope}.
 
 The result should help the user understand:
 
 1. The most important overall indications in the profile.
-2. Which assessment patterns may support the selected purpose.
+2. Which assessment patterns may be practically relevant or potentially supportive.
 3. Which topics should be explored, considered or followed up.
 4. One practical and proportionate next step.
 
@@ -355,6 +514,7 @@ or output requirement, the protected rule or output requirement takes
 priority.
 
 CORE INTERPRETATION RULES
+
 - Treat assessment results as indicators and hypotheses, not facts.
 - Do not make a final hiring, promotion, development or placement decision.
 - Do not create a match score, suitability verdict or prediction of success.
@@ -367,72 +527,82 @@ CORE INTERPRETATION RULES
   motivation or experience.
 - Do not describe lower scores as automatic weaknesses.
 - Do not describe higher scores as automatic strengths.
-- Explain what an indication may mean in practice for the selected purpose.
+- Explain what an indication may mean in practice within the available
+  purpose and context. When no specific purpose or context is available,
+  describe its broader possible workplace meaning instead.
 - Consider combinations across available results where useful, but do not
   invent new psychological constructs, competency themes or composite scores.
 - If different parts of the evidence point in different directions,
   describe the nuance or discrepancy clearly.
 - If the evidence is limited, say so clearly.
-- If additional context is missing, say so clearly.
+- If additional context is missing, do not invent it.
 - Do not include raw assessment scores in the output.
 - Avoid technical test language and academic phrasing.
 - Keep the language practical and useful for the person reviewing the results.
 
 LANGUAGE AND TONE
+
 {language_instruction}
+
 - Avoid repeatedly writing "the candidate is".
 - Refer to the candidate by first name where natural.
 - Keep the tone balanced and non-judgemental.
 - Avoid exaggerated positive or negative wording.
 
 IMPORTANT DISTINCTIONS
+
 - Personality results describe likely preferences or behavioural tendencies.
 - Motivation results describe possible sources of energy and engagement.
 - Cognitive results describe relative performance on specific reasoning tasks.
-- Process context describes the purpose, requirements or situation supplied
-  by the user.
+- Process purpose and context may add practical relevance when available.
 - Candidate experience, competence and actual workplace behaviour cannot be
   assumed unless explicitly supplied in the context.
 
 CONTENT REQUIREMENTS
 
 OVERALL INTERPRETATION
+
 Write approximately 90 to 140 words.
 
 The interpretation should:
 - summarise the most important available indications
-- connect them carefully to the selected purpose
-- include both potentially supportive factors and relevant considerations
+- interpret them within the scope described above
+- include both potentially supportive patterns and relevant considerations
+- use purpose or context only when they are actually available
 - acknowledge missing or limited evidence where necessary
 - avoid repeating the lists word for word
 
-WHAT SUPPORTS THE PURPOSE
+{support_heading}
+
 Return exactly 3 concise points.
 
 Each point must:
 - be supported by available assessment evidence
-- explain possible relevance to the selected purpose or supplied context
+- {support_relevance_instruction}
 - remain cautious and practical
 - not claim proven performance, competence or experience
 
-Do not force three positive points if the evidence does not support them.
-In that situation, use cautious wording describing potentially relevant
-conditions or preferences.
+Do not force three exaggerated positive points.
+
+When evidence is mixed or limited, describe potentially useful patterns,
+conditions or preferences cautiously.
 
 WHAT TO EXPLORE OR CONSIDER
+
 Return exactly 3 concise points.
 
 These may include:
-- lower or less preferred results that may matter in this context
+- lower or less preferred results that may be relevant in some situations
 - potential tensions between different results
-- important requirements that cannot be evaluated from the available tests
+- situational demands that cannot be evaluated from the available tests
 - areas where actual examples, experience or behaviour are needed
-- limitations caused by missing process context
+- limitations caused by missing purpose, context or assessment evidence
 
 These are hypotheses to explore, not confirmed weaknesses.
 
 RECOMMENDED NEXT STEP
-Return one practical next step appropriate to the selected purpose.
+
+{next_step_instruction}
 
 Examples may include:
 - a structured follow-up conversation
@@ -441,17 +611,21 @@ Examples may include:
 - a development discussion
 - clarification of role or organisational context
 - comparison with additional evidence
+- reflection on situations where the indicated preferences are more or less useful
 
 Do not automatically recommend an interview unless recruitment is the
 selected purpose.
 
 CONTEXT NOTE
+
 Briefly and transparently explain:
 - which assessment types were used
+- whether a specific process purpose was available
 - whether additional process context was available
-- how this affects the scope of the interpretation
+- how the available information affects the scope of the interpretation
 
 STREAMING OUTPUT FORMAT
+
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must be written on one single line.
