@@ -356,20 +356,51 @@
             </div>
           {% endif %}
 
-          <div class="process-mini-info">
-            <div class="text-muted small mb-1">
-  {% trans "Assessments" %}
-</div>
-<div class="quick-card-title mt-0">
-  {% if process.is_historical %}
-    {% trans "Tests" %}
-  {% elif meta.tests %}
-    {{ meta.tests }}
+<div class="process-mini-info">
+  <div class="text-muted small mb-1">
+    {% trans "Assessments" %}
+  </div>
+
+  {% if process.selected_tests %}
+    <div class="d-flex flex-wrap gap-1 mt-1">
+
+      {% for test in process.selected_tests %}
+
+        <span class="process-pill process-pill-dark">
+
+          {% if test == "personality" %}
+            {% trans "Personality" %}
+
+          {% elif test == "motivation" %}
+            {% trans "Motivation" %}
+
+          {% elif test == "verbal" %}
+            {% trans "Verbal" %}
+
+          {% elif test == "logical" %}
+            {% trans "Logical" %}
+
+          {% elif test == "numerical" %}
+            {% trans "Numerical" %}
+
+          {% else %}
+            {{ test|capfirst }}
+          {% endif %}
+
+        </span>
+
+      {% endfor %}
+
+    </div>
+
   {% else %}
-    {% trans "Not specified" %}
+
+    <div class="quick-card-title mt-0">
+      {% trans "Not specified" %}
+    </div>
+
   {% endif %}
 </div>
-          </div>
 
         </div>
 

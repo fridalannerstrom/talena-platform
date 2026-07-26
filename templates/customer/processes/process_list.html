@@ -364,37 +364,11 @@
               </div>
 
 
-              <div class="text-muted small">
-
-                {% if p.is_historical %}
-
-                  {% trans "Historical test data" %}
-
-                {% else %}
-
-                  {{ p.project_name_snapshot }}
-
-                  <br>
-
-                  {% with key=p.account_code|add:"::"|add:p.project_code %}
-                    {% with m=meta_by_key|get_item:key %}
-
-                      {% if m and m.tests %}
-
-                        {% trans "Includes assessments:" %}
-
-                        {% for t in m.tests|split_tests %}
-                          {{ t }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-
-                      {% endif %}
-
-                    {% endwith %}
-                  {% endwith %}
-
-                {% endif %}
-
-              </div>
+{% if p.is_historical %}
+  <div class="text-muted small">
+    {% trans "Historical test data" %}
+  </div>
+{% endif %}
 
             </div>
 

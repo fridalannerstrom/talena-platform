@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-26 20:09+0200\n"
+"POT-Creation-Date: 2026-07-27 00:15+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -2203,27 +2203,27 @@ msgstr ""
 
 #: .\templates\admin\core\partials\admin_sidebar.html:94
 msgid "Companies"
-msgstr ""
+msgstr "Företag"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:111
 msgid "All companies"
-msgstr "Alla kandidater"
+msgstr "Alla företag"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:128
 msgid "Add company"
-msgstr "Lägg till kontext"
+msgstr "Lägg till företag"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:134
 msgid "Users"
-msgstr ""
+msgstr "Användare"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:151
 msgid "All users"
-msgstr "Alla team"
+msgstr "Alla användare"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:157
 msgid "Statistics"
-msgstr ""
+msgstr "Statestik"
 
 #: .\templates\admin\core\partials\admin_sidebar.html:174
 msgid "Usage & Billing"
@@ -3035,6 +3035,10 @@ msgstr "Lägg till kontext"
 #: .\templates\customer\processes\partials\candidate_insights\_workspace.html:21
 msgid "Improve candidate insights"
 msgstr "Förbättra kandidatinsikterna"
+
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:25
+msgid "Add"
+msgstr "Lägg till"
 
 #: .\templates\customer\processes\partials\candidate_insights\_workspace.html:29
 msgid ""

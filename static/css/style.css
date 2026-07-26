@@ -3811,6 +3811,12 @@ color: #6CACCB;
   flex-wrap: wrap;
 }
 
+.process-pill-dark {
+  background: #f5f4f4;
+  color: #313131;
+  font-weight: 500 !important;
+}
+
 .process-label {
   display: inline-flex;
   align-items: center;
@@ -23548,7 +23554,7 @@ color: #6E63E3;
 
 .role-context-prompt-card {
   border: 1px solid rgba(99, 102, 241, 0.18);
-  background: #BFB0E9;
+  background: #eae5f7;
 }
 
 .role-context-prompt {

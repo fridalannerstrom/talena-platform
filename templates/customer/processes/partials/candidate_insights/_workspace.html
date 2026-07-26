@@ -21,9 +21,9 @@
             {% trans "Improve candidate insights" %}
           </div>
 
-          <h2 class="h5 mb-1">
-            Add {{ context_config.tab_label|default:context_fallback|lower }}
-          </h2>
+<h2 class="h5 mb-1">
+  {% trans "Add" %} {{ context_config.tab_label|default:context_fallback|lower }}
+</h2>
 
           <p class="text-muted mb-0">
             {% blocktrans %}Add context to make the candidate insights more relevant to this process.{% endblocktrans %}
