@@ -1,7 +1,9 @@
 {% load i18n %}
 {# Talena candidate i18n batch 1 #}
 
-{% if not is_historical and all_assessments_completed %}
+{% if not is_historical %}
+
+  {% if all_assessments_completed %}
 
 <section
   class="purpose-fit-card ai-overview-card"
@@ -351,27 +353,77 @@
 
     </section>
 
+  {% else %}
+
+    <!-- ================================================== -->
+    <!-- PARTIALLY COMPLETED ACTIVE CANDIDATE -->
+    <!-- ================================================== -->
+
+    <section class="combined-questions-empty-state mb-4">
+
+      <div class="combined-questions-empty-state__icon">
+        <i data-feather="clock"></i>
+      </div>
+
+      <div class="insight-summary-kicker mb-2">
+        {% trans "Assessment overview" %}
+      </div>
+
+      <h2 class="personality-questions-section-title mb-2">
+        {% trans "Summary is waiting for the remaining assessments" %}
+      </h2>
+
+      <p
+        class="text-muted small mb-2 mx-auto"
+        style="max-width: 620px;"
+      >
+        {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
+          {{ completed }} of {{ total }} assessments are complete.
+          The combined AI summary will be generated when all assessments
+          in the process have been completed.
+        {% endblocktrans %}
+      </p>
+
+      <p
+        class="text-muted small mb-0 mx-auto"
+        style="max-width: 620px;"
+      >
+        {% blocktrans %}
+          Results that are already available can be explored through
+          the assessment tabs above while the remaining assessments
+          are being completed.
+        {% endblocktrans %}
+      </p>
+
+    </section>
+
+  {% endif %}
 
 {% else %}
 
-  {% if is_historical %}
-    <section class="card mb-4 purpose-fit-card">
-      <div class="card-body">
+  <!-- ================================================== -->
+  <!-- HISTORICAL CANDIDATE -->
+  <!-- ================================================== -->
 
-        <div class="insight-summary-kicker">
-          {% trans "Imported assessment data" %}
-        </div>
+  <section class="card mb-4 purpose-fit-card">
+    <div class="card-body">
 
-        <h2 class="insight-summary-title mb-1">
-          {% trans "Historical candidate overview" %}
-        </h2>
-
-        <p class="text-muted mb-0">
-          {% blocktrans %}This candidate uses imported assessment data. Explore the available assessment areas through the tabs above.{% endblocktrans %}
-        </p>
-
+      <div class="insight-summary-kicker">
+        {% trans "Imported assessment data" %}
       </div>
-    </section>
-  {% endif %}
+
+      <h2 class="insight-summary-title mb-1">
+        {% trans "Historical candidate overview" %}
+      </h2>
+
+      <p class="text-muted mb-0">
+        {% blocktrans %}
+          This candidate uses imported assessment data.
+          Explore the available assessment areas through the tabs above.
+        {% endblocktrans %}
+      </p>
+
+    </div>
+  </section>
 
 {% endif %}
