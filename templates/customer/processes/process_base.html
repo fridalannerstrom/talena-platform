@@ -1510,10 +1510,49 @@ const candidateHtml = await response.text();
 
 sheetBody.innerHTML = candidateHtml;
 
-initCandidateSheetInteractions(sheetBody);
-initGlobalEmailModal(sheetBody);
-initIconsAndTooltips(sheetBody);
-initGlobalAiUpdate(sheetBody);
+
+/*
+ * One broken result/AI initializer should never make
+ * the entire candidate sheet disappear.
+ *
+ * Log each initializer separately so we can see exactly
+ * which one fails.
+ */
+async function runCandidateInit(
+  label,
+  callback
+) {
+  try {
+    await callback();
+  } catch (error) {
+    console.error(
+      `[Candidate init] ${label} failed:`,
+      error
+    );
+  }
+}
+
+
+await runCandidateInit(
+  "Candidate sheet interactions",
+  () => initCandidateSheetInteractions(sheetBody)
+);
+
+await runCandidateInit(
+  "Global email modal",
+  () => initGlobalEmailModal(sheetBody)
+);
+
+await runCandidateInit(
+  "Icons and tooltips",
+  () => initIconsAndTooltips(sheetBody)
+);
+
+await runCandidateInit(
+  "Global AI update",
+  () => initGlobalAiUpdate(sheetBody)
+);
+
 
 const isHistoricalCandidate = Boolean(
   sheetBody.querySelector(
@@ -1522,74 +1561,86 @@ const isHistoricalCandidate = Boolean(
 );
 
 
-/*
- * Candidate summary supports both active and
- * historical candidates.
- */
-await initCandidateSummaryStream(
-  sheetBody
+await runCandidateInit(
+  "Candidate summary",
+  () => initCandidateSummaryStream(sheetBody)
 );
 
 
-/*
- * Historical candidates currently support:
- *
- * - candidate summary
- * - response-style guidance
- * - personality interpretation
- *
- * Response-style guidance initialises automatically
- * through its MutationObserver.
- */
 if (isHistoricalCandidate) {
-  await initCandidatePersonalityInterpretation(
-    sheetBody
+
+  await runCandidateInit(
+    "Historical personality interpretation",
+    () => initCandidatePersonalityInterpretation(
+      sheetBody
+    )
   );
 
 } else {
-  /*
-   * Register the shared refresh listener before any
-   * active-candidate AI function starts generating.
-   */
-  initCandidateDerivedContentSync(
-    sheetBody
+
+  await runCandidateInit(
+    "Derived content sync",
+    () => initCandidateDerivedContentSync(
+      sheetBody
+    )
   );
 
-  await initCandidatePurposeFitStream(
-    sheetBody
+  await runCandidateInit(
+    "AI Overview",
+    () => initCandidatePurposeFitStream(
+      sheetBody
+    )
   );
 
-await initCandidateCognitiveInterpretation(
-  sheetBody
-);
-
-await initCandidateCognitiveQuestions(
-  sheetBody
-);
-
-await initCandidateMotivationInterpretation(
-  sheetBody
-);
-
-await initCandidateMotivationQuestions(
-  sheetBody
-);
-
-  await initCandidatePersonalityInterpretation(
-    sheetBody
+  await runCandidateInit(
+    "Cognitive interpretation",
+    () => initCandidateCognitiveInterpretation(
+      sheetBody
+    )
   );
 
-  await initCandidatePersonalityQuestions(
-    sheetBody
+  await runCandidateInit(
+    "Cognitive questions",
+    () => initCandidateCognitiveQuestions(
+      sheetBody
+    )
   );
 
-  /*
-   * Refresh both Questions and Final output after
-   * all initial AI functions have finished.
-   */
-  await refreshCandidateDerivedViews(
-    sheetBody
+  await runCandidateInit(
+    "Motivation interpretation",
+    () => initCandidateMotivationInterpretation(
+      sheetBody
+    )
   );
+
+  await runCandidateInit(
+    "Motivation questions",
+    () => initCandidateMotivationQuestions(
+      sheetBody
+    )
+  );
+
+  await runCandidateInit(
+    "Personality interpretation",
+    () => initCandidatePersonalityInterpretation(
+      sheetBody
+    )
+  );
+
+  await runCandidateInit(
+    "Personality questions",
+    () => initCandidatePersonalityQuestions(
+      sheetBody
+    )
+  );
+
+  await runCandidateInit(
+    "Derived views refresh",
+    () => refreshCandidateDerivedViews(
+      sheetBody
+    )
+  );
+
 }
 
 

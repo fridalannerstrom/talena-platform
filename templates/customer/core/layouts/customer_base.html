@@ -21,6 +21,151 @@
   <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
 
+  <script>
+(function () {
+  "use strict";
+
+  if (!window.feather || !window.feather.icons) {
+    return;
+  }
+
+  /**
+   * Safer replacement for feather.replace().
+   *
+   * Feather's built-in replace() parses an SVG string and then uses
+   * replaceChild(). Dynamic candidate markup can occasionally make
+   * that conversion fail, which aborts replacement of every remaining
+   * icon on the page.
+   *
+   * Here we create the base SVG first, copy attributes using the DOM
+   * API, and replace icons individually.
+   */
+  window.safeFeatherReplace = function (
+    scope = document,
+    globalAttributes = {}
+  ) {
+    const elements = Array.from(
+      scope.querySelectorAll("[data-feather]")
+    );
+
+    elements.forEach((element) => {
+      const iconName =
+        element.getAttribute("data-feather");
+
+      const icon =
+        window.feather.icons[iconName];
+
+      if (!icon) {
+        console.warn(
+          `Unknown Feather icon: ${iconName}`,
+          element
+        );
+        return;
+      }
+
+      try {
+        const template =
+          document.createElement("template");
+
+        template.innerHTML =
+          icon.toSvg().trim();
+
+        const svg =
+          template.content.firstElementChild;
+
+        if (!(svg instanceof SVGElement)) {
+          throw new Error(
+            `Could not create SVG for icon "${iconName}".`
+          );
+        }
+
+        /*
+         * Preserve attributes from the original <i>.
+         * Classes need to be merged with Feather's own
+         * "feather feather-{name}" classes.
+         */
+        Array.from(element.attributes).forEach(
+          (attribute) => {
+            if (
+              attribute.name === "data-feather"
+            ) {
+              return;
+            }
+
+            if (attribute.name === "class") {
+              const featherClasses =
+                svg.getAttribute("class") || "";
+
+              svg.setAttribute(
+                "class",
+                `${featherClasses} ${attribute.value}`.trim()
+              );
+
+              return;
+            }
+
+            svg.setAttribute(
+              attribute.name,
+              attribute.value
+            );
+          }
+        );
+
+        /*
+         * Support attributes supplied to feather.replace(),
+         * should any existing code use them.
+         */
+        Object.entries(
+          globalAttributes || {}
+        ).forEach(([name, value]) => {
+          if (name === "class") {
+            const existing =
+              svg.getAttribute("class") || "";
+
+            svg.setAttribute(
+              "class",
+              `${existing} ${value}`.trim()
+            );
+
+            return;
+          }
+
+          svg.setAttribute(
+            name,
+            String(value)
+          );
+        });
+
+        element.replaceWith(svg);
+
+      } catch (error) {
+        console.error(
+          `Feather icon "${iconName}" could not be rendered:`,
+          error,
+          element
+        );
+      }
+    });
+  };
+
+
+  /*
+   * Keep the existing Talena code working.
+   *
+   * All current calls to feather.replace() will now use
+   * the safer renderer above automatically.
+   */
+  window.feather.replace = function (
+    attributes = {}
+  ) {
+    window.safeFeatherReplace(
+      document,
+      attributes
+    );
+  };
+})();
+</script>
+
   {% block extra_css %}{% endblock %}
 </head>
 
