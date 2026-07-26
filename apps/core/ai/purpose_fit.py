@@ -83,19 +83,13 @@ def get_purpose_fit_title(process) -> str:
 
 def purpose_supports_fit(process) -> bool:
     """
-    Flexible/general processes should not receive a purpose-fit verdict.
+    AI Overview is available for every active process.
+
+    When no specific purpose is selected, Talena should generate
+    a general assessment-based overview instead of a purpose-specific
+    interpretation.
     """
-
-    purpose_key = get_process_purpose_key(
-        process
-    )
-
-    return purpose_key not in {
-        "",
-        "flexible",
-        "unsure",
-        "general",
-    }
+    return True
 
 
 def _has_score(competency: dict[str, Any]) -> bool:

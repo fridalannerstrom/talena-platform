@@ -90,21 +90,21 @@
 
 
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'process_create_v2' %}
-              active
-            {% endif %}
-          "
-          href="{% url 'processes:process_create_v2' %}"
-        >
-          <div class="nav-link-icon">
-            <i data-feather="plus"></i>
-          </div>
+  class="
+    nav-link
+    sidebar-link
+    {% if request.resolver_match.url_name == 'process_create' %}
+      active
+    {% endif %}
+  "
+  href="{% url 'processes:process_create' %}"
+>
+  <div class="nav-link-icon">
+    <i data-feather="plus"></i>
+  </div>
 
-          <span>{% trans "Create new test process" %}</span>
-        </a>
+  <span>{% trans "Create new test process" %}</span>
+</a>
 
 
         <div class="sidenav-menu-heading">

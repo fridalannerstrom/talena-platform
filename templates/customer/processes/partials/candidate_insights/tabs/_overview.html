@@ -2,7 +2,6 @@
 {# Talena candidate i18n batch 1 #}
 
 {% if not is_historical and all_assessments_completed %}
-  {% if process.purpose != "flexible" and process.purpose != "unsure" and process.purpose != "general" %}
 
 <section
   class="purpose-fit-card ai-overview-card"
@@ -352,29 +351,6 @@
 
     </section>
 
-  {% else %}
-
-    <section class="card mb-4 purpose-fit-card">
-      <div class="card-body">
-
-        <div class="insight-summary-kicker">
-          {% trans "Assessment overview" %}
-        </div>
-
-        <h2 class="insight-summary-title mb-1">
-          {% trans "No purpose-specific overview available" %}
-        </h2>
-
-        <p class="text-muted mb-0">
-          {% blocktrans %}A combined AI overview requires a specific process purpose. The available assessment results can still be explored through the Personality, Motivation, Cognitive abilities and Team styles tabs.{% endblocktrans %}
-        </p>
-
-      </div>
-    </section>
-
-    
-
-  {% endif %}
 
 {% else %}
 

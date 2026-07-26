@@ -6,9 +6,9 @@ app_name = "processes"
 
 urlpatterns = [
     path("", views.process_list, name="process_list"),
-    path("new/", views.process_create, name="process_create"),
     path("<int:pk>/edit/", views.process_update, name="process_update"),
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
+    path("new/", views.process_create_v2, name="process_create"),
     path("<int:pk>/", views.process_detail, name="process_detail"),
     path("<int:pk>/add-candidate/", views.process_add_candidate, name="process_add_candidate"),
     path("<int:pk>/invite/<int:candidate_id>/", views.invite_candidate, name="invite_candidate"),
@@ -31,7 +31,6 @@ urlpatterns = [
         views.process_candidate_summary_stream,
         name="process_candidate_summary_stream",
     ),
-    path("create-v2/", views.process_create_v2, name="process_create_v2"),
     path("<int:pk>/role-context/", views.process_role_context, name="process_role_context"),
     path(
         "<int:process_id>/candidates/<int:candidate_id>/summary/regenerate/",
