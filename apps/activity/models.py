@@ -1,6 +1,7 @@
 # apps/activity/models.py
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext as _
 
 class ActivityEvent(models.Model):
     class Verb(models.TextChoices):
@@ -118,9 +119,13 @@ class ActivityEvent(models.Model):
     def actor_display(self):
         if self.actor:
             full = f"{self.actor.first_name} {self.actor.last_name}".strip()
-            return full or getattr(self.actor, "email", "Unknown user")
+            return full or getattr(
+                self.actor,
+                "email",
+                _("Unknown user"),
+            )
 
-        return self.actor_name or "System"
+        return self.actor_name or _("System")
 
     def candidate_display(self):
         if self.candidate:
@@ -130,7 +135,7 @@ class ActivityEvent(models.Model):
         return (
             meta.get("candidate_name")
             or meta.get("candidate_email")
-            or "the candidate"
+            or _("the candidate")
         )
 
     def company_display(self):
@@ -181,7 +186,11 @@ class ActivityEvent(models.Model):
         target_user = self.target_user_display()
         org_unit = self.orgunit_display()
 
-        process_name = self.process.name if self.process else "the test process"
+        process_name = (
+            self.process.name
+            if self.process
+            else _("the test process")
+        )
 
         # ---------------------------------------------------------
         # Admin / company activity
@@ -241,45 +250,101 @@ class ActivityEvent(models.Model):
 
         if self.verb == self.Verb.USER_LOGGED_IN:
             return f"{actor} logged in"
-
+        
         # ---------------------------------------------------------
         # Test process / candidate activity
         # ---------------------------------------------------------
 
         if self.verb == self.Verb.PROCESS_CREATED:
-            return f"{actor} created the test process {process_name}"
+            return _(
+                "%(actor)s created the test process %(process_name)s"
+            ) % {
+                "actor": actor,
+                "process_name": process_name,
+            }
 
         if self.verb == self.Verb.PROCESS_ARCHIVED:
-            return f"{actor} archived the test process {process_name}"
+            return _(
+                "%(actor)s archived the test process %(process_name)s"
+            ) % {
+                "actor": actor,
+                "process_name": process_name,
+            }
 
         if self.verb == self.Verb.PROCESS_DELETED:
-            return f"{actor} deleted the test process {process_name}"
+            return _(
+                "%(actor)s deleted the test process %(process_name)s"
+            ) % {
+                "actor": actor,
+                "process_name": process_name,
+            }
 
         if self.verb == self.Verb.CANDIDATE_ADDED:
-            return f"{actor} added {candidate} to {process_name}"
+            return _(
+                "%(actor)s added %(candidate)s to %(process_name)s"
+            ) % {
+                "actor": actor,
+                "candidate": candidate,
+                "process_name": process_name,
+            }
 
         if self.verb == self.Verb.CANDIDATE_REMOVED:
-            return f"{actor} removed {candidate} from {process_name}"
+            return _(
+                "%(actor)s removed %(candidate)s from %(process_name)s"
+            ) % {
+                "actor": actor,
+                "candidate": candidate,
+                "process_name": process_name,
+            }
 
         if self.verb == self.Verb.INVITE_SENT:
-            return f"Assessment invitation sent to {candidate} by {actor}"
+            return _(
+                "Assessment invitation sent to %(candidate)s by %(actor)s"
+            ) % {
+                "candidate": candidate,
+                "actor": actor,
+            }
 
         if self.verb == self.Verb.TEST_STARTED:
             activity_name = meta.get("activity_name")
-            if activity_name:
-                return f"{candidate} started {activity_name}"
 
-            return f"{candidate} started the assessment"
+            if activity_name:
+                return _(
+                    "%(candidate)s started %(activity_name)s"
+                ) % {
+                    "candidate": candidate,
+                    "activity_name": activity_name,
+                }
+
+            return _(
+                "%(candidate)s started the assessment"
+            ) % {
+                "candidate": candidate,
+            }
 
         if self.verb == self.Verb.TEST_COMPLETED:
             activity_name = meta.get("activity_name")
-            if activity_name:
-                return f"{candidate} completed {activity_name}"
 
-            return f"{candidate} completed the assessment"
+            if activity_name:
+                return _(
+                    "%(candidate)s completed %(activity_name)s"
+                ) % {
+                    "candidate": candidate,
+                    "activity_name": activity_name,
+                }
+
+            return _(
+                "%(candidate)s completed the assessment"
+            ) % {
+                "candidate": candidate,
+            }
 
         if self.verb == self.Verb.ALL_TESTS_COMPLETED:
-            return f"{candidate} completed all assessments"
+            return _(
+                "%(candidate)s completed all assessments"
+            ) % {
+                "candidate": candidate,
+            }
 
         if self.verb == self.Verb.STATUS_CHANGED:
             old = meta.get("old_status")
@@ -287,21 +352,72 @@ class ActivityEvent(models.Model):
             activity_name = meta.get("activity_name")
             level = meta.get("level")
 
-            if level == "activity" and new == "started" and activity_name:
-                return f"{candidate} started {activity_name}"
+            if (
+                level == "activity"
+                and new == "started"
+                and activity_name
+            ):
+                return _(
+                    "%(candidate)s started %(activity_name)s"
+                ) % {
+                    "candidate": candidate,
+                    "activity_name": activity_name,
+                }
 
-            if level == "activity" and new == "completed" and activity_name:
-                return f"{candidate} completed {activity_name}"
+            if (
+                level == "activity"
+                and new == "completed"
+                and activity_name
+            ):
+                return _(
+                    "%(candidate)s completed %(activity_name)s"
+                ) % {
+                    "candidate": candidate,
+                    "activity_name": activity_name,
+                }
 
             if new == "started":
-                return f"{candidate} started the process"
+                return _(
+                    "%(candidate)s started the process"
+                ) % {
+                    "candidate": candidate,
+                }
 
             if new == "completed":
-                return f"{candidate} completed the process"
+                return _(
+                    "%(candidate)s completed the process"
+                ) % {
+                    "candidate": candidate,
+                }
+
+            status_labels = {
+                "created": _("Created"),
+                "sent": _("Sent"),
+                "started": _("Started"),
+                "completed": _("Completed"),
+                "expired": _("Expired"),
+                "failed": _("Failed"),
+            }
+
+            old_label = status_labels.get(old, old)
+            new_label = status_labels.get(new, new)
 
             if old and new:
-                return f"{actor} updated {candidate}: {old} → {new}"
+                return _(
+                    "%(actor)s updated %(candidate)s: "
+                    "%(old_status)s → %(new_status)s"
+                ) % {
+                    "actor": actor,
+                    "candidate": candidate,
+                    "old_status": old_label,
+                    "new_status": new_label,
+                }
 
-            return f"{actor} updated {candidate}"
+            return _(
+                "%(actor)s updated %(candidate)s"
+            ) % {
+                "actor": actor,
+                "candidate": candidate,
+            }
 
         return self.get_verb_display()

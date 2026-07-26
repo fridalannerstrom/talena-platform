@@ -56,7 +56,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             "last_name": candidate.last_name,
             "email": candidate.email,
             "language": "sv",
-            "job_title": process.job_title or process.name,
+            "job_title": process.job_title or "Assessment",
             "job_number": f"talena-{process.id}",
             "meta_data": {
                 "talena_process_id": str(process.id),
@@ -88,7 +88,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 .first()
             )
 
-            subject_tpl = template.subject if template else "{process_name}: Ditt test"
+            subject_tpl = template.subject if template else "Ditt test"
             body_tpl = template.body if template else (
                 "Hej {first_name}!\n\n"
                 "Klicka på länken för att starta testet:\n"

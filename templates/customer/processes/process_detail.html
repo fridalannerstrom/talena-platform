@@ -1,5 +1,5 @@
 {% extends "customer/processes/process_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block process_content %}
 
@@ -115,22 +115,22 @@
   <div class="process-kpi-grid mb-4">
 
     <div class="process-kpi-card">
-      <div class="text-muted small">Candidates</div>
+      <div class="text-muted small">{% trans "Candidates" %}</div>
       <div class="h3 mt-1">{{ kpis.total_candidates|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="text-muted small">Invited</div>
+      <div class="text-muted small">{% trans "Invited" %}</div>
       <div class="h3 mt-1">{{ kpis.invited|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="text-muted small">Started</div>
+      <div class="text-muted small">{% trans "Started" %}</div>
       <div class="h3 mt-1">{{ kpis.started|default:0 }}</div>
     </div>
 
     <div class="process-kpi-card">
-      <div class="text-muted small">Completed</div>
+      <div class="text-muted small">{% trans "Completed" %}</div>
       <div class="h3 mt-1">{{ kpis.completed|default:0 }}</div>
     </div>
 
@@ -142,17 +142,33 @@
   <div class="card process-section-card">
 
     <div class="card-header bg-white d-flex align-items-center justify-content-between gap-3 flex-wrap py-3 px-4">
-      <div>
-        <div class="fw-semibold">Candidates</div>
+<div>
+  <div class="fw-semibold">
+    {% trans "Candidates" %}
+  </div>
 
-        <div class="text-muted small">
-          {% if process.is_historical %}
-            {{ historical_candidates|length }} candidate{{ historical_candidates|length|pluralize }} in this historical test process
-          {% else %}
-            {{ invitations|length }} candidate{{ invitations|length|pluralize }} in this test process
-          {% endif %}
-        </div>
-      </div>
+  <div class="text-muted small">
+
+    {% if process.is_historical %}
+
+      {% blocktrans count candidate_count=historical_candidates|length %}
+        {{ candidate_count }} candidate in this historical test process
+      {% plural %}
+        {{ candidate_count }} candidates in this historical test process
+      {% endblocktrans %}
+
+    {% else %}
+
+      {% blocktrans count candidate_count=invitations|length %}
+        {{ candidate_count }} candidate in this test process
+      {% plural %}
+        {{ candidate_count }} candidates in this test process
+      {% endblocktrans %}
+
+    {% endif %}
+
+  </div>
+</div>
 
       {% if can_edit and not process.is_historical %}
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -164,8 +180,8 @@
             disabled
             aria-disabled="true"
           >
-            <i data-feather="send" class="icon-16"></i>
-            Send assessments
+<i data-feather="send" class="icon-16"></i>
+{% trans "Send assessments" %}
           </button>
         </div>
       {% endif %}
@@ -188,18 +204,17 @@
                   </th>
                 {% endif %}
 
-                <th>Candidate</th>
+                <th>{% trans "Candidate" %}</th>
 
-                {% if process.is_historical %}
-                  <th style="width: 190px;">Type</th>
-                  <th style="width: 160px;">Status</th>
-                  <th style="width: 170px;">Imported</th>
-                {% else %}
-                  <th style="width: 190px;">Invitation</th>
-                  <th style="width: 160px;">Status</th>
-                  <th style="width: 170px;">Registered</th>
-                {% endif %}
-
+{% if process.is_historical %}
+  <th style="width: 190px;">{% trans "Type" %}</th>
+  <th style="width: 160px;">{% trans "Status" %}</th>
+  <th style="width: 170px;">{% trans "Imported" %}</th>
+{% else %}
+  <th style="width: 190px;">{% trans "Invitation" %}</th>
+  <th style="width: 160px;">{% trans "Status" %}</th>
+  <th style="width: 170px;">{% trans "Registered" %}</th>
+{% endif %}
                 {% if can_edit and not process.is_historical %}
                   <th class="text-end pe-4" style="width:90px;"></th>
                 {% endif %}
@@ -328,11 +343,15 @@
                     </td>
 
                     <td>
-                      {% if inv.source == "self_registered" %}
-                        <span class="badge bg-info text-dark">Self-registered</span>
-                      {% else %}
-                        <span class="badge bg-primary">Invited</span>
-                      {% endif %}
+{% if inv.source == "self_registered" %}
+  <span class="badge bg-info text-dark">
+    {% trans "Self-registered" %}
+  </span>
+{% else %}
+  <span class="badge bg-primary">
+    {% trans "Invited" %}
+  </span>
+{% endif %}
                     </td>
 
                     <td>
@@ -357,8 +376,8 @@
                                 form="send-tests-form"
                                 formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
                                 formmethod="post"
-                                onclick="return confirm('Are you sure you want to remove this candidate?');"
-                                aria-label="Remove candidate">
+                                onclick="return confirm('{% trans 'Are you sure you want to remove this candidate?' %}');"
+                                aria-label="{% trans 'Remove candidate' %}"
                           <i data-feather="trash-2"></i>
                         </button>
                       </td>
@@ -372,28 +391,31 @@
                       <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
 
                       {% if can_edit %}
-                        <div class="fw-semibold text-dark mb-1">No candidates yet</div>
-                        <div class="text-muted mb-3">
-                          Add a candidate manually or share the self-registration link.
-                        </div>
+<div class="fw-semibold text-dark mb-1">
+  {% trans "No candidates yet" %}
+</div>
+
+<div class="text-muted mb-3">
+  {% trans "Add a candidate manually or share the self-registration link." %}
+</div>
 
                         <div class="d-flex justify-content-center gap-2 flex-wrap">
                           <button type="button"
                                   class="btn btn-primary js-add-candidate"
                                   data-url="{% url 'processes:process_add_candidate' process.id %}">
-                            Add candidate
+                            {% trans "Add candidate" %}
                           </button>
 
                           <button type="button"
                                   class="btn btn-outline-secondary js-selfreg">
-                            Self-registration link
+                            {% trans "Self-registration link" %}
                           </button>
                         </div>
                       {% else %}
                         <div class="fw-semibold text-dark mb-1">No candidates yet</div>
-                        <div class="small text-muted">
-                          You have read-only access to this process.
-                        </div>
+<div class="small text-muted">
+  {% trans "You have read-only access to this process." %}
+</div>
                       {% endif %}
                     </td>
                   </tr>
@@ -417,26 +439,28 @@
     <button type="button"
             class="sheet-nav sheet-nav-prev"
             id="candidatePrevBtn"
-            aria-label="Previous candidate">
+            aria-label="{% trans 'Previous candidate' %}"
       <i data-feather="chevron-left"></i>
     </button>
 
     <button type="button"
             class="sheet-nav sheet-nav-next"
             id="candidateNextBtn"
-            aria-label="Next candidate">
+            aria-label="{% trans 'Next candidate' %}"
       <i data-feather="chevron-right"></i>
     </button>
 
     <div class="candidate-sheet-inner">
 
       <div class="offcanvas-header justify-content-end">
-        <span id="candidateSheetLabel" class="visually-hidden">Candidate</span>
+        <span id="candidateSheetLabel" class="visually-hidden">
+  {% trans "Candidate" %}
+</span>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
       </div>
 
       <div class="offcanvas-body" id="candidateSheetBody">
-        <div class="text-muted">Loading…</div>
+        <div class="text-muted">{% trans "Loading…" %}</div>
       </div>
 
     </div>
@@ -447,14 +471,26 @@
       <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Invitation email</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<h5 class="modal-title">{% trans "Invitation email" %}</h5>
+<button
+  type="button"
+  class="btn-close"
+  data-bs-dismiss="modal"
+  aria-label="{% trans 'Close' %}"
+></button>
           </div>
 
           <div class="modal-body">
             <div class="activity-email-meta mb-3">
-              <p class="mb-1"><strong>To:</strong> <span id="globalEmailTo"></span></p>
-              <p class="mb-0"><strong>Subject:</strong> <span id="globalEmailSubject"></span></p>
+<p class="mb-1">
+  <strong>{% trans "To:" %}</strong>
+  <span id="globalEmailTo"></span>
+</p>
+
+<p class="mb-0">
+  <strong>{% trans "Subject:" %}</strong>
+  <span id="globalEmailSubject"></span>
+</p>
             </div>
             <div class="activity-email-body" id="globalEmailBody"></div>
           </div>

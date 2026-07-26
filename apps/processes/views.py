@@ -6914,7 +6914,7 @@ def self_register(request, token):
         "last_name": candidate.last_name,
         "email": candidate.email,
         "language": lang,
-        "job_title": process.job_title or process.name,
+        "job_title": process.job_title or "Assessment",
         "job_number": f"talena-{process.id}",
         "meta_data": {
             "talena_process_id": str(process.id),
@@ -6955,7 +6955,7 @@ def self_register(request, token):
         subject_tpl = (
             template.subject
             if template
-            else _("{process_name}: Your assessment")
+            else _("Your assessment")
         )
 
         body_tpl = (

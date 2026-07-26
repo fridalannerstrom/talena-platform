@@ -24,20 +24,32 @@ from apps.processes.purpose_context_config import get_purpose_context_config
 
 
 # Talena invitation email template i18n batch 1
-LEGACY_DEFAULT_INVITATION_SUBJECT = (
-    "Invitation to assessment process"
+LEGACY_DEFAULT_INVITATION_TEMPLATES = (
+    {
+        "subject": "Invitation to assessment process",
+        "body": (
+            "Hi {first_name},\n\n"
+            "You have been invited to complete assessments for "
+            "{process_name}.\n\n"
+            "Click the link below to start:\n"
+            "{assessment_url}\n\n"
+            "Best regards,\n"
+            "{sender_full_name}"
+        ),
+    },
+    {
+        "subject": "Inbjudan till testprocess",
+        "body": (
+            "Hej {first_name},\n\n"
+            "Du har blivit inbjuden att genomföra tester för "
+            "{process_name}.\n\n"
+            "Klicka på länken nedan för att börja:\n"
+            "{assessment_url}\n\n"
+            "Vänliga hälsningar,\n"
+            "{sender_full_name}"
+        ),
+    },
 )
-
-LEGACY_DEFAULT_INVITATION_BODY = (
-    "Hi {first_name},\n\n"
-    "You have been invited to complete assessments for "
-    "{process_name}.\n\n"
-    "Click the link below to start:\n"
-    "{assessment_url}\n\n"
-    "Best regards,\n"
-    "{sender_full_name}"
-)
-
 
 def get_default_invitation_template(
     language_code="sv",
@@ -49,8 +61,7 @@ def get_default_invitation_template(
             ),
             "body": _(
                 "Hi {first_name},\n\n"
-                "You have been invited to complete assessments "
-                "for {process_name}.\n\n"
+                "You have been invited to complete assessments.\n\n"
                 "Click the link below to start:\n"
                 "{assessment_url}\n\n"
                 "Best regards,\n"
@@ -62,26 +73,22 @@ def get_default_invitation_template(
 def upgrade_legacy_default_invitation_template(
     template,
 ):
-    if (
-        template.subject
-        != LEGACY_DEFAULT_INVITATION_SUBJECT
-        or template.body
-        != LEGACY_DEFAULT_INVITATION_BODY
-    ):
+    is_legacy_default = any(
+        template.subject == legacy["subject"]
+        and template.body == legacy["body"]
+        for legacy in LEGACY_DEFAULT_INVITATION_TEMPLATES
+    )
+
+    if not is_legacy_default:
         return False
 
     defaults = get_default_invitation_template(
         template.language or "sv"
     )
 
-    if (
-        template.subject == defaults["subject"]
-        and template.body == defaults["body"]
-    ):
-        return False
-
     template.subject = defaults["subject"]
     template.body = defaults["body"]
+
     template.save(
         update_fields=[
             "subject",

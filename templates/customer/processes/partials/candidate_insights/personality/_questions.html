@@ -19,9 +19,9 @@
              ✨ {% trans "AI-supported questions" %}
           </div>
 
-          <h2 class="insight-summary-title mb-1">
-            Personality questions
-          </h2>
+<h2 class="insight-summary-title mb-1">
+  {% trans "Personality questions" %}
+</h2>
 
           <p class="text-muted small mb-0">
              {% blocktrans %}Explore selected personality traits through practical, purpose-aware questions.{% endblocktrans %}
@@ -43,7 +43,7 @@
   data-personality-questions-status-badge
   data-bs-toggle="tooltip"
   data-bs-placement="top"
-  title="The selected traits, process purpose or context have changed."
+  title="{% trans 'The selected traits, process purpose or context have changed.' %}"
 >
   {% trans "Needs update" %}
 </span>
@@ -52,8 +52,8 @@
             type="button"
             class="btn btn-icon btn-light"
             data-personality-questions-regenerate
-            title="Generate new personality questions"
-            aria-label="Generate new personality questions"
+title="{% trans 'Generate new personality questions' %}"
+aria-label="{% trans 'Generate new personality questions' %}"
           >
             <i data-feather="refresh-cw"></i>
           </button>
@@ -269,11 +269,13 @@
 
           <i data-feather="info"></i>
 
-          <div>
-            Personality results describe likely behavioural preferences,
-            not fixed behaviour or proven competence. Use the questions
-            to explore, confirm or challenge the assessment indications.
-          </div>
+<div>
+  {% blocktrans trimmed %}
+    Personality results describe likely behavioural preferences,
+    not fixed behaviour or proven competence. Use the questions
+    to explore, confirm or challenge the assessment indications.
+  {% endblocktrans %}
+</div>
 
         </div>
 
@@ -289,9 +291,9 @@
     <div class="personality-traits-dialog__header">
 
       <div>
-        <div class="insight-summary-kicker">
-          Personality questions
-        </div>
+<div class="insight-summary-kicker">
+  {% trans "Personality questions" %}
+</div>
 
         <h3
           class="personality-traits-dialog__title"
@@ -299,18 +301,18 @@
         >
           {% trans "Select traits to explore" %}
         </h3>
-
-        <p class="personality-traits-dialog__description">
-          Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated
-          using the selected traits, process purpose and available context.
-        </p>
+<p class="personality-traits-dialog__description">
+  {% blocktrans trimmed %}
+    Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated using the selected traits, process purpose and available context.
+  {% endblocktrans %}
+</p>
       </div>
 
       <button
         type="button"
         class="personality-traits-dialog__close"
         data-personality-traits-cancel
-        aria-label="Close trait selection"
+        aria-label="{% trans 'Close trait selection' %}"
       >
         <i data-feather="x"></i>
       </button>

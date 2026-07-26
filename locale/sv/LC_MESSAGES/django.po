@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-25 12:24+0200\n"
+"POT-Creation-Date: 2026-07-26 20:09+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -17,16 +17,148 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: .\apps\emails\views.py:48
+#: .\apps\activity\models.py:125
+#: .\templates\customer\processes\_process_header.html:333
+msgid "Unknown user"
+msgstr "Okänd användare"
+
+#: .\apps\activity\models.py:128
+msgid "System"
+msgstr "System"
+
+#: .\apps\activity\models.py:138
+msgid "the candidate"
+msgstr "kandidaten"
+
+#: .\apps\activity\models.py:192
+msgid "the test process"
+msgstr "testprocessen"
+
+#: .\apps\activity\models.py:260
+#, python-format
+msgid "%(actor)s created the test process %(process_name)s"
+msgstr "%(actor)s skapade testprocessen %(process_name)s"
+
+#: .\apps\activity\models.py:268
+#, python-format
+msgid "%(actor)s archived the test process %(process_name)s"
+msgstr "%(actor)s arkiverade testprocessen %(process_name)s"
+
+#: .\apps\activity\models.py:276
+#, python-format
+msgid "%(actor)s deleted the test process %(process_name)s"
+msgstr "%(actor)s raderade testprocessen %(process_name)s"
+
+#: .\apps\activity\models.py:284
+#, python-format
+msgid "%(actor)s added %(candidate)s to %(process_name)s"
+msgstr "%(actor)s lade till %(candidate)s i %(process_name)s"
+
+#: .\apps\activity\models.py:293
+#, python-format
+msgid "%(actor)s removed %(candidate)s from %(process_name)s"
+msgstr "%(actor)s tog bort %(candidate)s från %(process_name)s"
+
+#: .\apps\activity\models.py:302
+#, python-format
+msgid "Assessment invitation sent to %(candidate)s by %(actor)s"
+msgstr "Testinbjudan skickades till %(candidate)s av %(actor)s"
+
+#: .\apps\activity\models.py:313 .\apps\activity\models.py:361
+#, python-format
+msgid "%(candidate)s started %(activity_name)s"
+msgstr "%(candidate)s påbörjade %(activity_name)s"
+
+#: .\apps\activity\models.py:320
+#, python-format
+msgid "%(candidate)s started the assessment"
+msgstr "%(candidate)s påbörjade testet"
+
+#: .\apps\activity\models.py:330 .\apps\activity\models.py:373
+#, python-format
+msgid "%(candidate)s completed %(activity_name)s"
+msgstr "%(candidate)s genomförde %(activity_name)s"
+
+#: .\apps\activity\models.py:337
+#, python-format
+msgid "%(candidate)s completed the assessment"
+msgstr "%(candidate)s genomförde testet"
+
+#: .\apps\activity\models.py:344
+#, python-format
+msgid "%(candidate)s completed all assessments"
+msgstr "%(candidate)s har genomfört alla tester"
+
+#: .\apps\activity\models.py:381
+#, python-format
+msgid "%(candidate)s started the process"
+msgstr "%(candidate)s påbörjade processen"
+
+#: .\apps\activity\models.py:388
+#, python-format
+msgid "%(candidate)s completed the process"
+msgstr "%(candidate)s genomförde processen"
+
+#: .\apps\activity\models.py:394
+msgid "Created"
+msgstr "Skapad"
+
+#: .\apps\activity\models.py:395
+#: .\templates\customer\processes\_candidate_detail_sheet.html:48
+#: .\templates\customer\processes\_candidate_detail_sheet.html:186
+#: .\templates\customer\processes\process_base.html:65
+msgid "Sent"
+msgstr "Skickat"
+
+# | msgid "Sent or started"
+#: .\apps\activity\models.py:396
+#: .\templates\customer\processes\_candidate_detail_sheet.html:46
+#: .\templates\customer\processes\_candidate_detail_sheet.html:184
+#: .\templates\customer\processes\process_base.html:64
+#: .\templates\customer\processes\process_detail.html:128
+msgid "Started"
+msgstr "Påbörjat"
+
+#: .\apps\activity\models.py:397
+#: .\templates\customer\candidates\candidate_list.html:268
+#: .\templates\customer\processes\_candidate_detail_sheet.html:42
+#: .\templates\customer\processes\_candidate_detail_sheet.html:44
+#: .\templates\customer\processes\_candidate_detail_sheet.html:144
+#: .\templates\customer\processes\_candidate_detail_sheet.html:182
+#: .\templates\customer\processes\process_base.html:63
+#: .\templates\customer\processes\process_detail.html:133
+msgid "Completed"
+msgstr "Genomfört"
+
+#: .\apps\activity\models.py:398
+msgid "Expired"
+msgstr "Utgånget"
+
+#: .\apps\activity\models.py:399
+#: .\templates\customer\processes\process_base.html:37
+msgid "Failed"
+msgstr "Misslyckades"
+
+#: .\apps\activity\models.py:407
+#, python-format
+msgid "%(actor)s updated %(candidate)s: %(old_status)s → %(new_status)s"
+msgstr "%(actor)s uppdaterade %(candidate)s: %(old_status)s → %(new_status)s"
+
+#: .\apps\activity\models.py:417
+#, python-format
+msgid "%(actor)s updated %(candidate)s"
+msgstr "%(actor)s uppdaterade %(candidate)s"
+
+#: .\apps\emails\views.py:60
 msgid "Invitation to assessment process"
 msgstr "Inbjudan till testprocess"
 
-#: .\apps\emails\views.py:51
+#: .\apps\emails\views.py:63
 #, python-brace-format
 msgid ""
 "Hi {first_name},\n"
 "\n"
-"You have been invited to complete assessments for {process_name}.\n"
+"You have been invited to complete assessments.\n"
 "\n"
 "Click the link below to start:\n"
 "{assessment_url}\n"
@@ -36,7 +168,7 @@ msgid ""
 msgstr ""
 "Hej {first_name},\n"
 "\n"
-"Du har blivit inbjuden att genomföra tester för {process_name}.\n"
+"Du har blivit inbjuden att genomföra tester.\n"
 "\n"
 "Klicka på länken nedan för att börja:\n"
 "{assessment_url}\n"
@@ -44,15 +176,15 @@ msgstr ""
 "Vänliga hälsningar,\n"
 "{sender_full_name}"
 
-#: .\apps\emails\views.py:107
+#: .\apps\emails\views.py:114
 msgid "No access."
 msgstr "Ingen åtkomst."
 
-#: .\apps\emails\views.py:113
+#: .\apps\emails\views.py:120
 msgid "You do not have permission to edit this email template."
 msgstr "Du har inte behörighet att redigera den här e-postmallen."
 
-#: .\apps\emails\views.py:139 .\apps\emails\views.py:220
+#: .\apps\emails\views.py:146 .\apps\emails\views.py:227
 msgid "Invitation email template updated."
 msgstr "E-postmallen för inbjudan har uppdaterats."
 
@@ -64,35 +196,35 @@ msgstr "Maximal filstorlek är 2 MB."
 msgid "Only JPG, PNG or WEBP files are allowed."
 msgstr "Endast filer i formaten JPG, PNG eller WEBP är tillåtna."
 
-#: .\apps\portal\views.py:54
+#: .\apps\portal\views.py:79
 msgid "Profile photo updated."
 msgstr "Profilbilden har uppdaterats."
 
-#: .\apps\portal\views.py:64
+#: .\apps\portal\views.py:89
 msgid "Could not upload image. Please try again."
 msgstr "Bilden kunde inte laddas upp. Försök igen."
 
-#: .\apps\portal\views.py:83
+#: .\apps\portal\views.py:108
 msgid "Profile photo removed."
 msgstr "Profilbilden har tagits bort."
 
-#: .\apps\portal\views.py:111
+#: .\apps\portal\views.py:136
 msgid "Settings updated."
 msgstr "Inställningarna har uppdaterats."
 
-#: .\apps\portal\views.py:120
+#: .\apps\portal\views.py:145
 msgid "Please correct the errors below."
 msgstr "Rätta felen nedan."
 
-#: .\apps\portal\views.py:139
+#: .\apps\portal\views.py:164
 msgid "Password updated successfully."
 msgstr "Lösenordet har uppdaterats."
 
-#: .\apps\portal\views.py:149
+#: .\apps\portal\views.py:174
 msgid "Please correct the password errors below."
 msgstr "Rätta lösenordsfelen nedan."
 
-#: .\apps\portal\views.py:157
+#: .\apps\portal\views.py:182
 msgid "Unknown form submission."
 msgstr "Okänd formulärinlämning."
 
@@ -112,33 +244,33 @@ msgid "Email"
 msgstr "E-post"
 
 #: .\apps\processes\forms.py:141
-#: .\apps\processes\services\process_recommendations.py:97
+#: .\apps\processes\services\process_recommendations.py:100
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:33
 msgid "Personality"
 msgstr "Personlighet"
 
 #: .\apps\processes\forms.py:142
-#: .\apps\processes\services\process_recommendations.py:106
+#: .\apps\processes\services\process_recommendations.py:109
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:45
 #: .\templates\customer\processes\process_base.html:27
 msgid "Motivation"
 msgstr "Motivation"
 
 #: .\apps\processes\forms.py:143
-#: .\apps\processes\services\process_recommendations.py:115
-#: .\apps\processes\services\process_recommendations.py:116
+#: .\apps\processes\services\process_recommendations.py:118
+#: .\apps\processes\services\process_recommendations.py:119
 msgid "Verbal"
 msgstr "Verbal förmåga"
 
 #: .\apps\processes\forms.py:144
-#: .\apps\processes\services\process_recommendations.py:124
-#: .\apps\processes\services\process_recommendations.py:125
+#: .\apps\processes\services\process_recommendations.py:127
+#: .\apps\processes\services\process_recommendations.py:128
 msgid "Logical"
 msgstr "Logisk förmåga"
 
 #: .\apps\processes\forms.py:145
-#: .\apps\processes\services\process_recommendations.py:133
-#: .\apps\processes\services\process_recommendations.py:134
+#: .\apps\processes\services\process_recommendations.py:136
+#: .\apps\processes\services\process_recommendations.py:137
 msgid "Numerical"
 msgstr "Numerisk förmåga"
 
@@ -193,8 +325,8 @@ msgstr ""
 #: .\apps\processes\forms.py:214 .\apps\processes\purpose_context_config.py:313
 #: .\apps\processes\purpose_context_config.py:314
 #: .\templates\customer\processes\_process_header.html:421
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:242
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:322
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:243
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:323
 #: .\templates\customer\processes\process_role_context.html:20
 #: .\templates\customer\processes\process_role_context.html:154
 msgid "Process context"
@@ -308,7 +440,7 @@ msgstr ""
 "rekryteringsprocessen."
 
 #: .\apps\processes\purpose_context_config.py:41
-#: .\apps\processes\services\process_recommendations.py:13
+#: .\apps\processes\services\process_recommendations.py:16
 msgid "Role match"
 msgstr "Rollmatchning"
 
@@ -1124,94 +1256,94 @@ msgstr "Spara kontext"
 msgid "No context added yet"
 msgstr "Ingen kontext har lagts till ännu"
 
-#: .\apps\processes\services\process_recommendations.py:6
+#: .\apps\processes\services\process_recommendations.py:9
 msgid "Recruitment"
 msgstr "Rekrytering"
 
-#: .\apps\processes\services\process_recommendations.py:8
+#: .\apps\processes\services\process_recommendations.py:11
 msgid "Assess candidates for selection and role fit."
 msgstr "Bedöm kandidater för urval och matchning mot rollen."
 
-#: .\apps\processes\services\process_recommendations.py:15
+#: .\apps\processes\services\process_recommendations.py:18
 msgid "Assess how well an employee matches a new or existing role."
 msgstr "Bedöm hur väl en medarbetare matchar en ny eller befintlig roll."
 
-#: .\apps\processes\services\process_recommendations.py:21
+#: .\apps\processes\services\process_recommendations.py:24
 msgid "Leadership potential"
 msgstr "Ledarskapspotential"
 
-#: .\apps\processes\services\process_recommendations.py:23
+#: .\apps\processes\services\process_recommendations.py:26
 msgid "Explore potential for future leadership roles."
 msgstr "Utforska potential för framtida ledarroller."
 
-#: .\apps\processes\services\process_recommendations.py:28
+#: .\apps\processes\services\process_recommendations.py:31
 msgid "Career path"
 msgstr "Karriärväg"
 
-#: .\apps\processes\services\process_recommendations.py:30
+#: .\apps\processes\services\process_recommendations.py:33
 msgid "Understand possible development and career directions."
 msgstr "Förstå möjliga utvecklingsvägar och framtida karriärinriktningar."
 
-#: .\apps\processes\services\process_recommendations.py:36
+#: .\apps\processes\services\process_recommendations.py:39
 msgid "Onboarding"
 msgstr "Onboarding"
 
-#: .\apps\processes\services\process_recommendations.py:38
+#: .\apps\processes\services\process_recommendations.py:41
 msgid "Understand how to support a person from the start."
 msgstr "Förstå hur personen kan få rätt stöd från början."
 
-#: .\apps\processes\services\process_recommendations.py:43
+#: .\apps\processes\services\process_recommendations.py:46
 msgid "Employee development"
 msgstr "Medarbetarutveckling"
 
-#: .\apps\processes\services\process_recommendations.py:45
+#: .\apps\processes\services\process_recommendations.py:48
 msgid "Create a foundation for coaching and individual growth."
 msgstr "Skapa en grund för coachning och individuell utveckling."
 
-#: .\apps\processes\services\process_recommendations.py:51
+#: .\apps\processes\services\process_recommendations.py:54
 msgid "Leader development"
 msgstr "Ledarutveckling"
 
-#: .\apps\processes\services\process_recommendations.py:53
+#: .\apps\processes\services\process_recommendations.py:56
 msgid "Create a foundation for leadership development and reflection."
 msgstr "Skapa en grund för ledarutveckling och reflektion."
 
-#: .\apps\processes\services\process_recommendations.py:59
+#: .\apps\processes\services\process_recommendations.py:62
 msgid "Team development"
 msgstr "Teamutveckling"
 
-#: .\apps\processes\services\process_recommendations.py:61
+#: .\apps\processes\services\process_recommendations.py:64
 msgid "Explore drivers, behaviours and team patterns."
 msgstr "Utforska drivkrafter, beteenden och mönster i teamet."
 
-#: .\apps\processes\services\process_recommendations.py:66
+#: .\apps\processes\services\process_recommendations.py:69
 msgid "Reorganisation"
 msgstr "Omorganisation"
 
-#: .\apps\processes\services\process_recommendations.py:68
+#: .\apps\processes\services\process_recommendations.py:71
 msgid "Support change, role distribution or internal transition."
 msgstr "Stöd förändring, rollfördelning eller intern förflyttning."
 
-#: .\apps\processes\services\process_recommendations.py:74
+#: .\apps\processes\services\process_recommendations.py:77
 #: .\templates\customer\processes\process_role_context.html:113
 msgid "Flexible process"
 msgstr "Flexibel process"
 
-#: .\apps\processes\services\process_recommendations.py:76
+#: .\apps\processes\services\process_recommendations.py:79
 msgid "Create a process without a defined purpose."
 msgstr "Skapa en process utan ett definierat syfte."
 
-#: .\apps\processes\services\process_recommendations.py:100
+#: .\apps\processes\services\process_recommendations.py:103
 msgid "Understand behavioural style, strengths, risks and role fit."
 msgstr "Förstå beteendestil, styrkor, risker och matchning mot rollen."
 
-#: .\apps\processes\services\process_recommendations.py:109
+#: .\apps\processes\services\process_recommendations.py:112
 msgid ""
 "Understand what drives the person and what environment supports performance."
 msgstr ""
 "Förstå vad som driver personen och vilken miljö som stödjer god prestation."
 
-#: .\apps\processes\services\process_recommendations.py:118
+#: .\apps\processes\services\process_recommendations.py:121
 #: .\templates\customer\processes\process_create_v2.html:942
 msgid ""
 "Useful when the role requires reading, interpreting or communicating complex "
@@ -1220,7 +1352,7 @@ msgstr ""
 "Användbart när rollen kräver att läsa, tolka eller kommunicera komplex "
 "information."
 
-#: .\apps\processes\services\process_recommendations.py:127
+#: .\apps\processes\services\process_recommendations.py:130
 msgid ""
 "Useful when the role requires problem-solving, structure and analytical "
 "thinking."
@@ -1228,7 +1360,7 @@ msgstr ""
 "Användbart när rollen kräver problemlösning, struktur och analytiskt "
 "tänkande."
 
-#: .\apps\processes\services\process_recommendations.py:136
+#: .\apps\processes\services\process_recommendations.py:139
 #: .\templates\customer\processes\process_create_v2.html:950
 msgid ""
 "Useful when the role involves numbers, data, finance, reporting or analysis."
@@ -1236,7 +1368,7 @@ msgstr ""
 "Användbart när rollen omfattar siffror, data, ekonomi, rapportering eller "
 "analys."
 
-#: .\apps\processes\services\process_recommendations.py:266
+#: .\apps\processes\services\process_recommendations.py:299
 #: .\templates\customer\processes\process_create_v2.html:10
 msgid "Test process"
 msgstr "Testprocess"
@@ -1784,6 +1916,8 @@ msgstr "%(title)s, percentil %(percentile)s"
 
 # | msgid "Personality"
 #: .\apps\processes\views.py:1780
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:23
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:295
 #: .\templates\customer\processes\process_base.html:105
 msgid "Personality questions"
 msgstr "Personlighetsfrågor"
@@ -1820,12 +1954,11 @@ msgstr ""
 "Utforska hur resultaten från de kognitiva testerna hänger samman med "
 "praktiska krav och arbetssätt."
 
-#: .\apps\processes\views.py:6969
-#, python-brace-format
-msgid "{process_name}: Your assessment"
-msgstr "{process_name}: Ditt test"
+#: .\apps\processes\views.py:6958
+msgid "Your assessment"
+msgstr "Ditt test"
 
-#: .\apps\processes\views.py:6976
+#: .\apps\processes\views.py:6965
 #, python-brace-format
 msgid ""
 "Hi {first_name}!\n"
@@ -1843,6 +1976,10 @@ msgstr ""
 "\n"
 "Vänliga hälsningar,\n"
 "Talena"
+
+#: .\apps\processes\views.py:8342
+msgid "the selected tests"
+msgstr "de valda testerna"
 
 #: .\apps\teams\forms.py:20
 msgid "Example: Finance team, Leadership pool, Sales 2026"
@@ -1890,6 +2027,7 @@ msgstr "Svenska"
 #: .\config\settings.py:278
 msgid "English"
 msgstr "Engelska"
+
 #: .\templates\accounts\login.html:15 .\templates\accounts\login.html:282
 msgid "Log in"
 msgstr "Logga in"
@@ -1923,14 +2061,189 @@ msgstr "Har du inget Talena-konto?"
 msgid "Get started here"
 msgstr "Kom igång här"
 
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:27
+msgid "Back to AI prompts"
+msgstr "Tillbaka till AI-promptar"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:84
+msgid "Global override active"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:97
+msgid "Talena default active"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:120
+msgid "Global prompt"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:124
+msgid ""
+"Changes made here affect future AI-generated content for all customers in "
+"Talena using this language."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:157
+msgid "Global AI instructions"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:161
+msgid "Edit how Talena should communicate and interpret this assessment area."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:176
+#: .\templates\admin\core\ai_prompts\prompt_list.html:222
+msgid "Override"
+msgstr "Anpassad version"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:216
+msgid "Last changed"
+msgstr "Senast ändrad"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:220
+msgid "by"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:240
+msgid "Save global override"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:275
+msgid "Talena default guidance"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:279
+msgid ""
+"Protected default for the administrator-editable guidance. This is only one "
+"part of the complete AI prompt."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:314
+msgid "Restore default"
+msgstr "Återställ"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:318
+msgid ""
+"Disable the global override and return this AI feature to Talena's protected "
+"default instructions."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:343
+msgid "Reset to Talena default"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:366
+msgid "Talena default is currently active."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:13
+#: .\templates\admin\core\partials\admin_sidebar.html:88
+msgid "AI prompts"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:17
+msgid "Manage Talena's global AI instructions and psychometric guidance."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:39
+msgid "Global AI configuration"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:43
+msgid ""
+"Changes made here affect future AI-generated content for all customers in "
+"Talena. Protected defaults remain available as a fallback."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:235
+msgid "Default"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:277
+msgid ""
+"A saved override exists but is inactive. Talena is using the protected "
+"default."
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:314
+msgid "No AI features registered"
+msgstr "Inga AI-funktioner registrerade"
+
+#: .\templates\admin\core\ai_prompts\prompt_list.html:318
+msgid ""
+"No administrator-editable AI prompts are currently registered in Talena."
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_header.html:29
+#: .\templates\admin\core\partials\admin_header.html:30
+#: .\templates\customer\core\partials\customer_header.html:15
+#: .\templates\customer\core\partials\customer_header.html:16
+msgid "Search"
+msgstr "Sök"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:32
+#: .\templates\customer\core\partials\customer_sidebar.html:31
+msgid "General"
+msgstr "Allmänt"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:49
+msgid "Admin dashboard"
+msgstr "Admin Dashboard"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:66
+#: .\templates\customer\core\layouts\customer_dashboard.html:89
+#: .\templates\customer\core\partials\customer_sidebar.html:66
+#: .\templates\shared\_settings_content.html:12
+msgid "Account settings"
+msgstr "Kontoinställningar"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:71
+msgid "AI"
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_sidebar.html:94
+msgid "Companies"
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_sidebar.html:111
+msgid "All companies"
+msgstr "Alla kandidater"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:128
+msgid "Add company"
+msgstr "Lägg till kontext"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:134
+msgid "Users"
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_sidebar.html:151
+msgid "All users"
+msgstr "Alla team"
+
+#: .\templates\admin\core\partials\admin_sidebar.html:157
+msgid "Statistics"
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_sidebar.html:174
+msgid "Usage & Billing"
+msgstr ""
+
+#: .\templates\admin\core\partials\admin_sidebar.html:186
+#: .\templates\customer\core\partials\customer_sidebar.html:157
+msgid "Signed in as"
+msgstr "Inloggad som"
+
 #: .\templates\customer\candidates\candidate_list.html:69
-#: .\templates\customer\core\partials\customer_sidebar.html:109
+#: .\templates\customer\core\partials\customer_sidebar.html:111
+#: .\templates\customer\processes\process_detail.html:118
+#: .\templates\customer\processes\process_detail.html:147
 #: .\templates\customer\teams\team_list.html:15
 msgid "Candidates"
 msgstr "Kandidater"
 
 #: .\templates\customer\candidates\candidate_list.html:73
-#: .\templates\customer\core\partials\customer_sidebar.html:126
+#: .\templates\customer\core\partials\customer_sidebar.html:128
 msgid "All candidates"
 msgstr "Alla kandidater"
 
@@ -1991,13 +2304,15 @@ msgstr "Rensa"
 #: .\templates\customer\candidates\candidate_list.html:183
 #: .\templates\customer\processes\_candidate_detail_sheet.html:3
 #: .\templates\customer\processes\process_base.html:15
+#: .\templates\customer\processes\process_detail.html:207
+#: .\templates\customer\processes\process_detail.html:457
 #: .\templates\customer\teams\team_detail.html:456
 #: .\templates\customer\teams\team_members_edit.html:87
 msgid "Candidate"
 msgstr "Kandidat"
 
 #: .\templates\customer\candidates\candidate_list.html:184
-#: .\templates\customer\core\partials\customer_sidebar.html:144
+#: .\templates\customer\core\partials\customer_sidebar.html:146
 #: .\templates\customer\teams\team_list.html:19
 msgid "Teams"
 msgstr "Team"
@@ -2041,15 +2356,6 @@ msgstr[1] ""
 "                    "
 
 #: .\templates\customer\candidates\candidate_list.html:268
-#: .\templates\customer\processes\_candidate_detail_sheet.html:42
-#: .\templates\customer\processes\_candidate_detail_sheet.html:44
-#: .\templates\customer\processes\_candidate_detail_sheet.html:144
-#: .\templates\customer\processes\_candidate_detail_sheet.html:182
-#: .\templates\customer\processes\process_base.html:63
-msgid "Completed"
-msgstr "Genomfört"
-
-#: .\templates\customer\candidates\candidate_list.html:268
 msgid "Sent or started"
 msgstr "Skickat eller påbörjat"
 
@@ -2069,6 +2375,116 @@ msgstr "Visa"
 #: .\templates\customer\candidates\candidate_list.html:362
 msgid "No candidates found."
 msgstr "Inga kandidater hittades."
+
+#: .\templates\customer\core\activity_list.html:5
+#: .\templates\customer\core\activity_list.html:26
+#: .\templates\customer\core\activity_list.html:173
+#: .\templates\customer\core\layouts\customer_dashboard.html:434
+#: .\templates\customer\processes\_candidate_detail_sheet.html:118
+msgid "Activity"
+msgstr "Aktivitet"
+
+#: .\templates\customer\core\activity_list.html:30
+msgid "Activity across the test processes you have access to."
+msgstr "Aktivitet i de testprocesser som du har tillgång till."
+
+#: .\templates\customer\core\activity_list.html:43
+msgid "Back to dashboard"
+msgstr "Tillbaka till översikten"
+
+#: .\templates\customer\core\activity_list.html:66
+msgid "All activity"
+msgstr "All aktivitet"
+
+#: .\templates\customer\core\activity_list.html:70
+#, python-format
+msgid ""
+"\n"
+"              %(event_count)s recorded event\n"
+"            "
+msgid_plural ""
+"\n"
+"              %(event_count)s recorded events\n"
+"            "
+msgstr[0] ""
+"\n"
+"              %(event_count)s registrerad händelse\n"
+"            "
+msgstr[1] ""
+"\n"
+"              %(event_count)s registrerade händelser\n"
+"            "
+
+#: .\templates\customer\core\activity_list.html:137
+#: .\templates\customer\core\layouts\customer_dashboard.html:418
+msgid "Invitation sent"
+msgstr "Inbjudan skickad"
+
+#: .\templates\customer\core\activity_list.html:141
+#: .\templates\customer\core\layouts\customer_dashboard.html:422
+msgid "Candidate added"
+msgstr "Kandidat tillagd"
+
+#: .\templates\customer\core\activity_list.html:145
+msgid "Candidate removed"
+msgstr "Kandidat borttagen"
+
+#: .\templates\customer\core\activity_list.html:149
+msgid "Assessment started"
+msgstr "Test påbörjat"
+
+#: .\templates\customer\core\activity_list.html:153
+msgid "Assessment completed"
+msgstr "Test genomfört"
+
+#: .\templates\customer\core\activity_list.html:157
+msgid "All assessments completed"
+msgstr "Alla tester genomförda"
+
+#: .\templates\customer\core\activity_list.html:161
+#: .\templates\customer\core\layouts\customer_dashboard.html:426
+msgid "Status updated"
+msgstr "Status uppdaterad"
+
+#: .\templates\customer\core\activity_list.html:165
+#: .\templates\customer\core\layouts\customer_dashboard.html:430
+msgid "Process created"
+msgstr "Process skapad"
+
+#: .\templates\customer\core\activity_list.html:169
+msgid "Process archived"
+msgstr "Process arkiverad"
+
+#: .\templates\customer\core\activity_list.html:195
+#: .\templates\customer\core\layouts\customer_dashboard.html:456
+msgid "Process:"
+msgstr "Process:"
+
+#: .\templates\customer\core\activity_list.html:232
+msgid "Activity pages"
+msgstr "Aktivitetssidor"
+
+#: .\templates\customer\core\activity_list.html:248
+msgid "Previous"
+msgstr "Föregående"
+
+#: .\templates\customer\core\activity_list.html:257
+msgid "Page"
+msgstr "Sida"
+
+#: .\templates\customer\core\activity_list.html:259
+#: .\templates\customer\processes\process_base.html:38
+msgid "of"
+msgstr "av"
+
+#: .\templates\customer\core\activity_list.html:272
+msgid "Next"
+msgstr "Nästa"
+
+#: .\templates\customer\core\activity_list.html:292
+#: .\templates\customer\core\layouts\customer_dashboard.html:479
+msgid "No activity yet."
+msgstr "Ingen aktivitet ännu."
 
 #: .\templates\customer\core\layouts\customer_dashboard.html:15
 #: .\templates\customer\core\layouts\customer_dashboard.html:21
@@ -2111,12 +2527,6 @@ msgstr "Visa dina testprocesser"
 msgid "View status and results"
 msgstr "Visa status och resultat"
 
-#: .\templates\customer\core\layouts\customer_dashboard.html:89
-#: .\templates\customer\core\partials\customer_sidebar.html:64
-#: .\templates\shared\_settings_content.html:12
-msgid "Account settings"
-msgstr "Kontoinställningar"
-
 #: .\templates\customer\core\layouts\customer_dashboard.html:93
 msgid "Password, profile picture, contact information"
 msgstr "Lösenord, profilbild och kontaktinformation"
@@ -2132,7 +2542,7 @@ msgid "A quick overview of your latest assessments"
 msgstr "En snabb översikt över dina senaste tester"
 
 #: .\templates\customer\core\layouts\customer_dashboard.html:130
-#: .\templates\customer\core\partials\customer_sidebar.html:86
+#: .\templates\customer\core\partials\customer_sidebar.html:88
 #: .\templates\customer\processes\process_create_v2.html:26
 #: .\templates\customer\processes\process_list.html:14
 msgid "Test processes"
@@ -2206,68 +2616,26 @@ msgstr "Senaste aktivitet"
 msgid "Activity across your active test processes"
 msgstr "Aktivitet i dina aktiva testprocesser"
 
-#: .\templates\customer\core\layouts\customer_dashboard.html:418
-msgid "Invitation sent"
-msgstr "Inbjudan skickad"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:422
-msgid "Candidate added"
-msgstr "Kandidat tillagd"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:426
-msgid "Status updated"
-msgstr "Status uppdaterad"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:430
-msgid "Process created"
-msgstr "Process skapad"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:434
-#: .\templates\customer\processes\_candidate_detail_sheet.html:118
-msgid "Activity"
-msgstr "Aktivitet"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:456
-msgid "Process:"
-msgstr "Process:"
-
-#: .\templates\customer\core\layouts\customer_dashboard.html:479
-msgid "No activity yet."
-msgstr "Ingen aktivitet ännu."
-
-#: .\templates\customer\core\partials\customer_header.html:15
-#: .\templates\customer\core\partials\customer_header.html:16
-msgid "Search"
-msgstr "Sök"
-
-#: .\templates\customer\core\partials\customer_header.html:301
+#: .\templates\customer\core\partials\customer_header.html:304
 msgid "Account"
 msgstr "Konto"
 
-#: .\templates\customer\core\partials\customer_header.html:309
+#: .\templates\customer\core\partials\customer_header.html:312
 msgid "Log out"
 msgstr "Logga ut"
 
-#: .\templates\customer\core\partials\customer_sidebar.html:29
-msgid "General"
-msgstr "Allmänt"
-
-#: .\templates\customer\core\partials\customer_sidebar.html:46
+#: .\templates\customer\core\partials\customer_sidebar.html:48
 msgid "Dashboard"
 msgstr "Översikt"
 
-#: .\templates\customer\core\partials\customer_sidebar.html:69
+#: .\templates\customer\core\partials\customer_sidebar.html:71
 #: .\templates\customer\processes\_process_header.html:361
 msgid "Assessments"
 msgstr "Tester"
 
-#: .\templates\customer\core\partials\customer_sidebar.html:104
+#: .\templates\customer\core\partials\customer_sidebar.html:106
 msgid "Create new test process"
 msgstr "Skapa ny testprocess"
-
-#: .\templates\customer\core\partials\customer_sidebar.html:156
-msgid "Signed in as"
-msgstr "Inloggad som"
 
 #: .\templates\customer\processes\_candidate_detail_sheet.html:4
 #: .\templates\customer\processes\process_base.html:11
@@ -2285,19 +2653,6 @@ msgstr "Det gick inte att kopiera."
 msgid "Historical"
 msgstr "Historisk"
 
-# | msgid "Sent or started"
-#: .\templates\customer\processes\_candidate_detail_sheet.html:46
-#: .\templates\customer\processes\_candidate_detail_sheet.html:184
-#: .\templates\customer\processes\process_base.html:64
-msgid "Started"
-msgstr "Påbörjat"
-
-#: .\templates\customer\processes\_candidate_detail_sheet.html:48
-#: .\templates\customer\processes\_candidate_detail_sheet.html:186
-#: .\templates\customer\processes\process_base.html:65
-msgid "Sent"
-msgstr "Skickat"
-
 #: .\templates\customer\processes\_candidate_detail_sheet.html:66
 msgid "Imported SOVA data"
 msgstr "Importerade SOVA-data"
@@ -2312,6 +2667,8 @@ msgid "Assessment link"
 msgstr "Testlänk"
 
 #: .\templates\customer\processes\_candidate_detail_sheet.html:133
+#: .\templates\customer\processes\process_detail.html:123
+#: .\templates\customer\processes\process_detail.html:352
 msgid "Invited"
 msgstr "Inbjuden"
 
@@ -2411,10 +2768,6 @@ msgstr "Öppna Talena AI"
 msgid "Created by"
 msgstr "Skapad av"
 
-#: .\templates\customer\processes\_process_header.html:333
-msgid "Unknown user"
-msgstr "Okänd användare"
-
 #: .\templates\customer\processes\_process_header.html:347
 #: .\templates\customer\processes\process_create_v2.html:77
 #: .\templates\customer\processes\process_edit.html:109
@@ -2437,6 +2790,7 @@ msgstr "Självregistrering"
 
 #: .\templates\customer\processes\_process_header.html:396
 #: .\templates\customer\processes\process_base.html:161
+#: .\templates\customer\processes\process_detail.html:406
 msgid "Add candidate"
 msgstr "Lägg till kandidat"
 
@@ -2572,6 +2926,7 @@ msgstr "Uppdatera alla AI-insikter?"
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:146
 #: .\templates\customer\processes\process_base.html:10
 #: .\templates\customer\processes\process_base.html:172
+#: .\templates\customer\processes\process_detail.html:479
 msgid "Close"
 msgstr "Stäng"
 
@@ -2697,41 +3052,29 @@ msgid ""
 "Candidate insights will appear here when assessment data becomes available."
 msgstr "Kandidatinsikter visas här när testdata blir tillgängliga."
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:88
-msgid "Candidate insights are not available yet"
-msgstr "Kandidatinsikterna är inte tillgängliga ännu"
-
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:95
-msgid ""
-"The candidate insights will appear when all assessments included in the "
-"process have been completed."
-msgstr ""
-"Kandidatinsikterna visas när alla tester som ingår i processen har "
-"genomförts."
-
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:236
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:211
 msgid "Reports"
 msgstr "Rapporter"
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:245
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:255
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:220
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:230
 msgid "available"
 msgstr "tillgängliga"
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:293
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:268
 msgid "Uploaded historical assessment report"
 msgstr "Uppladdad historisk testrapport"
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:307
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:359
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:282
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:334
 msgid "Open report"
 msgstr "Öppna rapport"
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:317
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:292
 msgid "No historical reports have been uploaded."
 msgstr "Inga historiska rapporter har laddats upp."
 
-#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:367
+#: .\templates\customer\processes\partials\candidate_insights\_workspace.html:342
 msgid "No assessment reports are currently available."
 msgstr "Inga testrapporter är tillgängliga just nu."
 
@@ -2955,7 +3298,7 @@ msgstr "Personlighetstolkning"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:193
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:118
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:119
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:17
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:18
 msgid "AI-generated insight"
 msgstr "AI-genererad insikt"
 
@@ -2979,7 +3322,7 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:999
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:147
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:270
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:45
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:46
 #: .\templates\customer\processes\process_base.html:97
 msgid "Needs update"
 msgstr "Behöver uppdateras"
@@ -3032,6 +3375,16 @@ msgid ""
 msgstr ""
 "Utforska valda personlighetsdrag genom praktiska, syftesanpassade frågor."
 
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:46
+msgid "The selected traits, process purpose or context have changed."
+msgstr ""
+"De valda personlighetsdragen, processens syfte eller kontext har ändrats."
+
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:55
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:56
+msgid "Generate new personality questions"
+msgstr "Generera nya personlighetsfrågor"
+
 # | msgid "Generating motivation questions…"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:86
 msgid "Selecting relevant traits and creating questions…"
@@ -3078,20 +3431,45 @@ msgstr "Vad du ska lyssna efter"
 msgid "How Talena created these questions"
 msgstr "Så skapade Talena frågorna"
 
-#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:300
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:273
+msgid ""
+"Personality results describe likely behavioural preferences, not fixed "
+"behaviour or proven competence. Use the questions to explore, confirm or "
+"challenge the assessment indications."
+msgstr ""
+"Personlighetsresultat beskriver sannolika beteendepreferenser, inte fasta "
+"beteenden eller bevisad kompetens. Använd frågorna för att utforska, "
+"bekräfta eller utmana indikationerna i testresultaten."
+
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:302
 msgid "Select traits to explore"
 msgstr "Välj personlighetsdrag att utforska"
 
-#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:324
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:305
+msgid ""
+"Choose up to six traits, or leave all traits unselected to let Talena choose "
+"based on the process purpose and context. Questions will be generated using "
+"the selected traits, process purpose and available context."
+msgstr ""
+"Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att "
+"låta Talena välja utifrån processens syfte och kontext. Frågorna genereras "
+"utifrån de valda personlighetsdragen, processens syfte och tillgänglig "
+"kontext."
+
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:315
+msgid "Close trait selection"
+msgstr "Stäng val av personlighetsdrag"
+
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:326
 msgid "Select up to 6 traits"
 msgstr "Välj upp till 6 personlighetsdrag"
 
 # | msgid "Not selected"
-#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:331
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:333
 msgid "0 selected"
 msgstr "0 valda"
 
-#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:397
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:399
 #: .\templates\customer\processes\process_edit.html:292
 #: .\templates\customer\processes\process_role_context.html:247
 #: .\templates\customer\teams\team_form.html:119
@@ -3101,7 +3479,7 @@ msgid "Cancel"
 msgstr "Avbryt"
 
 # | msgid "Save changes"
-#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:405
+#: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:407
 msgid "Save and generate"
 msgstr "Spara och generera"
 
@@ -3806,11 +4184,11 @@ msgid ""
 msgstr ""
 "Det finns motivationsresultat, men motivationsprofilen kunde inte skapas."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:24
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:25
 msgid "AI Summary"
 msgstr "AI-sammanfattning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:28
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:29
 msgid ""
 "A combined interpretation of the candidate’s available assessment results, "
 "selected process purpose and any added process context."
@@ -3818,7 +4196,7 @@ msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
 "processyftet och eventuell tillagd processkontext."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:55
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:56
 msgid ""
 "Generate a new overview using the latest assessment results, purpose and "
 "process context."
@@ -3826,23 +4204,23 @@ msgstr ""
 "Generera en ny översikt utifrån de senaste testresultaten, syftet och "
 "processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:56
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:57
 msgid "Generate a new AI overview"
 msgstr "Generera en ny AI-översikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:85
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:86
 msgid "Analysing assessment results and process context…"
 msgstr "Analyserar testresultat och processkontext…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:103
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:104
 msgid "Overall interpretation"
 msgstr "Övergripande tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:119
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:120
 msgid "What supports the purpose"
 msgstr "Vad som stödjer syftet"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:126
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:127
 msgid ""
 "Assessment patterns that may be relevant to and support the selected "
 "purpose. They are not guarantees of performance."
@@ -3850,15 +4228,15 @@ msgstr ""
 "Mönster i testresultaten som kan vara relevanta för och stödja det valda "
 "syftet. De är inte några garantier för prestation."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:127
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:128
 msgid "More information about supporting evidence"
 msgstr "Mer information om stödjande underlag"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:155
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:156
 msgid "What to explore or consider"
 msgstr "Vad som bör utforskas eller övervägas"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:162
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:163
 msgid ""
 "Topics that may be useful to explore, consider or follow up through relevant "
 "conversations or other evidence. They are not confirmed weaknesses."
@@ -3866,37 +4244,37 @@ msgstr ""
 "Områden som kan vara värdefulla att utforska, överväga eller följa upp genom "
 "relevanta samtal eller annat underlag. De är inte bekräftade svagheter."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:163
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:164
 msgid "More information about areas to explore"
 msgstr "Mer information om områden att utforska"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:214
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:215
 msgid "How Talena created this summary"
 msgstr "Så skapade Talena sammanfattningen"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:229
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:230
 msgid "Based on"
 msgstr "Baserat på"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:233
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:234
 msgid "Assessment results"
 msgstr "Testresultat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:237
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:238
 msgid "Selected purpose"
 msgstr "Valt syfte"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:249
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:329
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:250
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:330
 msgid "No additional process context has been added."
 msgstr "Ingen ytterligare processkontext har lagts till."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:251
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:331
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:252
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:332
 msgid "No added context"
 msgstr "Ingen tillagd kontext"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:266
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:267
 msgid ""
 "This is an AI-generated interpretation of assessment evidence, not a final "
 "decision or prediction of future performance. Use it together with relevant "
@@ -3906,7 +4284,7 @@ msgstr ""
 "beslut eller en prognos för framtida prestation. Använd den tillsammans med "
 "relevanta samtal, erfarenhet och annan tillgänglig information."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:346
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:347
 msgid ""
 "The purpose-fit interpretation could not be generated. Use the refresh "
 "button to try again."
@@ -3914,39 +4292,62 @@ msgstr ""
 "Den syftesanpassade tolkningen kunde inte genereras. Använd "
 "uppdateringsknappen för att försöka igen."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:361
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:369
 msgid "Assessment overview"
 msgstr "Testöversikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:365
-msgid "No purpose-specific overview available"
-msgstr "Ingen syftesspecifik översikt är tillgänglig"
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:373
+msgid "Summary is waiting for the remaining assessments"
+msgstr "Sammanfattningen väntar på återstående tester"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:369
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:380
+#, python-format
 msgid ""
-"A combined AI overview requires a specific process purpose. The available "
-"assessment results can still be explored through the Personality, "
-"Motivation, Cognitive abilities and Team styles tabs."
+"\n"
+"          %(completed)s of %(total)s assessments are complete.\n"
+"          The combined AI summary will be generated when all assessments\n"
+"          in the process have been completed.\n"
+"        "
 msgstr ""
-"En samlad AI-översikt kräver ett specifikt processyfte. De tillgängliga "
-"testresultaten kan fortfarande utforskas via flikarna Personlighet, "
-"Motivation, Kognitiva förmågor och Teamstilar."
+"\n"
+"          %(completed)s av %(total)s tester är genomförda.\n"
+"          Den kombinerade AI-sammanfattningen skapas när samtliga tester\n"
+"          i processen har genomförts.\n"
+"        "
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:386
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:391
+msgid ""
+"\n"
+"          Results that are already available can be explored through\n"
+"          the assessment tabs above while the remaining assessments\n"
+"          are being completed.\n"
+"        "
+msgstr ""
+"\n"
+"          Resultat som redan finns tillgängliga kan utforskas via\n"
+"          testflikarna ovan medan kandidaten genomför de återstående\n"
+"          testerna.\n"
+"        "
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:412
 msgid "Imported assessment data"
 msgstr "Importerade testdata"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:390
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:416
 msgid "Historical candidate overview"
 msgstr "Översikt för historisk kandidat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:394
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:420
 msgid ""
-"This candidate uses imported assessment data. Explore the available "
-"assessment areas through the tabs above."
+"\n"
+"          This candidate uses imported assessment data.\n"
+"          Explore the available assessment areas through the tabs above.\n"
+"        "
 msgstr ""
-"Den här kandidaten använder importerade testdata. Utforska de tillgängliga "
-"testområdena via flikarna ovan."
+"\n"
+"          Den här kandidaten använder importerade testdata.\n"
+"          Utforska de tillgängliga testområdena via flikarna ovan.\n"
+"        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:3
 msgid "No personality assessment available"
@@ -4090,6 +4491,7 @@ msgstr ""
 "länken startar testet automatiskt efter registreringen."
 
 #: .\templates\customer\processes\process_base.html:8
+#: .\templates\customer\processes\process_detail.html:411
 msgid "Self-registration link"
 msgstr "Länk för självregistrering"
 
@@ -4103,6 +4505,7 @@ msgstr "Ett oväntat fel inträffade."
 
 #: .\templates\customer\processes\process_base.html:16
 #: .\templates\customer\processes\process_base.html:178
+#: .\templates\customer\processes\process_detail.html:463
 msgid "Loading…"
 msgstr "Laddar…"
 
@@ -4148,14 +4551,6 @@ msgstr "Uppdaterar…"
 #: .\templates\customer\processes\process_base.html:36
 msgid "Updated"
 msgstr "Uppdaterad"
-
-#: .\templates\customer\processes\process_base.html:37
-msgid "Failed"
-msgstr "Misslyckades"
-
-#: .\templates\customer\processes\process_base.html:38
-msgid "of"
-msgstr "av"
 
 #: .\templates\customer\processes\process_base.html:41
 msgid "AI insights are already up to date"
@@ -5427,6 +5822,117 @@ msgstr ""
 "Lägg till numerisk förmåga om siffror, data, rapporter eller nyckeltal är "
 "relevanta."
 
+#: .\templates\customer\processes\process_detail.html:154
+#, python-format
+msgid ""
+"\n"
+"        %(candidate_count)s candidate in this historical test process\n"
+"      "
+msgid_plural ""
+"\n"
+"        %(candidate_count)s candidates in this historical test process\n"
+"      "
+msgstr[0] ""
+"\n"
+"        %(candidate_count)s kandidat i den här historiska testprocessen\n"
+"      "
+msgstr[1] ""
+"\n"
+"        %(candidate_count)s kandidater i den här historiska testprocessen\n"
+"      "
+
+#: .\templates\customer\processes\process_detail.html:162
+#, python-format
+msgid ""
+"\n"
+"        %(candidate_count)s candidate in this test process\n"
+"      "
+msgid_plural ""
+"\n"
+"        %(candidate_count)s candidates in this test process\n"
+"      "
+msgstr[0] ""
+"\n"
+"        %(candidate_count)s kandidat i den här testprocessen\n"
+"      "
+msgstr[1] ""
+"\n"
+"        %(candidate_count)s kandidater i den här testprocessen\n"
+"      "
+
+#: .\templates\customer\processes\process_detail.html:184
+msgid "Send assessments"
+msgstr "Skicka tester"
+
+#: .\templates\customer\processes\process_detail.html:210
+msgid "Type"
+msgstr "Typ"
+
+#: .\templates\customer\processes\process_detail.html:211
+#: .\templates\customer\processes\process_detail.html:215
+msgid "Status"
+msgstr "Status"
+
+#: .\templates\customer\processes\process_detail.html:212
+msgid "Imported"
+msgstr "Importerad"
+
+#: .\templates\customer\processes\process_detail.html:214
+msgid "Invitation"
+msgstr "Inbjudan"
+
+#: .\templates\customer\processes\process_detail.html:216
+msgid "Registered"
+msgstr "Registrerad"
+
+#: .\templates\customer\processes\process_detail.html:348
+msgid "Self-registered"
+msgstr "Självregistrerad"
+
+#: .\templates\customer\processes\process_detail.html:379
+msgid "Are you sure you want to remove this candidate?"
+msgstr "Är du säker på att du vill ta bort kandidaten?"
+
+# | msgid "this candidate"
+#: .\templates\customer\processes\process_detail.html:380
+msgid "Remove candidate"
+msgstr "Ta bort kandidat"
+
+#: .\templates\customer\processes\process_detail.html:395
+msgid "No candidates yet"
+msgstr "Inga kandidater ännu"
+
+#: .\templates\customer\processes\process_detail.html:399
+msgid "Add a candidate manually or share the self-registration link."
+msgstr ""
+"Lägg till en kandidat manuellt eller dela länken för självregistrering."
+
+#: .\templates\customer\processes\process_detail.html:417
+msgid "You have read-only access to this process."
+msgstr "Du har endast läsbehörighet till den här processen."
+
+#: .\templates\customer\processes\process_detail.html:442
+msgid "Previous candidate"
+msgstr "Föregående kandidat"
+
+# | msgid "this candidate"
+#: .\templates\customer\processes\process_detail.html:449
+msgid "Next candidate"
+msgstr "Nästa kandidat"
+
+#: .\templates\customer\processes\process_detail.html:474
+#: .\templates\emails\admin_edit_invitation_template.html:18
+msgid "Invitation email"
+msgstr "Inbjudningsmejl"
+
+#: .\templates\customer\processes\process_detail.html:486
+msgid "To:"
+msgstr "Till:"
+
+#: .\templates\customer\processes\process_detail.html:491
+msgid "Subject:"
+msgstr "Ämne:"
+
 #: .\templates\customer\processes\process_edit.html:9
 msgid "Could not load SOVA setup data:"
 msgstr "Kunde inte läsa in SOVA-konfigurationen:"
@@ -6033,10 +6539,6 @@ msgstr "Tillbaka till processen"
 msgid "Email template"
 msgstr "E-postmall"
 
-#: .\templates\emails\admin_edit_invitation_template.html:18
-msgid "Invitation email"
-msgstr "Inbjudningsmejl"
-
 #: .\templates\emails\admin_edit_invitation_template.html:20
 #, python-format
 msgid "Editing template for <strong>%(process_name)s</strong>"
@@ -6231,6 +6733,44 @@ msgstr "Bekräfta nytt lösenord"
 #: .\templates\shared\_settings_content.html:349
 msgid "Update password"
 msgstr "Uppdatera lösenord"
+
+#: .\templates\shared\partials\talena_mode_switcher.html:7
+msgid "Talena mode"
+msgstr "Talena väljer"
+
+#: .\templates\shared\partials\talena_mode_switcher.html:27
+msgid "Workspace"
+msgstr ""
+
+#: .\templates\shared\partials\talena_mode_switcher.html:48
+msgid "Admin"
+msgstr ""
+
+#, python-brace-format
+#~ msgid "{process_name}: Your assessment"
+#~ msgstr "{process_name}: Ditt test"
+
+#~ msgid "Candidate insights are not available yet"
+#~ msgstr "Kandidatinsikterna är inte tillgängliga ännu"
+
+#~ msgid ""
+#~ "The candidate insights will appear when all assessments included in the "
+#~ "process have been completed."
+#~ msgstr ""
+#~ "Kandidatinsikterna visas när alla tester som ingår i processen har "
+#~ "genomförts."
+
+#~ msgid "No purpose-specific overview available"
+#~ msgstr "Ingen syftesspecifik översikt är tillgänglig"
+
+#~ msgid ""
+#~ "A combined AI overview requires a specific process purpose. The available "
+#~ "assessment results can still be explored through the Personality, "
+#~ "Motivation, Cognitive abilities and Team styles tabs."
+#~ msgstr ""
+#~ "En samlad AI-översikt kräver ett specifikt processyfte. De tillgängliga "
+#~ "testresultaten kan fortfarande utforskas via flikarna Personlighet, "
+#~ "Motivation, Kognitiva förmågor och Teamstilar."
 
 #~ msgid "Switch to Swedish"
 #~ msgstr "Byt till svenska"
