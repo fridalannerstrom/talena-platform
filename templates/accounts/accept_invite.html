@@ -1,7 +1,424 @@
-<h1>Set your password</h1>
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Save password</button>
-</form>
+<!doctype html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>{% trans "Create your password" %} | Talena</title>
+
+  <link
+    rel="stylesheet"
+    href="{% static 'css/auth.css' %}"
+  >
+
+  <style>
+    .invite-card {
+      width: min(460px, 100%);
+    }
+
+    .invite-eyebrow {
+      display: inline-flex;
+      align-items: center;
+
+      margin-bottom: 16px;
+      padding: 6px 12px;
+
+      border: 1px solid rgba(133, 105, 205, 0.16);
+      border-radius: 999px;
+
+      background: rgba(202, 183, 255, 0.18);
+
+      color: #69558f;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .invite-account {
+      margin: 22px 0 26px;
+      padding: 14px 16px;
+
+      border: 1px solid rgba(83, 67, 112, 0.10);
+      border-radius: 12px;
+
+      background: #f8f7fb;
+    }
+
+    .invite-account-label {
+      display: block;
+      margin-bottom: 3px;
+
+      color: #888096;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .invite-account-email {
+      color: #302942;
+      font-size: 13px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .invite-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+
+      margin-top: 0;
+    }
+
+    .invite-form .field {
+      margin: 0;
+    }
+
+    .invite-help {
+      margin-top: 9px;
+
+      color: #7a7f8c;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .invite-help ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .invite-help li + li {
+      margin-top: 3px;
+    }
+
+    .invite-button {
+      margin-top: 4px;
+    }
+
+    .invite-security {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+
+      margin-top: 4px;
+
+      color: #8b8498;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .invite-security-icon {
+      flex: 0 0 auto;
+
+      width: 17px;
+      height: 17px;
+      margin-top: 1px;
+
+      color: #6f55a3;
+    }
+
+    .invite-right {
+      position: relative;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 64px;
+      overflow: hidden;
+    }
+
+    .invite-right-card {
+      position: relative;
+      z-index: 1;
+
+      width: 100%;
+      max-width: 430px;
+      padding: 38px;
+
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 28px;
+
+      background: rgba(255, 255, 255, 0.35);
+
+      box-shadow:
+        0 28px 70px rgba(72, 50, 110, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    .invite-right-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 54px;
+      height: 54px;
+      margin-bottom: 24px;
+
+      border: 1px solid rgba(99, 74, 153, 0.12);
+      border-radius: 17px;
+
+      background: rgba(255, 255, 255, 0.54);
+
+      color: #66508f;
+    }
+
+    .invite-right-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .invite-right-title {
+      margin: 0 0 12px;
+
+      color: #1f2130;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+    }
+
+    .invite-right-text {
+      margin: 0;
+
+      color: rgba(39, 36, 49, 0.68);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 900px) {
+      .invite-right {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="auth-shell">
+
+    <!-- LEFT -->
+    <section class="auth-left">
+
+      <header class="brand">
+        <img
+          src="{% static 'images/talena-logo.svg' %}"
+          alt="Talena"
+          class="brand-logo"
+        >
+      </header>
+
+      <div class="auth-card invite-card">
+
+        <div class="invite-eyebrow">
+          {% trans "Welcome to Talena" %}
+        </div>
+
+        <h1 class="auth-title">
+          {% trans "Create your password" %}
+        </h1>
+
+        <p class="auth-subtitle">
+          {% trans "You're almost there. Create a password to activate your account and get started in Talena." %}
+        </p>
+
+        {% if user.email %}
+          <div class="invite-account">
+            <span class="invite-account-label">
+              {% trans "Account" %}
+            </span>
+
+            <span class="invite-account-email">
+              {{ user.email }}
+            </span>
+          </div>
+        {% endif %}
+
+        <form
+          method="post"
+          class="auth-form invite-form"
+          novalidate
+        >
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <!-- Password -->
+          <div
+            class="
+              field
+              {% if form.new_password1.errors %}has-error{% endif %}
+            "
+          >
+            <label
+              class="label"
+              for="{{ form.new_password1.id_for_label }}"
+            >
+              {% trans "Password" %}
+            </label>
+
+            {{ form.new_password1 }}
+
+            {% if form.new_password1.errors %}
+              <div class="field-error">
+                {{ form.new_password1.errors }}
+              </div>
+            {% endif %}
+
+            {% if form.new_password1.help_text %}
+              <div class="invite-help">
+                {{ form.new_password1.help_text|safe }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Confirm password -->
+          <div
+            class="
+              field
+              {% if form.new_password2.errors %}has-error{% endif %}
+            "
+          >
+            <label
+              class="label"
+              for="{{ form.new_password2.id_for_label }}"
+            >
+              {% trans "Confirm password" %}
+            </label>
+
+            {{ form.new_password2 }}
+
+            {% if form.new_password2.errors %}
+              <div class="field-error">
+                {{ form.new_password2.errors }}
+              </div>
+            {% endif %}
+          </div>
+
+          <button
+            class="btn invite-button"
+            type="submit"
+          >
+            {% trans "Create password and continue" %}
+          </button>
+
+          <div class="invite-security">
+
+            <svg
+              class="invite-security-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M7 10V8a5 5 0 0 1 10 0v2"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+              <rect
+                x="5"
+                y="10"
+                width="14"
+                height="10"
+                rx="3"
+                stroke="currentColor"
+                stroke-width="1.8"
+              />
+            </svg>
+
+            <span>
+              {% trans "Your password is stored securely and is never visible to Talena administrators." %}
+            </span>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </section>
+
+
+    <!-- RIGHT -->
+    <aside
+      class="auth-right invite-right"
+      aria-hidden="true"
+    >
+
+      <div class="invite-right-card">
+
+        <div class="invite-right-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M12 3L4.5 6.5V11.8C4.5 16.4 7.7 20.3 12 21.5C16.3 20.3 19.5 16.4 19.5 11.8V6.5L12 3Z"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9.5 12L11.2 13.7L14.8 10.1"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        <h2 class="invite-right-title">
+          {% trans "Your Talena account is ready" %}
+        </h2>
+
+        <p class="invite-right-text">
+          {% trans "Set your password to activate your account. After that, you'll be signed in automatically and can start working in Talena." %}
+        </p>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+
+  <script>
+    (function () {
+      const password1 =
+        document.getElementById("id_new_password1");
+
+      const password2 =
+        document.getElementById("id_new_password2");
+
+      [password1, password2].forEach(function (field) {
+        if (!field) {
+          return;
+        }
+
+        field.classList.add("input");
+        field.setAttribute(
+          "autocomplete",
+          "new-password"
+        );
+      });
+    })();
+  </script>
+
+</body>
+</html>
