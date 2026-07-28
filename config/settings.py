@@ -294,8 +294,50 @@ LOGIN_REDIRECT_URL = "core:post_login_redirect"
 LOGOUT_REDIRECT_URL = "core:login"
 
     
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "Talena <no-reply@talena.se>"
+# --- Email --- #
+
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+
+EMAIL_HOST = os.getenv(
+    "EMAIL_HOST",
+    "smtp.azurecomm.net",
+)
+
+EMAIL_PORT = int(
+    os.getenv(
+        "EMAIL_PORT",
+        "587",
+    )
+)
+
+EMAIL_USE_TLS = env_bool(
+    "EMAIL_USE_TLS",
+    "True",
+)
+
+EMAIL_USE_SSL = False
+
+EMAIL_HOST_USER = os.getenv(
+    "EMAIL_HOST_USER",
+    "",
+)
+
+EMAIL_HOST_PASSWORD = os.getenv(
+    "EMAIL_HOST_PASSWORD",
+    "",
+)
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "Talena <donotreply@mail.talena.io>",
+)
+
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+EMAIL_TIMEOUT = 30
 
 LOGGING = {
     "version": 1,
