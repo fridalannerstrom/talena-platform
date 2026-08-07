@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-27 00:15+0200\n"
+"POT-Creation-Date: 2026-08-07 14:09+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -245,12 +245,14 @@ msgstr "E-post"
 
 #: .\apps\processes\forms.py:141
 #: .\apps\processes\services\process_recommendations.py:100
+#: .\templates\customer\processes\_process_header.html:372
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:33
 msgid "Personality"
 msgstr "Personlighet"
 
 #: .\apps\processes\forms.py:142
 #: .\apps\processes\services\process_recommendations.py:109
+#: .\templates\customer\processes\_process_header.html:375
 #: .\templates\customer\processes\partials\candidate_insights\_navigation.html:45
 #: .\templates\customer\processes\process_base.html:27
 msgid "Motivation"
@@ -259,18 +261,21 @@ msgstr "Motivation"
 #: .\apps\processes\forms.py:143
 #: .\apps\processes\services\process_recommendations.py:118
 #: .\apps\processes\services\process_recommendations.py:119
+#: .\templates\customer\processes\_process_header.html:378
 msgid "Verbal"
 msgstr "Verbal förmåga"
 
 #: .\apps\processes\forms.py:144
 #: .\apps\processes\services\process_recommendations.py:127
 #: .\apps\processes\services\process_recommendations.py:128
+#: .\templates\customer\processes\_process_header.html:381
 msgid "Logical"
 msgstr "Logisk förmåga"
 
 #: .\apps\processes\forms.py:145
 #: .\apps\processes\services\process_recommendations.py:136
 #: .\apps\processes\services\process_recommendations.py:137
+#: .\templates\customer\processes\_process_header.html:384
 msgid "Numerical"
 msgstr "Numerisk förmåga"
 
@@ -324,7 +329,7 @@ msgstr ""
 
 #: .\apps\processes\forms.py:214 .\apps\processes\purpose_context_config.py:313
 #: .\apps\processes\purpose_context_config.py:314
-#: .\templates\customer\processes\_process_header.html:421
+#: .\templates\customer\processes\_process_header.html:452
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:243
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:323
 #: .\templates\customer\processes\process_role_context.html:20
@@ -2021,17 +2026,20 @@ msgid "Save changes"
 msgstr "Spara ändringar"
 
 #: .\config\settings.py:277
-msgid "Svenska"
-msgstr "Svenska"
-
-#: .\config\settings.py:278
 msgid "English"
 msgstr "Engelska"
 
-#: .\templates\accounts\login.html:15 .\templates\accounts\login.html:282
-msgid "Log in"
-msgstr "Logga in"
+#: .\config\settings.py:278
+msgid "Svenska"
+msgstr "Svenska"
 
+#: .\templates\accounts\accept_invite.html:15
+#: .\templates\accounts\accept_invite.html:393
+msgid "Create your password"
+msgstr "Skapa ditt lösenord"
+
+#: .\templates\accounts\accept_invite.html:232
+#: .\templates\accounts\accept_invite.html:298
 #: .\templates\accounts\login.html:49 .\templates\accounts\login.html:115
 #: .\templates\customer\core\partials\customer_header.html:146
 #: .\templates\customer\core\partials\customer_header.html:188
@@ -2040,6 +2048,61 @@ msgstr "Logga in"
 msgid "Choose language"
 msgstr "Välj språk"
 
+#: .\templates\accounts\accept_invite.html:389
+msgid "Welcome to Talena"
+msgstr "Välkommen till Talena"
+
+#: .\templates\accounts\accept_invite.html:397
+msgid ""
+"You're almost there. Create a password to activate your account and get "
+"started in Talena."
+msgstr ""
+"Du är nästan klar. Skapa ett lösenord för att aktivera ditt konto och komma "
+"igång i Talena."
+
+#: .\templates\accounts\accept_invite.html:403
+#: .\templates\customer\core\partials\customer_header.html:304
+msgid "Account"
+msgstr "Konto"
+
+#: .\templates\accounts\accept_invite.html:436
+#: .\templates\accounts\login.html:266
+#: .\templates\shared\_settings_content.html:255
+msgid "Password"
+msgstr "Lösenord"
+
+#: .\templates\accounts\accept_invite.html:465
+msgid "Confirm password"
+msgstr "Bekräfta lösenord"
+
+#: .\templates\accounts\accept_invite.html:481
+msgid "Create password and continue"
+msgstr "Skapa lösenord och fortsätt"
+
+#: .\templates\accounts\accept_invite.html:510
+msgid ""
+"Your password is stored securely and is never visible to Talena "
+"administrators."
+msgstr ""
+"Ditt lösenord lagras säkert och är aldrig synligt för Talenas "
+"administratörer."
+
+#: .\templates\accounts\accept_invite.html:552
+msgid "Your Talena account is ready"
+msgstr "Ditt Talena-konto är redo"
+
+#: .\templates\accounts\accept_invite.html:556
+msgid ""
+"Set your password to activate your account. After that, you'll be signed in "
+"automatically and can start working in Talena."
+msgstr ""
+"Skapa ditt lösenord för att aktivera kontot. Därefter loggas du in "
+"automatiskt och kan börja arbeta i Talena."
+
+#: .\templates\accounts\login.html:15 .\templates\accounts\login.html:282
+msgid "Log in"
+msgstr "Logga in"
+
 #: .\templates\accounts\login.html:206
 msgid "Log in to Talena"
 msgstr "Logga in på Talena"
@@ -2047,11 +2110,6 @@ msgstr "Logga in på Talena"
 #: .\templates\accounts\login.html:210
 msgid "Welcome! Log in to continue your work in Talena."
 msgstr "Välkommen! Logga in för att fortsätta ditt arbete i Talena."
-
-#: .\templates\accounts\login.html:266
-#: .\templates\shared\_settings_content.html:255
-msgid "Password"
-msgstr "Lösenord"
 
 #: .\templates\accounts\login.html:286
 msgid "Don't have a Talena account?"
@@ -2322,7 +2380,6 @@ msgid "Processes"
 msgstr "Processer"
 
 #: .\templates\customer\candidates\candidate_list.html:186
-#: .\templates\customer\processes\_process_header.html:365
 #: .\templates\customer\processes\process_create_v2.html:89
 msgid "Tests"
 msgstr "Tester"
@@ -2533,7 +2590,7 @@ msgstr "Lösenord, profilbild och kontaktinformation"
 
 #: .\templates\customer\core\layouts\customer_dashboard.html:114
 #: .\templates\customer\processes\_candidate_detail_sheet.html:85
-#: .\templates\customer\processes\_process_header.html:412
+#: .\templates\customer\processes\_process_header.html:443
 msgid "Overview"
 msgstr "Översikt"
 
@@ -2575,12 +2632,11 @@ msgid "View all"
 msgstr "Visa alla"
 
 #: .\templates\customer\core\layouts\customer_dashboard.html:236
-#: .\templates\customer\processes\process_list.html:384
 msgid "Includes assessments:"
 msgstr "Innehåller tester:"
 
 #: .\templates\customer\core\layouts\customer_dashboard.html:246
-#: .\templates\customer\processes\_process_header.html:369
+#: .\templates\customer\processes\_process_header.html:399
 #: .\templates\customer\processes\process_base.html:32
 msgid "Not specified"
 msgstr "Ej angivet"
@@ -2615,10 +2671,6 @@ msgstr "Senaste aktivitet"
 #: .\templates\customer\core\layouts\customer_dashboard.html:363
 msgid "Activity across your active test processes"
 msgstr "Aktivitet i dina aktiva testprocesser"
-
-#: .\templates\customer\core\partials\customer_header.html:304
-msgid "Account"
-msgstr "Konto"
 
 #: .\templates\customer\core\partials\customer_header.html:312
 msgid "Log out"
@@ -2779,30 +2831,30 @@ msgstr "Syfte"
 msgid "Not selected"
 msgstr "Inte valt"
 
-#: .\templates\customer\processes\_process_header.html:383
+#: .\templates\customer\processes\_process_header.html:414
 msgid "Read-only archive"
 msgstr "Skrivskyddat arkiv"
 
-#: .\templates\customer\processes\_process_header.html:389
+#: .\templates\customer\processes\_process_header.html:420
 #: .\templates\customer\processes\process_base.html:6
 msgid "Self-registration"
 msgstr "Självregistrering"
 
-#: .\templates\customer\processes\_process_header.html:396
+#: .\templates\customer\processes\_process_header.html:427
 #: .\templates\customer\processes\process_base.html:161
 #: .\templates\customer\processes\process_detail.html:406
 msgid "Add candidate"
 msgstr "Lägg till kandidat"
 
-#: .\templates\customer\processes\_process_header.html:401
+#: .\templates\customer\processes\_process_header.html:432
 msgid "Read-only"
 msgstr "Skrivskyddad"
 
-#: .\templates\customer\processes\_process_header.html:427
+#: .\templates\customer\processes\_process_header.html:458
 msgid "Email templates"
 msgstr "E-postmallar"
 
-#: .\templates\customer\processes\_process_header.html:432
+#: .\templates\customer\processes\_process_header.html:463
 msgid "Settings"
 msgstr "Inställningar"
 
@@ -6152,35 +6204,35 @@ msgstr ""
 msgid "Delete"
 msgstr "Radera"
 
-#: .\templates\customer\processes\process_list.html:371
+#: .\templates\customer\processes\process_list.html:369
 msgid "Historical test data"
 msgstr "Historiska testdata"
 
-#: .\templates\customer\processes\process_list.html:417
+#: .\templates\customer\processes\process_list.html:391
 msgid "Candidates:"
 msgstr "Kandidater:"
 
-#: .\templates\customer\processes\process_list.html:439
+#: .\templates\customer\processes\process_list.html:413
 msgid "Created:"
 msgstr "Skapad:"
 
-#: .\templates\customer\processes\process_list.html:470
+#: .\templates\customer\processes\process_list.html:444
 msgid "No archived test processes"
 msgstr "Inga arkiverade testprocesser"
 
-#: .\templates\customer\processes\process_list.html:474
+#: .\templates\customer\processes\process_list.html:448
 msgid "When you archive a process, it will appear here."
 msgstr "När du arkiverar en process visas den här."
 
-#: .\templates\customer\processes\process_list.html:489
+#: .\templates\customer\processes\process_list.html:463
 msgid "You do not have any test processes yet"
 msgstr "Du har inga testprocesser ännu"
 
-#: .\templates\customer\processes\process_list.html:493
+#: .\templates\customer\processes\process_list.html:467
 msgid "Create a test process to start sending assessments to candidates."
 msgstr "Skapa en testprocess för att börja skicka tester till kandidater."
 
-#: .\templates\customer\processes\process_list.html:500
+#: .\templates\customer\processes\process_list.html:474
 msgid "Create your first test process"
 msgstr "Skapa din första testprocess"
 
