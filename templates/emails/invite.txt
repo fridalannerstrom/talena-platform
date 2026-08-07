@@ -1,10 +1,11 @@
-Hej!
+Hi{% if user.first_name %} {{ user.first_name }}{% endif %}!
 
-Du har blivit inbjuden till Talena för {{ company_name }}.
-Skapa ditt lösenord via länken nedan:
+You have been invited to Talena for {{ company_name }}.
+
+Create your password using the link below to activate your account:
 
 {{ invite_link }}
 
-Inbjuden av: {{ invited_by }}
+Invited by: {{ invited_by }}
 
-/ Talena
+Welcome to Talena!
