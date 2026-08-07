@@ -271,11 +271,11 @@ SOVA_WEBHOOK_DEBUG_TO_FILE = os.environ.get("SOVA_WEBHOOK_DEBUG_TO_FILE", "False
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "sv"
+LANGUAGE_CODE = "en"
 
 LANGUAGES = [
-    ("sv", _("Svenska")),
     ("en", _("English")),
+    ("sv", _("Svenska")),
 ]
 
 LOCALE_PATHS = [
