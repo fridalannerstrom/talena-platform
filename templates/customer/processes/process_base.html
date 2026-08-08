@@ -1563,31 +1563,63 @@ const isHistoricalCandidate = Boolean(
 
 await runCandidateInit(
   "Candidate summary",
-  () => initCandidateSummaryStream(sheetBody)
+  () => initCandidateSummaryStream(
+    sheetBody
+  )
+);
+
+
+/*
+ * AI Overview is available for both active and
+ * historical candidates.
+ *
+ * Historical candidates use imported SOVA data,
+ * while active candidates use live SOVA results.
+ */
+await runCandidateInit(
+  "AI Overview",
+  () => initCandidatePurposeFitStream(
+    sheetBody
+  )
+);
+
+
+/*
+ * Personality interpretation is available for both
+ * active and historical candidates.
+ */
+await runCandidateInit(
+  "Personality interpretation",
+  () => initCandidatePersonalityInterpretation(
+    sheetBody
+  )
+);
+
+
+/*
+ * Personality questions are available for both
+ * active and historical candidates.
+ */
+await runCandidateInit(
+  "Personality questions",
+  () => initCandidatePersonalityQuestions(
+    sheetBody
+  )
 );
 
 
 if (isHistoricalCandidate) {
 
-  await runCandidateInit(
-    "Historical personality interpretation",
-    () => initCandidatePersonalityInterpretation(
-      sheetBody
-    )
-  );
+  /*
+   * Historical candidates currently skip the
+   * remaining live-only candidate functionality.
+   */
 
 } else {
 
   await runCandidateInit(
     "Derived content sync",
     () => initCandidateDerivedContentSync(
-      sheetBody
-    )
-  );
-
-  await runCandidateInit(
-    "AI Overview",
-    () => initCandidatePurposeFitStream(
       sheetBody
     )
   );
@@ -1616,20 +1648,6 @@ if (isHistoricalCandidate) {
   await runCandidateInit(
     "Motivation questions",
     () => initCandidateMotivationQuestions(
-      sheetBody
-    )
-  );
-
-  await runCandidateInit(
-    "Personality interpretation",
-    () => initCandidatePersonalityInterpretation(
-      sheetBody
-    )
-  );
-
-  await runCandidateInit(
-    "Personality questions",
-    () => initCandidatePersonalityQuestions(
       sheetBody
     )
   );

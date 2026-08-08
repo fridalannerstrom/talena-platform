@@ -636,9 +636,40 @@ function initCandidateSheetAiObserver() {
           return;
         }
 
-        sheetBody.innerHTML = await response.text();
+sheetBody.innerHTML = await response.text();
 
-        refreshDynamicCandidateSheetContent(sheetBody, sheetEl);
+/*
+ * Start Candidate Insights AI after the candidate
+ * workspace has been inserted into the offcanvas.
+ */
+if (
+  typeof window.initCandidatePurposeFitStream
+  === "function"
+) {
+  console.log(
+    "[ADMIN CANDIDATE] Starting Purpose Fit directly"
+  );
+
+  try {
+    await window.initCandidatePurposeFitStream(
+      sheetBody
+    );
+  } catch (error) {
+    console.error(
+      "[ADMIN CANDIDATE] Purpose Fit failed:",
+      error
+    );
+  }
+} else {
+  console.error(
+    "[ADMIN CANDIDATE] initCandidatePurposeFitStream is missing"
+  );
+}
+
+refreshDynamicCandidateSheetContent(
+  sheetBody,
+  sheetEl
+);
       } catch (error) {
         sheetBody.innerHTML = `
           <div class="alert alert-danger mb-0">

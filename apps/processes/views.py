@@ -529,6 +529,71 @@ def build_personality_results_for_ai_owner(
     )
 
 
+def build_personality_question_traits_for_ai_owner(
+    owner,
+) -> list[dict]:
+    """
+    Return the 18 parent personality traits used by
+    Personality Questions for either an active or
+    historical candidate.
+    """
+
+    results = build_personality_results_for_ai_owner(
+        owner
+    )
+
+    allowed_trait_keys = {
+        "cooperative",
+        "empathy",
+        "supporting",
+        "connecting",
+        "dynamic",
+        "influential",
+        "goal focused",
+        "achievement striving",
+        "structured",
+        "analytical",
+        "complex thinking",
+        "creativity",
+        "adaptability",
+        "straightforward",
+        "status avoidance",
+        "modesty",
+        "resilience",
+        "emotional control",
+        "independence",
+    }
+
+    def normalise_trait_key(value):
+        text = str(
+            value or ""
+        ).strip().casefold()
+
+        for character in (
+            "_",
+            "-",
+            "–",
+            "—",
+            "/",
+        ):
+            text = text.replace(
+                character,
+                " ",
+            )
+
+        return " ".join(
+            text.split()
+        )
+
+    return [
+        result
+        for result in results
+        if normalise_trait_key(
+            result.get("name")
+        ) in allowed_trait_keys
+    ]
+
+
 def build_response_styles_for_guidance_owner(
     guidance_owner,
 ):
@@ -11231,24 +11296,28 @@ def process_candidate_personality_questions_stream(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical personality questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(request)
     mark_ai_content_outdated_if_language_changed(
@@ -11260,7 +11329,7 @@ def process_candidate_personality_questions_stream(
     )
 
     personality_results = (
-        extract_personality_question_traits(
+        build_personality_question_traits_for_ai_owner(
             invitation
         )
     )
@@ -11519,21 +11588,17 @@ def process_candidate_personality_questions_regenerate(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical personality questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_personality_questions_status = (
         "not_started"
@@ -11595,21 +11660,28 @@ def process_candidate_personality_traits_update(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical personality trait selection "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     try:
         payload = json.loads(
@@ -11637,7 +11709,7 @@ def process_candidate_personality_traits_update(
         )
     
     personality_results = (
-        extract_personality_question_traits(
+        build_personality_question_traits_for_ai_owner(
             invitation
         )
     )
