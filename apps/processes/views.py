@@ -7915,7 +7915,10 @@ def process_candidate_purpose_fit_stream(
         flush=True,
     )
 
-    if not user_can_access_process(request.user, process):
+    if not user_can_access_process(
+        request.user,
+        process,
+    ):
         print(
             "[PURPOSE FIT] Access denied",
             flush=True,
@@ -7934,24 +7937,36 @@ def process_candidate_purpose_fit_stream(
         return JsonResponse(
             {
                 "error": (
-                    "Flexible processes do not support "
-                    "purpose-fit analysis."
+                    "This process does not support "
+                    "AI Overview."
                 )
             },
             status=400,
         )
-    
+
+    # ---------------------------------------------------------
+    # FIND THE CORRECT AI OWNER
+    # ---------------------------------------------------------
+
     if process.is_historical:
-        invitation = get_object_or_404(
-            HistoricalProcessCandidate.objects.select_related(
+        owner = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
                 "candidate",
                 "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
             ),
             process=process,
             candidate_id=candidate_id,
         )
+
+        is_historical = True
+
     else:
-        invitation = get_object_or_404(
+        owner = get_object_or_404(
             TestInvitation.objects.select_related(
                 "candidate",
                 "process",
@@ -7960,10 +7975,14 @@ def process_candidate_purpose_fit_stream(
             candidate_id=candidate_id,
         )
 
-    language_code = get_request_ai_language(request)
+        is_historical = False
+
+    language_code = get_request_ai_language(
+        request
+    )
 
     mark_ai_content_outdated_if_language_changed(
-        invitation,
+        owner,
         content_key="purpose_fit",
         result_field="ai_purpose_fit",
         status_field="ai_purpose_fit_status",
@@ -7971,15 +7990,25 @@ def process_candidate_purpose_fit_stream(
     )
 
     print(
-        f"[PURPOSE FIT] Invitation found: "
-        f"id={invitation.id}, "
-        f"status={invitation.status}, "
-        f"fit_status={invitation.ai_purpose_fit_status}, "
-        f"has_saved_fit={bool(invitation.ai_purpose_fit)}",
+        f"[PURPOSE FIT] Owner found: "
+        f"id={owner.id}, "
+        f"historical={is_historical}, "
+        f"fit_status={owner.ai_purpose_fit_status}, "
+        f"has_saved_fit={bool(owner.ai_purpose_fit)}",
         flush=True,
     )
 
-    if invitation.status != "completed":
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATES MUST BE COMPLETED
+    # ---------------------------------------------------------
+    #
+    # Historical candidates contain imported completed results
+    # and therefore do not have a TestInvitation status.
+    #
+    if (
+        not is_historical
+        and owner.status != "completed"
+    ):
         print(
             "[PURPOSE FIT] Candidate not completed",
             flush=True,
@@ -7988,21 +8017,26 @@ def process_candidate_purpose_fit_stream(
         return JsonResponse(
             {
                 "error": (
-                    "Candidate assessments are not completed yet."
+                    "Candidate assessments are "
+                    "not completed yet."
                 )
             },
             status=400,
         )
 
+    # ---------------------------------------------------------
+    # RETURN SAVED RESULT
+    # ---------------------------------------------------------
+
     if (
         ai_content_language_matches(
-            invitation,
+            owner,
             "purpose_fit",
             language_code,
         )
         and should_return_saved_ai_result(
-            invitation.ai_purpose_fit,
-            invitation.ai_purpose_fit_status,
+            owner.ai_purpose_fit,
+            owner.ai_purpose_fit_status,
         )
     ):
         print(
@@ -8011,15 +8045,23 @@ def process_candidate_purpose_fit_stream(
         )
 
         def existing_generator():
-            yield json.dumps({
-                "type": "saved_result",
-                "data": invitation.ai_purpose_fit,
-                "status": invitation.ai_purpose_fit_status,
-            }) + "\n"
+            yield json.dumps(
+                {
+                    "type": "saved_result",
+                    "data": owner.ai_purpose_fit,
+                    "status": (
+                        owner.ai_purpose_fit_status
+                    ),
+                },
+                ensure_ascii=False,
+            ) + "\n"
 
         response = StreamingHttpResponse(
             existing_generator(),
-            content_type="application/x-ndjson; charset=utf-8",
+            content_type=(
+                "application/x-ndjson; "
+                "charset=utf-8"
+            ),
         )
 
         response["Cache-Control"] = "no-cache"
@@ -8027,7 +8069,11 @@ def process_candidate_purpose_fit_stream(
 
         return response
 
-    if invitation.ai_purpose_fit_status == "generating":
+    # ---------------------------------------------------------
+    # PREVENT DUPLICATE GENERATION
+    # ---------------------------------------------------------
+
+    if owner.ai_purpose_fit_status == "generating":
         print(
             "[PURPOSE FIT] Already marked as generating",
             flush=True,
@@ -8036,25 +8082,33 @@ def process_candidate_purpose_fit_stream(
         return JsonResponse(
             {
                 "error": (
-                    "Purpose-fit analysis is already being generated."
+                    "AI Overview is already "
+                    "being generated."
                 )
             },
             status=409,
         )
 
-    invitation.ai_purpose_fit_status = "generating"
-    invitation.save(update_fields=[
-        "ai_purpose_fit_status",
-    ])
+    owner.ai_purpose_fit_status = "generating"
+
+    owner.save(
+        update_fields=[
+            "ai_purpose_fit_status",
+        ]
+    )
 
     print(
         "[PURPOSE FIT] Status changed to generating",
         flush=True,
     )
 
+    # ---------------------------------------------------------
+    # STREAM GENERATION
+    # ---------------------------------------------------------
+
     def generator():
         purpose_fit = create_empty_purpose_fit(
-            invitation
+            owner
         )
 
         received_done_event = False
@@ -8066,7 +8120,7 @@ def process_candidate_purpose_fit_stream(
             )
 
             for event in stream_candidate_purpose_fit(
-                invitation,
+                owner,
                 language_code=language_code,
             ):
                 print(
@@ -8075,9 +8129,11 @@ def process_candidate_purpose_fit_stream(
                     flush=True,
                 )
 
-                purpose_fit = apply_purpose_fit_event(
-                    purpose_fit,
-                    event,
+                purpose_fit = (
+                    apply_purpose_fit_event(
+                        purpose_fit,
+                        event,
+                    )
                 )
 
                 if event.get("type") == "done":
@@ -8099,12 +8155,15 @@ def process_candidate_purpose_fit_stream(
                     flush=True,
                 )
 
-                yield json.dumps({
-                    "type": "done",
-                }) + "\n"
+                yield json.dumps(
+                    {
+                        "type": "done",
+                    },
+                    ensure_ascii=False,
+                ) + "\n"
 
             save_candidate_purpose_fit(
-                invitation,
+                owner,
                 purpose_fit,
                 language_code=language_code,
             )
@@ -8121,19 +8180,27 @@ def process_candidate_purpose_fit_stream(
                 flush=True,
             )
 
-            invitation.ai_purpose_fit_status = "failed"
-            invitation.save(update_fields=[
-                "ai_purpose_fit_status",
-            ])
+            owner.ai_purpose_fit_status = "failed"
 
-            yield json.dumps({
-                "type": "error",
-                "message": str(exc),
-            }, ensure_ascii=False) + "\n"
+            owner.save(
+                update_fields=[
+                    "ai_purpose_fit_status",
+                ]
+            )
+
+            yield json.dumps(
+                {
+                    "type": "error",
+                    "message": str(exc),
+                },
+                ensure_ascii=False,
+            ) + "\n"
 
     response = StreamingHttpResponse(
         generator(),
-        content_type="application/x-ndjson; charset=utf-8",
+        content_type=(
+            "application/x-ndjson; charset=utf-8"
+        ),
     )
 
     response["Cache-Control"] = "no-cache"
@@ -8145,7 +8212,6 @@ def process_candidate_purpose_fit_stream(
     )
 
     return response
-
 
 @login_required
 @require_POST
