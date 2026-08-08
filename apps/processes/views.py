@@ -17,7 +17,7 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
-
+from apps.core.utils.auth import is_admin
 
 from apps.core.ai.decision_support import (
     create_empty_pre_interview_decision_support,
@@ -4103,6 +4103,10 @@ def _get_active_company_for_user(user):
 
 
 def user_can_access_process(user, process) -> bool:
+    # Talena admins can access every customer process,
+    # including candidate insights and AI endpoints.
+    if is_admin(user):
+        return True
     company_id = (
         CompanyMember.objects
         .filter(user=user)
@@ -7936,15 +7940,25 @@ def process_candidate_purpose_fit_stream(
             },
             status=400,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(request)
 
@@ -8160,12 +8174,25 @@ def process_candidate_purpose_fit_regenerate(
             },
             status=400,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_purpose_fit_status = "not_started"
     invitation.ai_purpose_fit_generated_at = None

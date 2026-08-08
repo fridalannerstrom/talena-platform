@@ -1,429 +1,533 @@
 {% load i18n %}
 {# Talena candidate i18n batch 1 #}
 
-{% if not is_historical %}
+{% with overview_owner=historical_candidate|default:invitation %}
+
 
   {% if all_assessments_completed %}
 
-<section
-  class="purpose-fit-card ai-overview-card"
-  id="purposeFitCard"
->
-
-<!-- HEADER -->
-<div class="ai-overview-header">
-
-  <div class="ai-overview-header__content">
-    <div class="insight-summary-kicker">
-      ✨ {% trans "AI-generated insight" %}
-    </div>
-
-    <h2
-      class="insight-summary-title mb-1"
-      id="purposeFitTitle"
+    <section
+      class="purpose-fit-card ai-overview-card"
+      id="purposeFitCard"
     >
-      {% trans "AI Summary" %}
-    </h2>
 
-    <div class="text-muted small">
-      {% blocktrans %}A combined interpretation of the candidate’s available assessment results, selected process purpose and any added process context.{% endblocktrans %}
-    </div>
-  </div>
+      <!-- ================================================== -->
+      <!-- HEADER -->
+      <!-- ================================================== -->
 
-  <div class="ai-overview-header__actions">
+      <div class="ai-overview-header">
 
-    <span
-      id="purposeFitStatusBadge"
-      class="badge rounded-pill
-        {% if invitation.ai_purpose_fit_status == 'outdated' %}
-          bg-warning-subtle text-warning-emphasis
-        {% else %}
-          d-none
-        {% endif %}
-      "
-    >
-      {% if invitation.ai_purpose_fit_status == "outdated" %}
-        {% trans "Needs update" %}
-      {% endif %}
-    </span>
+        <div class="ai-overview-header__content">
 
-    <button
-      type="button"
-      class="btn btn-icon btn-light js-regenerate-purpose-fit"
-      data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
-      data-bs-toggle="tooltip"
-      data-bs-placement="top"
-      title="{% trans 'Generate a new overview using the latest assessment results, purpose and process context.' %}"
-      aria-label="{% trans 'Generate a new AI overview' %}"
-    >
-      <i data-feather="refresh-cw"></i>
-    </button>
-
-  </div>
-
-</div>
-
-
-<div
-  id="purposeFitOutdatedWarning"
-  class="d-none"
-  aria-hidden="true"
-></div>
-
-        <!-- LOADING -->
-        <div
-          id="purposeFitLoading"
-          class="{% if invitation.ai_purpose_fit %}d-none{% endif %}"
-        >
-          <div class="purpose-fit-loading">
-            <span
-              class="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            ></span>
-
-            <span id="purposeFitLoadingText">
-              {% trans "Analysing assessment results and process context…" %}
-            </span>
+          <div class="insight-summary-kicker">
+            ✨ {% trans "AI-generated insight" %}
           </div>
+
+          <h2
+            class="insight-summary-title mb-1"
+            id="purposeFitTitle"
+          >
+            {% trans "AI Summary" %}
+          </h2>
+
+          <div class="text-muted small">
+
+            {% if is_historical %}
+
+              {% blocktrans %}
+                A combined interpretation of the candidate’s available
+                imported assessment results.
+              {% endblocktrans %}
+
+            {% else %}
+
+              {% blocktrans %}
+                A combined interpretation of the candidate’s available
+                assessment results, selected process purpose and any
+                added process context.
+              {% endblocktrans %}
+
+            {% endif %}
+
+          </div>
+
         </div>
 
 
-<!-- RESULT -->
-<div
-  id="purposeFitResult"
-  class="{% if not invitation.ai_purpose_fit %}d-none{% endif %}"
-  data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
-  data-has-fit="{% if invitation.ai_purpose_fit %}true{% else %}false{% endif %}"
-  data-fit-status="{{ invitation.ai_purpose_fit_status|default:'not_started' }}"
->
+        <div class="ai-overview-header__actions">
 
-  <!-- OVERALL INTERPRETATION -->
-  <section class="purpose-fit-section mb-4">
-    <div class="purpose-fit-section-title">
-      {% trans "Overall interpretation" %}
-    </div>
+          <span
+            id="purposeFitStatusBadge"
+            class="
+              badge
+              rounded-pill
 
-<div
-  class="purpose-fit-summary"
-  id="purposeFitSummary"
->{{ invitation.ai_purpose_fit.summary }}</div>
-  </section>
+              {% if overview_owner.ai_purpose_fit_status == 'outdated' %}
+                bg-warning-subtle
+                text-warning-emphasis
+              {% else %}
+                d-none
+              {% endif %}
+            "
+          >
+            {% if overview_owner.ai_purpose_fit_status == "outdated" %}
+              {% trans "Needs update" %}
+            {% endif %}
+          </span>
 
-  <!-- SUPPORT + EXPLORE -->
-  <div class="row g-4 mb-4">
-
-    <div class="col-lg-6">
-      <div class="purpose-fit-list-card purpose-fit-list-card--positive h-100">
-
-        <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-          <span>{% trans "What supports the purpose" %}</span>
 
           <button
             type="button"
-            class="purpose-fit-help"
+            class="btn btn-icon btn-light js-regenerate-purpose-fit"
+            data-regenerate-url="{% url 'processes:process_candidate_purpose_fit_regenerate' process.id candidate.id %}"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
-            title="{% trans 'Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance.' %}"
-            aria-label="{% trans 'More information about supporting evidence' %}"
+            title="{% trans 'Generate a new overview using the latest assessment results, purpose and process context.' %}"
+            aria-label="{% trans 'Generate a new AI overview' %}"
           >
-            <i data-feather="info"></i>
+            <i data-feather="refresh-cw"></i>
           </button>
+
         </div>
 
-        <ul
-          class="purpose-fit-list"
-          id="purposeFitAlignment"
-        >
-          {% for item in invitation.ai_purpose_fit.key_alignment %}
-            <li>
-              <span class="purpose-fit-list-icon">
-                <i data-feather="check"></i>
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- OUTDATED WARNING HOOK -->
+      <!-- ================================================== -->
+
+      <div
+        id="purposeFitOutdatedWarning"
+        class="d-none"
+        aria-hidden="true"
+      ></div>
+
+
+      <!-- ================================================== -->
+      <!-- LOADING -->
+      <!-- ================================================== -->
+
+      <div
+        id="purposeFitLoading"
+        class="{% if overview_owner.ai_purpose_fit %}d-none{% endif %}"
+      >
+
+        <div class="purpose-fit-loading">
+
+          <span
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+
+          <span id="purposeFitLoadingText">
+
+            {% if is_historical %}
+
+              {% trans "Analysing imported assessment results…" %}
+
+            {% else %}
+
+              {% trans "Analysing assessment results and process context…" %}
+
+            {% endif %}
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- RESULT -->
+      <!-- ================================================== -->
+
+      <div
+        id="purposeFitResult"
+        class="{% if not overview_owner.ai_purpose_fit %}d-none{% endif %}"
+        data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
+        data-has-fit="{% if overview_owner.ai_purpose_fit %}true{% else %}false{% endif %}"
+        data-fit-status="{{ overview_owner.ai_purpose_fit_status|default:'not_started' }}"
+      >
+
+
+        <!-- ================================================== -->
+        <!-- OVERALL INTERPRETATION -->
+        <!-- ================================================== -->
+
+        <section class="purpose-fit-section mb-4">
+
+          <div class="purpose-fit-section-title">
+            {% trans "Overall interpretation" %}
+          </div>
+
+          <div
+            class="purpose-fit-summary"
+            id="purposeFitSummary"
+          >{{ overview_owner.ai_purpose_fit.summary }}</div>
+
+        </section>
+
+
+        <!-- ================================================== -->
+        <!-- SUPPORT + EXPLORE -->
+        <!-- ================================================== -->
+
+        <div class="row g-4 mb-4">
+
+
+          <!-- SUPPORT -->
+
+          <div class="col-lg-6">
+
+            <div
+              class="
+                purpose-fit-list-card
+                purpose-fit-list-card--positive
+                h-100
+              "
+            >
+
+              <div
+                class="
+                  purpose-fit-section-title
+                  purpose-fit-section-title--with-help
+                "
+              >
+
+                <span>
+                  {% if is_historical %}
+                    {% trans "Potentially supportive patterns" %}
+                  {% else %}
+                    {% trans "What supports the purpose" %}
+                  {% endif %}
+                </span>
+
+
+                <button
+                  type="button"
+                  class="purpose-fit-help"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+
+                  {% if is_historical %}
+                    title="{% trans 'Assessment patterns that may be useful or supportive in some workplace situations. They are not guarantees of performance.' %}"
+                  {% else %}
+                    title="{% trans 'Assessment patterns that may be relevant to and support the selected purpose. They are not guarantees of performance.' %}"
+                  {% endif %}
+
+                  aria-label="{% trans 'More information about supporting evidence' %}"
+                >
+                  <i data-feather="info"></i>
+                </button>
+
+              </div>
+
+
+              <ul
+                class="purpose-fit-list"
+                id="purposeFitAlignment"
+              >
+
+                {% for item in overview_owner.ai_purpose_fit.key_alignment %}
+
+                  <li>
+
+                    <span class="purpose-fit-list-icon">
+                      <i data-feather="check"></i>
+                    </span>
+
+                    <span>
+                      {{ item }}
+                    </span>
+
+                  </li>
+
+                {% endfor %}
+
+              </ul>
+
+            </div>
+
+          </div>
+
+
+          <!-- EXPLORE -->
+
+          <div class="col-lg-6">
+
+            <div
+              class="
+                purpose-fit-list-card
+                purpose-fit-list-card--verify
+                h-100
+              "
+            >
+
+              <div
+                class="
+                  purpose-fit-section-title
+                  purpose-fit-section-title--with-help
+                "
+              >
+
+                <span>
+                  {% trans "What to explore or consider" %}
+                </span>
+
+
+                <button
+                  type="button"
+                  class="purpose-fit-help"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="{% trans 'Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses.' %}"
+                  aria-label="{% trans 'More information about areas to explore' %}"
+                >
+                  <i data-feather="info"></i>
+                </button>
+
+              </div>
+
+
+              <ul
+                class="purpose-fit-list"
+                id="purposeFitVerify"
+              >
+
+                {% for item in overview_owner.ai_purpose_fit.areas_to_verify %}
+
+                  <li>
+
+                    <span class="purpose-fit-list-icon">
+                      <i data-feather="search"></i>
+                    </span>
+
+                    <span>
+                      {{ item }}
+                    </span>
+
+                  </li>
+
+                {% endfor %}
+
+              </ul>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================================================== -->
+        <!-- HOW THIS INSIGHT WAS CREATED -->
+        <!-- ================================================== -->
+
+        <details class="purpose-fit-explainer mb-4">
+
+          <summary class="purpose-fit-explainer__title">
+            {% trans "How Talena created this summary" %}
+          </summary>
+
+
+          <div class="purpose-fit-explainer__content mt-3">
+
+            <div
+              class="purpose-fit-explainer__text"
+              id="purposeFitContextNote"
+            >
+              {{ overview_owner.ai_purpose_fit.context_note }}
+            </div>
+
+
+            <div class="purpose-fit-inputs mt-3">
+
+              <span class="purpose-fit-inputs__label">
+                {% trans "Based on" %}
               </span>
 
-              <span>{{ item }}</span>
-            </li>
-          {% endfor %}
-        </ul>
 
-      </div>
-    </div>
-
-    <div class="col-lg-6">
-      <div class="purpose-fit-list-card purpose-fit-list-card--verify h-100">
-
-        <div class="purpose-fit-section-title purpose-fit-section-title--with-help">
-          <span>{% trans "What to explore or consider" %}</span>
-
-          <button
-            type="button"
-            class="purpose-fit-help"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="{% trans 'Topics that may be useful to explore, consider or follow up through relevant conversations or other evidence. They are not confirmed weaknesses.' %}"
-            aria-label="{% trans 'More information about areas to explore' %}"
-          >
-            <i data-feather="info"></i>
-          </button>
-        </div>
-
-        <ul
-          class="purpose-fit-list"
-          id="purposeFitVerify"
-        >
-          {% for item in invitation.ai_purpose_fit.areas_to_verify %}
-            <li>
-              <span class="purpose-fit-list-icon">
-                <i data-feather="search"></i>
+              <span class="purpose-fit-input-pill">
+                {% trans "Assessment results" %}
               </span>
 
-              <span>{{ item }}</span>
-            </li>
-          {% endfor %}
-        </ul>
 
-      </div>
-    </div>
+              {% if is_historical %}
 
-  </div>
+                <span class="purpose-fit-input-pill">
+                  {% trans "Imported SOVA data" %}
+                </span>
 
-  <!-- NEXT STEP 
-  <div class="purpose-fit-next-step mb-4">
+                <span
+                  class="
+                    purpose-fit-input-pill
+                    purpose-fit-input-pill--muted
+                  "
+                >
+                  {% trans "No original process context" %}
+                </span>
 
-    <div class="purpose-fit-next-step-icon">
-      <i data-feather="arrow-right"></i>
-    </div>
+              {% else %}
 
-    <div>
-      <div class="purpose-fit-section-title mb-1">
-        Recommended next step
-      </div>
-
-      <div id="purposeFitNextStep">
-        {{ invitation.ai_purpose_fit.suggested_next_step }}
-      </div>
-    </div>
-
-  </div>
-
--->
-
-  <!-- HOW THIS INSIGHT WAS CREATED -->
-<details class="purpose-fit-explainer mb-4">
-
-  <summary class="purpose-fit-explainer__title">
-    {% trans "How Talena created this summary" %}
-  </summary>
-
-  <div class="purpose-fit-explainer__content mt-3">
-
-    <div
-      class="purpose-fit-explainer__text"
-      id="purposeFitContextNote"
-    >
-      {{ invitation.ai_purpose_fit.context_note }}
-    </div>
-
-    <div class="purpose-fit-inputs mt-3">
-
-      <span class="purpose-fit-inputs__label">
-        {% trans "Based on" %}
-      </span>
-
-      <span class="purpose-fit-input-pill">
-        {% trans "Assessment results" %}
-      </span>
-
-      <span class="purpose-fit-input-pill">
-        {% trans "Selected purpose" %}
-      </span>
-
-      {% if has_purpose_context %}
-        <span class="purpose-fit-input-pill">
-          {% trans "Process context" %}
-        </span>
-      {% else %}
-        <span
-          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="{% trans 'No additional process context has been added.' %}"
-        >
-          {% trans "No added context" %}
-        </span>
-      {% endif %}
-
-    </div>
-
-  </div>
-
-</details>
-
-  <!-- DISCLAIMER -->
-  <div class="purpose-fit-disclaimer border-top pt-3">
-    <i data-feather="info"></i>
-
-    <div>
-      {% blocktrans %}This is an AI-generated interpretation of assessment evidence, not a final decision or prediction of future performance. Use it together with relevant conversations, experience and other available information.{% endblocktrans %}
-    </div>
-  </div>
-
-</div>
-
-<!--Available assessment evidence
-
-  <div class="card-body">
-
-    <div class="insight-summary-kicker">
-      Candidate overview
-    </div>
-
-    <h2 class="insight-summary-title mb-1">
-      Available assessment evidence
-    </h2>
-
-    <p class="text-muted small mb-3">
-      This overview shows which assessment areas are available
-      for the candidate and used across Candidate Insights.
-    </p>
+                <span class="purpose-fit-input-pill">
+                  {% trans "Selected purpose" %}
+                </span>
 
 
-    <div class="purpose-fit-inputs">
+                {% if has_purpose_context %}
 
-      {% if has_personality_results %}
-        <span class="purpose-fit-input-pill">
-          Personality
-        </span>
-      {% endif %}
+                  <span class="purpose-fit-input-pill">
+                    {% trans "Process context" %}
+                  </span>
+
+                {% else %}
+
+                  <span
+                    class="
+                      purpose-fit-input-pill
+                      purpose-fit-input-pill--muted
+                    "
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{% trans 'No additional process context has been added.' %}"
+                  >
+                    {% trans "No added context" %}
+                  </span>
+
+                {% endif %}
+
+              {% endif %}
+
+            </div>
+
+          </div>
+
+        </details>
 
 
-      {% if has_motivation_results %}
-        <span class="purpose-fit-input-pill">
-          Motivation
-        </span>
-      {% endif %}
+        <!-- ================================================== -->
+        <!-- DISCLAIMER -->
+        <!-- ================================================== -->
 
+        <div class="purpose-fit-disclaimer border-top pt-3">
 
-      {% if candidate_insights.cognitive_results or has_ability_results %}
-        <span class="purpose-fit-input-pill">
-          Cognitive abilities
-        </span>
-      {% endif %}
+          <i data-feather="info"></i>
 
+          <div>
+            {% blocktrans %}
+              This is an AI-generated interpretation of assessment evidence,
+              not a final decision or prediction of future performance.
+              Use it together with relevant conversations, experience and
+              other available information.
+            {% endblocktrans %}
+          </div>
 
-      {% if team_style_profile.available %}
-        <span class="purpose-fit-input-pill">
-          Team styles
-        </span>
-      {% endif %}
-
-
-      {% if has_purpose_context %}
-        <span class="purpose-fit-input-pill">
-          {% trans "Process context" %}
-        </span>
-      {% else %}
-        <span
-          class="purpose-fit-input-pill purpose-fit-input-pill--muted"
-          data-bs-toggle="tooltip"
-          data-bs-placement="top"
-          title="{% trans 'No additional process context has been added.' %}"
-        >
-          {% trans "No added context" %}
-        </span>
-      {% endif %}
-
-    </div>
-
-  </div>
-
-   -->
-
-        <!-- ERROR -->
-        <div
-          class="alert alert-danger d-none mb-0"
-          id="purposeFitError"
-        >
-          {% blocktrans %}The purpose-fit interpretation could not be generated. Use the refresh button to try again.{% endblocktrans %}
         </div>
 
+      </div>
 
-      
 
+      <!-- ================================================== -->
+      <!-- ERROR -->
+      <!-- ================================================== -->
+
+      <div
+        class="alert alert-danger d-none mb-0"
+        id="purposeFitError"
+      >
+        {% blocktrans %}
+          The purpose-fit interpretation could not be generated.
+          Use the refresh button to try again.
+        {% endblocktrans %}
+      </div>
 
     </section>
+
 
   {% else %}
 
+
     <!-- ================================================== -->
-    <!-- PARTIALLY COMPLETED ACTIVE CANDIDATE -->
+    <!-- NO COMPLETE RESULTS YET -->
     <!-- ================================================== -->
 
-    <section class="combined-questions-empty-state mb-4">
+    {% if is_historical %}
 
-      <div class="combined-questions-empty-state__icon">
-        <i data-feather="clock"></i>
-      </div>
+      <section class="combined-questions-empty-state mb-4">
 
-      <div class="insight-summary-kicker mb-2">
-        {% trans "Assessment overview" %}
-      </div>
+        <div class="combined-questions-empty-state__icon">
+          <i data-feather="database"></i>
+        </div>
 
-      <h2 class="personality-questions-section-title mb-2">
-        {% trans "Summary is waiting for the remaining assessments" %}
-      </h2>
+        <div class="insight-summary-kicker mb-2">
+          {% trans "Assessment overview" %}
+        </div>
 
-      <p
-        class="text-muted small mb-2 mx-auto"
-        style="max-width: 620px;"
-      >
-        {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
-          {{ completed }} of {{ total }} assessments are complete.
-          The combined AI summary will be generated when all assessments
-          in the process have been completed.
-        {% endblocktrans %}
-      </p>
+        <h2 class="personality-questions-section-title mb-2">
+          {% trans "No imported assessment results available" %}
+        </h2>
 
-      <p
-        class="text-muted small mb-0 mx-auto"
-        style="max-width: 620px;"
-      >
-        {% blocktrans %}
-          Results that are already available can be explored through
-          the assessment tabs above while the remaining assessments
-          are being completed.
-        {% endblocktrans %}
-      </p>
+        <p
+          class="text-muted small mb-0 mx-auto"
+          style="max-width: 620px;"
+        >
+          {% blocktrans %}
+            No structured historical assessment results are currently
+            available for this candidate.
+          {% endblocktrans %}
+        </p>
 
-    </section>
+      </section>
+
+
+    {% else %}
+
+
+      <section class="combined-questions-empty-state mb-4">
+
+        <div class="combined-questions-empty-state__icon">
+          <i data-feather="clock"></i>
+        </div>
+
+        <div class="insight-summary-kicker mb-2">
+          {% trans "Assessment overview" %}
+        </div>
+
+        <h2 class="personality-questions-section-title mb-2">
+          {% trans "Summary is waiting for the remaining assessments" %}
+        </h2>
+
+        <p
+          class="text-muted small mb-2 mx-auto"
+          style="max-width: 620px;"
+        >
+          {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
+            {{ completed }} of {{ total }} assessments are complete.
+            The combined AI summary will be generated when all assessments
+            in the process have been completed.
+          {% endblocktrans %}
+        </p>
+
+        <p
+          class="text-muted small mb-0 mx-auto"
+          style="max-width: 620px;"
+        >
+          {% blocktrans %}
+            Results that are already available can be explored through
+            the assessment tabs above while the remaining assessments
+            are being completed.
+          {% endblocktrans %}
+        </p>
+
+      </section>
+
+    {% endif %}
+
 
   {% endif %}
 
-{% else %}
 
-  <!-- ================================================== -->
-  <!-- HISTORICAL CANDIDATE -->
-  <!-- ================================================== -->
-
-  <section class="card mb-4 purpose-fit-card">
-    <div class="card-body">
-
-      <div class="insight-summary-kicker">
-        {% trans "Imported assessment data" %}
-      </div>
-
-      <h2 class="insight-summary-title mb-1">
-        {% trans "Historical candidate overview" %}
-      </h2>
-
-      <p class="text-muted mb-0">
-        {% blocktrans %}
-          This candidate uses imported assessment data.
-          Explore the available assessment areas through the tabs above.
-        {% endblocktrans %}
-      </p>
-
-    </div>
-  </section>
-
-{% endif %}
+{% endwith %}

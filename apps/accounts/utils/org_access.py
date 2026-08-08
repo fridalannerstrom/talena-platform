@@ -3,6 +3,7 @@ from django.db.models import Q
 from apps.accounts.models import OrgUnit, UserOrgUnitAccess, CompanyMember
 from apps.accounts.models import Company
 from apps.accounts.models import CompanyMember, OrgUnit, UserOrgUnitAccess
+from apps.core.utils.auth import is_admin
 
 PERM_RANK = {"own": 1, "viewer": 2, "editor": 3}
 
@@ -63,24 +64,39 @@ def get_effective_orgunit_permissions(user, company):
     return perm_map
 
 def user_can_view_process(user, company, process):
+    # Talena admins can view all customer processes.
+    if is_admin(user):
+        return True
+
     perms = get_effective_orgunit_permissions(user, company)
     perm = perms.get(process.org_unit_id)
+
     if not perm:
         return False
+
     if perm == "own":
         return process.created_by_id == user.id
+
     return True
 
 
 def user_can_edit_process(user, company, process):
+    # Talena admins can work inside all customer processes.
+    if is_admin(user):
+        return True
+
     perms = get_effective_orgunit_permissions(user, company)
     perm = perms.get(process.org_unit_id)
+
     if not perm:
         return False
+
     if perm == "viewer":
         return False
+
     if perm == "own":
         return process.created_by_id == user.id
+
     return True  # editor
 
 def _build_children_map(company):

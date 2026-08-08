@@ -1148,6 +1148,41 @@ class HistoricalProcessCandidate(models.Model):
         blank=True,
     )
 
+        # ------------------------------------------------------------
+    # AI content language metadata
+    # ------------------------------------------------------------
+
+    ai_content_languages = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    # ------------------------------------------------------------
+    # AI purpose fit / candidate overview
+    # ------------------------------------------------------------
+
+    ai_purpose_fit = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    ai_purpose_fit_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default="not_started",
+    )
+
+    ai_purpose_fit_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    ai_purpose_fit_purpose = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+    )
+
     selected_personality_traits = models.JSONField(
         default=list,
         blank=True,

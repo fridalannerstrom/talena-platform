@@ -116,6 +116,161 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
         - number of assessment types containing real results
     """
 
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+    #
+    # Historical candidates do not have sova_activities.
+    # Their imported Sova results are instead normalised through
+    # build_historical_candidate_profile().
+    #
+    if getattr(
+        invitation.process,
+        "is_historical",
+        False,
+    ):
+        from apps.processes.services.candidate_profile import (
+            build_historical_candidate_profile,
+        )
+
+        profile = build_historical_candidate_profile(
+            invitation
+        )
+
+        assessment_sections = []
+        completed_result_types = 0
+
+        def add_competency_section(
+            title,
+            competencies,
+        ):
+            nonlocal completed_result_types
+
+            result_lines = []
+
+            for competency in competencies or []:
+                name = (
+                    competency.get("competency")
+                    or competency.get("name")
+                    or "Unnamed competency"
+                )
+
+                score_parts = []
+
+                sten = competency.get("sten_rounded")
+                if sten is None:
+                    sten = competency.get("sten")
+
+                stive = competency.get("stive_rounded")
+                if stive is None:
+                    stive = competency.get("stive")
+
+                percentile = competency.get("percentile")
+
+                if sten is not None:
+                    score_parts.append(
+                        f"sten {sten}"
+                    )
+
+                if stive is not None:
+                    score_parts.append(
+                        f"stive {stive}"
+                    )
+
+                if percentile is not None:
+                    score_parts.append(
+                        f"percentile {percentile}"
+                    )
+
+                if score_parts:
+                    result_lines.append(
+                        f"- {name}: "
+                        f"{', '.join(score_parts)}"
+                    )
+
+            if result_lines:
+                assessment_sections.append(
+                    f"{title}:\n"
+                    + "\n".join(result_lines)
+                )
+
+                completed_result_types += 1
+
+        # Personality
+        add_competency_section(
+            "Personality",
+            profile.get(
+                "personality_competencies",
+                [],
+            ),
+        )
+
+        # Team styles
+        add_competency_section(
+            "Team styles",
+            profile.get(
+                "team_style_scores",
+                [],
+            ),
+        )
+
+        # Motivation
+        add_competency_section(
+            "Motivation",
+            profile.get(
+                "motivation_competencies",
+                [],
+            ),
+        )
+
+        # Cognitive abilities
+        ability_results = (
+            profile.get("ability_results")
+            or {}
+        )
+
+        ability_lines = []
+
+        for ability_key, ability in ability_results.items():
+            if not ability:
+                continue
+
+            percentile = ability.get("percentile")
+
+            if percentile is None:
+                percentile = ability.get("value")
+
+            if percentile is None:
+                continue
+
+            ability_lines.append(
+                f"- {ability_key.title()}: "
+                f"percentile {percentile}"
+            )
+
+        if ability_lines:
+            assessment_sections.append(
+                "Cognitive abilities:\n"
+                + "\n".join(ability_lines)
+            )
+
+            completed_result_types += 1
+
+        if not assessment_sections:
+            return (
+                "No completed assessment results were available.",
+                0,
+            )
+
+        return (
+            "\n\n".join(assessment_sections),
+            completed_result_types,
+        )
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+
     activities = invitation.sova_activities or []
     assessment_sections = []
     completed_result_types = 0

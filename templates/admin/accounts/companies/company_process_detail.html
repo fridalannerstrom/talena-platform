@@ -324,10 +324,11 @@
           {% for record in historical_candidates %}
             <tr>
 <td>
-  <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.pk %}"
-     class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-     data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk record.candidate.pk %}"
-     data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}">
+<a href="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+   data-sheet-url="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+   data-candidate-id="{{ record.candidate.id }}"
+   data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}">
     {% if record.candidate.first_name or record.candidate.last_name %}
       {{ record.candidate.first_name }} {{ record.candidate.last_name }}
     {% else %}
@@ -383,10 +384,11 @@
             <tr>
               <td>
                 {% if inv.candidate %}
-                  <a href="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
-                     class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-                     data-sheet-url="{% url 'accounts:company_process_candidate_detail' company.pk process.pk inv.candidate.pk %}"
-                     data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+<a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+   data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+   data-candidate-id="{{ inv.candidate.id }}"
+   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
                     {{ inv.candidate.name|default:inv.candidate.email }}
                   </a>
                 {% else %}
