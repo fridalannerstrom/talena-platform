@@ -524,10 +524,69 @@
 {# ------------------------------------------------------------------ #}
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    initCompanyCandidateSheet();
-    initSelfRegistrationModal();
+document.addEventListener("DOMContentLoaded", () => {
+  initCompanyCandidateSheet();
+  initSelfRegistrationModal();
+  initCandidateSheetAiObserver();
+});
+
+function initCandidateSheetAiObserver() {
+  const sheetBody = document.getElementById(
+    "candidateSheetBody"
+  );
+
+  if (!sheetBody) {
+    console.error(
+      "[ADMIN CANDIDATE] candidateSheetBody not found"
+    );
+    return;
+  }
+
+  function startCandidateAi() {
+    const purposeFitCard =
+      sheetBody.querySelector(
+        "#purposeFitCard"
+      );
+
+    if (!purposeFitCard) {
+      return;
+    }
+
+    console.log(
+      "[ADMIN CANDIDATE] Purpose Fit card detected"
+    );
+
+    initCandidatePurposeFitWhenReady(
+      sheetBody
+    );
+  }
+
+  /*
+   * Candidate HTML is inserted asynchronously with
+   * innerHTML. Watch the sheet body and initialise AI
+   * as soon as the candidate workspace appears.
+   */
+  const observer = new MutationObserver(() => {
+    startCandidateAi();
   });
+
+  observer.observe(
+    sheetBody,
+    {
+      childList: true
+    }
+  );
+
+  /*
+   * Also check immediately in case a candidate is
+   * already rendered.
+   */
+  startCandidateAi();
+
+  console.log(
+    "[ADMIN CANDIDATE] AI observer ready"
+  );
+}
 
 
   function initCompanyCandidateSheet() {
@@ -640,40 +699,139 @@
     });
   }
 
-
-  function refreshDynamicCandidateSheetContent(sheetBody, sheetEl) {
-    if (window.feather) {
-      feather.replace();
-    }
-
-    if (
-  typeof window.initCandidatePurposeFitStream
-  === "function"
+function initCandidatePurposeFitWhenReady(
+  container,
+  attempt = 0
 ) {
-  window.initCandidatePurposeFitStream(
-    sheetBody
+  const maxAttempts = 20;
+
+  if (
+    typeof window.initCandidatePurposeFitStream
+    === "function"
+  ) {
+    console.log(
+      "[ADMIN CANDIDATE] Starting Purpose Fit"
+    );
+
+    Promise.resolve(
+      window.initCandidatePurposeFitStream(
+        container
+      )
+    ).catch((error) => {
+      console.error(
+        "[ADMIN CANDIDATE] Purpose Fit init failed:",
+        error
+      );
+    });
+
+    return;
+  }
+
+  if (attempt >= maxAttempts) {
+    console.error(
+      "[ADMIN CANDIDATE] candidate-purpose-fit.js " +
+      "was not ready after waiting."
+    );
+
+    return;
+  }
+
+  console.log(
+    "[ADMIN CANDIDATE] Waiting for Purpose Fit script...",
+    attempt + 1
   );
+
+  setTimeout(() => {
+    initCandidatePurposeFitWhenReady(
+      container,
+      attempt + 1
+    );
+  }, 100);
 }
 
-    if (window.bootstrap) {
-      sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
-        new bootstrap.Tooltip(el);
-      });
-    }
 
-    if (typeof window.initCandidateSheetInteractions === "function") {
-      window.initCandidateSheetInteractions(sheetBody);
-    }
+function refreshDynamicCandidateSheetContent(
+  sheetBody,
+  sheetEl
+) {
+  /*
+   * Candidate HTML is inserted dynamically into the
+   * admin offcanvas.
+   *
+   * Some candidate functionality lives in external
+   * JavaScript files. Initialise those modules only
+   * after both the HTML and corresponding JavaScript
+   * are ready.
+   */
 
-    if (typeof window.initGlobalEmailModal === "function") {
-      window.initGlobalEmailModal(sheetBody);
-    }
-
-    if (typeof window.initCandidateSummaryStream === "function") {
-      window.initCandidateSummaryStream();
+  if (window.feather) {
+    try {
+      feather.replace();
+    } catch (error) {
+      console.error(
+        "[ADMIN CANDIDATE] Feather error:",
+        error
+      );
     }
   }
 
+  /*
+   * AI Overview / Purpose Fit
+   *
+   * This helper waits briefly if candidate-purpose-fit.js
+   * has not finished loading yet.
+   */
+  initCandidatePurposeFitWhenReady(
+    sheetBody
+  );
+
+  /*
+   * Bootstrap tooltips
+   */
+  if (window.bootstrap) {
+    sheetEl
+      .querySelectorAll(
+        '[data-bs-toggle="tooltip"]'
+      )
+      .forEach((el) => {
+        new bootstrap.Tooltip(el);
+      });
+  }
+
+  /*
+   * Shared candidate sheet interactions
+   */
+  if (
+    typeof window.initCandidateSheetInteractions
+    === "function"
+  ) {
+    window.initCandidateSheetInteractions(
+      sheetBody
+    );
+  }
+
+  /*
+   * Email modal
+   */
+  if (
+    typeof window.initGlobalEmailModal
+    === "function"
+  ) {
+    window.initGlobalEmailModal(
+      sheetBody
+    );
+  }
+
+  /*
+   * Candidate summary
+   */
+  if (
+    typeof window.initCandidateSummaryStream
+    === "function"
+  ) {
+    window.initCandidateSummaryStream();
+  }
+}
 
   window.switchTabs = function (buttonEl) {
     const group = buttonEl.dataset.tabGroup;
