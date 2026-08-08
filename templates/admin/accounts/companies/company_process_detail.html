@@ -1,5 +1,5 @@
 {% extends "admin/accounts/companies/company_base.html" %}
-
+{% load static %}
 {% block company_content %}
 
 
@@ -646,6 +646,15 @@
       feather.replace();
     }
 
+    if (
+  typeof window.initCandidatePurposeFitStream
+  === "function"
+) {
+  window.initCandidatePurposeFitStream(
+    sheetBody
+  );
+}
+
     if (window.bootstrap) {
       sheetEl.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
         new bootstrap.Tooltip(el);
@@ -848,5 +857,7 @@
     </div>
   </div>
 </div>
+
+<script src="{% static 'js/candidate-purpose-fit.js' %}"></script>
 
 {% endblock %}
