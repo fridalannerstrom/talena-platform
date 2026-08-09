@@ -324,11 +324,13 @@
           {% for record in historical_candidates %}
             <tr>
 <td>
-<a href="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
-   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-   data-sheet-url="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
-   data-candidate-id="{{ record.candidate.id }}"
-   data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}">
+<a
+  href="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+  data-sheet-url="{% url 'processes:process_candidate_detail' process.id record.candidate.id %}"
+  data-candidate-id="{{ record.candidate.id }}"
+  data-candidate-name="{{ record.candidate.first_name }} {{ record.candidate.last_name|escape }}"
+>
     {% if record.candidate.first_name or record.candidate.last_name %}
       {{ record.candidate.first_name }} {{ record.candidate.last_name }}
     {% else %}
@@ -384,11 +386,13 @@
             <tr>
               <td>
                 {% if inv.candidate %}
-<a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-   class="fw-semibold text-decoration-none user-name-link js-open-candidate"
-   data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-   data-candidate-id="{{ inv.candidate.id }}"
-   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
+<a
+  href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  class="fw-semibold text-decoration-none user-name-link js-open-candidate"
+  data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+  data-candidate-id="{{ inv.candidate.id }}"
+  data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}"
+>
                     {{ inv.candidate.name|default:inv.candidate.email }}
                   </a>
                 {% else %}
@@ -780,6 +784,357 @@ function initCandidatePurposeFitWhenReady(
   }, 100);
 }
 
+function initAdminCandidateInsightsTabs(container) {
+  if (!container) {
+    return;
+  }
+
+  const workspaces = container.querySelectorAll(
+    "[data-candidate-insights-workspace]"
+  );
+
+  workspaces.forEach((workspace) => {
+    const tabs = Array.from(
+      workspace.querySelectorAll(
+        "[data-insights-tab]"
+      )
+    );
+
+    const panels = Array.from(
+      workspace.querySelectorAll(
+        "[data-insights-panel]"
+      )
+    );
+
+    if (!tabs.length || !panels.length) {
+      return;
+    }
+
+    function activateTab(target) {
+      tabs.forEach((tab) => {
+        const isActive =
+          tab.dataset.insightsTab === target;
+
+        tab.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex = isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const isActive =
+          panel.dataset.insightsPanel === target;
+
+        panel.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        panel.hidden = !isActive;
+      });
+
+      const activePanel = workspace.querySelector(
+        `[data-insights-panel="${target}"]`
+      );
+
+      if (!activePanel) {
+        return;
+      }
+
+      /*
+       * Initialise Feather icons inside the
+       * newly visible panel.
+       */
+      if (window.feather) {
+        try {
+          feather.replace();
+        } catch (error) {
+          console.error(
+            "[ADMIN CANDIDATE] Feather error:",
+            error
+          );
+        }
+      }
+
+      /*
+       * Personality quick/full profile switcher.
+       */
+      if (
+        typeof window.initPersonalityViewSwitcher
+        === "function"
+      ) {
+        window.initPersonalityViewSwitcher(
+          activePanel
+        );
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener(
+        "click",
+        () => {
+          activateTab(
+            tab.dataset.insightsTab
+          );
+        }
+      );
+    });
+
+    const activeTab = tabs.find(
+      (tab) =>
+        tab.getAttribute(
+          "aria-selected"
+        ) === "true"
+    );
+
+    activateTab(
+      activeTab?.dataset.insightsTab
+      || "overview"
+    );
+  });
+}
+
+
+function initAdminCandidateInsightsSubtabs(
+  container
+) {
+  if (!container) {
+    return;
+  }
+
+  const workspaces =
+    container.querySelectorAll(
+      "[data-candidate-insights-subtabs]"
+    );
+
+  workspaces.forEach((workspace) => {
+    const tabs = Array.from(
+      workspace.querySelectorAll(
+        "[data-insights-subtab]"
+      )
+    );
+
+    const panels = Array.from(
+      workspace.querySelectorAll(
+        "[data-insights-subpanel]"
+      )
+    );
+
+    if (!tabs.length || !panels.length) {
+      return;
+    }
+
+    function activateSubtab(target) {
+      tabs.forEach((tab) => {
+        const isActive =
+          tab.dataset.insightsSubtab === target;
+
+        tab.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex =
+          isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const isActive =
+          panel.dataset.insightsSubpanel === target;
+
+        panel.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        panel.hidden = !isActive;
+      });
+
+      workspace
+        .querySelectorAll(
+          "[data-insights-panel-shell]"
+        )
+        .forEach((shell) => {
+          const containsPanel = Boolean(
+            shell.querySelector(
+              `[data-insights-subpanel="${target}"]`
+            )
+          );
+
+          shell.hidden = !containsPanel;
+        });
+
+      if (window.feather) {
+        try {
+          feather.replace();
+        } catch (error) {
+          console.error(
+            "[ADMIN CANDIDATE] Feather error:",
+            error
+          );
+        }
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener(
+        "click",
+        () => {
+          activateSubtab(
+            tab.dataset.insightsSubtab
+          );
+        }
+      );
+    });
+
+    const activeTab = tabs.find(
+      (tab) =>
+        tab.getAttribute(
+          "aria-selected"
+        ) === "true"
+    );
+
+    activateSubtab(
+      activeTab?.dataset.insightsSubtab
+      || "results"
+    );
+  });
+}
+
+function initAdminDecisionSupportTabs(
+  container
+) {
+  if (!container) {
+    return;
+  }
+
+  const roots = container.querySelectorAll(
+    "[data-decision-support-root]"
+  );
+
+  roots.forEach((root) => {
+    /*
+     * Avoid binding the same buttons twice.
+     */
+    if (
+      root.dataset.adminDecisionTabsReady
+      === "true"
+    ) {
+      return;
+    }
+
+    root.dataset.adminDecisionTabsReady =
+      "true";
+
+    const tabs = Array.from(
+      root.querySelectorAll(
+        "[data-decision-tab]"
+      )
+    );
+
+    const panels = Array.from(
+      root.querySelectorAll(
+        "[data-decision-panel]"
+      )
+    );
+
+    if (!tabs.length || !panels.length) {
+      return;
+    }
+
+    function activateDecisionTab(
+      target
+    ) {
+      tabs.forEach((tab) => {
+        const isActive =
+          tab.dataset.decisionTab === target;
+
+        tab.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        tab.setAttribute(
+          "aria-selected",
+          isActive ? "true" : "false"
+        );
+
+        tab.tabIndex =
+          isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const isActive =
+          panel.dataset.decisionPanel
+          === target;
+
+        panel.hidden = !isActive;
+
+        panel.classList.toggle(
+          "is-active",
+          isActive
+        );
+      });
+
+      /*
+       * Render icons inside the newly visible panel.
+       */
+      if (window.feather) {
+        try {
+          feather.replace();
+        } catch (error) {
+          console.error(
+            "[ADMIN CANDIDATE] " +
+            "Decision support Feather error:",
+            error
+          );
+        }
+      }
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener(
+        "click",
+        (event) => {
+          event.preventDefault();
+
+          activateDecisionTab(
+            tab.dataset.decisionTab
+          );
+        }
+      );
+    });
+
+    /*
+     * Keep whichever tab is already active,
+     * otherwise default to Before interview.
+     */
+    const activeTab = tabs.find(
+      (tab) =>
+        tab.classList.contains(
+          "is-active"
+        )
+    );
+
+    activateDecisionTab(
+      activeTab?.dataset.decisionTab
+      || "before"
+    );
+  });
+}
+
 
 function refreshDynamicCandidateSheetContent(
   sheetBody,
@@ -805,6 +1160,24 @@ function refreshDynamicCandidateSheetContent(
       );
     }
   }
+
+    /*
+   * Candidate Insights main tabs
+   */
+  initAdminCandidateInsightsTabs(
+    sheetBody
+  );
+
+  /*
+   * Result / Interpretation / Questions subtabs
+   */
+  initAdminCandidateInsightsSubtabs(
+    sheetBody
+  );
+
+  initAdminDecisionSupportTabs(
+  sheetBody
+);
 
   /*
    * AI Overview / Purpose Fit
