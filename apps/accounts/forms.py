@@ -117,37 +117,79 @@ class CompanyMemberRoleForm(forms.Form):
 class CompanyForm(forms.ModelForm):
     class Meta:
         model = Company
-        fields = ["name", "org_number"]
+
+        fields = [
+            "name",
+            "org_number",
+            "migration_onboarding_enabled",
+        ]
+
         labels = {
             "name": "Företagsnamn",
             "org_number": "Org.nr",
+            "migration_onboarding_enabled": (
+                "Befintlig kund från Sova"
+            ),
         }
+
         help_texts = {
-            "org_number": "Valfritt. Ex: 556677-8899",
+            "org_number": (
+                "Valfritt. Ex: 556677-8899"
+            ),
+            "migration_onboarding_enabled": (
+                "Visa en välkomstintroduktion för "
+                "företagets användare om importerade "
+                "historiska testprocesser och kandidater."
+            ),
         }
+
         widgets = {
-            "name": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Ex: Panem",
-                "autocomplete": "organization",
-            }),
-            "org_number": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Ex: 12345",
-                "autocomplete": "off",
-            }),
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ex: Panem",
+                    "autocomplete": "organization",
+                }
+            ),
+            "org_number": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ex: 12345",
+                    "autocomplete": "off",
+                }
+            ),
+            "migration_onboarding_enabled": (
+                forms.CheckboxInput(
+                    attrs={
+                        "class": "form-check-input",
+                    }
+                )
+            ),
         }
 
     def clean_name(self):
-        name = (self.cleaned_data.get("name") or "").strip()
+        name = (
+            self.cleaned_data.get("name")
+            or ""
+        ).strip()
+
         if not name:
-            raise forms.ValidationError("Företagsnamn är obligatoriskt.")
+            raise forms.ValidationError(
+                "Företagsnamn är obligatoriskt."
+            )
+
         return name
 
     def clean_org_number(self):
-        org = (self.cleaned_data.get("org_number") or "").strip()
-        return org or None
+        org = (
+            self.cleaned_data.get(
+                "org_number"
+            )
+            or ""
+        ).strip()
 
+        return org or None
+    
 
 class CompanyInviteMemberForm(forms.Form):
     email = forms.EmailField(

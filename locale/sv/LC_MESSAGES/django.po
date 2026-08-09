@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-07 14:09+0200\n"
+"POT-Creation-Date: 2026-08-09 22:18+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -330,8 +330,7 @@ msgstr ""
 #: .\apps\processes\forms.py:214 .\apps\processes\purpose_context_config.py:313
 #: .\apps\processes\purpose_context_config.py:314
 #: .\templates\customer\processes\_process_header.html:452
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:243
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:323
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:383
 #: .\templates\customer\processes\process_role_context.html:20
 #: .\templates\customer\processes\process_role_context.html:154
 msgid "Process context"
@@ -1791,55 +1790,55 @@ msgstr ""
 "nedan kan därför vara mindre typisk för personens vanliga arbetssätt men "
 "ändå relevant i vissa situationer."
 
-#: .\apps\processes\views.py:259
+#: .\apps\processes\views.py:438
 #: .\templates\customer\processes\_candidate_detail_sheet.html:149
 msgid "Not completed"
 msgstr "Inte genomfört"
 
-#: .\apps\processes\views.py:266
+#: .\apps\processes\views.py:445
 msgid "Very low"
 msgstr "Mycket låg"
 
-#: .\apps\processes\views.py:273
+#: .\apps\processes\views.py:452
 msgid "Low"
 msgstr "Låg"
 
 # | msgid "Typical"
-#: .\apps\processes\views.py:280
+#: .\apps\processes\views.py:459
 #: .\templates\customer\processes\partials\candidate_insights\cognitive\_results.html:74
 msgid "Typical range"
 msgstr "Typiskt intervall"
 
-#: .\apps\processes\views.py:287
+#: .\apps\processes\views.py:466
 msgid "High"
 msgstr "Hög"
 
-#: .\apps\processes\views.py:293
+#: .\apps\processes\views.py:472
 msgid "Very high"
 msgstr "Mycket hög"
 
 # | msgid "No candidates have been added to this team yet."
-#: .\apps\processes\views.py:299
+#: .\apps\processes\views.py:478
 msgid "This candidate has not completed this assessment."
 msgstr "Kandidaten har inte genomfört det här testet."
 
 # | msgid ""
 # | "Adds insight into understanding and working with written information."
-#: .\apps\processes\views.py:304
+#: .\apps\processes\views.py:483
 msgid "understand and evaluate written information"
 msgstr "förstå och utvärdera skriftlig information"
 
-#: .\apps\processes\views.py:307
+#: .\apps\processes\views.py:486
 msgid "identify patterns and reach logical conclusions"
 msgstr "identifiera mönster och dra logiska slutsatser"
 
 # | msgid ""
 # | "Adds insight into understanding and working with written information."
-#: .\apps\processes\views.py:310
+#: .\apps\processes\views.py:489
 msgid "understand and work with numerical information"
 msgstr "förstå och arbeta med numerisk information"
 
-#: .\apps\processes\views.py:318
+#: .\apps\processes\views.py:497
 #, python-format
 msgid ""
 "The candidate may find it considerably more difficult than most people in "
@@ -1848,7 +1847,7 @@ msgstr ""
 "Kandidaten kan uppleva det som betydligt svårare än de flesta i "
 "referensgruppen att %(ability)s."
 
-#: .\apps\processes\views.py:326
+#: .\apps\processes\views.py:505
 #, python-format
 msgid ""
 "The candidate may find it more difficult than many others in the reference "
@@ -1857,7 +1856,7 @@ msgstr ""
 "Kandidaten kan uppleva det som svårare än många andra i referensgruppen att "
 "%(ability)s."
 
-#: .\apps\processes\views.py:334
+#: .\apps\processes\views.py:513
 #, python-format
 msgid ""
 "The candidate is likely to find it about as easy as most people in the "
@@ -1866,7 +1865,7 @@ msgstr ""
 "Kandidaten har sannolikt ungefär lika lätt som de flesta i referensgruppen "
 "att %(ability)s."
 
-#: .\apps\processes\views.py:342
+#: .\apps\processes\views.py:521
 #, python-format
 msgid ""
 "The candidate may find it easier than many others in the reference group to "
@@ -1874,7 +1873,7 @@ msgid ""
 msgstr ""
 "Kandidaten kan ha lättare än många andra i referensgruppen att %(ability)s."
 
-#: .\apps\processes\views.py:349
+#: .\apps\processes\views.py:528
 #, python-format
 msgid ""
 "The candidate may find it considerably easier than most people in the "
@@ -1883,51 +1882,51 @@ msgstr ""
 "Kandidaten kan ha betydligt lättare än de flesta i referensgruppen att "
 "%(ability)s."
 
-#: .\apps\processes\views.py:358
+#: .\apps\processes\views.py:537
 msgid "Logical reasoning"
 msgstr "Logisk förmåga"
 
-#: .\apps\processes\views.py:359
+#: .\apps\processes\views.py:538
 msgid "Logical reasoning ability"
 msgstr "Förmåga till logiskt resonemang"
 
 # | msgid "Numerical"
-#: .\apps\processes\views.py:366
+#: .\apps\processes\views.py:545
 msgid "Numerical reasoning"
 msgstr "Numerisk förmåga"
 
-#: .\apps\processes\views.py:367
+#: .\apps\processes\views.py:546
 msgid "Numerical reasoning ability"
 msgstr "Förmåga till numeriskt resonemang"
 
-#: .\apps\processes\views.py:374
+#: .\apps\processes\views.py:553
 msgid "Verbal reasoning"
 msgstr "Verbal förmåga"
 
-#: .\apps\processes\views.py:375
+#: .\apps\processes\views.py:554
 msgid "Verbal reasoning ability"
 msgstr "Förmåga till verbalt resonemang"
 
 # | msgid "Assessments completed"
-#: .\apps\processes\views.py:391
+#: .\apps\processes\views.py:570
 #, python-format
 msgid "%(title)s assessment not completed"
 msgstr "%(title)s, testet är inte genomfört"
 
-#: .\apps\processes\views.py:397
+#: .\apps\processes\views.py:576
 #, python-format
 msgid "%(title)s percentile %(percentile)s"
 msgstr "%(title)s, percentil %(percentile)s"
 
 # | msgid "Personality"
-#: .\apps\processes\views.py:1780
+#: .\apps\processes\views.py:2024
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:23
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:295
 #: .\templates\customer\processes\process_base.html:105
 msgid "Personality questions"
 msgstr "Personlighetsfrågor"
 
-#: .\apps\processes\views.py:1782
+#: .\apps\processes\views.py:2026
 msgid ""
 "Explore how relevant personality preferences appear in practical situations."
 msgstr ""
@@ -1935,23 +1934,23 @@ msgstr ""
 "praktiska situationer."
 
 # | msgid "Motivation"
-#: .\apps\processes\views.py:1796
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:246
+#: .\apps\processes\views.py:2040
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:240
 #: .\templates\customer\processes\process_base.html:83
 msgid "Motivation questions"
 msgstr "Motivationsfrågor"
 
-#: .\apps\processes\views.py:1798
+#: .\apps\processes\views.py:2042
 msgid "Explore what may create energy, engagement and sustainable motivation."
 msgstr "Utforska vad som kan skapa energi, engagemang och hållbar motivation."
 
-#: .\apps\processes\views.py:1824
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:244
+#: .\apps\processes\views.py:2068
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:248
 #: .\templates\customer\processes\process_base.html:92
 msgid "Cognitive questions"
 msgstr "Kognitiva frågor"
 
-#: .\apps\processes\views.py:1826
+#: .\apps\processes\views.py:2070
 msgid ""
 "Explore how the cognitive assessment results relate to practical demands and "
 "working methods."
@@ -1959,11 +1958,11 @@ msgstr ""
 "Utforska hur resultaten från de kognitiva testerna hänger samman med "
 "praktiska krav och arbetssätt."
 
-#: .\apps\processes\views.py:6958
+#: .\apps\processes\views.py:7126
 msgid "Your assessment"
 msgstr "Ditt test"
 
-#: .\apps\processes\views.py:6965
+#: .\apps\processes\views.py:7133
 #, python-brace-format
 msgid ""
 "Hi {first_name}!\n"
@@ -1982,7 +1981,7 @@ msgstr ""
 "Vänliga hälsningar,\n"
 "Talena"
 
-#: .\apps\processes\views.py:8342
+#: .\apps\processes\views.py:8607
 msgid "the selected tests"
 msgstr "de valda testerna"
 
@@ -2025,11 +2024,11 @@ msgstr "Redigera team"
 msgid "Save changes"
 msgstr "Spara ändringar"
 
-#: .\config\settings.py:277
+#: .\config\settings.py:280
 msgid "English"
 msgstr "Engelska"
 
-#: .\config\settings.py:278
+#: .\config\settings.py:281
 msgid "Svenska"
 msgstr "Svenska"
 
@@ -2686,8 +2685,59 @@ msgid "Assessments"
 msgstr "Tester"
 
 #: .\templates\customer\core\partials\customer_sidebar.html:106
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:145
 msgid "Create new test process"
 msgstr "Skapa ny testprocess"
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:33
+#: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:146
+#: .\templates\customer\processes\process_base.html:10
+#: .\templates\customer\processes\process_base.html:172
+#: .\templates\customer\processes\process_detail.html:479
+msgid "Close"
+msgstr "Stäng"
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:56
+#, python-format
+msgid ""
+"\n"
+"              Welcome, %(first_name)s!\n"
+"            "
+msgstr ""
+"\n"
+"              Välkommen, %(first_name)s!\n"
+"            "
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:62
+msgid "Welcome to Talena!"
+msgstr "Välkommen till Talena!"
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:71
+#, python-format
+msgid ""
+"\n"
+"            As a %(company_name)s user, you have access to your previous "
+"candidates and test processes from Sova. We've brought them into Talena so "
+"you can pick up where you left off.\n"
+"          "
+msgstr ""
+"\n"
+"            Som användare på %(company_name)s har du tillgång till era "
+"tidigare kandidater och testprocesser från Sova. Vi har flyttat in dem i "
+"Talena så att ni kan fortsätta där ni slutade.\n"
+"          "
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:86
+msgid "archived processes"
+msgstr "arkiverade processer"
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:98
+msgid "candidates"
+msgstr "kandidater"
+
+#: .\templates\customer\core\partials\migration_onboarding_modal.html:122
+msgid "Explore previous candidates"
+msgstr "Utforska tidigare kandidater"
 
 #: .\templates\customer\processes\_candidate_detail_sheet.html:4
 #: .\templates\customer\processes\process_base.html:11
@@ -2706,6 +2756,7 @@ msgid "Historical"
 msgstr "Historisk"
 
 #: .\templates\customer\processes\_candidate_detail_sheet.html:66
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:361
 msgid "Imported SOVA data"
 msgstr "Importerade SOVA-data"
 
@@ -2859,7 +2910,7 @@ msgid "Settings"
 msgstr "Inställningar"
 
 #: .\templates\customer\processes\partials\_team_styles.html:11
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:69
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:78
 #: .\templates\customer\teams\team_detail.html:77
 msgid "Team styles"
 msgstr "Teamstilar"
@@ -2975,13 +3026,6 @@ msgstr "Uppdatera alla AI-insikter"
 msgid "Update all AI insights?"
 msgstr "Uppdatera alla AI-insikter?"
 
-#: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:146
-#: .\templates\customer\processes\process_base.html:10
-#: .\templates\customer\processes\process_base.html:172
-#: .\templates\customer\processes\process_detail.html:479
-msgid "Close"
-msgstr "Stäng"
-
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:166
 msgid "Existing AI-generated content will be replaced"
 msgstr "Befintligt AI-genererat innehåll kommer att ersättas"
@@ -3061,18 +3105,18 @@ msgstr "Områden för kandidatinsikter"
 msgid "Summary"
 msgstr "Sammanfattning"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:57
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:66
 msgid "Cognitive abilities"
 msgstr "Kognitiva förmågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:81
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:65
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:66
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:90
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:69
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:64
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:57
 msgid "Questions"
 msgstr "Frågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:93
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:102
 msgid "Final output"
 msgstr "Slutligt underlag"
 
@@ -3164,7 +3208,7 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\cognitive\_questions.html:46
 #: .\templates\customer\processes\partials\candidate_insights\motivation\_questions.html:53
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:207
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:676
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:667
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_questions.html:163
 #: .\templates\customer\processes\process_base.html:84
 msgid "Why this matters"
@@ -3172,7 +3216,7 @@ msgstr "Varför detta är viktigt"
 
 #: .\templates\customer\processes\partials\candidate_insights\cognitive\_questions.html:70
 #: .\templates\customer\processes\partials\candidate_insights\motivation\_questions.html:83
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:706
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:697
 #: .\templates\customer\processes\process_base.html:85
 msgid "What to look for in the answer"
 msgstr "Vad du ska vara uppmärksam på i svaret"
@@ -3352,9 +3396,9 @@ msgstr "Personlighetstolkning"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:32
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:193
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:118
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:119
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:18
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:122
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:113
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:23
 msgid "AI-generated insight"
 msgstr "AI-genererad insikt"
 
@@ -3372,13 +3416,13 @@ msgstr ""
 # | msgid "Team updated."
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:62
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:48
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:146
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:268
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:132
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:999
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:147
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:270
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:46
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:150
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:272
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:123
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:990
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:141
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:264
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:74
 #: .\templates\customer\processes\process_base.html:97
 msgid "Needs update"
 msgstr "Behöver uppdateras"
@@ -3409,6 +3453,7 @@ msgid "Combined trait dynamics"
 msgstr "Samspel mellan personlighetsdrag"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:203
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:202
 msgid "Potentially supportive patterns"
 msgstr "Potentiellt stödjande mönster"
 
@@ -3418,8 +3463,8 @@ msgid "What to explore or validate"
 msgstr "Vad som bör utforskas eller valideras"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:19
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:240
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:242
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:244
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:236
 #: .\templates\customer\processes\process_base.html:73
 msgid "AI-supported questions"
 msgstr "AI-stödda frågor"
@@ -3695,28 +3740,28 @@ msgstr ""
 "Kognitiva tester kan ge ytterligare underlag om prestation i specifika "
 "uppgifter som rör resonemang och problemlösning."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:20
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:24
 msgid "Cognitive insight areas"
 msgstr "Områden för kognitiva insikter"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:33
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:37
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:34
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:33
 msgid "Results"
 msgstr "Resultat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:50
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:51
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:54
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:49
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:45
 msgid "Interpretation"
 msgstr "Tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:122
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:126
 #: .\templates\customer\processes\process_base.html:89
 msgid "Cognitive interpretation"
 msgstr "Kognitiv tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:126
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:130
 msgid ""
 "A practical interpretation of the available cognitive results in relation to "
 "the selected purpose and process context."
@@ -3724,21 +3769,21 @@ msgstr ""
 "En praktisk tolkning av de tillgängliga kognitiva resultaten i relation till "
 "det valda syftet och processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:153
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:154
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:157
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:158
 msgid "Generate a new cognitive interpretation"
 msgstr "Generera en ny kognitiv tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:185
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:189
 msgid "Interpreting the cognitive assessment results…"
 msgstr "Tolkar resultaten från de kognitiva testerna…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:198
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:202
 #: .\templates\customer\processes\process_base.html:90
 msgid "The cognitive interpretation could not be generated."
 msgstr "Den kognitiva tolkningen kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:248
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:252
 msgid ""
 "Practical questions for exploring how the cognitive results may relate to "
 "relevant work situations."
@@ -3746,41 +3791,37 @@ msgstr ""
 "Praktiska frågor för att utforska hur de kognitiva resultaten kan hänga "
 "samman med relevanta arbetssituationer."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:275
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:276
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:279
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:280
 msgid "Generate new cognitive questions"
 msgstr "Generera nya kognitiva frågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:308
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:312
 msgid "Generating cognitive questions…"
 msgstr "Genererar kognitiva frågor…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:321
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:325
 #: .\templates\customer\processes\process_base.html:93
 msgid "The cognitive questions could not be generated."
 msgstr "De kognitiva frågorna kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:28
-msgid "Decision support is not yet available for historical candidates."
-msgstr "Beslutsstöd är ännu inte tillgängligt för historiska kandidater."
-
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:45
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:36
 msgid "Decision support stage"
 msgstr "Fas för beslutsstöd"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:58
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:49
 msgid "Before interview"
 msgstr "Före intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:72
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:63
 msgid "After interview"
 msgstr "Efter intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:108
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:99
 msgid "Pre-interview decision support"
 msgstr "Beslutsstöd inför intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:112
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:103
 msgid ""
 "Uses the available assessment interpretations, process purpose and context "
 "to prepare a focused and evidence-based discussion."
@@ -3788,17 +3829,17 @@ msgstr ""
 "Använder tillgängliga testtolkningar, processens syfte och kontext för att "
 "förbereda ett fokuserat och underlagsbaserat samtal."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:141
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:142
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:132
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:133
 msgid "Generate updated decision support"
 msgstr "Generera uppdaterat beslutsstöd"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:180
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:311
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:171
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:305
 msgid "The process information has changed"
 msgstr "Processinformationen har ändrats"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:184
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:175
 msgid ""
 "This decision support was created using an earlier purpose or process "
 "context. Generate an updated version before relying on it."
@@ -3807,21 +3848,21 @@ msgstr ""
 "processkontext. Generera en uppdaterad version innan du använder det som "
 "underlag."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:215
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:206
 msgid "Combining the available evidence and preparing decision support…"
 msgstr "Sammanställer tillgängligt underlag och förbereder beslutsstöd…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:234
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:225
 #: .\templates\customer\processes\process_base.html:126
 msgid "The pre-interview decision support could not be generated."
 msgstr "Beslutsstödet inför intervjun kunde inte genereras."
 
 # | msgid "Interpreting the motivation profile…"
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:256
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:247
 msgid "Prepare the interview"
 msgstr "Förbered intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:263
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:254
 msgid ""
 "Generate a synthesis of the available assessment evidence, cautious "
 "interpretations, discussion guidance and priority validation questions."
@@ -3830,20 +3871,20 @@ msgstr ""
 "kräver försiktighet, vägledning inför samtalet och prioriterade "
 "valideringsfrågor."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:276
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:267
 msgid "Generate decision support"
 msgstr "Generera beslutsstöd"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:304
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1187
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:295
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1178
 msgid "Overall synthesis"
 msgstr "Övergripande sammanställning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:337
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:328
 msgid "Purpose-relevant indications"
 msgstr "Syftesrelevanta indikationer"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:341
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:332
 msgid ""
 "Assessment indications that may be particularly relevant to the purpose and "
 "context of this process."
@@ -3851,7 +3892,7 @@ msgstr ""
 "Testindikationer som kan vara särskilt relevanta för processens syfte och "
 "kontext."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:401
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:392
 msgid ""
 "No purpose-relevant indications were identified from the available "
 "assessment evidence."
@@ -3860,11 +3901,11 @@ msgstr ""
 "testunderlaget."
 
 # | msgid "Motivation"
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:424
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:415
 msgid "What requires cautious interpretation"
 msgstr "Vad som kräver försiktig tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:428
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:419
 msgid ""
 "Assessment indications that require validation, context or additional "
 "behavioural evidence."
@@ -3872,11 +3913,11 @@ msgstr ""
 "Testindikationer som behöver valideras, sättas i kontext eller kompletteras "
 "med ytterligare beteendeunderlag."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:474
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:465
 msgid "Why caution is needed"
 msgstr "Varför försiktighet behövs"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:492
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:483
 msgid ""
 "No indications requiring particular caution were identified from the "
 "available assessment evidence."
@@ -3884,11 +3925,11 @@ msgstr ""
 "Inga indikationer som kräver särskild försiktighet identifierades i det "
 "tillgängliga testunderlaget."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:511
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:502
 msgid "How to approach the discussion"
 msgstr "Så kan du närma dig samtalet"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:515
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:506
 msgid ""
 "Suggestions for discussing the profile constructively and collecting "
 "relevant behavioural evidence."
@@ -3896,20 +3937,20 @@ msgstr ""
 "Förslag på hur profilen kan diskuteras konstruktivt och hur relevant "
 "beteendeunderlag kan samlas in."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:526
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:517
 msgid "Feedback approach"
 msgstr "Förhållningssätt vid återkoppling"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:560
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:551
 msgid "Interview focus"
 msgstr "Fokus i intervjun"
 
 # | msgid "Personality"
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:611
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:602
 msgid "Priority questions"
 msgstr "Prioriterade frågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:615
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:606
 msgid ""
 "Questions selected to validate, challenge or add context to the overall "
 "assessment picture."
@@ -3917,7 +3958,7 @@ msgstr ""
 "Frågor som valts för att validera, utmana eller ge ytterligare kontext till "
 "den samlade bilden från testerna."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:622
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:613
 #, python-format
 msgid ""
 "\n"
@@ -3932,17 +3973,17 @@ msgstr[1] ""
 "\n"
 "  %(question_count)s frågor\n"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:737
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:728
 msgid "Evidence still missing"
 msgstr "Underlag som fortfarande saknas"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:790
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1655
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:781
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1646
 msgid "Decision support, not a decision"
 msgstr "Beslutsstöd, inte ett beslut"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:794
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1659
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:785
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1650
 msgid ""
 "Talena organises and interprets available evidence but does not determine "
 "whether the candidate should be selected, rejected, promoted or placed in a "
@@ -3951,11 +3992,11 @@ msgstr ""
 "Talena organiserar och tolkar tillgängligt underlag men avgör inte om "
 "kandidaten ska väljas, väljas bort, befordras eller placeras i en roll."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:824
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:815
 msgid "Add interview evidence"
 msgstr "Lägg till intervjuunderlag"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:828
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:819
 msgid ""
 "Add relevant interview notes, behavioural examples and candidate "
 "reflections. Talena will compare this evidence with the assessment "
@@ -3964,11 +4005,11 @@ msgstr ""
 "Lägg till relevanta intervjuanteckningar, beteendeexempel och kandidatens "
 "reflektioner. Talena jämför underlaget med indikationerna från testerna."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:855
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:846
 msgid "Interview notes and candidate examples"
 msgstr "Intervjuanteckningar och exempel från kandidaten"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:859
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:850
 msgid ""
 "Include relevant examples, working methods, context and answers that may "
 "support, challenge or add nuance to the assessment profile."
@@ -3976,38 +4017,38 @@ msgstr ""
 "Inkludera relevanta exempel, arbetssätt, kontext och svar som kan stödja, "
 "utmana eller nyansera testprofilen."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:871
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:862
 #, python-format
 msgid "Last saved %(saved_at)s"
 msgstr "Senast sparat %(saved_at)s"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:897
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:888
 msgid ""
 "Paste interview notes, candidate examples and relevant observations here…"
 msgstr ""
 "Klistra in intervjuanteckningar, exempel från kandidaten och relevanta "
 "observationer här…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:919
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:910
 #, python-format
 msgid "%(character_count)s / 30,000 characters"
 msgstr "%(character_count)s / 30 000 tecken"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:935
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:926
 #: .\templates\customer\processes\process_base.html:134
 msgid "Save interview notes"
 msgstr "Spara intervjuanteckningar"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:945
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:936
 #: .\templates\customer\processes\process_base.html:131
 msgid "The interview notes could not be saved."
 msgstr "Intervjuanteckningarna kunde inte sparas."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:975
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:966
 msgid "Post-interview decision support"
 msgstr "Beslutsstöd efter intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:979
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:970
 msgid ""
 "Compares the assessment indications with the saved interview evidence, "
 "candidate examples and interviewer observations."
@@ -4015,16 +4056,16 @@ msgstr ""
 "Jämför indikationerna från testerna med sparat intervjuunderlag, exempel "
 "från kandidaten och intervjuarens observationer."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1008
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1009
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:999
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1000
 msgid "Generate updated post-interview decision support"
 msgstr "Generera uppdaterat beslutsstöd efter intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1047
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1038
 msgid "The interview evidence has changed"
 msgstr "Intervjuunderlaget har ändrats"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1051
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1042
 msgid ""
 "This synthesis was generated using an earlier version of the interview notes "
 "or process information. Generate an updated version before relying on it."
@@ -4033,20 +4074,20 @@ msgstr ""
 "intervjuanteckningarna eller processinformationen. Generera en uppdaterad "
 "version innan du använder den som underlag."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1082
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1073
 msgid "Comparing the assessment evidence with the interview notes…"
 msgstr "Jämför testunderlaget med intervjuanteckningarna…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1101
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1092
 #: .\templates\customer\processes\process_base.html:136
 msgid "The post-interview decision support could not be generated."
 msgstr "Beslutsstödet efter intervjun kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1123
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1114
 msgid "Post-interview synthesis"
 msgstr "Sammanställning efter intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1133
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1124
 msgid ""
 "The interview evidence has been saved. Generate a synthesis to compare it "
 "with the assessment indications and identify remaining uncertainties."
@@ -4054,12 +4095,12 @@ msgstr ""
 "Intervjuunderlaget har sparats. Generera en sammanställning för att jämföra "
 "det med indikationerna från testerna och identifiera kvarstående osäkerheter."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1147
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1138
 #: .\templates\customer\processes\process_base.html:135
 msgid "Generate post-interview decision support"
 msgstr "Generera beslutsstöd efter intervjun"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1161
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1152
 msgid ""
 "Add and save interview evidence before generating the post-interview "
 "synthesis."
@@ -4067,33 +4108,33 @@ msgstr ""
 "Lägg till och spara intervjuunderlag innan du genererar sammanställningen "
 "efter intervjun."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1216
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1207
 msgid "Evidence supporting assessment indications"
 msgstr "Intervjuunderlag som stödjer testindikationerna"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1220
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1211
 msgid ""
 "Interview evidence that supports patterns identified in the assessment "
 "results."
 msgstr ""
 "Intervjuunderlag som stödjer mönster som identifierats i testresultaten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1250
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1377
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1241
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1368
 msgid "Assessment indication"
 msgstr "Indikation från testet"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1273
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1400
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1264
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1391
 msgid "Interview evidence"
 msgstr "Intervjuunderlag"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1296
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1423
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1287
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1414
 msgid "Combined interpretation"
 msgstr "Samlad tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1314
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1305
 msgid ""
 "No assessment indications received sufficient support from the available "
 "interview evidence."
@@ -4101,11 +4142,11 @@ msgstr ""
 "Inga testindikationer fick tillräckligt stöd i det tillgängliga "
 "intervjuunderlaget."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1343
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1334
 msgid "What the interview adds or nuances"
 msgstr "Vad intervjun tillför eller nyanserar"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1347
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1338
 msgid ""
 "Areas where the interview adds context or suggests a more nuanced "
 "interpretation."
@@ -4113,18 +4154,18 @@ msgstr ""
 "Områden där intervjun tillför kontext eller talar för en mer nyanserad "
 "tolkning."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1441
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1432
 msgid ""
 "No additional nuance was identified from the available interview evidence."
 msgstr ""
 "Ingen ytterligare nyansering identifierades i det tillgängliga "
 "intervjuunderlaget."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1460
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1451
 msgid "Contradictions or tensions to consider"
 msgstr "Motsägelser eller spänningar att beakta"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1464
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1455
 msgid ""
 "These differences should be explored rather than resolved automatically in "
 "favour of either source."
@@ -4132,19 +4173,19 @@ msgstr ""
 "Dessa skillnader bör utforskas i stället för att automatiskt avgöras till "
 "fördel för någon av källorna."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1492
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1483
 msgid "Assessment evidence:"
 msgstr "Testunderlag:"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1507
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1498
 msgid "Interview evidence:"
 msgstr "Intervjuunderlag:"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1541
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1532
 msgid "What remains to be explored"
 msgstr "Vad som återstår att utforska"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1545
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1536
 msgid ""
 "Areas where additional evidence may help the responsible decision-maker form "
 "a more complete judgement."
@@ -4152,11 +4193,11 @@ msgstr ""
 "Områden där ytterligare underlag kan hjälpa den ansvariga beslutsfattaren "
 "att göra en mer fullständig bedömning."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1558
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1549
 msgid "Remaining uncertainties"
 msgstr "Kvarstående osäkerheter"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1593
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:1584
 msgid "Suggested follow-up"
 msgstr "Föreslagen uppföljning"
 
@@ -4177,12 +4218,12 @@ msgid "Motivation insight areas"
 msgstr "Områden för motivationsinsikter"
 
 # | msgid "Motivation"
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:123
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:117
 #: .\templates\customer\processes\process_base.html:79
 msgid "Motivation interpretation"
 msgstr "Motivationstolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:127
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:121
 msgid ""
 "A practical interpretation of the motivation profile in relation to the "
 "selected purpose and process context."
@@ -4190,21 +4231,21 @@ msgstr ""
 "En praktisk tolkning av motivationsprofilen i relation till det valda syftet "
 "och processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:154
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:155
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:148
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:149
 msgid "Generate a new motivation interpretation"
 msgstr "Generera en ny motivationstolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:187
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:181
 msgid "Interpreting the motivation profile…"
 msgstr "Tolkar motivationsprofilen…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:200
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:194
 #: .\templates\customer\processes\process_base.html:81
 msgid "The motivation interpretation could not be generated."
 msgstr "Motivationstolkningen kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:250
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:244
 msgid ""
 "Practical questions for exploring how the motivation profile may appear in "
 "relevant work situations."
@@ -4212,12 +4253,12 @@ msgstr ""
 "Praktiska frågor för att utforska hur motivationsprofilen kan komma till "
 "uttryck i relevanta arbetssituationer."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:277
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:278
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:271
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:272
 msgid "Generate new motivation questions"
 msgstr "Generera nya motivationsfrågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:315
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:309
 msgid ""
 "These questions were generated using an earlier process purpose or context. "
 "Refresh them to include the latest information."
@@ -4225,34 +4266,55 @@ msgstr ""
 "Frågorna genererades utifrån ett tidigare processyfte eller en tidigare "
 "kontext. Uppdatera dem så att den senaste informationen inkluderas."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:340
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:334
 msgid "Generating motivation questions…"
 msgstr "Genererar motivationsfrågor…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:353
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:347
 #: .\templates\customer\processes\process_base.html:86
 msgid "The motivation questions could not be generated."
 msgstr "Motivationsfrågorna kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:378
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:371
 msgid ""
 "Motivation results exist, but the motivation profile could not be built."
 msgstr ""
 "Det finns motivationsresultat, men motivationsprofilen kunde inte skapas."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:25
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:30
 msgid "AI Summary"
 msgstr "AI-sammanfattning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:29
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:37
+#, fuzzy
+#| msgid ""
+#| "A combined interpretation of the candidate’s available assessment "
+#| "results, selected process purpose and any added process context."
 msgid ""
-"A combined interpretation of the candidate’s available assessment results, "
-"selected process purpose and any added process context."
+"\n"
+"                A combined interpretation of the candidate’s available\n"
+"                imported assessment results.\n"
+"              "
 msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
 "processyftet och eventuell tillagd processkontext."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:56
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:44
+#, fuzzy
+#| msgid ""
+#| "A combined interpretation of the candidate’s available assessment "
+#| "results, selected process purpose and any added process context."
+msgid ""
+"\n"
+"                A combined interpretation of the candidate’s available\n"
+"                assessment results, selected process purpose and any\n"
+"                added process context.\n"
+"              "
+msgstr ""
+"En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
+"processyftet och eventuell tillagd processkontext."
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:85
 msgid ""
 "Generate a new overview using the latest assessment results, purpose and "
 "process context."
@@ -4260,23 +4322,41 @@ msgstr ""
 "Generera en ny översikt utifrån de senaste testresultaten, syftet och "
 "processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:57
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:86
 msgid "Generate a new AI overview"
 msgstr "Generera en ny AI-översikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:86
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:128
+#, fuzzy
+#| msgid "Interpreting the cognitive assessment results…"
+msgid "Analysing imported assessment results…"
+msgstr "Tolkar resultaten från de kognitiva testerna…"
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:132
 msgid "Analysing assessment results and process context…"
 msgstr "Analyserar testresultat och processkontext…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:104
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:163
 msgid "Overall interpretation"
 msgstr "Övergripande tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:120
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:204
 msgid "What supports the purpose"
 msgstr "Vad som stödjer syftet"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:127
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:216
+#, fuzzy
+#| msgid ""
+#| "Assessment patterns that may be relevant to and support the selected "
+#| "purpose. They are not guarantees of performance."
+msgid ""
+"Assessment patterns that may be useful or supportive in some workplace "
+"situations. They are not guarantees of performance."
+msgstr ""
+"Mönster i testresultaten som kan vara relevanta för och stödja det valda "
+"syftet. De är inte några garantier för prestation."
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:218
 msgid ""
 "Assessment patterns that may be relevant to and support the selected "
 "purpose. They are not guarantees of performance."
@@ -4284,15 +4364,15 @@ msgstr ""
 "Mönster i testresultaten som kan vara relevanta för och stödja det valda "
 "syftet. De är inte några garantier för prestation."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:128
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:221
 msgid "More information about supporting evidence"
 msgstr "Mer information om stödjande underlag"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:156
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:277
 msgid "What to explore or consider"
 msgstr "Vad som bör utforskas eller övervägas"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:163
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:286
 msgid ""
 "Topics that may be useful to explore, consider or follow up through relevant "
 "conversations or other evidence. They are not confirmed weaknesses."
@@ -4300,70 +4380,110 @@ msgstr ""
 "Områden som kan vara värdefulla att utforska, överväga eller följa upp genom "
 "relevanta samtal eller annat underlag. De är inte bekräftade svagheter."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:164
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:287
 msgid "More information about areas to explore"
 msgstr "Mer information om områden att utforska"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:215
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:332
 msgid "How Talena created this summary"
 msgstr "Så skapade Talena sammanfattningen"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:230
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:349
 msgid "Based on"
 msgstr "Baserat på"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:234
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:354
 msgid "Assessment results"
 msgstr "Testresultat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:238
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:370
+#, fuzzy
+#| msgid "No additional process context has been added."
+msgid "No original process context"
+msgstr "Ingen ytterligare processkontext har lagts till."
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:376
 msgid "Selected purpose"
 msgstr "Valt syfte"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:250
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:330
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:395
 msgid "No additional process context has been added."
 msgstr "Ingen ytterligare processkontext har lagts till."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:252
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:332
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:397
 msgid "No added context"
 msgstr "Ingen tillagd kontext"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:267
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:420
+#, fuzzy
+#| msgid ""
+#| "This is an AI-generated interpretation of assessment evidence, not a "
+#| "final decision or prediction of future performance. Use it together with "
+#| "relevant conversations, experience and other available information."
 msgid ""
-"This is an AI-generated interpretation of assessment evidence, not a final "
-"decision or prediction of future performance. Use it together with relevant "
-"conversations, experience and other available information."
+"\n"
+"              This is an AI-generated interpretation of assessment "
+"evidence,\n"
+"              not a final decision or prediction of future performance.\n"
+"              Use it together with relevant conversations, experience and\n"
+"              other available information.\n"
+"            "
 msgstr ""
 "Detta är en AI-genererad tolkning av testunderlaget, inte ett slutgiltigt "
 "beslut eller en prognos för framtida prestation. Använd den tillsammans med "
 "relevanta samtal, erfarenhet och annan tillgänglig information."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:347
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:441
+#, fuzzy
+#| msgid ""
+#| "The purpose-fit interpretation could not be generated. Use the refresh "
+#| "button to try again."
 msgid ""
-"The purpose-fit interpretation could not be generated. Use the refresh "
-"button to try again."
+"\n"
+"          The purpose-fit interpretation could not be generated.\n"
+"          Use the refresh button to try again.\n"
+"        "
 msgstr ""
 "Den syftesanpassade tolkningen kunde inte genereras. Använd "
 "uppdateringsknappen för att försöka igen."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:369
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:466
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:496
 msgid "Assessment overview"
 msgstr "Testöversikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:373
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:470
+#, fuzzy
+#| msgid "No cognitive assessment results available"
+msgid "No imported assessment results available"
+msgstr "Inga resultat från kognitiva tester är tillgängliga"
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:477
+msgid ""
+"\n"
+"            No structured historical assessment results are currently\n"
+"            available for this candidate.\n"
+"          "
+msgstr ""
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:500
 msgid "Summary is waiting for the remaining assessments"
 msgstr "Sammanfattningen väntar på återstående tester"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:380
-#, python-format
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:507
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "          %(completed)s of %(total)s assessments are complete.\n"
+#| "          The combined AI summary will be generated when all assessments\n"
+#| "          in the process have been completed.\n"
+#| "        "
 msgid ""
 "\n"
-"          %(completed)s of %(total)s assessments are complete.\n"
-"          The combined AI summary will be generated when all assessments\n"
-"          in the process have been completed.\n"
-"        "
+"            %(completed)s of %(total)s assessments are complete.\n"
+"            The combined AI summary will be generated when all assessments\n"
+"            in the process have been completed.\n"
+"          "
 msgstr ""
 "\n"
 "          %(completed)s av %(total)s tester är genomförda.\n"
@@ -4371,38 +4491,25 @@ msgstr ""
 "          i processen har genomförts.\n"
 "        "
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:391
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:518
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "          Results that are already available can be explored through\n"
+#| "          the assessment tabs above while the remaining assessments\n"
+#| "          are being completed.\n"
+#| "        "
 msgid ""
 "\n"
-"          Results that are already available can be explored through\n"
-"          the assessment tabs above while the remaining assessments\n"
-"          are being completed.\n"
-"        "
+"            Results that are already available can be explored through\n"
+"            the assessment tabs above while the remaining assessments\n"
+"            are being completed.\n"
+"          "
 msgstr ""
 "\n"
 "          Resultat som redan finns tillgängliga kan utforskas via\n"
 "          testflikarna ovan medan kandidaten genomför de återstående\n"
 "          testerna.\n"
-"        "
-
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:412
-msgid "Imported assessment data"
-msgstr "Importerade testdata"
-
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:416
-msgid "Historical candidate overview"
-msgstr "Översikt för historisk kandidat"
-
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:420
-msgid ""
-"\n"
-"          This candidate uses imported assessment data.\n"
-"          Explore the available assessment areas through the tabs above.\n"
-"        "
-msgstr ""
-"\n"
-"          Den här kandidaten använder importerade testdata.\n"
-"          Utforska de tillgängliga testområdena via flikarna ovan.\n"
 "        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:3
@@ -6801,6 +6908,26 @@ msgstr ""
 #: .\templates\shared\partials\talena_mode_switcher.html:48
 msgid "Admin"
 msgstr ""
+
+#~ msgid "Decision support is not yet available for historical candidates."
+#~ msgstr "Beslutsstöd är ännu inte tillgängligt för historiska kandidater."
+
+#~ msgid "Imported assessment data"
+#~ msgstr "Importerade testdata"
+
+#~ msgid "Historical candidate overview"
+#~ msgstr "Översikt för historisk kandidat"
+
+#~ msgid ""
+#~ "\n"
+#~ "          This candidate uses imported assessment data.\n"
+#~ "          Explore the available assessment areas through the tabs above.\n"
+#~ "        "
+#~ msgstr ""
+#~ "\n"
+#~ "          Den här kandidaten använder importerade testdata.\n"
+#~ "          Utforska de tillgängliga testområdena via flikarna ovan.\n"
+#~ "        "
 
 #, python-brace-format
 #~ msgid "{process_name}: Your assessment"

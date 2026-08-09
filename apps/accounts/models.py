@@ -38,11 +38,38 @@ class User(AbstractUser):
 # ============================================================================
 
 class Company(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Företagsnamn")
-    org_number = models.CharField(max_length=30, blank=True, null=True, verbose_name="Organisationsnummer")
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Företagsnamn",
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    org_number = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        verbose_name="Organisationsnummer",
+    )
+
+    # ---------------------------------------------------------
+    # Migration onboarding
+    # ---------------------------------------------------------
+
+    migration_onboarding_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Aktivera migrationsintroduktion",
+        help_text=(
+            "Visa en introduktion för användare i företaget "
+            "om importerade historiska testprocesser och kandidater."
+        ),
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
 
     class Meta:
         ordering = ["name"]
@@ -86,9 +113,26 @@ class CompanyMember(models.Model):
         verbose_name="Primär enhet",
     )
 
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_MEMBER, verbose_name="Roll")
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_MEMBER,
+        verbose_name="Roll",
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    # ---------------------------------------------------------
+    # Migration onboarding
+    # ---------------------------------------------------------
+
+    migration_onboarding_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Migrationsintroduktion visad",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
     class Meta:
         unique_together = ("company", "user")

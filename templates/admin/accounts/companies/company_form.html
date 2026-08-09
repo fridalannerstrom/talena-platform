@@ -40,6 +40,46 @@
           {% if form.org_number.errors %}<div class="text-danger small mt-1">{{ form.org_number.errors.0 }}</div>{% endif %}
         </div>
 
+                <!-- SOVA MIGRATION ONBOARDING -->
+        <div class="col-12">
+
+          <div class="border rounded-3 p-3">
+
+            <div class="form-check">
+
+              {{ form.migration_onboarding_enabled }}
+
+              <label
+                class="form-check-label fw-semibold"
+                for="{{ form.migration_onboarding_enabled.id_for_label }}"
+              >
+                {{ form.migration_onboarding_enabled.label }}
+              </label>
+
+            </div>
+
+            {% if form.migration_onboarding_enabled.help_text %}
+              <div class="form-text ms-4 mt-1">
+                {{ form.migration_onboarding_enabled.help_text }}
+              </div>
+            {% endif %}
+
+            <div class="small text-muted ms-4 mt-2">
+              När detta är aktiverat får användarna i företaget
+              en introduktion till sina importerade historiska
+              testprocesser när de loggar in i Talena.
+            </div>
+
+            {% if form.migration_onboarding_enabled.errors %}
+              <div class="text-danger small ms-4 mt-2">
+                {{ form.migration_onboarding_enabled.errors.0 }}
+              </div>
+            {% endif %}
+
+          </div>
+
+        </div>
+
         <div class="col-12 d-flex gap-2 pt-2">
           <button class="btn btn-primary" type="submit">
             <i class="fa-solid fa-floppy-disk me-2"></i>

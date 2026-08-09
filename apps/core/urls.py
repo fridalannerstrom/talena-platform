@@ -42,4 +42,9 @@ urlpatterns = [
         views.admin_ai_prompt_edit,
         name="admin_ai_prompt_edit",
     ),
+    path(
+        "migration-onboarding/complete/",
+        views.complete_migration_onboarding,
+        name="complete_migration_onboarding",
+    ),
 ]

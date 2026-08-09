@@ -44,7 +44,9 @@ from django.db.models import Q, Count
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
-
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.projects.models import ProjectMeta
 
@@ -928,3 +930,56 @@ def global_search(request):
     results = results[:12]
 
     return JsonResponse({"results": results})
+
+@login_required
+@require_POST
+def complete_migration_onboarding(request):
+    """
+    Mark migration onboarding as seen for the
+    current user's company membership.
+    """
+
+    membership = (
+        CompanyMember.objects
+        .select_related("company")
+        .filter(user=request.user)
+        .first()
+    )
+
+    if membership:
+        company = membership.company
+
+        if (
+            company.migration_onboarding_enabled
+            and not membership.migration_onboarding_seen_at
+        ):
+            membership.migration_onboarding_seen_at = (
+                timezone.now()
+            )
+
+            membership.save(
+                update_fields=[
+                    "migration_onboarding_seen_at"
+                ]
+            )
+
+    next_url = (
+        request.POST.get("next")
+        or ""
+    ).strip()
+
+    if (
+        next_url
+        and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={
+                request.get_host()
+            },
+            require_https=request.is_secure(),
+        )
+    ):
+        return redirect(next_url)
+
+    return redirect(
+        "core:customer_dashboard"
+    )

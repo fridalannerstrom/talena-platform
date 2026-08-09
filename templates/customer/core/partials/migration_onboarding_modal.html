@@ -1,0 +1,321 @@
+{% load static i18n %}
+
+{% if show_migration_onboarding %}
+
+<div
+  class="modal fade"
+  id="migrationOnboardingModal"
+  tabindex="-1"
+  aria-labelledby="migrationOnboardingModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered migration-welcome-dialog">
+
+    <div class="modal-content migration-welcome-modal">
+
+      <!-- Close -->
+      <form
+        method="post"
+        action="{% url 'core:complete_migration_onboarding' %}"
+        class="migration-welcome-close"
+      >
+        {% csrf_token %}
+
+        <input
+          type="hidden"
+          name="next"
+          value="{{ request.get_full_path }}"
+        >
+
+        <button
+          type="submit"
+          class="btn-close"
+          aria-label="{% trans 'Close' %}"
+        ></button>
+      </form>
+
+
+      <div class="migration-welcome-content">
+
+        <!-- Talena icon -->
+        <div class="migration-welcome-icon">
+          <img
+            src="{% static 'images/talena-welcome.png' %}"
+            alt=""
+          >
+        </div>
+
+
+        <!-- Heading -->
+        <h2
+          class="migration-welcome-title"
+          id="migrationOnboardingModalLabel"
+        >
+          {% if request.user.first_name %}
+
+            {% blocktrans with first_name=request.user.first_name %}
+              Welcome, {{ first_name }}!
+            {% endblocktrans %}
+
+          {% else %}
+
+            {% trans "Welcome to Talena!" %}
+
+          {% endif %}
+        </h2>
+
+
+        <!-- Short message -->
+        <p class="migration-welcome-text">
+
+          {% blocktrans with company_name=migration_company.name %}
+            As a {{ company_name }} user, you have access to your previous candidates and test processes from Sova. We've brought them into Talena so you can pick up where you left off.
+          {% endblocktrans %}
+
+        </p>
+
+
+        <!-- Tiny stats -->
+        <div class="migration-welcome-stats">
+
+          <span>
+            <strong>
+              {{ migration_historical_process_count }}
+            </strong>
+
+            {% trans "archived processes" %}
+          </span>
+
+          <span class="migration-welcome-stat-dot">
+            ·
+          </span>
+
+          <span>
+            <strong>
+              {{ migration_historical_candidate_count }}
+            </strong>
+
+            {% trans "candidates" %}
+          </span>
+
+        </div>
+
+
+        <!-- Primary -->
+        <form
+          method="post"
+          action="{% url 'core:complete_migration_onboarding' %}"
+          class="w-100"
+        >
+          {% csrf_token %}
+
+          <input
+            type="hidden"
+            name="next"
+            value="{% url 'processes:process_list' %}?archived=1"
+          >
+
+          <button
+            type="submit"
+            class="btn btn-primary migration-welcome-primary"
+          >
+            {% trans "Explore previous candidates" %}
+          </button>
+        </form>
+
+
+        <!-- Secondary -->
+        <form
+          method="post"
+          action="{% url 'core:complete_migration_onboarding' %}"
+          class="w-100 mt-2"
+        >
+          {% csrf_token %}
+
+          <input
+            type="hidden"
+            name="next"
+            value="{% url 'processes:process_create' %}"
+          >
+
+          <button
+            type="submit"
+            class="btn btn-outline-secondary migration-welcome-secondary"
+          >
+            {% trans "Create new test process" %}
+          </button>
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+<style>
+
+.migration-welcome-dialog {
+  max-width: 470px;
+}
+
+.migration-welcome-modal {
+  position: relative;
+
+  border: 0;
+  border-radius: 24px;
+
+  box-shadow:
+    0 24px 70px
+    rgba(38, 30, 65, 0.18);
+
+  overflow: hidden;
+}
+
+.migration-welcome-close {
+  position: absolute;
+
+  top: 20px;
+  right: 20px;
+
+  z-index: 2;
+}
+
+.migration-welcome-content {
+  padding: 48px 42px 38px;
+
+  text-align: center;
+}
+
+.migration-welcome-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 120px;
+  height: 120px;
+
+  margin: 0 auto 24px;
+
+}
+
+.migration-welcome-icon img {
+  display: block;
+
+  max-width: 100px;
+  max-height: 100px;
+
+  object-fit: contain;
+}
+
+.migration-welcome-title {
+  margin-bottom: 12px;
+
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.migration-welcome-text {
+  max-width: 370px;
+
+  margin:
+    0 auto 18px;
+
+  color: #6f7080;
+
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.migration-welcome-stats {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  gap: 7px;
+
+  margin-bottom: 28px;
+
+  color: #747588;
+
+  font-size: 0.84rem;
+}
+
+.migration-welcome-stats strong {
+  color: #5c45d8;
+  font-weight: 700;
+}
+
+.migration-welcome-stat-dot {
+  opacity: 0.45;
+}
+
+.migration-welcome-primary,
+.migration-welcome-secondary {
+  width: 100%;
+
+  min-height: 48px;
+
+  border-radius: 12px;
+
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+
+  .migration-welcome-dialog {
+    margin: 18px;
+  }
+
+  .migration-welcome-content {
+    padding:
+      48px
+      24px
+      28px;
+  }
+
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function () {
+
+    const modalElement =
+      document.getElementById(
+        "migrationOnboardingModal"
+      );
+
+    if (
+      !modalElement
+      || !window.bootstrap
+    ) {
+      return;
+    }
+
+    const modal =
+      new bootstrap.Modal(
+        modalElement,
+        {
+          backdrop: "static",
+          keyboard: false,
+        }
+      );
+
+    modal.show();
+
+  }
+);
+
+</script>
+
+{% endif %}
