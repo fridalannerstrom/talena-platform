@@ -1982,10 +1982,14 @@ Explain plausible interpretations without deciding which source is right.
 
 REMAINING UNCERTAINTIES
 
-Return between 2 and 5 concise items.
+Return between 0 and 5 concise items.
 
 Include important questions that remain unanswered after considering both
 assessment and interview evidence.
+
+Do not invent uncertainties merely to fill this section.
+If the available evidence does not support a meaningful remaining
+uncertainty, return an empty items list.
 
 SUGGESTED FOLLOW-UP
 

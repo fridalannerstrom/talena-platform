@@ -1622,24 +1622,7 @@ await runCandidateInit(
   );
 
 
-if (isHistoricalCandidate) {
-
-  await runCandidateInit(
-    "Combined questions refresh",
-    () => refreshCandidateCombinedQuestions(
-      sheetBody
-    )
-  );
-
-} else {
-
-  await runCandidateInit(
-    "Derived content sync",
-    () => initCandidateDerivedContentSync(
-      sheetBody
-    )
-  );
-
+  
   await runCandidateInit(
     "Cognitive interpretation",
     () => initCandidateCognitiveInterpretation(
@@ -1653,6 +1636,25 @@ if (isHistoricalCandidate) {
       sheetBody
     )
   );
+
+if (isHistoricalCandidate) {
+
+await runCandidateInit(
+  "Derived views refresh",
+  () => refreshCandidateDerivedViews(
+    sheetBody
+  )
+);
+
+} else {
+
+  await runCandidateInit(
+    "Derived content sync",
+    () => initCandidateDerivedContentSync(
+      sheetBody
+    )
+  );
+
 
   await runCandidateInit(
     "Derived views refresh",

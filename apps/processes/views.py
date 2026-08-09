@@ -222,6 +222,92 @@ from apps.core.ai.personality_questions import (
     personality_questions_cover_all_traits,
 )
 
+def build_cognitive_results_for_ai_owner(
+    owner,
+) -> list[dict]:
+    """
+    Build cognitive percentile evidence for either:
+
+    - TestInvitation
+    - HistoricalProcessCandidate
+    """
+
+    process = owner.process
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+
+    if not getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return extract_cognitive_results(
+            owner
+        )
+
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+
+    profile = build_historical_candidate_profile(
+        owner
+    )
+
+    ability_results = (
+        profile.get("ability_results")
+        or {}
+    )
+
+    labels = {
+        "logical": "Logical reasoning",
+        "numerical": "Numerical reasoning",
+        "verbal": "Verbal reasoning",
+    }
+
+    results = []
+
+    for key in (
+        "logical",
+        "numerical",
+        "verbal",
+    ):
+        item = ability_results.get(key)
+
+        if not item:
+            continue
+
+        percentile = item.get("percentile")
+
+        if percentile is None:
+            percentile = item.get("value")
+
+        if percentile is None:
+            continue
+
+        try:
+            percentile = int(
+                round(float(percentile))
+            )
+        except (TypeError, ValueError):
+            continue
+
+        percentile = max(
+            0,
+            min(100, percentile),
+        )
+
+        results.append(
+            {
+                "key": key,
+                "label": labels[key],
+                "percentile": percentile,
+            }
+        )
+
+    return results
+
 def build_motivation_results_for_ai_owner(
     owner,
 ) -> list[dict]:
@@ -4470,27 +4556,10 @@ def process_candidate_pre_interview_decision_support_stream(
         return HttpResponseForbidden(
             "You do not have access to this process."
         )
-
-    # Historical candidates do not yet have the required
-    # decision-support fields on their owner model.
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical pre-interview decision support "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     if invitation.status != "completed":
@@ -4752,21 +4821,10 @@ def process_candidate_pre_interview_decision_support_regenerate(
             "You do not have access to this process."
         )
 
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical pre-interview decision support "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
+        
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     invitation.ai_pre_interview_decision_support_status = (
@@ -4842,25 +4900,10 @@ def process_candidate_post_interview_decision_support_stream(
         return HttpResponseForbidden(
             "You do not have access to this process."
         )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical post-interview decision support "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     if invitation.status != "completed":
@@ -5107,12 +5150,6 @@ def process_candidate_post_interview_decision_support_stream(
                 or []
             )
 
-            if len(remaining_uncertainties) < 2:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "enough remaining uncertainties."
-                )
-
             if not received_done_event:
                 yield json.dumps(
                     {
@@ -5185,22 +5222,10 @@ def process_candidate_post_interview_decision_support_regenerate(
         return HttpResponseForbidden(
             "You do not have access to this process."
         )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical post-interview decision support "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     if not (
@@ -5297,24 +5322,9 @@ def process_candidate_interview_notes_update(
             "You do not have access to this process."
         )
 
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Interview notes for historical candidates "
-                    "are not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     try:
@@ -5447,25 +5457,10 @@ def process_candidate_final_output(
         return HttpResponseForbidden(
             "You do not have access to this process."
         )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical final output "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
+    
+    invitation = get_candidate_ai_owner(
+        process,
+        candidate_id,
     )
 
     # Talena final output pre-interview language batch 1
@@ -5551,7 +5546,7 @@ def process_candidate_final_output(
             "process": process,
             "candidate": invitation.candidate,
             "invitation": invitation,
-            "is_historical": False,
+            "is_historical": process.is_historical,
 
             "pre_interview_decision_support": (
                 pre_interview_decision_support
@@ -9578,6 +9573,41 @@ def build_historical_candidate_detail_context(
         )
     )
 
+    pre_interview_decision_support = (
+        historical_candidate
+        .ai_pre_interview_decision_support
+        or {}
+    )
+
+    post_interview_decision_support = (
+        historical_candidate
+        .ai_post_interview_decision_support
+        or {}
+    )
+
+    interview_notes = (
+        historical_candidate.interview_notes
+        or ""
+    ).strip()
+
+    has_pre_interview_decision_support = bool(
+        (
+            pre_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
+    has_post_interview_decision_support = bool(
+        (
+            post_interview_decision_support.get(
+                "overall_synthesis"
+            )
+            or ""
+        ).strip()
+    )
+
     return {
         "company": process.company,
         "process": process,
@@ -9610,6 +9640,211 @@ def build_historical_candidate_detail_context(
         "has_numerical_results": has_numerical_results,
         "has_any_results": has_any_results,
         "all_assessments_completed": all_assessments_completed,
+
+        # ---------------------------------------------------------
+        # Final output / decision support
+        # ---------------------------------------------------------
+
+        "pre_interview_decision_support": (
+            pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_status": (
+            historical_candidate
+            .ai_pre_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "pre_interview_decision_support_generated_at": (
+            historical_candidate
+            .ai_pre_interview_decision_support_generated_at
+        ),
+
+        "has_pre_interview_decision_support": (
+            has_pre_interview_decision_support
+        ),
+
+        "pre_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "pre_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_pre_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "interview_notes": interview_notes,
+
+        "has_interview_notes": bool(
+            interview_notes
+        ),
+
+        "interview_notes_updated_at": (
+            historical_candidate
+            .interview_notes_updated_at
+        ),
+
+        "interview_notes_updated_by": (
+            historical_candidate
+            .interview_notes_updated_by
+        ),
+
+        "interview_notes_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_"
+                "interview_notes_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support": (
+            post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_status": (
+            historical_candidate
+            .ai_post_interview_decision_support_status
+            or "not_started"
+        ),
+
+        "post_interview_decision_support_generated_at": (
+            historical_candidate
+            .ai_post_interview_decision_support_generated_at
+        ),
+
+        "has_post_interview_decision_support": (
+            has_post_interview_decision_support
+        ),
+
+        "post_interview_decision_support_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "post_interview_decision_support_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_post_interview_"
+                "decision_support_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "final_output_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_final_output"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Historical cognitive AI
+        # ---------------------------------------------------------
+
+        "cognitive_interpretation": (
+            historical_candidate
+            .ai_cognitive_interpretation
+            or {}
+        ),
+
+        "cognitive_interpretation_status": (
+            historical_candidate
+            .ai_cognitive_interpretation_status
+            or "not_started"
+        ),
+
+        "cognitive_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions": (
+            historical_candidate
+            .ai_cognitive_questions
+            or {}
+        ),
+
+        "cognitive_questions_status": (
+            historical_candidate
+            .ai_cognitive_questions_status
+            or "not_started"
+        ),
+
+        "cognitive_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "cognitive_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_cognitive_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
 
         # ---------------------------------------------------------
         # Combined assessment questions
@@ -9974,24 +10209,28 @@ def process_candidate_cognitive_interpretation_stream(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical cognitive interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(
         request
@@ -10004,8 +10243,10 @@ def process_candidate_cognitive_interpretation_stream(
         language_code=language_code,
     )
 
-    cognitive_results = extract_cognitive_results(
-        invitation
+    cognitive_results = (
+        build_cognitive_results_for_ai_owner(
+            invitation
+        )
     )
 
     if not cognitive_results:
@@ -10219,22 +10460,19 @@ def process_candidate_cognitive_interpretation_regenerate(
             "You do not have access to this process."
         )
 
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical cognitive interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
-        )
 
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_cognitive_interpretation_status = (
         "not_started"
@@ -10296,25 +10534,19 @@ def process_candidate_cognitive_questions_stream(
             "You do not have access to this process."
         )
 
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical cognitive questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
-        )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(
         request
@@ -10327,8 +10559,10 @@ def process_candidate_cognitive_questions_stream(
         language_code=language_code,
     )
 
-    cognitive_results = extract_cognitive_results(
-        invitation
+    cognitive_results = (
+        build_cognitive_results_for_ai_owner(
+            invitation
+        )
     )
 
     if not cognitive_results:
@@ -10546,21 +10780,17 @@ def process_candidate_cognitive_questions_regenerate(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical cognitive questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_cognitive_questions_status = (
         "not_started"
@@ -11172,6 +11402,41 @@ def process_candidate_motivation_questions_stream(
     response["X-Accel-Buffering"] = "no"
 
     return response
+
+
+def get_candidate_ai_owner(
+    process,
+    candidate_id,
+):
+    """
+    Return the model instance that owns candidate AI content.
+
+    Active process:
+        TestInvitation
+
+    Historical process:
+        HistoricalProcessCandidate
+    """
+
+    if process.is_historical:
+        return get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+
+    return get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process",
+        ),
+        process=process,
+        candidate_id=candidate_id,
+    )
 
 
 @login_required
