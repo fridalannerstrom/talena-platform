@@ -17,6 +17,52 @@ def empty_candidate_profile() -> dict[str, Any]:
         "has_any_results": False,
     }
 
+HISTORICAL_TEAM_STYLE_NAMES = {
+    "analyst",
+    "director",
+    "catalyst",
+    "energiser",
+    "energizer",
+    "connector",
+    "auditor",
+    "harmoniser",
+    "harmonizer",
+    "architect",
+}
+
+def convert_historical_team_style_to_five_point(
+    value,
+):
+    """
+    Convert historical Sova Team Style STEN 1-10
+    to Talena's five-point Team Style scale.
+
+    1-2   -> 1
+    3-4   -> 2
+    5-6   -> 3
+    7-8   -> 4
+    9-10  -> 5
+    """
+
+    if value is None:
+        return None
+
+    try:
+        sten = int(
+            round(float(value))
+        )
+    except (TypeError, ValueError):
+        return None
+
+    sten = max(
+        1,
+        min(10, sten),
+    )
+
+    return (
+        sten + 1
+    ) // 2
+
 def build_historical_candidate_profile(historical_candidate):
     """
     Build one normalized candidate profile from imported historical Sova data.
@@ -117,26 +163,70 @@ def build_historical_candidate_profile(historical_candidate):
                 # Sova team styles use the five-point STIVE scale.
                 # Never interpret a STEN value as STIVE.
                 # -------------------------------------------------
-                if category == "team_style":
-                    if scale != "one_to_five":
-                        continue
-
+                is_team_style = (
+                    category == "team_style"
+                    or score_key in HISTORICAL_TEAM_STYLE_NAMES
+                )
+                
+                if is_team_style:
                     if score_value is None:
                         continue
 
-                    team_styles_by_name[score_key] = {
+                    # -------------------------------------------------
+                    # Native five-point Team Style result
+                    # -------------------------------------------------
+
+                    if scale == "one_to_five":
+                        five_point_score = float(
+                            score_value
+                        )
+
+                        raw_sten = None
+                        raw_sten_rounded = None
+
+                    # -------------------------------------------------
+                    # Historical Sova Personality STEN export
+                    #
+                    # Team Styles may be included in the STEN export.
+                    # Convert the imported STEN result to Talena's
+                    # five-point Team Style display scale.
+                    # -------------------------------------------------
+
+                    elif scale == "sten":
+                        five_point_score = (
+                            convert_historical_team_style_to_five_point(
+                                score_value
+                            )
+                        )
+
+                        if five_point_score is None:
+                            continue
+
+                        raw_sten = score_value
+                        raw_sten_rounded = round(
+                            score_value
+                        )
+
+                    else:
+                        continue
+
+                    team_styles_by_name[
+                        score_key
+                    ] = {
                         "name": score_name,
                         "competency": score_name,
                         "category": "team_style",
                         "scale": "one_to_five",
 
-                        "score": score_value,
+                        "score": five_point_score,
 
-                        "sten": None,
-                        "sten_rounded": None,
+                        "sten": raw_sten,
+                        "sten_rounded": raw_sten_rounded,
 
-                        "stive": score_value,
-                        "stive_rounded": round(score_value),
+                        "stive": five_point_score,
+                        "stive_rounded": round(
+                            five_point_score
+                        ),
 
                         "percentile": percentile_value,
 

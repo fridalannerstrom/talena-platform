@@ -2,7 +2,11 @@
 {# Talena candidate i18n batch 1 #}
 {% trans "No cognitive assessment results available" as no_cognitive_title %}
 {% trans "Cognitive assessments could provide additional evidence about performance on specific reasoning and problem-solving tasks." as no_cognitive_description %}
-{% if candidate_insights.cognitive_results or has_ability_results %}
+{% if is_historical and not has_ability_results %}
+
+  {% include "customer/processes/partials/candidate_insights/_missing_assessment.html" with missing_title=no_cognitive_title missing_description=no_cognitive_description %}
+
+{% elif candidate_insights.cognitive_results or has_ability_results %}
 
   <div
     class="candidate-insights-subworkspace"

@@ -15,16 +15,18 @@ from apps.processes.models import (
 )
 
 
-TEAM_STYLE_COLUMNS = [
-    "Analyst",
-    "Director",
-    "Catalyst",
-    "Energiser",
-    "Connector",
-    "Auditor",
-    "Harmoniser",
-    "Architect",
-]
+TEAM_STYLE_COLUMNS = {
+    "analyst",
+    "director",
+    "catalyst",
+    "energiser",
+    "energizer",
+    "connector",
+    "auditor",
+    "harmoniser",
+    "harmonizer",
+    "architect",
+}
 
 
 KNOWN_METADATA_COLUMNS = {
@@ -165,8 +167,21 @@ def split_name(full_name, first_name="", last_name=""):
     return parts[0], " ".join(parts[1:])
 
 
-def get_score_category(column_name, assessment_type):
-    if assessment_type == "personality" and column_name in TEAM_STYLE_COLUMNS:
+def get_score_category(
+    column_name,
+    assessment_type,
+):
+    normalised_column_name = (
+        str(column_name or "")
+        .strip()
+        .casefold()
+    )
+
+    if (
+        assessment_type == "personality"
+        and normalised_column_name
+        in TEAM_STYLE_COLUMNS
+    ):
         return "team_style"
 
     if assessment_type == "personality":
@@ -175,11 +190,14 @@ def get_score_category(column_name, assessment_type):
     if assessment_type == "motivation":
         return "motivation"
 
-    if assessment_type in ["verbal", "logical", "numerical"]:
+    if assessment_type in [
+        "verbal",
+        "logical",
+        "numerical",
+    ]:
         return "ability"
 
     return "unknown"
-
 
 def is_score_column(column_name, assessment_type):
     if not column_name:

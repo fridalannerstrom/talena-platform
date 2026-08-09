@@ -47,8 +47,8 @@ from apps.core.ai.cognitive_questions import (
     save_cognitive_questions,
 )
 
-# Talena motivation AI language batch 1
 from apps.core.ai.motivation_interpretation import (
+    MOTIVATION_DEFINITIONS,
     extract_motivation_results,
     create_empty_motivation_interpretation,
     apply_motivation_interpretation_event,
@@ -221,6 +221,99 @@ from apps.core.ai.personality_questions import (
     get_personality_question_count,
     personality_questions_cover_all_traits,
 )
+
+def build_motivation_results_for_ai_owner(
+    owner,
+) -> list[dict]:
+    """
+    Build motivation evidence for either:
+
+    - TestInvitation
+    - HistoricalProcessCandidate
+
+    Returns the same structure expected by the
+    motivation AI generators.
+    """
+
+    process = owner.process
+
+    # ---------------------------------------------------------
+    # ACTIVE CANDIDATE
+    # ---------------------------------------------------------
+
+    if not getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return extract_motivation_results(
+            owner
+        )
+
+    # ---------------------------------------------------------
+    # HISTORICAL CANDIDATE
+    # ---------------------------------------------------------
+
+    profile = build_historical_candidate_profile(
+        owner
+    )
+
+    motivation_competencies = (
+        profile.get(
+            "motivation_competencies"
+        )
+        or []
+    )
+
+    results_by_name = {}
+
+    for item in motivation_competencies:
+        name = str(
+            item.get("competency")
+            or item.get("name")
+            or ""
+        ).strip()
+
+        if not name:
+            continue
+
+        raw_score = item.get(
+            "stive_rounded"
+        )
+
+        if raw_score is None:
+            raw_score = item.get(
+                "stive"
+            )
+
+        if raw_score is None:
+            raw_score = item.get(
+                "score"
+            )
+
+        score = normalise_five_point_score(
+            raw_score
+        )
+
+        if score is None:
+            continue
+
+        name_key = name.casefold()
+
+        results_by_name[name_key] = {
+            "name": name,
+            "score": score,
+            "definition": (
+                MOTIVATION_DEFINITIONS.get(
+                    name_key,
+                    "",
+                )
+            ),
+        }
+
+    return list(
+        results_by_name.values()
+    )
 
 # Talena cognitive results language batch 1
 def build_cognitive_insight_results(
@@ -5602,14 +5695,25 @@ def process_candidate_combined_questions(
             "You do not have access to this process."
         )
 
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     combined_questions = (
         build_combined_candidate_questions(
@@ -7223,6 +7327,14 @@ def process_candidate_detail(request, process_id, candidate_id):
             language_code=language_code,
         )
 
+        mark_ai_content_outdated_if_language_changed(
+            historical_candidate,
+            content_key="personality_questions",
+            result_field="ai_personality_questions",
+            status_field="ai_personality_questions_status",
+            language_code=language_code,
+        )
+
         ctx = build_historical_candidate_detail_context(
             process=process,
             historical_candidate=historical_candidate,
@@ -8719,20 +8831,67 @@ def get_historical_five_point_score(
     item,
 ) -> int | None:
     """
-    Historical Excel imports currently contain STEN scores.
+    Return a five-point STIVE score for historical
+    Motivation and Team style results.
 
-    Read the original imported STEN value and convert it
-    to Talena's five-point Motivation and Team style scale.
+    New historical imports preserve the original scale.
 
-    Do not trust stive/stive_rounded here, because older
-    historical normalisation may have copied the raw STEN
-    value into those fields.
+    - one_to_five results are already STIVE and must
+      NOT be converted from STEN.
+    - older legacy data without STIVE information may
+      fall back to conversion from STEN.
     """
 
+    scale = str(
+        item.get("scale")
+        or ""
+    ).strip().lower()
+
+    if scale in {
+        "1-to-5",
+        "1_to_5",
+        "1 to 5",
+        "one-to-five",
+        "one_to_five",
+    }:
+        scale = "one_to_five"
+
+    # ---------------------------------------------------------
+    # NATIVE FIVE-POINT / STIVE RESULT
+    # ---------------------------------------------------------
+
+    if (
+        scale == "one_to_five"
+        or item.get("stive") is not None
+        or item.get("stive_rounded") is not None
+    ):
+        for key in (
+            "stive",
+            "stive_rounded",
+            "score",
+        ):
+            value = item.get(key)
+
+            if value is None:
+                continue
+
+            return normalise_five_point_score(
+                value
+            )
+
+        return None
+
+    # ---------------------------------------------------------
+    # LEGACY FALLBACK
+    # ---------------------------------------------------------
+    #
+    # Older historical data may only contain STEN.
+    # Convert that data to the five-point display scale.
+    #
     for key in (
-        "score",
-        "sten_rounded",
         "sten",
+        "sten_rounded",
+        "score",
     ):
         value = item.get(key)
 
@@ -8744,7 +8903,6 @@ def get_historical_five_point_score(
         )
 
     return None
-
 
 def build_historical_candidate_detail_context(
     process,
@@ -8859,6 +9017,7 @@ def build_historical_candidate_detail_context(
             "score": five_point_score,
             "stive": five_point_score,
             "stive_rounded": five_point_score,
+            "scale": item.get("scale"),
 
             # Preserve the original imported STEN evidence.
             "sten": raw_sten,
@@ -8935,6 +9094,7 @@ def build_historical_candidate_detail_context(
             "score": five_point_score,
             "stive": five_point_score,
             "stive_rounded": five_point_score,
+            "scale": item.get("scale"),
 
             # Preserve original imported STEN.
             "sten": raw_sten,
@@ -9412,6 +9572,12 @@ def build_historical_candidate_detail_context(
         + normalised_team_style_scores
     )
 
+    combined_questions = (
+        build_combined_candidate_questions(
+            historical_candidate
+        )
+    )
+
     return {
         "company": process.company,
         "process": process,
@@ -9444,6 +9610,37 @@ def build_historical_candidate_detail_context(
         "has_numerical_results": has_numerical_results,
         "has_any_results": has_any_results,
         "all_assessments_completed": all_assessments_completed,
+
+        # ---------------------------------------------------------
+        # Combined assessment questions
+        # ---------------------------------------------------------
+
+        "combined_questions": (
+            combined_questions
+        ),
+
+        "combined_question_sections": (
+            combined_questions["sections"]
+        ),
+
+        "combined_question_count": (
+            combined_questions["total_count"]
+        ),
+
+        "has_combined_questions": (
+            combined_questions["has_questions"]
+        ),
+
+        "combined_questions_refresh_url": reverse(
+            (
+                "processes:"
+                "process_candidate_combined_questions"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
 
         # Normalised assessment data.
         "motivation_results": motivation_results,
@@ -9528,6 +9725,140 @@ def build_historical_candidate_detail_context(
                 "processes:"
                 "process_candidate_personality_"
                 "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Historical personality questions
+        # ---------------------------------------------------------
+
+        "personality_questions": (
+            historical_candidate
+            .ai_personality_questions
+            or {}
+        ),
+
+        "personality_questions_status": (
+            historical_candidate
+            .ai_personality_questions_status
+            or "not_started"
+        ),
+
+        "selected_personality_traits": (
+            historical_candidate
+            .selected_personality_traits
+            or []
+        ),
+
+        "personality_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "questions_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "personality_traits_update_url": reverse(
+            (
+                "processes:"
+                "process_candidate_personality_"
+                "traits_update"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        # ---------------------------------------------------------
+        # Historical motivation AI
+        # ---------------------------------------------------------
+
+        "motivation_interpretation": (
+            historical_candidate
+            .ai_motivation_interpretation
+            or {}
+        ),
+
+        "motivation_interpretation_status": (
+            historical_candidate
+            .ai_motivation_interpretation_status
+            or "not_started"
+        ),
+
+        "motivation_interpretation_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_interpretation_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "interpretation_regenerate"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_questions": (
+            historical_candidate
+            .ai_motivation_questions
+            or {}
+        ),
+
+        "motivation_questions_status": (
+            historical_candidate
+            .ai_motivation_questions_status
+            or "not_started"
+        ),
+
+        "motivation_questions_stream_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_stream"
+            ),
+            kwargs={
+                "process_id": process.id,
+                "candidate_id": candidate.id,
+            },
+        ),
+
+        "motivation_questions_regenerate_url": reverse(
+            (
+                "processes:"
+                "process_candidate_motivation_"
+                "questions_regenerate"
             ),
             kwargs={
                 "process_id": process.id,
@@ -10293,24 +10624,28 @@ def process_candidate_motivation_interpretation_stream(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical motivation interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(
         request
@@ -10323,8 +10658,10 @@ def process_candidate_motivation_interpretation_stream(
         language_code=language_code,
     )
 
-    motivation_results = extract_motivation_results(
-        invitation
+    motivation_results = (
+        build_motivation_results_for_ai_owner(
+            invitation
+        )
     )
 
     if not motivation_results:
@@ -10538,21 +10875,17 @@ def process_candidate_motivation_interpretation_regenerate(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical motivation interpretation "
-                    "is not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_motivation_interpretation_status = (
         "not_started"
@@ -10613,24 +10946,28 @@ def process_candidate_motivation_questions_stream(
         )
 
     if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical motivation questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate.objects
+            .select_related(
+                "candidate",
+                "process",
+            )
+            .prefetch_related(
+                "assessment_results__scores",
+                "assessment_results__import_file",
+            ),
+            process=process,
+            candidate_id=candidate_id,
         )
-
-    invitation = get_object_or_404(
-        TestInvitation.objects.select_related(
-            "candidate",
-            "process",
-        ),
-        process=process,
-        candidate_id=candidate_id,
-    )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation.objects.select_related(
+                "candidate",
+                "process",
+            ),
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     language_code = get_request_ai_language(
         request
@@ -10643,8 +10980,10 @@ def process_candidate_motivation_questions_stream(
         language_code=language_code,
     )
 
-    motivation_results = extract_motivation_results(
-        invitation
+    motivation_results = (
+        build_motivation_results_for_ai_owner(
+            invitation
+        )
     )
 
     if not motivation_results:
@@ -10862,22 +11201,19 @@ def process_candidate_motivation_questions_regenerate(
             "You do not have access to this process."
         )
 
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Historical motivation questions "
-                    "are not connected yet."
-                )
-            },
-            status=400,
-        )
 
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
+    if process.is_historical:
+        invitation = get_object_or_404(
+            HistoricalProcessCandidate,
+            process=process,
+            candidate_id=candidate_id,
+        )
+    else:
+        invitation = get_object_or_404(
+            TestInvitation,
+            process=process,
+            candidate_id=candidate_id,
+        )
 
     invitation.ai_motivation_questions_status = (
         "not_started"

@@ -1607,13 +1607,29 @@ await runCandidateInit(
   )
 );
 
+  await runCandidateInit(
+    "Motivation interpretation",
+    () => initCandidateMotivationInterpretation(
+      sheetBody
+    )
+  );
+
+  await runCandidateInit(
+    "Motivation questions",
+    () => initCandidateMotivationQuestions(
+      sheetBody
+    )
+  );
+
 
 if (isHistoricalCandidate) {
 
-  /*
-   * Historical candidates currently skip the
-   * remaining live-only candidate functionality.
-   */
+  await runCandidateInit(
+    "Combined questions refresh",
+    () => refreshCandidateCombinedQuestions(
+      sheetBody
+    )
+  );
 
 } else {
 
@@ -1634,20 +1650,6 @@ if (isHistoricalCandidate) {
   await runCandidateInit(
     "Cognitive questions",
     () => initCandidateCognitiveQuestions(
-      sheetBody
-    )
-  );
-
-  await runCandidateInit(
-    "Motivation interpretation",
-    () => initCandidateMotivationInterpretation(
-      sheetBody
-    )
-  );
-
-  await runCandidateInit(
-    "Motivation questions",
-    () => initCandidateMotivationQuestions(
       sheetBody
     )
   );
