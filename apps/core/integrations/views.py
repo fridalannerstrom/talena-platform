@@ -22,6 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+
 def _norm(s: str) -> str:
     """Normaliserar SOVA-strängar"""
     s = (s or "").strip().lower()
