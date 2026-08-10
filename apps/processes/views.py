@@ -110,11 +110,13 @@ from apps.processes.services.historical_candidate_summary import (
 
 from apps.core.ai.purpose_fit import (
     purpose_supports_fit,
+    build_assessment_evidence,
     create_empty_purpose_fit,
     apply_purpose_fit_event,
     stream_candidate_purpose_fit,
     save_candidate_purpose_fit,
 )
+
 from apps.core.ai.language import (
     ai_content_language_matches,
     get_request_ai_language,
@@ -8171,26 +8173,30 @@ def process_candidate_purpose_fit_stream(
     )
 
     # ---------------------------------------------------------
-    # ACTIVE CANDIDATES MUST BE COMPLETED
+    # REQUIRE AT LEAST ONE REAL ASSESSMENT RESULT
     # ---------------------------------------------------------
     #
-    # Historical candidates contain imported completed results
-    # and therefore do not have a TestInvitation status.
+    # AI Overview may be generated progressively as assessment
+    # results become available. The candidate does not need to
+    # have completed the entire assessment process.
     #
-    if (
-        not is_historical
-        and owner.status != "completed"
-    ):
+    assessment_evidence, assessment_type_count = (
+        build_assessment_evidence(
+            owner
+        )
+    )
+
+    if assessment_type_count < 1:
         print(
-            "[PURPOSE FIT] Candidate not completed",
+            "[PURPOSE FIT] No assessment results available",
             flush=True,
         )
 
         return JsonResponse(
             {
                 "error": (
-                    "Candidate assessments are "
-                    "not completed yet."
+                    "No assessment results are "
+                    "available for this candidate yet."
                 )
             },
             status=400,

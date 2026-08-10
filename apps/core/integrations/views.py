@@ -14,6 +14,10 @@ from apps.processes.services.assessment_usage import (
     sync_assessment_usage_from_activities,
 )
 
+from apps.core.ai.purpose_fit import (
+    build_assessment_evidence,
+)
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -153,6 +157,14 @@ def sova_ingest(request):
     old_status = invitation.status
     observed_at = timezone.now()
 
+    # Keep a snapshot of the assessment evidence before
+    # applying the new Sova webhook payload.
+    previous_evidence, previous_evidence_count = (
+        build_assessment_evidence(
+            invitation
+        )
+    )
+
     # ✅ Extract activities from either top level or phases
     activities = list(payload.get("activities") or [])
 
@@ -162,18 +174,58 @@ def sova_ingest(request):
 
     reports = payload.get("reports") or []
 
-    # ✅ Save the complete payload and UI-specific fields
     invitation.sova_payload = payload
     invitation.sova_activities = activities
     invitation.sova_reports = reports
 
-    invitation.save(
-        update_fields=[
-            "sova_payload",
-            "sova_activities",
-            "sova_reports",
-        ]
+
+    # ---------------------------------------------------------
+    # CHECK WHETHER THE ASSESSMENT EVIDENCE HAS CHANGED
+    # ---------------------------------------------------------
+
+    current_evidence, current_evidence_count = (
+        build_assessment_evidence(
+            invitation
+        )
     )
+
+    assessment_evidence_changed = (
+        current_evidence_count > 0
+        and (
+            previous_evidence_count
+            != current_evidence_count
+            or previous_evidence
+            != current_evidence
+        )
+    )
+
+
+    update_fields = [
+        "sova_payload",
+        "sova_activities",
+        "sova_reports",
+    ]
+
+
+    # An existing AI Overview no longer reflects all
+    # currently available assessment evidence.
+    if (
+        assessment_evidence_changed
+        and invitation.ai_purpose_fit
+    ):
+        invitation.ai_purpose_fit_status = (
+            "outdated"
+        )
+
+        update_fields.append(
+            "ai_purpose_fit_status"
+        )
+
+
+    invitation.save(
+        update_fields=update_fields
+    )
+
     sync_assessment_usage_from_activities(
         invitation=invitation,
         activities=activities,

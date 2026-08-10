@@ -48,16 +48,7 @@
 
 <button
   type="button"
-  class="
-    candidate-tab
-    {% if is_historical %}
-      {% if not has_ability_results %}opacity-50{% endif %}
-    {% else %}
-      {% if not candidate_insights.cognitive_results and not has_ability_results %}
-        opacity-50
-      {% endif %}
-    {% endif %}
-  "
+  class="candidate-tab {% if not has_ability_results %}opacity-50{% endif %}"
   role="tab"
   aria-selected="false"
   aria-controls="candidate-insights-panel-cognitive"

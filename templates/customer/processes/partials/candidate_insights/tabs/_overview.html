@@ -4,7 +4,7 @@
 {% with overview_owner=historical_candidate|default:invitation %}
 
 
-  {% if all_assessments_completed %}
+{% if has_any_results %}
 
     <section
       class="purpose-fit-card ai-overview-card"
@@ -23,12 +23,16 @@
             ✨ {% trans "AI-generated insight" %}
           </div>
 
-          <h2
-            class="insight-summary-title mb-1"
-            id="purposeFitTitle"
-          >
-            {% trans "AI Summary" %}
-          </h2>
+<h2
+  class="insight-summary-title mb-1"
+  id="purposeFitTitle"
+>
+  {% if not is_historical and not all_assessments_completed %}
+    {% trans "Preliminary AI Summary" %}
+  {% else %}
+    {% trans "AI Summary" %}
+  {% endif %}
+</h2>
 
           <div class="text-muted small">
 
@@ -89,6 +93,35 @@
           </button>
 
         </div>
+
+{% if not is_historical and not all_assessments_completed %}
+
+  <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
+
+    <div class="flex-shrink-0">
+      <i data-feather="clock"></i>
+    </div>
+
+    <div>
+      <div class="fw-semibold mb-1">
+        {% trans "Preliminary summary" %}
+      </div>
+
+      <div class="small text-muted">
+        {% blocktrans with completed=tests_completed_count total=tests_sent_count %}
+          {{ completed }} of {{ total }} assessments are complete.
+          This summary is based only on the assessment results currently available.
+        {% endblocktrans %}
+      </div>
+
+      <div class="small text-muted mt-1">
+        {% trans "Refresh the summary when additional assessment results become available." %}
+      </div>
+    </div>
+
+  </div>
+
+{% endif %}
 
       </div>
 
