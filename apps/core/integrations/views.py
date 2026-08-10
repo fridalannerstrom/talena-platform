@@ -29,6 +29,52 @@ def _norm(s: str) -> str:
     s = " ".join(s.split())
     return s
 
+def _extract_sova_reports(payload):
+    """
+    Collect Sova reports from the webhook payload.
+
+    Reports may be supplied at different levels depending
+    on the webhook state, so collect report arrays recursively.
+
+    Duplicate reports are removed by URL.
+    """
+
+    collected = []
+    seen_urls = set()
+
+    def walk(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+
+                if key == "reports" and isinstance(child, list):
+                    for report in child:
+                        if not isinstance(report, dict):
+                            continue
+
+                        url = (
+                            report.get("url")
+                            or ""
+                        ).strip()
+
+                        if not url:
+                            continue
+
+                        if url in seen_urls:
+                            continue
+
+                        seen_urls.add(url)
+                        collected.append(report)
+
+                walk(child)
+
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(payload)
+
+    return collected
+
 
 @csrf_exempt
 def sova_ingest(request):
@@ -172,7 +218,52 @@ def sova_ingest(request):
         for phase in payload.get("phases") or []:
             activities.extend(phase.get("activities") or [])
 
-    reports = payload.get("reports") or []
+    new_reports = _extract_sova_reports(
+        payload
+    )
+
+    existing_reports = (
+        invitation.sova_reports
+        or []
+    )
+
+
+    # ---------------------------------------------------------
+    # MERGE NEW + EXISTING REPORTS
+    # ---------------------------------------------------------
+
+    reports_by_url = {}
+
+
+    for report in existing_reports:
+        if not isinstance(report, dict):
+            continue
+
+        url = (
+            report.get("url")
+            or ""
+        ).strip()
+
+        if url:
+            reports_by_url[url] = report
+
+
+    for report in new_reports:
+        if not isinstance(report, dict):
+            continue
+
+        url = (
+            report.get("url")
+            or ""
+        ).strip()
+
+        if url:
+            reports_by_url[url] = report
+
+
+    reports = list(
+        reports_by_url.values()
+    )
 
     invitation.sova_payload = payload
     invitation.sova_activities = activities
