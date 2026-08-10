@@ -132,7 +132,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 or customer_user.email
             )
 
-            from_email = f"{customer_display_name} via Talena <no-reply@talena.se>"
+            from_email = settings.DEFAULT_FROM_EMAIL
 
             msg = EmailMultiAlternatives(
                 subject=subject,
