@@ -4723,32 +4723,6 @@ def process_candidate_pre_interview_decision_support_stream(
                     ensure_ascii=False,
                 ) + "\n"
 
-            overall_synthesis = (
-                result.get(
-                    "overall_synthesis"
-                )
-                or ""
-            ).strip()
-
-            if not overall_synthesis:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "an overall synthesis."
-                )
-
-            validation_questions = (
-                result.get(
-                    "validation_questions"
-                )
-                or []
-            )
-
-            if len(validation_questions) < 3:
-                raise ValueError(
-                    "The AI response did not contain "
-                    "at least three valid validation questions."
-                )
-
             if not received_done_event:
                 yield json.dumps(
                     {
@@ -10707,10 +10681,10 @@ def process_candidate_cognitive_questions_stream(
                 or []
             )
 
-            if len(questions) != 3:
+            if not questions:
                 raise ValueError(
                     "The AI response did not contain "
-                    "three valid cognitive questions."
+                    "valid cognitive questions."
                 )
 
             if not received_done_event:
@@ -11358,10 +11332,10 @@ def process_candidate_motivation_questions_stream(
                 or []
             )
 
-            if len(questions) != 3:
+            if not questions:
                 raise ValueError(
                     "The AI response did not contain "
-                    "three valid motivation questions."
+                    "valid motivation questions."
                 )
 
             if not received_done_event:
@@ -12076,53 +12050,32 @@ def process_candidate_personality_questions_stream(
                 or []
             )
 
-            has_user_selected_traits = bool(
-                invitation.selected_personality_traits
-            )
+            # ---------------------------------------------------------
+            # Validate only Talena's technical/product requirements.
+            #
+            # Administrators control:
+            # - how many questions are generated
+            # - how traits are used across questions
+            # - whether every selected trait needs question coverage
+            #
+            # Talena only requires:
+            # - at least one valid selected trait
+            # - no more than six selected traits because the UI
+            #   currently supports a maximum of six
+            # - at least one valid question
+            # ---------------------------------------------------------
 
-            minimum_trait_count = (
-                1
-                if has_user_selected_traits
-                else 4
-            )
-
-            if not minimum_trait_count <= len(selected_traits) <= 6:
-                raise ValueError(
-                    (
-                        "The personality trait selection was invalid."
-                        if has_user_selected_traits
-                        else (
-                            "The AI response did not contain "
-                            "between four and six valid "
-                            "personality traits."
-                        )
-                    )
-                )
-
-            expected_question_count = (
-                get_personality_question_count(
-                    selected_traits
-                )
-            )
-
-            if len(questions) != expected_question_count:
-                raise ValueError(
-                    (
-                        "The AI response did not contain "
-                        f"{expected_question_count} valid "
-                        "personality questions."
-                    )
-                )
-
-            if not personality_questions_cover_all_traits(
-                questions,
-                selected_traits,
+            if not (
+                1 <= len(selected_traits) <= 6
             ):
                 raise ValueError(
-                    (
-                        "The personality questions did not "
-                        "cover all selected traits."
-                    )
+                    "The personality trait selection was invalid."
+                )
+
+            if not questions:
+                raise ValueError(
+                    "The AI response did not contain "
+                    "valid personality questions."
                 )
 
             if not received_done_event:

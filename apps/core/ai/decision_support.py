@@ -37,14 +37,20 @@ def _clean_text(value: Any) -> str:
 def _clean_string_list(
     value: Any,
     *,
-    limit: int,
+    limit: int | None = None,
 ) -> list[str]:
     if not isinstance(value, list):
         return []
 
+    items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
     return [
         _clean_text(item)
-        for item in value[:limit]
+        for item in items
         if _clean_text(item)
     ]
 
@@ -88,20 +94,28 @@ def _normalise_question(
 def _normalise_questions(
     value: Any,
     *,
-    limit: int,
+    limit: int | None = None,
 ) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
 
     questions = []
 
-    for item in value[:limit]:
+    items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in items:
         question = _normalise_question(
             item
         )
 
         if question:
-            questions.append(question)
+            questions.append(
+                question
+            )
 
     return questions
 
@@ -428,13 +442,15 @@ def build_pre_interview_evidence(
         },
         {
             "title": "Motivation questions",
-            "result": motivation,
+            "result": (
+                owner.ai_motivation_questions
+                or {}
+            ),
         },
         {
             "title": "Cognitive questions",
             "result": (
                 owner.ai_cognitive_questions
-                or cognitive
                 or {}
             ),
         },
@@ -451,7 +467,7 @@ def build_pre_interview_evidence(
             source["result"].get(
                 "questions"
             ),
-            limit=6,
+            limit=None,
         )
 
         for question in questions:
@@ -482,7 +498,7 @@ def build_pre_interview_evidence(
     if question_lines:
         question_text = "\n".join(
             f"- {line}"
-            for line in question_lines[:18]
+            for line in question_lines
         )
     else:
         question_text = (
@@ -584,25 +600,45 @@ def _get_pre_interview_language_examples(
         ),
     }
 
-
 def build_pre_interview_decision_support_prompt(
     owner,
     *,
     language_code: str | None = None,
 ) -> str:
+    """
+    Build Talena's pre-interview decision-support prompt.
+
+    Administrator guidance controls all non-technical analysis,
+    synthesis, prioritisation and communication decisions.
+
+    Talena protects only input provenance and the technical
+    streaming/output contract.
+    """
+
     language_code = normalize_ai_language(
         language_code
     )
-    language_instruction = get_ai_language_instruction(
-        language_code
-    )
-    examples = _get_pre_interview_language_examples(
-        language_code
+
+    language_instruction = (
+        get_ai_language_instruction(
+            language_code
+        )
     )
 
-    admin_instructions = get_ai_prompt_instructions(
-        key="pre_interview_decision_support",
-        language=language_code,
+    examples = (
+        _get_pre_interview_language_examples(
+            language_code
+        )
+    )
+
+    admin_instructions = (
+        get_ai_prompt_instructions(
+            key=(
+                "pre_interview_"
+                "decision_support"
+            ),
+            language=language_code,
+        )
     )
 
     shared_context = build_shared_ai_context(
@@ -610,20 +646,9 @@ def build_pre_interview_decision_support_prompt(
     )
 
     candidate = shared_context["candidate"]
-    purpose_label = shared_context[
-        "purpose_label"
-    ]
-    context_text = shared_context[
-        "context_text"
-    ]
-    context_data = shared_context[
-        "context_data"
-    ]
 
-    evidence = (
-        build_pre_interview_evidence(
-            owner
-        )
+    evidence = build_pre_interview_evidence(
+        owner
     )
 
     source_names = (
@@ -633,52 +658,19 @@ def build_pre_interview_decision_support_prompt(
         or "No completed interpretation sources"
     )
 
-    if context_data:
-        context_instruction = """
-Use the supplied process context to explain why particular assessment
-indications may be relevant to the stated role, situation or development
-purpose.
-
-Distinguish clearly between:
-- information explicitly supplied in the process context
-- indications drawn from assessment evidence
-- assumptions that require validation through candidate examples
-""".strip()
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Keep the synthesis broad and state clearly that the practical relevance
-of the assessment indications depends on the actual role, situation or
-development context.
-
-Do not invent role requirements, responsibilities, culture, experience
-or working conditions.
-""".strip()
-
     return f"""
-You are generating PRE-INTERVIEW DECISION SUPPORT for Talena, an
-assessment and talent management platform.
-
-You are an experienced and careful assessment practitioner. Your role is
-to organise available evidence, explain uncertainty and help a human user
-prepare a relevant interview or feedback conversation.
-
-You do not make the final decision.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
 SELECTED PROCESS PURPOSE
-Purpose: {purpose_label}
+Purpose: {shared_context["purpose_label"]}
 
 PROCESS CONTEXT
-{context_text}
+{shared_context["context_text"] or "No additional process context supplied."}
 
-CONTEXT INSTRUCTION
-{context_instruction}
-
-AVAILABLE TALENA INTERPRETATION SOURCES
+AVAILABLE TALENA SOURCE LABELS
 {source_names}
 
 SAVED ASSESSMENT INTERPRETATION EVIDENCE
@@ -688,230 +680,181 @@ AVAILABLE SAVED QUESTION BANK
 {evidence["question_text"]}
 
 INTERVIEW EVIDENCE
-No interview notes, candidate examples or interview answers are included
-in this pre-interview output.
+No interview notes, candidate examples or interview answers are
+included in this pre-interview input.
 
-The absence of interview evidence must be treated as an evidence gap,
-not as negative evidence about the candidate.
 
-YOUR TASK
+ADMINISTRATOR AI GUIDANCE
 
-Create a clear, nuanced and practically useful pre-interview decision
-support document.
+The following guidance is controlled by Talena administrators.
 
-The output should help a recruiter, manager, coach or assessment
-practitioner understand:
+It controls all non-technical decisions about:
 
-1. The most important combined indications in the available evidence.
-2. Which indications may be relevant to the selected purpose.
-3. What should be interpreted cautiously.
-4. How to approach feedback or interview discussion.
-5. Which priority questions may help validate or add nuance to the profile.
-6. Which important evidence is still missing.
-
-ADMIN-EDITABLE DECISION SUPPORT GUIDANCE
-
-The following instructions control the desired tone, emphasis, synthesis
-style and practical focus used by Talena when preparing pre-interview
-decision support.
-
-These instructions are managed globally by Talena administrators and apply
-to all customers using this AI feature.
-
-They may influence how evidence is prioritised, connected and communicated,
-which themes receive greater emphasis and how the interview preparation is
-framed.
-
-They must not override the evidence boundaries, assessment safeguards,
-human decision-making requirements, safety rules or technical output format
-defined elsewhere in this prompt.
+- evidence interpretation
+- assessment principles
+- synthesis
+- prioritisation
+- use of process purpose
+- use of process context
+- treatment of missing evidence
+- caution
+- conclusions
+- discussion guidance
+- question selection and creation
+- number of items in each section
+- tone
+- communication style
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-THIS IS NOT A MATCHING VERDICT
+TALENA TECHNICAL OUTPUT CONTRACT
 
-Never:
-- provide a match score, fit score, suitability score or confidence score
-- state that the candidate is a match or is not a match
-- state that the candidate is suitable or unsuitable
-- describe the candidate as a strong fit, poor fit or recommended candidate
-- recommend hiring, rejecting, promoting, selecting or excluding the candidate
-- rank the candidate
-- predict future job performance
-- turn assessment indications into a final conclusion
-- treat the absence of interview evidence as a weakness
-- resolve contradictions when the evidence does not justify doing so
+The following requirements exist only so Talena can process,
+stream, save and display the result.
 
-CORE INTERPRETATION RULES
+Administrator guidance controls the substantive content and the
+number of items inside the arrays.
 
-- Treat assessment findings as indicators and hypotheses, not facts.
-- Distinguish personality, motivation, cognitive and response-style evidence.
-- Do not imply that personality measures ability.
-- Do not imply that cognitive results measure experience, motivation or
-  workplace behaviour.
-- Do not describe high scores as automatic strengths.
-- Do not describe low scores as automatic weaknesses.
-- Identify combinations and tensions only when supported by the supplied
-  source material.
-- Explain discrepancies neutrally.
-- State when evidence is incomplete, outdated or context-dependent.
-- Do not invent candidate experience, interview responses or role requirements.
-- Do not include raw assessment scores.
-- Use candidate examples and behavioural evidence as information that still
-  needs to be collected.
-- Leave all selection, placement, promotion and development decisions to the
-  responsible human user.
+Administrator guidance must not change:
 
-LANGUAGE AND TONE
+- required event names
+- required JSON field names
+- NDJSON structure
+
+
+OUTPUT LANGUAGE
 
 {language_instruction}
-- Be balanced, practical and non-judgemental.
-- Use cautious language such as:
-  "may indicate",
-  "suggests",
-  "could be relevant",
-  "would benefit from validation",
-  "may require further exploration".
-- Refer to {candidate.first_name} by first name where natural.
-- Avoid technical test terminology where plain language is sufficient.
-- Do not repeat the same point across multiple sections.
 
-CONTENT REQUIREMENTS
+All user-facing text must use the configured output language.
 
-OVERALL SYNTHESIS
-Write approximately 140 to 220 words.
 
-It should:
-- combine the available assessment themes
-- explain their possible relevance to the selected purpose
-- include both potentially useful indications and important uncertainty
-- state clearly that interview evidence has not yet been added
-- avoid presenting separate mini-reports for each assessment
+SOURCE PROVENANCE
 
-PURPOSE-RELEVANT INDICATIONS
-Return between 2 and 4 integrated themes.
+Values inside the evidence_sources field must use only source labels
+that are actually supplied in AVAILABLE TALENA SOURCE LABELS.
 
-Each theme must contain:
-- a short descriptive title
-- a cautious practical interpretation
-- a list of evidence source labels
+Do not invent technical source labels.
 
-Evidence source labels must only use labels from:
-{source_names}
 
-These themes are not strengths, proof of competence or reasons to select
-the candidate.
-
-CAUTIOUS INTERPRETATIONS
-Return between 2 and 4 items.
-
-Each item must contain:
-- a short title
-- what should be interpreted cautiously
-- why caution is required
-
-Possible reasons include:
-- missing behavioural examples
-- missing process context
-- conflicting or nuanced assessment indications
-- response-style considerations
-- limitations of what the available assessments measure
-- an outdated source result
-
-DISCUSSION GUIDANCE
-Return:
-- between 2 and 3 feedback approach points
-- between 2 and 3 interview focus points
-
-Feedback approach should explain how to discuss the profile fairly and
-constructively.
-
-Interview focus should explain where concrete examples or clarification
-are especially important.
-
-PRIORITY VALIDATION QUESTIONS
-Return between 3 and 5 questions.
-
-Use or adapt the most useful questions from the supplied question bank.
-
-Each question must contain:
-- question
-- why
-- listen_for
-
-Questions must:
-- be open and non-leading
-- request examples, reflection or working methods
-- help validate, challenge or add nuance to assessment indications
-- cover different themes
-- not assume that the assessment indication is true
-
-EVIDENCE GAPS
-Return between 2 and 4 concise items.
-
-Always include that candidate examples and interview evidence have not
-yet been added.
-
-CONTEXT NOTE
-Briefly explain:
-- which Talena interpretation sources were available
-- whether process context was supplied
-- that interview evidence was not used
-- that the final decision remains with the human user
-
-STREAMING OUTPUT FORMAT
+STREAMING FORMAT
 
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
+
 Do not use Markdown.
 Do not use code fences.
 Do not add text outside the JSON objects.
 
-Return events in this exact order:
 
-1. One meta event:
+REQUIRED EVENT STRUCTURE
 
-{{"type":"meta","title":"{examples['title']}","label":"{examples['label']}"}}
 
-2. Between 4 and 8 overall_synthesis_delta events:
+1. META
 
-{{"type":"overall_synthesis_delta","text":"{examples['synthesis_1']}"}}
-{{"type":"overall_synthesis_delta","text":"{examples['synthesis_2']}"}}
+{{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
 
-3. One purpose_relevant_indications event:
 
-{{"type":"purpose_relevant_indications","items":[{{"title":"{examples['indication_title']}","interpretation":"{examples['indication_interpretation']}","evidence_sources":["AI Overview","Personality interpretation"]}}]}}
+2. OVERALL SYNTHESIS
 
-4. One cautious_interpretations event:
+Return the synthesis using one or more
+overall_synthesis_delta events:
 
-{{"type":"cautious_interpretations","items":[{{"title":"{examples['caution_title']}","interpretation":"{examples['caution_interpretation']}","reason_for_caution":"{examples['caution_reason']}"}}]}}
+{{"type":"overall_synthesis_delta","text":"{examples["synthesis_1"]}"}}
 
-5. One discussion_guidance event:
 
-{{"type":"discussion_guidance","feedback_approach":["{examples['feedback_1']}","{examples['feedback_2']}"],"interview_focus":["{examples['focus_1']}","{examples['focus_2']}"]}}
+3. PURPOSE-RELEVANT INDICATIONS
 
-6. One validation_questions event:
+Return one purpose_relevant_indications event.
 
-{{"type":"validation_questions","items":[{{"question":"{examples['question']}","why":"{examples['why']}","listen_for":"{examples['listen_for']}"}}]}}
+Each item must preserve these fields:
 
-7. One evidence_gaps event:
+- title
+- interpretation
+- evidence_sources
 
-{{"type":"evidence_gaps","items":["{examples['gap_1']}","{examples['gap_2']}"]}}
+The administrator guidance determines the number of items.
 
-8. One context_note event:
+Example:
 
-{{"type":"context_note","text":"{examples['context_note']}"}}
+{{"type":"purpose_relevant_indications","items":[{{"title":"{examples["indication_title"]}","interpretation":"{examples["indication_interpretation"]}","evidence_sources":["AI Overview"]}}]}}
 
-9. One final done event:
+
+4. CAUTIOUS INTERPRETATIONS
+
+Return one cautious_interpretations event.
+
+Each item must preserve:
+
+- title
+- interpretation
+- reason_for_caution
+
+Example:
+
+{{"type":"cautious_interpretations","items":[{{"title":"{examples["caution_title"]}","interpretation":"{examples["caution_interpretation"]}","reason_for_caution":"{examples["caution_reason"]}"}}]}}
+
+
+5. DISCUSSION GUIDANCE
+
+Return one discussion_guidance event with these exact fields:
+
+- feedback_approach
+- interview_focus
+
+Both fields must be arrays.
+
+The administrator guidance determines the number of items.
+
+Example:
+
+{{"type":"discussion_guidance","feedback_approach":["{examples["feedback_1"]}"],"interview_focus":["{examples["focus_1"]}"]}}
+
+
+6. VALIDATION QUESTIONS
+
+Return one validation_questions event.
+
+Every question item must preserve:
+
+- question
+- why
+- listen_for
+
+The administrator guidance determines the number of questions.
+
+why and listen_for may be empty strings when the administrator
+guidance does not require substantive content.
+
+Example:
+
+{{"type":"validation_questions","items":[{{"question":"{examples["question"]}","why":"{examples["why"]}","listen_for":"{examples["listen_for"]}"}}]}}
+
+
+7. EVIDENCE GAPS
+
+Return one evidence_gaps event.
+
+The administrator guidance determines the number of items.
+
+{{"type":"evidence_gaps","items":["{examples["gap_1"]}"]}}
+
+
+8. CONTEXT NOTE
+
+Return one context_note event:
+
+{{"type":"context_note","text":"{examples["context_note"]}"}}
+
+
+9. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
-
 
 # ============================================================
 # Empty result
@@ -960,7 +903,7 @@ def _normalise_indication_items(
 
     items = []
 
-    for item in value[:4]:
+    for item in value:
         if not isinstance(item, dict):
             continue
 
@@ -1002,7 +945,7 @@ def _normalise_caution_items(
 
     items = []
 
-    for item in value[:4]:
+    for item in value:
         if not isinstance(item, dict):
             continue
 
@@ -1082,7 +1025,7 @@ def apply_pre_interview_decision_support_event(
                     event.get(
                         "feedback_approach"
                     ),
-                    limit=3,
+                    limit=None,
                 )
             ),
             "interview_focus": (
@@ -1090,16 +1033,16 @@ def apply_pre_interview_decision_support_event(
                     event.get(
                         "interview_focus"
                     ),
-                    limit=3,
+                    limit=None,
                 )
             ),
         }
 
-    elif event_type == "validation_questions":
-        result["validation_questions"] = (
-            _normalise_questions(
+    elif event_type == "evidence_gaps":
+        result["evidence_gaps"] = (
+            _clean_string_list(
                 event.get("items"),
-                limit=5,
+                limit=None,
             )
         )
 
@@ -1332,16 +1275,15 @@ def stream_pre_interview_decision_support(
             {
                 "role": "system",
                 "content": (
-                    get_ai_system_language_instruction(
-                        language_code
-                    )
-                    + " "
-                    + "You are a careful and experienced "
-                    "assessment synthesis consultant. "
-                    "You organise evidence and uncertainty "
-                    "but never make a suitability, matching, "
-                    "selection, promotion or hiring decision. "
-                    "Follow the requested NDJSON format exactly."
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical assessment synthesis, reasoning, "
+                    "prioritisation, question selection and communication "
+                    "decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
+                    f"{get_ai_system_language_instruction(language_code)}"
                 ),
             },
             {
@@ -1471,7 +1413,7 @@ def save_pre_interview_decision_support(
                 discussion_guidance.get(
                     "feedback_approach"
                 ),
-                limit=3,
+                limit=None,
             )
         ),
         "interview_focus": (
@@ -1479,7 +1421,7 @@ def save_pre_interview_decision_support(
                 discussion_guidance.get(
                     "interview_focus"
                 ),
-                limit=3,
+                limit=None,
             )
         ),
     }
@@ -1489,7 +1431,7 @@ def save_pre_interview_decision_support(
             result.get(
                 "validation_questions"
             ),
-            limit=5,
+            limit=None,
         )
     )
 
@@ -1498,7 +1440,7 @@ def save_pre_interview_decision_support(
             result.get(
                 "evidence_gaps"
             ),
-            limit=4,
+            limit=None,
         )
     )
 
@@ -1573,14 +1515,20 @@ def create_empty_post_interview_decision_support(
 def _normalise_supported_evidence_items(
     value: Any,
     *,
-    limit: int = 4,
+    limit: int | None = None,
 ) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
 
     items = []
 
-    for item in value[:limit]:
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
         if not isinstance(item, dict):
             continue
 
@@ -1620,18 +1568,23 @@ def _normalise_supported_evidence_items(
 
     return items
 
-
 def _normalise_nuance_items(
     value: Any,
     *,
-    limit: int = 4,
+    limit: int | None = None,
 ) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
 
     items = []
 
-    for item in value[:limit]:
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
         if not isinstance(item, dict):
             continue
 
@@ -1675,14 +1628,20 @@ def _normalise_nuance_items(
 def _normalise_contradiction_items(
     value: Any,
     *,
-    limit: int = 3,
+    limit: int | None = None,
 ) -> list[dict[str, str]]:
     if not isinstance(value, list):
         return []
 
     items = []
 
-    for item in value[:limit]:
+    source_items = (
+        value[:limit]
+        if limit is not None
+        else value
+    )
+
+    for item in source_items:
         if not isinstance(item, dict):
             continue
 
@@ -2095,7 +2054,7 @@ def apply_post_interview_decision_support_event(
         result["supported_indications"] = (
             _normalise_supported_evidence_items(
                 event.get("items"),
-                limit=4,
+                limit=None,
             )
         )
 
@@ -2103,7 +2062,7 @@ def apply_post_interview_decision_support_event(
         result["added_nuance"] = (
             _normalise_nuance_items(
                 event.get("items"),
-                limit=4,
+                limit=None,
             )
         )
 
@@ -2111,7 +2070,7 @@ def apply_post_interview_decision_support_event(
         result["contradictions"] = (
             _normalise_contradiction_items(
                 event.get("items"),
-                limit=3,
+                limit=None,
             )
         )
 
@@ -2119,7 +2078,7 @@ def apply_post_interview_decision_support_event(
         result["remaining_uncertainties"] = (
             _clean_string_list(
                 event.get("items"),
-                limit=5,
+                limit=None,
             )
         )
 
@@ -2127,7 +2086,7 @@ def apply_post_interview_decision_support_event(
         result["suggested_follow_up"] = (
             _clean_string_list(
                 event.get("items"),
-                limit=5,
+                limit=None,
             )
         )
 
@@ -2179,12 +2138,15 @@ def stream_post_interview_decision_support(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful assessment synthesis "
-                    "consultant. Compare assessment indications "
-                    "with interview evidence without making a "
-                    "matching, suitability, selection, promotion "
-                    "or hiring decision. Follow the requested "
-                    "NDJSON format exactly."
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical assessment analysis, interview "
+                    "evidence interpretation, evidence weighting, synthesis, "
+                    "conclusions and communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
+                    f"{_post_get_ai_system_language_instruction(language_code)}"
                 ),
             },
             {
@@ -2268,7 +2230,7 @@ def save_post_interview_decision_support(
             result.get(
                 "supported_indications"
             ),
-            limit=4,
+            limit=None,
         )
     )
 
@@ -2277,7 +2239,7 @@ def save_post_interview_decision_support(
             result.get(
                 "added_nuance"
             ),
-            limit=4,
+            limit=None,
         )
     )
 
@@ -2286,7 +2248,7 @@ def save_post_interview_decision_support(
             result.get(
                 "contradictions"
             ),
-            limit=3,
+            limit=None,
         )
     )
 
@@ -2295,7 +2257,7 @@ def save_post_interview_decision_support(
             result.get(
                 "remaining_uncertainties"
             ),
-            limit=5,
+            limit=None,
         )
     )
 
@@ -2304,7 +2266,7 @@ def save_post_interview_decision_support(
             result.get(
                 "suggested_follow_up"
             ),
-            limit=5,
+            limit=None,
         )
     )
 
@@ -2501,182 +2463,309 @@ def _replace_post_prompt_once(
         1,
     )
 
-
 def build_post_interview_decision_support_prompt(
     owner,
     *,
     language_code: str | None = None,
 ) -> str:
+    """
+    Build Talena's post-interview decision-support prompt.
+
+    Administrator guidance controls all non-technical analysis,
+    evidence weighting, synthesis, conclusions and communication.
+
+    Talena protects only input provenance and the technical
+    streaming/output contract.
+    """
+
     language_code = _post_normalize_ai_language(
         language_code
     )
 
-    examples = _get_post_interview_language_examples(
-        language_code
-    )
-
-    prompt = (
-        _original_build_post_interview_decision_support_prompt(
-            owner
+    language_instruction = (
+        _post_get_ai_language_instruction(
+            language_code
         )
     )
 
-    admin_instructions = get_ai_prompt_instructions(
-        key="post_interview_decision_support",
-        language=language_code,
+    examples = (
+        _get_post_interview_language_examples(
+            language_code
+        )
     )
 
-    admin_guidance_block = f"""
-ADMIN-EDITABLE DECISION SUPPORT GUIDANCE
+    admin_instructions = (
+        get_ai_prompt_instructions(
+            key=(
+                "post_interview_"
+                "decision_support"
+            ),
+            language=language_code,
+        )
+    )
 
-The following instructions control the desired tone, emphasis, evidence
-synthesis style and practical focus used by Talena when preparing
-post-interview decision support.
+    shared_context = build_shared_ai_context(
+        owner
+    )
 
-These instructions are managed globally by Talena administrators and
-apply to all customers using this AI feature.
+    candidate = shared_context["candidate"]
 
-They may influence how assessment and interview evidence are prioritised,
-compared and communicated.
+    evidence = build_pre_interview_evidence(
+        owner
+    )
 
-They must not override the evidence boundaries, assessment safeguards,
-human decision-making requirements, safety rules or technical output
-format defined elsewhere in this prompt.
+    interview_notes = _clean_text(
+        owner.interview_notes
+    )
+
+    if not interview_notes:
+        raise ValueError(
+            "Interview notes must be added before "
+            "post-interview decision support can be generated."
+        )
+
+    pre_interview_result = (
+        owner.ai_pre_interview_decision_support
+        or {}
+    )
+
+    pre_interview_text = json.dumps(
+        pre_interview_result,
+        ensure_ascii=False,
+        indent=2,
+    )
+
+    return f"""
+TALENA INPUT DATA
+
+CANDIDATE
+Name: {candidate.first_name} {candidate.last_name}
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
+
+SAVED ASSESSMENT INTERPRETATION EVIDENCE
+{evidence["evidence_text"]}
+
+PRE-INTERVIEW DECISION SUPPORT
+{pre_interview_text}
+
+INTERVIEW NOTES AND CANDIDATE EXAMPLES
+{interview_notes}
+
+
+ADMINISTRATOR AI GUIDANCE
+
+The following guidance is controlled by Talena administrators.
+
+It controls all non-technical decisions about:
+
+- assessment interpretation
+- interpretation of interview notes
+- evidence weighting
+- comparison of assessment and interview evidence
+- synthesis
+- treatment of contradictions
+- treatment of uncertainty
+- use of purpose and process context
+- conclusions
+- number of items in each section
+- suggested follow-up
+- caution
+- tone
+- communication style
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-THIS IS NOT A MATCHING VERDICT
+TALENA TECHNICAL OUTPUT CONTRACT
+
+The following requirements exist only so Talena can process,
+stream, save and display the result.
+
+Administrator guidance controls the substantive content and the
+number of items inside the arrays.
+
+Administrator guidance must not change:
+
+- required event names
+- required JSON field names
+- NDJSON structure
+
+
+OUTPUT LANGUAGE
+
+{language_instruction}
+
+All user-facing text must use the configured output language.
+
+
+STREAMING FORMAT
+
+Return newline-delimited JSON, also called NDJSON.
+
+Every JSON object must appear on one single line.
+
+Do not use Markdown.
+Do not use code fences.
+Do not add text outside the JSON objects.
+
+
+REQUIRED EVENT STRUCTURE
+
+
+1. META
+
+{{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
+
+
+2. OVERALL SYNTHESIS
+
+Return the synthesis using one or more
+overall_synthesis_delta events:
+
+{{"type":"overall_synthesis_delta","text":"{examples["synthesis"]}"}}
+
+
+3. SUPPORTED INDICATIONS
+
+Return one supported_indications event.
+
+Every item must preserve these fields:
+
+- title
+- assessment_indication
+- interview_evidence
+- interpretation
+
+The administrator guidance determines the number of items.
+
+Example:
+
+{json.dumps(
+    {
+        "type": "supported_indications",
+        "items": [examples["supported"]],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+4. ADDED NUANCE
+
+Return one added_nuance event.
+
+Every item must preserve:
+
+- title
+- assessment_indication
+- interview_evidence
+- interpretation
+
+The administrator guidance determines the number of items.
+
+Example:
+
+{json.dumps(
+    {
+        "type": "added_nuance",
+        "items": [examples["nuance"]],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+5. CONTRADICTIONS
+
+Return one contradictions event.
+
+Every item must preserve:
+
+- title
+- assessment_evidence
+- interview_evidence
+- interpretation
+
+The administrator guidance determines the number of items.
+
+An empty items array is technically valid.
+
+Example:
+
+{json.dumps(
+    {
+        "type": "contradictions",
+        "items": [examples["contradiction"]],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+6. REMAINING UNCERTAINTIES
+
+Return one remaining_uncertainties event.
+
+The administrator guidance determines the number of items.
+
+An empty items array is technically valid.
+
+{json.dumps(
+    {
+        "type": "remaining_uncertainties",
+        "items": examples["uncertainties"],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+7. SUGGESTED FOLLOW-UP
+
+Return one suggested_follow_up event.
+
+The administrator guidance determines the number of items.
+
+An empty items array is technically valid.
+
+{json.dumps(
+    {
+        "type": "suggested_follow_up",
+        "items": examples["follow_up"],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+8. CONTEXT NOTE
+
+Return one context_note event:
+
+{json.dumps(
+    {
+        "type": "context_note",
+        "text": examples["context_note"],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+An empty text value is technically valid if administrator guidance
+does not require substantive content.
+
+
+9. DONE
+
+Finish with:
+
+{{"type":"done"}}
 """.strip()
-
-    prompt = prompt.replace(
-        "THIS IS NOT A MATCHING VERDICT",
-        admin_guidance_block,
-        1,
-    )
-
-    prompt = _replace_post_prompt_once(
-        prompt,
-        "- Write in professional, clear English.",
-        _post_get_ai_language_instruction(
-            language_code
-        ),
-        label="language instruction",
-    )
-
-    replacements = [
-        (
-            '{"type":"meta","title":"Post-interview decision support","label":"Assessment and interview synthesis"}',
-            json.dumps(
-                {
-                    "type": "meta",
-                    "title": examples["title"],
-                    "label": examples["label"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "meta",
-        ),
-        (
-            '{"type":"overall_synthesis_delta","text":"First part of the synthesis. "}',
-            json.dumps(
-                {
-                    "type": "overall_synthesis_delta",
-                    "text": examples["synthesis"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "overall synthesis",
-        ),
-        (
-            '{"type":"supported_indications","items":[{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview example","interpretation":"Cautious synthesis"}]}',
-            json.dumps(
-                {
-                    "type": "supported_indications",
-                    "items": [examples["supported"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "supported indications",
-        ),
-        (
-            '{"type":"added_nuance","items":[{"title":"Theme title","assessment_indication":"Relevant assessment indication","interview_evidence":"Relevant interview evidence","interpretation":"How the interview evidence adds nuance"}]}',
-            json.dumps(
-                {
-                    "type": "added_nuance",
-                    "items": [examples["nuance"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "added nuance",
-        ),
-        (
-            '{"type":"contradictions","items":[{"title":"Tension title","assessment_evidence":"Assessment evidence","interview_evidence":"Interview evidence","interpretation":"Balanced explanation of the tension"}]}',
-            json.dumps(
-                {
-                    "type": "contradictions",
-                    "items": [examples["contradiction"]],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "contradictions",
-        ),
-        (
-            '{"type":"remaining_uncertainties","items":["Uncertainty one","Uncertainty two"]}',
-            json.dumps(
-                {
-                    "type": "remaining_uncertainties",
-                    "items": examples["uncertainties"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "remaining uncertainties",
-        ),
-        (
-            '{"type":"suggested_follow_up","items":["Follow-up action one","Follow-up action two"]}',
-            json.dumps(
-                {
-                    "type": "suggested_follow_up",
-                    "items": examples["follow_up"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "suggested follow-up",
-        ),
-        (
-            '{"type":"context_note","text":"Transparent explanation of the evidence used, limitations and human responsibility for the final decision."}',
-            json.dumps(
-                {
-                    "type": "context_note",
-                    "text": examples["context_note"],
-                },
-                ensure_ascii=False,
-                separators=(",", ":"),
-            ),
-            "context note",
-        ),
-    ]
-
-    for old, new, label in replacements:
-        prompt = _replace_post_prompt_once(
-            prompt,
-            old,
-            new,
-            label=label,
-        )
-
-    return prompt
-
 
 def create_empty_post_interview_decision_support(
     owner,

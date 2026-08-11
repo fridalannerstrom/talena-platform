@@ -201,28 +201,6 @@ def extract_motivation_results(
     )
 
 
-def describe_motivation_level(
-    score: int,
-) -> str:
-    """
-    Return a neutral interpretation of a STIVE motivation score.
-    """
-
-    if score == 1:
-        return "likely to be considerably less central"
-
-    if score == 2:
-        return "likely to be less central"
-
-    if score == 3:
-        return "likely to be moderately important"
-
-    if score == 4:
-        return "likely to be prominent"
-
-    return "likely to be highly prominent"
-
-
 def build_motivation_evidence_text(
     results: list[dict[str, Any]],
 ) -> str:
@@ -242,20 +220,12 @@ def build_motivation_evidence_text(
     lines = []
 
     for result in sorted_results:
-        definition = (
-            result.get("definition")
-            or "No predefined factor definition is available."
-        )
-
         lines.append(
             f"- {result['name']}: "
-            f"STIVE {result['score']} of 5; "
-            f"{describe_motivation_level(result['score'])}. "
-            f"Definition: {definition}"
+            f"STIVE {result['score']} of 5"
         )
 
     return "\n".join(lines)
-
 
 def build_motivation_interpretation_prompt(
     invitation,
@@ -264,15 +234,22 @@ def build_motivation_interpretation_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build the prompt for Talena's motivation interpretation.
+    Build Talena's motivation interpretation prompt.
+
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects only the technical input/output contract required
+    by the application.
     """
 
     language_code = normalize_ai_language(
         language_code
     )
+
     language_instruction = get_ai_language_instruction(
         language_code
     )
+
     admin_instructions = get_ai_prompt_instructions(
         key="motivation_interpretation",
         language=language_code,
@@ -283,89 +260,16 @@ def build_motivation_interpretation_prompt(
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
 
     purpose_label = shared_context["purpose_label"]
     context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
 
-    evidence_text = (
-        build_motivation_evidence_text(
-            motivation_results
-        )
+    evidence_text = build_motivation_evidence_text(
+        motivation_results
     )
-
-    has_context = bool(context_data)
-
-    sorted_results = sorted(
-        motivation_results,
-        key=lambda item: (
-            -item["score"],
-            item["name"].lower(),
-        ),
-    )
-
-    prominent_factors = sorted_results[:3]
-
-    less_central_factors = sorted(
-        motivation_results,
-        key=lambda item: (
-            item["score"],
-            item["name"].lower(),
-        ),
-    )[:3]
-
-    prominent_text = "\n".join(
-        (
-            f"- {item['name']}: "
-            f"STIVE {item['score']} of 5"
-        )
-        for item in prominent_factors
-    )
-
-    less_central_text = "\n".join(
-        (
-            f"- {item['name']}: "
-            f"STIVE {item['score']} of 5"
-        )
-        for item in less_central_factors
-    )
-
-    if has_context:
-        context_instruction = """
-Use the supplied process context to explain how the motivation profile
-may relate to the stated role, situation or development purpose.
-
-Clearly distinguish between:
-- motivational preferences indicated by the assessment
-- information explicitly stated in the process context
-- assumptions that must be explored through conversation
-
-Do not invent requirements, working conditions, rewards, culture or
-candidate experience that are not present in the supplied information.
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Provide a broader interpretation based on the available motivation
-results and the selected purpose only.
-
-Do not invent specific role conditions, organisational culture,
-leadership style, rewards, responsibilities or career opportunities.
-
-State clearly that practical relevance depends on the actual context
-and the person's own reflections.
-""".strip()
 
     return f"""
-You are generating an AI-supported motivation interpretation for
-Talena, an assessment and talent management platform.
-
-You are an experienced, balanced and commercially aware assessment
-consultant with strong knowledge of workplace motivation, engagement,
-expectation setting and structured follow-up conversations.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
@@ -373,200 +277,119 @@ Name: {candidate.first_name} {candidate.last_name}
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{context_text or "No additional process context supplied."}
 
-ALL AVAILABLE MOTIVATION RESULTS
+MOTIVATION ASSESSMENT DATA
 {evidence_text}
 
-THREE MOST PROMINENT AVAILABLE FACTORS
-{prominent_text}
 
-THREE LEAST CENTRAL AVAILABLE FACTORS
-{less_central_text}
+ADMINISTRATOR AI GUIDANCE
 
-CONTEXT INSTRUCTION
-{context_instruction}
+The following guidance is controlled by Talena administrators.
 
-YOUR TASK
-Create one practical and balanced interpretation of the available
-motivation profile in relation to the selected process purpose and any
-supplied process context.
-
-Help the user understand:
-
-1. What may provide energy and engagement.
-2. Which working conditions may support sustainable motivation.
-3. Which expectations, tensions or less central drivers should be clarified.
-4. How the role, situation or development opportunity should be described
-   realistically.
-
-ADMIN-EDITABLE INTERPRETATION GUIDANCE
-
-The following instructions control the desired tone, emphasis and
-communication style used when Talena interprets motivation results.
-
-These instructions are managed globally by Talena administrators and
-apply to all customers using this AI feature.
-
-They may influence how the interpretation is expressed, but they must
-not override the assessment principles, evidence boundaries, safety
-requirements or technical output format defined elsewhere in this prompt.
+It controls all non-technical decisions about analysis,
+interpretation, motivation assessment principles, factor meanings,
+score interpretation, evidence boundaries, reasoning, tone,
+caution, conclusions and communication.
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-CORE INTERPRETATION RULES
-- Motivation results describe likely sources of energy, engagement and
-  preference.
-- They do not measure ability, personality, competence, values, integrity,
-  experience or likely job performance.
-- A lower score does not indicate poor motivation in general.
-- A lower score means that the factor may be less central as a source of
-  energy or engagement.
-- A higher score does not mean that the person always requires the factor
-  or will perform well when it is present.
-- Do not make a hiring, promotion, placement or development decision.
-- Do not create a match score, suitability verdict or prediction of success.
-- Do not diagnose the candidate.
-- Do not invent role conditions, company culture or candidate experience.
-- Treat results as indicators and hypotheses, not facts.
-- Interpret combinations across factors where useful.
-- Do not create invented psychological constructs or composite scores.
-- Where factors point in different directions, describe the tension or nuance.
-- Do not include raw scores in the final output.
-- Use the person's own examples and reflections as important additional
-  evidence.
-- If context is limited or missing, say so clearly.
+TALENA TECHNICAL OUTPUT CONTRACT
 
-IMPORTANT DISTINCTIONS
-- Prominent factors may provide energy when present, but can also create
-  frustration when consistently absent.
-- Less central factors are not weaknesses and do not mean the person rejects
-  those conditions.
-- Mid-range results may indicate flexibility or that the factor is neither a
-  particularly strong driver nor a strong source of disengagement.
-- The same motivation factor can be expressed differently depending on the
-  work environment and the individual.
-- Motivation can change over time and across situations.
+The following requirements exist only so Talena can process,
+stream, save and display the generated response.
 
-LANGUAGE AND TONE
+Administrator guidance may control the content and number of
+items inside each section, but must not change the required
+event types, JSON field names or NDJSON structure.
+
+
+OUTPUT LANGUAGE
+
 {language_instruction}
-- Translate every user-facing JSON string, including title and label.
-- Be practical, balanced and non-judgemental.
-- Use cautious formulations such as:
-  "may indicate",
-  "suggests",
-  "may gain energy from",
-  "may be less dependent on",
-  "could be useful to clarify".
-- Avoid technical or academic language.
-- Avoid repeatedly writing "the candidate is".
-- Refer to the candidate by first name where natural.
-- Do not use exaggerated positive or negative wording.
 
-CONTENT REQUIREMENTS
+All user-facing text inside the JSON response must use the
+configured output language.
 
-OVERALL MOTIVATION INTERPRETATION
-Write approximately 100 to 150 words.
 
-The interpretation should:
-- describe the most important motivation patterns
-- consider combinations across prominent, mid-range and less central factors
-- connect cautiously to the selected purpose
-- use supplied context where available
-- identify any meaningful tension or condition
-- explain limitations where context is missing
-- avoid simply repeating the top-three descriptions
+STREAMING FORMAT
 
-ENGAGEMENT CONDITIONS
-Return exactly 3 concise points.
-
-Each point should:
-- describe a condition that may support energy or sustainable engagement
-- be grounded in the available motivation results
-- connect to the selected purpose or context where possible
-- remain cautious rather than prescriptive
-
-Do not simply repeat the factor names.
-
-WHAT TO EXPLORE OR CLARIFY
-Return exactly 3 concise points.
-
-These may include:
-- how prominent drivers are expressed in practice
-- how the person responds when a prominent factor is absent
-- what less central factors mean to the individual
-- possible tensions between different drivers
-- unclear or missing information about the actual context
-- expectations that should be discussed before decisions are made
-
-These are topics for clarification, not confirmed risks or weaknesses.
-
-REALISTIC EXPECTATION SETTING
-Write one short practical paragraph.
-
-Explain what the user should describe or clarify honestly about the role,
-environment or development situation.
-
-Base this only on:
-- the available motivation profile
-- the selected purpose
-- supplied process context
-
-Do not invent benefits, working conditions or organisational promises.
-
-CONTEXT NOTE
-Briefly explain:
-- that a motivation assessment was used
-- whether additional process context was available
-- how this affects the scope of the interpretation
-
-STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
+
 Do not use Markdown.
+
 Do not use code fences.
+
 Do not add text outside the JSON objects.
 
-Return events in this exact order:
 
-1. One meta event:
+REQUIRED EVENT STRUCTURE
+
+
+1. META EVENT
+
+Return one meta event:
 
 {{"type":"meta","title":"Motivation interpretation","label":"AI-supported interpretation"}}
 
-2. Between 3 and 6 interpretation_delta events:
+
+2. INTERPRETATION CONTENT
+
+Return the overall interpretation using one or more
+interpretation_delta events:
 
 {{"type":"interpretation_delta","text":"First part of the interpretation. "}}
+
 {{"type":"interpretation_delta","text":"Next part of the interpretation. "}}
 
-Together, these events form the complete overall interpretation.
 
-3. One engagement_conditions event containing exactly 3 items:
+3. ENGAGEMENT CONDITIONS
 
-{{"type":"engagement_conditions","items":["Condition one","Condition two","Condition three"]}}
+Return one engagement_conditions event.
 
-4. One areas_to_clarify event containing exactly 3 items:
+The items array may contain the number of items requested by the
+administrator guidance:
 
-{{"type":"areas_to_clarify","items":["Clarification one","Clarification two","Clarification three"]}}
+{{"type":"engagement_conditions","items":["Condition one","Condition two"]}}
 
-5. One expectation_setting event:
 
-{{"type":"expectation_setting","text":"A short, honest expectation-setting recommendation."}}
+4. AREAS TO CLARIFY
 
-6. One context_note event:
+Return one areas_to_clarify event.
+
+The items array may contain the number of items requested by the
+administrator guidance:
+
+{{"type":"areas_to_clarify","items":["Clarification one","Clarification two"]}}
+
+
+5. EXPECTATION SETTING
+
+Return one expectation_setting event:
+
+{{"type":"expectation_setting","text":"Expectation-setting content."}}
+
+If administrator guidance does not require substantive content here,
+return an empty text value while preserving the technical event.
+
+
+6. CONTEXT NOTE
+
+Return one context_note event:
 
 {{"type":"context_note","text":"Brief explanation of the evidence and context used."}}
 
-7. One final done event:
+
+7. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
-
 
 def create_empty_motivation_interpretation(
     owner,
@@ -630,7 +453,7 @@ def apply_motivation_interpretation_event(
         if isinstance(items, list):
             interpretation["engagement_conditions"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -640,7 +463,7 @@ def apply_motivation_interpretation_event(
         if isinstance(items, list):
             interpretation["areas_to_clarify"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -691,7 +514,7 @@ def get_motivation_interpretation_system_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Return the protected system instructions used for
+    Return Talena's technical system instructions for
     motivation interpretation generation.
     """
 
@@ -706,14 +529,15 @@ def get_motivation_interpretation_system_prompt(
     )
 
     return (
-        "You are a careful and experienced workplace "
-        "motivation assessment consultant. Treat motivation "
-        "results as indicators rather than facts, never "
-        "invent context, and follow the requested NDJSON "
-        "streaming format exactly. "
+        "You are an AI component inside Talena. "
+        "Follow the administrator-provided AI guidance for "
+        "all non-technical analysis, motivation interpretation "
+        "and communication decisions. "
+        "Follow Talena's technical output contract exactly, "
+        "including required JSON structure, field names, "
+        "event types and streaming format. "
         f"{system_language_instruction}"
     )
-
 
 def stream_motivation_interpretation(
     *,

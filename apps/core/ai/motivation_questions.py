@@ -36,12 +36,18 @@ def build_motivation_questions_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build a purpose-aware prompt for motivation questions only.
+    Build Talena's prompt for motivation follow-up questions.
+
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects only the technical input/output contract required
+    by the application.
     """
 
     language_code = normalize_ai_language(
         language_code
     )
+
     language_instruction = get_ai_language_instruction(
         language_code
     )
@@ -58,35 +64,13 @@ def build_motivation_questions_prompt(
     candidate = shared_context["candidate"]
     purpose_label = shared_context["purpose_label"]
     context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
 
-    evidence_text = (
-        build_motivation_evidence_text(
-            motivation_results
-        )
+    evidence_text = build_motivation_evidence_text(
+        motivation_results
     )
 
-    if context_data:
-        context_instruction = """
-Use only the supplied process context when referring to role conditions,
-working environment, responsibilities, rewards or development opportunities.
-
-Do not invent culture, benefits, tasks or expectations that are not
-present in the supplied context.
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Base the questions on the available motivation results and selected
-purpose. Keep them broadly applicable and do not invent role conditions,
-rewards, responsibilities or organisational culture.
-""".strip()
-
     return f"""
-You are generating AI-supported motivation follow-up questions for
-Talena, an assessment and talent management platform.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
@@ -94,128 +78,91 @@ Name: {candidate.first_name} {candidate.last_name}
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{context_text or "No additional process context supplied."}
 
-AVAILABLE MOTIVATION EVIDENCE
+MOTIVATION ASSESSMENT DATA
 {evidence_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-YOUR TASK
-Generate exactly 3 practical questions that help gather additional
-evidence about how the motivation profile appears in real situations.
+ADMINISTRATOR AI GUIDANCE
 
-Cover different themes, such as:
-- what provides energy and engagement
-- what happens when an important condition is absent
-- how prominent and less central drivers appear in practice
-- tensions between motivational preferences
-- expectations or working conditions that should be clarified
-- sustainable motivation over time
+The following guidance is controlled by Talena administrators.
 
-ADMIN-EDITABLE QUESTION GUIDANCE
-
-The following instructions control the desired question style, emphasis,
-tone and practical interviewing approach used by Talena.
-
-These instructions are managed globally by Talena administrators and apply
-to all customers using this AI feature.
-
-They may influence how the questions are formulated, but they must not
-override the assessment principles, evidence boundaries, safety requirements,
-question requirements or technical output format defined elsewhere in this
-prompt.
+It controls all non-technical decisions about question content,
+motivation assessment interpretation, factor meanings, score
+interpretation, evidence boundaries, interviewing approach,
+reasoning, tone, caution and communication.
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-ASSESSMENT PRINCIPLES
-- Motivation results describe likely sources of energy, engagement
-  and preference.
-- They do not measure ability, personality, competence, experience,
-  values, integrity or likely job performance.
-- Lower results are not weaknesses or poor motivation in general.
-- Higher results do not guarantee performance.
-- Treat results as indicators and hypotheses rather than facts.
-- Do not make a suitability decision or diagnose the candidate.
-- Do not include raw scores.
-- Do not invent candidate experience or process context.
-- Do not lead the respondent towards a preferred answer.
+TALENA TECHNICAL OUTPUT CONTRACT
 
-QUESTION RULES
-Each question must:
-- be open and practical
-- invite a concrete example or reflection
-- relate to available motivation evidence
-- be understandable without psychometric knowledge
-- explore a different theme
-- avoid presenting a result as confirmed fact
+The following requirements exist only so Talena can process,
+save and display the generated response.
 
-For recruitment, use interview wording.
+Administrator guidance may control the number and content of
+questions and whether the explanatory fields contain substantive
+content.
 
-For development, onboarding, leadership or team purposes, use
-reflection or discussion wording where appropriate.
+The required JSON field names and structure must not change.
 
-For every question return:
-- question: the complete question
-- why: the specific motivation hypothesis it helps explore
-- listen_for: concrete evidence to look for in the answer
 
-The listen_for field should mention cues such as:
-- conditions that increased or reduced energy
-- responses when a driver was absent
-- priorities, choices and trade-offs
-- self-awareness about motivational needs
-- strategies used to maintain engagement
-- observable outcomes
-- reflection and learning
+OUTPUT LANGUAGE
 
-Do not use vague phrases such as:
-- "listen for motivation"
-- "look for a good fit"
-- "consider whether they are engaged"
-
-Also return a short context_note explaining:
-- that a motivation assessment was used
-- whether additional process context was available
-- that the questions gather supporting evidence
-
-LANGUAGE
 {language_instruction}
-Translate every user-facing JSON string, including title and label.
+
+All user-facing text inside the JSON response must use the
+configured output language.
+
 
 OUTPUT FORMAT
+
 Return exactly one JSON object.
 
 Do not use Markdown.
-Do not use code fences.
-Do not add any other text.
 
-Use this exact structure:
+Do not use code fences.
+
+Do not add text outside the JSON object.
+
+
+REQUIRED JSON STRUCTURE
+
+Use these exact top-level field names:
+
+- title
+- label
+- questions
+- context_note
+
+The questions field must be an array.
+
+Every question object must use these exact field names:
+
+- question
+- why
+- listen_for
+
+The administrator guidance determines how many question objects
+should be returned.
+
+If the administrator guidance does not require substantive content
+for why or listen_for, preserve the technical field and return an
+empty string.
+
+
+Example:
 
 {{
   "title": "Motivation questions",
   "label": "AI-supported questions",
   "questions": [
     {{
-      "question": "Question one",
-      "why": "Why this question is useful",
-      "listen_for": "Concrete evidence to look for"
-    }},
-    {{
-      "question": "Question two",
-      "why": "Why this question is useful",
-      "listen_for": "Concrete evidence to look for"
-    }},
-    {{
-      "question": "Question three",
-      "why": "Why this question is useful",
-      "listen_for": "Concrete evidence to look for"
+      "question": "Question text",
+      "why": "Why this question is relevant",
+      "listen_for": "What to listen for"
     }}
   ],
   "context_note": "Brief explanation of evidence and context used."
@@ -256,7 +203,7 @@ def _normalise_questions(
     value: Any,
 ) -> list[dict[str, str]]:
     """
-    Return up to three complete question objects.
+    Return valid motivation question objects.
     """
 
     if not isinstance(
@@ -267,7 +214,7 @@ def _normalise_questions(
 
     questions = []
 
-    for item in value[:3]:
+    for item in value:
         if not isinstance(
             item,
             dict,
@@ -289,11 +236,7 @@ def _normalise_questions(
             or ""
         ).strip()
 
-        if not (
-            question
-            and why
-            and listen_for
-        ):
+        if not question:
             continue
 
         questions.append({
@@ -429,7 +372,7 @@ def _parse_result(
         )
     )
 
-    if len(questions) != 3:
+    if not questions:
         return None
 
     return {
@@ -527,9 +470,12 @@ def stream_motivation_questions(
     )
 
     system_message = (
-        "You are a careful workplace motivation assessment "
-        "consultant. Treat results as indicators rather than "
-        "facts, never invent context and return valid JSON. "
+        "You are an AI component inside Talena. "
+        "Follow the administrator-provided AI guidance for "
+        "all non-technical question content, motivation "
+        "interpretation and communication decisions. "
+        "Follow Talena's technical output contract exactly, "
+        "including required JSON structure and field names. "
         f"{system_language_instruction}"
     )
 
@@ -611,7 +557,7 @@ def stream_motivation_questions(
 
         raise ValueError(
             "The AI response did not contain "
-            "three valid motivation questions."
+            "valid motivation questions."
         )
 
     yield {
@@ -664,10 +610,10 @@ def save_motivation_questions(
         )
     )
 
-    if len(questions) != 3:
+    if not questions:
         raise ValueError(
             "The AI response did not contain "
-            "three valid motivation questions."
+            "valid motivation questions."
         )
 
     result["questions"] = questions

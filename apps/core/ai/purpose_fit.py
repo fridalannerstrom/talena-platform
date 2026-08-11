@@ -380,20 +380,13 @@ def build_purpose_fit_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build the prompt for Talena's combined AI Overview.
+    Build Talena's AI Overview prompt.
 
-    The overview always uses the available assessment evidence.
+    Administrator guidance controls all non-technical analysis,
+    synthesis, interpretation and communication decisions.
 
-    When available, Talena may also use:
-    - a specific process purpose
-    - optional process context
-
-    Flexible/general processes receive a general assessment-based
-    overview instead of being excluded from AI interpretation.
-
-    The output remains compatible with the existing purpose-fit
-    streaming and storage structure while the feature is gradually
-    renamed to AI Overview.
+    Talena protects only input plumbing and the technical
+    streaming/output contract.
     """
 
     language_code = normalize_ai_language(
@@ -419,415 +412,153 @@ def build_purpose_fit_prompt(
 
     candidate = shared_context["candidate"]
 
-    purpose_key = shared_context["purpose_key"]
-    purpose_label = shared_context["purpose_label"]
-
-    context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
-
-    assessment_text, assessment_type_count = (
-        build_assessment_evidence(
-            invitation
-        )
+    assessment_text, _ = build_assessment_evidence(
+        invitation
     )
-
-    # ---------------------------------------------------------
-    # Determine interpretation scope
-    # ---------------------------------------------------------
-
-    has_context = bool(
-        context_data
-    )
-
-    general_purpose_keys = {
-        "",
-        "flexible",
-        "unsure",
-        "general",
-    }
-
-    has_specific_purpose = (
-        purpose_key not in general_purpose_keys
-    )
-
-    # ---------------------------------------------------------
-    # 1. Specific purpose + context
-    # ---------------------------------------------------------
-
-    if has_specific_purpose and has_context:
-        context_instruction = """
-A specific process purpose and additional process context are available.
-
-Use both to explain how the assessment indications may be relevant to
-this purpose and situation.
-
-Clearly distinguish between:
-- information stated in the process context
-- indications derived from assessment results
-- interpretations that should be explored further
-
-Do not invent requirements, responsibilities or candidate experience
-that are not present in the supplied information.
-""".strip()
-
-        overview_scope = (
-            "in relation to the selected process purpose and supplied "
-            "process context"
-        )
-
-        support_heading = (
-            "WHAT MAY SUPPORT THE PURPOSE"
-        )
-
-        support_relevance_instruction = (
-            "explain possible relevance to the selected purpose or "
-            "supplied context"
-        )
-
-        next_step_instruction = (
-            "Return one practical and proportionate next step appropriate "
-            "to the selected purpose and supplied context."
-        )
-
-    # ---------------------------------------------------------
-    # 2. Specific purpose, no context
-    # ---------------------------------------------------------
-
-    elif has_specific_purpose:
-        context_instruction = """
-A specific process purpose is available, but no additional process
-context has been supplied.
-
-Use the selected purpose to add relevance while keeping the
-interpretation broad.
-
-Do not invent specific role requirements, responsibilities, team
-conditions, organisational circumstances or candidate experience.
-
-Clearly state where more context or real-world examples would be useful
-for understanding the practical relevance of the results.
-""".strip()
-
-        overview_scope = (
-            "in relation to the selected process purpose, without assuming "
-            "requirements or circumstances that have not been supplied"
-        )
-
-        support_heading = (
-            "WHAT MAY SUPPORT THE PURPOSE"
-        )
-
-        support_relevance_instruction = (
-            "explain possible relevance to the selected purpose without "
-            "inventing specific requirements"
-        )
-
-        next_step_instruction = (
-            "Return one practical and proportionate next step appropriate "
-            "to the selected purpose."
-        )
-
-    # ---------------------------------------------------------
-    # 3. General purpose + context
-    # ---------------------------------------------------------
-
-    elif has_context:
-        context_instruction = """
-No specific process purpose has been selected.
-
-Use the supplied process context only where it adds practical meaning
-to the assessment results.
-
-Do not infer or invent a recruitment, development, leadership, team or
-other purpose.
-
-Do not assess fit or suitability.
-
-The overview should remain a general assessment-based interpretation,
-with the supplied context used only to add supported practical nuance.
-""".strip()
-
-        overview_scope = (
-            "as a general assessment-based profile, using the supplied "
-            "process context only where it adds supported practical nuance"
-        )
-
-        support_heading = (
-            "POTENTIALLY SUPPORTIVE PATTERNS"
-        )
-
-        support_relevance_instruction = (
-            "describe patterns that may be practically useful or supportive, "
-            "using supplied context only where directly supported"
-        )
-
-        next_step_instruction = (
-            "Return one practical and proportionate next step based on the "
-            "assessment evidence and supplied context, without assuming a "
-            "specific purpose."
-        )
-
-    # ---------------------------------------------------------
-    # 4. General purpose, no context
-    # ---------------------------------------------------------
-
-    else:
-        context_instruction = """
-No specific process purpose or additional process context has been
-supplied.
-
-Base the overview only on the available assessment evidence.
-
-Provide a general interpretation of the most important patterns across
-the available results.
-
-Describe possible workplace meaning without assuming any particular
-role, organisation, team, career goal or development situation.
-
-Do not assess fit or suitability.
-
-Do not invent requirements, responsibilities, candidate experience or
-organisational circumstances.
-""".strip()
-
-        overview_scope = (
-            "as a general assessment-based profile without assuming any "
-            "specific role, purpose, team, organisation or development "
-            "situation"
-        )
-
-        support_heading = (
-            "POTENTIALLY SUPPORTIVE PATTERNS"
-        )
-
-        support_relevance_instruction = (
-            "describe patterns that may be practically useful or supportive "
-            "in some workplace situations"
-        )
-
-        next_step_instruction = (
-            "Return one practical and proportionate next step for understanding "
-            "or validating the profile without assuming a specific purpose."
-        )
-
-    # ---------------------------------------------------------
-    # Build final prompt
-    # ---------------------------------------------------------
 
     return f"""
-You are generating the AI Overview for Talena, an assessment and
-talent management platform.
-
-You are an experienced, balanced and commercially aware assessment
-consultant with a strong understanding of personality, motivation,
-cognitive ability, workplace behaviour and structured follow-up
-conversations.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
-PROCESS PURPOSE
-Purpose: {purpose_label}
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+Purpose key: {shared_context["purpose_key"] or "No specific purpose"}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
 
 AVAILABLE ASSESSMENT EVIDENCE
 {assessment_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-YOUR TASK
-Create one balanced and practical overview of all available assessment
-evidence {overview_scope}.
+ADMINISTRATOR AI GUIDANCE
 
-The result should help the user understand:
+The following guidance is controlled by Talena administrators.
 
-1. The most important overall indications in the profile.
-2. Which assessment patterns may be practically relevant or potentially supportive.
-3. Which topics should be explored, considered or followed up.
-4. One practical and proportionate next step.
+It controls all non-technical decisions about:
 
-ADMIN-EDITABLE SYNTHESIS GUIDANCE
-
-The following instructions control the desired tone, emphasis and synthesis
-style used by Talena when combining assessment evidence into the AI Overview.
-
-These instructions are managed globally by Talena administrators and apply
-to all customers using this AI feature.
-
-They may influence how the evidence is prioritised, connected and communicated,
-but they must not override the assessment principles, evidence boundaries,
-safety requirements or technical output format defined elsewhere in this
-prompt.
+- assessment interpretation
+- synthesis across assessment types
+- evidence boundaries
+- use of purpose and process context
+- reasoning
+- prioritisation
+- caution
+- conclusions
+- tone
+- number of list items
+- recommended next steps
+- communication style
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-CORE INTERPRETATION RULES
+TALENA TECHNICAL OUTPUT CONTRACT
 
-- Treat assessment results as indicators and hypotheses, not facts.
-- Do not make a final hiring, promotion, development or placement decision.
-- Do not create a match score, suitability verdict or prediction of success.
-- Do not use categorical or judgemental language.
-- Do not diagnose the candidate.
-- Do not invent role requirements, candidate experience or process context.
-- Only draw conclusions from assessment types that are actually available.
-- Do not imply that personality measures ability.
-- Do not imply that cognitive ability results measure personality,
-  motivation or experience.
-- Do not describe lower scores as automatic weaknesses.
-- Do not describe higher scores as automatic strengths.
-- Explain what an indication may mean in practice within the available
-  purpose and context. When no specific purpose or context is available,
-  describe its broader possible workplace meaning instead.
-- Consider combinations across available results where useful, but do not
-  invent new psychological constructs, competency themes or composite scores.
-- If different parts of the evidence point in different directions,
-  describe the nuance or discrepancy clearly.
-- If the evidence is limited, say so clearly.
-- If additional context is missing, do not invent it.
-- Do not include raw assessment scores in the output.
-- Avoid technical test language and academic phrasing.
-- Keep the language practical and useful for the person reviewing the results.
+The following requirements exist only so Talena can process,
+stream, save and display the AI Overview.
 
-LANGUAGE AND TONE
+Administrator guidance controls the substantive content inside
+these fields.
+
+Administrator guidance must not change the required event names,
+JSON field names or NDJSON structure.
+
+
+OUTPUT LANGUAGE
 
 {language_instruction}
 
-- Avoid repeatedly writing "the candidate is".
-- Refer to the candidate by first name where natural.
-- Keep the tone balanced and non-judgemental.
-- Avoid exaggerated positive or negative wording.
+All user-facing text inside the JSON response must use the
+configured output language.
 
-IMPORTANT DISTINCTIONS
 
-- Personality results describe likely preferences or behavioural tendencies.
-- Motivation results describe possible sources of energy and engagement.
-- Cognitive results describe relative performance on specific reasoning tasks.
-- Process purpose and context may add practical relevance when available.
-- Candidate experience, competence and actual workplace behaviour cannot be
-  assumed unless explicitly supplied in the context.
-
-CONTENT REQUIREMENTS
-
-OVERALL INTERPRETATION
-
-Write approximately 90 to 140 words.
-
-The interpretation should:
-- summarise the most important available indications
-- interpret them within the scope described above
-- include both potentially supportive patterns and relevant considerations
-- use purpose or context only when they are actually available
-- acknowledge missing or limited evidence where necessary
-- avoid repeating the lists word for word
-
-{support_heading}
-
-Return exactly 3 concise points.
-
-Each point must:
-- be supported by available assessment evidence
-- {support_relevance_instruction}
-- remain cautious and practical
-- not claim proven performance, competence or experience
-
-Do not force three exaggerated positive points.
-
-When evidence is mixed or limited, describe potentially useful patterns,
-conditions or preferences cautiously.
-
-WHAT TO EXPLORE OR CONSIDER
-
-Return exactly 3 concise points.
-
-These may include:
-- lower or less preferred results that may be relevant in some situations
-- potential tensions between different results
-- situational demands that cannot be evaluated from the available tests
-- areas where actual examples, experience or behaviour are needed
-- limitations caused by missing purpose, context or assessment evidence
-
-These are hypotheses to explore, not confirmed weaknesses.
-
-RECOMMENDED NEXT STEP
-
-{next_step_instruction}
-
-Examples may include:
-- a structured follow-up conversation
-- behavioural examples
-- a relevant work sample
-- a development discussion
-- clarification of role or organisational context
-- comparison with additional evidence
-- reflection on situations where the indicated preferences are more or less useful
-
-Do not automatically recommend an interview unless recruitment is the
-selected purpose.
-
-CONTEXT NOTE
-
-Briefly and transparently explain:
-- which assessment types were used
-- whether a specific process purpose was available
-- whether additional process context was available
-- how the available information affects the scope of the interpretation
-
-STREAMING OUTPUT FORMAT
+STREAMING FORMAT
 
 Return newline-delimited JSON, also called NDJSON.
 
-Every JSON object must be written on one single line.
+Every JSON object must appear on one single line.
+
 Do not use Markdown.
 Do not use code fences.
-Do not add any text outside the JSON objects.
+Do not add text outside the JSON objects.
 
-The existing frontend still expects the following event names.
-Use them exactly.
 
-Return events in this exact order:
+REQUIRED EVENT STRUCTURE
 
-1. One meta event.
 
-The recommendation and confidence properties are temporary legacy fields
-used for technical compatibility. Always return the exact values below.
-They are not displayed as a verdict in the AI Overview.
+1. META EVENT
+
+Return:
 
 {{"type":"meta","title":"{output_examples["title"]}","recommendation":"Insufficient context","confidence":"Low"}}
 
-2. Between 3 and 6 summary_delta events.
+The recommendation and confidence fields are legacy technical
+compatibility fields.
 
-Together, these events must form the complete overall interpretation.
+Always return exactly:
+
+recommendation = "Insufficient context"
+confidence = "Low"
+
+They do not control the substantive AI Overview.
+
+
+2. OVERALL INTERPRETATION
+
+Return the overall interpretation using one or more
+summary_delta events:
 
 {{"type":"summary_delta","text":"{output_examples["summary_1"]}"}}
-{{"type":"summary_delta","text":"{output_examples["summary_2"]}"}}
 
-3. One key_alignment event containing exactly 3 items.
 
-{{"type":"key_alignment","items":["{output_examples["support_1"]}","{output_examples["support_2"]}","{output_examples["support_3"]}"]}}
+3. SUPPORTIVE / RELEVANT PATTERNS
 
-4. One areas_to_verify event containing exactly 3 items.
+Return one key_alignment event.
 
-{{"type":"areas_to_verify","items":["{output_examples["consider_1"]}","{output_examples["consider_2"]}","{output_examples["consider_3"]}"]}}
+The administrator guidance determines the number of items:
 
-5. One suggested_next_step event.
+{{"type":"key_alignment","items":["{output_examples["support_1"]}"]}}
+
+
+4. AREAS TO EXPLORE OR CONSIDER
+
+Return one areas_to_verify event.
+
+The administrator guidance determines the number of items:
+
+{{"type":"areas_to_verify","items":["{output_examples["consider_1"]}"]}}
+
+
+5. SUGGESTED NEXT STEP
+
+Return one suggested_next_step event:
 
 {{"type":"suggested_next_step","text":"{output_examples["next_step"]}"}}
 
-6. One context_note event.
+If administrator guidance does not require substantive content,
+preserve the event using an empty text value.
+
+
+6. CONTEXT NOTE
+
+Return one context_note event:
 
 {{"type":"context_note","text":"{output_examples["context_note"]}"}}
 
-7. One final done event.
+If administrator guidance does not require substantive content,
+preserve the event using an empty text value.
+
+
+7. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
+
 
 def create_empty_purpose_fit(invitation) -> dict[str, Any]:
     return {
@@ -890,7 +621,7 @@ def apply_purpose_fit_event(
         if isinstance(items, list):
             purpose_fit["key_alignment"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -900,7 +631,7 @@ def apply_purpose_fit_event(
         if isinstance(items, list):
             purpose_fit["areas_to_verify"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -983,10 +714,13 @@ def stream_candidate_purpose_fit(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful and experienced assessment "
-                    "interpretation consultant. Treat test results as "
-                    "indicators rather than facts, do not invent context, "
-                    "and follow the requested NDJSON streaming format exactly. "
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical assessment analysis, synthesis, "
+                    "interpretation and communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
                     f"{system_language_instruction}"
                 ),
             },
