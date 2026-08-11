@@ -21279,6 +21279,8 @@ body {
 }
 
 
+
+
 /* =========================================================
    RESPONSIVE
    ========================================================= */
@@ -29238,6 +29240,79 @@ color: #6E63E3;
 /* =========================================================
    CHAT MESSAGES
 ========================================================= */
+
+/* =========================================================
+   TALENA AI THINKING
+========================================================= */
+
+.candidate-ai-message.is-thinking {
+  min-width: 155px;
+}
+
+.candidate-ai-thinking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #73798a;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.candidate-ai-thinking__text {
+  white-space: nowrap;
+}
+
+.candidate-ai-thinking__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.candidate-ai-thinking__dots span {
+  display: block;
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+  background: currentColor;
+
+  animation:
+    candidateAiThinkingDot
+    1.2s
+    ease-in-out
+    infinite;
+}
+
+.candidate-ai-thinking__dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.candidate-ai-thinking__dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes candidateAiThinkingDot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .candidate-ai-thinking__dots span {
+    animation: none;
+    opacity: 0.65;
+  }
+}
 
 .candidate-ai-message {
   max-width: 88%;

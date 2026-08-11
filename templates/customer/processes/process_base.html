@@ -4057,11 +4057,21 @@ function appendCandidateThinkingMessage(container) {
   message.innerHTML = `
     <div
       class="candidate-ai-thinking"
-      aria-label="${window.TALENA_PROCESS_I18N.talenaAiThinking}"
+      role="status"
+      aria-live="polite"
     >
-      <span></span>
-      <span></span>
-      <span></span>
+      <span class="candidate-ai-thinking__text">
+        ${window.TALENA_PROCESS_I18N.talenaAiThinking}
+      </span>
+
+      <span
+        class="candidate-ai-thinking__dots"
+        aria-hidden="true"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </div>
   `;
 
