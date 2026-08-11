@@ -31,6 +31,17 @@ class TestProcess(models.Model):
     purpose = models.CharField(max_length=80, blank=True, default="")
     selected_tests = models.JSONField(default=list, blank=True)
 
+    CANDIDATE_LANGUAGE_CHOICES = [
+    ("sv", "Swedish"),
+    ("en", "English"),
+    ]
+
+    candidate_language = models.CharField(
+        max_length=10,
+        choices=CANDIDATE_LANGUAGE_CHOICES,
+        default="sv",
+    )
+
     self_registration_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,

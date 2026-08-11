@@ -30036,6 +30036,128 @@ color: #6E63E3;
   }
 }
 
+/* Candidate language */
+
+.candidate-language-section {
+  padding-top: 1.25rem;
+  border-top: 1px solid #eef0f4;
+}
+
+.candidate-language-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 760px;
+}
+
+.candidate-language-card {
+  display: block;
+  cursor: pointer;
+}
+
+.candidate-language-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.candidate-language-card-inner {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+
+  min-height: 86px;
+  padding: 1rem 1.1rem;
+
+  border: 1.5px solid #e1e4ea;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.candidate-language-card:hover
+.candidate-language-card-inner {
+  border-color: #c9c3f5;
+  background: #faf9ff;
+}
+
+.candidate-language-card input:checked
++ .candidate-language-card-inner {
+  border-color: #7c3aed;
+  background: #faf8ff;
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.08);
+}
+
+.candidate-language-code {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: #f3f1ff;
+  color: #6d5bd0;
+
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.candidate-language-title {
+  color: #20222a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.candidate-language-description {
+  margin-top: 0.15rem;
+
+  color: #7b8190;
+  font-size: 0.76rem;
+}
+
+.candidate-language-check {
+  width: 22px;
+  height: 22px;
+
+  margin-left: auto;
+
+  display: grid;
+  place-items: center;
+
+  border: 1.5px solid #d9dce3;
+  border-radius: 999px;
+
+  color: transparent;
+  background: #ffffff;
+
+  font-size: 0.65rem;
+}
+
+.candidate-language-card input:checked
++ .candidate-language-card-inner
+.candidate-language-check {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .candidate-language-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* =========================================================
    MOTIVATION BUBBLE MAP
 ========================================================= */

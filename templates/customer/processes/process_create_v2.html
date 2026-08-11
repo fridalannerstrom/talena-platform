@@ -260,7 +260,7 @@
   {% endfor %}
 </div>
 
-<!-- SELECTED SOVA SETUP -->
+<!-- SELECTED SOVA SETUP 
 <div class="dev-template-box mt-4">
   <div class="d-flex gap-3 align-items-start">
     <div class="dev-template-icon">
@@ -281,7 +281,7 @@
 </p>
     </div>
   </div>
-</div>
+</div>-->
 
             <div class="wizard-actions mt-4">
 <button
@@ -373,6 +373,88 @@
               </div>
 
             </div>
+
+            <!-- CANDIDATE LANGUAGE -->
+<div class="candidate-language-section mt-4">
+  <div class="mb-3">
+    <label class="form-label mb-1">
+      {% trans "Candidate language" %}
+    </label>
+
+    <div class="form-text mt-0">
+      {% trans "Choose the language used for the candidate invitation and tests." %}
+    </div>
+  </div>
+
+  <div class="candidate-language-grid">
+
+    <label class="candidate-language-card">
+      <input
+        type="radio"
+        name="candidate_language"
+        value="sv"
+        {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}
+      >
+
+      <div class="candidate-language-card-inner">
+        <div class="candidate-language-code">
+          SV
+        </div>
+
+        <div>
+          <div class="candidate-language-title">
+            {% trans "Swedish" %}
+          </div>
+
+          <div class="candidate-language-description">
+            {% trans "Invitation and assessments in Swedish" %}
+          </div>
+        </div>
+
+        <span class="candidate-language-check">
+          <i class="fa-solid fa-check"></i>
+        </span>
+      </div>
+    </label>
+
+
+    <label class="candidate-language-card">
+      <input
+        type="radio"
+        name="candidate_language"
+        value="en"
+        {% if form.candidate_language.value == "en" %}checked{% endif %}
+      >
+
+      <div class="candidate-language-card-inner">
+        <div class="candidate-language-code">
+          EN
+        </div>
+
+        <div>
+          <div class="candidate-language-title">
+            {% trans "English" %}
+          </div>
+
+          <div class="candidate-language-description">
+            {% trans "Invitation and assessments in English" %}
+          </div>
+        </div>
+
+        <span class="candidate-language-check">
+          <i class="fa-solid fa-check"></i>
+        </span>
+      </div>
+    </label>
+
+  </div>
+
+  {% if form.candidate_language.errors %}
+    <div class="text-danger small mt-2">
+      {{ form.candidate_language.errors }}
+    </div>
+  {% endif %}
+</div>
 
             <div class="wizard-actions mt-4">
 <button

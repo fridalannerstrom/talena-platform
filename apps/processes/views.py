@@ -7057,7 +7057,7 @@ def self_register(request, token):
         "first_name": candidate.first_name,
         "last_name": candidate.last_name,
         "email": candidate.email,
-        "language": lang,
+        "language": process.candidate_language or "sv",
         "job_title": process.job_title or "Assessment",
         "job_number": f"talena-{process.id}",
         "meta_data": {
@@ -8544,6 +8544,12 @@ def process_create_v2(request):
         if form.is_valid():
             purpose = form.cleaned_data.get("purpose")
             selected_tests = form.cleaned_data.get("selected_tests") or []
+
+            candidate_language = (
+                form.cleaned_data.get("candidate_language")
+                or "sv"
+            )
+
             name = (form.cleaned_data.get("name") or "").strip()
 
             # Om användaren inte skrev namn, skapa ett automatiskt
@@ -8656,6 +8662,7 @@ def process_create_v2(request):
                 created_by=request.user,
                 purpose=purpose,
                 selected_tests=selected_tests,
+                candidate_language=candidate_language,
             )
 
             # --------------------------------------------------

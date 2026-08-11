@@ -148,6 +148,17 @@ class TestProcessWizardCreateForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    candidate_language = forms.ChoiceField(
+        choices=[
+            ("sv", _("Swedish")),
+            ("en", _("English")),
+        ],
+        required=True,
+        initial="sv",
+        label=_("Candidate language"),
+        widget=forms.RadioSelect,
+    )
+
     name = forms.CharField(
         max_length=255,
         required=False,

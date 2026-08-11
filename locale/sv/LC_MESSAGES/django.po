@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Talena 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-09 22:18+0200\n"
+"POT-Creation-Date: 2026-08-11 21:49+0200\n"
 "PO-Revision-Date: 2026-07-22 23:25+0200\n"
 "Last-Translator: Talent Qode\n"
 "Language-Team: Swedish\n"
@@ -149,11 +149,11 @@ msgstr "%(actor)s uppdaterade %(candidate)s: %(old_status)s → %(new_status)s"
 msgid "%(actor)s updated %(candidate)s"
 msgstr "%(actor)s uppdaterade %(candidate)s"
 
-#: .\apps\emails\views.py:60
+#: .\apps\emails\utils.py:38 .\apps\emails\views.py:60
 msgid "Invitation to assessment process"
 msgstr "Inbjudan till testprocess"
 
-#: .\apps\emails\views.py:63
+#: .\apps\emails\utils.py:41 .\apps\emails\views.py:63
 #, python-brace-format
 msgid ""
 "Hi {first_name},\n"
@@ -184,7 +184,7 @@ msgstr "Ingen åtkomst."
 msgid "You do not have permission to edit this email template."
 msgstr "Du har inte behörighet att redigera den här e-postmallen."
 
-#: .\apps\emails\views.py:146 .\apps\emails\views.py:227
+#: .\apps\emails\views.py:151 .\apps\emails\views.py:237
 msgid "Invitation email template updated."
 msgstr "E-postmallen för inbjudan har uppdaterats."
 
@@ -279,27 +279,42 @@ msgstr "Logisk förmåga"
 msgid "Numerical"
 msgstr "Numerisk förmåga"
 
-#: .\apps\processes\forms.py:154
+#: .\apps\processes\forms.py:153
+#: .\templates\customer\processes\process_create_v2.html:406
+msgid "Swedish"
+msgstr "Svenska"
+
+#: .\apps\processes\forms.py:154 .\config\settings.py:280
+#: .\templates\customer\processes\process_create_v2.html:436
+msgid "English"
+msgstr "Engelska"
+
+#: .\apps\processes\forms.py:158
+#: .\templates\customer\processes\process_create_v2.html:381
+msgid "Candidate language"
+msgstr "Kandidatspråk"
+
+#: .\apps\processes\forms.py:165
 #: .\templates\customer\processes\process_create_v2.html:330
 #: .\templates\customer\processes\process_create_v2.html:338
 msgid "Process name"
 msgstr "Processnamn"
 
-#: .\apps\processes\forms.py:158
+#: .\apps\processes\forms.py:169
 msgid "e.g. Leadership potential"
 msgstr "t.ex. Ledarskapspotential"
 
-#: .\apps\processes\forms.py:165
+#: .\apps\processes\forms.py:176
 #: .\templates\customer\processes\process_create_v2.html:355
 #: .\templates\customer\processes\process_edit.html:70
 msgid "Labels"
 msgstr "Etiketter"
 
-#: .\apps\processes\forms.py:169
+#: .\apps\processes\forms.py:180
 msgid "e.g. Admin, Interim, Priority"
 msgstr "t.ex. Admin, Interim, Prioritet"
 
-#: .\apps\processes\forms.py:173
+#: .\apps\processes\forms.py:184
 msgid ""
 "Enter one or more labels that describe the test process. Separate the labels "
 "with commas."
@@ -307,7 +322,7 @@ msgstr ""
 "Ange en eller flera etiketter som beskriver testprocessen. Separera "
 "etiketterna med kommatecken."
 
-#: .\apps\processes\forms.py:191
+#: .\apps\processes\forms.py:202
 msgid ""
 "Describe the role, situation or development context.\n"
 "\n"
@@ -327,16 +342,16 @@ msgstr ""
 "• prioriteringar, utmaningar eller framgångskriterier\n"
 "• områden som du vill att Talena ska utforska"
 
-#: .\apps\processes\forms.py:214 .\apps\processes\purpose_context_config.py:313
+#: .\apps\processes\forms.py:225 .\apps\processes\purpose_context_config.py:313
 #: .\apps\processes\purpose_context_config.py:314
 #: .\templates\customer\processes\_process_header.html:452
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:383
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:416
 #: .\templates\customer\processes\process_role_context.html:20
 #: .\templates\customer\processes\process_role_context.html:154
 msgid "Process context"
 msgstr "Processkontext"
 
-#: .\apps\processes\forms.py:220
+#: .\apps\processes\forms.py:231
 msgid ""
 "Add the information that would help Talena interpret the assessment results "
 "in relation to this process."
@@ -1348,7 +1363,7 @@ msgstr ""
 "Förstå vad som driver personen och vilken miljö som stödjer god prestation."
 
 #: .\apps\processes\services\process_recommendations.py:121
-#: .\templates\customer\processes\process_create_v2.html:942
+#: .\templates\customer\processes\process_create_v2.html:1024
 msgid ""
 "Useful when the role requires reading, interpreting or communicating complex "
 "information."
@@ -1365,7 +1380,7 @@ msgstr ""
 "tänkande."
 
 #: .\apps\processes\services\process_recommendations.py:139
-#: .\templates\customer\processes\process_create_v2.html:950
+#: .\templates\customer\processes\process_create_v2.html:1032
 msgid ""
 "Useful when the role involves numbers, data, finance, reporting or analysis."
 msgstr ""
@@ -1790,55 +1805,55 @@ msgstr ""
 "nedan kan därför vara mindre typisk för personens vanliga arbetssätt men "
 "ändå relevant i vissa situationer."
 
-#: .\apps\processes\views.py:438
+#: .\apps\processes\views.py:440
 #: .\templates\customer\processes\_candidate_detail_sheet.html:149
 msgid "Not completed"
 msgstr "Inte genomfört"
 
-#: .\apps\processes\views.py:445
+#: .\apps\processes\views.py:447
 msgid "Very low"
 msgstr "Mycket låg"
 
-#: .\apps\processes\views.py:452
+#: .\apps\processes\views.py:454
 msgid "Low"
 msgstr "Låg"
 
 # | msgid "Typical"
-#: .\apps\processes\views.py:459
+#: .\apps\processes\views.py:461
 #: .\templates\customer\processes\partials\candidate_insights\cognitive\_results.html:74
 msgid "Typical range"
 msgstr "Typiskt intervall"
 
-#: .\apps\processes\views.py:466
+#: .\apps\processes\views.py:468
 msgid "High"
 msgstr "Hög"
 
-#: .\apps\processes\views.py:472
+#: .\apps\processes\views.py:474
 msgid "Very high"
 msgstr "Mycket hög"
 
 # | msgid "No candidates have been added to this team yet."
-#: .\apps\processes\views.py:478
+#: .\apps\processes\views.py:480
 msgid "This candidate has not completed this assessment."
 msgstr "Kandidaten har inte genomfört det här testet."
 
 # | msgid ""
 # | "Adds insight into understanding and working with written information."
-#: .\apps\processes\views.py:483
+#: .\apps\processes\views.py:485
 msgid "understand and evaluate written information"
 msgstr "förstå och utvärdera skriftlig information"
 
-#: .\apps\processes\views.py:486
+#: .\apps\processes\views.py:488
 msgid "identify patterns and reach logical conclusions"
 msgstr "identifiera mönster och dra logiska slutsatser"
 
 # | msgid ""
 # | "Adds insight into understanding and working with written information."
-#: .\apps\processes\views.py:489
+#: .\apps\processes\views.py:491
 msgid "understand and work with numerical information"
 msgstr "förstå och arbeta med numerisk information"
 
-#: .\apps\processes\views.py:497
+#: .\apps\processes\views.py:499
 #, python-format
 msgid ""
 "The candidate may find it considerably more difficult than most people in "
@@ -1847,7 +1862,7 @@ msgstr ""
 "Kandidaten kan uppleva det som betydligt svårare än de flesta i "
 "referensgruppen att %(ability)s."
 
-#: .\apps\processes\views.py:505
+#: .\apps\processes\views.py:507
 #, python-format
 msgid ""
 "The candidate may find it more difficult than many others in the reference "
@@ -1856,7 +1871,7 @@ msgstr ""
 "Kandidaten kan uppleva det som svårare än många andra i referensgruppen att "
 "%(ability)s."
 
-#: .\apps\processes\views.py:513
+#: .\apps\processes\views.py:515
 #, python-format
 msgid ""
 "The candidate is likely to find it about as easy as most people in the "
@@ -1865,7 +1880,7 @@ msgstr ""
 "Kandidaten har sannolikt ungefär lika lätt som de flesta i referensgruppen "
 "att %(ability)s."
 
-#: .\apps\processes\views.py:521
+#: .\apps\processes\views.py:523
 #, python-format
 msgid ""
 "The candidate may find it easier than many others in the reference group to "
@@ -1873,7 +1888,7 @@ msgid ""
 msgstr ""
 "Kandidaten kan ha lättare än många andra i referensgruppen att %(ability)s."
 
-#: .\apps\processes\views.py:528
+#: .\apps\processes\views.py:530
 #, python-format
 msgid ""
 "The candidate may find it considerably easier than most people in the "
@@ -1882,51 +1897,51 @@ msgstr ""
 "Kandidaten kan ha betydligt lättare än de flesta i referensgruppen att "
 "%(ability)s."
 
-#: .\apps\processes\views.py:537
+#: .\apps\processes\views.py:539
 msgid "Logical reasoning"
 msgstr "Logisk förmåga"
 
-#: .\apps\processes\views.py:538
+#: .\apps\processes\views.py:540
 msgid "Logical reasoning ability"
 msgstr "Förmåga till logiskt resonemang"
 
 # | msgid "Numerical"
-#: .\apps\processes\views.py:545
+#: .\apps\processes\views.py:547
 msgid "Numerical reasoning"
 msgstr "Numerisk förmåga"
 
-#: .\apps\processes\views.py:546
+#: .\apps\processes\views.py:548
 msgid "Numerical reasoning ability"
 msgstr "Förmåga till numeriskt resonemang"
 
-#: .\apps\processes\views.py:553
+#: .\apps\processes\views.py:555
 msgid "Verbal reasoning"
 msgstr "Verbal förmåga"
 
-#: .\apps\processes\views.py:554
+#: .\apps\processes\views.py:556
 msgid "Verbal reasoning ability"
 msgstr "Förmåga till verbalt resonemang"
 
 # | msgid "Assessments completed"
-#: .\apps\processes\views.py:570
+#: .\apps\processes\views.py:572
 #, python-format
 msgid "%(title)s assessment not completed"
 msgstr "%(title)s, testet är inte genomfört"
 
-#: .\apps\processes\views.py:576
+#: .\apps\processes\views.py:578
 #, python-format
 msgid "%(title)s percentile %(percentile)s"
 msgstr "%(title)s, percentil %(percentile)s"
 
 # | msgid "Personality"
-#: .\apps\processes\views.py:2024
+#: .\apps\processes\views.py:2026
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:23
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:295
 #: .\templates\customer\processes\process_base.html:105
 msgid "Personality questions"
 msgstr "Personlighetsfrågor"
 
-#: .\apps\processes\views.py:2026
+#: .\apps\processes\views.py:2028
 msgid ""
 "Explore how relevant personality preferences appear in practical situations."
 msgstr ""
@@ -1934,23 +1949,23 @@ msgstr ""
 "praktiska situationer."
 
 # | msgid "Motivation"
-#: .\apps\processes\views.py:2040
+#: .\apps\processes\views.py:2042
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:240
 #: .\templates\customer\processes\process_base.html:83
 msgid "Motivation questions"
 msgstr "Motivationsfrågor"
 
-#: .\apps\processes\views.py:2042
+#: .\apps\processes\views.py:2044
 msgid "Explore what may create energy, engagement and sustainable motivation."
 msgstr "Utforska vad som kan skapa energi, engagemang och hållbar motivation."
 
-#: .\apps\processes\views.py:2068
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:248
+#: .\apps\processes\views.py:2070
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:245
 #: .\templates\customer\processes\process_base.html:92
 msgid "Cognitive questions"
 msgstr "Kognitiva frågor"
 
-#: .\apps\processes\views.py:2070
+#: .\apps\processes\views.py:2072
 msgid ""
 "Explore how the cognitive assessment results relate to practical demands and "
 "working methods."
@@ -1958,11 +1973,11 @@ msgstr ""
 "Utforska hur resultaten från de kognitiva testerna hänger samman med "
 "praktiska krav och arbetssätt."
 
-#: .\apps\processes\views.py:7126
+#: .\apps\processes\views.py:7102
 msgid "Your assessment"
 msgstr "Ditt test"
 
-#: .\apps\processes\views.py:7133
+#: .\apps\processes\views.py:7109
 #, python-brace-format
 msgid ""
 "Hi {first_name}!\n"
@@ -1981,7 +1996,7 @@ msgstr ""
 "Vänliga hälsningar,\n"
 "Talena"
 
-#: .\apps\processes\views.py:8607
+#: .\apps\processes\views.py:8593
 msgid "the selected tests"
 msgstr "de valda testerna"
 
@@ -2023,10 +2038,6 @@ msgstr "Redigera team"
 #: .\templates\shared\_settings_content.html:232
 msgid "Save changes"
 msgstr "Spara ändringar"
-
-#: .\config\settings.py:280
-msgid "English"
-msgstr "Engelska"
 
 #: .\config\settings.py:281
 msgid "Svenska"
@@ -2140,57 +2151,99 @@ msgid ""
 "Talena using this language."
 msgstr ""
 
+# | msgid "Practical approach"
 #: .\templates\admin\core\ai_prompts\prompt_edit.html:157
-msgid "Global AI instructions"
-msgstr ""
+#, fuzzy
+#| msgid "Practical guidance"
+msgid "AI guidance"
+msgstr "Praktisk vägledning"
 
 #: .\templates\admin\core\ai_prompts\prompt_edit.html:161
-msgid "Edit how Talena should communicate and interpret this assessment area."
+msgid ""
+"Controls how Talena analyses, interprets and communicates results. "
+"Administrators can edit all non-technical AI behaviour."
 msgstr ""
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:176
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:174
+#, fuzzy
+#| msgid "Edit"
+msgid "Editable"
+msgstr "Redigera"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:187
 #: .\templates\admin\core\ai_prompts\prompt_list.html:222
 msgid "Override"
 msgstr "Anpassad version"
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:216
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:227
 msgid "Last changed"
 msgstr "Senast ändrad"
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:220
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:231
 msgid "by"
 msgstr ""
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:240
-msgid "Save global override"
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:251
+msgid "Save AI guidance"
 msgstr ""
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:275
-msgid "Talena default guidance"
-msgstr ""
+# | msgid "Overall interpretation"
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:286
+#, fuzzy
+#| msgid "Practical interpretation"
+msgid "Technical instructions"
+msgstr "Praktisk tolkning"
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:279
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:290
+#, fuzzy
+#| msgid "Automatic selection by Talena"
+msgid "Protected by Talena"
+msgstr "Automatiskt urval av Talena"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:301
 msgid ""
-"Protected default for the administrator-editable guidance. This is only one "
-"part of the complete AI prompt."
+"These instructions control only the technical output required by the "
+"platform. They cannot be edited because changing them could prevent Talena "
+"from processing or displaying the AI response correctly."
 msgstr ""
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:314
-msgid "Restore default"
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:316
+#, fuzzy
+#| msgid "Talena mode"
+msgid "Talena protects:"
+msgstr "Talena väljer"
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:320
+msgid "Output structure and required field names"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:324
+msgid "JSON and streaming event formats"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:328
+msgid "Technical event order and parser requirements"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:332
+msgid "Language routing required by the platform"
+msgstr ""
+
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:349
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:378
+#, fuzzy
+#| msgid "Restore default"
+msgid "Restore default guidance"
 msgstr "Återställ"
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:318
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:353
 msgid ""
-"Disable the global override and return this AI feature to Talena's protected "
-"default instructions."
+"Remove the current custom guidance and return this AI feature to Talena's "
+"built-in default guidance."
 msgstr ""
 
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:343
-msgid "Reset to Talena default"
-msgstr ""
-
-#: .\templates\admin\core\ai_prompts\prompt_edit.html:366
-msgid "Talena default is currently active."
+#: .\templates\admin\core\ai_prompts\prompt_edit.html:401
+msgid "Default guidance is currently active."
 msgstr ""
 
 #: .\templates\admin\core\ai_prompts\prompt_list.html:13
@@ -2209,7 +2262,7 @@ msgstr ""
 #: .\templates\admin\core\ai_prompts\prompt_list.html:43
 msgid ""
 "Changes made here affect future AI-generated content for all customers in "
-"Talena. Protected defaults remain available as a fallback."
+"Talena. Built-in default guidance can always be restored."
 msgstr ""
 
 #: .\templates\admin\core\ai_prompts\prompt_list.html:235
@@ -2218,8 +2271,8 @@ msgstr ""
 
 #: .\templates\admin\core\ai_prompts\prompt_list.html:277
 msgid ""
-"A saved override exists but is inactive. Talena is using the protected "
-"default."
+"Custom guidance has been saved but is inactive. Talena is using the built-in "
+"default guidance."
 msgstr ""
 
 #: .\templates\admin\core\ai_prompts\prompt_list.html:314
@@ -2756,7 +2809,7 @@ msgid "Historical"
 msgstr "Historisk"
 
 #: .\templates\customer\processes\_candidate_detail_sheet.html:66
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:361
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:394
 msgid "Imported SOVA data"
 msgstr "Importerade SOVA-data"
 
@@ -2910,7 +2963,7 @@ msgid "Settings"
 msgstr "Inställningar"
 
 #: .\templates\customer\processes\partials\_team_styles.html:11
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:78
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:69
 #: .\templates\customer\teams\team_detail.html:77
 msgid "Team styles"
 msgstr "Teamstilar"
@@ -3105,18 +3158,18 @@ msgstr "Områden för kandidatinsikter"
 msgid "Summary"
 msgstr "Sammanfattning"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:66
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:57
 msgid "Cognitive abilities"
 msgstr "Kognitiva förmågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:90
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:69
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:81
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:66
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:64
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:57
 msgid "Questions"
 msgstr "Frågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:102
+#: .\templates\customer\processes\partials\candidate_insights\_navigation.html:93
 msgid "Final output"
 msgstr "Slutligt underlag"
 
@@ -3396,7 +3449,7 @@ msgstr "Personlighetstolkning"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:32
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:193
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:122
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:119
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:113
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:23
 msgid "AI-generated insight"
@@ -3416,13 +3469,13 @@ msgstr ""
 # | msgid "Team updated."
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:62
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:48
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:150
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:272
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:147
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:269
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:123
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:990
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:141
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:264
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:74
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:78
 #: .\templates\customer\processes\process_base.html:97
 msgid "Needs update"
 msgstr "Behöver uppdateras"
@@ -3453,7 +3506,7 @@ msgid "Combined trait dynamics"
 msgstr "Samspel mellan personlighetsdrag"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_interpretation.html:203
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:202
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:235
 msgid "Potentially supportive patterns"
 msgstr "Potentiellt stödjande mönster"
 
@@ -3463,7 +3516,7 @@ msgid "What to explore or validate"
 msgstr "Vad som bör utforskas eller valideras"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_questions.html:19
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:244
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:241
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:236
 #: .\templates\customer\processes\process_base.html:73
 msgid "AI-supported questions"
@@ -3740,28 +3793,28 @@ msgstr ""
 "Kognitiva tester kan ge ytterligare underlag om prestation i specifika "
 "uppgifter som rör resonemang och problemlösning."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:24
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:21
 msgid "Cognitive insight areas"
 msgstr "Områden för kognitiva insikter"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:37
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:34
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:34
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:33
 msgid "Results"
 msgstr "Resultat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:54
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:51
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_motivation.html:49
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:45
 msgid "Interpretation"
 msgstr "Tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:126
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:123
 #: .\templates\customer\processes\process_base.html:89
 msgid "Cognitive interpretation"
 msgstr "Kognitiv tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:130
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:127
 msgid ""
 "A practical interpretation of the available cognitive results in relation to "
 "the selected purpose and process context."
@@ -3769,21 +3822,21 @@ msgstr ""
 "En praktisk tolkning av de tillgängliga kognitiva resultaten i relation till "
 "det valda syftet och processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:157
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:158
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:154
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:155
 msgid "Generate a new cognitive interpretation"
 msgstr "Generera en ny kognitiv tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:189
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:186
 msgid "Interpreting the cognitive assessment results…"
 msgstr "Tolkar resultaten från de kognitiva testerna…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:202
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:199
 #: .\templates\customer\processes\process_base.html:90
 msgid "The cognitive interpretation could not be generated."
 msgstr "Den kognitiva tolkningen kunde inte genereras."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:252
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:249
 msgid ""
 "Practical questions for exploring how the cognitive results may relate to "
 "relevant work situations."
@@ -3791,16 +3844,16 @@ msgstr ""
 "Praktiska frågor för att utforska hur de kognitiva resultaten kan hänga "
 "samman med relevanta arbetssituationer."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:279
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:280
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:276
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:277
 msgid "Generate new cognitive questions"
 msgstr "Generera nya kognitiva frågor"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:312
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:309
 msgid "Generating cognitive questions…"
 msgstr "Genererar kognitiva frågor…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:325
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_cognitive.html:322
 #: .\templates\customer\processes\process_base.html:93
 msgid "The cognitive questions could not be generated."
 msgstr "De kognitiva frågorna kunde inte genereras."
@@ -4281,11 +4334,17 @@ msgid ""
 msgstr ""
 "Det finns motivationsresultat, men motivationsprofilen kunde inte skapas."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:30
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:31
+#, fuzzy
+#| msgid "AI Summary"
+msgid "Preliminary AI Summary"
+msgstr "AI-sammanfattning"
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:33
 msgid "AI Summary"
 msgstr "AI-sammanfattning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:37
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:41
 #, fuzzy
 #| msgid ""
 #| "A combined interpretation of the candidate’s available assessment "
@@ -4299,7 +4358,7 @@ msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
 "processyftet och eventuell tillagd processkontext."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:44
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:48
 #, fuzzy
 #| msgid ""
 #| "A combined interpretation of the candidate’s available assessment "
@@ -4314,7 +4373,7 @@ msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
 "processyftet och eventuell tillagd processkontext."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:85
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:89
 msgid ""
 "Generate a new overview using the latest assessment results, purpose and "
 "process context."
@@ -4322,29 +4381,61 @@ msgstr ""
 "Generera en ny översikt utifrån de senaste testresultaten, syftet och "
 "processkontexten."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:86
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:90
 msgid "Generate a new AI overview"
 msgstr "Generera en ny AI-översikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:128
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:107
+msgid "Preliminary summary"
+msgstr ""
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:111
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "          %(completed)s of %(total)s assessments are complete.\n"
+#| "          The combined AI summary will be generated when all assessments\n"
+#| "          in the process have been completed.\n"
+#| "        "
+msgid ""
+"\n"
+"          %(completed)s of %(total)s assessments are complete.\n"
+"          This summary is based only on the assessment results currently "
+"available.\n"
+"        "
+msgstr ""
+"\n"
+"          %(completed)s av %(total)s tester är genomförda.\n"
+"          Den kombinerade AI-sammanfattningen skapas när samtliga tester\n"
+"          i processen har genomförts.\n"
+"        "
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:118
+#, fuzzy
+#| msgid "No cognitive assessment results available"
+msgid ""
+"Refresh the summary when additional assessment results become available."
+msgstr "Inga resultat från kognitiva tester är tillgängliga"
+
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:161
 #, fuzzy
 #| msgid "Interpreting the cognitive assessment results…"
 msgid "Analysing imported assessment results…"
 msgstr "Tolkar resultaten från de kognitiva testerna…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:132
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:165
 msgid "Analysing assessment results and process context…"
 msgstr "Analyserar testresultat och processkontext…"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:163
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:196
 msgid "Overall interpretation"
 msgstr "Övergripande tolkning"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:204
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:237
 msgid "What supports the purpose"
 msgstr "Vad som stödjer syftet"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:216
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:249
 #, fuzzy
 #| msgid ""
 #| "Assessment patterns that may be relevant to and support the selected "
@@ -4356,7 +4447,7 @@ msgstr ""
 "Mönster i testresultaten som kan vara relevanta för och stödja det valda "
 "syftet. De är inte några garantier för prestation."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:218
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:251
 msgid ""
 "Assessment patterns that may be relevant to and support the selected "
 "purpose. They are not guarantees of performance."
@@ -4364,15 +4455,15 @@ msgstr ""
 "Mönster i testresultaten som kan vara relevanta för och stödja det valda "
 "syftet. De är inte några garantier för prestation."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:221
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:254
 msgid "More information about supporting evidence"
 msgstr "Mer information om stödjande underlag"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:277
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:310
 msgid "What to explore or consider"
 msgstr "Vad som bör utforskas eller övervägas"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:286
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:319
 msgid ""
 "Topics that may be useful to explore, consider or follow up through relevant "
 "conversations or other evidence. They are not confirmed weaknesses."
@@ -4380,41 +4471,41 @@ msgstr ""
 "Områden som kan vara värdefulla att utforska, överväga eller följa upp genom "
 "relevanta samtal eller annat underlag. De är inte bekräftade svagheter."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:287
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:320
 msgid "More information about areas to explore"
 msgstr "Mer information om områden att utforska"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:332
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:365
 msgid "How Talena created this summary"
 msgstr "Så skapade Talena sammanfattningen"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:349
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:382
 msgid "Based on"
 msgstr "Baserat på"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:354
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:387
 msgid "Assessment results"
 msgstr "Testresultat"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:370
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:403
 #, fuzzy
 #| msgid "No additional process context has been added."
 msgid "No original process context"
 msgstr "Ingen ytterligare processkontext har lagts till."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:376
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:409
 msgid "Selected purpose"
 msgstr "Valt syfte"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:395
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:428
 msgid "No additional process context has been added."
 msgstr "Ingen ytterligare processkontext har lagts till."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:397
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:430
 msgid "No added context"
 msgstr "Ingen tillagd kontext"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:420
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:453
 #, fuzzy
 #| msgid ""
 #| "This is an AI-generated interpretation of assessment evidence, not a "
@@ -4433,7 +4524,7 @@ msgstr ""
 "beslut eller en prognos för framtida prestation. Använd den tillsammans med "
 "relevanta samtal, erfarenhet och annan tillgänglig information."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:441
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:474
 #, fuzzy
 #| msgid ""
 #| "The purpose-fit interpretation could not be generated. Use the refresh "
@@ -4447,18 +4538,18 @@ msgstr ""
 "Den syftesanpassade tolkningen kunde inte genereras. Använd "
 "uppdateringsknappen för att försöka igen."
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:466
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:496
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:499
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:529
 msgid "Assessment overview"
 msgstr "Testöversikt"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:470
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:503
 #, fuzzy
 #| msgid "No cognitive assessment results available"
 msgid "No imported assessment results available"
 msgstr "Inga resultat från kognitiva tester är tillgängliga"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:477
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:510
 msgid ""
 "\n"
 "            No structured historical assessment results are currently\n"
@@ -4466,11 +4557,11 @@ msgid ""
 "          "
 msgstr ""
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:500
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:533
 msgid "Summary is waiting for the remaining assessments"
 msgstr "Sammanfattningen väntar på återstående tester"
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:507
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:540
 #, fuzzy, python-format
 #| msgid ""
 #| "\n"
@@ -4491,7 +4582,7 @@ msgstr ""
 "          i processen har genomförts.\n"
 "        "
 
-#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:518
+#: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:551
 #, fuzzy
 #| msgid ""
 #| "\n"
@@ -5123,7 +5214,7 @@ msgstr ""
 "projekt."
 
 #: .\templates\customer\processes\process_create_v2.html:292
-#: .\templates\customer\processes\process_create_v2.html:383
+#: .\templates\customer\processes\process_create_v2.html:465
 msgid "Back"
 msgstr "Tillbaka"
 
@@ -5155,12 +5246,26 @@ msgstr "t.ex. Försäljning, Stockholm, Graduate"
 msgid "Separate labels with commas."
 msgstr "Separera etiketterna med kommatecken."
 
-#: .\templates\customer\processes\process_create_v2.html:390
+#: .\templates\customer\processes\process_create_v2.html:385
+msgid ""
+"Choose the language used for the candidate invitation and tests."
+msgstr ""
+"Välj vilket språk som ska användas för kandidatens inbjudan och tester."
+
+#: .\templates\customer\processes\process_create_v2.html:410
+msgid "Invitation and assessments in Swedish"
+msgstr "Inbjudan och tester på svenska"
+
+#: .\templates\customer\processes\process_create_v2.html:440
+msgid "Invitation and assessments in English"
+msgstr "Inbjudan och tester på engelska"
+
+#: .\templates\customer\processes\process_create_v2.html:472
 msgid "Create process"
 msgstr "Skapa process"
 
 # | msgid "Understand behavioural style, strengths, risks and role fit."
-#: .\templates\customer\processes\process_create_v2.html:911
+#: .\templates\customer\processes\process_create_v2.html:993
 msgid ""
 "Helps assess behavioural style, strengths, risks and role fit in a selection "
 "context."
@@ -5169,7 +5274,7 @@ msgstr ""
 "rollen i ett urvalssammanhang."
 
 # | msgid "Understand behavioural style, strengths, risks and role fit."
-#: .\templates\customer\processes\process_create_v2.html:912
+#: .\templates\customer\processes\process_create_v2.html:994
 msgid ""
 "Add Personality if you want deeper insight into behavioural style, strengths "
 "and potential role fit."
@@ -5180,7 +5285,7 @@ msgstr ""
 # | msgid ""
 # | "Understand what drives the person and what environment supports "
 # | "performance."
-#: .\templates\customer\processes\process_create_v2.html:915
+#: .\templates\customer\processes\process_create_v2.html:997
 msgid ""
 "Shows what drives the candidate and what kind of work environment supports "
 "performance and retention."
@@ -5188,7 +5293,7 @@ msgstr ""
 "Visar vad som driver kandidaten och vilken typ av arbetsmiljö som stödjer "
 "prestation och långsiktigt engagemang."
 
-#: .\templates\customer\processes\process_create_v2.html:916
+#: .\templates\customer\processes\process_create_v2.html:998
 msgid ""
 "Add Motivation if you want to understand what will keep the candidate "
 "engaged and performing over time."
@@ -5196,7 +5301,7 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vad som hjälper kandidaten att "
 "förbli engagerad och prestera över tid."
 
-#: .\templates\customer\processes\process_create_v2.html:919
+#: .\templates\customer\processes\process_create_v2.html:1001
 msgid ""
 "Adds insight into how the candidate understands, interprets and communicates "
 "written information."
@@ -5207,7 +5312,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:920
+#: .\templates\customer\processes\process_create_v2.html:1002
 msgid ""
 "Add Verbal if the role requires reading, interpreting or communicating "
 "complex written information."
@@ -5218,7 +5323,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:923
+#: .\templates\customer\processes\process_create_v2.html:1005
 msgid ""
 "Adds insight into problem-solving, structure and analytical thinking "
 "relevant to the role."
@@ -5229,7 +5334,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:924
+#: .\templates\customer\processes\process_create_v2.html:1006
 msgid ""
 "Add Logical if the role requires problem-solving, structure, analysis or "
 "complex decision-making."
@@ -5240,7 +5345,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role involves numbers, data, finance, reporting or "
 # | "analysis."
-#: .\templates\customer\processes\process_create_v2.html:927
+#: .\templates\customer\processes\process_create_v2.html:1009
 msgid ""
 "Adds insight into how the candidate handles numbers, data, finance, "
 "reporting or analysis."
@@ -5251,7 +5356,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role involves numbers, data, finance, reporting or "
 # | "analysis."
-#: .\templates\customer\processes\process_create_v2.html:928
+#: .\templates\customer\processes\process_create_v2.html:1010
 msgid ""
 "Add Numerical if the role involves numbers, data, finance, reporting, KPIs "
 "or analysis."
@@ -5259,7 +5364,7 @@ msgstr ""
 "Lägg till numerisk förmåga om rollen omfattar siffror, data, ekonomi, "
 "rapportering, nyckeltal eller analys."
 
-#: .\templates\customer\processes\process_create_v2.html:934
+#: .\templates\customer\processes\process_create_v2.html:1016
 msgid ""
 "Helps compare behavioural style with the demands of a specific role or "
 "future position."
@@ -5267,7 +5372,7 @@ msgstr ""
 "Hjälper till att jämföra beteendestilen med kraven i en specifik roll eller "
 "framtida befattning."
 
-#: .\templates\customer\processes\process_create_v2.html:935
+#: .\templates\customer\processes\process_create_v2.html:1017
 msgid ""
 "Add Personality if you want to understand how the person’s working style "
 "fits the role."
@@ -5275,14 +5380,14 @@ msgstr ""
 "Lägg till personlighetstestet om du vill förstå hur personens arbetssätt "
 "passar rollen."
 
-#: .\templates\customer\processes\process_create_v2.html:938
+#: .\templates\customer\processes\process_create_v2.html:1020
 msgid ""
 "Shows whether the role is likely to match what motivates and energises the "
 "person."
 msgstr ""
 "Visar om rollen sannolikt matchar det som motiverar och ger personen energi."
 
-#: .\templates\customer\processes\process_create_v2.html:939
+#: .\templates\customer\processes\process_create_v2.html:1021
 msgid ""
 "Add Motivation if you want to see whether the role is likely to feel "
 "engaging and sustainable."
@@ -5293,7 +5398,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:943
+#: .\templates\customer\processes\process_create_v2.html:1025
 msgid ""
 "Add Verbal if the role includes written communication, documentation or "
 "complex information."
@@ -5304,7 +5409,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:946
+#: .\templates\customer\processes\process_create_v2.html:1028
 msgid ""
 "Useful when the role requires structured problem-solving and analytical "
 "decision-making."
@@ -5312,7 +5417,7 @@ msgstr ""
 "Användbart när rollen kräver strukturerad problemlösning och analytiskt "
 "beslutsfattande."
 
-#: .\templates\customer\processes\process_create_v2.html:947
+#: .\templates\customer\processes\process_create_v2.html:1029
 msgid ""
 "Add Logical if the role requires analysis, structure, prioritisation or "
 "problem-solving."
@@ -5320,7 +5425,7 @@ msgstr ""
 "Lägg till logisk förmåga om rollen kräver analys, struktur, prioritering "
 "eller problemlösning."
 
-#: .\templates\customer\processes\process_create_v2.html:951
+#: .\templates\customer\processes\process_create_v2.html:1033
 msgid ""
 "Add Numerical if the role includes reports, budgets, KPIs, data or financial "
 "information."
@@ -5328,7 +5433,7 @@ msgstr ""
 "Lägg till numerisk förmåga om rollen omfattar rapporter, budgetar, "
 "nyckeltal, data eller ekonomisk information."
 
-#: .\templates\customer\processes\process_create_v2.html:957
+#: .\templates\customer\processes\process_create_v2.html:1039
 msgid ""
 "Helps identify behavioural strengths, leadership potential and possible risk "
 "areas in future leadership roles."
@@ -5336,7 +5441,7 @@ msgstr ""
 "Hjälper till att identifiera beteendemässiga styrkor, ledarskapspotential "
 "och möjliga riskområden i framtida ledarroller."
 
-#: .\templates\customer\processes\process_create_v2.html:958
+#: .\templates\customer\processes\process_create_v2.html:1040
 msgid ""
 "Add Personality if you want to explore behavioural leadership potential and "
 "possible risk areas."
@@ -5344,7 +5449,7 @@ msgstr ""
 "Lägg till personlighetstestet om du vill utforska beteendemässig "
 "ledarskapspotential och möjliga riskområden."
 
-#: .\templates\customer\processes\process_create_v2.html:961
+#: .\templates\customer\processes\process_create_v2.html:1043
 msgid ""
 "Shows what drives the person and whether leadership responsibility is likely "
 "to feel energising."
@@ -5352,7 +5457,7 @@ msgstr ""
 "Visar vad som driver personen och om ledaransvar sannolikt upplevs som "
 "energigivande."
 
-#: .\templates\customer\processes\process_create_v2.html:962
+#: .\templates\customer\processes\process_create_v2.html:1044
 msgid ""
 "Add Motivation if you want to understand whether leadership responsibility "
 "is likely to motivate the person."
@@ -5363,14 +5468,14 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:965
+#: .\templates\customer\processes\process_create_v2.html:1047
 msgid ""
 "Adds insight into how the person understands and communicates complex "
 "information."
 msgstr ""
 "Ger insikt i hur personen förstår och kommunicerar komplex information."
 
-#: .\templates\customer\processes\process_create_v2.html:966
+#: .\templates\customer\processes\process_create_v2.html:1048
 msgid ""
 "Add Verbal if future leadership roles require communication, written "
 "information or stakeholder updates."
@@ -5378,7 +5483,7 @@ msgstr ""
 "Lägg till verbal förmåga om framtida ledarroller kräver kommunikation, "
 "skriftlig information eller uppdateringar till intressenter."
 
-#: .\templates\customer\processes\process_create_v2.html:969
+#: .\templates\customer\processes\process_create_v2.html:1051
 msgid ""
 "Adds insight into analytical thinking, problem-solving and decision-making "
 "potential."
@@ -5386,7 +5491,7 @@ msgstr ""
 "Ger insikt i analytiskt tänkande, problemlösning och potential för "
 "beslutsfattande."
 
-#: .\templates\customer\processes\process_create_v2.html:970
+#: .\templates\customer\processes\process_create_v2.html:1052
 msgid ""
 "Add Logical if the future leadership role involves complex decisions, "
 "strategy or problem-solving."
@@ -5394,7 +5499,7 @@ msgstr ""
 "Lägg till logisk förmåga om den framtida ledarrollen omfattar komplexa "
 "beslut, strategi eller problemlösning."
 
-#: .\templates\customer\processes\process_create_v2.html:973
+#: .\templates\customer\processes\process_create_v2.html:1055
 msgid ""
 "Useful if the future leadership role includes budgets, KPIs, reporting or "
 "data-driven decisions."
@@ -5402,7 +5507,7 @@ msgstr ""
 "Användbart om den framtida ledarrollen omfattar budgetar, nyckeltal, "
 "rapportering eller datadrivna beslut."
 
-#: .\templates\customer\processes\process_create_v2.html:974
+#: .\templates\customer\processes\process_create_v2.html:1056
 msgid ""
 "Add Numerical if future leadership responsibilities include budgets, KPIs, "
 "data or business reporting."
@@ -5410,7 +5515,7 @@ msgstr ""
 "Lägg till numerisk förmåga om framtida ledaransvar omfattar budgetar, "
 "nyckeltal, data eller affärsrapportering."
 
-#: .\templates\customer\processes\process_create_v2.html:980
+#: .\templates\customer\processes\process_create_v2.html:1062
 msgid ""
 "Helps identify natural working style, strengths and development areas that "
 "may guide future career direction."
@@ -5418,7 +5523,7 @@ msgstr ""
 "Hjälper till att identifiera ett naturligt arbetssätt, styrkor och "
 "utvecklingsområden som kan vägleda framtida karriärval."
 
-#: .\templates\customer\processes\process_create_v2.html:981
+#: .\templates\customer\processes\process_create_v2.html:1063
 msgid ""
 "Add Personality if you want to map natural strengths, working style and "
 "possible development paths."
@@ -5426,7 +5531,7 @@ msgstr ""
 "Lägg till personlighetstestet om du vill kartlägga naturliga styrkor, "
 "arbetssätt och möjliga utvecklingsvägar."
 
-#: .\templates\customer\processes\process_create_v2.html:984
+#: .\templates\customer\processes\process_create_v2.html:1066
 msgid ""
 "Shows what kind of tasks, environments and responsibilities are most likely "
 "to create engagement."
@@ -5434,7 +5539,7 @@ msgstr ""
 "Visar vilka typer av uppgifter, miljöer och ansvarsområden som sannolikt "
 "skapar mest engagemang."
 
-#: .\templates\customer\processes\process_create_v2.html:985
+#: .\templates\customer\processes\process_create_v2.html:1067
 msgid ""
 "Add Motivation if you want to understand what type of work and environment "
 "may suit the person long term."
@@ -5442,7 +5547,7 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vilken typ av arbete och miljö "
 "som kan passa personen långsiktigt."
 
-#: .\templates\customer\processes\process_create_v2.html:988
+#: .\templates\customer\processes\process_create_v2.html:1070
 msgid ""
 "Adds insight into whether communication-heavy or information-rich roles may "
 "suit the person."
@@ -5450,7 +5555,7 @@ msgstr ""
 "Ger insikt i om roller med mycket kommunikation eller stora "
 "informationsmängder kan passa personen."
 
-#: .\templates\customer\processes\process_create_v2.html:989
+#: .\templates\customer\processes\process_create_v2.html:1071
 msgid ""
 "Add Verbal if you want to explore whether communication-heavy or information-"
 "rich roles may be suitable."
@@ -5458,7 +5563,7 @@ msgstr ""
 "Lägg till verbal förmåga om du vill utforska om roller med mycket "
 "kommunikation eller stora informationsmängder kan vara lämpliga."
 
-#: .\templates\customer\processes\process_create_v2.html:992
+#: .\templates\customer\processes\process_create_v2.html:1074
 msgid ""
 "Adds insight into whether analytical, strategic or problem-solving roles may "
 "suit the person."
@@ -5466,7 +5571,7 @@ msgstr ""
 "Ger insikt i om analytiska, strategiska eller problemlösande roller kan "
 "passa personen."
 
-#: .\templates\customer\processes\process_create_v2.html:993
+#: .\templates\customer\processes\process_create_v2.html:1075
 msgid ""
 "Add Logical if you want to explore analytical, strategic or problem-solving "
 "career directions."
@@ -5474,7 +5579,7 @@ msgstr ""
 "Lägg till logisk förmåga om du vill utforska analytiska, strategiska eller "
 "problemlösande karriärinriktningar."
 
-#: .\templates\customer\processes\process_create_v2.html:996
+#: .\templates\customer\processes\process_create_v2.html:1078
 msgid ""
 "Adds insight into whether data, finance, reporting or analytical roles may "
 "be a good direction."
@@ -5485,7 +5590,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role involves numbers, data, finance, reporting or "
 # | "analysis."
-#: .\templates\customer\processes\process_create_v2.html:997
+#: .\templates\customer\processes\process_create_v2.html:1079
 msgid ""
 "Add Numerical if you want to explore roles involving data, finance, "
 "reporting or analysis."
@@ -5494,14 +5599,14 @@ msgstr ""
 "ekonomi, rapportering eller analys."
 
 # | msgid "Understand how to support a person from the start."
-#: .\templates\customer\processes\process_create_v2.html:1003
+#: .\templates\customer\processes\process_create_v2.html:1085
 msgid ""
 "Helps managers understand how to support the person’s working style from the "
 "start."
 msgstr ""
 "Hjälper chefer att förstå hur personens arbetssätt kan stödjas från början."
 
-#: .\templates\customer\processes\process_create_v2.html:1004
+#: .\templates\customer\processes\process_create_v2.html:1086
 msgid ""
 "Add Personality if you want to tailor onboarding to the person’s working "
 "style and support needs."
@@ -5509,7 +5614,7 @@ msgstr ""
 "Lägg till personlighetstestet om du vill anpassa introduktionen efter "
 "personens arbetssätt och behov av stöd."
 
-#: .\templates\customer\processes\process_create_v2.html:1007
+#: .\templates\customer\processes\process_create_v2.html:1089
 msgid ""
 "Shows what helps the person feel engaged, supported and productive during "
 "onboarding."
@@ -5517,7 +5622,7 @@ msgstr ""
 "Visar vad som hjälper personen att känna sig engagerad, få stöd och vara "
 "produktiv under introduktionen."
 
-#: .\templates\customer\processes\process_create_v2.html:1008
+#: .\templates\customer\processes\process_create_v2.html:1090
 msgid ""
 "Add Motivation if you want to understand what will help the person feel "
 "engaged from the start."
@@ -5525,7 +5630,7 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vad som hjälper personen att "
 "känna engagemang från början."
 
-#: .\templates\customer\processes\process_create_v2.html:1011
+#: .\templates\customer\processes\process_create_v2.html:1093
 msgid ""
 "Useful if the onboarding includes complex written material, policies or "
 "documentation."
@@ -5533,7 +5638,7 @@ msgstr ""
 "Användbart om introduktionen omfattar komplext skriftligt material, policyer "
 "eller dokumentation."
 
-#: .\templates\customer\processes\process_create_v2.html:1012
+#: .\templates\customer\processes\process_create_v2.html:1094
 msgid ""
 "Add Verbal if onboarding involves policies, documentation, written "
 "instructions or complex information."
@@ -5541,7 +5646,7 @@ msgstr ""
 "Lägg till verbal förmåga om introduktionen omfattar policyer, dokumentation, "
 "skriftliga instruktioner eller komplex information."
 
-#: .\templates\customer\processes\process_create_v2.html:1015
+#: .\templates\customer\processes\process_create_v2.html:1097
 msgid ""
 "Useful if the role requires the person to quickly understand processes, "
 "systems or problem-solving tasks."
@@ -5549,7 +5654,7 @@ msgstr ""
 "Användbart om rollen kräver att personen snabbt förstår processer, system "
 "eller problemlösningsuppgifter."
 
-#: .\templates\customer\processes\process_create_v2.html:1016
+#: .\templates\customer\processes\process_create_v2.html:1098
 msgid ""
 "Add Logical if the person needs to quickly understand systems, processes or "
 "problem-solving tasks."
@@ -5560,7 +5665,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:1019
+#: .\templates\customer\processes\process_create_v2.html:1101
 msgid ""
 "Useful if the role requires early work with numbers, reports, KPIs or "
 "financial information."
@@ -5568,7 +5673,7 @@ msgstr ""
 "Användbart om rollen tidigt kräver arbete med siffror, rapporter, nyckeltal "
 "eller ekonomisk information."
 
-#: .\templates\customer\processes\process_create_v2.html:1020
+#: .\templates\customer\processes\process_create_v2.html:1102
 msgid ""
 "Add Numerical if onboarding includes reports, KPIs, financial information or "
 "numerical tasks."
@@ -5576,14 +5681,14 @@ msgstr ""
 "Lägg till numerisk förmåga om introduktionen omfattar rapporter, nyckeltal, "
 "ekonomisk information eller numeriska uppgifter."
 
-#: .\templates\customer\processes\process_create_v2.html:1026
+#: .\templates\customer\processes\process_create_v2.html:1108
 msgid ""
 "Helps identify behavioural strengths, development areas and coaching themes."
 msgstr ""
 "Hjälper till att identifiera beteendemässiga styrkor, utvecklingsområden och "
 "teman för coachning."
 
-#: .\templates\customer\processes\process_create_v2.html:1027
+#: .\templates\customer\processes\process_create_v2.html:1109
 msgid ""
 "Add Personality if you want to identify behavioural strengths, development "
 "areas and coaching themes."
@@ -5594,7 +5699,7 @@ msgstr ""
 # | msgid ""
 # | "Understand what drives the person and what environment supports "
 # | "performance."
-#: .\templates\customer\processes\process_create_v2.html:1030
+#: .\templates\customer\processes\process_create_v2.html:1112
 msgid ""
 "Shows what drives engagement and what kind of environment supports "
 "sustainable growth."
@@ -5602,7 +5707,7 @@ msgstr ""
 "Visar vad som driver engagemang och vilken typ av miljö som stödjer hållbar "
 "utveckling."
 
-#: .\templates\customer\processes\process_create_v2.html:1031
+#: .\templates\customer\processes\process_create_v2.html:1113
 msgid ""
 "Add Motivation if you want to understand what supports engagement, growth "
 "and sustainable performance."
@@ -5610,7 +5715,7 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vad som stödjer engagemang, "
 "utveckling och hållbar prestation."
 
-#: .\templates\customer\processes\process_create_v2.html:1034
+#: .\templates\customer\processes\process_create_v2.html:1116
 msgid ""
 "Adds insight into communication, comprehension and learning through written "
 "information."
@@ -5618,7 +5723,7 @@ msgstr ""
 "Ger insikt i kommunikation, förståelse och lärande genom skriftlig "
 "information."
 
-#: .\templates\customer\processes\process_create_v2.html:1035
+#: .\templates\customer\processes\process_create_v2.html:1117
 msgid ""
 "Add Verbal if the development plan includes communication, written "
 "information or knowledge-heavy tasks."
@@ -5626,7 +5731,7 @@ msgstr ""
 "Lägg till verbal förmåga om utvecklingsplanen omfattar kommunikation, "
 "skriftlig information eller kunskapsintensiva uppgifter."
 
-#: .\templates\customer\processes\process_create_v2.html:1038
+#: .\templates\customer\processes\process_create_v2.html:1120
 msgid ""
 "Adds insight into problem-solving style and areas for analytical development."
 msgstr ""
@@ -5636,7 +5741,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:1039
+#: .\templates\customer\processes\process_create_v2.html:1121
 msgid ""
 "Add Logical if the development focus includes problem-solving, structure or "
 "analytical thinking."
@@ -5644,7 +5749,7 @@ msgstr ""
 "Lägg till logisk förmåga om utvecklingsfokuset omfattar problemlösning, "
 "struktur eller analytiskt tänkande."
 
-#: .\templates\customer\processes\process_create_v2.html:1042
+#: .\templates\customer\processes\process_create_v2.html:1124
 msgid ""
 "Useful when development goals include data, reporting, finance or numerical "
 "confidence."
@@ -5652,7 +5757,7 @@ msgstr ""
 "Användbart när utvecklingsmålen omfattar data, rapportering, ekonomi eller "
 "trygghet i att arbeta med siffror."
 
-#: .\templates\customer\processes\process_create_v2.html:1043
+#: .\templates\customer\processes\process_create_v2.html:1125
 msgid ""
 "Add Numerical if development goals include data, reports, finance, KPIs or "
 "numerical confidence."
@@ -5660,7 +5765,7 @@ msgstr ""
 "Lägg till numerisk förmåga om utvecklingsmålen omfattar data, rapporter, "
 "ekonomi, nyckeltal eller trygghet i att arbeta med siffror."
 
-#: .\templates\customer\processes\process_create_v2.html:1049
+#: .\templates\customer\processes\process_create_v2.html:1131
 msgid ""
 "Helps identify leadership style, behavioural strengths, blind spots and "
 "possible derailers."
@@ -5668,7 +5773,7 @@ msgstr ""
 "Hjälper till att identifiera ledarstil, beteendemässiga styrkor, blinda "
 "fläckar och möjliga riskbeteenden."
 
-#: .\templates\customer\processes\process_create_v2.html:1050
+#: .\templates\customer\processes\process_create_v2.html:1132
 msgid ""
 "Add Personality if you want to explore leadership style, behavioural "
 "strengths and possible blind spots."
@@ -5679,7 +5784,7 @@ msgstr ""
 # | msgid ""
 # | "Understand what drives the person and what environment supports "
 # | "performance."
-#: .\templates\customer\processes\process_create_v2.html:1053
+#: .\templates\customer\processes\process_create_v2.html:1135
 msgid ""
 "Shows what drives the leader and what kind of environment supports "
 "sustainable leadership."
@@ -5687,7 +5792,7 @@ msgstr ""
 "Visar vad som driver ledaren och vilken typ av miljö som stödjer ett "
 "hållbart ledarskap."
 
-#: .\templates\customer\processes\process_create_v2.html:1054
+#: .\templates\customer\processes\process_create_v2.html:1136
 msgid ""
 "Add Motivation if you want to understand what energises the leader and "
 "supports sustainable leadership."
@@ -5698,14 +5803,14 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:1057
+#: .\templates\customer\processes\process_create_v2.html:1139
 msgid ""
 "Adds insight into how the leader processes and communicates complex "
 "information."
 msgstr ""
 "Ger insikt i hur ledaren bearbetar och kommunicerar komplex information."
 
-#: .\templates\customer\processes\process_create_v2.html:1058
+#: .\templates\customer\processes\process_create_v2.html:1140
 msgid ""
 "Add Verbal if the leader needs to interpret complex information or "
 "communicate clearly in writing."
@@ -5713,7 +5818,7 @@ msgstr ""
 "Lägg till verbal förmåga om ledaren behöver tolka komplex information eller "
 "kommunicera tydligt i skrift."
 
-#: .\templates\customer\processes\process_create_v2.html:1061
+#: .\templates\customer\processes\process_create_v2.html:1143
 msgid ""
 "Adds insight into structured thinking, problem-solving and decision-making "
 "in leadership situations."
@@ -5721,7 +5826,7 @@ msgstr ""
 "Ger insikt i strukturerat tänkande, problemlösning och beslutsfattande i "
 "ledarskapssituationer."
 
-#: .\templates\customer\processes\process_create_v2.html:1062
+#: .\templates\customer\processes\process_create_v2.html:1144
 msgid ""
 "Add Logical if the leader works with strategy, complex decisions or "
 "structured problem-solving."
@@ -5729,7 +5834,7 @@ msgstr ""
 "Lägg till logisk förmåga om ledaren arbetar med strategi, komplexa beslut "
 "eller strukturerad problemlösning."
 
-#: .\templates\customer\processes\process_create_v2.html:1065
+#: .\templates\customer\processes\process_create_v2.html:1147
 msgid ""
 "Useful when the leader works with budgets, KPIs, performance data or "
 "business reporting."
@@ -5737,7 +5842,7 @@ msgstr ""
 "Användbart när ledaren arbetar med budgetar, nyckeltal, prestationsdata "
 "eller affärsrapportering."
 
-#: .\templates\customer\processes\process_create_v2.html:1066
+#: .\templates\customer\processes\process_create_v2.html:1148
 msgid ""
 "Add Numerical if the leader works with budgets, KPIs, performance data or "
 "business reporting."
@@ -5745,7 +5850,7 @@ msgstr ""
 "Lägg till numerisk förmåga om ledaren arbetar med budgetar, nyckeltal, "
 "prestationsdata eller affärsrapportering."
 
-#: .\templates\customer\processes\process_create_v2.html:1072
+#: .\templates\customer\processes\process_create_v2.html:1154
 msgid ""
 "Helps reveal behavioural patterns, collaboration styles and possible "
 "friction points in the team."
@@ -5753,7 +5858,7 @@ msgstr ""
 "Hjälper till att synliggöra beteendemönster, samarbetsstilar och möjliga "
 "friktionspunkter i teamet."
 
-#: .\templates\customer\processes\process_create_v2.html:1073
+#: .\templates\customer\processes\process_create_v2.html:1155
 msgid ""
 "Add Personality if you want to understand collaboration styles, team "
 "dynamics and possible friction points."
@@ -5761,7 +5866,7 @@ msgstr ""
 "Lägg till personlighetstestet om du vill förstå samarbetsstilar, teamdynamik "
 "och möjliga friktionspunkter."
 
-#: .\templates\customer\processes\process_create_v2.html:1076
+#: .\templates\customer\processes\process_create_v2.html:1158
 msgid ""
 "Shows what energises different team members and where motivational needs may "
 "differ."
@@ -5769,7 +5874,7 @@ msgstr ""
 "Visar vad som ger olika teammedlemmar energi och var deras motivationsbehov "
 "kan skilja sig åt."
 
-#: .\templates\customer\processes\process_create_v2.html:1077
+#: .\templates\customer\processes\process_create_v2.html:1159
 msgid ""
 "Add Motivation if you want to understand what energises the team and where "
 "needs may differ."
@@ -5780,7 +5885,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:1080
+#: .\templates\customer\processes\process_create_v2.html:1162
 msgid ""
 "Useful if the team relies heavily on written communication, documentation or "
 "shared information."
@@ -5788,7 +5893,7 @@ msgstr ""
 "Användbart om teamet i hög grad är beroende av skriftlig kommunikation, "
 "dokumentation eller delad information."
 
-#: .\templates\customer\processes\process_create_v2.html:1081
+#: .\templates\customer\processes\process_create_v2.html:1163
 msgid ""
 "Add Verbal if the team relies on written communication, documentation or "
 "shared information."
@@ -5796,14 +5901,14 @@ msgstr ""
 "Lägg till verbal förmåga om teamet är beroende av skriftlig kommunikation, "
 "dokumentation eller delad information."
 
-#: .\templates\customer\processes\process_create_v2.html:1084
+#: .\templates\customer\processes\process_create_v2.html:1166
 msgid ""
 "Adds insight into how team members approach problems, structure and "
 "decisions."
 msgstr ""
 "Ger insikt i hur teammedlemmarna tar sig an problem, struktur och beslut."
 
-#: .\templates\customer\processes\process_create_v2.html:1085
+#: .\templates\customer\processes\process_create_v2.html:1167
 msgid ""
 "Add Logical if the team works with prioritisation, problem-solving or shared "
 "decision-making."
@@ -5811,7 +5916,7 @@ msgstr ""
 "Lägg till logisk förmåga om teamet arbetar med prioritering, problemlösning "
 "eller gemensamt beslutsfattande."
 
-#: .\templates\customer\processes\process_create_v2.html:1088
+#: .\templates\customer\processes\process_create_v2.html:1170
 msgid ""
 "Useful if the team works with data, reporting, finance, analysis or "
 "measurable targets."
@@ -5819,7 +5924,7 @@ msgstr ""
 "Användbart om teamet arbetar med data, rapportering, ekonomi, analys eller "
 "mätbara mål."
 
-#: .\templates\customer\processes\process_create_v2.html:1089
+#: .\templates\customer\processes\process_create_v2.html:1171
 msgid ""
 "Add Numerical if the team works with targets, reporting, data, finance or "
 "measurable outcomes."
@@ -5827,7 +5932,7 @@ msgstr ""
 "Lägg till numerisk förmåga om teamet arbetar med mål, rapportering, data, "
 "ekonomi eller mätbara resultat."
 
-#: .\templates\customer\processes\process_create_v2.html:1095
+#: .\templates\customer\processes\process_create_v2.html:1177
 msgid ""
 "Helps understand how people may respond to change, uncertainty and new role "
 "expectations."
@@ -5835,7 +5940,7 @@ msgstr ""
 "Hjälper till att förstå hur människor kan reagera på förändring, osäkerhet "
 "och nya rollförväntningar."
 
-#: .\templates\customer\processes\process_create_v2.html:1096
+#: .\templates\customer\processes\process_create_v2.html:1178
 msgid ""
 "Add Personality if you want to understand how people may respond to change "
 "and new role expectations."
@@ -5843,13 +5948,13 @@ msgstr ""
 "Lägg till personlighetstestet om du vill förstå hur människor kan reagera på "
 "förändring och nya rollförväntningar."
 
-#: .\templates\customer\processes\process_create_v2.html:1099
+#: .\templates\customer\processes\process_create_v2.html:1181
 msgid "Shows what people need to stay engaged and supported during change."
 msgstr ""
 "Visar vad människor behöver för att behålla engagemang och känna stöd under "
 "förändring."
 
-#: .\templates\customer\processes\process_create_v2.html:1100
+#: .\templates\customer\processes\process_create_v2.html:1182
 msgid ""
 "Add Motivation if you want to understand what people need to stay engaged "
 "during change."
@@ -5857,7 +5962,7 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vad människor behöver för att "
 "behålla sitt engagemang under förändring."
 
-#: .\templates\customer\processes\process_create_v2.html:1103
+#: .\templates\customer\processes\process_create_v2.html:1185
 msgid ""
 "Useful when people need to absorb and communicate new information during "
 "transition."
@@ -5868,7 +5973,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires reading, interpreting or communicating "
 # | "complex information."
-#: .\templates\customer\processes\process_create_v2.html:1104
+#: .\templates\customer\processes\process_create_v2.html:1186
 msgid ""
 "Add Verbal if the change requires people to absorb, interpret or communicate "
 "new information."
@@ -5876,7 +5981,7 @@ msgstr ""
 "Lägg till verbal förmåga om förändringen kräver att människor tar till sig, "
 "tolkar eller kommunicerar ny information."
 
-#: .\templates\customer\processes\process_create_v2.html:1107
+#: .\templates\customer\processes\process_create_v2.html:1189
 msgid ""
 "Adds insight into problem-solving and adaptability in changing structures."
 msgstr ""
@@ -5885,7 +5990,7 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:1108
+#: .\templates\customer\processes\process_create_v2.html:1190
 msgid ""
 "Add Logical if new roles require problem-solving, structure or analytical "
 "thinking."
@@ -5893,7 +5998,7 @@ msgstr ""
 "Lägg till logisk förmåga om nya roller kräver problemlösning, struktur eller "
 "analytiskt tänkande."
 
-#: .\templates\customer\processes\process_create_v2.html:1111
+#: .\templates\customer\processes\process_create_v2.html:1193
 msgid ""
 "Useful when new roles involve reporting, analysis, budgets or data-driven "
 "work."
@@ -5901,7 +6006,7 @@ msgstr ""
 "Användbart när nya roller omfattar rapportering, analys, budgetar eller "
 "datadrivet arbete."
 
-#: .\templates\customer\processes\process_create_v2.html:1112
+#: .\templates\customer\processes\process_create_v2.html:1194
 msgid ""
 "Add Numerical if new roles involve reporting, analysis, budgets, KPIs or "
 "data-driven work."
@@ -5910,14 +6015,14 @@ msgstr ""
 "budgetar, nyckeltal eller datadrivet arbete."
 
 # | msgid "Understand behavioural style, strengths, risks and role fit."
-#: .\templates\customer\processes\process_create_v2.html:1118
+#: .\templates\customer\processes\process_create_v2.html:1200
 msgid ""
 "Gives a broad view of behavioural style, strengths and potential development "
 "areas."
 msgstr ""
 "Ger en bred bild av beteendestil, styrkor och möjliga utvecklingsområden."
 
-#: .\templates\customer\processes\process_create_v2.html:1119
+#: .\templates\customer\processes\process_create_v2.html:1201
 msgid ""
 "Add Personality if you want a broad view of behavioural style, strengths and "
 "development areas."
@@ -5928,7 +6033,7 @@ msgstr ""
 # | msgid ""
 # | "Understand what drives the person and what environment supports "
 # | "performance."
-#: .\templates\customer\processes\process_create_v2.html:1122
+#: .\templates\customer\processes\process_create_v2.html:1204
 msgid ""
 "Shows what drives the person and what kind of environment supports "
 "engagement."
@@ -5938,7 +6043,7 @@ msgstr ""
 # | msgid ""
 # | "Understand what drives the person and what environment supports "
 # | "performance."
-#: .\templates\customer\processes\process_create_v2.html:1123
+#: .\templates\customer\processes\process_create_v2.html:1205
 msgid ""
 "Add Motivation if you want to understand what drives the person and supports "
 "engagement."
@@ -5946,11 +6051,11 @@ msgstr ""
 "Lägg till motivationstestet om du vill förstå vad som driver personen och "
 "stödjer engagemang."
 
-#: .\templates\customer\processes\process_create_v2.html:1126
+#: .\templates\customer\processes\process_create_v2.html:1208
 msgid "Adds insight into understanding and working with written information."
 msgstr "Ger insikt i förmågan att förstå och arbeta med skriftlig information."
 
-#: .\templates\customer\processes\process_create_v2.html:1127
+#: .\templates\customer\processes\process_create_v2.html:1209
 msgid ""
 "Add Verbal if written communication, reading or information handling is "
 "relevant."
@@ -5961,25 +6066,25 @@ msgstr ""
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:1130
+#: .\templates\customer\processes\process_create_v2.html:1212
 msgid "Adds insight into problem-solving and analytical thinking."
 msgstr "Ger insikt i problemlösning och analytiskt tänkande."
 
 # | msgid ""
 # | "Useful when the role requires problem-solving, structure and analytical "
 # | "thinking."
-#: .\templates\customer\processes\process_create_v2.html:1131
+#: .\templates\customer\processes\process_create_v2.html:1213
 msgid ""
 "Add Logical if problem-solving, structure or analytical thinking is relevant."
 msgstr ""
 "Lägg till logisk förmåga om problemlösning, struktur eller analytiskt "
 "tänkande är relevant."
 
-#: .\templates\customer\processes\process_create_v2.html:1134
+#: .\templates\customer\processes\process_create_v2.html:1216
 msgid "Adds insight into working with numbers, data and reports."
 msgstr "Ger insikt i förmågan att arbeta med siffror, data och rapporter."
 
-#: .\templates\customer\processes\process_create_v2.html:1135
+#: .\templates\customer\processes\process_create_v2.html:1217
 msgid "Add Numerical if numbers, data, reports or KPIs are relevant."
 msgstr ""
 "Lägg till numerisk förmåga om siffror, data, rapporter eller nyckeltal är "

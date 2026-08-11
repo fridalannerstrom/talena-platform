@@ -5,7 +5,10 @@ from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
 
 from apps.emails.models import EmailTemplate, EmailLog
-from apps.emails.utils import render_placeholders  # justera import om din ligger annorlunda
+from apps.emails.utils import (
+    render_placeholders,
+    get_default_invitation_template,
+)
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
@@ -43,6 +46,18 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
     for inv in invitations:
         candidate = inv.candidate
 
+        lang = (
+            getattr(
+                process,
+                "candidate_language",
+                "sv",
+            )
+            or "sv"
+        ).strip().lower()
+
+        if lang not in {"sv", "en"}:
+            lang = "sv"
+
         if inv.status in ("sent", "started", "completed"):
             skipped_count += 1
             continue
@@ -55,7 +70,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             "first_name": candidate.first_name,
             "last_name": candidate.last_name,
             "email": candidate.email,
-            "language": "sv",
+            "language": lang,
             "job_title": process.job_title or "Assessment",
             "job_number": f"talena-{process.id}",
             "meta_data": {
@@ -76,7 +91,6 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 raise ValueError("SOVA returnerade ingen url")
 
             # --- Email template (samma som kund) ---
-            lang = "sv"
             template = (
                 EmailTemplate.objects
                 .filter(
@@ -88,13 +102,20 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 .first()
             )
 
-            subject_tpl = template.subject if template else "Ditt test"
-            body_tpl = template.body if template else (
-                "Hej {first_name}!\n\n"
-                "Klicka på länken för att starta testet:\n"
-                "{assessment_url}\n\n"
-                "Vänliga hälsningar,\n"
-                "Talena"
+            default_template = (
+                get_default_invitation_template(lang)
+            )
+
+            subject_tpl = (
+                template.subject
+                if template
+                else default_template["subject"]
+            )
+
+            body_tpl = (
+                template.body
+                if template
+                else default_template["body"]
             )
 
             sender_full_name = actor_user.get_full_name().strip() or actor_user.first_name or actor_user.email

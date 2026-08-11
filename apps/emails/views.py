@@ -122,12 +122,17 @@ def edit_process_invitation_template(request, process_id):
             )
         )
 
+    language = (
+        process.candidate_language
+        or "sv"
+    )
+
     tpl, _created = EmailTemplate.objects.get_or_create(
         process=process,
         template_type="invitation",
-        language="sv",
+        language=language,
         defaults=get_default_invitation_template(
-            "sv"
+            language
         ),
     )
 
@@ -203,12 +208,17 @@ def admin_edit_company_process_invitation_template(request, company_pk, process_
         company=company,
     )
 
+    language = (
+        process.candidate_language
+        or "sv"
+    )
+
     tpl, _created = EmailTemplate.objects.get_or_create(
         process=process,
         template_type="invitation",
-        language="sv",
+        language=language,
         defaults=get_default_invitation_template(
-            "sv"
+            language
         ),
     )
 
