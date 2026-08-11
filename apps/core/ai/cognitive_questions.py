@@ -37,16 +37,18 @@ def build_cognitive_questions_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build a prompt for practical, purpose-aware cognitive
-    follow-up questions.
+    Build the prompt for cognitive follow-up questions.
 
-    This module generates questions only. It does not generate
-    or update the cognitive interpretation.
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects only the technical input/output contract required
+    by the application.
     """
 
     language_code = normalize_ai_language(
         language_code
     )
+
     language_instruction = get_ai_language_instruction(
         language_code
     )
@@ -61,48 +63,16 @@ def build_cognitive_questions_prompt(
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
 
     purpose_label = shared_context["purpose_label"]
     context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
 
-    evidence_text = (
-        build_cognitive_evidence_text(
-            cognitive_results
-        )
+    evidence_text = build_cognitive_evidence_text(
+        cognitive_results
     )
 
-    if context_data:
-        context_instruction = """
-Use only the supplied process context when referring to role demands,
-working situations or responsibilities.
-
-Do not invent tasks, systems, responsibilities, time pressure,
-leadership demands or required competence.
-
-The questions may explore how the candidate approaches cognitive
-demands explicitly described in the context.
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Base the questions on the available cognitive assessment results and
-the selected process purpose.
-
-Keep the questions broadly applicable. Do not invent specific role
-tasks, systems, responsibilities or working conditions.
-""".strip()
-
     return f"""
-You are generating AI-supported cognitive follow-up questions for
-Talena, an assessment and talent management platform.
-
-You are an experienced and balanced assessment consultant with strong
-knowledge of cognitive assessment, structured interviewing and
-development conversations.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
@@ -110,149 +80,93 @@ Name: {candidate.first_name} {candidate.last_name}
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{context_text or "No additional process context supplied."}
 
-AVAILABLE COGNITIVE ASSESSMENT EVIDENCE
+COGNITIVE ASSESSMENT DATA
 {evidence_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-YOUR TASK
-Generate exactly 3 practical questions that help the user gather
-additional evidence relating to the available cognitive assessment
-results.
+ADMINISTRATOR AI GUIDANCE
 
-The questions should help explore:
-- how the candidate approaches relevant information or problems
-- working methods and strategies
-- how complexity, pace or unfamiliarity may affect the approach
-- what conditions or support may help
-- concrete examples from real situations
+The following guidance is controlled by Talena administrators.
 
-ADMIN-EDITABLE QUESTION GUIDANCE
-
-The following instructions control the desired question style, emphasis,
-tone and practical interviewing approach used by Talena.
-
-These instructions are managed globally by Talena administrators and apply
-to all customers using this AI feature.
-
-They may influence how the questions are formulated, but they must not
-override the assessment principles, evidence boundaries, safety requirements,
-question requirements or technical output format defined elsewhere in this
-prompt.
+It controls all non-technical decisions about question content,
+assessment interpretation, evidence boundaries, interviewing approach,
+tone, caution, reasoning and communication.
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-IMPORTANT ASSESSMENT PRINCIPLES
-- Cognitive results describe relative performance on specific
-  reasoning tasks compared with a reference group.
-- They do not measure overall intelligence.
-- They do not prove actual workplace competence or suitability.
-- They do not measure experience, knowledge, motivation or personality.
-- A lower result does not mean that the person cannot perform the work.
-- A higher result does not guarantee strong workplace performance.
-- Treat results as indicators and hypotheses.
-- Do not make a hiring, promotion or suitability decision.
-- Do not diagnose the candidate.
-- Do not include percentile numbers in the questions.
-- Do not invent candidate experience.
-- Do not lead the candidate towards a preferred answer.
+TALENA TECHNICAL OUTPUT CONTRACT
 
-QUESTION RULES
-Each question must:
-- be open and practical
-- request a concrete example, approach or working method
-- be relevant to at least one available cognitive result
-- be understandable without psychometric knowledge
-- avoid repeating another question
-- avoid wording that implies a confirmed strength or weakness
+The following requirements exist only so Talena can process,
+save and display the generated response.
 
-For recruitment, phrase questions as interview questions.
+Administrator guidance may control the content and number of questions,
+but must not change the required JSON field names or event structure.
 
-For development, onboarding, leadership or team purposes, use
-reflection or discussion wording where appropriate.
 
-WHY FIELD RULES
-For every question, explain why the question is useful.
+OUTPUT LANGUAGE
 
-The explanation must:
-- describe which assessment hypothesis it helps explore
-- use cautious language
-- avoid claiming that the question measures or proves competence
-- avoid generic wording
-- remain concise
-
-Use formulations such as:
-- "This helps explore..."
-- "This may provide additional evidence about..."
-- "This can add context to..."
-
-LISTEN_FOR FIELD RULES
-For every question, explain what concrete evidence the user should
-look for in the answer.
-
-Include specific cues such as:
-- how the situation was understood or defined
-- which information was used
-- how the candidate structured the task
-- decisions, priorities or trade-offs
-- adjustments made when the first approach did not work
-- use of checking, preparation, support or tools
-- observable outcomes
-- reflection and learning
-
-Do not simply repeat the question.
-
-Avoid vague phrases such as:
-- "look for good problem-solving"
-- "listen for effective strategies"
-- "look for communication skills"
-- "consider the outcome"
-
-CONTEXT NOTE
-Briefly explain:
-- which cognitive assessments were available
-- whether additional process context was available
-- that the questions are intended to gather supporting evidence
-
-LANGUAGE
 {language_instruction}
-Translate every user-facing JSON string, including title and label.
 
-STREAMING OUTPUT FORMAT
-Return newline-delimited JSON, also called NDJSON.
+All user-facing text inside the JSON response must use the
+configured output language.
 
-Every JSON object must be on one single line.
+
+OUTPUT FORMAT
+
+Return JSON events.
+
 Do not use Markdown.
+
 Do not use code fences.
-Do not add text outside the JSON objects.
 
-Return events in this exact order:
+Do not add explanatory text outside the JSON objects.
 
-1. One meta event:
+
+REQUIRED EVENT STRUCTURE
+
+
+1. META EVENT
+
+Return one meta event:
 
 {{"type":"meta","title":"Cognitive questions","label":"AI-supported questions"}}
 
-2. One questions event containing exactly 3 objects:
 
-{{"type":"questions","items":[{{"question":"Question one","why":"Why this question is useful","listen_for":"Concrete evidence to look for"}},{{"question":"Question two","why":"Why this question is useful","listen_for":"Concrete evidence to look for"}},{{"question":"Question three","why":"Why this question is useful","listen_for":"Concrete evidence to look for"}}]}}
+2. QUESTIONS EVENT
 
-3. One context_note event:
+Return one questions event.
+
+The items array may contain the number of questions requested
+by the administrator guidance.
+
+Every question object must use these exact field names:
+
+- question
+- why
+- listen_for
+
+Example:
+
+{{"type":"questions","items":[{{"question":"Question text","why":"Why this question is relevant","listen_for":"What to listen for"}}]}}
+
+
+3. CONTEXT NOTE
+
+Return one context_note event:
 
 {{"type":"context_note","text":"Brief explanation of the evidence and context used."}}
 
-4. One final done event:
+
+4. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
-
 
 def create_empty_cognitive_questions(
     owner,
@@ -296,7 +210,7 @@ def _normalise_cognitive_questions(
 
     questions = []
 
-    for item in value[:3]:
+    for item in value:
         if not isinstance(item, dict):
             continue
 
@@ -429,7 +343,7 @@ def apply_cognitive_questions_event(
             )
 
             result["questions"] = (
-                existing_questions[:3]
+                existing_questions
             )
 
     elif event_type == "context_note":
@@ -681,11 +595,12 @@ def stream_cognitive_questions(
     )
 
     system_message = (
-        "You are a careful and experienced cognitive "
-        "assessment consultant. Treat assessment results "
-        "as indicators rather than facts. Do not invent "
-        "candidate or process context. Follow the requested "
-        "JSON output format exactly. "
+        "You are an AI component inside Talena. "
+        "Follow the administrator-provided AI guidance for "
+        "all non-technical question content, assessment "
+        "interpretation and communication decisions. "
+        "Follow Talena's technical output contract exactly, "
+        "including required JSON field names and event structure. "
         f"{system_language_instruction}"
     )
 
@@ -802,7 +717,7 @@ def stream_cognitive_questions(
                 )
             )
 
-            if len(questions) == 3:
+            if questions:
                 questions_event = {
                     "type": "questions",
                     "items": questions,
@@ -815,23 +730,26 @@ def stream_cognitive_questions(
     # --------------------------------------------------------
     if questions_event is None:
         repair_prompt = f"""
-The previous response did not contain exactly three valid cognitive
-questions.
+The previous response did not contain a valid cognitive questions event.
 
-Use the same candidate, purpose, context and cognitive evidence from
-the original request below.
+Use the same candidate, purpose, context, assessment evidence and
+administrator guidance from the original request below.
 
-Return exactly one JSON object on one line.
+Follow the administrator guidance regarding the number and content
+of questions.
 
-The object must have this exact structure:
+Return exactly one JSON object.
+
+The object must have this structure:
 
 {{"type":"questions","items":[
-{{"question":"Open practical question","why":"Why this helps explore the assessment hypothesis","listen_for":"Specific evidence to look for"}},
-{{"question":"Open practical question","why":"Why this helps explore the assessment hypothesis","listen_for":"Specific evidence to look for"}},
-{{"question":"Open practical question","why":"Why this helps explore the assessment hypothesis","listen_for":"Specific evidence to look for"}}
+{{"question":"Question text","why":"Why this question is relevant","listen_for":"What to listen for"}}
 ]}}
 
-Every question object must contain:
+The items array must contain at least one valid question.
+
+Every question object must contain these exact fields:
+
 - question
 - why
 - listen_for
@@ -902,7 +820,7 @@ ORIGINAL REQUEST
                 )
             )
 
-            if len(repaired_questions) == 3:
+            if repaired_questions:
                 questions_event = {
                     "type": "questions",
                     "items": repaired_questions,
@@ -923,7 +841,7 @@ ORIGINAL REQUEST
 
         raise ValueError(
             "The AI response did not contain "
-            "three valid cognitive questions."
+            "valid cognitive questions."
         )
 
     if meta_event is None:
@@ -983,10 +901,10 @@ def save_cognitive_questions(
         )
     )
 
-    if len(questions) != 3:
+    if not questions:
         raise ValueError(
             "The AI response did not contain "
-            "three valid cognitive questions."
+            "valid cognitive questions."
         )
 
     result["questions"] = questions

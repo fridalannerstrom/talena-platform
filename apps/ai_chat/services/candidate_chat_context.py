@@ -10,11 +10,13 @@ from apps.processes.services.candidate_profile import (
 
 def build_chat_assessment_activities(activities):
     """
-    Build a compact AI-friendly version of live SOVA activities.
+    Build a compact, interpretation-neutral representation
+    of live SOVA assessment data for Talena AI.
 
-    Personality competencies use STEN rounded as the primary score.
-    Percentiles are kept only for cognitive ability assessments.
+    Talena supplies available technical score fields.
+    Administrator guidance controls how those scores are interpreted.
     """
+
     compact_activities = []
 
     for activity in activities or []:
@@ -24,22 +26,12 @@ def build_chat_assessment_activities(activities):
             or "Assessment"
         )
 
-        activity_name_lower = activity_name.lower()
-
-        is_cognitive = any(
-            keyword in activity_name_lower
-            for keyword in (
-                "verbal",
-                "logical",
-                "numerical",
-                "ability",
-                "cognitive",
-            )
-        )
-
         compact_competencies = []
 
-        for competency in activity.get("competencies", []) or []:
+        for competency in (
+            activity.get("competencies", [])
+            or []
+        ):
             item = {
                 "name": (
                     competency.get("competency")
@@ -48,33 +40,34 @@ def build_chat_assessment_activities(activities):
                 ),
             }
 
-            if is_cognitive:
-                item["percentile"] = competency.get(
-                    "percentile"
+            score_fields = (
+                "sten_rounded",
+                "sten",
+                "stive_rounded",
+                "stive",
+                "percentile",
+                "score",
+            )
+
+            for field_name in score_fields:
+                value = competency.get(
+                    field_name
                 )
 
-            else:
-                item["sten_rounded"] = competency.get(
-                    "sten_rounded"
-                )
+                if value is not None:
+                    item[field_name] = value
 
-            compact_competencies.append(item)
+            compact_competencies.append(
+                item
+            )
 
-        compact_activities.append(
-            {
-                "assessment": activity_name,
-                "status": activity.get("status"),
-                "assessment_type": (
-                    "cognitive"
-                    if is_cognitive
-                    else "personality_or_motivation"
-                ),
-                "competencies": compact_competencies,
-            }
-        )
+        compact_activities.append({
+            "assessment": activity_name,
+            "status": activity.get("status"),
+            "competencies": compact_competencies,
+        })
 
     return compact_activities
-
 
 def get_candidate_display_name(candidate):
     """
@@ -117,15 +110,6 @@ def build_live_candidate_profile(invitation):
                 invitation.sova_activities or []
             )
         ),
-        "interpretation_guide": {
-            "personality_score": "STEN rounded",
-            "personality_bands": {
-                "1_3": "lower",
-                "4_7": "typical or moderate",
-                "8_10": "higher",
-            },
-            "cognitive_score": "percentile",
-        },
         "project_results": (
             invitation.project_results or {}
         ),

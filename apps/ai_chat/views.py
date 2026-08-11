@@ -7,6 +7,14 @@ from django.views.decorators.http import require_POST
 from apps.core.ai.chat import ask_ai
 from apps.core.ai.chat_stream import stream_ai
 
+from apps.core.ai.language import (
+    get_ai_system_language_instruction,
+    get_request_ai_language,
+)
+
+from apps.core.ai.prompt_templates import (
+    get_ai_prompt_instructions,
+)
 
 import os
 
@@ -70,13 +78,25 @@ def chat_stream_api(request):
             status=400,
         )
 
-    message = (payload.get("message") or "").strip()
+    message = (
+        payload.get("message")
+        or ""
+    ).strip()
+
     process_id = payload.get("process_id")
     candidate_id = payload.get("candidate_id")
 
+    language_code = get_request_ai_language(
+        request
+    )
+
     if not message:
         return JsonResponse(
-            {"error": "A message is required."},
+            {
+                "error": (
+                    "A message is required."
+                )
+            },
             status=400,
         )
 
@@ -84,18 +104,23 @@ def chat_stream_api(request):
         return JsonResponse(
             {
                 "error": (
-                    "process_id and candidate_id are required."
+                    "process_id and candidate_id "
+                    "are required."
                 )
             },
             status=400,
         )
 
     process = get_object_or_404(
-        TestProcess.objects.select_related("company"),
+        TestProcess.objects.select_related(
+            "company"
+        ),
         id=process_id,
     )
 
-    company = get_company_for_user(request.user)
+    company = get_company_for_user(
+        request.user
+    )
 
     if (
         not company
@@ -109,17 +134,21 @@ def chat_stream_api(request):
         return JsonResponse(
             {
                 "error": (
-                    "You do not have access to this process."
+                    "You do not have access "
+                    "to this process."
                 )
             },
             status=403,
         )
 
     try:
-        chat_context = build_candidate_chat_context(
-            process=process,
-            candidate_id=candidate_id,
+        chat_context = (
+            build_candidate_chat_context(
+                process=process,
+                candidate_id=candidate_id,
+            )
         )
+
     except (
         HistoricalProcessCandidate.DoesNotExist,
         TestInvitation.DoesNotExist,
@@ -127,12 +156,16 @@ def chat_stream_api(request):
         return JsonResponse(
             {
                 "error": (
-                    "The candidate could not be found "
-                    "in this process."
+                    "The candidate could not "
+                    "be found in this process."
                 )
             },
             status=404,
         )
+
+    # ---------------------------------------------------------
+    # Candidate and process data
+    # ---------------------------------------------------------
 
     candidate_context_json = (
         serialize_candidate_chat_context(
@@ -140,75 +173,107 @@ def chat_stream_api(request):
         )
     )
 
-    system_prompt = """
-    You are Talena, an assessment interpretation assistant.
+    # ---------------------------------------------------------
+    # Administrator-controlled AI guidance
+    # ---------------------------------------------------------
 
-    Your role is to help the user understand the candidate, not to merely
-    repeat raw assessment data.
+    admin_instructions = (
+        get_ai_prompt_instructions(
+            key="candidate_chat",
+            language=language_code,
+        )
+    )
 
-    Use only the candidate assessment data and process context provided.
+    # ---------------------------------------------------------
+    # Talena technical system instructions
+    # ---------------------------------------------------------
 
-    Interpretation rules:
-    - Interpret patterns across relevant assessment results.
-    - Explain what the results may mean in practical working life.
-    - Translate scores into clear, natural and useful language.
-    - Focus on likely motivators, preferences, strengths, risks and areas
-    worth exploring.
-    - Connect the interpretation to the user's question.
-    - Do not present a long inventory of scores.
-    - Do not begin answers with labels such as "Evidence:",
-    "Interpretation:" or "Conclusion:" unless the user explicitly asks
-    for a formal breakdown.
-    - Mention individual scores only when they help explain the answer.
-    - For personality results, always use STEN rounded as the primary score.
-    - Do not use percentiles to interpret personality results.
-    - Treat STEN 1–3 as lower, 4–7 as typical or moderate, and 8–10 as higher.
-    - For motivation results, use the scale provided in the candidate data.
-    - For cognitive ability results, percentiles may be used when relevant.
-    - Do not invent scores, behaviours or conclusions.
-    - Clearly distinguish likely tendencies from confirmed behaviour.
-    - Use cautious language such as "may", "suggests" and "could indicate".
-    - Do not make diagnoses or final hiring decisions.
-    - If the data does not support the question, say so clearly.
+    system_prompt = (
+        "You are an AI component inside Talena. "
+        "Follow the administrator-provided AI guidance for "
+        "all non-technical candidate assessment analysis, "
+        "interpretation, reasoning and communication decisions. "
+        "Use the supplied candidate and process data as input. "
+        "Do not alter or invent technical assessment data. "
+        f"{get_ai_system_language_instruction(language_code)}"
+    )
 
-    Conversation style:
-    - Sound like a knowledgeable assessment consultant having a conversation.
-    - Answer directly and naturally.
-    - Keep most answers to 2–5 short sentences.
-    - Use short bullet points only when they improve clarity.
-    - Do not repeat the user's question.
-    - Do not summarise the entire profile unless explicitly asked.
-    - Avoid mechanical score-by-score reporting.
-    - Prioritise interpretation over data repetition.
-    """.strip()
+    # ---------------------------------------------------------
+    # Complete user prompt
+    # ---------------------------------------------------------
 
     user_prompt = f"""
-    Candidate data:
+TALENA CANDIDATE DATA
 
-    {candidate_context_json}
+{candidate_context_json}
 
-    User question:
 
-    {message}
+ADMINISTRATOR AI GUIDANCE
 
-    Give a brief, natural interpretation that directly answers the question.
-    Use STEN rounded for personality interpretation and avoid listing every
-    score unless necessary.
-    """.strip()
+The following guidance is controlled by Talena administrators.
 
-    api_key = os.environ.get("OPENAI_API_KEY")
+It controls all non-technical decisions about:
+
+- assessment interpretation
+- score interpretation
+- evidence boundaries
+- assumptions
+- use of process context
+- reasoning
+- caution
+- conclusions
+- answer length
+- level of detail
+- conversational style
+- tone
+- communication
+
+{admin_instructions}
+
+
+USER QUESTION
+
+{message}
+
+
+TALENA TECHNICAL RESPONSE CONTRACT
+
+Answer the user's question using plain text suitable for Talena's
+streaming candidate-chat interface.
+
+Return only the answer text.
+
+Do not return JSON or NDJSON.
+
+Do not use code fences.
+""".strip()
+
+    # ---------------------------------------------------------
+    # OpenAI
+    # ---------------------------------------------------------
+
+    api_key = os.environ.get(
+        "OPENAI_API_KEY"
+    )
 
     if not api_key:
         return JsonResponse(
             {
                 "error": (
-                    "OPENAI_API_KEY is not configured."
+                    "OPENAI_API_KEY is "
+                    "not configured."
                 )
             },
             status=500,
         )
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key
+    )
+
+    # ---------------------------------------------------------
+    # Streaming response
+    # ---------------------------------------------------------
 
     def stream_response():
         try:
@@ -243,7 +308,9 @@ def chat_stream_api(request):
 
     response = StreamingHttpResponse(
         stream_response(),
-        content_type="text/plain; charset=utf-8",
+        content_type=(
+            "text/plain; charset=utf-8"
+        ),
     )
 
     response["Cache-Control"] = "no-cache"

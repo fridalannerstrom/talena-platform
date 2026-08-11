@@ -81,7 +81,6 @@ def _personality_interpretation_examples(
     }
 
 
-
 def build_personality_interpretation_prompt(
     owner,
     personality_results: list[dict[str, Any]],
@@ -89,13 +88,26 @@ def build_personality_interpretation_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build the prompt for Talena's combined personality interpretation.
+    Build Talena's personality interpretation prompt.
 
-    Response styles and interview questions are handled separately.
-    This interpretation focuses on the personality trait profile as a whole.
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects only the technical input/output contract required
+    by the application.
     """
 
-    language_code = normalize_ai_language(language_code)
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    language_instruction = get_ai_language_instruction(
+        language_code
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="personality_interpretation",
+        language=language_code,
+    )
 
     shared_context = build_shared_ai_context(
         owner
@@ -105,42 +117,12 @@ def build_personality_interpretation_prompt(
         personality_results
     )
 
-    if shared_context["has_context"]:
-        context_instruction = """
-Use the supplied process context to explain how the personality
-preferences may be relevant to the stated role, situation or
-development purpose.
+    examples = _personality_interpretation_examples(
+        language_code
+    )
 
-Clearly distinguish between:
-- behavioural preferences indicated by the assessment
-- information explicitly stated in the process context
-- interpretations that should be explored through examples or conversation
-
-Do not invent responsibilities, requirements, organisational culture,
-team conditions or candidate experience.
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Provide a broader interpretation based on the available personality
-results and the selected purpose.
-
-Do not invent specific responsibilities, requirements, organisational
-culture, team conditions or candidate experience.
-
-State clearly that the practical relevance of the personality profile
-depends on the actual situation and should be explored further.
-""".strip()
-
-    prompt = f"""
-You are generating an AI-supported personality interpretation for
-Talena, an assessment and talent management platform.
-
-You are an experienced and balanced workplace assessment consultant
-with strong knowledge of personality, behavioural preferences,
-structured feedback and development conversations.
+    return f"""
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {shared_context["candidate_name"]}
@@ -148,253 +130,126 @@ Name: {shared_context["candidate_name"]}
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
 
-OPTIONAL PROCESS CONTEXT
-{shared_context["context_text"]}
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
 
-AVAILABLE PERSONALITY TRAIT RESULTS
+PERSONALITY ASSESSMENT DATA
 {evidence_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-YOUR TASK
-Create one practical and balanced interpretation of the available
-personality trait profile.
+ADMINISTRATOR AI GUIDANCE
 
-Help the user understand:
+The following guidance is controlled by Talena administrators.
 
-1. The most important overall behavioural preferences in the profile.
-2. How different personality traits may work together.
-3. Which patterns may be useful or supportive for the selected purpose.
-4. Which patterns, tensions or situational demands should be explored.
-5. The limitations of drawing conclusions from personality results alone.
+It controls all non-technical decisions about personality
+interpretation, STEN interpretation, assessment principles,
+evidence boundaries, reasoning, trait combinations, tone,
+caution, conclusions and communication.
 
-IMPORTANT SCOPE
-- Focus on personality traits only.
-- Do not interpret response-style indicators here.
-- Response styles are handled in a separate Talena section.
-- Do not generate interview or reflection questions here.
-- Questions are handled in a separate Talena section.
+{admin_instructions}
 
-CORE INTERPRETATION RULES
-- Personality results describe likely behavioural preferences or
-  tendencies, not fixed behaviour.
-- Higher and lower results are not automatically strengths or weaknesses.
-- Mid-range results may indicate moderation, flexibility or context
-  dependence.
-- Personality results do not measure cognitive ability, motivation,
-  competence, experience, integrity or future performance.
-- Do not assume that a preference has been demonstrated successfully
-  in the workplace.
-- Do not make a hiring, promotion, placement or development decision.
-- Do not create a match score, suitability verdict or prediction of success.
-- Do not diagnose the candidate.
-- Do not invent candidate experience or process requirements.
-- Treat results as indicators and hypotheses, not facts.
-- Consider combinations between available traits where useful.
-- Do not create invented psychological constructs, competency names
-  or composite scores.
-- Do not include raw STEN scores in the final output.
-- Do not describe the person using fixed labels.
-- Use concrete and practical workplace language.
 
-INTERPRETING COMBINATIONS
-When discussing how traits may work together:
+TALENA TECHNICAL OUTPUT CONTRACT
 
-- Describe the possible behavioural effect of the combination.
-- Acknowledge that behaviour may vary by situation.
-- Explain both the potentially useful expression and what may require
-  conscious adaptation.
-- Do not claim that one trait cancels out another.
-- Do not invent contradictions where the evidence does not support them.
-- Prioritise the combinations that are most relevant to the selected
-  purpose or supplied context.
+The following requirements exist only so Talena can process,
+stream, save and display the generated response.
 
-LANGUAGE AND TONE
-- Write in professional, clear English.
-- Be balanced, practical and non-judgemental.
-- Use cautious formulations such as:
-  "may indicate",
-  "suggests",
-  "could mean",
-  "may prefer",
-  "may be useful to explore".
-- Avoid repeatedly writing "the candidate is".
-- Refer to the candidate by first name where natural.
-- Avoid technical or academic terminology.
-- Avoid exaggerated positive or negative wording.
+Administrator guidance may control the content and number of
+items inside each section, but must not change the required
+event types, JSON field names or NDJSON structure.
 
-CONTENT REQUIREMENTS
 
-OVERALL PERSONALITY INTERPRETATION
-Write approximately 100 to 150 words.
+OUTPUT LANGUAGE
 
-The interpretation should:
-- summarise the most important personality patterns
-- consider the profile as a whole
-- connect cautiously to the selected purpose
-- use supplied context when available
-- include both potentially useful patterns and relevant considerations
-- acknowledge missing context where necessary
-- avoid simply listing individual traits
+{language_instruction}
 
-PROFILE DYNAMICS
-Write one practical paragraph of approximately 50 to 90 words.
+All user-facing text inside the JSON response must use the
+configured output language.
 
-Describe:
-- one or two meaningful combinations in the profile
-- how these preferences may work together
-- how the expression may change depending on the situation
-- what may require conscious adaptation
 
-Do not invent a contradiction or tension if none is supported.
+STREAMING FORMAT
 
-POTENTIALLY SUPPORTIVE PATTERNS
-Return exactly 3 concise points.
-
-Each point must:
-- be grounded in available personality traits
-- explain possible relevance to the selected purpose or context
-- describe a behavioural preference rather than proven competence
-- remain cautious and practical
-
-Do not force exaggerated strengths.
-
-WHAT TO EXPLORE OR VALIDATE
-Return exactly 3 concise points.
-
-These may include:
-- situations where a natural preference may be less effective
-- behavioural demands that may require adaptation
-- tensions between different preferences
-- requirements that personality results cannot evaluate
-- areas where actual examples are needed
-- limitations caused by missing process context
-
-These are hypotheses to explore, not confirmed weaknesses.
-
-CONTEXT NOTE
-Briefly explain:
-- that personality trait results were used
-- whether additional process context was available
-- that response styles and questions are handled separately
-- that actual behaviour should be validated using relevant examples
-
-STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
+
 Do not use Markdown.
+
 Do not use code fences.
+
 Do not add text outside the JSON objects.
 
-Return events in this exact order:
 
-1. One meta event:
+REQUIRED EVENT STRUCTURE
 
-{{"type":"meta","title":"Personality interpretation","label":"AI-supported interpretation"}}
 
-2. Between 3 and 6 interpretation_delta events:
+1. META EVENT
 
-{{"type":"interpretation_delta","text":"First part of the interpretation. "}}
-{{"type":"interpretation_delta","text":"Next part of the interpretation. "}}
+Return one meta event using these exact field names:
 
-Together, these events form the complete overall interpretation.
+{{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
 
-3. One profile_dynamics event:
+Administrator guidance may influence the user-facing title and label
+text, but the fields type, title and label must remain present.
 
-{{"type":"profile_dynamics","text":"A practical explanation of how important personality preferences may work together."}}
 
-4. One supportive_patterns event containing exactly 3 items:
+2. INTERPRETATION CONTENT
 
-{{"type":"supportive_patterns","items":["Pattern one","Pattern two","Pattern three"]}}
+Return the overall personality interpretation using one or more
+interpretation_delta events:
 
-5. One areas_to_explore event containing exactly 3 items:
+{{"type":"interpretation_delta","text":"{examples["first"]}"}}
 
-{{"type":"areas_to_explore","items":["Area one","Area two","Area three"]}}
+{{"type":"interpretation_delta","text":"{examples["next"]}"}}
 
-6. One context_note event:
 
-{{"type":"context_note","text":"Brief explanation of the evidence, context and limitations."}}
+3. PROFILE DYNAMICS
 
-7. One final done event:
+Return one profile_dynamics event:
+
+{{"type":"profile_dynamics","text":"{examples["dynamics"]}"}}
+
+If the administrator guidance does not require substantive content
+for this section, preserve the event and return an empty text value.
+
+
+4. SUPPORTIVE PATTERNS
+
+Return one supportive_patterns event.
+
+The items array may contain the number of items requested by the
+administrator guidance:
+
+{{"type":"supportive_patterns","items":["{examples["support"][0]}","{examples["support"][1]}"]}}
+
+
+5. AREAS TO EXPLORE
+
+Return one areas_to_explore event.
+
+The items array may contain the number of items requested by the
+administrator guidance:
+
+{{"type":"areas_to_explore","items":["{examples["explore"][0]}","{examples["explore"][1]}"]}}
+
+
+6. CONTEXT NOTE
+
+Return one context_note event:
+
+{{"type":"context_note","text":"{examples["context"]}"}}
+
+If administrator guidance does not require substantive context-note
+content, preserve the event and return an empty text value.
+
+
+7. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
 
-    # Replace the base English language instruction with Talena's
-    # language-aware instruction while keeping technical JSON values stable.
-    prompt = prompt.replace(
-        "- Write in professional, clear English.",
-        get_ai_language_instruction(language_code),
-        1,
-    )
-
-    # Localize user-facing examples used in the required NDJSON output.
-    examples = _personality_interpretation_examples(language_code)
-
-    replacements = {
-        '"title":"Personality interpretation"': (
-            f'"title":"{examples["title"]}"'
-        ),
-        '"label":"AI-supported interpretation"': (
-            f'"label":"{examples["label"]}"'
-        ),
-        "First part of the interpretation. ": examples["first"],
-        "Next part of the interpretation. ": examples["next"],
-        (
-            "A practical explanation of how important personality "
-            "preferences may work together."
-        ): examples["dynamics"],
-        "Pattern one": examples["support"][0],
-        "Pattern two": examples["support"][1],
-        "Pattern three": examples["support"][2],
-        "Area one": examples["explore"][0],
-        "Area two": examples["explore"][1],
-        "Area three": examples["explore"][2],
-        (
-            "Brief explanation of the evidence, context and limitations."
-        ): examples["context"],
-    }
-
-    for old, new in replacements.items():
-        prompt = prompt.replace(old, new)
-
-    # Add administrator-editable guidance without exposing the protected
-    # evidence boundaries or technical streaming contract to administrators.
-    admin_instructions = get_ai_prompt_instructions(
-        key="personality_interpretation",
-        language=language_code,
-    )
-
-    admin_guidance_block = f"""
-ADMIN-EDITABLE GUIDANCE
-
-The following instructions control the desired tone, emphasis and style
-of this Talena interpretation.
-
-They may influence how the interpretation is expressed, but they must
-not override the evidence boundaries, interpretation rules, safety
-requirements or technical output format defined elsewhere in this prompt.
-
-{admin_instructions}
-
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes priority.
-""".strip()
-
-    output_format_marker = "STREAMING OUTPUT FORMAT"
-
-    if output_format_marker in prompt:
-        prompt = prompt.replace(
-            output_format_marker,
-            f"{admin_guidance_block}\n\n{output_format_marker}",
-            1,
-        )
-    else:
-        prompt = f"{prompt}\n\n{admin_guidance_block}"
-
-    return prompt
 
 def create_empty_personality_interpretation(
     owner,
@@ -452,7 +307,7 @@ def apply_personality_interpretation_event(
         if isinstance(items, list):
             interpretation["supportive_patterns"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -462,7 +317,7 @@ def apply_personality_interpretation_event(
         if isinstance(items, list):
             interpretation["areas_to_explore"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -537,11 +392,13 @@ def stream_personality_interpretation(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful and experienced workplace "
-                    "personality assessment consultant. Treat personality "
-                    "results as hypotheses rather than facts, do not "
-                    "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical personality analysis, interpretation "
+                    "and communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON structure, field names, "
+                    "event types and streaming format. "
                     f"{system_language_instruction}"
                 ),
             },
@@ -620,7 +477,7 @@ def save_personality_interpretation(
 
     interpretation["supportive_patterns"] = [
         str(item).strip()
-        for item in supportive_patterns[:3]
+        for item in supportive_patterns
         if str(item).strip()
     ]
 
@@ -633,7 +490,7 @@ def save_personality_interpretation(
 
     interpretation["areas_to_explore"] = [
         str(item).strip()
-        for item in areas_to_explore[:3]
+        for item in areas_to_explore
         if str(item).strip()
     ]
 

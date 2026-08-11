@@ -208,21 +208,6 @@ def extract_personality_question_traits(
         ) in QUESTION_PARENT_TRAIT_KEYS
     ]
 
-def describe_sten_position(
-    sten: int,
-) -> str:
-    """
-    Describe a STEN result neutrally for the AI prompt.
-    """
-
-    if sten <= 3:
-        return "lower-range behavioural preference"
-
-    if sten <= 7:
-        return "mid-range behavioural preference"
-
-    return "higher-range behavioural preference"
-
 
 def build_personality_evidence_text(
     results: list[dict[str, Any]],
@@ -242,8 +227,7 @@ def build_personality_evidence_text(
     for result in sorted_results:
         lines.append(
             f"- {result['name']}: "
-            f"STEN {result['sten']} of 10; "
-            f"{describe_sten_position(result['sten'])}"
+            f"STEN {result['sten']} of 10"
         )
 
     return "\n".join(lines)
@@ -332,7 +316,6 @@ def personality_questions_cover_all_traits(
         covered_traits
     )
 
-
 def build_personality_questions_prompt(
     invitation,
     personality_results: list[dict[str, Any]],
@@ -340,24 +323,35 @@ def build_personality_questions_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build the prompt for trait suggestions and purpose-aware questions.
+    Build Talena's personality questions prompt.
+
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects application data, explicit user trait selections
+    and the technical output contract required by the platform.
     """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    language_instruction = get_ai_language_instruction(
+        language_code
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="personality_questions",
+        language=language_code,
+    )
 
     shared_context = build_shared_ai_context(
         invitation
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
 
-    purpose_label = shared_context["purpose_label"]
-    context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
-
-    evidence_text = (
-        build_personality_evidence_text(
-            personality_results
-        )
+    evidence_text = build_personality_evidence_text(
+        personality_results
     )
 
     selected_traits = normalise_selected_traits(
@@ -374,286 +368,192 @@ def build_personality_questions_prompt(
             for trait in selected_traits
         )
         if selected_traits
-        else (
-            "No user-selected traits are currently saved. "
-            "Suggest the most relevant available traits."
-        )
+        else "No explicit user-selected traits."
     )
 
-    has_context = bool(context_data)
-    has_user_selection = bool(selected_traits)
+    selection_mode = (
+        "USER_SELECTED"
+        if selected_traits
+        else "AI_SELECTION"
+    )
 
-    if has_context:
-        context_instruction = """
-Use the supplied process context to identify which behavioural
-preferences may be especially relevant to explore.
-
-Only use requirements, situations or responsibilities explicitly
-included in the supplied context.
-
-Do not invent role requirements, company culture, leadership demands,
-team conditions or candidate experience.
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Base the suggestions and questions on the available personality
-results and selected process purpose only.
-
-Do not invent specific role requirements, company culture, leadership
-demands, team conditions or candidate experience.
-
-State that the relevance of the suggested traits should be checked
-against the actual situation.
-""".strip()
-
-    if has_user_selection:
-        selection_instruction = """
-The user has already selected personality traits.
-
-Use exactly those selected traits for the questions.
-Do not replace them with different traits.
-Return the same selected traits in the selected_traits event.
-Suggested traits may still explain why those traits are relevant.
-""".strip()
-
-    else:
-        selection_instruction = """
-No user-selected traits are currently saved.
-
-Suggest between 4 and 6 traits from the available personality results.
-Select traits because they are useful to explore for the stated purpose
-or supplied context, not merely because they have the highest or lowest
-scores.
-
-The questions must be based on those suggested traits.
-""".strip()
-
-    admin_instructions = get_ai_prompt_instructions(
-        key="personality_questions",
-        language=language_code,
+    available_trait_names = "\n".join(
+        f"- {item['name']}"
+        for item in personality_results
+        if item.get("name")
     )
 
     return f"""
-You are generating AI-supported personality questions for Talena,
-an assessment and talent management platform.
-
-You are an experienced and balanced assessment consultant with strong
-knowledge of workplace personality, behavioural interviewing,
-leadership reflection and development conversations.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
 SELECTED PROCESS PURPOSE
-Purpose: {purpose_label}
+Purpose: {shared_context["purpose_label"]}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
 
-AVAILABLE PERSONALITY RESULTS
+PERSONALITY ASSESSMENT DATA
 {evidence_text}
 
-CURRENT USER-SELECTED TRAITS
+AVAILABLE TECHNICAL TRAIT NAMES
+{available_trait_names}
+
+TRAIT SELECTION MODE
+{selection_mode}
+
+EXPLICIT USER-SELECTED TRAITS
 {selected_traits_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-TRAIT SELECTION INSTRUCTION
-{selection_instruction}
+ADMINISTRATOR AI GUIDANCE
 
-YOUR TASK
-Identify relevant personality traits and generate practical questions
-that help the user explore how those behavioural preferences appear in
-real situations.
+The following guidance is controlled by Talena administrators.
 
-The output must help the user understand:
-
-1. Which available traits may be particularly relevant to the purpose.
-2. Why each selected or suggested trait may be useful to explore.
-3. Which behavioural questions can test or deepen the assessment
-   hypotheses.
-4. What useful evidence or nuance the user should listen for.
-
-ADMIN-EDITABLE QUESTION GUIDANCE
-
-The following instructions control the desired question style, emphasis,
-tone and practical interviewing approach used by Talena.
-
-These instructions are managed globally by Talena administrators and apply
-to all customers using this AI feature.
-
-They may influence how the questions are formulated, but they must not
-override the evidence boundaries, trait-selection safeguards, assessment
-principles, safety requirements or technical output format defined elsewhere
-in this prompt.
+It controls all non-technical decisions about question content,
+personality interpretation, STEN interpretation, trait relevance,
+question count, trait coverage, interviewing approach, reasoning,
+evidence boundaries, tone, caution and communication.
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-CORE INTERPRETATION RULES
-- Personality results describe likely behavioural preferences or
-  tendencies, not fixed behaviour.
-- They do not measure cognitive ability, motivation, competence,
-  experience, integrity or future performance.
-- Higher and lower results are not automatically strengths or weaknesses.
-- Mid-range results may indicate flexibility, moderation or context
-  dependence.
-- Treat results as hypotheses to explore, not facts.
-- Do not diagnose the candidate.
-- Do not make a final hiring, promotion or development decision.
-- Do not create a match score or suitability verdict.
-- Do not invent traits that are not present in the supplied results.
-- Do not invent psychological constructs or combine traits into newly
-  named competencies.
-- Do not include raw STEN scores in the final output.
-- Do not claim that the person has demonstrated a behaviour unless
-  supporting examples are supplied elsewhere.
-- Questions should invite evidence that may confirm, challenge or
-  nuance the assessment indication.
+TALENA INPUT CONTRACT
 
-TRAIT SELECTION RULES
-- Return between 4 and 6 traits.
-- Every returned trait must exactly match a trait name from the
-  available personality results.
-- Do not select response-style measures.
-- Do not select traits solely because their results are extreme.
-- Prefer a balanced set that is relevant to the process purpose.
-- Avoid selecting several traits that would lead to nearly identical
-  questions.
-- If the user has selected traits, preserve that selection exactly.
+The following requirements preserve explicit application data.
 
-QUESTION RULES
-- Return between 3 and 6 question objects.
-- The number of questions must be at least 3.
-- The number of questions must also be at least equal to the number
-  of traits in the selected_traits event.
-- Every selected trait must appear in the traits list of at least
-  one question.
-- Prefer combining two meaningfully related traits in one question
-  when this creates a useful and coherent behavioural theme.
-- Do not force unrelated traits into the same question.
-- A selected trait may appear in more than one question when useful.
-- Do not leave any selected trait without a question.
+If TRAIT SELECTION MODE is USER_SELECTED:
 
-WHY FIELD RULES
-- Explain which behavioural hypothesis the question helps the user
-  explore.
-- Do not say that the question assesses, proves or measures an ability,
-  competence, suitability or performance.
-- Do not describe a trait as crucial, vital or required unless this is
-  explicitly supported by the supplied process context.
-- Use cautious language such as "helps explore", "may provide evidence
-  about" or "can add context to".
-- Keep the explanation concise and specific to the question.
+- the selected_traits event must contain exactly the explicit
+  user-selected traits supplied above
+- do not replace the user's explicit selection with other traits
 
-LISTEN_FOR FIELD RULES
-- Explain what concrete evidence the user should look for in the answer.
-- Tailor the guidance to the exact question and selected traits.
-- Include three or four useful evidence cues in one concise paragraph.
-- Consider:
-  - the candidate's own actions
-  - reasoning and decision-making
-  - relevant trade-offs or adaptations
-  - observable outcomes
-  - reflection or learning
-- Include evidence that could confirm, challenge or add nuance to the
-  personality hypothesis.
-- Do not simply repeat the question.
-- Avoid generic phrases such as:
-  "look for examples",
-  "listen for specific strategies",
-  "effective communication",
-  "good problem-solving",
-  or "the outcome of the situation"
-  unless followed by more specific behavioural evidence.
+If TRAIT SELECTION MODE is AI_SELECTION:
 
-Each question must:
-- be open and behavioural or reflective
-- ask for a concrete example, approach or learning
-- be based on one or more selected traits
-- cover a distinct theme
-- avoid leading the respondent towards a preferred answer
-- avoid mentioning assessment scores
-- avoid labelling the person
-- normally use one or two selected traits
+- Talena may select traits according to the administrator guidance
+- selected trait names must come from AVAILABLE TECHNICAL TRAIT NAMES
+- the application currently supports a maximum of 6 selected traits
 
-For recruitment:
-- use behavioural interview wording
-- ask for specific situations and actions
+Trait names used in technical name and traits fields must exactly
+match the supplied technical trait names.
 
-For leadership or employee development:
-- use reflective or coaching-oriented wording
-- invite examples, self-awareness and development thinking
 
-For onboarding:
-- focus on preferred ways of working, communication and support
+TALENA TECHNICAL OUTPUT CONTRACT
 
-For team development:
-- focus on collaboration, contribution and interaction patterns
+The following requirements exist only so Talena can process,
+save and display the generated response.
 
-For each question return:
+Administrator guidance may control:
+
+- question content
+- number of questions
+- how selected traits are explored
+- whether every selected trait needs question coverage
+- substantive content of why and listen_for
+- reasoning and communication style
+
+Administrator guidance must not change the required event names,
+JSON field names or NDJSON structure.
+
+
+OUTPUT LANGUAGE
+
+{language_instruction}
+
+Translate user-facing content to the configured language.
+
+Keep personality trait names inside technical name and traits fields
+exactly as supplied by Talena.
+
+
+STREAMING FORMAT
+
+Return newline-delimited JSON, also called NDJSON.
+
+Every JSON object must appear on one single line.
+
+Do not use Markdown.
+
+Do not use code fences.
+
+Do not add text outside the JSON objects.
+
+
+REQUIRED EVENT STRUCTURE
+
+
+1. META EVENT
+
+Return one meta event:
+
+{{"type":"meta","title":"Personality questions","label":"AI-supported questions"}}
+
+
+2. SUGGESTED TRAITS
+
+Return one suggested_traits event.
+
+Every item must use these exact fields:
+
+- name
+- reason
+
+The application supports up to 6 suggested trait objects.
+
+Example:
+
+{{"type":"suggested_traits","items":[{{"name":"Trait name","reason":"Reason for exploring the trait"}}]}}
+
+
+3. SELECTED TRAITS
+
+Return one selected_traits event:
+
+{{"type":"selected_traits","items":["Trait name"]}}
+
+When the user has explicitly selected traits, this array must preserve
+that application selection exactly.
+
+
+4. QUESTIONS
+
+Return one questions event.
+
+The administrator guidance determines the number of question objects.
+
+Every question object must contain these exact fields:
+
 - question
 - traits
 - why
 - listen_for
 
-The "traits" value must be a list containing only selected trait names.
+The traits field must be an array.
 
-LANGUAGE AND TONE
-- Write in professional, clear English.
-- Be practical, balanced and non-judgemental.
-- Use cautious language.
-- Avoid technical test terminology.
-- Refer to the candidate by first name only where natural.
+Trait names inside traits must match names from the selected_traits
+event.
 
-CONTEXT NOTE
-Briefly explain:
-- that personality results were used
-- whether additional process context was available
-- whether the traits were AI-suggested or user-selected
-- that the questions are hypotheses for exploration
+If administrator guidance does not require substantive why,
+listen_for or trait tagging, preserve those technical fields using
+an empty string or empty array as appropriate.
 
-STREAMING OUTPUT FORMAT
-Return newline-delimited JSON, also called NDJSON.
+Example:
 
-Every JSON object must appear on one single line.
-Do not use Markdown.
-Do not use code fences.
-Do not add text outside the JSON objects.
+{{"type":"questions","items":[{{"question":"Question text","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
 
-Return events in this exact order:
 
-1. One meta event:
+5. CONTEXT NOTE
 
-{{"type":"meta","title":"Personality questions","label":"AI-supported questions"}}
+Return one context_note event:
 
-2. One suggested_traits event containing between 4 and 6 objects:
+{{"type":"context_note","text":"Brief explanation of evidence and context used."}}
 
-{{"type":"suggested_traits","items":[{{"name":"Trait name","reason":"Why this trait may be relevant"}},{{"name":"Trait name","reason":"Why this trait may be relevant"}},{{"name":"Trait name","reason":"Why this trait may be relevant"}},{{"name":"Trait name","reason":"Why this trait may be relevant"}}]}}
 
-3. One selected_traits event containing the trait names used for questions:
+6. DONE
 
-{{"type":"selected_traits","items":["Trait name","Trait name","Trait name","Trait name"]}}
-
-4. One questions event containing between 3 and 6 objects.
-
-The number of questions must follow the QUESTION RULES above.
-Every trait in selected_traits must appear in at least one question.
-
-{{"type":"questions","items":[{{"question":"Question one","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","traits":["Trait name","Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
-
-5. One context_note event:
-
-{{"type":"context_note","text":"Brief explanation of the evidence, context and trait selection used."}}
-
-6. One final done event:
+Finish with:
 
 {{"type":"done"}}
 """.strip()
@@ -676,13 +576,9 @@ def _normalise_personality_questions(
     selected_traits: list[str],
 ) -> list[dict[str, Any]]:
     """
-    Return complete personality question objects.
+    Return technically valid personality question objects.
 
-    Every valid question must contain:
-    - question
-    - at least one selected trait
-    - why
-    - listen_for
+    Question content is controlled by administrator guidance.
     """
 
     if not isinstance(items, list):
@@ -696,7 +592,7 @@ def _normalise_personality_questions(
 
     questions = []
 
-    for item in items[:6]:
+    for item in items:
         if not isinstance(item, dict):
             continue
 
@@ -704,6 +600,9 @@ def _normalise_personality_questions(
             item.get("question")
             or ""
         ).strip()
+
+        if not question:
+            continue
 
         why = str(
             item.get("why")
@@ -737,14 +636,6 @@ def _normalise_personality_questions(
                         canonical_trait
                     )
 
-        if (
-            not question
-            or not why
-            or not listen_for
-            or not traits
-        ):
-            continue
-
         questions.append({
             "question": question,
             "traits": traits,
@@ -753,7 +644,6 @@ def _normalise_personality_questions(
         })
 
     return questions
-
 
 def apply_personality_questions_event(
     result: dict[str, Any],
@@ -1001,19 +891,7 @@ def _parse_repaired_personality_questions(
         selected_traits,
     )
 
-    expected_count = (
-        get_personality_question_count(
-            selected_traits
-        )
-    )
-
-    if len(questions) != expected_count:
-        return None
-
-    if not personality_questions_cover_all_traits(
-        questions,
-        selected_traits,
-    ):
+    if not questions:
         return None
 
     return {
@@ -1215,9 +1093,11 @@ def _generate_repaired_personality_questions_event(
                 {
                     "role": "system",
                     "content": (
-                        "You are a careful workplace personality "
-                        "assessment consultant. Return the requested "
-                        "JSON object exactly."
+                        "You are an AI component inside Talena. "
+                        "Follow the administrator-provided AI guidance "
+                        "for all non-technical question decisions. "
+                        "Repair only the technical JSON structure and "
+                        "field requirements requested by Talena."
                     ),
                 },
                 {
@@ -1253,9 +1133,9 @@ def _generate_repaired_personality_questions_event(
     except Exception:
         pass
 
-    return _build_safe_personality_questions_event(
-        selected_traits=selected_traits,
-        personality_results=personality_results,
+    raise ValueError(
+        "The AI response did not contain "
+        "valid personality questions."
     )
 
 
@@ -1287,11 +1167,12 @@ def stream_personality_questions(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful and experienced workplace "
-                    "personality assessment consultant. Treat personality "
-                    "results as hypotheses rather than facts, never invent "
-                    "context or traits, and follow the requested NDJSON "
-                    "streaming format exactly."
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical personality question decisions. "
+                    "Follow Talena's application input contract and "
+                    "technical output contract exactly, including required "
+                    "JSON field names, event types and streaming format."
                 ),
             },
             {
@@ -1441,46 +1322,33 @@ def stream_personality_questions(
         selected_traits = user_selected_traits
 
     else:
-        # Make sure an AI-generated selection contains 4 to 6 traits.
-        trait_candidates = (
-            selected_traits
-            + suggested_traits
-            + [
-                item["name"]
-                for item in personality_results
-                if item.get("name")
-            ]
-        )
+        # No explicit user selection exists.
+        #
+        # Allow the AI/admin guidance to determine which available
+        # traits should be used, while preserving Talena's technical
+        # maximum of six selected traits.
 
-        selected_traits = normalise_selected_traits(
-            selected_traits=trait_candidates,
+        ai_selected_traits = normalise_selected_traits(
+            selected_traits=selected_traits,
             available_results=personality_results,
         )[:6]
 
-        if len(selected_traits) < 4:
-            raise ValueError(
-                "Fewer than four personality traits are available."
-            )
+        if not ai_selected_traits:
+            ai_selected_traits = normalise_selected_traits(
+                selected_traits=suggested_traits,
+                available_results=personality_results,
+            )[:6]
 
-    # Emit the final canonical selection.
-    yield {
-        "type": "selected_traits",
-        "items": selected_traits,
-    }
+        selected_traits = ai_selected_traits
 
-    expected_question_count = (
-        get_personality_question_count(
-            selected_traits
-        )
-    )
+        # Emit the final canonical selection.
+        yield {
+            "type": "selected_traits",
+            "items": selected_traits,
+        }
 
-    questions_are_valid = (
-        len(received_questions)
-        == expected_question_count
-        and personality_questions_cover_all_traits(
-            received_questions,
-            selected_traits,
-        )
+    questions_are_valid = bool(
+        received_questions
     )
 
     if questions_are_valid:
@@ -1652,21 +1520,85 @@ def _build_personality_questions_repair_prompt(
     personality_results: list[dict[str, Any]],
     selected_traits: list[str],
 ) -> str:
-    language_code = normalize_ai_language(
-        _personality_questions_language.get()
+    """
+    Repair only the technical personality questions structure.
+
+    Non-technical content remains controlled by administrator guidance.
+    """
+
+    shared_context = build_shared_ai_context(
+        owner
     )
-    prompt = _original_build_personality_questions_repair_prompt(
-        owner=owner,
-        personality_results=personality_results,
-        selected_traits=selected_traits,
+
+    evidence_text = build_personality_evidence_text(
+        personality_results
     )
-    language_rule = get_ai_language_instruction(language_code)
-    prompt = (
-        f"LANGUAGE REQUIREMENT\n{language_rule}\n"
-        "Keep trait names in the technical traits field exactly as supplied.\n\n"
-        + prompt
+
+    admin_instructions = get_ai_prompt_instructions(
+        key="personality_questions",
+        language=_personality_questions_language.get(),
     )
-    return _localize_question_prompt(prompt, language_code)
+
+    selected_traits_text = "\n".join(
+        f"- {trait}"
+        for trait in selected_traits
+    ) or "No selected traits."
+
+    return f"""
+The previous personality questions response did not contain a
+technically valid questions event.
+
+CANDIDATE
+Name: {shared_context["candidate_name"]}
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
+
+PERSONALITY ASSESSMENT DATA
+{evidence_text}
+
+SELECTED TRAITS
+{selected_traits_text}
+
+
+ADMINISTRATOR AI GUIDANCE
+
+Follow this guidance for all non-technical question decisions:
+
+{admin_instructions}
+
+
+TECHNICAL REPAIR TASK
+
+Return exactly one JSON object on one line.
+
+Use this exact structure:
+
+{{"type":"questions","items":[{{"question":"Question text","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
+
+The administrator guidance determines the number and content of questions.
+
+Every question object must contain these exact fields:
+
+- question
+- traits
+- why
+- listen_for
+
+traits must be an array.
+
+Trait names inside traits may only use the selected trait names supplied above.
+
+why and listen_for may be empty strings if administrator guidance
+does not require substantive content.
+
+Do not use Markdown.
+Do not use code fences.
+Do not add explanatory text outside the JSON object.
+""".strip()
 
 
 _SAFE_SWEDISH = {

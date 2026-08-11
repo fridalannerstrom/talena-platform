@@ -69,8 +69,13 @@ def build_response_style_evidence(
     response_styles: list[dict[str, Any]],
 ) -> tuple[str, dict[str, dict[str, Any]]]:
     """
-    Convert the calculated response-style results into compact
-    evidence for the AI prompt.
+    Convert available response-style results into neutral
+    assessment evidence for the AI prompt.
+
+    Talena supplies only the technical response-style key and
+    rounded STEN result.
+
+    Administrator guidance controls how those results are interpreted.
     """
 
     evidence_lines = []
@@ -80,63 +85,33 @@ def build_response_style_evidence(
         if not style.get("available"):
             continue
 
-        key = (
+        key = str(
             style.get("key")
             or ""
         ).strip()
 
-        title = (
+        title = str(
             style.get("title")
             or key
             or "Response style"
         ).strip()
 
         value = style.get("value")
-        band_key = (
-            style.get("band_key")
-            or ""
-        ).strip()
 
-        band_label = (
-            style.get("band_label")
-            or ""
-        ).strip()
-
-        interpretation = (
-            style.get("interpretation")
-            or ""
-        ).strip()
-
-        low_pole = (
-            style.get("low_pole")
-            or ""
-        ).strip()
-
-        high_pole = (
-            style.get("high_pole")
-            or ""
-        ).strip()
+        if not key:
+            continue
 
         evidence_by_key[key] = {
             "key": key,
             "title": title,
             "value": value,
-            "band_key": band_key,
-            "band_label": band_label,
-            "interpretation": interpretation,
-            "low_pole": low_pole,
-            "high_pole": high_pole,
         }
 
         evidence_lines.append(
             "\n".join([
                 f"{title}",
-                f"- Internal key: {key}",
+                f"- Technical key: {key}",
                 f"- Rounded STEN: {value}",
-                f"- Result band: {band_label} ({band_key})",
-                f"- Current interpretation: {interpretation}",
-                f"- Lower end of scale: {low_pole}",
-                f"- Higher end of scale: {high_pole}",
             ])
         )
 
@@ -159,18 +134,26 @@ def build_response_style_guidance_prompt(
     language_code: str = "en",
 ) -> str:
     """
-    Build the AI prompt for the response-style interpretation box.
+    Build Talena's response-style guidance prompt.
 
-    guidance_owner may be either:
-    - TestInvitation
-    - HistoricalProcessCandidate
+    Administrator guidance controls all non-technical AI behaviour.
     """
 
-    language_code = normalize_ai_language(language_code)
-    language_instruction = get_ai_language_instruction(language_code)
-    output_examples = _get_response_style_output_examples(language_code)
+    language_code = normalize_ai_language(
+        language_code
+    )
 
-    expert_guidance = get_ai_prompt_instructions(
+    language_instruction = get_ai_language_instruction(
+        language_code
+    )
+
+    output_examples = (
+        _get_response_style_output_examples(
+            language_code
+        )
+    )
+
+    admin_instructions = get_ai_prompt_instructions(
         key="response_style_guidance",
         language=language_code,
     )
@@ -180,11 +163,6 @@ def build_response_style_guidance_prompt(
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
-
-    purpose_label = shared_context["purpose_label"]
-    context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
 
     response_style_text, evidence_by_key = (
         build_response_style_evidence(
@@ -197,143 +175,111 @@ def build_response_style_guidance_prompt(
             "No response-style results are available."
         )
 
-    has_added_context = bool(
-        context_data
-    )
-
-    if has_added_context:
-        context_instruction = """
-Use the selected process purpose and supplied context only when
-formulating the practical interview or feedback advice.
-
-The context must not change the psychometric meaning of the
-response-style scores.
-""".strip()
-    else:
-        context_instruction = """
-Provide general practical advice because no additional process context
-has been supplied.
-
-Do not invent a role, team, development objective or organisational
-requirement.
-""".strip()
-
     return f"""
-You are generating an AI-supported interpretation of questionnaire
-response styles for Talena, an assessment and talent management
-platform.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
 
-PROCESS PURPOSE
-{purpose_label}
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
 
 PROCESS CONTEXT
-{context_text}
+{shared_context["context_text"] or "No additional process context supplied."}
 
-RESPONSE-STYLE RESULTS
+RESPONSE-STYLE ASSESSMENT DATA
 {response_style_text}
 
-EXPERT INTERPRETATION GUIDANCE
-{expert_guidance}
 
-CONTEXT INSTRUCTION
-{context_instruction}
+ADMINISTRATOR AI GUIDANCE
 
-YOUR TASK
+The following guidance is controlled by Talena administrators.
 
-Explain how the response-style results should influence the way the
-personality profile is interpreted and discussed with the candidate.
+It controls all non-technical decisions about response-style
+interpretation, STEN interpretation, psychometric meaning,
+combination patterns, evidence boundaries, use of process context,
+reasoning, caution, tone, practical guidance, question content,
+number of questions and communication style.
 
-The output should help a recruiter, manager, coach or assessment
-practitioner understand:
+{admin_instructions}
 
-- what the combined response pattern may indicate
-- what should be interpreted cautiously
-- how to approach feedback or interview discussion
-- which questions may help validate the profile
-- whether a known combination pattern applies
 
-IMPORTANT SAFETY AND INTERPRETATION RULES
+TALENA TECHNICAL OUTPUT CONTRACT
 
-- Base every conclusion on the supplied response-style results and
-  expert guidance.
-- Do not interpret unrelated personality traits.
-- Do not invent information about the candidate.
-- Do not diagnose poor self-awareness.
-- Do not question the candidate's honesty.
-- Do not claim that the candidate deliberately manipulated the test.
-- Do not treat any response-style result as good or bad.
-- Do not describe response styles as measures of ability, performance,
-  integrity or suitability.
-- Do not make a hiring, promotion or development decision.
-- Do not include a percentage, fit score or recommendation verdict.
-- Do not repeat raw STEN values in the final wording.
-- Use cautious language such as:
-  "may indicate",
-  "suggests",
-  "could reflect",
-  "may be useful to explore",
-  "should be validated with the candidate".
-- Write about the candidate using their first name where natural.
+The following requirements exist only so Talena can process,
+stream, save and display the generated response.
+
+Administrator guidance controls the substantive content inside
+these fields.
+
+Administrator guidance must not change the required event names,
+JSON field names or NDJSON structure.
+
+
+OUTPUT LANGUAGE
+
 {language_instruction}
-- Keep the guidance practical and reasonably concise.
-- Do not overstate known combination rules.
-- When no known combination applies, say so neutrally instead of
-  inventing a concern.
 
-STREAMING OUTPUT FORMAT
+All user-facing text inside the JSON response must use the
+configured output language.
+
+
+STREAMING FORMAT
 
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
-Do not use markdown.
+
+Do not use Markdown.
 Do not use code fences.
-Do not write any text outside the JSON objects.
+Do not add text outside the JSON objects.
 
-Return events in this exact order:
 
-1. One meta event:
+REQUIRED EVENT STRUCTURE
+
+1. META
 
 {{"type":"meta","title":"{output_examples["title"]}","label":"{output_examples["label"]}"}}
 
-2. Between 3 and 6 summary_delta events:
+
+2. SUMMARY
+
+Return one or more summary_delta events:
 
 {{"type":"summary_delta","text":"{output_examples["summary_1"]}"}}
-{{"type":"summary_delta","text":"{output_examples["summary_2"]}"}}
 
-Together, the summary should be approximately 80 to 130 words.
-It should explain the overall combined response pattern and the most
-important implication for reading the personality profile.
 
-3. One how_to_interpret event:
+3. HOW TO INTERPRET
 
 {{"type":"how_to_interpret","text":"{output_examples["how"]}"}}
 
-4. One recommended_approach event:
+
+4. RECOMMENDED APPROACH
 
 {{"type":"recommended_approach","text":"{output_examples["approach"]}"}}
 
-5. One questions event containing exactly 3 questions:
 
-{{"type":"questions","items":["{output_examples["question_1"]}","{output_examples["question_2"]}","{output_examples["question_3"]}"]}}
+5. QUESTIONS
 
-The questions must:
-- be phrased directly to the candidate
-- be open and non-accusatory
-- help validate or add context to the response pattern
-- reflect the supplied purpose or context when relevant
+{{"type":"questions","items":["{output_examples["question_1"]}"]}}
 
-6. One combination_note event:
+The administrator guidance determines the number of question items.
+
+If no substantive questions are requested, preserve the event
+using an empty items array.
+
+
+6. COMBINATION NOTE
 
 {{"type":"combination_note","text":"{output_examples["combination"]}"}}
 
-7. One context_note event:
+
+7. CONTEXT NOTE
 
 {{"type":"context_note","text":"{output_examples["context"]}"}}
 
-8. One final done event:
+
+8. DONE
 
 {{"type":"done"}}
 """.strip()
@@ -408,7 +354,7 @@ def apply_response_style_guidance_event(
         if isinstance(items, list):
             guidance["questions"] = [
                 str(item).strip()
-                for item in items[:3]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -487,10 +433,13 @@ def stream_response_style_guidance(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful psychometric assessment "
-                    "interpretation assistant. Follow the requested "
-                    "NDJSON format exactly and do not make unsupported "
-                    "claims. "
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical response-style analysis, "
+                    "interpretation and communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON field names, event types "
+                    "and streaming format. "
                     f"{system_language_instruction}"
                 ),
             },
@@ -590,7 +539,7 @@ def save_response_style_guidance(
 
     guidance["questions"] = [
         str(question).strip()
-        for question in questions[:3]
+        for question in questions
         if str(question).strip()
     ]
 
