@@ -136,27 +136,6 @@ def extract_cognitive_results(
     return results
 
 
-def describe_percentile_band(
-    percentile: int,
-) -> str:
-    """
-    Provide a neutral reference-group description for the prompt.
-    """
-
-    if percentile <= 9:
-        return "very low relative to the reference group"
-
-    if percentile <= 24:
-        return "lower than many people in the reference group"
-
-    if percentile <= 74:
-        return "within the typical range for the reference group"
-
-    if percentile <= 90:
-        return "higher than many people in the reference group"
-
-    return "very high relative to the reference group"
-
 
 def build_cognitive_evidence_text(
     results: list[dict[str, Any]],
@@ -173,8 +152,7 @@ def build_cognitive_evidence_text(
 
         lines.append(
             f"- {result['label']}: "
-            f"percentile {percentile}, "
-            f"{describe_percentile_band(percentile)}"
+            f"percentile {percentile}"
         )
 
     return "\n".join(lines)
@@ -188,11 +166,17 @@ def build_cognitive_interpretation_prompt(
 ) -> str:
     """
     Build the prompt for the cognitive interpretation section.
+
+    Administrator guidance controls all non-technical AI behaviour.
+
+    Talena protects only the technical input/output contract required
+    by the application.
     """
 
     language_code = normalize_ai_language(
         language_code
     )
+
     language_instruction = get_ai_language_instruction(
         language_code
     )
@@ -207,55 +191,16 @@ def build_cognitive_interpretation_prompt(
     )
 
     candidate = shared_context["candidate"]
-    process = shared_context["process"]
 
     purpose_label = shared_context["purpose_label"]
     context_text = shared_context["context_text"]
-    context_data = shared_context["context_data"]
 
-    evidence_text = (
-        build_cognitive_evidence_text(
-            cognitive_results
-        )
+    evidence_text = build_cognitive_evidence_text(
+        cognitive_results
     )
 
-    has_context = bool(context_data)
-
-    if has_context:
-        context_instruction = """
-Use the supplied process context to explain which types of cognitive
-demands may be relevant.
-
-Do not assume that a test result proves actual workplace performance,
-experience or competence.
-
-Clearly distinguish between:
-- the cognitive assessment result
-- requirements stated in the supplied context
-- questions that should be explored using other evidence
-""".strip()
-
-    else:
-        context_instruction = """
-No additional process context has been supplied.
-
-Provide a broader interpretation based on the available cognitive
-assessment results and the selected purpose.
-
-Do not invent specific job tasks, leadership demands, customer
-situations, systems, responsibilities or working conditions.
-
-State clearly that specific relevance depends on the actual demands
-of the role or situation.
-""".strip()
-
     return f"""
-You are generating a cognitive assessment interpretation for Talena,
-an assessment and talent management platform.
-
-You are an experienced, balanced and commercially aware assessment
-consultant with strong knowledge of cognitive assessment, workplace
-demands and structured follow-up conversations.
+TALENA INPUT DATA
 
 CANDIDATE
 Name: {candidate.first_name} {candidate.last_name}
@@ -263,191 +208,114 @@ Name: {candidate.first_name} {candidate.last_name}
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
 
-OPTIONAL PROCESS CONTEXT
-{context_text}
+PROCESS CONTEXT
+{context_text or "No additional process context supplied."}
 
-AVAILABLE COGNITIVE ASSESSMENT EVIDENCE
+COGNITIVE ASSESSMENT DATA
 {evidence_text}
 
-CONTEXT INSTRUCTION
-{context_instruction}
 
-YOUR TASK
-Create a practical and balanced interpretation of the available
-cognitive assessment results.
+ADMINISTRATOR AI GUIDANCE
 
-The interpretation should help the user understand:
+The following guidance is controlled by Talena administrators.
 
-1. What the results may indicate about how readily the person processes
-   the specific type of information measured by each assessment.
-2. Which types of work demands may make the result more or less relevant.
-3. Which conditions, strategies or support may be useful to consider.
-4. Which questions could help gather concrete behavioural evidence.
-
-ADMIN-EDITABLE INTERPRETATION GUIDANCE
-
-The following instructions control the desired tone, emphasis and
-communication style used when Talena interprets cognitive assessment
-results.
-
-These instructions are managed globally by Talena administrators and
-apply to all customers using this AI feature.
-
-They may influence how the interpretation is expressed, but they must
-not override the assessment principles, evidence boundaries, safety
-requirements or technical output format defined elsewhere in this prompt.
+It controls all non-technical decisions about analysis,
+interpretation, assessment principles, evidence boundaries,
+reasoning, tone, caution, conclusions and communication.
 
 {admin_instructions}
 
-If any administrator-editable instruction conflicts with a protected rule
-or output requirement, the protected rule or output requirement takes
-priority.
 
-IMPORTANT INTERPRETATION PRINCIPLES
-- Cognitive assessment results describe relative performance on specific
-  reasoning tasks compared with a reference group.
-- They do not measure overall intelligence.
-- They do not measure personality, motivation, knowledge or experience.
-- They do not prove actual workplace competence.
-- Previous experience, familiarity, preparation, language, fatigue,
-  test conditions and working methods may affect how results appear.
-- A lower result does not mean that the person cannot perform the task.
-- A higher result does not guarantee strong workplace performance.
-- Do not make a final hiring, promotion or development decision.
-- Do not create a match score or suitability verdict.
-- Do not diagnose the candidate.
-- Do not invent role demands or candidate experience.
-- Treat the results as indicators and hypotheses.
-- Do not include raw percentile numbers in the final output.
-- Use cautious and practical language.
+TALENA TECHNICAL OUTPUT CONTRACT
 
-WORKPLACE DEMAND FRAMEWORK
-Use the following framework where relevant.
+The following requirements exist only so Talena can process,
+stream, save and display the generated response.
 
-Higher cognitive demands may involve:
-- unfamiliar, ambiguous or complex problems
-- large amounts of information from multiple sources
-- independent decisions with significant consequences
-- rapid learning without extensive support
-- errors that may have broad impact
+Administrator guidance may control the content inside these fields,
+but must not change the required event types, JSON field names or
+NDJSON structure.
 
-Moderate cognitive demands may involve:
-- some complexity within reasonably defined boundaries
-- several information sources that remain manageable
-- some independent judgement
-- gradual learning with support
-- errors affecting part of the work or process
+OUTPUT LANGUAGE
 
-Lower cognitive demands may involve:
-- clear and recurring tasks
-- limited, structured and linear information
-- rule-based decisions
-- clear instruction, training and repetition
-- errors with limited consequences
-
-Do not describe these levels as better or worse.
-The relevance depends on the actual work demands.
-
-LANGUAGE AND TONE
 {language_instruction}
-- Translate every user-facing JSON string, including title and label.
-- Be balanced, practical and non-judgemental.
-- Use formulations such as:
-  "may indicate",
-  "suggests",
-  "could mean",
-  "may require",
-  "could be useful to explore".
-- Avoid academic or overly technical language.
-- Avoid repeatedly writing "the candidate is".
-- Refer to the candidate by first name where natural.
 
-CONTENT REQUIREMENTS
+All user-facing text inside the JSON response must use the
+configured output language.
 
-PRACTICAL INTERPRETATION
-Write approximately 90 to 140 words.
 
-The interpretation should:
-- cover all available cognitive assessments
-- explain the likely practical meaning of the results
-- connect cautiously to the selected purpose
-- use supplied context when available
-- clearly state relevant limitations
-- avoid repeating the later bullet points word for word
+STREAMING FORMAT
 
-CONSIDERATIONS
-Return between 2 and 4 concise points.
-
-Each point should describe:
-- a relevant condition
-- a possible support need
-- a limitation of the evidence
-- or a work demand that should be clarified
-
-Do not frame these as confirmed weaknesses.
-
-FOLLOW-UP QUESTIONS
-Return exactly 3 questions.
-
-Each question must:
-- be open and practical
-- request a concrete example or working method
-- help compare assessment indications with actual behaviour
-- be relevant to the selected purpose
-- not lead the respondent towards a preferred answer
-
-For recruitment, questions may be phrased as interview questions.
-For development, leadership, onboarding or team purposes, phrase them
-as reflection or discussion questions where appropriate.
-
-For every question, also return:
-- why the question is relevant
-- what the user should listen for
-
-CONTEXT NOTE
-Briefly explain:
-- which cognitive assessments were available
-- whether additional process context was available
-- how this affects the scope of the interpretation
-
-STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must be written on one single line.
+
 Do not use Markdown.
+
 Do not use code fences.
+
 Do not add text outside the JSON objects.
 
-Return events in this exact order:
 
-1. One meta event:
+REQUIRED EVENT STRUCTURE
+
+Return events in this exact order.
+
+
+1. META EVENT
+
+Return one meta event:
 
 {{"type":"meta","title":"Cognitive interpretation","label":"AI-supported interpretation"}}
 
-2. Between 3 and 6 interpretation_delta events:
+
+2. INTERPRETATION CONTENT
+
+Return the practical interpretation using one or more
+interpretation_delta events:
 
 {{"type":"interpretation_delta","text":"First part of the interpretation. "}}
+
 {{"type":"interpretation_delta","text":"Next part of the interpretation. "}}
 
-Together, these events form the complete practical interpretation.
 
-3. One considerations event containing between 2 and 4 items:
+3. CONSIDERATIONS
+
+Return one considerations event.
+
+The items array contains the consideration texts requested by the
+administrator guidance:
 
 {{"type":"considerations","items":["Consideration one","Consideration two"]}}
 
-4. One questions event containing exactly 3 objects:
 
-{{"type":"questions","items":[{{"question":"Question one","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","why":"Why it matters","listen_for":"What to listen for"}}]}}
+4. QUESTIONS
 
-5. One context_note event:
+Return one questions event.
+
+Each question object must use these exact field names:
+
+- question
+- why
+- listen_for
+
+Example:
+
+{{"type":"questions","items":[{{"question":"Question one","why":"Why it matters","listen_for":"What to listen for"}}]}}
+
+
+5. CONTEXT NOTE
+
+Return one context_note event:
 
 {{"type":"context_note","text":"Brief explanation of the evidence and context used."}}
 
-6. One final done event:
+
+6. DONE
+
+Finish with:
 
 {{"type":"done"}}
 """.strip()
-
 
 def create_empty_cognitive_interpretation(
     owner,
@@ -513,7 +381,7 @@ def apply_cognitive_interpretation_event(
         if isinstance(items, list):
             interpretation["considerations"] = [
                 str(item).strip()
-                for item in items[:4]
+                for item in items
                 if str(item).strip()
             ]
 
@@ -523,7 +391,7 @@ def apply_cognitive_interpretation_event(
         if isinstance(items, list):
             normalised_questions = []
 
-            for item in items[:3]:
+            for item in items:
                 if not isinstance(item, dict):
                     continue
 
@@ -627,11 +495,13 @@ def stream_cognitive_interpretation(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful and experienced cognitive "
-                    "assessment interpretation consultant. Treat test "
-                    "results as indicators rather than facts, do not "
-                    "invent context, and follow the requested NDJSON "
-                    "streaming format exactly. "
+                    "You are an AI component inside Talena. "
+                    "Follow the administrator-provided AI guidance for "
+                    "all non-technical analysis, interpretation and "
+                    "communication decisions. "
+                    "Follow Talena's technical output contract exactly, "
+                    "including required JSON structure, field names, "
+                    "event types and streaming format. "
                     f"{system_language_instruction}"
                 ),
             },

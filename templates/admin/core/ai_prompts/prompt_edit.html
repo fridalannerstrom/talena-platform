@@ -151,17 +151,28 @@
             "
           >
 
-            <div>
+<div>
 
-              <h4 class="mb-1">
-                {% trans "Global AI instructions" %}
-              </h4>
+  <h4 class="mb-1">
+    {% trans "AI guidance" %}
+  </h4>
 
-              <div class="small text-muted">
-                {% trans "Edit how Talena should communicate and interpret this assessment area." %}
-              </div>
+  <div class="small text-muted">
+    {% trans "Controls how Talena analyses, interprets and communicates results. Administrators can edit all non-technical AI behaviour." %}
+  </div>
 
-            </div>
+</div>
+
+<span
+  class="
+    badge
+    rounded-pill
+    bg-primary-subtle
+    text-primary
+  "
+>
+  {% trans "Editable" %}
+</span>
 
             {% if has_active_override %}
 
@@ -237,7 +248,7 @@
                   class="me-1"
                 ></i>
 
-                {% trans "Save global override" %}
+                {% trans "Save AI guidance" %}
               </button>
 
             </div>
@@ -251,128 +262,152 @@
     </div>
 
 
-    <!-- Protected default -->
+<!-- Technical instructions -->
 
-    <div class="col-12 col-xl-5">
+<div class="col-12 col-xl-5">
 
-      <div class="card border-0 shadow-sm mb-4">
+  <div class="card border-0 shadow-sm mb-4">
 
-        <div class="card-body">
+    <div class="card-body">
 
-          <div
-            class="
-              d-flex
-              align-items-start
-              justify-content-between
-              gap-3
-              mb-3
-            "
-          >
+      <div
+        class="
+          d-flex
+          align-items-start
+          justify-content-between
+          gap-3
+          mb-3
+        "
+      >
 
-            <div>
+        <div>
 
-<h4 class="mb-1">
-  {% trans "Talena default guidance" %}
-</h4>
+          <h4 class="mb-1">
+            {% trans "Technical instructions" %}
+          </h4>
 
-<div class="small text-muted">
-  {% trans "Protected default for the administrator-editable guidance. This is only one part of the complete AI prompt." %}
-</div>
-
-            </div>
-
-            <i data-feather="lock"></i>
-
+          <div class="small text-muted">
+            {% trans "Protected by Talena" %}
           </div>
 
-
-          <div
-            class="
-              rounded-3
-              p-3
-              small
-            "
-            style="
-              white-space: pre-line;
-              max-height: 420px;
-              overflow-y: auto;
-            "
-          >{{ default_prompt }}</div>
-
         </div>
+
+        <i data-feather="lock"></i>
 
       </div>
 
 
-      <!-- Reset -->
-
-      <div class="card border-0 shadow-sm">
-
-        <div class="card-body">
-
-          <h5 class="mb-2">
-            {% trans "Restore default" %}
-          </h5>
-
-          <p class="small text-muted">
-            {% trans "Disable the global override and return this AI feature to Talena's protected default instructions." %}
-          </p>
+      <p class="small text-muted mb-3">
+        {% trans "These instructions control only the technical output required by the platform. They cannot be edited because changing them could prevent Talena from processing or displaying the AI response correctly." %}
+      </p>
 
 
-          {% if has_active_override %}
+      <div
+        class="
+          rounded-3
+          border
+          border
+          p-3
+          small
+        "
+      >
 
-            <form method="post">
+        <div class="fw-semibold mb-2">
+          {% trans "Talena protects:" %}
+        </div>
 
-              {% csrf_token %}
+        <div class="mb-1">
+          • {% trans "Output structure and required field names" %}
+        </div>
 
-              <button
-                type="submit"
-                name="action"
-                value="reset"
-                class="
-                  btn
-                  btn-outline-secondary
-                  rounded-pill
-                "
-              >
-                <i
-                  data-feather="rotate-ccw"
-                  class="me-1"
-                ></i>
+        <div class="mb-1">
+          • {% trans "JSON and streaming event formats" %}
+        </div>
 
-                {% trans "Reset to Talena default" %}
-              </button>
+        <div class="mb-1">
+          • {% trans "Technical event order and parser requirements" %}
+        </div>
 
-            </form>
-
-          {% else %}
-
-            <div
-              class="
-                small
-                text-success
-                fw-semibold
-              "
-            >
-              <i
-                data-feather="check"
-                style="
-                  width: 15px;
-                  height: 15px;
-                "
-                class="me-1"
-              ></i>
-
-              {% trans "Talena default is currently active." %}
-            </div>
-
-          {% endif %}
-
+        <div>
+          • {% trans "Language routing required by the platform" %}
         </div>
 
       </div>
 
     </div>
+
+  </div>
+
+
+  <!-- Reset -->
+
+  <div class="card border-0 shadow-sm">
+
+    <div class="card-body">
+
+      <h5 class="mb-2">
+        {% trans "Restore default guidance" %}
+      </h5>
+
+      <p class="small text-muted">
+        {% trans "Remove the current custom guidance and return this AI feature to Talena's built-in default guidance." %}
+      </p>
+
+
+      {% if has_active_override %}
+
+        <form method="post">
+
+          {% csrf_token %}
+
+          <button
+            type="submit"
+            name="action"
+            value="reset"
+            class="
+              btn
+              btn-outline-secondary
+              rounded-pill
+            "
+          >
+            <i
+              data-feather="rotate-ccw"
+              class="me-1"
+            ></i>
+
+            {% trans "Restore default guidance" %}
+          </button>
+
+        </form>
+
+      {% else %}
+
+        <div
+          class="
+            small
+            text-success
+            fw-semibold
+          "
+        >
+          <i
+            data-feather="check"
+            style="
+              width: 15px;
+              height: 15px;
+            "
+            class="me-1"
+          ></i>
+
+          {% trans "Default guidance is currently active." %}
+        </div>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</div>
 
   </div>
 

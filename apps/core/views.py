@@ -625,15 +625,15 @@ def admin_ai_prompt_edit(
                 messages.success(
                     request,
                     (
-                        "The global override was disabled. "
-                        "Talena is now using the protected default."
+                        "The custom AI guidance was disabled. "
+                        "Talena is now using the built-in default guidance."
                     ),
                 )
 
             else:
                 messages.info(
                     request,
-                    "Talena is already using the protected default.",
+                        "Talena is already using the built-in default guidance."
                 )
 
             return redirect(
@@ -675,7 +675,7 @@ def admin_ai_prompt_edit(
             messages.success(
                 request,
                 (
-                    "Global AI prompt saved. "
+                    "AI guidance saved. "
                     "Future generations for all customers "
                     "will use this override."
                 ),

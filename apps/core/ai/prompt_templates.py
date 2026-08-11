@@ -15,11 +15,21 @@ SUPPORTED_PROMPT_LANGUAGES = {
 # Talena AI prompt registry
 # ============================================================
 #
-# This registry defines the administrator-editable business
-# guidance for Talena's AI features.
+# This registry defines ALL administrator-editable AI guidance
+# for Talena's AI features.
 #
-# Technical rules, psychometric safeguards, evidence boundaries
-# and output contracts remain protected in each AI implementation.
+# Administrators control the interpretation, reasoning,
+# assessment guidance, tone, evidence boundaries, caution,
+# conclusions and communication behaviour of the AI.
+#
+# Only technical runtime requirements remain protected in code:
+#
+# - input/data plumbing
+# - configured output language
+# - required JSON/NDJSON structure
+# - technical field names
+# - streaming event names and order
+# - parser/frontend contracts
 #
 # Database entries in AIPromptTemplate are GLOBAL overrides.
 # They affect all customers in Talena.
@@ -431,63 +441,382 @@ development or feedback conversation.
         ),
         "defaults": {
 
-            "sv": """
-Skriv den kognitiva tolkningen på ett balanserat, praktiskt och
-icke-dömande sätt.
+"sv": """
+UPPGIFT
 
-Hjälp användaren förstå vad resultaten kan indikera om hur lätt personen
-bearbetar den typ av information som respektive test mäter, utan att
-beskriva resultatet som ett mått på generell intelligens eller faktisk
-arbetsförmåga.
+Skapa en praktisk och nyanserad tolkning av de tillgängliga
+kognitiva testresultaten.
 
-Beskriv både högre och lägre resultat nyanserat. Ett högre resultat ska
-inte automatiskt beskrivas som en styrka och ett lägre resultat ska inte
-automatiskt beskrivas som en svaghet.
+Hjälp användaren förstå:
 
-Fokusera på den praktiska betydelsen av resultatet i relation till olika
-typer av kognitiva krav, exempelvis komplexitet, mängden information,
-tidspress, självständigt beslutsfattande och behov av struktur eller stöd.
+- vad resultaten kan indikera om hur lätt personen bearbetar den
+  typ av information som respektive test mäter
+- vilka typer av kognitiva krav som kan göra resultaten mer eller
+  mindre relevanta
+- vilka förutsättningar, strategier eller former av stöd som kan
+  vara relevanta att utforska
+- vilka frågor som kan ge ytterligare konkret beteendeunderlag
 
-Uppmärksamma att erfarenhet, förberedelse, språk, testförhållanden,
-arbetssätt och andra omständigheter kan påverka hur resultaten bör förstås.
 
-Knyt tolkningen till processens syfte och kontext när det finns tydligt
-underlag för det, men undvik att hitta på arbetsuppgifter, krav eller
-kandidatens tidigare erfarenhet.
+GRUNDPRINCIPER FÖR TOLKNING
 
-Använd ett naturligt och lättillgängligt språk som hjälper användaren
-förstå vad som kan vara relevant att utforska vidare med andra typer av
-underlag.
+Kognitiva testresultat beskriver relativ prestation på specifika
+resonemangsuppgifter jämfört med en referensgrupp.
+
+Beskriv inte resultaten som ett mått på generell intelligens.
+
+Beskriv inte resultaten som ett direkt mått på personlighet,
+motivation, kunskap, erfarenhet eller faktisk arbetsförmåga.
+
+Ett lägre resultat innebär inte att personen inte kan utföra en
+viss arbetsuppgift.
+
+Ett högre resultat garanterar inte stark arbetsprestation.
+
+Behandla resultaten som indikationer och hypoteser som kan behöva
+valideras med andra typer av underlag.
+
+Erfarenhet, förberedelse, språk, trötthet, testförhållanden,
+arbetssätt och andra omständigheter kan påverka hur resultatet
+bör förstås.
+
+Gör inte en slutlig rekommendation om rekrytering, befordran,
+placering eller utvecklingsbeslut enbart utifrån testresultatet.
+
+Skapa inte matchningspoäng eller definitiva lämplighetsbedömningar.
+
+Diagnostisera inte kandidaten.
+
+Hitta inte på kandidatens erfarenheter, arbetsuppgifter,
+rollkrav eller annan kontext som inte finns i underlaget.
+
+
+TOLKNING AV KOGNITIVA KRAV
+
+När det är relevant kan olika nivåer av kognitiva krav användas
+för att sätta resultaten i ett praktiskt sammanhang.
+
+Högre kognitiva krav kan exempelvis innebära:
+
+- nya, otydliga eller komplexa problem
+- stora informationsmängder från flera källor
+- självständiga beslut med betydande konsekvenser
+- snabb inlärning med begränsat stöd
+- situationer där fel kan få bred påverkan
+
+Måttliga kognitiva krav kan exempelvis innebära:
+
+- viss komplexitet inom relativt tydliga ramar
+- flera informationskällor som fortfarande är hanterbara
+- viss självständig bedömning
+- gradvis inlärning med stöd
+- fel som påverkar delar av arbetet eller processen
+
+Lägre kognitiva krav kan exempelvis innebära:
+
+- tydliga och återkommande arbetsuppgifter
+- begränsad, strukturerad och linjär information
+- regelbaserade beslut
+- tydliga instruktioner, träning och repetition
+- fel med mer begränsade konsekvenser
+
+Beskriv inte dessa nivåer som bättre eller sämre.
+Betydelsen beror på den faktiska situationen och dess krav.
+
+
+PROCESSENS SYFTE OCH KONTEXT
+
+Knyt tolkningen till processens valda syfte när det är relevant.
+
+Om processkontext finns, använd endast information som faktiskt
+finns i underlaget.
+
+Skilj tydligt mellan:
+
+- vad testresultaten kan indikera
+- vad processkontexten faktiskt säger
+- vad som fortfarande behöver utforskas med andra underlag
+
+Om kontext saknas, gör inte specifika antaganden om arbetsuppgifter,
+ansvar, ledarskapskrav, kundsituationer, system eller arbetsmiljö.
+
+
+SPRÅK OCH TON
+
+Skriv på ett balanserat, praktiskt och icke-dömande sätt.
+
+Använd försiktiga formuleringar när underlaget inte möjliggör
+en säker slutsats, exempelvis:
+
+- kan indikera
+- tyder på
+- skulle kunna innebära
+- kan kräva
+- kan vara relevant att utforska
+
+Undvik onödigt akademiskt eller tekniskt språk.
+
+Undvik att upprepa formuleringar som "kandidaten är".
+
+Använd personens förnamn när det känns naturligt.
+
+Beskriv både högre och lägre resultat nyanserat.
+
+Ett högre resultat ska inte automatiskt beskrivas som en styrka.
+
+Ett lägre resultat ska inte automatiskt beskrivas som en svaghet.
+
+
+PRAKTISK TOLKNING
+
+Skriv ungefär 90 till 140 ord.
+
+Tolkningen bör:
+
+- omfatta alla tillgängliga kognitiva testresultat
+- beskriva resultatens sannolika praktiska betydelse
+- koppla försiktigt till processens syfte
+- använda processkontext när sådan finns
+- uppmärksamma relevanta begränsningar
+- undvika att bara upprepa övriga punkter
+
+
+RELEVANTA ÖVERVÄGANDEN
+
+Ge 2 till 4 korta punkter.
+
+Punkterna kan exempelvis beskriva:
+
+- en relevant förutsättning
+- ett möjligt stödbehov
+- en begränsning i underlaget
+- ett kognitivt krav som behöver förtydligas
+
+Beskriv inte dessa automatiskt som bekräftade svagheter.
+
+
+UPPFÖLJNINGSFRÅGOR
+
+Ge 3 öppna och praktiska frågor.
+
+Frågorna ska hjälpa användaren att samla in konkret beteendeunderlag
+och jämföra testets indikationer med hur personen faktiskt arbetar.
+
+Frågorna ska inte leda personen mot ett önskat svar.
+
+För rekrytering kan frågorna formuleras som intervjufrågor.
+
+För utveckling, onboarding, ledarskap eller liknande syften kan
+frågorna vara mer reflekterande.
+
+För varje fråga, förklara också:
+
+- varför frågan är relevant
+- vad användaren kan lyssna efter
+
+
+KONTEXTNOTERING
+
+Förklara kort:
+
+- vilka kognitiva testresultat som fanns tillgängliga
+- om ytterligare processkontext fanns
+- hur detta påverkar tolkningens omfattning
+
+
+RÅDATA
+
+Inkludera inte råa percentilvärden i den slutliga användartexten.
 """.strip(),
 
-            "en": """
-Write the cognitive interpretation in a balanced, practical and
-non-judgemental way.
+"en": """
+TASK
 
-Help the user understand what the results may indicate about how readily
-the person processes the type of information measured by each assessment,
-without describing the result as a measure of general intelligence or
-actual workplace capability.
+Create a practical and nuanced interpretation of the available
+cognitive assessment results.
 
-Describe both higher and lower results with nuance. A higher result should
-not automatically be presented as a strength, and a lower result should
-not automatically be presented as a weakness.
+Help the user understand:
 
-Focus on the practical meaning of the result in relation to different
-types of cognitive demands, such as complexity, amount of information,
-time pressure, independent decision-making and the need for structure
-or support.
+- what the results may indicate about how readily the person
+  processes the type of information measured by each assessment
+- which types of cognitive demands may make the results more or
+  less relevant
+- which conditions, strategies or forms of support may be useful
+  to explore
+- which questions may provide additional behavioural evidence
 
-Acknowledge that experience, preparation, language, test conditions,
-working methods and other circumstances may influence how the results
-should be understood.
 
-Relate the interpretation to the process purpose and context where there
-is clear evidence to do so, but do not invent job tasks, requirements or
-candidate experience.
+CORE INTERPRETATION PRINCIPLES
 
-Use natural and accessible language that helps the user understand what
-may be relevant to explore further using other sources of evidence.
+Cognitive assessment results describe relative performance on
+specific reasoning tasks compared with a reference group.
+
+Do not describe the results as a measure of general intelligence.
+
+Do not describe the results as a direct measure of personality,
+motivation, knowledge, experience or actual workplace capability.
+
+A lower result does not mean that the person cannot perform a
+particular task.
+
+A higher result does not guarantee strong workplace performance.
+
+Treat the results as indications and hypotheses that may need to
+be validated using other sources of evidence.
+
+Experience, preparation, language, fatigue, test conditions,
+working methods and other circumstances may affect how the
+results should be understood.
+
+Do not make a final hiring, promotion, placement or development
+decision based solely on the assessment result.
+
+Do not create match scores or definitive suitability verdicts.
+
+Do not diagnose the candidate.
+
+Do not invent candidate experience, job tasks, role requirements
+or other context that is not present in the supplied information.
+
+
+INTERPRETING COGNITIVE DEMANDS
+
+Where relevant, different levels of cognitive demand may be used
+to put the results into practical context.
+
+Higher cognitive demands may involve:
+
+- unfamiliar, ambiguous or complex problems
+- large amounts of information from multiple sources
+- independent decisions with significant consequences
+- rapid learning with limited support
+- situations where errors may have broad impact
+
+Moderate cognitive demands may involve:
+
+- some complexity within reasonably defined boundaries
+- several information sources that remain manageable
+- some independent judgement
+- gradual learning with support
+- errors affecting part of the work or process
+
+Lower cognitive demands may involve:
+
+- clear and recurring tasks
+- limited, structured and linear information
+- rule-based decisions
+- clear instruction, training and repetition
+- errors with more limited consequences
+
+Do not describe these levels as better or worse.
+Their relevance depends on the actual situation and its demands.
+
+
+PROCESS PURPOSE AND CONTEXT
+
+Relate the interpretation to the selected process purpose where relevant.
+
+When process context is available, use only information actually
+contained in the supplied evidence.
+
+Clearly distinguish between:
+
+- what the assessment results may indicate
+- what the supplied process context actually states
+- what still needs to be explored using other evidence
+
+When context is unavailable, do not make specific assumptions about
+job tasks, responsibilities, leadership demands, customer situations,
+systems or working conditions.
+
+
+LANGUAGE AND TONE
+
+Write in a balanced, practical and non-judgemental way.
+
+Use cautious formulations where the evidence does not support a
+definitive conclusion, such as:
+
+- may indicate
+- suggests
+- could mean
+- may require
+- could be useful to explore
+
+Avoid unnecessarily academic or technical language.
+
+Avoid repeatedly writing "the candidate is".
+
+Refer to the person by first name where natural.
+
+Describe both higher and lower results with nuance.
+
+A higher result should not automatically be presented as a strength.
+
+A lower result should not automatically be presented as a weakness.
+
+
+PRACTICAL INTERPRETATION
+
+Write approximately 90 to 140 words.
+
+The interpretation should:
+
+- cover all available cognitive assessment results
+- explain the likely practical meaning of the results
+- connect cautiously to the selected purpose
+- use supplied process context where available
+- highlight relevant limitations
+- avoid simply repeating the later points
+
+
+RELEVANT CONSIDERATIONS
+
+Provide 2 to 4 concise points.
+
+These may describe:
+
+- a relevant condition
+- a possible support need
+- a limitation of the evidence
+- a cognitive demand that should be clarified
+
+Do not automatically frame these as confirmed weaknesses.
+
+
+FOLLOW-UP QUESTIONS
+
+Provide 3 open and practical questions.
+
+The questions should help the user gather concrete behavioural
+evidence and compare assessment indications with how the person
+actually works.
+
+Questions should not lead the respondent towards a preferred answer.
+
+For recruitment, questions may be phrased as interview questions.
+
+For development, onboarding, leadership or similar purposes,
+questions may be more reflective.
+
+For every question, also explain:
+
+- why the question is relevant
+- what the user should listen for
+
+
+CONTEXT NOTE
+
+Briefly explain:
+
+- which cognitive assessments were available
+- whether additional process context was available
+- how this affects the scope of the interpretation
+
+
+RAW DATA
+
+Do not include raw percentile values in the final user-facing text.
 """.strip(),
 
         },
