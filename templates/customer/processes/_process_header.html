@@ -402,6 +402,35 @@
   {% endif %}
 </div>
 
+  {% else %}
+
+    <div class="quick-card-title mt-0">
+      {% trans "Not specified" %}
+    </div>
+
+  {% endif %}
+</div>
+
+
+{% if not process.is_historical %}
+  <div class="process-mini-info">
+    <div class="text-muted small mb-1">
+      {% trans "Candidate language" %}
+    </div>
+
+    <div class="quick-card-title mt-0">
+      {% if process.candidate_language == "en" %}
+        {% trans "English" %}
+      {% else %}
+        {% trans "Swedish" %}
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+
+        </div>
+
         </div>
 
       </div>
