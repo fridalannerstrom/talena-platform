@@ -1,6 +1,10 @@
 from django.urls import path
+
 from . import views
-from django.urls import path, include
+from .access_control import (
+    process_edit_access_required,
+    process_view_access_required,
+)
 
 app_name = "processes"
 
@@ -15,7 +19,7 @@ urlpatterns = [
     path("<int:process_id>/candidate/<int:candidate_id>/", views.process_candidate_detail, name="process_candidate_detail"),
     path("<int:pk>/smoke-invite/<int:candidate_id>/", views.sova_order_assessment_smoke_test, name="sova_order_assessment_smoke_test"),
 
-    # ✅ public route
+    # Public self-registration route.
     path("r/<uuid:token>/", views.self_register, name="self_register"),
     path(
         "<int:process_id>/candidate/<int:candidate_id>/remove/",
@@ -38,11 +42,10 @@ urlpatterns = [
         name="process_candidate_summary_regenerate",
     ),
     path(
-    "processes/<int:process_id>/candidates/<int:candidate_id>/purpose-fit/stream/",
-    views.process_candidate_purpose_fit_stream,
-    name="process_candidate_purpose_fit_stream",
+        "processes/<int:process_id>/candidates/<int:candidate_id>/purpose-fit/stream/",
+        views.process_candidate_purpose_fit_stream,
+        name="process_candidate_purpose_fit_stream",
     ),
-
     path(
         "processes/<int:process_id>/candidates/<int:candidate_id>/purpose-fit/regenerate/",
         views.process_candidate_purpose_fit_regenerate,
@@ -55,10 +58,7 @@ urlpatterns = [
             "response-style-guidance/stream/"
         ),
         views.process_candidate_response_style_guidance_stream,
-        name=(
-            "process_candidate_"
-            "response_style_guidance_stream"
-        ),
+        name="process_candidate_response_style_guidance_stream",
     ),
     path(
         (
@@ -66,10 +66,7 @@ urlpatterns = [
             "<int:candidate_id>/cognitive-interpretation/stream/"
         ),
         views.process_candidate_cognitive_interpretation_stream,
-        name=(
-            "process_candidate_cognitive_"
-            "interpretation_stream"
-        ),
+        name="process_candidate_cognitive_interpretation_stream",
     ),
     path(
         (
@@ -77,10 +74,7 @@ urlpatterns = [
             "<int:candidate_id>/cognitive-interpretation/regenerate/"
         ),
         views.process_candidate_cognitive_interpretation_regenerate,
-        name=(
-            "process_candidate_cognitive_"
-            "interpretation_regenerate"
-        ),
+        name="process_candidate_cognitive_interpretation_regenerate",
     ),
     path(
         (
@@ -88,10 +82,7 @@ urlpatterns = [
             "<int:candidate_id>/motivation-interpretation/stream/"
         ),
         views.process_candidate_motivation_interpretation_stream,
-        name=(
-            "process_candidate_motivation_"
-            "interpretation_stream"
-        ),
+        name="process_candidate_motivation_interpretation_stream",
     ),
     path(
         (
@@ -99,10 +90,7 @@ urlpatterns = [
             "<int:candidate_id>/motivation-interpretation/regenerate/"
         ),
         views.process_candidate_motivation_interpretation_regenerate,
-        name=(
-            "process_candidate_motivation_"
-            "interpretation_regenerate"
-        ),
+        name="process_candidate_motivation_interpretation_regenerate",
     ),
     path(
         (
@@ -110,10 +98,7 @@ urlpatterns = [
             "<int:candidate_id>/motivation-questions/stream/"
         ),
         views.process_candidate_motivation_questions_stream,
-        name=(
-            "process_candidate_motivation_"
-            "questions_stream"
-        ),
+        name="process_candidate_motivation_questions_stream",
     ),
     path(
         (
@@ -121,10 +106,7 @@ urlpatterns = [
             "<int:candidate_id>/motivation-questions/regenerate/"
         ),
         views.process_candidate_motivation_questions_regenerate,
-        name=(
-            "process_candidate_motivation_"
-            "questions_regenerate"
-        ),
+        name="process_candidate_motivation_questions_regenerate",
     ),
     path(
         (
@@ -132,10 +114,7 @@ urlpatterns = [
             "<int:candidate_id>/personality-questions/stream/"
         ),
         views.process_candidate_personality_questions_stream,
-        name=(
-            "process_candidate_personality_"
-            "questions_stream"
-        ),
+        name="process_candidate_personality_questions_stream",
     ),
     path(
         (
@@ -143,10 +122,7 @@ urlpatterns = [
             "<int:candidate_id>/personality-questions/regenerate/"
         ),
         views.process_candidate_personality_questions_regenerate,
-        name=(
-            "process_candidate_personality_"
-            "questions_regenerate"
-        ),
+        name="process_candidate_personality_questions_regenerate",
     ),
     path(
         (
@@ -154,10 +130,7 @@ urlpatterns = [
             "<int:candidate_id>/personality-traits/update/"
         ),
         views.process_candidate_personality_traits_update,
-        name=(
-            "process_candidate_personality_"
-            "traits_update"
-        ),
+        name="process_candidate_personality_traits_update",
     ),
     path(
         (
@@ -167,7 +140,6 @@ urlpatterns = [
         views.process_candidate_personality_interpretation_stream,
         name="process_candidate_personality_interpretation_stream",
     ),
-
     path(
         (
             "<int:process_id>/candidates/"
@@ -198,7 +170,6 @@ urlpatterns = [
         views.process_candidate_cognitive_questions_stream,
         name="process_candidate_cognitive_questions_stream",
     ),
-
     path(
         "<int:process_id>/candidate/<int:candidate_id>/"
         "cognitive-questions/regenerate/",
@@ -211,30 +182,17 @@ urlpatterns = [
             "<int:candidate_id>/"
             "pre-interview-decision-support/stream/"
         ),
-        (
-            views
-            .process_candidate_pre_interview_decision_support_stream
-        ),
-        name=(
-            "process_candidate_pre_interview_"
-            "decision_support_stream"
-        ),
+        views.process_candidate_pre_interview_decision_support_stream,
+        name="process_candidate_pre_interview_decision_support_stream",
     ),
-
     path(
         (
             "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "pre-interview-decision-support/regenerate/"
         ),
-        (
-            views
-            .process_candidate_pre_interview_decision_support_regenerate
-        ),
-        name=(
-            "process_candidate_pre_interview_"
-            "decision_support_regenerate"
-        ),
+        views.process_candidate_pre_interview_decision_support_regenerate,
+        name="process_candidate_pre_interview_decision_support_regenerate",
     ),
     path(
         (
@@ -243,41 +201,25 @@ urlpatterns = [
             "interview-notes/update/"
         ),
         views.process_candidate_interview_notes_update,
-        name=(
-            "process_candidate_"
-            "interview_notes_update"
-        ),
+        name="process_candidate_interview_notes_update",
     ),
-        path(
+    path(
         (
             "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "post-interview-decision-support/stream/"
         ),
-        (
-            views
-            .process_candidate_post_interview_decision_support_stream
-        ),
-        name=(
-            "process_candidate_post_interview_"
-            "decision_support_stream"
-        ),
+        views.process_candidate_post_interview_decision_support_stream,
+        name="process_candidate_post_interview_decision_support_stream",
     ),
-
     path(
         (
             "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "post-interview-decision-support/regenerate/"
         ),
-        (
-            views
-            .process_candidate_post_interview_decision_support_regenerate
-        ),
-        name=(
-            "process_candidate_post_interview_"
-            "decision_support_regenerate"
-        ),
+        views.process_candidate_post_interview_decision_support_regenerate,
+        name="process_candidate_post_interview_decision_support_regenerate",
     ),
     path(
         (
@@ -285,10 +227,7 @@ urlpatterns = [
             "<int:candidate_id>/ai-insights/update-plan/"
         ),
         views.process_candidate_global_ai_update_plan,
-        name=(
-            "process_candidate_global_"
-            "ai_update_plan"
-        ),
+        name="process_candidate_global_ai_update_plan",
     ),
     path(
         (
@@ -297,10 +236,7 @@ urlpatterns = [
             "response-style-guidance/stream/"
         ),
         views.process_candidate_response_style_guidance_stream,
-        name=(
-            "process_candidate_"
-            "response_style_guidance_stream"
-        ),
+        name="process_candidate_response_style_guidance_stream",
     ),
     path(
         (
@@ -308,13 +244,52 @@ urlpatterns = [
             "<int:candidate_id>/"
             "response-style-guidance/regenerate/"
         ),
-        (
-            views
-            .process_candidate_response_style_guidance_regenerate
-        ),
-        name=(
-            "process_candidate_"
-            "response_style_guidance_regenerate"
-        ),
+        views.process_candidate_response_style_guidance_regenerate,
+        name="process_candidate_response_style_guidance_regenerate",
     ),
 ]
+
+
+# Candidate-facing process endpoints historically used a company-only helper in
+# parts of views.py. Wrap them centrally so direct URLs and AI endpoints always
+# respect the same org-unit Viewer/Editor/Own scope as the process list.
+_PROCESS_VIEW_ROUTE_NAMES = {
+    "process_candidate_detail",
+    "process_candidate_combined_questions",
+    "process_candidate_final_output",
+}
+
+_PROCESS_EDIT_ROUTE_NAMES = {
+    "remove_candidate_from_process",
+    "process_candidate_summary_stream",
+    "process_candidate_summary_regenerate",
+    "process_candidate_purpose_fit_stream",
+    "process_candidate_purpose_fit_regenerate",
+    "process_candidate_response_style_guidance_stream",
+    "process_candidate_response_style_guidance_regenerate",
+    "process_candidate_cognitive_interpretation_stream",
+    "process_candidate_cognitive_interpretation_regenerate",
+    "process_candidate_motivation_interpretation_stream",
+    "process_candidate_motivation_interpretation_regenerate",
+    "process_candidate_motivation_questions_stream",
+    "process_candidate_motivation_questions_regenerate",
+    "process_candidate_personality_questions_stream",
+    "process_candidate_personality_questions_regenerate",
+    "process_candidate_personality_traits_update",
+    "process_candidate_personality_interpretation_stream",
+    "process_candidate_personality_interpretation_regenerate",
+    "process_candidate_cognitive_questions_stream",
+    "process_candidate_cognitive_questions_regenerate",
+    "process_candidate_pre_interview_decision_support_stream",
+    "process_candidate_pre_interview_decision_support_regenerate",
+    "process_candidate_interview_notes_update",
+    "process_candidate_post_interview_decision_support_stream",
+    "process_candidate_post_interview_decision_support_regenerate",
+    "process_candidate_global_ai_update_plan",
+}
+
+for pattern in urlpatterns:
+    if pattern.name in _PROCESS_EDIT_ROUTE_NAMES:
+        pattern.callback = process_edit_access_required(pattern.callback)
+    elif pattern.name in _PROCESS_VIEW_ROUTE_NAMES:
+        pattern.callback = process_view_access_required(pattern.callback)
