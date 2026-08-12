@@ -1,19 +1,17 @@
-from django.shortcuts import render
-
-from apps.teams.models import Team
-from apps.projects.models import ProjectMeta
-
-# Create your views here.
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import render
 
+from apps.projects.models import ProjectMeta
 from apps.processes.models import (
     Candidate,
-    TestInvitation,
     HistoricalProcessCandidate,
+    TestInvitation,
 )
 from apps.processes.services.access import get_accessible_processes_for_user
+from apps.teams.models import TeamMembership
+from apps.teams.views import _team_visibility_queryset
+
 
 TEST_DEFINITIONS = [
     {
@@ -189,6 +187,7 @@ def get_process_test_keys(process, project_meta_by_key):
 
     return test_keys
 
+
 @login_required
 def candidate_list(request):
     accessible_processes, company = get_accessible_processes_for_user(
@@ -231,10 +230,31 @@ def candidate_list(request):
 
     candidate_ids = live_candidate_ids | historical_candidate_ids
 
+    # Team names/memberships must follow the same access scope as the Team
+    # section. This prevents own-only users from seeing colleagues' team names
+    # through candidate filters or badges.
+    visible_teams = (
+        _team_visibility_queryset(request.user, company)
+        .filter(is_archived=False)
+        .order_by("name")
+    )
+    visible_team_ids = list(
+        visible_teams.values_list("id", flat=True)
+    )
+
     candidates = (
         Candidate.objects
         .filter(id__in=candidate_ids)
-        .prefetch_related("team_memberships__team")
+        .prefetch_related(
+            Prefetch(
+                "team_memberships",
+                queryset=(
+                    TeamMembership.objects
+                    .filter(team_id__in=visible_team_ids)
+                    .select_related("team")
+                ),
+            )
+        )
         .order_by("last_name", "first_name", "email")
     )
 
@@ -372,8 +392,6 @@ def candidate_list(request):
                 candidate_statuses[test_key]["pending_count"] += 1
 
         # Sova activity data is more precise than the invitation status.
-        activity_test_keys = set()
-
         for activity in invitation.sova_activities or []:
             test_key = normalize_test_key(
                 activity.get("activity")
@@ -385,8 +403,6 @@ def candidate_list(request):
             activity_status = normalize_activity_status(
                 activity.get("status")
             )
-
-            activity_test_keys.add(test_key)
 
             update_test_status(
                 candidate_statuses,
@@ -466,26 +482,27 @@ def candidate_list(request):
     # ---------------------------------------------------------
     # Team filtering
     # ---------------------------------------------------------
-    teams = (
-        Team.objects
-        .filter(
-            company=company,
-            is_archived=False,
-        )
-        .order_by("name")
-    )
+    teams = visible_teams
 
     selected_team_id = request.GET.get("team")
 
     if selected_team_id == "none":
-        candidates = candidates.filter(
-            team_memberships__isnull=True
+        candidates = candidates.exclude(
+            team_memberships__team_id__in=visible_team_ids
         )
 
     elif selected_team_id:
-        candidates = candidates.filter(
-            team_memberships__team_id=selected_team_id
-        )
+        try:
+            selected_team_id_int = int(selected_team_id)
+        except (TypeError, ValueError):
+            selected_team_id_int = None
+
+        if selected_team_id_int in visible_team_ids:
+            candidates = candidates.filter(
+                team_memberships__team_id=selected_team_id_int
+            )
+        else:
+            candidates = candidates.none()
 
     candidates = candidates.distinct()
 

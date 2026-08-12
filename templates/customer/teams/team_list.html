@@ -25,13 +25,14 @@
 
     </div>
 
-
-    <a
-      href="{% url 'teams:team_create' %}"
-      class="btn btn-primary"
-    >
-      + {% trans "Create team" %}
-    </a>
+    {% if can_create_team %}
+      <a
+        href="{% url 'teams:team_create' %}"
+        class="btn btn-primary"
+      >
+        + {% trans "Create team" %}
+      </a>
+    {% endif %}
 
   </div>
 

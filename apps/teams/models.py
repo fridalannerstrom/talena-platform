@@ -1,14 +1,27 @@
-from django.db import models
-
-# Create your models here.
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class Team(models.Model):
     company = models.ForeignKey(
-        "accounts.Company",  # ÄNDRA om din Company-model ligger någon annanstans
+        "accounts.Company",
         on_delete=models.CASCADE,
-        related_name="teams"
+        related_name="teams",
+    )
+    org_unit = models.ForeignKey(
+        "accounts.OrgUnit",
+        on_delete=models.PROTECT,
+        related_name="teams",
+        null=True,
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="created_teams",
+        null=True,
+        blank=True,
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -22,9 +35,19 @@ class Team(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["company", "name"],
-                name="unique_team_name_per_company"
+                name="unique_team_name_per_company",
             )
         ]
+
+    def clean(self):
+        if (
+            self.org_unit_id
+            and self.company_id
+            and self.org_unit.company_id != self.company_id
+        ):
+            raise ValidationError(
+                {"org_unit": "Teamets enhet måste tillhöra samma företag."}
+            )
 
     def __str__(self):
         return f"{self.name} ({self.company})"
@@ -34,19 +57,19 @@ class TeamMembership(models.Model):
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        related_name="memberships"
+        related_name="memberships",
     )
     candidate = models.ForeignKey(
         "processes.Candidate",
         on_delete=models.CASCADE,
-        related_name="team_memberships"
+        related_name="team_memberships",
     )
 
     role = models.CharField(max_length=255, blank=True)
     source = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Example: manual, sova_import"
+        help_text="Example: manual, sova_import",
     )
 
     added_at = models.DateTimeField(auto_now_add=True)
@@ -56,7 +79,7 @@ class TeamMembership(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["team", "candidate"],
-                name="unique_candidate_per_team"
+                name="unique_candidate_per_team",
             )
         ]
 
