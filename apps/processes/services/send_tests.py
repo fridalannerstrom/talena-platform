@@ -8,6 +8,7 @@ from apps.emails.models import EmailTemplate, EmailLog
 from apps.emails.utils import (
     render_placeholders,
     get_default_invitation_template,
+    format_assessment_names,
 )
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
@@ -125,6 +126,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 "last_name": candidate.last_name or "",
                 "email": candidate.email or "",
                 "process_name": process.name or "",
+                "assessments": format_assessment_names(process.selected_tests),
                 "job_title": process.job_title or "",
                 "job_location": process.job_location or "",
                 "assessment_url": test_url or "",

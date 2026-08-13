@@ -196,48 +196,50 @@
 
     <section class="card mb-4">
 
-      <div
-        class="
-          card-header
-          fw-semibold
-          d-flex
-          justify-content-between
-          align-items-center
-          gap-3
-        "
-      >
+<button
+  type="button"
+  class="card-header reports-toggle collapsed"
+  data-bs-toggle="collapse"
+  data-bs-target="#candidateAssessmentReports"
+  aria-expanded="false"
+  aria-controls="candidateAssessmentReports"
+>
 
-        <span>
-          {% trans "Reports" %}
+  <span class="fw-semibold">
+    {% trans "Reports" %}
+  </span>
+
+  <span class="reports-toggle__right">
+
+    {% if is_historical %}
+
+      {% if historical_reports %}
+        <span class="badge rounded-pill text-bg-light border">
+          {{ historical_reports|length }} {% trans "available" %}
         </span>
+      {% endif %}
 
+    {% else %}
 
-        {% if is_historical %}
+      {% if sova_reports_for_ui %}
+        <span class="badge rounded-pill text-bg-light border">
+          {{ sova_reports_for_ui|length }} {% trans "available" %}
+        </span>
+      {% endif %}
 
-          {% if historical_reports %}
+    {% endif %}
 
-            <span class="badge rounded-pill text-bg-light border">
-              {{ historical_reports|length }} {% trans "available" %}
-            </span>
+    <span class="reports-toggle__chevron" aria-hidden="true"></span>
 
-          {% endif %}
+  </span>
 
-        {% else %}
+</button>
 
-          {% if sova_reports_for_ui %}
-
-            <span class="badge rounded-pill text-bg-light border">
-              {{ sova_reports_for_ui|length }} {% trans "available" %}
-            </span>
-
-          {% endif %}
-
-        {% endif %}
-
-      </div>
-
-
-      <div class="card-body">
+      <div
+  id="candidateAssessmentReports"
+  class="collapse"
+>
+  <div class="card-body">
 
         <div class="list-group list-group-flush">
 
@@ -349,6 +351,7 @@
         </div>
 
       </div>
+    </div>
 
     </section>
 

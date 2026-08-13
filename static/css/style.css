@@ -30158,6 +30158,49 @@ color: #6E63E3;
   }
 }
 
+  .reports-toggle {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: transparent;
+    padding: 1rem 1.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .reports-toggle:hover {
+    background: rgba(0, 0, 0, 0.015);
+  }
+
+  .reports-toggle__right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .reports-toggle__chevron {
+    width: 8px;
+    height: 8px;
+
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+
+    transform: rotate(225deg);
+    transition: transform 0.2s ease;
+  }
+
+  .reports-toggle.collapsed .reports-toggle__chevron {
+    transform: rotate(45deg);
+  }
+
 /* =========================================================
    MOTIVATION BUBBLE MAP
 ========================================================= */

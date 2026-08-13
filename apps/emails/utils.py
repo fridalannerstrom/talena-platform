@@ -4,6 +4,15 @@ from django.utils.translation import (
 )
 
 
+ASSESSMENT_DISPLAY_NAMES = {
+    "personality": "Personality",
+    "motivation": "Motivation",
+    "verbal": "Verbal Reasoning",
+    "logical": "Logical Reasoning",
+    "numerical": "Numerical Reasoning",
+}
+
+
 class SafeDict(dict):
     def __missing__(self, key):
         return "{" + key + "}"
@@ -16,6 +25,27 @@ def render_placeholders(
     return (text or "").format_map(
         SafeDict(**context)
     )
+
+
+def format_assessment_names(selected_tests) -> str:
+    # Return process assessments as an English comma-separated list.
+    names = []
+
+    for test in selected_tests or []:
+        key = str(test or "").strip()
+
+        if not key:
+            continue
+
+        normalized_key = key.lower()
+        names.append(
+            ASSESSMENT_DISPLAY_NAMES.get(
+                normalized_key,
+                key.replace("_", " ").title(),
+            )
+        )
+
+    return ", ".join(names)
 
 
 def get_default_invitation_template(

@@ -191,6 +191,7 @@ def get_email_template_placeholders():
         "{last_name}",
         "{email}",
         "{process_name}",
+        "{assessments}",
         "{assessment_url}",
         "{sender_first_name}",
         "{sender_last_name}",

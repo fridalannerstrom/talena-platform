@@ -5256,6 +5256,27 @@ msgstr ""
 msgid "Invitation and assessments in Swedish"
 msgstr "Inbjudan och tester på svenska"
 
+msgid ""
+"A combined interpretation of the candidate’s available "
+"imported assessment results."
+msgstr ""
+"En samlad tolkning av kandidatens tillgängliga importerade "
+"testresultat."
+
+msgid ""
+"A combined interpretation of the candidate’s available "
+"assessment results, selected process purpose and any "
+"added process context."
+msgstr ""
+"En samlad tolkning av kandidatens tillgängliga testresultat, "
+"valt syfte för processen och eventuell tillagd processkontext."
+
+msgid "AI summary"
+msgstr "AI-sammanfattning"
+
+msgid "Assessments included in the process, separated by commas"
+msgstr "Testerna som ingår i processen, separerade med kommatecken"
+
 #: .\templates\customer\processes\process_create_v2.html:440
 msgid "Invitation and assessments in English"
 msgstr "Inbjudan och tester på engelska"
