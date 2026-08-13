@@ -62,18 +62,67 @@ def get_ai_language_instruction(language_code: str | None) -> str:
 def get_ai_system_language_instruction(
     language_code: str | None,
 ) -> str:
-    """Return the language rule used in the OpenAI system message."""
-    language_code = normalize_ai_language(language_code)
+    """
+    Return Talena's global administrator guidance and
+    protected system-level language instruction.
+
+    Global administrator guidance applies across all AI-generated
+    user-facing content. Technical output contracts remain protected
+    by the individual AI feature.
+    """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    # Local import avoids coupling the prompt registry to this
+    # language utility at module-import time.
+    from .prompt_templates import get_global_ai_guidance
+
+    global_guidance = get_global_ai_guidance(
+        language=language_code,
+    )
 
     if language_code == "sv":
-        return (
-            "Write all user-facing prose in Swedish. Keep technical JSON "
-            "keys, event type values, and fixed legacy values in English."
+        language_instruction = (
+            "Write all user-facing prose in Swedish. "
+            "Keep technical JSON keys, event type values, "
+            "and fixed legacy values in English."
+        )
+    else:
+        language_instruction = (
+            "Write all user-facing prose in English. "
+            "Keep technical JSON keys, event type values, "
+            "and fixed legacy values in English."
         )
 
-    return (
-        "Write all user-facing prose in English. Keep technical JSON "
-        "keys, event type values, and fixed legacy values in English."
+    parts = [
+        "GLOBAL ADMINISTRATOR AI GUIDANCE",
+        global_guidance,
+        (
+            "The global administrator guidance above is mandatory for all "
+            "user-facing AI-generated content in Talena. "
+            "Follow it consistently and do not treat it as optional advice. "
+            "If it specifies required or prohibited wording, terminology, "
+            "pronouns, tone or interpretation rules, follow those requirements "
+            "exactly, even when other information such as a person's name might "
+            "suggest an alternative. "
+            "Before producing the final user-facing content, silently verify "
+            "that the response complies with the global administrator guidance. "
+            "Feature-specific administrator guidance may add more specific "
+            "instructions for the current AI function. "
+            "Global administrator guidance must not override Talena's technical "
+            "output requirements such as required JSON structure, field names, "
+            "event types or streaming format."
+        ),
+        "OUTPUT LANGUAGE",
+        language_instruction,
+    ]
+
+    return "\n\n".join(
+        part.strip()
+        for part in parts
+        if str(part or "").strip()
     )
 
 

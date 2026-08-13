@@ -5,7 +5,6 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 from apps.core.ai.chat import ask_ai
-from apps.core.ai.chat_stream import stream_ai
 
 from apps.core.ai.language import (
     get_ai_system_language_instruction,
@@ -58,7 +57,13 @@ def chat_api(request):
         return JsonResponse({"error": "Message is required"}, status=400)
 
     try:
-        answer = ask_ai(message, scope="base")
+        answer = ask_ai(
+            message,
+            scope="base",
+            language_code=get_request_ai_language(
+                request
+            ),
+        )
     except Exception as e:
         # För dev: returnera feltext så du ser vad som händer
         return JsonResponse({"error": str(e)}, status=500)

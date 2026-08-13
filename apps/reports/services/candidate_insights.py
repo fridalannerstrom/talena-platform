@@ -8,6 +8,11 @@ from apps.core.ai.openai_client import (
     get_chat_model,
 )
 
+from apps.core.ai.language import (
+    get_ai_language_instruction,
+    get_ai_system_language_instruction,
+    normalize_ai_language,
+)
 
 def _clean_score_items(
     items: list[dict] | None,
@@ -169,11 +174,20 @@ def build_general_insights_prompt(
     *,
     candidate_name: str,
     insight_input: dict[str, Any],
+    language_code: str = "en",
 ) -> str:
     """
     Build the prompt used to generate general candidate insights
     for a Flexible process.
     """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    language_instruction = get_ai_language_instruction(
+        language_code
+    )
 
     assessment_data = json.dumps(
         insight_input,
@@ -198,8 +212,11 @@ IMPORTANT CONTEXT
 - Interpret lower scores carefully. A lower score is not automatically a weakness.
 - Use cautious language such as "may indicate", "suggests", "appears to" and "could be useful to explore".
 - Translate the assessment evidence into practical workplace meaning.
-- Write in professional, clear English.
 - Do not include raw scores unnecessarily.
+
+OUTPUT LANGUAGE
+
+{language_instruction}
 
 Candidate:
 {candidate_name}
@@ -497,6 +514,7 @@ def generate_general_candidate_insights(
     *,
     candidate_name: str,
     insight_input: dict[str, Any],
+    language_code: str = "en",
 ) -> dict[str, Any]:
     """
     Generate AI candidate insights for a Flexible process.
@@ -509,6 +527,7 @@ def generate_general_candidate_insights(
     prompt = build_general_insights_prompt(
         candidate_name=candidate_name,
         insight_input=insight_input,
+        language_code=language_code,
     )
 
     response = client.chat.completions.create(
@@ -517,8 +536,11 @@ def generate_general_candidate_insights(
             {
                 "role": "system",
                 "content": (
-                    "You are a careful assessment interpretation assistant. "
-                    "Return valid JSON only and follow the supplied schema exactly."
+                    "You are an AI component inside Talena. "
+                    "Generate careful assessment interpretations using only "
+                    "the supplied assessment evidence. "
+                    "Return valid JSON only and follow the supplied schema exactly. "
+                    f"{get_ai_system_language_instruction(language_code)}"
                 ),
             },
             {

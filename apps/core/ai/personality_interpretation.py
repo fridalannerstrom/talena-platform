@@ -10,6 +10,8 @@ from .openai_client import (
     get_chat_model,
 )
 
+from .prompt_templates import get_ai_prompt_instructions
+
 from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
@@ -24,8 +26,6 @@ from .language import (
     normalize_ai_language,
     set_ai_content_language,
 )
-
-from .prompt_templates import get_ai_prompt_instructions
 
 def _personality_interpretation_examples(
     language_code: str,

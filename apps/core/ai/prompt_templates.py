@@ -11,6 +11,8 @@ SUPPORTED_PROMPT_LANGUAGES = {
 }
 
 
+
+
 # ============================================================
 # Talena AI prompt registry
 # ============================================================
@@ -614,6 +616,127 @@ user-facing text.
 
 
 AI_PROMPT_REGISTRY: dict[str, dict[str, Any]] = {
+
+    "global_ai_guidance": {
+    "name": "Global AI guidance",
+    "category": "Global",
+    "description": (
+        "Applies to all AI-generated content in Talena. "
+        "Use this for cross-cutting language, tone, terminology "
+        "and interpretation guidance."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Dessa instruktioner gäller allt AI-genererat innehåll i Talena.
+
+De ska användas tillsammans med den mer specifika vägledning
+som finns för respektive AI-funktion.
+
+
+SPRÅK OCH TILLTAL
+
+Skriv naturligt, professionellt och lättillgängligt.
+
+Undvik antaganden om kandidatens kön.
+
+Använd kandidatens förnamn när det känns naturligt.
+
+Om ett pronomen behöver användas på svenska, använd "hen"
+istället för könade pronomen som "han" eller "hon".
+
+
+TON
+
+Skriv balanserat, respektfullt och icke-dömande.
+
+Undvik kategoriska formuleringar om personen när underlaget
+endast stödjer en möjlig tolkning.
+
+Använd ett praktiskt språk som hjälper användaren förstå
+resultatens betydelse.
+
+
+UNDERLAG OCH TOLKNING
+
+Skilj tydligt mellan:
+
+- vad underlaget faktiskt visar
+- vad det kan indikera
+- vad som fortfarande behöver utforskas eller valideras
+
+Hitta inte på information som inte finns i underlaget.
+
+Processens syfte och tillgängliga kontext får användas när
+det är relevant.
+
+
+INSTRUKTIONSHIERARKI
+
+Mer specifik AI-vägledning för en viss funktion ska användas
+tillsammans med denna globala vägledning.
+
+Tekniska instruktioner som Talena behöver för exempelvis
+JSON-struktur, streaming, fältnamn och formattering ska
+alltid följas.
+""".strip(),
+
+        "en": """
+TASK
+
+These instructions apply to all AI-generated content in Talena.
+
+They should be used together with the more specific guidance
+defined for each AI feature.
+
+
+LANGUAGE AND REFERENCES TO THE PERSON
+
+Write naturally, professionally and accessibly.
+
+Do not make assumptions about the candidate's gender.
+
+Use the candidate's first name where natural.
+
+When a pronoun is needed in English, use gender-neutral
+language such as "they" and "them".
+
+
+TONE
+
+Write in a balanced, respectful and non-judgemental way.
+
+Avoid categorical statements about the person where the
+available evidence only supports a possible interpretation.
+
+Use practical language that helps the user understand the
+meaning of the results.
+
+
+EVIDENCE AND INTERPRETATION
+
+Clearly distinguish between:
+
+- what the available evidence actually shows
+- what it may indicate
+- what still needs to be explored or validated
+
+Do not invent information that is not present in the supplied evidence.
+
+Use the selected process purpose and available context where relevant.
+
+
+INSTRUCTION HIERARCHY
+
+More specific AI guidance for an individual feature should be
+used together with this global guidance.
+
+Technical Talena requirements such as JSON structure, streaming,
+field names and formatting must always be followed.
+""".strip(),
+    },
+},
 
     "personality_interpretation": {
         "name": "Personality interpretation",
@@ -5420,22 +5543,19 @@ def get_default_ai_prompt(
     ).strip()
 
 
-def get_ai_prompt_instructions(
+def _get_single_ai_prompt_instructions(
     *,
     key: str,
     language: str,
     default: str | None = None,
 ) -> str:
     """
-    Return the currently active GLOBAL business guidance.
+    Resolve one administrator-editable AI prompt.
 
     Priority:
-
     1. Active global administrator override from AIPromptTemplate.
-    2. Explicit fallback supplied by the caller, for backwards compatibility.
+    2. Explicit fallback supplied by the caller.
     3. Protected Talena default from AI_PROMPT_REGISTRY.
-
-    Customer/company-specific prompts are intentionally not supported here.
     """
 
     from apps.processes.models import AIPromptTemplate
@@ -5449,7 +5569,6 @@ def get_ai_prompt_instructions(
             key=key,
             language=normalized_language,
         )
-
     else:
         protected_default = str(
             default
@@ -5474,6 +5593,74 @@ def get_ai_prompt_instructions(
         return protected_default
 
     return prompt_text
+
+
+def get_global_ai_guidance(
+    *,
+    language: str,
+) -> str:
+    """
+    Return Talena's effective global administrator AI guidance.
+
+    This guidance applies across all AI-generated content.
+    """
+
+    return _get_single_ai_prompt_instructions(
+        key="global_ai_guidance",
+        language=language,
+    )
+
+
+def get_ai_prompt_instructions(
+    *,
+    key: str,
+    language: str,
+    default: str | None = None,
+) -> str:
+    """
+    Return the complete administrator-controlled AI guidance
+    for one Talena AI feature.
+
+    Global AI guidance is automatically prepended to the
+    feature-specific guidance.
+    """
+
+    normalized_language = normalize_prompt_language(
+        language
+    )
+
+    feature_instructions = _get_single_ai_prompt_instructions(
+        key=key,
+        language=normalized_language,
+        default=default,
+    )
+
+    # Avoid adding the global prompt to itself.
+    if key == "global_ai_guidance":
+        return feature_instructions
+
+    global_instructions = _get_single_ai_prompt_instructions(
+        key="global_ai_guidance",
+        language=normalized_language,
+    )
+
+    instruction_parts = []
+
+    if global_instructions:
+        instruction_parts.append(
+            "GLOBAL ADMINISTRATOR AI GUIDANCE\n\n"
+            + global_instructions
+        )
+
+    if feature_instructions:
+        instruction_parts.append(
+            "FEATURE-SPECIFIC ADMINISTRATOR AI GUIDANCE\n\n"
+            + feature_instructions
+        )
+
+    return "\n\n".join(
+        instruction_parts
+    ).strip()
 
 
 def list_ai_prompt_definitions() -> list[dict[str, Any]]:

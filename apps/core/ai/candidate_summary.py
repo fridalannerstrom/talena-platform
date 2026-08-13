@@ -6,6 +6,22 @@ from .openai_client import get_openai_client, get_chat_model
 import json
 from typing import Any
 
+from apps.core.ai.language import (
+    get_ai_system_language_instruction,
+)
+
+from apps.core.ai.language import (
+    get_ai_language_instruction,
+    get_ai_language_update_fields,
+    get_ai_system_language_instruction,
+    normalize_ai_language,
+    set_ai_content_language,
+)
+
+from apps.processes.services.candidate_profile import (
+    build_historical_candidate_profile,
+)
+
 from apps.core.ai.openai_client import (
     get_openai_client,
     get_chat_model,
@@ -14,28 +30,50 @@ from apps.core.ai.openai_client import (
 from django.forms.models import model_to_dict
 
 
-def build_candidate_prompt(invitation) -> str:
-    """
-    Build the AI prompt for the candidate insight summary.
+def _get_score_parts(
+    item: dict,
+) -> list[str]:
+    parts = []
 
-    The summary is based on:
-    - completed assessment data
-    - the selected process purpose
-    - any added process context
-    """
+    sten = item.get("sten_rounded")
+    if sten is None:
+        sten = item.get("sten")
 
-    activities = invitation.sova_activities or []
-    candidate = invitation.candidate
-    process = invitation.process
+    stive = item.get("stive_rounded")
+    if stive is None:
+        stive = item.get("stive")
 
-    # ------------------------------------------------------------
-    # Assessment results
-    # ------------------------------------------------------------
+    percentile = item.get("percentile")
+
+    if sten is not None:
+        parts.append(f"sten {sten}")
+
+    if stive is not None:
+        parts.append(f"stive {stive}")
+
+    if percentile is not None:
+        parts.append(f"percentile {percentile}")
+
+    return parts
+
+
+def _build_active_summary_assessment_text(
+    owner,
+) -> str:
+    activities = owner.sova_activities or []
+
     assessment_lines = []
 
     for activity in activities:
-        activity_name = activity.get("activity") or "Assessment"
-        competencies = activity.get("competencies") or []
+        activity_name = (
+            activity.get("activity")
+            or "Assessment"
+        )
+
+        competencies = (
+            activity.get("competencies")
+            or []
+        )
 
         result_lines = []
 
@@ -46,71 +84,239 @@ def build_candidate_prompt(invitation) -> str:
                 or "Unnamed competency"
             )
 
-            sten = competency.get("sten_rounded")
-            stive = competency.get("stive_rounded")
-            percentile = competency.get("percentile")
-
-            score_parts = []
-
-            if sten is not None:
-                score_parts.append(f"sten {sten}")
-
-            if stive is not None:
-                score_parts.append(f"stive {stive}")
-
-            if percentile is not None:
-                score_parts.append(f"percentile {percentile}")
+            score_parts = _get_score_parts(
+                competency
+            )
 
             if not score_parts:
                 continue
 
             result_lines.append(
-                f"- {competency_name}: {', '.join(score_parts)}"
+                f"- {competency_name}: "
+                f"{', '.join(score_parts)}"
             )
 
         if result_lines:
             assessment_lines.append(
-                f"{activity_name}:\n" + "\n".join(result_lines)
+                f"{activity_name}:\n"
+                + "\n".join(result_lines)
             )
 
-    assessment_text = (
+    return (
         "\n\n".join(assessment_lines)
         if assessment_lines
         else "No completed assessment scores were available."
     )
 
-    # ------------------------------------------------------------
-    # Process purpose
-    # ------------------------------------------------------------
-    purpose_value = (process.purpose or "").strip()
+
+def _build_historical_summary_assessment_text(
+    owner,
+) -> str:
+    profile = build_historical_candidate_profile(
+        owner
+    )
+
+    assessment_lines = []
+
+    sections = (
+        (
+            "Personality",
+            profile.get(
+                "personality_competencies"
+            ) or [],
+        ),
+        (
+            "Motivation",
+            profile.get(
+                "motivation_competencies"
+            ) or [],
+        ),
+    )
+
+    for section_name, items in sections:
+        result_lines = []
+
+        for item in items:
+            name = (
+                item.get("competency")
+                or item.get("name")
+                or item.get("label")
+                or "Unnamed competency"
+            )
+
+            score_parts = _get_score_parts(
+                item
+            )
+
+            if not score_parts:
+                continue
+
+            result_lines.append(
+                f"- {name}: "
+                f"{', '.join(score_parts)}"
+            )
+
+        if result_lines:
+            assessment_lines.append(
+                f"{section_name}:\n"
+                + "\n".join(result_lines)
+            )
+
+    # Cognitive ability results
+    ability_results = (
+        profile.get("ability_results")
+        or {}
+    )
+
+    ability_labels = {
+        "logical": "Logical reasoning",
+        "numerical": "Numerical reasoning",
+        "verbal": "Verbal reasoning",
+    }
+
+    ability_lines = []
+
+    for key, label in ability_labels.items():
+        result = ability_results.get(key)
+
+        if result is None:
+            continue
+
+        if isinstance(result, dict):
+            percentile = result.get(
+                "percentile"
+            )
+
+            if percentile is None:
+                percentile = result.get(
+                    "value"
+                )
+        else:
+            percentile = result
+
+        if percentile is None:
+            continue
+
+        ability_lines.append(
+            f"- {label}: percentile {percentile}"
+        )
+
+    if ability_lines:
+        assessment_lines.append(
+            "Cognitive ability:\n"
+            + "\n".join(ability_lines)
+        )
+
+    return (
+        "\n\n".join(assessment_lines)
+        if assessment_lines
+        else "No completed assessment scores were available."
+    )
+
+
+def _build_summary_assessment_text(
+    owner,
+) -> str:
+    process = owner.process
+
+    if getattr(
+        process,
+        "is_historical",
+        False,
+    ):
+        return (
+            _build_historical_summary_assessment_text(
+                owner
+            )
+        )
+
+    return _build_active_summary_assessment_text(
+        owner
+    )
+
+
+def build_candidate_prompt(
+    owner,
+    *,
+    language_code: str = "en",
+) -> str:
+    """
+    Build the candidate summary prompt.
+
+    The same prompt and AI generator are used for:
+    - TestInvitation
+    - HistoricalProcessCandidate
+
+    Only the source of the assessment evidence differs.
+    """
+
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    candidate = owner.candidate
+    process = owner.process
+
+    assessment_text = (
+        _build_summary_assessment_text(
+            owner
+        )
+    )
+
+    purpose_value = (
+        process.purpose
+        or ""
+    ).strip()
 
     purpose_labels = {
-        "flexible": "Flexible process / general insights",
-        "unsure": "Flexible process / general insights",
+        "flexible": (
+            "Flexible process / general insights"
+        ),
+        "unsure": (
+            "Flexible process / general insights"
+        ),
         "recruitment": "Recruitment",
         "role_match": "Role matching",
         "career_path": "Career development",
         "onboarding": "Onboarding",
-        "employee_development": "Employee development",
-        "leadership_potential": "Leadership potential",
-        "leader_development": "Leadership development",
-        "team_development": "Team development",
+        "employee_development": (
+            "Employee development"
+        ),
+        "leadership_potential": (
+            "Leadership potential"
+        ),
+        "leader_development": (
+            "Leadership development"
+        ),
+        "team_development": (
+            "Team development"
+        ),
         "reorganisation": "Reorganisation",
     }
 
     purpose_label = purpose_labels.get(
         purpose_value,
-        purpose_value or "No specific purpose selected",
+        (
+            purpose_value
+            or "No specific purpose selected"
+        ),
     )
 
-    # ------------------------------------------------------------
-    # Optional process context
-    # ------------------------------------------------------------
-    process_context = getattr(process, "role_context", None)
+    process_context = getattr(
+        process,
+        "role_context",
+        None,
+    )
+
     context_lines = []
 
-    if process_context and process_context.has_content():
-        context_data = model_to_dict(process_context)
+    if (
+        process_context
+        and process_context.has_content()
+    ):
+        context_data = model_to_dict(
+            process_context
+        )
 
         excluded_fields = {
             "id",
@@ -119,14 +325,25 @@ def build_candidate_prompt(invitation) -> str:
             "updated_at",
         }
 
-        for field_name, value in context_data.items():
+        for field_name, value in (
+            context_data.items()
+        ):
             if field_name in excluded_fields:
                 continue
 
-            if value in (None, "", [], {}):
+            if value in (
+                None,
+                "",
+                [],
+                {},
+            ):
                 continue
 
-            readable_name = field_name.replace("_", " ").title()
+            readable_name = (
+                field_name
+                .replace("_", " ")
+                .title()
+            )
 
             context_lines.append(
                 f"- {readable_name}: {value}"
@@ -135,21 +352,20 @@ def build_candidate_prompt(invitation) -> str:
     context_text = (
         "\n".join(context_lines)
         if context_lines
-        else "No additional process context has been added."
+        else (
+            "No additional process context "
+            "has been added."
+        )
     )
 
-    has_added_context = bool(context_lines)
-
-    # ------------------------------------------------------------
-    # Prompt behaviour
-    # ------------------------------------------------------------
-    if has_added_context:
+    if context_lines:
         interpretation_instruction = """
 Use the selected purpose and the added process context to make the
 summary more relevant. Explain how the candidate's assessment profile
 may relate to the supplied context, but do not make a final decision
 or treat the assessment results as absolute facts.
 """.strip()
+
     else:
         interpretation_instruction = """
 Provide a general interpretation based only on the available assessment
@@ -157,27 +373,48 @@ results and selected process purpose. Do not assess fit for a specific
 role, team or situation when no such context has been supplied.
 """.strip()
 
+    language_instruction = (
+        get_ai_language_instruction(
+            language_code
+        )
+    )
+
     return f"""
 You are generating the Insight summary section of a candidate
 assessment report in Talena.
 
 CANDIDATE
+
 Name: {candidate.first_name} {candidate.last_name}
 
+
 PROCESS PURPOSE
+
 {purpose_label}
 
+
 ADDED PROCESS CONTEXT
+
 {context_text}
 
+
 ASSESSMENT RESULTS
+
 {assessment_text}
 
+
 INTERPRETATION INSTRUCTION
+
 {interpretation_instruction}
 
+
+OUTPUT LANGUAGE
+
+{language_instruction}
+
+
 WRITING RULES
-- Write in professional, clear English.
+
 - Write about the candidate as a person.
 - Interpret the results rather than listing raw scores.
 - Do not include raw score numbers in the final response.
@@ -185,10 +422,8 @@ WRITING RULES
 - Do not overstate certainty.
 - Do not make a final hiring recommendation.
 - Do not produce a match percentage.
-- Use cautious language such as:
-  "may indicate", "suggests", "appears to" and
-  "could be useful to explore".
 - Keep the summary useful and reasonably concise.
+
 
 STRUCTURE
 
@@ -208,33 +443,101 @@ Do not include any other headings.
 Do not use markdown tables.
 """.strip()
 
-def save_candidate_summary(invitation, full_text: str):
-    invitation.ai_summary = (full_text or "").strip()
-    invitation.ai_summary_generated_at = timezone.now()
-    invitation.ai_summary_status = "completed"
-    invitation.save(update_fields=[
+
+def save_candidate_summary(
+    owner,
+    full_text: str,
+    *,
+    language_code: str = "en",
+):
+    language_code = normalize_ai_language(
+        language_code
+    )
+
+    owner.ai_summary = (
+        full_text
+        or ""
+    ).strip()
+
+    owner.ai_summary_generated_at = (
+        timezone.now()
+    )
+
+    owner.ai_summary_status = "completed"
+
+    set_ai_content_language(
+        owner,
+        "candidate_summary",
+        language_code,
+    )
+
+    update_fields = [
         "ai_summary",
         "ai_summary_generated_at",
-        "ai_summary_status"
-    ])
+        "ai_summary_status",
+    ]
 
-def stream_candidate_summary(invitation) -> Iterable[str]:
+    for field_name in (
+        get_ai_language_update_fields(
+            owner
+        )
+    ):
+        if field_name not in update_fields:
+            update_fields.append(
+                field_name
+            )
+
+    owner.save(
+        update_fields=update_fields
+    )
+
+
+def stream_candidate_summary(
+    owner,
+    *,
+    language_code: str = "en",
+) -> Iterable[str]:
+    language_code = normalize_ai_language(
+        language_code
+    )
+
     client = get_openai_client()
 
-    prompt = build_candidate_prompt(invitation)
+    prompt = build_candidate_prompt(
+        owner,
+        language_code=language_code,
+    )
+
+    system_prompt = (
+        "You are an AI component inside Talena. "
+        "Generate a careful candidate assessment summary "
+        "using only the supplied assessment evidence and "
+        "process context. "
+        f"{get_ai_system_language_instruction(language_code)}"
+    )
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
         temperature=0.3,
         stream=True,
     )
 
     for event in stream:
         delta = event.choices[0].delta
+
         if delta and delta.content:
             yield delta.content
-
+            
 
 def build_general_insights_prompt(
     *,

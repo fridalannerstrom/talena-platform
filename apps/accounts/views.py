@@ -32,6 +32,10 @@ from apps.processes.models import (
     HistoricalProcessCandidate,
 )
 
+from apps.core.ai.language import (
+    get_request_ai_language,
+)
+
 from apps.reports.services.candidate_insights import (
     build_general_insight_input,
     generate_general_candidate_insights,
@@ -1435,6 +1439,9 @@ def build_candidate_detail_context(process, invitation):
                     f"{candidate.first_name} {candidate.last_name}"
                 ).strip(),
                 insight_input=general_insight_input,
+                language_code=get_request_ai_language(
+                    request
+                ),
             )
 
             candidate_insights = generated_insights

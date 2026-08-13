@@ -104,10 +104,6 @@ from apps.processes.models import (
     TestProcess,
 )
 
-from apps.processes.services.historical_candidate_summary import (
-    stream_historical_candidate_summary,
-)
-
 from apps.core.ai.purpose_fit import (
     purpose_supports_fit,
     build_assessment_evidence,
@@ -7614,6 +7610,18 @@ def process_candidate_summary_stream(
         update_fields=["ai_summary_status"]
     )
 
+    language_code = get_request_ai_language(
+        request
+    )
+
+    mark_ai_content_outdated_if_language_changed(
+        summary_owner,
+        content_key="candidate_summary",
+        result_field="ai_summary",
+        status_field="ai_summary_status",
+        language_code=language_code,
+    )
+
     # ---------------------------------------------------------
     # STREAM GENERATION
     # ---------------------------------------------------------
@@ -7621,38 +7629,20 @@ def process_candidate_summary_stream(
         full_text = ""
 
         try:
-            if is_historical:
-                stream = stream_historical_candidate_summary(
-                    process=process,
-                    historical_candidate=summary_owner,
-                )
-            else:
-                stream = stream_candidate_summary(
-                    summary_owner
-                )
+            stream = stream_candidate_summary(
+                summary_owner,
+                language_code=language_code,
+            )
 
             for chunk in stream:
                 full_text += chunk
                 yield chunk
 
-            if is_historical:
-                summary_owner.ai_summary = full_text
-                summary_owner.ai_summary_status = "completed"
-                summary_owner.ai_summary_generated_at = timezone.now()
-
-                summary_owner.save(
-                    update_fields=[
-                        "ai_summary",
-                        "ai_summary_status",
-                        "ai_summary_generated_at",
-                    ]
-                )
-
-            else:
-                save_candidate_summary(
-                    summary_owner,
-                    full_text,
-                )
+            save_candidate_summary(
+                summary_owner,
+                full_text,
+                language_code=language_code,
+            )
 
         except Exception as error:
             summary_owner.ai_summary_status = "failed"
