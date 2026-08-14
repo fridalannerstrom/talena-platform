@@ -200,7 +200,10 @@ def chat_stream_api(request):
         "interpretation, reasoning and communication decisions. "
         "Use the supplied candidate and process data as input. "
         "Do not alter or invent technical assessment data. "
-        f"{get_ai_system_language_instruction(language_code)}"
+        f"{get_ai_system_language_instruction(
+            language_code,
+            purpose=process.purpose,
+        )}"
     )
 
     # ---------------------------------------------------------

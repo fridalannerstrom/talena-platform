@@ -1283,7 +1283,10 @@ def stream_pre_interview_decision_support(
                     "Follow Talena's technical output contract exactly, "
                     "including required JSON field names, event types "
                     "and streaming format. "
-                    f"{get_ai_system_language_instruction(language_code)}"
+                    f"{get_ai_system_language_instruction(
+                        language_code,
+                        owner=owner,
+                    )}"
                 ),
             },
             {
@@ -2836,7 +2839,8 @@ def stream_post_interview_decision_support(
                 "role": "system",
                 "content": (
                     _post_get_ai_system_language_instruction(
-                        language_code
+                        language_code,
+                        owner=owner,
                     )
                     + " "
                     + "You are a careful assessment synthesis "

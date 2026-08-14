@@ -513,7 +513,10 @@ def stream_candidate_summary(
         "Generate a careful candidate assessment summary "
         "using only the supplied assessment evidence and "
         "process context. "
-        f"{get_ai_system_language_instruction(language_code)}"
+        f"{get_ai_system_language_instruction(
+            language_code,
+            owner=owner,
+        )}"
     )
 
     stream = client.chat.completions.create(

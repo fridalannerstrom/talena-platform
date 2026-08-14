@@ -61,25 +61,51 @@ def get_ai_language_instruction(language_code: str | None) -> str:
 
 def get_ai_system_language_instruction(
     language_code: str | None,
+    *,
+    purpose: str | None = None,
+    owner: Any | None = None,
 ) -> str:
     """
-    Return Talena's global administrator guidance and
-    protected system-level language instruction.
+    Return Talena's shared system-level AI guidance.
 
-    Global administrator guidance applies across all AI-generated
-    user-facing content. Technical output contracts remain protected
-    by the individual AI feature.
+    Includes:
+    - global administrator guidance
+    - purpose-specific administrator guidance, when configured
+    - protected output-language requirements
+
+    Feature-specific technical output contracts remain in the
+    individual AI generators.
     """
 
     language_code = normalize_ai_language(
         language_code
     )
 
-    # Local import avoids coupling the prompt registry to this
-    # language utility at module-import time.
-    from .prompt_templates import get_global_ai_guidance
+    if purpose is None and owner is not None:
+        process = getattr(
+            owner,
+            "process",
+            None,
+        )
+
+        purpose = getattr(
+            process,
+            "purpose",
+            None,
+        )
+
+    # Local import avoids circular imports at module load time.
+    from .prompt_templates import (
+        get_global_ai_guidance,
+        get_purpose_ai_guidance,
+    )
 
     global_guidance = get_global_ai_guidance(
+        language=language_code,
+    )
+
+    purpose_guidance = get_purpose_ai_guidance(
+        purpose=purpose,
         language=language_code,
     )
 
@@ -105,19 +131,45 @@ def get_ai_system_language_instruction(
             "Follow it consistently and do not treat it as optional advice. "
             "If it specifies required or prohibited wording, terminology, "
             "pronouns, tone or interpretation rules, follow those requirements "
-            "exactly, even when other information such as a person's name might "
-            "suggest an alternative. "
+            "exactly. "
             "Before producing the final user-facing content, silently verify "
-            "that the response complies with the global administrator guidance. "
-            "Feature-specific administrator guidance may add more specific "
-            "instructions for the current AI function. "
-            "Global administrator guidance must not override Talena's technical "
-            "output requirements such as required JSON structure, field names, "
-            "event types or streaming format."
+            "that the response complies with the global administrator guidance."
+        ),
+    ]
+
+    if purpose_guidance:
+        parts.extend([
+            "PURPOSE-SPECIFIC ADMINISTRATOR AI GUIDANCE",
+            purpose_guidance,
+            (
+                "The purpose-specific administrator guidance above applies "
+                "because of the selected process purpose. "
+                "Use it when interpreting the assessment evidence, selecting "
+                "what is relevant to emphasise and deciding how the content "
+                "should support the user in this process context. "
+                "Do not apply purpose guidance for a different process purpose."
+            ),
+        ])
+
+    parts.extend([
+        (
+            "ADMINISTRATOR GUIDANCE HIERARCHY\n\n"
+            "Global administrator guidance applies across Talena. "
+            "Purpose-specific guidance adds instructions for the selected "
+            "process purpose. Feature-specific administrator guidance may add "
+            "more detailed instructions for the current AI function. "
+            "These guidance layers should be followed together unless they "
+            "directly conflict."
+        ),
+        (
+            "TECHNICAL REQUIREMENTS\n\n"
+            "Administrator guidance must not override Talena's protected "
+            "technical output requirements such as required JSON structure, "
+            "field names, event types, streaming format or parser contracts."
         ),
         "OUTPUT LANGUAGE",
         language_instruction,
-    ]
+    ])
 
     return "\n\n".join(
         part.strip()

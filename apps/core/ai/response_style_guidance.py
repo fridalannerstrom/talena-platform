@@ -418,7 +418,10 @@ def stream_response_style_guidance(
     """
 
     language_code = normalize_ai_language(language_code)
-    system_language_instruction = get_ai_system_language_instruction(language_code)
+    system_language_instruction = get_ai_system_language_instruction(
+        language_code,
+        owner=guidance_owner,
+    )
     prompt = build_response_style_guidance_prompt(
         guidance_owner=guidance_owner,
         response_styles=response_styles,

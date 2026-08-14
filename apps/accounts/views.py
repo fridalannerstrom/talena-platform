@@ -3347,6 +3347,7 @@ def company_historical_process_create(request, pk):
 
             process.source = "sova_import"
             process.is_historical = True
+            process.purpose = "unsure"
             process.sova_sync_enabled = False
             process.is_archived = True
 

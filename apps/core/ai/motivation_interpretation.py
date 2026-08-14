@@ -512,6 +512,8 @@ def _parse_event_line(
 
 def get_motivation_interpretation_system_prompt(
     language_code: str = "en",
+    *,
+    owner=None,
 ) -> str:
     """
     Return Talena's technical system instructions for
@@ -524,7 +526,8 @@ def get_motivation_interpretation_system_prompt(
 
     system_language_instruction = (
         get_ai_system_language_instruction(
-            language_code
+            language_code,
+            owner=owner,
         )
     )
 
@@ -563,7 +566,8 @@ def stream_motivation_interpretation(
 
     system_prompt = (
         get_motivation_interpretation_system_prompt(
-            language_code
+            language_code,
+            owner=owner,
         )
     )
 

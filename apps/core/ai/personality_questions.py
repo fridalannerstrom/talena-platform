@@ -1097,7 +1097,11 @@ def _generate_repaired_personality_questions_event(
                         "Follow the administrator-provided AI guidance "
                         "for all non-technical question decisions. "
                         "Repair only the technical JSON structure and "
-                        "field requirements requested by Talena."
+                        "field requirements requested by Talena. "
+                        f"{get_ai_system_language_instruction(
+                            _personality_questions_language.get(),
+                            owner=owner,
+                        )}"
                     ),
                 },
                 {
@@ -1172,7 +1176,11 @@ def stream_personality_questions(
                     "all non-technical personality question decisions. "
                     "Follow Talena's application input contract and "
                     "technical output contract exactly, including required "
-                    "JSON field names, event types and streaming format."
+                    "JSON field names, event types and streaming format. "
+                    f"{get_ai_system_language_instruction(
+                        _personality_questions_language.get(),
+                        owner=owner,
+                    )}"
                 ),
             },
             {
@@ -1413,6 +1421,7 @@ def save_personality_questions(
 from contextvars import ContextVar as _ContextVar
 from .language import (
     get_ai_language_instruction,
+    get_ai_system_language_instruction,
     normalize_ai_language,
     set_ai_content_language,
 )

@@ -582,10 +582,11 @@ def stream_cognitive_questions(
     )
     system_language_instruction = (
         get_ai_system_language_instruction(
-            language_code
+            language_code,
+            owner=owner,
         )
     )
-
+    
     client = get_openai_client()
 
     prompt = build_cognitive_questions_prompt(

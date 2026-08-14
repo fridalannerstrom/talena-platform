@@ -540,7 +540,10 @@ def generate_general_candidate_insights(
                     "Generate careful assessment interpretations using only "
                     "the supplied assessment evidence. "
                     "Return valid JSON only and follow the supplied schema exactly. "
-                    f"{get_ai_system_language_instruction(language_code)}"
+                    f"{get_ai_system_language_instruction(
+                        language_code,
+                        purpose='unsure',
+                    )}"
                 ),
             },
             {

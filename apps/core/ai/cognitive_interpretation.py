@@ -477,7 +477,8 @@ def stream_cognitive_interpretation(
     )
     system_language_instruction = (
         get_ai_system_language_instruction(
-            language_code
+            language_code,
+            owner=owner,
         )
     )
 

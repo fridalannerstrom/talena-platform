@@ -274,6 +274,112 @@
                 {% endif %}
               </div>
 
+              <!-- Candidate language -->
+<div class="mb-4">
+
+  <label class="form-label">
+    {% trans "Candidate language" %}
+  </label>
+
+  <div class="text-muted small mb-3">
+    {% trans "Choose the language used for candidate invitations and assessments. Changing the language only affects future invitations; assessments already sent are not changed." %}
+  </div>
+
+  <div class="template-select" role="radiogroup">
+
+    <!-- Swedish -->
+    <label class="template-option">
+
+      <input
+        class="template-radio"
+        type="radio"
+        name="{{ form.candidate_language.html_name }}"
+        value="sv"
+        {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}
+      >
+
+      <span class="template-card process-edit">
+
+        <span class="template-card-main">
+
+          <span class="template-icon">
+            <strong>SV</strong>
+          </span>
+
+          <span class="template-text">
+
+            <span class="template-title">
+              {% trans "Swedish" %}
+            </span>
+
+            <span class="template-description">
+              {% trans "Invitation and assessments in Swedish" %}
+            </span>
+
+          </span>
+
+        </span>
+
+        <span class="template-check">
+          <i data-feather="check"></i>
+        </span>
+
+      </span>
+
+    </label>
+
+
+    <!-- English -->
+    <label class="template-option">
+
+      <input
+        class="template-radio"
+        type="radio"
+        name="{{ form.candidate_language.html_name }}"
+        value="en"
+        {% if form.candidate_language.value == "en" %}checked{% endif %}
+      >
+
+      <span class="template-card process-edit">
+
+        <span class="template-card-main">
+
+          <span class="template-icon">
+            <strong>EN</strong>
+          </span>
+
+          <span class="template-text">
+
+            <span class="template-title">
+              {% trans "English" %}
+            </span>
+
+            <span class="template-description">
+              {% trans "Invitation and assessments in English" %}
+            </span>
+
+          </span>
+
+        </span>
+
+        <span class="template-check">
+          <i data-feather="check"></i>
+        </span>
+
+      </span>
+
+    </label>
+
+  </div>
+
+  {% if form.candidate_language.errors %}
+    <div class="text-danger small mt-2">
+      {{ form.candidate_language.errors|striptags }}
+    </div>
+  {% endif %}
+
+</div>
+
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">

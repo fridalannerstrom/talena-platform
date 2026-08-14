@@ -10,7 +10,10 @@ from .openai_client import (
     get_chat_model,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 from .shared_context import (
     build_shared_ai_context,
@@ -109,6 +112,11 @@ def build_personality_interpretation_prompt(
         language=language_code,
     )
 
+    interplay_instructions = get_ai_feature_prompt_instructions(
+        key="personality_trait_interplay",
+        language=language_code,
+    )
+        
     shared_context = build_shared_ai_context(
         owner
     )
@@ -147,6 +155,28 @@ evidence boundaries, reasoning, trait combinations, tone,
 caution, conclusions and communication.
 
 {admin_instructions}
+
+PROFILE DYNAMICS / TRAIT INTERPLAY GUIDANCE
+
+The following administrator guidance applies specifically to the
+profile_dynamics section ("Samspel mellan personlighetsdrag").
+
+It is more specific than the general personality interpretation
+guidance above and therefore takes precedence for decisions about:
+
+- which trait combinations are meaningful to describe
+- how traits may interact
+- possible tensions, balancing or reinforcing patterns
+- correlations or relationships between traits
+- how those combinations should be communicated
+
+Apply this guidance specifically when generating the
+profile_dynamics event.
+
+Do not allow this dedicated guidance to change Talena's technical
+event structure or JSON fields.
+
+{interplay_instructions}
 
 
 TALENA TECHNICAL OUTPUT CONTRACT
@@ -383,7 +413,10 @@ def stream_personality_interpretation(
     )
 
     system_language_instruction = (
-        get_ai_system_language_instruction(language_code)
+        get_ai_system_language_instruction(
+            language_code,
+            owner=owner,
+        )
     )
 
     stream = client.chat.completions.create(

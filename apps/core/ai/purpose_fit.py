@@ -697,7 +697,8 @@ def stream_candidate_purpose_fit(
     )
     system_language_instruction = (
         get_ai_system_language_instruction(
-            language_code
+            language_code,
+            owner=invitation,
         )
     )
 

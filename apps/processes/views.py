@@ -6319,6 +6319,10 @@ def process_update(request, pk):
             name = (form.cleaned_data.get("name") or "").strip()
             purpose = form.cleaned_data.get("purpose")
             selected_tests = form.cleaned_data.get("selected_tests") or []
+            candidate_language = (
+                form.cleaned_data.get("candidate_language")
+                or "sv"
+            )
             label_names = form.cleaned_data.get("labels_text") or []
 
             if isinstance(label_names, str):
@@ -6361,6 +6365,7 @@ def process_update(request, pk):
             # Tester och Sova-projekt låses efter första utskicket.
             # --------------------------------------------------
             obj.purpose = purpose
+            obj.candidate_language = candidate_language
 
             if locked:
                 # Behåll befintliga tester och befintlig Sova-koppling.
@@ -6435,9 +6440,15 @@ def process_update(request, pk):
     else:
         form = TestProcessWizardCreateForm(initial={
             "name": obj.name,
-            "labels_text": ", ".join(obj.labels.values_list("name", flat=True)),
+            "labels_text": ", ".join(
+                obj.labels.values_list("name", flat=True)
+            ),
             "purpose": obj.purpose,
             "selected_tests": obj.selected_tests or [],
+            "candidate_language": (
+                obj.candidate_language
+                or "sv"
+            ),
         })
 
     return render_edit(form)

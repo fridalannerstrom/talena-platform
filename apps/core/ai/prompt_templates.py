@@ -4,7 +4,6 @@ from typing import Any
 
 from django.core.exceptions import ObjectDoesNotExist
 
-
 SUPPORTED_PROMPT_LANGUAGES = {
     "sv",
     "en",
@@ -615,6 +614,18 @@ user-facing text.
 """.strip()
 
 
+PURPOSE_AI_PROMPT_KEYS = {
+    # Current Talena purpose keys
+    "hiring": "purpose_hiring_guidance",
+    "team_development": "purpose_team_development_guidance",
+    "leader_development": "purpose_leader_development_guidance",
+    "unsure": "purpose_flexible_guidance",
+
+    # Legacy / compatibility aliases
+    "recruitment": "purpose_hiring_guidance",
+    "flexible": "purpose_flexible_guidance",
+}
+
 AI_PROMPT_REGISTRY: dict[str, dict[str, Any]] = {
 
     "global_ai_guidance": {
@@ -734,6 +745,207 @@ used together with this global guidance.
 
 Technical Talena requirements such as JSON structure, streaming,
 field names and formatting must always be followed.
+""".strip(),
+    },
+},
+
+"purpose_hiring_guidance": {
+    "name": "Recruitment guidance",
+    "category": "Purpose guidance",
+    "description": (
+        "Applies to AI-generated content when the process purpose "
+        "is Recruitment."
+    ),
+    "defaults": {
+        "sv": """
+SYFTESSPECIFIK AI-VÄGLEDNING: REKRYTERING
+
+Denna vägledning gäller när processens syfte är rekrytering.
+
+Använd testresultat och tillgänglig processkontext för att hjälpa
+användaren förstå sådant som är relevant att utforska i en
+rekryteringssituation.
+
+Fokusera på evidensbaserade indikationer, relevanta styrkor,
+möjliga frågetecken och sådant som kan behöva valideras vidare.
+
+Behandla testresultaten som en del av beslutsunderlaget, inte som
+ett slutligt beslut om kandidatens lämplighet.
+
+Gör inte en slutlig anställningsrekommendation om den aktuella
+AI-funktionen inte uttryckligen kräver ett sådant beslutsstöd.
+
+Skilj mellan vad resultaten visar, vad de kan indikera och vad som
+behöver utforskas vidare.
+""".strip(),
+
+        "en": """
+PURPOSE-SPECIFIC AI GUIDANCE: RECRUITMENT
+
+This guidance applies when the process purpose is Recruitment.
+
+Use assessment results and available process context to help the
+user understand what may be relevant to explore in a recruitment
+setting.
+
+Focus on evidence-based indications, relevant strengths, possible
+areas of concern and issues that may need further validation.
+
+Treat assessment results as one part of the decision evidence,
+not as a final decision about candidate suitability.
+
+Do not make a final hiring recommendation unless the current AI
+feature explicitly requires decision support.
+
+Distinguish between what the evidence shows, what it may indicate
+and what still needs to be explored.
+""".strip(),
+    },
+},
+
+"purpose_team_development_guidance": {
+    "name": "Team development guidance",
+    "category": "Purpose guidance",
+    "description": (
+        "Applies to AI-generated content when the process purpose "
+        "is Team development."
+    ),
+    "defaults": {
+        "sv": """
+SYFTESSPECIFIK AI-VÄGLEDNING: TEAMUTVECKLING
+
+Denna vägledning gäller när processens syfte är teamutveckling.
+
+Använd resultaten för att skapa förståelse för individens möjliga
+bidrag, arbetssätt, samarbetsmönster, drivkrafter och behov i en
+teamkontext.
+
+Fokusera på utveckling och förståelse snarare än urval.
+
+Beskriv möjliga styrkor, komplement, spänningar och områden som kan
+vara värdefulla att diskutera i teamet.
+
+Undvik att beskriva någon som en bra eller dålig teammedlem.
+
+Gör inga antaganden om andra teammedlemmar när sådan information
+inte finns i underlaget.
+""".strip(),
+
+        "en": """
+PURPOSE-SPECIFIC AI GUIDANCE: TEAM DEVELOPMENT
+
+This guidance applies when the process purpose is Team development.
+
+Use the results to support understanding of the person's possible
+contribution, work style, collaboration patterns, drivers and needs
+in a team context.
+
+Focus on development and understanding rather than selection.
+
+Describe possible strengths, complementary contributions, tensions
+and areas that may be useful to discuss within the team.
+
+Do not describe someone as inherently a good or bad team member.
+
+Do not make assumptions about other team members when that
+information is not available.
+""".strip(),
+    },
+},
+
+"purpose_leader_development_guidance": {
+    "name": "Leader development guidance",
+    "category": "Purpose guidance",
+    "description": (
+        "Applies to AI-generated content when the process purpose "
+        "is Leader development."
+    ),
+    "defaults": {
+        "sv": """
+SYFTESSPECIFIK AI-VÄGLEDNING: LEDARUTVECKLING
+
+Denna vägledning gäller när processens syfte är ledarutveckling.
+
+Använd resultaten som underlag för reflektion och utveckling av
+personens ledarskap.
+
+Fokusera på möjliga ledarbeteenden, styrkor, utvecklingsområden,
+drivkrafter och situationer där olika preferenser kan bli särskilt
+relevanta.
+
+Relatera resultaten till ledarskap utan att anta att ett visst
+personlighetsdrag automatiskt innebär bra eller dåligt ledarskap.
+
+Formulera utvecklingsområden som hypoteser och möjligheter till
+reflektion, inte som brister eller definitiva slutsatser.
+""".strip(),
+
+        "en": """
+PURPOSE-SPECIFIC AI GUIDANCE: LEADER DEVELOPMENT
+
+This guidance applies when the process purpose is Leader development.
+
+Use the results as a basis for reflection and development of the
+person's leadership.
+
+Focus on possible leadership behaviours, strengths, development
+areas, drivers and situations where different preferences may
+be particularly relevant.
+
+Relate the results to leadership without assuming that a particular
+personality characteristic automatically means good or poor leadership.
+
+Frame development areas as hypotheses and opportunities for
+reflection rather than deficiencies or definitive conclusions.
+""".strip(),
+    },
+},
+
+"purpose_flexible_guidance": {
+    "name": "Flexible process guidance",
+    "category": "Purpose guidance",
+    "description": (
+        "Applies to AI-generated content when the process purpose "
+        "is Flexible process."
+    ),
+    "defaults": {
+        "sv": """
+SYFTESSPECIFIK AI-VÄGLEDNING: FLEXIBEL PROCESS
+
+Denna vägledning gäller när processen inte har ett mer specifikt
+definierat syfte.
+
+Ge en generell och balanserad tolkning av de tillgängliga
+testresultaten.
+
+Fokusera på övergripande mönster, möjliga styrkor, drivkrafter,
+arbetssätt och relevanta områden att utforska vidare.
+
+Anta inte en specifik roll, rekryteringssituation, teamkontext eller
+ledarskapskontext om sådan information inte uttryckligen finns i
+processens kontext.
+
+Hitta inte på krav eller förutsättningar som saknas i underlaget.
+""".strip(),
+
+        "en": """
+PURPOSE-SPECIFIC AI GUIDANCE: FLEXIBLE PROCESS
+
+This guidance applies when the process does not have a more
+specifically defined purpose.
+
+Provide a general and balanced interpretation of the available
+assessment results.
+
+Focus on overall patterns, possible strengths, drivers, work style
+and relevant areas to explore further.
+
+Do not assume a specific role, recruitment situation, team context
+or leadership context unless such information is explicitly supplied
+in the process context.
+
+Do not invent requirements or circumstances that are not present
+in the available evidence.
 """.strip(),
     },
 },
@@ -1230,6 +1442,157 @@ user-facing text.
 
         },
     },
+
+    "personality_trait_interplay": {
+    "name": "Personality trait interplay",
+    "category": "Personality",
+    "description": (
+        "Controls how Talena interprets interactions, combinations "
+        "and tensions between personality traits in the Profile "
+        "dynamics section."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr hur Talena tolkar samspelet mellan kandidatens
+personlighetsdrag i avsnittet Profildynamik.
+
+Fokusera på hur två eller flera personlighetsdrag kan samverka
+och påverka hur preferenserna kan komma till uttryck tillsammans.
+
+Tolkningen kan exempelvis uppmärksamma:
+
+- kombinationer mellan högre och lägre preferenser
+- kombinationer mellan flera tydliga preferenser
+- möjliga balanserande eller förstärkande mönster
+- möjliga spänningar mellan preferenser
+- hur samma kombination kan få olika uttryck beroende på situation
+- när ett beteende kan kräva mer medveten anpassning
+
+
+KORRELATIONER OCH SAMBAND
+
+Påstå inte att två personlighetsdrag statistiskt korrelerar om
+sådan korrelationsinformation inte uttryckligen finns i underlaget
+eller i administratörens vägledning.
+
+Skilj mellan:
+
+- ett statistiskt eller psykometriskt samband
+- en möjlig beteendemässig samverkan mellan två preferenser
+
+Beskriv inte ett samband som kausalt utan stöd.
+
+
+TOLKNING
+
+Tolka inte ett personlighetsdrag isolerat när dess praktiska
+betydelse tydligt kan påverkas av andra resultat i profilen.
+
+Ett högt eller lågt resultat ska inte automatiskt beskrivas som
+positivt eller negativt.
+
+Påstå inte att ett drag tar ut, neutraliserar eller orsakar ett
+annat drag om det inte finns stöd för det.
+
+Hitta inte på motsättningar eller kombinationer bara för att fylla
+avsnittet.
+
+Om ingen särskilt meningsfull kombination kan identifieras,
+ge en kort och försiktig beskrivning av profilens samspel.
+
+
+SPRÅK OCH TON
+
+Skriv praktiskt, nyanserat och lättbegripligt.
+
+Beskriv möjliga beteendemässiga konsekvenser snarare än att bara
+räkna upp testresultat.
+
+Använd formuleringar som:
+
+- kan samverka genom att
+- kan innebära att
+- kan förstärka
+- kan balansera
+- kan skapa en möjlig spänning mellan
+- uttrycket kan bero på situationen
+
+Behandla alltid tolkningen som en hypotes som kan behöva
+valideras med konkreta beteendeexempel.
+""".strip(),
+
+        "en": """
+TASK
+
+Control how Talena interprets interactions between the candidate's
+personality traits in the Profile dynamics section.
+
+Focus on how two or more personality traits may work together and
+influence how behavioural preferences may be expressed in combination.
+
+The interpretation may consider:
+
+- combinations of higher and lower preferences
+- combinations of several pronounced preferences
+- potentially balancing or reinforcing patterns
+- possible tensions between preferences
+- how the same combination may be expressed differently by situation
+- situations where conscious adaptation may be useful
+
+
+CORRELATIONS AND RELATIONSHIPS
+
+Do not claim that two personality traits are statistically correlated
+unless such correlation information is explicitly present in the
+evidence or administrator guidance.
+
+Distinguish between:
+
+- a statistical or psychometric relationship
+- a possible behavioural interaction between preferences
+
+Do not describe a relationship as causal without supporting evidence.
+
+
+INTERPRETATION
+
+Do not interpret a personality trait in isolation when its practical
+meaning may clearly be affected by other results in the profile.
+
+A high or low result is not automatically positive or negative.
+
+Do not claim that one trait cancels out, neutralises or causes another
+trait unless there is evidence for that conclusion.
+
+Do not invent tensions or combinations merely to fill the section.
+
+If no particularly meaningful interaction can be identified, provide
+a concise and cautious description of the overall profile dynamics.
+
+
+LANGUAGE AND TONE
+
+Write in a practical, nuanced and accessible way.
+
+Describe possible behavioural implications rather than merely listing
+assessment results.
+
+Use language such as:
+
+- may work together by
+- may mean that
+- may reinforce
+- may balance
+- may create a possible tension between
+- the expression may depend on the situation
+
+Always treat the interpretation as a hypothesis that may need
+validation through concrete behavioural examples.
+""".strip(),
+    },
+},
 
     "candidate_chat": {
     "name": "Candidate chat",
@@ -5595,6 +5958,26 @@ def _get_single_ai_prompt_instructions(
     return prompt_text
 
 
+def get_ai_feature_prompt_instructions(
+    *,
+    key: str,
+    language: str,
+    default: str | None = None,
+) -> str:
+    """
+    Return only the feature-specific administrator guidance.
+
+    Unlike get_ai_prompt_instructions(), this does not prepend
+    Talena's global administrator guidance.
+    """
+
+    return _get_single_ai_prompt_instructions(
+        key=key,
+        language=language,
+        default=default,
+    )
+
+
 def get_global_ai_guidance(
     *,
     language: str,
@@ -5610,6 +5993,37 @@ def get_global_ai_guidance(
         language=language,
     )
 
+
+def get_purpose_ai_guidance(
+    *,
+    purpose: str | None,
+    language: str,
+) -> str:
+    """
+    Return administrator guidance for the selected process purpose.
+
+    Only the four purpose-guidance categories configured by Talena
+    have dedicated prompts. Other process purposes currently receive
+    no additional purpose-specific guidance.
+    """
+
+    purpose_key = (
+        str(purpose or "")
+        .strip()
+        .lower()
+    )
+
+    prompt_key = PURPOSE_AI_PROMPT_KEYS.get(
+        purpose_key
+    )
+
+    if not prompt_key:
+        return ""
+
+    return _get_single_ai_prompt_instructions(
+        key=prompt_key,
+        language=language,
+    )
 
 def get_ai_prompt_instructions(
     *,
