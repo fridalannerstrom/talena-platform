@@ -2076,27 +2076,20 @@ Beteende kan variera mellan situationer och sammanhang.
 
 VAL AV PERSONLIGHETSDRAG
 
-Om användaren själv har valt personlighetsdrag ska frågorna som
-standard utgå från dessa.
+Vilka personlighetsdrag som ska användas styrs separat av Talenas
+dedikerade vägledning för val av personlighetsdrag.
 
-Om användaren inte har gjort ett eget val kan du föreslå de
-personlighetsdrag som är mest relevanta att utforska.
+Om användaren själv har valt personlighetsdrag ska exakt dessa
+personlighetsdrag användas.
 
-Som standard kan 4 till 6 traits föreslås när Talena gör valet,
-om inte administratörens instruktioner anger något annat.
+Om användaren inte har valt personlighetsdrag ska den separata
+personality trait selection-vägledningen avgöra vilka drag som väljs.
 
-Välj inte traits enbart för att resultaten är höga eller låga.
+Denna prompt ska inte själv ändra, lägga till eller ta bort valda
+personlighetsdrag.
 
-Utgå även från:
-
-- processens syfte
-- tillgänglig processkontext
-- vilka beteendepreferenser som kan vara mest relevanta att utforska
-- vilka kombinationer som kan ge meningsfulla frågor
-
-Hitta inte på personlighetsdrag som inte finns i underlaget.
-
-Skapa inte nya kompetenser eller egna psykologiska konstruktioner.
+Använd de slutligt valda personlighetsdragen för att formulera
+relevanta frågor.
 
 
 FRÅGOR
@@ -2303,29 +2296,21 @@ or greater context dependence.
 Behaviour may vary across situations and contexts.
 
 
-TRAIT SELECTION
+PERSONALITY TRAIT SELECTION
 
-When the user has explicitly selected personality traits, questions
-should by default use those traits.
+Which personality traits should be used is controlled separately
+by Talena's dedicated personality trait selection guidance.
 
-When the user has not made an explicit selection, you may suggest
-the personality traits that appear most useful to explore.
+When the user has manually selected personality traits, use exactly
+those traits.
 
-By default, Talena may suggest 4 to 6 traits when making the
-selection unless the administrator guidance specifies otherwise.
+When the user has not selected personality traits, the separate
+personality trait selection guidance determines which traits are selected.
 
-Do not select traits solely because their results are high or low.
+This prompt must not independently replace, add or remove selected
+personality traits.
 
-Also consider:
-
-- the process purpose
-- supplied process context
-- which behavioural preferences may be particularly useful to explore
-- which combinations may create meaningful questions
-
-Do not invent personality traits that are not present in the evidence.
-
-Do not create new competencies or psychological constructs.
+Use the final selected traits when generating the questions.
 
 
 QUESTIONS
@@ -2464,6 +2449,207 @@ By default, briefly explain:
 
         },
     },
+    "personality_trait_selection": {
+    "name": "Personality trait selection",
+    "category": "Personality",
+    "description": (
+        "Controls how Talena selects personality traits for "
+        "personality questions when the user has not selected "
+        "traits manually."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Välj vilka personlighetsdrag som är mest relevanta att utforska
+när Talena ska generera personlighetsfrågor och användaren inte
+själv har valt några drag.
+
+Denna vägledning styr endast valet av personlighetsdrag.
+
+Den styr inte hur själva intervjufrågorna ska formuleras.
+
+
+GRUNDPRINCIPER
+
+Utgå endast från personlighetsdrag som faktiskt finns i
+kandidatens tillgängliga testresultat.
+
+Skapa inte nya personlighetsdrag, kompetenser eller psykologiska
+konstruktioner.
+
+Välj inte drag enbart för att de har höga eller låga resultat.
+
+Bedöm istället vilka drag som kan vara mest värdefulla att
+utforska vidare med hjälp av ytterligare beteendeunderlag.
+
+
+VAD SOM KAN VÄGAS IN
+
+När det är relevant kan urvalet ta hänsyn till:
+
+- tydliga högre eller lägre preferenser
+- mellanhöga resultat som kan vara särskilt relevanta i sammanhanget
+- processens valda syfte
+- tillgänglig processkontext
+- relevanta kombinationer mellan personlighetsdrag
+- möjliga spänningar eller kontraster i profilen
+- områden där konkreta beteendeexempel skulle ge viktig ny information
+- områden där testresultatet behöver valideras eller nyanseras
+
+
+PROCESSENS SYFTE
+
+Använd processens syfte för att avgöra vilka delar av
+personlighetsprofilen som kan vara mest relevanta att utforska.
+
+Syftet ska ge relevans åt urvalet, men ska inte användas för att
+hitta på krav eller egenskaper som inte finns i underlaget.
+
+
+PROCESSKONTEXT
+
+Om processkontext finns kan den användas för att prioritera
+personlighetsdrag som är relevanta för den faktiska situationen.
+
+Använd endast information som uttryckligen finns i kontexten.
+
+Hitta inte på:
+
+- arbetsuppgifter
+- kompetenskrav
+- ansvar
+- organisationskultur
+- teamförhållanden
+- ledarskapskrav
+
+
+ANTAL DRAG
+
+Välj som standard 3 till 5 personlighetsdrag, om inte
+administratörens instruktioner anger något annat.
+
+Prioritera kvalitet och relevans framför att välja många drag.
+
+
+KOMBINATIONER
+
+När två eller flera personlighetsdrag tillsammans skapar ett
+särskilt relevant tema kan båda väljas.
+
+Tvinga inte fram kombinationer mellan drag som inte har någon
+tydlig praktisk relevans.
+
+
+FÖRSIKTIGHET
+
+Behandla urvalet som en prioritering av vad som är värdefullt
+att utforska, inte som en bedömning av kandidatens lämplighet.
+
+Ett valt drag är inte automatiskt en styrka, svaghet eller risk.
+
+Ett drag som inte väljs är inte mindre viktigt generellt.
+Det betyder endast att andra områden prioriteras för de aktuella
+frågorna.
+""".strip(),
+
+        "en": """
+TASK
+
+Select the personality traits that are most relevant to explore
+when Talena generates personality questions and the user has not
+manually selected any traits.
+
+This guidance controls personality trait selection only.
+
+It does not control how the interview questions themselves
+should be written.
+
+
+CORE PRINCIPLES
+
+Use only personality traits that are actually present in the
+candidate's available assessment results.
+
+Do not create new personality traits, competencies or psychological
+constructs.
+
+Do not select traits solely because their results are high or low.
+
+Instead, consider which traits may be most valuable to explore
+through additional behavioural evidence.
+
+
+WHAT MAY BE CONSIDERED
+
+Where relevant, selection may consider:
+
+- clearer higher or lower preferences
+- mid-range results that may be particularly relevant in context
+- the selected process purpose
+- available process context
+- relevant combinations between personality traits
+- possible tensions or contrasts in the profile
+- areas where concrete behavioural examples could provide important new evidence
+- areas where the assessment indication may need validation or nuance
+
+
+PROCESS PURPOSE
+
+Use the process purpose to determine which parts of the personality
+profile may be most relevant to explore.
+
+Purpose should provide relevance, but must not be used to invent
+requirements or characteristics that are not present in the evidence.
+
+
+PROCESS CONTEXT
+
+When process context is available, it may be used to prioritise
+traits that are relevant to the actual situation.
+
+Use only information explicitly present in the supplied context.
+
+Do not invent:
+
+- job tasks
+- competence requirements
+- responsibilities
+- organisational culture
+- team conditions
+- leadership demands
+
+
+NUMBER OF TRAITS
+
+By default, select 3 to 5 personality traits unless administrator
+guidance specifies otherwise.
+
+Prioritise quality and relevance rather than selecting many traits.
+
+
+COMBINATIONS
+
+When two or more personality traits together create a particularly
+relevant theme, both may be selected.
+
+Do not force combinations between traits without clear practical
+relevance.
+
+
+CAUTION
+
+Treat selection as a prioritisation of what may be valuable to
+explore, not as an assessment of candidate suitability.
+
+A selected trait is not automatically a strength, weakness or risk.
+
+A trait that is not selected is not generally less important.
+It only means that other areas have been prioritised for the
+current questions.
+""".strip(),
+    },
+},
         "motivation_interpretation": {
         "name": "Motivation interpretation",
         "category": "Motivation",

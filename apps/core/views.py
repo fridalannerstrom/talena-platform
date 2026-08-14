@@ -13,6 +13,11 @@ from apps.core.ai.prompt_templates import (
     list_ai_prompt_definitions,
 )
 
+from apps.core.ai.prompt_playground import (
+    get_playground_sample_data,
+    is_prompt_playground_available,
+)
+
 import inspect
 
 from django.contrib import messages
@@ -593,6 +598,31 @@ def admin_ai_prompt_edit(
         .first()
     )
 
+    playground_result = None
+    playground_error = None
+
+    playground_available = (
+        is_prompt_playground_available(key)
+    )
+
+    playground_sample_data = (
+        get_playground_sample_data(key)
+        if playground_available
+        else None
+    )
+
+    playground_purpose = (
+        playground_sample_data.get("purpose")
+        if playground_sample_data
+        else None
+    )
+
+    playground_context = (
+        playground_sample_data.get("context", "")
+        if playground_sample_data
+        else ""
+    )
+    
     # ---------------------------------------------
     # POST
     # ---------------------------------------------
@@ -603,6 +633,55 @@ def admin_ai_prompt_edit(
             request.POST.get("action")
             or "save"
         )
+
+        if playground_available and action in {
+            "test",
+            "save",
+        }:
+
+            posted_purpose = (
+                request.POST.get(
+                    "playground_purpose"
+                )
+                or ""
+            ).strip()
+
+            posted_context = request.POST.get(
+                "playground_context"
+            )
+
+            if (
+                playground_sample_data
+                and not playground_sample_data.get(
+                    "purpose_locked"
+                )
+                and posted_purpose
+            ):
+                playground_purpose = posted_purpose
+
+            if posted_context is not None:
+                playground_context = posted_context
+
+            playground_sample_data = (
+                get_playground_sample_data(
+                    key,
+                    purpose=playground_purpose,
+                    context=playground_context,
+                )
+            )
+
+            if playground_sample_data:
+                playground_purpose = (
+                    playground_sample_data[
+                        "purpose"
+                    ]
+                )
+
+                playground_context = (
+                    playground_sample_data[
+                        "context"
+                    ]
+                )
 
         # -----------------------------------------
         # Reset to Talena default
@@ -651,7 +730,41 @@ def admin_ai_prompt_edit(
             or ""
         ).strip()
 
-        if not prompt_text:
+
+        # -----------------------------------------
+        # Test unsaved prompt in playground
+        # -----------------------------------------
+
+        if action == "test":
+
+            if not prompt_text:
+                playground_error = (
+                    "Add some AI guidance before testing."
+                )
+
+            else:
+                try:
+                    from apps.core.ai.prompt_playground import (
+                        run_prompt_playground,
+                    )
+
+                    playground_result = run_prompt_playground(
+                        prompt_key=key,
+                        prompt_text=prompt_text,
+                        language_code=language_code,
+                        purpose=playground_purpose,
+                        context=playground_context,
+                    )
+
+                except Exception as exc:
+                    playground_error = str(exc)
+
+
+        # -----------------------------------------
+        # Save global override
+        # -----------------------------------------
+
+        elif not prompt_text:
             messages.error(
                 request,
                 "The global AI prompt cannot be empty.",
@@ -765,6 +878,10 @@ def admin_ai_prompt_edit(
             "has_active_override": has_active_override,
             "full_prompt_source": full_prompt_source,
             "system_prompt_preview": system_prompt_preview,
+            "playground_result": playground_result,
+            "playground_error": playground_error,
+            "playground_available": playground_available,
+            "playground_sample_data": playground_sample_data,
         },
     )
 

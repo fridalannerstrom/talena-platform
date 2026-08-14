@@ -17,6 +17,7 @@ from apps.reports.services.candidate_insights import (
     generate_general_candidate_insights,
 )
 
+
 from apps.core.utils.auth import is_admin
 
 from apps.core.ai.decision_support import (

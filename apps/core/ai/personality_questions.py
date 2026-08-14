@@ -15,7 +15,10 @@ from .openai_client import (
     get_chat_model,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 
 
@@ -377,6 +380,16 @@ def build_personality_questions_prompt(
         else "AI_SELECTION"
     )
 
+    trait_selection_instructions = ""
+
+    if selection_mode == "AI_SELECTION":
+        trait_selection_instructions = (
+            get_ai_feature_prompt_instructions(
+                key="personality_trait_selection",
+                language=language_code,
+            )
+        )
+
     available_trait_names = "\n".join(
         f"- {item['name']}"
         for item in personality_results
@@ -407,15 +420,36 @@ TRAIT SELECTION MODE
 EXPLICIT USER-SELECTED TRAITS
 {selected_traits_text}
 
+PERSONALITY TRAIT SELECTION GUIDANCE
+
+This guidance applies only when TRAIT SELECTION MODE is AI_SELECTION.
+
+When AI_SELECTION is active, use the following administrator guidance
+to decide which available personality traits should be selected:
+
+{trait_selection_instructions}
+
+When TRAIT SELECTION MODE is USER_SELECTED, do not use this guidance
+to replace, add or remove personality traits. The user's explicit
+selection must be preserved exactly.
+
+This guidance controls trait selection only.
+
+It does not control how the resulting personality questions,
+why explanations or listen_for guidance are written.
+
+If the trait-selection guidance conflicts with the general personality
+questions guidance about which traits should be selected, the dedicated
+trait-selection guidance takes precedence.
 
 ADMINISTRATOR AI GUIDANCE
 
 The following guidance is controlled by Talena administrators.
 
 It controls all non-technical decisions about question content,
-personality interpretation, STEN interpretation, trait relevance,
-question count, trait coverage, interviewing approach, reasoning,
-evidence boundaries, tone, caution and communication.
+personality interpretation, STEN interpretation, question count,
+trait coverage, interviewing approach, reasoning, evidence boundaries,
+tone, caution and communication.
 
 {admin_instructions}
 
@@ -432,7 +466,8 @@ If TRAIT SELECTION MODE is USER_SELECTED:
 
 If TRAIT SELECTION MODE is AI_SELECTION:
 
-- Talena may select traits according to the administrator guidance
+- Talena must select traits according to the dedicated personality
+  trait-selection administrator guidance
 - selected trait names must come from AVAILABLE TECHNICAL TRAIT NAMES
 - the application currently supports a maximum of 6 selected traits
 

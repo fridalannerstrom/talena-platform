@@ -137,7 +137,7 @@
 
     <div class="col-12 col-xl-7">
 
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm">
 
         <div class="card-body">
 
@@ -146,35 +146,33 @@
               d-flex
               justify-content-between
               align-items-start
+              flex-wrap
               gap-3
               mb-3
             "
           >
 
-<div>
+            <div>
 
-  <h4 class="mb-1">
-    {% trans "AI guidance" %}
-  </h4>
+              <h4 class="mb-1">
+                {% trans "AI guidance" %}
+              </h4>
 
-  <div class="small text-muted">
-    {% trans "Controls how Talena analyses, interprets and communicates results. Administrators can edit all non-technical AI behaviour." %}
-  </div>
+              <div class="small text-muted">
+                {% trans "Controls how Talena analyses, interprets and communicates results. Administrators can edit all non-technical AI behaviour." %}
+              </div>
 
-</div>
+            </div>
 
-<span
-  class="
-    badge
-    rounded-pill
-    bg-primary-subtle
-    text-primary
-  "
->
-  {% trans "Editable" %}
-</span>
 
-            {% if has_active_override %}
+            <div
+              class="
+                d-flex
+                align-items-center
+                gap-2
+                flex-wrap
+              "
+            >
 
               <span
                 class="
@@ -184,15 +182,33 @@
                   text-primary
                 "
               >
-                {% trans "Override" %}
+                {% trans "Editable" %}
               </span>
 
-            {% endif %}
+              {% if has_active_override %}
+
+                <span
+                  class="
+                    badge
+                    rounded-pill
+                    bg-primary-subtle
+                    text-primary
+                  "
+                >
+                  {% trans "Override" %}
+                </span>
+
+              {% endif %}
+
+            </div>
 
           </div>
 
 
-          <form method="post">
+          <form
+  method="post"
+  id="ai-guidance-form"
+>
 
             {% csrf_token %}
 
@@ -220,6 +236,8 @@
               "
             >
 
+              <!-- Last changed -->
+
               <div class="small text-muted">
 
                 {% if override and override.updated_at %}
@@ -237,19 +255,61 @@
               </div>
 
 
-              <button
-                type="submit"
-                name="action"
-                value="save"
-                class="btn btn-primary rounded-pill px-4"
-              >
-                <i
-                  data-feather="save"
-                  class="me-1"
-                ></i>
+              <!-- Actions -->
 
-                {% trans "Save AI guidance" %}
-              </button>
+              <div
+                class="
+                  d-flex
+                  align-items-center
+                  gap-2
+                  flex-wrap
+                "
+              >
+
+                {% if playground_available %}
+
+                  <button
+                    type="submit"
+                    name="action"
+                    value="test"
+                    class="
+                      btn
+                      btn-outline-primary
+                      rounded-pill
+                      px-4
+                    "
+                  >
+                    <i
+                      data-feather="play"
+                      class="me-1"
+                    ></i>
+
+                    {% trans "Test prompt" %}
+                  </button>
+
+                {% endif %}
+
+
+                <button
+                  type="submit"
+                  name="action"
+                  value="save"
+                  class="
+                    btn
+                    btn-primary
+                    rounded-pill
+                    px-4
+                  "
+                >
+                  <i
+                    data-feather="save"
+                    class="me-1"
+                  ></i>
+
+                  {% trans "Save AI guidance" %}
+                </button>
+
+              </div>
 
             </div>
 
@@ -259,16 +319,376 @@
 
       </div>
 
+
+      <!-- AI prompt playground -->
+
+      {% if playground_available %}
+
+        <div class="card border-0 shadow-sm mt-4">
+
+          <div class="card-body">
+
+            <div
+              class="
+                d-flex
+                align-items-start
+                justify-content-between
+                flex-wrap
+                gap-3
+                mb-4
+              "
+            >
+
+              <div>
+
+                <div
+                  class="
+                    text-uppercase
+                    small
+                    fw-semibold
+                    text-primary
+                    mb-1
+                  "
+                >
+                  ✨ {% trans "AI prompt playground" %}
+                </div>
+
+                <h4 class="mb-1">
+                  {% trans "Preview" %}
+                </h4>
+
+                <p class="small text-muted mb-0">
+                  {% trans "Test the current prompt against fixed sample assessment data. Nothing is saved and no real candidate data is used." %}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            {% if playground_error %}
+
+              <div class="alert alert-danger mb-0">
+
+                <div
+                  class="
+                    d-flex
+                    align-items-start
+                    gap-2
+                  "
+                >
+
+                  <i
+                    data-feather="alert-circle"
+                    style="
+                      width: 18px;
+                      height: 18px;
+                      flex: 0 0 auto;
+                      margin-top: 2px;
+                    "
+                  ></i>
+
+                  <div>
+                    {{ playground_error }}
+                  </div>
+
+                </div>
+
+              </div>
+
+
+            {% elif playground_result %}
+
+              <div
+                class="
+                  rounded-4
+                  border
+                  p-4
+                "
+              >
+
+                <!-- Sample meta -->
+
+                <div
+                  class="
+                    d-flex
+                    flex-wrap
+                    gap-2
+                    mb-4
+                  "
+                >
+
+                  <span
+                    class="
+                      badge
+                      rounded-pill
+                      text-bg-light
+                      border
+                      px-3
+                      py-2
+                    "
+                  >
+                    👤 {{ playground_result.sample_candidate }}
+                  </span>
+
+                  <span
+  class="
+    badge
+    rounded-pill
+    text-bg-light
+    border
+    px-3
+    py-2
+  "
+>
+  ✨ {{ prompt_definition.name }}
+</span>
+
+                  <span
+                    class="
+                      badge
+                      rounded-pill
+                      text-bg-light
+                      border
+                      px-3
+                      py-2
+                    "
+                  >
+                    🎯 {{ playground_result.sample_purpose_label }}
+                  </span>
+
+                  <span
+                    class="
+                      badge
+                      rounded-pill
+                      text-bg-light
+                      border
+                      px-3
+                      py-2
+                    "
+                  >
+                    {{ language.flag }}
+                    {{ language.label }}
+                  </span>
+
+                </div>
+
+
+                <!-- Preview output -->
+
+                <div
+                  style="
+                    white-space: pre-wrap;
+                    line-height: 1.7;
+                  "
+                >{{ playground_result.output }}</div>
+
+              </div>
+
+
+            {% else %}
+
+              <div
+                class="
+                  rounded-4
+                  border
+                  p-5
+                  text-center
+                  text-muted
+                "
+              >
+
+                <i
+                  data-feather="play-circle"
+                  class="mb-3"
+                  style="
+                    width: 32px;
+                    height: 32px;
+                  "
+                ></i>
+
+                <div class="fw-semibold text-dark">
+                  {% trans "No preview generated yet" %}
+                </div>
+
+                <div
+                  class="
+                    small
+                    mt-1
+                    mx-auto
+                  "
+                  style="max-width: 480px;"
+                >
+                  {% trans "Edit the guidance above and choose Test prompt to see how it affects sample AI output." %}
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </div>
+
+        </div>
+
+      {% endif %}
+
     </div>
 
 
-<!-- Technical instructions -->
+    <!-- Technical side -->
 
-<div class="col-12 col-xl-5">
+    <div class="col-12 col-xl-5">
 
-  <div class="card border-0 shadow-sm mb-4">
+
+      <!-- Technical instructions -->
+
+      <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+          <div
+            class="
+              d-flex
+              align-items-start
+              justify-content-between
+              gap-3
+              mb-3
+            "
+          >
+
+            <div>
+
+              <h4 class="mb-1">
+                {% trans "Technical instructions" %}
+              </h4>
+
+              <div class="small text-muted">
+                {% trans "Protected by Talena" %}
+              </div>
+
+            </div>
+
+            <i data-feather="lock"></i>
+
+          </div>
+
+
+          <p class="small text-muted mb-3">
+            {% trans "These instructions control only the technical output required by the platform. They cannot be edited because changing them could prevent Talena from processing or displaying the AI response correctly." %}
+          </p>
+
+
+          <div
+            class="
+              rounded-3
+              border
+              p-3
+              small
+            "
+          >
+
+            <div class="fw-semibold mb-2">
+              {% trans "Talena protects:" %}
+            </div>
+
+            <div class="mb-1">
+              • {% trans "Output structure and required field names" %}
+            </div>
+
+            <div class="mb-1">
+              • {% trans "JSON and streaming event formats" %}
+            </div>
+
+            <div class="mb-1">
+              • {% trans "Technical event order and parser requirements" %}
+            </div>
+
+            <div>
+              • {% trans "Language routing required by the platform" %}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Restore default -->
+
+      <div class="card border-0 shadow-sm">
+
+        <div class="card-body">
+
+          <h5 class="mb-2">
+            {% trans "Restore default guidance" %}
+          </h5>
+
+          <p class="small text-muted">
+            {% trans "Remove the current custom guidance and return this AI feature to Talena's built-in default guidance." %}
+          </p>
+
+
+          {% if has_active_override %}
+
+            <form method="post">
+
+              {% csrf_token %}
+
+              <button
+                type="submit"
+                name="action"
+                value="reset"
+                class="
+                  btn
+                  btn-outline-secondary
+                  rounded-pill
+                "
+              >
+                <i
+                  data-feather="rotate-ccw"
+                  class="me-1"
+                ></i>
+
+                {% trans "Restore default guidance" %}
+              </button>
+
+            </form>
+
+          {% else %}
+
+            <div
+              class="
+                small
+                text-success
+                fw-semibold
+              "
+            >
+              <i
+                data-feather="check"
+                style="
+                  width: 15px;
+                  height: 15px;
+                "
+                class="me-1"
+              ></i>
+
+              {% trans "Default guidance is currently active." %}
+            </div>
+
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      {% if playground_available and playground_sample_data %}
+
+  <div class="card border-0 shadow-sm mt-4">
 
     <div class="card-body">
+
+      <!-- Header -->
 
       <div
         class="
@@ -283,131 +703,311 @@
         <div>
 
           <h4 class="mb-1">
-            {% trans "Technical instructions" %}
+            {% trans "Playground test candidate" %}
           </h4>
 
           <div class="small text-muted">
-            {% trans "Protected by Talena" %}
+            {% trans "This is the fixed sample data used when testing this prompt." %}
           </div>
 
         </div>
 
-        <i data-feather="lock"></i>
+        <i
+          data-feather="user"
+          style="
+            width: 20px;
+            height: 20px;
+          "
+        ></i>
 
       </div>
 
 
-      <p class="small text-muted mb-3">
-        {% trans "These instructions control only the technical output required by the platform. They cannot be edited because changing them could prevent Talena from processing or displaying the AI response correctly." %}
-      </p>
+      <!-- Candidate -->
 
+<div
+  class="
+    rounded-3
+    border
+    p-3
+    mb-3
+  "
+>
 
-      <div
+  <div
+    class="
+      text-uppercase
+      small
+      text-muted
+      fw-semibold
+      mb-2
+    "
+  >
+    {% trans "Candidate" %}
+  </div>
+
+  <div class="fw-semibold">
+    {{ playground_sample_data.candidate_name }}
+  </div>
+
+  <div class="small text-muted mt-1">
+    {% trans "Fixed sample candidate" %}
+  </div>
+
+</div>
+
+      <!-- Purpose -->
+
+    <div
+  class="
+    rounded-3
+    border
+    p-3
+    mb-3
+  "
+>
+
+  <div
+    class="
+      d-flex
+      align-items-center
+      justify-content-between
+      gap-2
+      mb-2
+    "
+  >
+
+    <label
+      class="
+        text-uppercase
+        small
+        text-muted
+        fw-semibold
+        mb-0
+      "
+    >
+      {% trans "Process purpose" %}
+    </label>
+
+    {% if playground_sample_data.purpose_locked %}
+
+      <span
         class="
-          rounded-3
+          badge
+          rounded-pill
+          bg-light
+          text-secondary
           border
-          border
-          p-3
-          small
         "
       >
+        {% trans "Fixed for this prompt" %}
+      </span>
 
-        <div class="fw-semibold mb-2">
-          {% trans "Talena protects:" %}
-        </div>
-
-        <div class="mb-1">
-          • {% trans "Output structure and required field names" %}
-        </div>
-
-        <div class="mb-1">
-          • {% trans "JSON and streaming event formats" %}
-        </div>
-
-        <div class="mb-1">
-          • {% trans "Technical event order and parser requirements" %}
-        </div>
-
-        <div>
-          • {% trans "Language routing required by the platform" %}
-        </div>
-
-      </div>
-
-    </div>
+    {% endif %}
 
   </div>
 
 
-  <!-- Reset -->
+  {% if playground_sample_data.purpose_locked %}
 
-  <div class="card border-0 shadow-sm">
+    <input
+      type="hidden"
+      name="playground_purpose"
+      value="{{ playground_sample_data.purpose }}"
+      form="ai-guidance-form"
+    >
 
-    <div class="card-body">
+    <select
+      class="form-select"
+      disabled
+    >
 
-      <h5 class="mb-2">
-        {% trans "Restore default guidance" %}
-      </h5>
+      <option selected>
+        {{ playground_sample_data.purpose_label }}
+      </option>
 
-      <p class="small text-muted">
-        {% trans "Remove the current custom guidance and return this AI feature to Talena's built-in default guidance." %}
-      </p>
+    </select>
+
+  {% else %}
+
+    <select
+      name="playground_purpose"
+      class="form-select"
+      form="ai-guidance-form"
+    >
+
+      <option
+        value="hiring"
+        {% if playground_sample_data.purpose == "hiring" %}selected{% endif %}
+      >
+        {% trans "Recruitment" %}
+      </option>
+
+      <option
+        value="team_development"
+        {% if playground_sample_data.purpose == "team_development" %}selected{% endif %}
+      >
+        {% trans "Team development" %}
+      </option>
+
+      <option
+        value="leader_development"
+        {% if playground_sample_data.purpose == "leader_development" %}selected{% endif %}
+      >
+        {% trans "Leader development" %}
+      </option>
+
+      <option
+        value="unsure"
+        {% if playground_sample_data.purpose == "unsure" %}selected{% endif %}
+      >
+        {% trans "Flexible process" %}
+      </option>
+
+    </select>
+
+  {% endif %}
 
 
-      {% if has_active_override %}
+  <div class="small text-muted mt-2">
+    {% trans "The selected purpose determines which purpose-specific AI guidance is included in the preview." %}
+  </div>
 
-        <form method="post">
+</div>
 
-          {% csrf_token %}
 
-          <button
-            type="submit"
-            name="action"
-            value="reset"
-            class="
-              btn
-              btn-outline-secondary
-              rounded-pill
-            "
-          >
-            <i
-              data-feather="rotate-ccw"
-              class="me-1"
-            ></i>
+      <!-- Context -->
 
-            {% trans "Restore default guidance" %}
-          </button>
+      {% if playground_sample_data.context %}
 
-        </form>
+<div
+  class="
+    rounded-3
+    border
+    p-3
+    mb-3
+  "
+>
 
-      {% else %}
+  <label
+    for="playground-context"
+    class="
+      text-uppercase
+      small
+      text-muted
+      fw-semibold
+      mb-2
+    "
+  >
+    {% trans "Process context" %}
+  </label>
+
+  <textarea
+    id="playground-context"
+    name="playground_context"
+    form="ai-guidance-form"
+    class="form-control"
+    rows="8"
+    spellcheck="true"
+    style="
+      resize: vertical;
+      line-height: 1.55;
+      min-height: 180px;
+    "
+  >{{ playground_sample_data.context }}</textarea>
+
+  <div class="small text-muted mt-2">
+    {% trans "Change or remove the context to test how the same assessment results are interpreted in different situations." %}
+  </div>
+
+</div>
+      {% endif %}
+
+
+      <!-- Assessment evidence -->
+
+      {% if playground_sample_data.evidence %}
 
         <div
           class="
-            small
-            text-success
-            fw-semibold
+            rounded-3
+            border
+            p-3
           "
         >
-          <i
-            data-feather="check"
-            style="
-              width: 15px;
-              height: 15px;
-            "
-            class="me-1"
-          ></i>
 
-          {% trans "Default guidance is currently active." %}
+          <div
+            class="
+              d-flex
+              justify-content-between
+              align-items-center
+              gap-2
+              mb-2
+            "
+          >
+
+            <div
+              class="
+                text-uppercase
+                small
+                text-muted
+                fw-semibold
+              "
+            >
+              {% trans "Assessment data" %}
+            </div>
+
+          </div>
+
+          <div
+            class="small"
+            style="
+              white-space: pre-wrap;
+              line-height: 1.65;
+            "
+          >{{ playground_sample_data.evidence }}</div>
+
         </div>
 
       {% endif %}
 
+
+      <!-- Footer note -->
+
+      <div
+        class="
+          small
+          text-muted
+          mt-3
+          d-flex
+          align-items-start
+          gap-2
+        "
+      >
+
+        <i
+          data-feather="info"
+          style="
+            width: 15px;
+            height: 15px;
+            flex: 0 0 auto;
+            margin-top: 2px;
+          "
+        ></i>
+
+        <span>
+          {% trans "No real candidate data is used in the playground. The same fixed data is reused so different prompt versions can be compared consistently." %}
+        </span>
+
+      </div>
+
     </div>
 
   </div>
 
-</div>
+{% endif %}
+
+    </div>
 
   </div>
 
