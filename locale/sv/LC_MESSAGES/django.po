@@ -7086,3 +7086,21 @@ msgstr ""
 
 #~ msgid "Switch to English"
 #~ msgstr "Byt till engelska"
+
+msgid "Team Development"
+msgstr "Teamutveckling"
+
+msgid "Explore team dynamics, collaboration and development."
+msgstr "Utforska teamdynamik, samarbete och utveckling."
+
+msgid "Leadership Development"
+msgstr "Ledarutveckling"
+
+msgid "Support leadership development, reflection and growth."
+msgstr "Stöd ledarutveckling, reflektion och utveckling."
+
+msgid "Flexible Process"
+msgstr "Flexibel process"
+
+msgid "Create a flexible process based on the current need."
+msgstr "Skapa en flexibel process utifrån det aktuella behovet."

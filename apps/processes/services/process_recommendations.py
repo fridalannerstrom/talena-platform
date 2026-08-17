@@ -12,85 +12,42 @@ PROCESS_PURPOSES = [
         ),
     },
     {
-        "key": "internal_role_match",
-        "label": _("Role match"),
+        "key": "team_development",
+        "label": _("Team Development"),
         "description": _(
-            "Assess how well an employee matches "
-            "a new or existing role."
-        ),
-    },
-    {
-        "key": "leadership_potential",
-        "label": _("Leadership potential"),
-        "description": _(
-            "Explore potential for future leadership roles."
-        ),
-    },
-    {
-        "key": "career_path",
-        "label": _("Career path"),
-        "description": _(
-            "Understand possible development "
-            "and career directions."
-        ),
-    },
-    {
-        "key": "onboarding",
-        "label": _("Onboarding"),
-        "description": _(
-            "Understand how to support a person from the start."
-        ),
-    },
-    {
-        "key": "employee_development",
-        "label": _("Employee development"),
-        "description": _(
-            "Create a foundation for coaching "
-            "and individual growth."
+            "Explore team dynamics, collaboration and development."
         ),
     },
     {
         "key": "leader_development",
-        "label": _("Leader development"),
+        "label": _("Leadership Development"),
         "description": _(
-            "Create a foundation for leadership "
-            "development and reflection."
-        ),
-    },
-    {
-        "key": "team_development",
-        "label": _("Team development"),
-        "description": _(
-            "Explore drivers, behaviours and team patterns."
-        ),
-    },
-    {
-        "key": "reorganisation",
-        "label": _("Reorganisation"),
-        "description": _(
-            "Support change, role distribution "
-            "or internal transition."
+            "Support leadership development, reflection and growth."
         ),
     },
     {
         "key": "unsure",
-        "label": _("Flexible process"),
+        "label": _("Flexible Process"),
         "description": _(
-            "Create a process without a defined purpose."
+            "Create a flexible process based on the current need."
         ),
     },
 ]
 
+
 PURPOSE_RECOMMENDED_TESTS = {
-    "hiring": ["personality", "motivation"],
-    "internal_role_match": ["personality", "motivation"],
-    "leadership_potential": ["personality", "motivation", "verbal", "logical", "numerical"],
-    "career_path": ["personality", "motivation", "verbal", "logical", "numerical"],
-    "onboarding": ["personality", "motivation"],
-    "employee_development": ["personality", "motivation"],
-    "leader_development": ["personality", "motivation"],
-    "team_development": ["personality", "motivation"],
-    "reorganisation": ["personality", "motivation"],
+    "hiring": [
+        "personality",
+        "motivation",
+    ],
+    "team_development": [
+        "personality",
+        "motivation",
+    ],
+    "leader_development": [
+        "personality",
+        "motivation",
+    ],
     "unsure": [],
 }
 

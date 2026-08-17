@@ -8,27 +8,31 @@ from apps.processes.purpose_utils import (
 
 
 PURPOSE_LABELS = {
+    # Recruitment
     "hiring": "Recruitment",
     "recruitment": "Recruitment",
+    "role_match": "Recruitment",
+    "internal_role_match": "Recruitment",
 
-    "role_match": "Role matching",
-    "internal_role_match": "Role matching",
+    # Team Development
+    "team_development": "Team Development",
 
-    "leadership_potential": "Leadership potential",
-    "leader_development": "Leadership development",
+    # Leadership Development
+    "leader_development": "Leadership Development",
+    "leadership_development": "Leadership Development",
+    "leadership_potential": "Leadership Development",
 
-    "employee_development": "Employee development",
-    "career_path": "Career development",
+    # Flexible Process
+    "flexible": "Flexible Process",
+    "unsure": "Flexible Process",
+    "general": "Flexible Process",
 
-    "onboarding": "Onboarding",
-    "team_development": "Team development",
-
-    "reorganisation": "Reorganisation",
-    "reorganization": "Reorganisation",
-
-    "flexible": "General insights",
-    "unsure": "General insights",
-    "general": "General insights",
+    # Legacy purposes
+    "employee_development": "Flexible Process",
+    "career_path": "Flexible Process",
+    "onboarding": "Flexible Process",
+    "reorganisation": "Flexible Process",
+    "reorganization": "Flexible Process",
 }
 
 
