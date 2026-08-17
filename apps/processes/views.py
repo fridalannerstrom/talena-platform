@@ -5497,6 +5497,29 @@ def process_candidate_final_output(
         ).strip()
     )
 
+    # #187:
+    # Prepare for interview embeds the shared assessment-question
+    # partial inside _final_output.html. Because this whole root is
+    # refreshed after interview AI actions, the refresh view must
+    # rebuild the same combined-question context as the main
+    # candidate-detail view.
+    combined_questions = (
+        build_combined_candidate_questions(
+            invitation
+        )
+    )
+
+    combined_questions_refresh_url = reverse(
+        (
+            "processes:"
+            "process_candidate_combined_questions"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
+    )
+
     refresh_url = reverse(
         (
             "processes:"
@@ -5520,6 +5543,28 @@ def process_candidate_final_output(
             "candidate": invitation.candidate,
             "invitation": invitation,
             "is_historical": process.is_historical,
+
+            # Combined assessment questions used by the embedded
+            # Prepare for interview question section.
+            "combined_questions": (
+                combined_questions
+            ),
+
+            "combined_question_sections": (
+                combined_questions["sections"]
+            ),
+
+            "combined_question_count": (
+                combined_questions["total_count"]
+            ),
+
+            "has_combined_questions": (
+                combined_questions["has_questions"]
+            ),
+
+            "combined_questions_refresh_url": (
+                combined_questions_refresh_url
+            ),
 
             "pre_interview_decision_support": (
                 pre_interview_decision_support

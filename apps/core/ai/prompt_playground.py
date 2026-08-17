@@ -447,23 +447,38 @@ Keep the preview reasonably concise.
 """.strip(),
     },
 
-    "response_style_guidance": {
+    "response_style_interpretation": {
         "purpose": "hiring",
         "purpose_label": "Recruitment",
         "context": RECRUITMENT_CONTEXT,
         "evidence": RESPONSE_STYLE_EVIDENCE,
         "task": """
-Generate a sample practical interpretation of the response style
-results.
+Generate only sample content for:
 
-Explain:
+Response-style interpretation
 
-What the response pattern may indicate
-How the personality profile may need to be read
-What may be useful to explore further
-Practical interview guidance
+Explain what the supplied response pattern may indicate and what
+should be kept in mind when reading the personality profile.
 
-Do not treat response styles as competence or suitability measures.
+Do not generate interview approach guidance or interview questions.
+""".strip(),
+    },
+
+    "response_style_interview_approach": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": RESPONSE_STYLE_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+How to approach the conversation
+
+Use the supplied response-style indicators to provide practical,
+non-accusatory interview guidance and useful open questions.
+
+Do not generate or change the separate personality-profile
+interpretation.
 """.strip(),
     },
 

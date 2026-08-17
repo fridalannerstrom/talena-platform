@@ -22,7 +22,10 @@ from .language import (
     set_ai_content_language,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 
 # Talena personality UI and response styles language batch 1
@@ -153,8 +156,13 @@ def build_response_style_guidance_prompt(
         )
     )
 
-    admin_instructions = get_ai_prompt_instructions(
-        key="response_style_guidance",
+    interpretation_instructions = get_ai_prompt_instructions(
+        key="response_style_interpretation",
+        language=language_code,
+    )
+
+    interview_approach_instructions = get_ai_feature_prompt_instructions(
+        key="response_style_interview_approach",
         language=language_code,
     )
 
@@ -193,15 +201,53 @@ RESPONSE-STYLE ASSESSMENT DATA
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
 
-It controls all non-technical decisions about response-style
-interpretation, STEN interpretation, psychometric meaning,
-combination patterns, evidence boundaries, use of process context,
-reasoning, caution, tone, practical guidance, question content,
-number of questions and communication style.
+RESPONSE-STYLE INTERPRETATION GUIDANCE
 
-{admin_instructions}
+The following administrator guidance applies only to:
+
+- summary_delta
+- how_to_interpret
+- combination_note
+- context_note
+
+It controls how response-style indicators are interpreted as context
+for reading the personality profile.
+
+It must not determine the substantive content of recommended_approach
+or questions.
+
+{interpretation_instructions}
+
+
+INTERVIEW APPROACH GUIDANCE
+
+The following administrator guidance applies only to:
+
+- recommended_approach
+- questions
+
+It controls how response-style indicators are used to guide the
+interviewer and formulate conversation questions.
+
+It must not change the substantive response-style interpretation,
+how_to_interpret guidance or combination note.
+
+{interview_approach_instructions}
+
+
+SECTION ISOLATION
+
+Treat each dedicated guidance block as authoritative only for its
+corresponding events.
+
+Instructions for one section must not change the substantive content,
+number of items or emphasis of the other section.
+
+Global Talena administrator guidance still applies across all sections.
+
+Do not allow administrator guidance to change Talena's technical event
+structure, required JSON fields or streaming format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

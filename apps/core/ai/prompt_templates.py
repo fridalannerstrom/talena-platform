@@ -626,6 +626,367 @@ PURPOSE_AI_PROMPT_KEYS = {
     "flexible": "purpose_flexible_guidance",
 }
 
+
+# ============================================================
+# Response styles · split guidance (#188)
+# ============================================================
+
+RESPONSE_STYLE_INTERPRETATION_DEFAULT_SV = """
+UPPGIFT
+
+Tolka kandidatens tillgängliga svarsstilsresultat som kontext för
+hur personlighetsprofilen bör läsas.
+
+Denna prompt styr endast Talenas response-style-tolkning i
+Personlighet. Den ska inte styra hur intervjuaren genomför samtalet
+eller vilka samtalsfrågor som föreslås.
+
+SVARSSTILAR ÄR KONTEXT, INTE PERSONLIGHETSDRAG
+
+Svarsstilar beskriver hur personen använde frågeformuläret och
+svarsskalan. De mäter inte direkt förmåga, kompetens, lämplighet,
+integritet, ärlighet eller faktisk/framtida arbetsprestation.
+
+Behandla resultaten som indikationer och hypoteser.
+Diagnostisera inte kandidaten och gör inga slutliga urvalsbeslut.
+
+RESULTATSKALA
+
+Som grundtolkning för STEN:
+- 1 till 3: lägre
+- 4 till 7: typiskt
+- 8 till 10: högre
+
+SOCIAL ÖNSKVÄRDHET
+
+Lägre resultat kan indikera en mer självkritisk självpresentation.
+Vissa personlighetspreferenser kan därför vara tydligare än profilen
+initialt antyder.
+
+Typiska resultat kan indikera en mer balanserad självpresentation.
+
+Högre resultat kan indikera en mer positiv självpresentation.
+Det ska inte automatiskt tolkas som oärlighet eller manipulation.
+Tydliga personlighetsresultat kan behöva valideras med konkreta
+beteendeexempel.
+
+PROFILSPRIDNING
+
+Lägre resultat kan indikera mindre differentiering eller konsekvens
+mellan frågor kopplade till samma personlighetsområden. Flera
+situationsberoende förklaringar kan vara möjliga.
+
+Typiska resultat kan indikera en blandning av mer och mindre tydligt
+differentierade svar.
+
+Högre resultat kan indikera tydligare differentiering mellan
+personlighetspreferenser och relativt konsekventa svar inom relaterade
+områden.
+
+SKATTNINGSSPRIDNING
+
+Lägre resultat kan indikera ett relativt smalt användande av svarsskalan.
+
+Typiska resultat kan indikera att skalan användes utan tydlig preferens
+för mitten eller ytterligheterna.
+
+Högre resultat kan indikera ett bredare användande av svarsskalan och
+tydligare uttryck av vissa preferenser.
+
+KOMBINATIONER
+
+Tolka relevanta kombinationer när de faktiskt stöds av resultaten.
+Beskriv dem inte automatiskt som god eller dålig självinsikt.
+
+PROCESS OCH KONTEXT
+
+Använd processens syfte och tillgängliga kontext när det hjälper
+användaren att förstå hur personlighetsprofilen bör läsas.
+
+Hitta inte på rollkrav, arbetsuppgifter, kultur, erfarenhet eller
+andra omständigheter som inte finns i underlaget.
+
+TON
+
+Skriv balanserat, praktiskt och icke-dömande.
+Använd nyanserade formuleringar som "kan indikera", "tyder på",
+"skulle kunna spegla" och "kan behöva valideras".
+
+Inkludera som standard inte råa STEN-värden i användartexten.
+
+OUTPUTENS OMFATTNING
+
+Styr endast:
+- den övergripande response-style-tolkningen
+- vad användaren bör ha i åtanke när personlighetsprofilen läses
+- relevant kombinationsnotering
+- kort kontextnotering
+
+Generera inte intervjuupplägg eller intervjufrågor i denna del.
+""".strip()
+
+
+RESPONSE_STYLE_INTERPRETATION_DEFAULT_EN = """
+TASK
+
+Interpret the candidate's available response-style results as context
+for how the personality profile should be read.
+
+This prompt controls only Talena's response-style interpretation in
+Personality. It must not control how the interviewer conducts the
+conversation or which conversation questions are suggested.
+
+RESPONSE STYLES ARE CONTEXT, NOT PERSONALITY TRAITS
+
+Response styles describe how the person used the questionnaire and
+response scale. They do not directly measure ability, competence,
+suitability, integrity, honesty or actual/future workplace performance.
+
+Treat results as indications and hypotheses.
+Do not diagnose the candidate or make final selection decisions.
+
+RESULT SCALE
+
+As a default STEN interpretation:
+- 1 to 3: lower
+- 4 to 7: typical
+- 8 to 10: higher
+
+SOCIAL DESIRABILITY
+
+Lower results may indicate a more self-critical self-presentation.
+Some personality preferences may therefore be clearer than the profile
+initially suggests.
+
+Typical results may indicate a more balanced self-presentation.
+
+Higher results may indicate a more positive self-presentation.
+Do not automatically interpret this as dishonesty or manipulation.
+Clear personality results may need validation using concrete
+behavioural examples.
+
+PROFILE SPREAD
+
+Lower results may indicate less differentiation or consistency between
+questions connected to the same personality areas. Several
+situation-dependent explanations may be possible.
+
+Typical results may indicate a mixture of more and less clearly
+differentiated responses.
+
+Higher results may indicate clearer differentiation between personality
+preferences and relatively consistent responding within related areas.
+
+RATINGS SPREAD
+
+Lower results may indicate use of a relatively narrow response range.
+
+Typical results may indicate use of the scale without a clear preference
+for the middle or extremes.
+
+Higher results may indicate a broader response range and clearer
+expression of some preferences.
+
+COMBINATIONS
+
+Interpret relevant combinations only where supported by the results.
+Do not automatically describe combinations as good or poor self-awareness.
+
+PROCESS AND CONTEXT
+
+Use the process purpose and available context where this helps the user
+understand how the personality profile should be read.
+
+Do not invent role requirements, tasks, culture, experience or other
+circumstances that are not supplied.
+
+TONE
+
+Write in a balanced, practical and non-judgemental way.
+Use nuanced formulations such as "may indicate", "suggests",
+"could reflect" and "may need validation".
+
+By default, do not include raw STEN values in user-facing text.
+
+OUTPUT SCOPE
+
+Control only:
+- the overall response-style interpretation
+- what the user should keep in mind when reading the personality profile
+- a relevant combination note
+- a brief context note
+
+Do not generate interview approach guidance or interview questions here.
+""".strip()
+
+
+RESPONSE_STYLE_INTERVIEW_APPROACH_DEFAULT_SV = """
+UPPGIFT
+
+Ge praktisk vägledning för hur intervjuaren kan närma sig samtalet
+utifrån kandidatens faktiska svarsstilsindikatorer.
+
+Denna prompt styr endast intervju-/samtalsdelen i Inför intervju.
+Den ska inte ändra Talenas tolkning av personlighetsprofilen.
+
+GRUNDPRINCIP
+
+Svarsstilar är kontext för samtalet. De är inte mått på kompetens,
+lämplighet, integritet, ärlighet eller prestation.
+
+Använd dem för att hjälpa intervjuaren samla bättre och mer nyanserad
+beteendeevidens, inte för att dra hårdare slutsatser om kandidaten.
+
+SOCIAL ÖNSKVÄRDHET
+
+Vid lägre resultat kan samtalet ge extra utrymme för personen att
+beskriva styrkor, tydliga preferenser och områden som kan vara
+underskattade i profilen.
+
+Vid högre resultat kan intervjuaren försiktigt validera tydliga
+preferenser med konkreta beteendeexempel.
+
+Formulera aldrig detta som misstanke om oärlighet eller manipulation.
+
+PROFILSPRIDNING
+
+Vid lägre resultat kan intervjuaren utforska hur beteende varierar
+mellan situationer, roller, krav eller sammanhang.
+
+Vid högre resultat kan konkreta exempel användas för att validera
+profilens tydligaste mönster.
+
+SKATTNINGSSPRIDNING
+
+Vid lägre resultat kan intervjuaren hjälpa personen göra tydligare
+distinktioner mellan situationer där olika preferenser märks mer
+eller mindre.
+
+Vid högre resultat kan intervjuaren utforska de mest tydligt uttryckta
+preferenserna med konkreta exempel.
+
+PROCESSENS SYFTE OCH KONTEXT
+
+Anpassa samtalsvägledningen till processens faktiska syfte och
+tillgängliga kontext när det är relevant.
+
+Hitta inte på arbetsuppgifter, krav eller kandidatens erfarenhet.
+
+REKOMMENDERAT TILLVÄGAGÅNGSSÄTT
+
+Ge som standard en kort, konkret rekommendation om hur intervjuaren
+kan skapa ett konstruktivt samtal och samla bättre evidens.
+
+Skriv vägledningen för intervjuaren, inte som en bedömning av kandidaten.
+
+FRÅGOR
+
+Ge som standard 3 öppna, naturliga och icke-anklagande frågor om inte
+administratörens instruktioner anger något annat.
+
+Frågorna kan hjälpa till att validera preferenser, förstå
+situationsvariation, samla konkreta beteendeexempel och låta personen
+nyansera personlighetsprofilen.
+
+Frågorna ska inte be kandidaten att förklara ett STEN-värde eller
+försvara hur hen svarade på testet.
+
+Inkludera som standard inte råa STEN-värden i användartexten.
+
+OUTPUTENS OMFATTNING
+
+Styr endast:
+- rekommenderat samtals-/intervjutillvägagångssätt
+- response-style-baserade frågor att utforska
+
+Ändra inte den separata response-style-tolkningen i Personlighet.
+""".strip()
+
+
+RESPONSE_STYLE_INTERVIEW_APPROACH_DEFAULT_EN = """
+TASK
+
+Provide practical guidance for how the interviewer may approach the
+conversation based on the candidate's actual response-style indicators.
+
+This prompt controls only the interview/conversation content in
+Prepare for interview. It must not change Talena's interpretation of
+the personality profile.
+
+CORE PRINCIPLE
+
+Response styles are context for the conversation. They are not measures
+of competence, suitability, integrity, honesty or performance.
+
+Use them to help the interviewer gather better and more nuanced
+behavioural evidence, not to make stronger conclusions about the candidate.
+
+SOCIAL DESIRABILITY
+
+With lower results, the conversation may give the person additional
+space to describe strengths, clearer preferences and areas that may be
+understated in the profile.
+
+With higher results, the interviewer may carefully validate clearer
+preferences using concrete behavioural examples.
+
+Never frame this as suspicion of dishonesty or manipulation.
+
+PROFILE SPREAD
+
+With lower results, the interviewer may explore how behaviour varies
+across situations, roles, demands or contexts.
+
+With higher results, concrete examples may be used to validate the
+clearest patterns in the profile.
+
+RATINGS SPREAD
+
+With lower results, the interviewer may help the person distinguish
+between situations where different preferences are more or less visible.
+
+With higher results, the interviewer may explore the most clearly
+expressed preferences using concrete examples.
+
+PROCESS PURPOSE AND CONTEXT
+
+Adapt the conversation guidance to the actual process purpose and
+available context where relevant.
+
+Do not invent job tasks, requirements or candidate experience.
+
+RECOMMENDED APPROACH
+
+By default, provide a short and concrete recommendation for how the
+interviewer can create a constructive conversation and collect better
+evidence.
+
+Write guidance for the interviewer, not a judgement about the candidate.
+
+QUESTIONS
+
+By default, provide 3 open, natural and non-accusatory questions unless
+administrator guidance specifies otherwise.
+
+Questions may help validate preferences, understand situational
+variation, gather concrete behavioural examples and allow the person
+to add nuance to the personality profile.
+
+Do not ask the candidate to explain a STEN value or defend how they
+answered the assessment.
+
+By default, do not include raw STEN values in user-facing text.
+
+OUTPUT SCOPE
+
+Control only:
+- recommended interview/conversation approach
+- response-style-based questions to explore
+
+Do not change the separate response-style interpretation in Personality.
+""".strip()
+
+
 AI_PROMPT_REGISTRY: dict[str, dict[str, Any]] = {
 
     "global_ai_guidance": {
@@ -2126,17 +2487,30 @@ Refer to the candidate by name where natural.
 """.strip(),
     },
 },
-    "response_style_guidance": {
-        "name": "Response styles",
+    "response_style_interpretation": {
+        "name": "Response styles · Interpretation",
         "category": "Personality",
         "description": (
-            "Controls the psychometric interpretation guidance used "
-            "when Talena explains response styles and how the personality "
-            "profile should be approached."
+            "Controls only how Talena interprets response-style indicators "
+            "as context for reading the personality profile."
         ),
         "defaults": {
-            "sv": RESPONSE_STYLE_GUIDANCE_DEFAULT_SV,
-            "en": RESPONSE_STYLE_GUIDANCE_DEFAULT_EN,
+            "sv": RESPONSE_STYLE_INTERPRETATION_DEFAULT_SV,
+            "en": RESPONSE_STYLE_INTERPRETATION_DEFAULT_EN,
+        },
+    },
+
+    "response_style_interview_approach": {
+        "name": "Response styles · Interview approach",
+        "category": "Interview",
+        "description": (
+            "Controls only how Talena uses response-style indicators to "
+            "guide the interviewer and formulate response-style-based "
+            "conversation questions."
+        ),
+        "defaults": {
+            "sv": RESPONSE_STYLE_INTERVIEW_APPROACH_DEFAULT_SV,
+            "en": RESPONSE_STYLE_INTERVIEW_APPROACH_DEFAULT_EN,
         },
     },
 
