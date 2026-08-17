@@ -1,7 +1,8 @@
 {% load i18n %}
-{# Talena candidate i18n batch 1 #}
+{# Talena candidate insights workspace #}
 {% trans "context" as context_fallback %}
 {% trans "Add context" as add_context_fallback %}
+
 {% if show_context_prompt %}
 
   <div class="card mb-4 role-context-prompt-card">
@@ -21,9 +22,9 @@
             {% trans "Improve candidate insights" %}
           </div>
 
-<h2 class="h5 mb-1">
-  {% trans "Add" %} {{ context_config.tab_label|default:context_fallback|lower }}
-</h2>
+          <h2 class="h5 mb-1">
+            {% trans "Add" %} {{ context_config.tab_label|default:context_fallback|lower }}
+          </h2>
 
           <p class="text-muted mb-0">
             {% blocktrans %}Add context to make the candidate insights more relevant to this process.{% endblocktrans %}
@@ -50,7 +51,6 @@
   </div>
 
 {% endif %}
-
 
 
 {% if not has_any_results %}
@@ -156,30 +156,17 @@
         </div>
 
 
-        <!-- QUESTIONS -->
+        <!-- INTERVIEW WORKFLOW -->
+        <!--
+          _final_output.html keeps the shared decision-support root because
+          the existing JS refresh endpoint replaces that root after AI
+          generation and interview-note saves.
 
-        <div
-          id="candidate-insights-panel-questions"
-          class="candidate-insights-panel"
-          role="tabpanel"
-          data-insights-panel="questions"
-          hidden
-        >
-          {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
-        </div>
+          The partial itself now contains two real top-level insight panels:
+          Prepare for interview and After interview.
+        -->
 
-
-        <!-- FINAL OUTPUT -->
-
-        <div
-          id="candidate-insights-panel-final-output"
-          class="candidate-insights-panel"
-          role="tabpanel"
-          data-insights-panel="final-output"
-          hidden
-        >
-          {% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}
-        </div>
+        {% include "customer/processes/partials/candidate_insights/tabs/_final_output.html" %}
 
       </div>
 
@@ -196,87 +183,139 @@
 
     <section class="card mb-4">
 
-<button
-  type="button"
-  class="card-header reports-toggle collapsed"
-  data-bs-toggle="collapse"
-  data-bs-target="#candidateAssessmentReports"
-  aria-expanded="false"
-  aria-controls="candidateAssessmentReports"
->
+      <button
+        type="button"
+        class="card-header reports-toggle collapsed"
+        data-bs-toggle="collapse"
+        data-bs-target="#candidateAssessmentReports"
+        aria-expanded="false"
+        aria-controls="candidateAssessmentReports"
+      >
 
-  <span class="fw-semibold">
-    {% trans "Reports" %}
-  </span>
-
-  <span class="reports-toggle__right">
-
-    {% if is_historical %}
-
-      {% if historical_reports %}
-        <span class="badge rounded-pill text-bg-light border">
-          {{ historical_reports|length }} {% trans "available" %}
+        <span class="fw-semibold">
+          {% trans "Reports" %}
         </span>
-      {% endif %}
 
-    {% else %}
-
-      {% if sova_reports_for_ui %}
-        <span class="badge rounded-pill text-bg-light border">
-          {{ sova_reports_for_ui|length }} {% trans "available" %}
-        </span>
-      {% endif %}
-
-    {% endif %}
-
-    <span class="reports-toggle__chevron" aria-hidden="true"></span>
-
-  </span>
-
-</button>
-
-      <div
-  id="candidateAssessmentReports"
-  class="collapse"
->
-  <div class="card-body">
-
-        <div class="list-group list-group-flush">
+        <span class="reports-toggle__right">
 
           {% if is_historical %}
 
-            <!-- HISTORICAL REPORTS -->
+            {% if historical_reports %}
+              <span class="badge rounded-pill text-bg-light border">
+                {{ historical_reports|length }} {% trans "available" %}
+              </span>
+            {% endif %}
 
-            {% for report in historical_reports %}
+          {% else %}
 
-              <div
-                class="
-                  list-group-item
-                  px-0
-                  d-flex
-                  justify-content-between
-                  align-items-center
-                  gap-3
-                "
-              >
+            {% if sova_reports_for_ui %}
+              <span class="badge rounded-pill text-bg-light border">
+                {{ sova_reports_for_ui|length }} {% trans "available" %}
+              </span>
+            {% endif %}
 
-                <div class="min-w-0">
+          {% endif %}
 
-                  <div class="fw-semibold">
-                    {{ report.title|default:report.original_filename }}
+          <span class="reports-toggle__chevron" aria-hidden="true"></span>
+
+        </span>
+
+      </button>
+
+      <div
+        id="candidateAssessmentReports"
+        class="collapse"
+      >
+        <div class="card-body">
+
+          <div class="list-group list-group-flush">
+
+            {% if is_historical %}
+
+              <!-- HISTORICAL REPORTS -->
+
+              {% for report in historical_reports %}
+
+                <div
+                  class="
+                    list-group-item
+                    px-0
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    gap-3
+                  "
+                >
+
+                  <div class="min-w-0">
+
+                    <div class="fw-semibold">
+                      {{ report.title|default:report.original_filename }}
+                    </div>
+
+                    <div class="small text-muted">
+                      {% trans "Uploaded historical assessment report" %}
+                    </div>
+
                   </div>
 
-                  <div class="small text-muted">
-                    {% trans "Uploaded historical assessment report" %}
-                  </div>
+
+                  {% if report.file %}
+
+                    <a
+                      href="{{ report.file.url }}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="btn btn-sm btn-outline-dark flex-shrink-0"
+                    >
+                      {% trans "Open report" %}
+                    </a>
+
+                  {% endif %}
 
                 </div>
 
+              {% empty %}
 
-                {% if report.file %}
+                <div class="text-muted small py-3">
+                  {% trans "No historical reports have been uploaded." %}
+                </div>
+
+              {% endfor %}
+
+
+            {% else %}
+
+              <!-- LIVE SOVA REPORTS -->
+
+              {% for report in sova_reports_for_ui %}
+
+                <div
+                  class="
+                    list-group-item
+                    px-0
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    gap-3
+                  "
+                >
+
+                  <div class="min-w-0">
+
+                    <div class="fw-semibold">
+                      {{ report.title }}
+                    </div>
+
+                    <div class="small text-muted">
+                      {{ report.category }} · {{ report.audience }}
+                    </div>
+
+                  </div>
+
 
                   <a
-                    href="{{ report.file.url }}"
+                    href="{{ report.url }}"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="btn btn-sm btn-outline-dark flex-shrink-0"
@@ -284,74 +323,22 @@
                     {% trans "Open report" %}
                   </a>
 
-                {% endif %}
-
-              </div>
-
-            {% empty %}
-
-              <div class="text-muted small py-3">
-                {% trans "No historical reports have been uploaded." %}
-              </div>
-
-            {% endfor %}
-
-
-          {% else %}
-
-            <!-- LIVE SOVA REPORTS -->
-
-            {% for report in sova_reports_for_ui %}
-
-              <div
-                class="
-                  list-group-item
-                  px-0
-                  d-flex
-                  justify-content-between
-                  align-items-center
-                  gap-3
-                "
-              >
-
-                <div class="min-w-0">
-
-                  <div class="fw-semibold">
-                    {{ report.title }}
-                  </div>
-
-                  <div class="small text-muted">
-                    {{ report.category }} · {{ report.audience }}
-                  </div>
-
                 </div>
 
+              {% empty %}
 
-                <a
-                  href="{{ report.url }}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn btn-sm btn-outline-dark flex-shrink-0"
-                >
-                  {% trans "Open report" %}
-                </a>
+                <div class="text-muted small py-3">
+                  {% trans "No assessment reports are currently available." %}
+                </div>
 
-              </div>
+              {% endfor %}
 
-            {% empty %}
+            {% endif %}
 
-              <div class="text-muted small py-3">
-                {% trans "No assessment reports are currently available." %}
-              </div>
-
-            {% endfor %}
-
-          {% endif %}
+          </div>
 
         </div>
-
       </div>
-    </div>
 
     </section>
 

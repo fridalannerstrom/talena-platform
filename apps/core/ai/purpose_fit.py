@@ -18,7 +18,10 @@ from .language import (
     set_ai_content_language,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 # Talena AI Overview language batch 1
 
@@ -406,6 +409,16 @@ def build_purpose_fit_prompt(
         language=language_code,
     )
 
+    supportive_patterns_instructions = get_ai_feature_prompt_instructions(
+        key="ai_overview_supportive_patterns",
+        language=language_code,
+    )
+
+    areas_to_explore_instructions = get_ai_feature_prompt_instructions(
+        key="ai_overview_areas_to_explore",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -435,24 +448,62 @@ AVAILABLE ASSESSMENT EVIDENCE
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
 
-It controls all non-technical decisions about:
+OVERALL INTERPRETATION GUIDANCE
 
-- assessment interpretation
-- synthesis across assessment types
-- evidence boundaries
-- use of purpose and process context
-- reasoning
-- prioritisation
-- caution
-- conclusions
-- tone
-- number of list items
-- recommended next steps
-- communication style
+The following administrator guidance applies only to the
+overall AI Overview interpretation returned through
+summary_delta events.
+
+Do not use this guidance to determine the substantive content
+of key_alignment or areas_to_verify.
+
+If this guidance contains older instructions relating to those
+sections, the dedicated section guidance below takes precedence.
 
 {admin_instructions}
+
+
+WHAT SUPPORTS THE PURPOSE GUIDANCE
+
+The following administrator guidance applies only to the
+key_alignment event.
+
+For historical candidates this corresponds to
+Potentially supportive patterns.
+
+Do not use it to change the overall interpretation
+or areas to explore.
+
+{supportive_patterns_instructions}
+
+
+WHAT TO EXPLORE OR CONSIDER GUIDANCE
+
+The following administrator guidance applies only to the
+areas_to_verify event.
+
+Do not use it to change the overall interpretation
+or supportive patterns.
+
+{areas_to_explore_instructions}
+
+
+SECTION ISOLATION
+
+Treat each dedicated section guidance as authoritative for its
+corresponding event.
+
+Instructions for one section must not change the substantive
+content, number of items or emphasis of another section.
+
+Global Talena administrator guidance still applies across all sections.
+
+The context_note and suggested_next_step events remain governed
+by Talena's existing overall guidance and technical contract.
+
+Do not allow administrator guidance to change Talena's technical
+event structure, required JSON fields or streaming format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

@@ -1804,3 +1804,71 @@ class AIPromptTemplate(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.language.upper()})"
+
+
+class AIPromptTemplateVersion(models.Model):
+    """
+    Saved revision of an administrator-editable AI prompt.
+
+    Revisions are immutable snapshots used for lightweight
+    prompt history and restore.
+    """
+
+    ACTION_CHOICES = [
+        ("save", "Saved"),
+        ("restore", "Restored"),
+    ]
+
+    prompt = models.ForeignKey(
+        AIPromptTemplate,
+        on_delete=models.CASCADE,
+        related_name="versions",
+    )
+
+    prompt_text = models.TextField()
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    action = models.CharField(
+        max_length=20,
+        choices=ACTION_CHOICES,
+        default="save",
+    )
+
+    saved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="saved_ai_prompt_versions",
+    )
+
+    saved_at = models.DateTimeField(
+        default=timezone.now,
+    )
+
+    restored_from = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="restore_versions",
+    )
+
+    class Meta:
+        ordering = [
+            "-saved_at",
+            "-id",
+        ]
+
+        verbose_name = "AI prompt version"
+        verbose_name_plural = "AI prompt versions"
+
+    def __str__(self):
+        return (
+            f"{self.prompt.name} "
+            f"({self.prompt.language.upper()}) · "
+            f"{self.saved_at:%Y-%m-%d %H:%M}"
+        )

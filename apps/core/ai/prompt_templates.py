@@ -951,11 +951,10 @@ in the available evidence.
 },
 
     "personality_interpretation": {
-        "name": "Personality interpretation",
+        "name": "Personality · Overall interpretation",
         "category": "Personality",
         "description": (
-            "Controls the tone, emphasis and communication style used "
-            "when Talena interprets a candidate's personality profile."
+            "Controls the Overall personality interpretation section only."
         ),
         "defaults": {
 
@@ -1444,7 +1443,7 @@ user-facing text.
     },
 
     "personality_trait_interplay": {
-    "name": "Personality trait interplay",
+    "name": "Personality · Combined trait dynamics",
     "category": "Personality",
     "description": (
         "Controls how Talena interprets interactions, combinations "
@@ -1590,6 +1589,154 @@ Use language such as:
 
 Always treat the interpretation as a hypothesis that may need
 validation through concrete behavioural examples.
+""".strip(),
+    },
+},
+
+"personality_supportive_patterns": {
+    "name": "Personality · Potentially supportive patterns",
+    "category": "Personality",
+    "description": (
+        "Controls the Potentially supportive patterns box "
+        "in the personality AI interpretation."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr endast innehållet i sektionen
+"Potentiellt stödjande mönster" i personlighetstolkningen.
+
+Identifiera mönster i kandidatens tillgängliga personlighetsresultat
+som kan vara potentiellt stödjande i relation till processens syfte
+och tillgängliga kontext.
+
+Som standard, ge 3 korta och tydliga punkter.
+
+Varje punkt ska:
+
+- bygga på tillgängliga personlighetsresultat
+- beskriva en möjlig beteendepreferens
+- förklara praktisk relevans där det finns stöd för det
+- vara nyanserad och icke-dömande
+- inte beskriva preferenser som bevisad kompetens eller prestation
+
+Högre resultat är inte automatiskt styrkor.
+Lägre resultat är inte automatiskt svagheter.
+
+Tvinga inte fram positiva styrkor där underlaget är blandat
+eller inte ger stöd för det.
+
+Hitta inte på erfarenhet, kompetens, rollkrav eller beteenden
+som saknas i underlaget.
+""".strip(),
+
+        "en": """
+TASK
+
+Control only the content of the
+"Potentially supportive patterns" section of the personality interpretation.
+
+Identify patterns in the candidate's available personality results
+that may be potentially supportive in relation to the process purpose
+and available context.
+
+By default, provide 3 concise points.
+
+Each point should:
+
+- be grounded in available personality results
+- describe a possible behavioural preference
+- explain practical relevance where supported
+- use nuanced and non-judgemental language
+- not describe preferences as proven competence or performance
+
+Higher results are not automatically strengths.
+Lower results are not automatically weaknesses.
+
+Do not force positive strengths where the evidence is mixed
+or does not support them.
+
+Do not invent experience, competence, role requirements or behaviour
+that is not present in the evidence.
+""".strip(),
+    },
+},
+
+"personality_areas_to_explore": {
+    "name": "Personality · What to explore or validate",
+    "category": "Personality",
+    "description": (
+        "Controls the What to explore or validate box "
+        "in the personality AI interpretation."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr endast innehållet i sektionen
+"Vad som kan behöva utforskas eller valideras"
+i personlighetstolkningen.
+
+Som standard, ge 3 korta och relevanta punkter.
+
+Fokusera på sådant där ytterligare information,
+konkreta exempel eller samtal kan ge en bättre förståelse.
+
+Det kan exempelvis handla om:
+
+- situationer där en naturlig preferens kan fungera olika
+- beteendekrav som kan kräva anpassning
+- möjliga spänningar mellan personlighetsdrag
+- områden där konkreta beteendeexempel behövs
+- begränsningar i vad personlighetsresultatet kan visa
+- begränsningar på grund av saknad processkontext
+
+Beskriv alltid punkterna som hypoteser eller områden att utforska.
+
+Beskriv dem inte automatiskt som:
+
+- svagheter
+- problem
+- risker
+- brister
+- bevis på olämplighet
+
+Hitta inte på problem bara för att fylla sektionen.
+""".strip(),
+
+        "en": """
+TASK
+
+Control only the content of the
+"What to explore or validate" section
+of the personality interpretation.
+
+By default, provide 3 concise and relevant points.
+
+Focus on areas where additional information,
+concrete examples or discussion may improve understanding.
+
+This may include:
+
+- situations where a natural preference may operate differently
+- behavioural demands that may require adaptation
+- possible tensions between personality traits
+- areas where concrete behavioural examples are needed
+- limitations in what personality results can demonstrate
+- limitations caused by missing process context
+
+Always describe these as hypotheses or areas to explore.
+
+Do not automatically describe them as:
+
+- weaknesses
+- problems
+- risks
+- deficiencies
+- proof of poor suitability
+
+Do not invent concerns merely to populate the section.
 """.strip(),
     },
 },
@@ -2650,12 +2797,11 @@ current questions.
 """.strip(),
     },
 },
-        "motivation_interpretation": {
-        "name": "Motivation interpretation",
+    "motivation_interpretation": {
+        "name": "Motivation · Overall interpretation",
         "category": "Motivation",
         "description": (
-            "Controls the tone, emphasis and communication style used "
-            "when Talena interprets a candidate's motivation profile."
+            "Controls the Overall motivation interpretation section only."
         ),
         "defaults": {
 
@@ -3247,9 +3393,203 @@ RAW DATA
 By default, do not include raw STIVE scores in the final
 user-facing text.
 """.strip(),
-
         },
     },
+
+    
+
+    "motivation_expectation_setting": {
+        "name": "Motivation · Realistic expectation setting",
+        "category": "Motivation",
+        "description": (
+            "Controls the Realistic expectation setting box "
+            "in the motivation AI interpretation."
+        ),
+        "defaults": {
+            "sv": """
+    UPPGIFT
+
+    Styr endast sektionen "Realistiska förväntningar"
+    i kandidatens motivationstolkning.
+
+    Beskriv kort vilka förväntningar, arbetsförhållanden eller
+    förutsättningar som kan vara värdefulla att tydliggöra med personen
+    utifrån motivationsprofilen.
+
+    Fokusera på praktisk dialog och ömsesidig förståelse.
+
+    Presentera inte motivationsresultat som krav eller absoluta behov.
+
+    Ett högt motivationsresultat betyder inte att faktorn alltid måste finnas.
+    Ett lågt resultat betyder inte att personen ogillar faktorn.
+
+    Använd endast information som faktiskt finns i motivationsresultaten
+    och eventuell processkontext.
+
+    Hitta inte på arbetsvillkor, förmåner, organisationskultur,
+    arbetsuppgifter eller kandidatens tidigare erfarenheter.
+
+    Skriv kort, praktiskt och nyanserat.
+    """.strip(),
+
+            "en": """
+    TASK
+
+    Control only the "Realistic expectation setting" section
+    of the candidate's motivation interpretation.
+
+    Briefly describe expectations, working conditions or circumstances
+    that may be useful to clarify with the person based on the
+    motivation profile.
+
+    Focus on practical dialogue and mutual understanding.
+
+    Do not present motivation results as requirements or absolute needs.
+
+    A high motivation result does not mean the factor must always be present.
+    A low result does not mean the person dislikes the factor.
+
+    Use only information actually available in the motivation results
+    and supplied process context.
+
+    Do not invent working conditions, benefits, organisational culture,
+    job tasks or previous candidate experience.
+
+    Write concisely, practically and with appropriate nuance.
+    """.strip(),
+        },
+    },
+
+    "motivation_engagement_conditions": {
+        "name": "Motivation · Conditions likely to support engagement",
+        "category": "Motivation",
+        "description": (
+            "Controls the Conditions likely to support engagement box "
+            "in the motivation AI interpretation."
+        ),
+        "defaults": {
+            "sv": """
+    UPPGIFT
+
+    Styr endast sektionen
+    "Förutsättningar som sannolikt stödjer engagemang"
+    i kandidatens motivationstolkning.
+
+    Som standard, ge 3 korta punkter.
+
+    Identifiera förutsättningar som kan stödja energi och engagemang
+    utifrån kandidatens tillgängliga motivationsresultat.
+
+    Varje punkt ska:
+
+    - bygga på faktiskt tillgängliga motivationsresultat
+    - beskriva möjlig praktisk betydelse
+    - använda nyanserat språk
+    - inte behandla faktorn som ett absolut krav
+    - inte påstå att faktorn garanterar prestation eller trivsel
+
+    Ta hänsyn till relevant processkontext när sådan finns.
+
+    Hitta inte på arbetsmiljö, kultur, förmåner eller arbetsuppgifter
+    som inte finns i underlaget.
+    """.strip(),
+
+            "en": """
+    TASK
+
+    Control only the
+    "Conditions likely to support engagement" section
+    of the candidate's motivation interpretation.
+
+    By default, provide 3 concise points.
+
+    Identify circumstances that may support energy and engagement
+    based on the available motivation results.
+
+    Each point should:
+
+    - be grounded in available motivation evidence
+    - describe possible practical relevance
+    - use nuanced language
+    - not treat the factor as an absolute requirement
+    - not claim that the factor guarantees performance or satisfaction
+
+    Use relevant process context where available.
+
+    Do not invent working environment, culture, benefits or job tasks
+    that are not present in the supplied evidence.
+    """.strip(),
+        },
+    },
+
+    "motivation_areas_to_clarify": {
+        "name": "Motivation · What to explore or clarify",
+        "category": "Motivation",
+        "description": (
+            "Controls the What to explore or clarify box "
+            "in the motivation AI interpretation."
+        ),
+        "defaults": {
+            "sv": """
+    UPPGIFT
+
+    Styr endast sektionen
+    "Vad som bör utforskas eller förtydligas"
+    i kandidatens motivationstolkning.
+
+    Som standard, ge 3 korta och relevanta punkter.
+
+    Identifiera sådant där ett samtal med personen kan ge
+    ytterligare förståelse för motivationsprofilen.
+
+    Det kan exempelvis handla om:
+
+    - hur en viktig drivkraft fungerar i praktiken
+    - vad som händer när en framträdande faktor saknas
+    - hur olika drivkrafter kan behöva balanseras
+    - förväntningar som kan behöva förtydligas
+    - situationsberoende motivationsmönster
+    - områden där processkontext saknas
+
+    Beskriv punkterna som områden att utforska, inte som problem,
+    svagheter eller risker.
+
+    Ett mindre framträdande motivationsområde är inte automatiskt negativt.
+
+    Hitta inte på problem bara för att fylla sektionen.
+    """.strip(),
+
+            "en": """
+    TASK
+
+    Control only the
+    "What to explore or clarify" section
+    of the candidate's motivation interpretation.
+
+    By default, provide 3 concise and relevant points.
+
+    Identify areas where discussion with the person may add useful
+    understanding of the motivation profile.
+
+    This may include:
+
+    - how an important driver operates in practice
+    - what happens when a prominent factor is absent
+    - how different drivers may need to be balanced
+    - expectations that may need clarification
+    - context-dependent motivation patterns
+    - limitations caused by missing process context
+
+    Describe these as areas to explore, not automatically as problems,
+    weaknesses or risks.
+
+    A less prominent motivation factor is not automatically negative.
+
+    Do not invent concerns merely to populate the section.
+    """.strip(),
+        },
+    },
+
         "motivation_questions": {
         "name": "Motivation questions",
         "category": "Motivation",
@@ -3774,12 +4114,11 @@ By default, do not include raw STIVE scores in the questions.
 
         },
     },
-        "cognitive_interpretation": {
-        "name": "Cognitive interpretation",
+    "cognitive_interpretation": {
+        "name": "Cognitive · Practical interpretation",
         "category": "Cognitive",
         "description": (
-            "Controls the tone, emphasis and communication style used "
-            "when Talena interprets cognitive assessment results."
+            "Controls the Practical interpretation section only."
         ),
         "defaults": {
 
@@ -4163,6 +4502,94 @@ Do not include raw percentile values in the final user-facing text.
 
         },
     },
+
+    "cognitive_considerations": {
+    "name": "Cognitive · Relevant considerations",
+    "category": "Cognitive",
+    "description": (
+        "Controls the Relevant considerations section "
+        "in the cognitive AI interpretation."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr endast sektionen "Relevanta överväganden"
+i kandidatens kognitiva tolkning.
+
+Identifiera sådant som användaren kan behöva ta hänsyn till
+när de kognitiva resultaten förstås och diskuteras.
+
+Som standard, ge 3 korta och relevanta punkter.
+
+Punkterna kan exempelvis handla om:
+
+- vilka typer av kognitiva krav resultatet kan vara mer eller mindre relevant för
+- situationer där ytterligare beteendeunderlag kan behövas
+- strategier, arbetssätt eller stöd som kan vara värdefulla att utforska
+- begränsningar i vad det kognitiva testresultatet faktiskt visar
+- processkontext som påverkar resultatets praktiska relevans
+- områden där ytterligare information behövs
+
+Ett lägre resultat innebär inte automatiskt låg förmåga.
+Ett högre resultat garanterar inte stark arbetsprestation.
+
+Beskriv inte punkterna automatiskt som:
+
+- svagheter
+- risker
+- brister
+- bevis på olämplighet
+
+Använd endast information som faktiskt finns i testresultatet
+och eventuell processkontext.
+
+Hitta inte på erfarenheter, arbetsuppgifter eller rollkrav
+som saknas i underlaget.
+
+Skriv praktiskt, balanserat och nyanserat.
+""".strip(),
+
+        "en": """
+TASK
+
+Control only the "Relevant considerations" section
+of the candidate's cognitive interpretation.
+
+Identify factors the user may need to consider when understanding
+and discussing the cognitive assessment results.
+
+By default, provide 3 concise and relevant points.
+
+These may include:
+
+- cognitive demands for which the result may be more or less relevant
+- situations where additional behavioural evidence may be useful
+- strategies, working approaches or support that may be worth exploring
+- limitations in what the cognitive assessment result demonstrates
+- process context affecting the practical relevance of the result
+- areas where additional information is needed
+
+A lower result does not automatically indicate low ability.
+A higher result does not guarantee strong workplace performance.
+
+Do not automatically describe the points as:
+
+- weaknesses
+- risks
+- deficiencies
+- proof of poor suitability
+
+Use only information actually available in the assessment evidence
+and supplied process context.
+
+Do not invent experience, job tasks or role requirements
+that are not present in the evidence.
+
+Write practically, in a balanced and nuanced way.
+""".strip(),
+    },
+},
         "cognitive_questions": {
         "name": "Cognitive questions",
         "category": "Cognitive",
@@ -4440,13 +4867,12 @@ Briefly explain:
         },
     },
         "ai_overview": {
-        "name": "AI Overview",
-        "category": "Overview",
-        "description": (
-            "Controls the tone, emphasis and synthesis style used when "
-            "Talena combines available assessment evidence into the "
-            "candidate's overall AI Overview."
-        ),
+            "name": "AI Overview · Overall interpretation",
+            "category": "Overview",
+            "description": (
+                "Controls the Overall interpretation section "
+                "in the candidate AI Overview."
+            ),
         "defaults": {
 
            "sv": """
@@ -4959,6 +5385,158 @@ user-facing text.
 """.strip(),
         },
     },
+
+    "ai_overview_supportive_patterns": {
+    "name": "AI Overview · What supports the purpose",
+    "category": "Overview",
+    "description": (
+        "Controls the What supports the purpose / "
+        "Potentially supportive patterns box in AI Overview."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr endast sektionen "Vad som stödjer syftet"
+i kandidatens AI Overview.
+
+För historiska kandidater motsvarar detta sektionen
+"Potentiellt stödjande mönster".
+
+Som standard, ge 3 korta och relevanta punkter.
+
+Identifiera mönster i det tillgängliga assessment-underlaget
+som kan vara relevanta eller potentiellt stödjande i relation
+till processens valda syfte och tillgängliga processkontext.
+
+Varje punkt ska:
+
+- bygga på faktiskt tillgängligt assessment-underlag
+- beskriva möjlig praktisk relevans
+- använda nyanserat språk
+- skilja mellan testindikation och bevisat beteende
+- inte beskriva resultatet som garanti för prestation eller lämplighet
+
+Högre resultat är inte automatiskt styrkor.
+Lägre resultat är inte automatiskt svagheter.
+
+Skapa inte positiva påståenden bara för att fylla sektionen.
+
+Hitta inte på erfarenhet, kompetens, arbetsuppgifter,
+rollkrav eller organisationsförhållanden som saknas i underlaget.
+""".strip(),
+
+        "en": """
+TASK
+
+Control only the "What supports the purpose" section
+of the candidate AI Overview.
+
+For historical candidates this corresponds to the
+"Potentially supportive patterns" section.
+
+By default, provide 3 concise and relevant points.
+
+Identify patterns in the available assessment evidence
+that may be relevant or potentially supportive in relation
+to the selected process purpose and supplied process context.
+
+Each point should:
+
+- be grounded in available assessment evidence
+- describe possible practical relevance
+- use nuanced language
+- distinguish assessment indications from proven behaviour
+- not describe results as guarantees of performance or suitability
+
+Higher results are not automatically strengths.
+Lower results are not automatically weaknesses.
+
+Do not invent positive claims merely to populate the section.
+
+Do not invent experience, competence, job tasks,
+role requirements or organisational circumstances.
+""".strip(),
+    },
+},
+
+"ai_overview_areas_to_explore": {
+    "name": "AI Overview · What to explore or consider",
+    "category": "Overview",
+    "description": (
+        "Controls the What to explore or consider box "
+        "in the candidate AI Overview."
+    ),
+    "defaults": {
+        "sv": """
+UPPGIFT
+
+Styr endast sektionen
+"Vad som bör utforskas eller övervägas"
+i kandidatens AI Overview.
+
+Som standard, ge 3 korta och relevanta punkter.
+
+Identifiera områden där ytterligare information,
+samtal, beteendeexempel eller annan evidens kan ge
+en bättre förståelse.
+
+Det kan exempelvis handla om:
+
+- möjliga spänningar mellan olika assessment-resultat
+- situationsberoende preferenser
+- områden där konkreta beteendeexempel behövs
+- sådant assessment-underlaget inte kan utvärdera
+- begränsningar på grund av saknad processkontext
+- relevanta frågor som fortfarande är obesvarade
+
+Beskriv punkterna som områden att utforska eller överväga.
+
+Beskriv dem inte automatiskt som:
+
+- svagheter
+- risker
+- problem
+- brister
+- skäl att välja bort personen
+
+Hitta inte på problem bara för att fylla sektionen.
+""".strip(),
+
+        "en": """
+TASK
+
+Control only the "What to explore or consider" section
+of the candidate AI Overview.
+
+By default, provide 3 concise and relevant points.
+
+Identify areas where additional information, discussion,
+behavioural examples or other evidence may improve understanding.
+
+This may include:
+
+- possible tensions between assessment results
+- context-dependent preferences
+- areas where concrete behavioural examples are needed
+- requirements the assessment evidence cannot evaluate
+- limitations caused by missing process context
+- relevant questions that remain unanswered
+
+Describe these as areas to explore or consider.
+
+Do not automatically describe them as:
+
+- weaknesses
+- risks
+- problems
+- deficiencies
+- reasons to reject the person
+
+Do not invent concerns merely to populate the section.
+""".strip(),
+    },
+},
         "pre_interview_decision_support": {
         "name": "Pre-interview decision support",
         "category": "Final output",

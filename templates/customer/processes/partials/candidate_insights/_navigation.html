@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Talena candidate i18n batch 1 #}
+{# Candidate insights top-level navigation #}
 <section class="candidate-insights-navigation">
 
   <div class="candidate-profile-tabs-wrap">
@@ -46,16 +46,16 @@
       </button>
 
 
-<button
-  type="button"
-  class="candidate-tab {% if not has_ability_results %}opacity-50{% endif %}"
-  role="tab"
-  aria-selected="false"
-  aria-controls="candidate-insights-panel-cognitive"
-  data-insights-tab="cognitive"
->
-  {% trans "Cognitive abilities" %}
-</button>
+      <button
+        type="button"
+        class="candidate-tab {% if not has_ability_results %}opacity-50{% endif %}"
+        role="tab"
+        aria-selected="false"
+        aria-controls="candidate-insights-panel-cognitive"
+        data-insights-tab="cognitive"
+      >
+        {% trans "Cognitive abilities" %}
+      </button>
 
 
       <button
@@ -75,10 +75,10 @@
         class="candidate-tab"
         role="tab"
         aria-selected="false"
-        aria-controls="candidate-insights-panel-questions"
-        data-insights-tab="questions"
+        aria-controls="candidate-insights-panel-prepare-interview"
+        data-insights-tab="prepare-interview"
       >
-        {% trans "Questions" %}
+        {% trans "Prepare for interview" %}
       </button>
 
 
@@ -87,10 +87,10 @@
         class="candidate-tab"
         role="tab"
         aria-selected="false"
-        aria-controls="candidate-insights-panel-final-output"
-        data-insights-tab="final-output"
+        aria-controls="candidate-insights-panel-after-interview"
+        data-insights-tab="after-interview"
       >
-        {% trans "Final output" %}
+        {% trans "After interview" %}
       </button>
 
     </div>

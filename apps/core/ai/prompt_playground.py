@@ -258,16 +258,15 @@ requirements that are not supplied.
         "context": RECRUITMENT_CONTEXT,
         "evidence": ALL_ASSESSMENT_EVIDENCE,
         "task": """
-Generate a sample Talena AI overview.
+Generate only sample content for:
 
-Include:
+Overall interpretation
 
-Overall synthesis
-What may support the process purpose
-What should be explored further
-Recommended next steps
+Create a concise overall synthesis using the available assessment
+evidence and supplied process context.
 
-Use evidence across the available assessments.
+Do not generate supportive patterns, areas to explore
+or recommended next steps.
 """.strip(),
     },
 
@@ -289,6 +288,40 @@ assessment evidence and process context.
 """.strip(),
     },
 
+    "ai_overview_supportive_patterns": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+What supports the purpose
+
+Identify assessment patterns that may be potentially supportive
+in relation to the supplied process purpose and context.
+
+Do not generate the overall interpretation or areas to explore.
+""".strip(),
+    },
+
+    "ai_overview_areas_to_explore": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+What to explore or consider
+
+Identify areas where additional information, discussion or
+behavioural evidence may improve understanding.
+
+Do not generate the overall interpretation or supportive patterns.
+""".strip(),
+    },
+
 
     # --------------------------------------------------------
     # Personality
@@ -300,14 +333,15 @@ assessment evidence and process context.
         "context": RECRUITMENT_CONTEXT,
         "evidence": PERSONALITY_EVIDENCE,
         "task": """
-Generate a sample Talena personality interpretation.
-
-Use these sections:
+Generate only sample content for:
 
 Overall personality interpretation
-Profile dynamics / personality trait interplay
-Potentially supportive patterns
-What should be explored or validated
+
+Create a concise and balanced synthesis of the supplied
+personality results in relation to the process context.
+
+Do not generate profile dynamics, supportive patterns
+or areas to explore.
 """.strip(),
     },
 
@@ -326,6 +360,43 @@ preferences may interact, reinforce, balance or create possible
 tensions.
 
 Do not generate the full personality interpretation.
+""".strip(),
+    },
+
+    "personality_supportive_patterns": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": PERSONALITY_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+Potentially supportive patterns
+
+Use the supplied personality results and process context.
+
+Do not generate the overall personality interpretation,
+profile dynamics or areas to explore.
+""".strip(),
+    },
+
+    "personality_areas_to_explore": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": PERSONALITY_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+What to explore or validate
+
+Use the supplied personality results and process context.
+
+Describe useful areas for further exploration without treating
+them automatically as weaknesses or risks.
+
+Do not generate the overall personality interpretation,
+profile dynamics or supportive patterns.
 """.strip(),
     },
 
@@ -407,14 +478,75 @@ Do not treat response styles as competence or suitability measures.
         "context": RECRUITMENT_CONTEXT,
         "evidence": MOTIVATION_EVIDENCE,
         "task": """
-Generate a sample Talena motivation interpretation.
+Generate only sample content for:
 
-Cover:
+Overall motivation interpretation
 
-Most prominent drivers
-Possible motivational conditions
-Potential tensions or trade-offs
-What should be explored further
+Create a concise overall synthesis of the supplied motivation
+results in relation to the process context.
+
+Do not generate expectation setting, engagement conditions
+or areas to clarify.
+""".strip(),
+    },
+
+    "motivation_expectation_setting": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": MOTIVATION_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+Realistic expectation setting
+
+Use the supplied motivation results and process context.
+
+Show what may be useful to clarify with the person about
+expectations, circumstances or working conditions.
+
+Do not generate the overall motivation interpretation,
+engagement conditions or areas to clarify.
+""".strip(),
+    },
+
+    "motivation_engagement_conditions": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": MOTIVATION_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+Conditions likely to support engagement
+
+Use the supplied motivation results and process context.
+
+Describe possible conditions that may support energy and engagement
+without treating them as absolute requirements.
+
+Do not generate the overall motivation interpretation,
+expectation setting or areas to clarify.
+""".strip(),
+    },
+
+    "motivation_areas_to_clarify": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": MOTIVATION_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+What to explore or clarify
+
+Use the supplied motivation results and process context.
+
+Identify useful topics for further discussion without treating
+less prominent motivation factors automatically as problems.
+
+Do not generate the overall motivation interpretation,
+expectation setting or engagement conditions.
 """.strip(),
     },
 
@@ -455,6 +587,25 @@ carefully and in relation to the supplied process context.
 
 Distinguish measured cognitive performance from assumptions about
 overall competence or future job performance.
+""".strip(),
+    },
+
+    "cognitive_considerations": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": COGNITIVE_EVIDENCE,
+        "task": """
+Generate only sample content for:
+
+Relevant considerations
+
+Use the supplied cognitive assessment results and process context.
+
+Highlight useful considerations, limitations or areas where
+additional behavioural evidence may improve understanding.
+
+Do not generate the practical cognitive interpretation.
 """.strip(),
     },
 

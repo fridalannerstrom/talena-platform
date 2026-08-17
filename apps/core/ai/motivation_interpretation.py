@@ -23,7 +23,10 @@ from .shared_context import (
     get_process_purpose_key,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 MOTIVATION_DEFINITIONS = {
     "attachment": (
@@ -255,6 +258,21 @@ def build_motivation_interpretation_prompt(
         language=language_code,
     )
 
+    expectation_setting_instructions = get_ai_feature_prompt_instructions(
+        key="motivation_expectation_setting",
+        language=language_code,
+    )
+
+    engagement_conditions_instructions = get_ai_feature_prompt_instructions(
+        key="motivation_engagement_conditions",
+        language=language_code,
+    )
+
+    areas_to_clarify_instructions = get_ai_feature_prompt_instructions(
+        key="motivation_areas_to_clarify",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -286,14 +304,67 @@ MOTIVATION ASSESSMENT DATA
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
 
-It controls all non-technical decisions about analysis,
-interpretation, motivation assessment principles, factor meanings,
-score interpretation, evidence boundaries, reasoning, tone,
-caution, conclusions and communication.
+OVERALL MOTIVATION INTERPRETATION GUIDANCE
+
+The following administrator guidance applies only to the
+overall motivation interpretation returned through
+interpretation_delta events.
+
+Do not use this guidance to determine the substantive content of
+expectation_setting, engagement_conditions or areas_to_clarify.
+
+If this guidance contains older instructions relating to those
+sections, the dedicated section guidance below takes precedence.
 
 {admin_instructions}
+
+
+REALISTIC EXPECTATION SETTING GUIDANCE
+
+The following administrator guidance applies only to the
+expectation_setting event.
+
+Do not use it to change the overall interpretation,
+engagement conditions or areas to clarify.
+
+{expectation_setting_instructions}
+
+
+CONDITIONS LIKELY TO SUPPORT ENGAGEMENT GUIDANCE
+
+The following administrator guidance applies only to the
+engagement_conditions event.
+
+Do not use it to change the overall interpretation,
+expectation setting or areas to clarify.
+
+{engagement_conditions_instructions}
+
+
+WHAT TO EXPLORE OR CLARIFY GUIDANCE
+
+The following administrator guidance applies only to the
+areas_to_clarify event.
+
+Do not use it to change the overall interpretation,
+expectation setting or engagement conditions.
+
+{areas_to_clarify_instructions}
+
+
+SECTION ISOLATION
+
+Treat each dedicated section guidance as authoritative for its
+corresponding event.
+
+Instructions for one section must not change the substantive
+content, number of items or emphasis of another section.
+
+Global Talena administrator guidance still applies across all sections.
+
+Do not allow administrator guidance to change Talena's technical
+event structure, required JSON fields or streaming format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

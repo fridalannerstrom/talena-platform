@@ -5,7 +5,12 @@ from django.contrib.auth.decorators import login_required
 from apps.core.integrations.sova import SovaClient
 from apps.core.utils.auth import is_admin
 
-from apps.processes.models import AIPromptTemplate
+from apps.processes.models import (
+    AIPromptTemplate,
+    AIPromptTemplateVersion,
+)
+
+from django.db import transaction
 
 from apps.core.ai.prompt_templates import (
     get_ai_prompt_definition,
@@ -521,6 +526,25 @@ def admin_ai_prompts(request):
         },
     )
 
+def _prune_ai_prompt_versions(prompt, keep=10):
+    """
+    Keep only the most recent AI prompt versions
+    for this specific prompt and language.
+    """
+
+    keep_ids = list(
+        prompt.versions
+        .order_by("-saved_at", "-id")
+        .values_list("id", flat=True)[:keep]
+    )
+
+    if not keep_ids:
+        return
+
+    prompt.versions.exclude(
+        id__in=keep_ids
+    ).delete()
+
 @login_required
 def admin_ai_prompt_edit(
     request,
@@ -634,6 +658,104 @@ def admin_ai_prompt_edit(
             or "save"
         )
 
+                # -----------------------------------------
+        # Restore previous prompt version
+        # -----------------------------------------
+
+        if action == "restore":
+
+            version_id = request.POST.get(
+                "version_id"
+            )
+
+            target_version = (
+                AIPromptTemplateVersion.objects
+                .select_related(
+                    "prompt",
+                    "saved_by",
+                )
+                .filter(
+                    id=version_id,
+                    prompt__key=key,
+                    prompt__language=language_code,
+                )
+                .first()
+            )
+
+            if not target_version:
+                messages.error(
+                    request,
+                    "The selected prompt version could not be found.",
+                )
+
+                return redirect(
+                    "core:admin_ai_prompt_edit",
+                    key=key,
+                    language=language_code,
+                )
+
+            with transaction.atomic():
+
+                prompt_override = (
+                    AIPromptTemplate.objects
+                    .select_for_update()
+                    .get(
+                        pk=target_version.prompt_id
+                    )
+                )
+
+                prompt_override.name = definition["name"]
+                prompt_override.description = (
+                    definition["description"]
+                )
+                prompt_override.prompt_text = (
+                    target_version.prompt_text
+                )
+                prompt_override.is_active = (
+                    target_version.is_active
+                )
+                prompt_override.updated_by = (
+                    request.user
+                )
+
+                prompt_override.save(
+                    update_fields=[
+                        "name",
+                        "description",
+                        "prompt_text",
+                        "is_active",
+                        "updated_by",
+                        "updated_at",
+                    ]
+                )
+
+                # Restore creates a NEW history entry.
+                # Existing later history remains untouched.
+                AIPromptTemplateVersion.objects.create(
+                    prompt=prompt_override,
+                    prompt_text=prompt_override.prompt_text,
+                    is_active=prompt_override.is_active,
+                    action="restore",
+                    saved_by=request.user,
+                    restored_from=target_version,
+                )
+
+                _prune_ai_prompt_versions(
+                    prompt_override,
+                    keep=10,
+                )
+
+            messages.success(
+                request,
+                "The previous AI prompt version was restored.",
+            )
+
+            return redirect(
+                "core:admin_ai_prompt_edit",
+                key=key,
+                language=language_code,
+            )
+
         if playground_available and action in {
             "test",
             "save",
@@ -699,6 +821,19 @@ def admin_ai_prompt_edit(
                         "updated_by",
                         "updated_at",
                     ]
+                )
+
+                AIPromptTemplateVersion.objects.create(
+                    prompt=override,
+                    prompt_text=override.prompt_text,
+                    is_active=False,
+                    action="save",
+                    saved_by=request.user,
+                )
+
+                _prune_ai_prompt_versions(
+                    override,
+                    keep=10,
                 )
 
                 messages.success(
@@ -771,19 +906,35 @@ def admin_ai_prompt_edit(
             )
 
         else:
-            override, created = (
-                AIPromptTemplate.objects.update_or_create(
-                    key=key,
-                    language=language_code,
-                    defaults={
-                        "name": definition["name"],
-                        "description": definition["description"],
-                        "prompt_text": prompt_text,
-                        "is_active": True,
-                        "updated_by": request.user,
-                    },
+            with transaction.atomic():
+
+                override, created = (
+                    AIPromptTemplate.objects.update_or_create(
+                        key=key,
+                        language=language_code,
+                        defaults={
+                            "name": definition["name"],
+                            "description": definition["description"],
+                            "prompt_text": prompt_text,
+                            "is_active": True,
+                            "updated_by": request.user,
+                        },
+                    )
                 )
-            )
+                
+
+                AIPromptTemplateVersion.objects.create(
+                    prompt=override,
+                    prompt_text=override.prompt_text,
+                    is_active=override.is_active,
+                    action="save",
+                    saved_by=request.user,
+                )
+
+                _prune_ai_prompt_versions(
+                    override,
+                    keep=10,
+                )
 
             messages.success(
                 request,
@@ -861,6 +1012,49 @@ def admin_ai_prompt_edit(
             )
         )
 
+            # ---------------------------------------------
+    # Prompt version history
+    # ---------------------------------------------
+
+    prompt_history = []
+
+    if override:
+
+        recent_versions = (
+            override.versions
+            .select_related(
+                "saved_by",
+                "restored_from",
+            )
+            .order_by(
+                "-saved_at",
+                "-id",
+            )[:5]
+        )
+
+        current_marked = False
+
+        for version in recent_versions:
+
+            is_current = False
+
+            if (
+                not current_marked
+                and version.prompt_text
+                    == override.prompt_text
+                and version.is_active
+                    == override.is_active
+            ):
+                is_current = True
+                current_marked = True
+
+            prompt_history.append(
+                {
+                    "version": version,
+                    "is_current": is_current,
+                }
+            )
+
     return render(
         request,
         "admin/core/ai_prompts/prompt_edit.html",
@@ -869,6 +1063,7 @@ def admin_ai_prompt_edit(
             "key": key,
             "language_code": language_code,
             "language": language_info,
+            "prompt_history": prompt_history,
 
             "default_prompt": default_prompt,
             "editing_text": editing_text,

@@ -22,11 +22,10 @@ from .language import (
     set_ai_content_language,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
-
-# Talena cognitive AI language batch 1
-
-
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 def extract_cognitive_results(
     invitation,
@@ -186,6 +185,11 @@ def build_cognitive_interpretation_prompt(
         language=language_code,
     )
 
+    considerations_instructions = get_ai_feature_prompt_instructions(
+        key="cognitive_considerations",
+        language=language_code,
+    )
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -217,13 +221,48 @@ COGNITIVE ASSESSMENT DATA
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
 
-It controls all non-technical decisions about analysis,
-interpretation, assessment principles, evidence boundaries,
-reasoning, tone, caution, conclusions and communication.
+PRACTICAL INTERPRETATION GUIDANCE
+
+The following administrator guidance applies only to the
+practical cognitive interpretation returned through
+interpretation_delta events.
+
+Do not use this guidance to determine the substantive content
+of the considerations event.
+
+If this guidance contains older instructions relating to
+considerations, the dedicated considerations guidance below
+takes precedence.
 
 {admin_instructions}
+
+
+RELEVANT CONSIDERATIONS GUIDANCE
+
+The following administrator guidance applies only to the
+considerations event.
+
+Do not use it to change the practical interpretation.
+
+{considerations_instructions}
+
+
+SECTION ISOLATION
+
+Treat each dedicated section guidance as authoritative for its
+corresponding event.
+
+Instructions for one section must not change the substantive
+content, number of items or emphasis of another section.
+
+Global Talena administrator guidance still applies across all sections.
+
+The technical questions event, if generated, is not controlled by
+either of these visible interpretation-section prompts.
+
+Do not allow administrator guidance to change Talena's technical
+event structure, required JSON fields or streaming format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

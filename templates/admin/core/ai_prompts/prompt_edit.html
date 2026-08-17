@@ -319,6 +319,264 @@
 
       </div>
 
+            <!-- Prompt history -->
+
+      {% if prompt_history %}
+
+        <div class="card border-0 shadow-sm mt-4">
+
+          <div class="card-body">
+
+            <div
+              class="
+                d-flex
+                align-items-start
+                justify-content-between
+                flex-wrap
+                gap-3
+                mb-4
+              "
+            >
+
+              <div>
+
+                <div
+                  class="
+                    text-uppercase
+                    small
+                    fw-semibold
+                    text-muted
+                    mb-1
+                  "
+                >
+                  {% trans "Version history" %}
+                </div>
+
+                <h4 class="mb-1">
+                  {% trans "Recent versions" %}
+                </h4>
+
+                <p class="small text-muted mb-0">
+                  {% trans "Previous versions are kept so accidental prompt changes can be restored." %}
+                </p>
+
+              </div>
+
+              <span
+                class="
+                  badge
+                  rounded-pill
+                  border
+                  text-secondary
+                "
+              >
+                {{ prompt_history|length }}
+                {% trans "versions" %}
+              </span>
+
+            </div>
+
+
+            <div class="d-flex flex-column gap-3">
+
+              {% for item in prompt_history %}
+
+                {% with version=item.version %}
+
+                  <div
+                    class="
+                      border
+                      rounded-4
+                      p-3
+                    "
+                  >
+
+                    <div
+                      class="
+                        d-flex
+                        align-items-start
+                        justify-content-between
+                        gap-3
+                        flex-wrap
+                      "
+                    >
+
+                      <div>
+
+                        <div
+                          class="
+                            d-flex
+                            align-items-center
+                            gap-2
+                            flex-wrap
+                            mb-1
+                          "
+                        >
+
+                          <span class="fw-semibold">
+                            {{ version.saved_at|date:"Y-m-d H:i" }}
+                          </span>
+
+                          {% if item.is_current %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                bg-primary-subtle
+                                text-primary
+                              "
+                            >
+                              {% trans "Current" %}
+                            </span>
+
+                          {% endif %}
+
+
+                          {% if version.action == "restore" %}
+
+                            <span
+                              class="
+                                badge
+                                rounded-pill
+                                text-secondary
+                                border
+                              "
+                            >
+                              {% trans "Restored" %}
+                            </span>
+
+                          {% endif %}
+
+                        </div>
+
+
+                        <div class="small text-muted">
+
+                          {% if version.saved_by %}
+
+                            {% trans "Saved by" %}
+                            {{ version.saved_by.get_full_name|default:version.saved_by.email }}
+
+                          {% else %}
+
+                            {% trans "Saved automatically" %}
+
+                          {% endif %}
+
+
+                          {% if version.restored_from %}
+
+                            ·
+                            {% trans "restored from" %}
+                            {{ version.restored_from.saved_at|date:"Y-m-d H:i" }}
+
+                          {% endif %}
+
+                        </div>
+
+                      </div>
+
+
+                      {% if not item.is_current %}
+
+                        <form
+                          method="post"
+                          onsubmit="return confirm('Restore this AI prompt version? The current version will remain in history.');"
+                        >
+
+                          {% csrf_token %}
+
+                          <input
+                            type="hidden"
+                            name="action"
+                            value="restore"
+                          >
+
+                          <input
+                            type="hidden"
+                            name="version_id"
+                            value="{{ version.id }}"
+                          >
+
+                          <button
+                            type="submit"
+                            class="
+                              btn
+                              btn-sm
+                              btn-outline-primary
+                              rounded-pill
+                              px-3
+                            "
+                          >
+
+                            <i
+                              data-feather="rotate-ccw"
+                              class="me-1"
+                            ></i>
+
+                            {% trans "Restore" %}
+
+                          </button>
+
+                        </form>
+
+                      {% endif %}
+
+                    </div>
+
+
+                    <details class="mt-3">
+
+                      <summary
+                        class="
+                          small
+                          fw-semibold
+                          text-primary
+                          user-select-none
+                        "
+                        style="cursor:pointer;"
+                      >
+                        {% trans "View this version" %}
+                      </summary>
+
+                      <div
+                        class="
+                          border
+                          rounded-3
+                          p-3
+                          mt-3
+                        "
+                      >
+
+                        <pre
+                          class="mb-0"
+                          style="
+                            white-space: pre-wrap;
+                            word-break: break-word;
+                            font-family: inherit;
+                            font-size: .875rem;
+                            line-height: 1.6;
+                          "
+                        >{{ version.prompt_text }}</pre>
+
+                      </div>
+
+                    </details>
+
+                  </div>
+
+                {% endwith %}
+
+              {% endfor %}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      {% endif %}
 
       <!-- AI prompt playground -->
 
@@ -795,7 +1053,6 @@
         class="
           badge
           rounded-pill
-          bg-light
           text-secondary
           border
         "

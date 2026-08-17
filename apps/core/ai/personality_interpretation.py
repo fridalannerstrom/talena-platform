@@ -116,7 +116,17 @@ def build_personality_interpretation_prompt(
         key="personality_trait_interplay",
         language=language_code,
     )
-        
+
+    supportive_patterns_instructions = get_ai_feature_prompt_instructions(
+        key="personality_supportive_patterns",
+        language=language_code,
+    )
+
+    areas_to_explore_instructions = get_ai_feature_prompt_instructions(
+        key="personality_areas_to_explore",
+        language=language_code,
+    )
+            
     shared_context = build_shared_ai_context(
         owner
     )
@@ -147,36 +157,69 @@ PERSONALITY ASSESSMENT DATA
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
 
-It controls all non-technical decisions about personality
-interpretation, STEN interpretation, assessment principles,
-evidence boundaries, reasoning, trait combinations, tone,
-caution, conclusions and communication.
+OVERALL PERSONALITY INTERPRETATION GUIDANCE
+
+The following administrator guidance applies only to the
+overall personality interpretation returned through
+interpretation_delta events.
+
+Do not use this guidance to determine the substantive content of
+profile_dynamics, supportive_patterns or areas_to_explore.
+
+If this guidance contains older instructions relating to those
+sections, the dedicated section guidance below takes precedence.
 
 {admin_instructions}
 
-PROFILE DYNAMICS / TRAIT INTERPLAY GUIDANCE
 
-The following administrator guidance applies specifically to the
-profile_dynamics section ("Samspel mellan personlighetsdrag").
+COMBINED TRAIT DYNAMICS GUIDANCE
 
-It is more specific than the general personality interpretation
-guidance above and therefore takes precedence for decisions about:
-
-- which trait combinations are meaningful to describe
-- how traits may interact
-- possible tensions, balancing or reinforcing patterns
-- correlations or relationships between traits
-- how those combinations should be communicated
-
-Apply this guidance specifically when generating the
+The following administrator guidance applies only to the
 profile_dynamics event.
 
-Do not allow this dedicated guidance to change Talena's technical
-event structure or JSON fields.
+It controls which trait combinations are meaningful to describe,
+how traits may interact, possible tensions, balancing or reinforcing
+patterns and how those combinations should be communicated.
 
 {interplay_instructions}
+
+
+POTENTIALLY SUPPORTIVE PATTERNS GUIDANCE
+
+The following administrator guidance applies only to the
+supportive_patterns event.
+
+Do not use it to change the overall interpretation,
+profile dynamics or areas to explore.
+
+{supportive_patterns_instructions}
+
+
+WHAT TO EXPLORE OR VALIDATE GUIDANCE
+
+The following administrator guidance applies only to the
+areas_to_explore event.
+
+Do not use it to change the overall interpretation,
+profile dynamics or supportive patterns.
+
+{areas_to_explore_instructions}
+
+
+SECTION ISOLATION
+
+Treat each dedicated section guidance as authoritative for its
+corresponding event.
+
+Instructions for one section must not change the substantive
+content, number of items or emphasis of another section.
+
+Global Talena administrator guidance still applies across all sections.
+
+Do not allow administrator guidance to change Talena's technical
+event structure, required JSON fields or streaming format.
+
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

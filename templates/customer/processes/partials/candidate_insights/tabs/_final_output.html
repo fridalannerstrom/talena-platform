@@ -1,7 +1,6 @@
 {% load i18n %}
-{# Talena final output template i18n batch 1 #}
-<section
-  class="purpose-fit-card final-output-card"
+
+<div
   data-final-output-root
   data-decision-support-root
   data-refresh-url="{{ final_output_refresh_url }}"
@@ -17,70 +16,405 @@
 >
 
   <!-- ================================================== -->
-  <!-- PAGE HEADER -->
+  <!-- PREPARE FOR INTERVIEW -->
   <!-- ================================================== -->
 
+  <div
+    id="candidate-insights-panel-prepare-interview"
+    class="candidate-insights-panel"
+    role="tabpanel"
+    data-insights-panel="prepare-interview"
+    hidden
+  >
+
+    <section class="purpose-fit-card final-output-card mb-4">
+
+      <div
+        class="
+          d-flex
+          align-items-start
+          justify-content-between
+          gap-3
+          flex-wrap
+        "
+      >
+
+        <div>
+
+          <h2 class="insight-summary-title mb-1">
+            {% trans "Prepare for interview" %}
+          </h2>
+
+          <p class="text-muted small mb-0">
+            {% blocktrans %}Use the assessment evidence to prepare the conversation and focus the interview on areas that are useful to explore further.{% endblocktrans %}
+          </p>
+
+        </div>
 
 
-    <!-- ================================================== -->
-    <!-- BEFORE / AFTER TABS -->
-    <!-- ================================================== -->
+        <div class="d-flex align-items-center gap-2">
 
-    <div>
-
-      <div class="personality-view-controls">
-
-        <div
-          class="personality-view-tabs"
-          role="tablist"
-          aria-label="{% trans 'Decision support stage' %}"
-        >
-
-          <button
-            type="button"
-            id="decision-support-before-tab"
-            class="personality-view-tab is-active"
-            role="tab"
-            aria-selected="true"
-            aria-controls="decision-support-before-panel"
-            data-decision-tab="before"
+          <span
+            class="
+              badge
+              rounded-pill
+              bg-warning-subtle
+              text-warning-emphasis
+              {% if pre_interview_decision_support_status != 'outdated' %}
+                d-none
+              {% endif %}
+            "
+            data-pre-interview-status-badge
           >
-            <i data-feather="clipboard"></i>
-            <span>{% trans "Before interview" %}</span>
-          </button>
+            {% trans "Needs update" %}
+          </span>
 
 
-          <button
-            type="button"
-            id="decision-support-after-tab"
-            class="personality-view-tab"
-            role="tab"
-            aria-selected="false"
-            aria-controls="decision-support-after-panel"
-            data-decision-tab="after"
-          >
-            <i data-feather="message-circle"></i>
-            <span>{% trans "After interview" %}</span>
-          </button>
+          {% if has_pre_interview_decision_support %}
+
+            <button
+              type="button"
+              class="btn btn-icon btn-light"
+              title="{% trans 'Generate updated decision support' %}"
+              aria-label="{% trans 'Generate updated decision support' %}"
+              data-pre-interview-generate
+              data-regenerate="true"
+            >
+              <i data-feather="refresh-cw"></i>
+            </button>
+
+          {% endif %}
 
         </div>
 
       </div>
 
 
-      <!-- ================================================== -->
-      <!-- BEFORE INTERVIEW PANEL -->
-      <!-- ================================================== -->
+      <!-- OUTDATED WARNING -->
 
       <div
-        id="decision-support-before-panel"
-        class="personality-view-panel"
-        role="tabpanel"
-        aria-labelledby="decision-support-before-tab"
-        data-decision-panel="before"
+        class="
+          alert
+          alert-warning
+          mt-4
+          {% if pre_interview_decision_support_status != 'outdated' %}
+            d-none
+          {% endif %}
+        "
+        data-pre-interview-outdated
       >
 
-        <!-- HEADER -->
+        <div class="d-flex align-items-start gap-2">
+
+          <i
+            data-feather="alert-circle"
+            class="flex-shrink-0 mt-1"
+          ></i>
+
+          <div>
+
+            <div class="fw-semibold small mb-1">
+              {% trans "The process information has changed" %}
+            </div>
+
+            <div class="small">
+              {% blocktrans %}This interview preparation was created using an earlier purpose or process context. Generate an updated version before relying on it.{% endblocktrans %}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- LOADING -->
+
+      <div
+        class="
+          d-flex
+          align-items-center
+          gap-2
+          text-muted
+          py-4
+          d-none
+        "
+        data-pre-interview-thinking
+      >
+
+        <span
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+
+        <span>
+          {% trans "Combining the available evidence and preparing the interview…" %}
+        </span>
+
+      </div>
+
+
+      <!-- ERROR -->
+
+      <div
+        class="
+          alert
+          alert-danger
+          mt-4
+          {% if pre_interview_decision_support_status != 'failed' %}
+            d-none
+          {% endif %}
+        "
+        data-pre-interview-error
+      >
+        {% trans "The interview preparation could not be generated." %}
+      </div>
+
+
+      <!-- EMPTY STATE -->
+
+      <div
+        class="
+          combined-questions-empty-state
+          mt-4
+          {% if has_pre_interview_decision_support %}
+            d-none
+          {% endif %}
+        "
+        data-pre-interview-empty
+      >
+
+        <div class="combined-questions-empty-state__icon">
+          <i data-feather="clipboard"></i>
+        </div>
+
+        <h3 class="personality-questions-section-title mb-2">
+          {% trans "Prepare the interview" %}
+        </h3>
+
+        <p
+          class="text-muted small mb-0 mx-auto"
+          style="max-width: 560px;"
+        >
+          {% blocktrans %}Generate an overall synthesis and practical guidance before reviewing the candidate-specific interview questions.{% endblocktrans %}
+        </p>
+
+
+        {% if not has_pre_interview_decision_support %}
+
+          <div class="d-flex justify-content-center mt-4">
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-pre-interview-generate
+              data-regenerate="false"
+            >
+              {% trans "Generate interview preparation" %}
+            </button>
+
+          </div>
+
+        {% endif %}
+
+      </div>
+
+
+      <!-- GENERATED PREPARATION -->
+
+      <div
+        class="
+          {% if not has_pre_interview_decision_support %}
+            d-none
+          {% endif %}
+        "
+        data-pre-interview-content
+      >
+
+        <!-- OVERALL SUMMARY -->
+
+        <section class="purpose-fit-section mt-4">
+
+          <h3 class="purpose-fit-section-title mb-2">
+            {% trans "Overall synthesis" %}
+          </h3>
+
+          <div
+            class="purpose-fit-summary"
+            data-pre-interview-overall-synthesis
+          >{{ pre_interview_decision_support.overall_synthesis }}</div>
+
+        </section>
+
+
+        <!-- HOW TO APPROACH THE CONVERSATION -->
+        {% comment %}
+          #188 will make this source explicitly response-style-specific.
+          Until then we retain the existing saved discussion guidance so
+          no useful pre-interview content is lost during the navigation move.
+        {% endcomment %}
+
+        <section class="border-top pt-4 mt-4">
+
+          <h3 class="insight-summary-title mb-1">
+            {% trans "How to approach the conversation" %}
+          </h3>
+
+          <p class="text-muted small mb-0">
+            {% blocktrans %}Practical guidance for creating a constructive conversation and collecting useful behavioural evidence.{% endblocktrans %}
+          </p>
+
+
+          <div class="row g-4 mt-1">
+
+            <div class="col-lg-6">
+
+              <section class="purpose-fit-list-card h-100">
+
+                <div class="purpose-fit-section-title">
+                  {% trans "Conversation approach" %}
+                </div>
+
+                <ul
+                  class="purpose-fit-list"
+                  data-pre-interview-feedback-approach
+                >
+
+                  {% for item in pre_interview_decision_support.discussion_guidance.feedback_approach %}
+
+                    <li>
+
+                      <span class="purpose-fit-list-icon">
+                        <i data-feather="message-circle"></i>
+                      </span>
+
+                      <span>{{ item }}</span>
+
+                    </li>
+
+                  {% empty %}
+
+                    <li>
+                      <span class="text-muted">
+                        {% trans "No additional conversation guidance is available yet." %}
+                      </span>
+                    </li>
+
+                  {% endfor %}
+
+                </ul>
+
+              </section>
+
+            </div>
+
+
+            <div class="col-lg-6">
+
+              <section class="purpose-fit-list-card h-100">
+
+                <div class="purpose-fit-section-title">
+                  {% trans "Interview focus" %}
+                </div>
+
+                <ul
+                  class="purpose-fit-list"
+                  data-pre-interview-interview-focus
+                >
+
+                  {% for item in pre_interview_decision_support.discussion_guidance.interview_focus %}
+
+                    <li>
+
+                      <span class="purpose-fit-list-icon">
+                        <i data-feather="search"></i>
+                      </span>
+
+                      <span>{{ item }}</span>
+
+                    </li>
+
+                  {% empty %}
+
+                    <li>
+                      <span class="text-muted">
+                        {% trans "No additional interview focus is available yet." %}
+                      </span>
+                    </li>
+
+                  {% endfor %}
+
+                </ul>
+
+              </section>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {% if pre_interview_decision_support.context_note %}
+
+          <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+
+            <i data-feather="info"></i>
+
+            <div data-pre-interview-context-note>
+              {{ pre_interview_decision_support.context_note }}
+            </div>
+
+          </div>
+
+        {% endif %}
+
+      </div>
+
+    </section>
+
+
+    <!-- SAVED ASSESSMENT QUESTION SETS -->
+
+    {% include "customer/processes/partials/candidate_insights/tabs/_questions.html" %}
+
+  </div>
+
+
+  <!-- ================================================== -->
+  <!-- AFTER INTERVIEW -->
+  <!-- ================================================== -->
+
+  <div
+    id="candidate-insights-panel-after-interview"
+    class="candidate-insights-panel"
+    role="tabpanel"
+    data-insights-panel="after-interview"
+    hidden
+  >
+
+    <section class="purpose-fit-card final-output-card">
+
+      <div>
+
+        <h2 class="insight-summary-title mb-1">
+          {% trans "After interview" %}
+        </h2>
+
+        <p class="text-muted small mb-0">
+          {% blocktrans %}Save interview evidence and compare it with the assessment indications to add context, nuance and remaining areas for exploration.{% endblocktrans %}
+        </p>
+
+      </div>
+
+
+      <!-- INTERVIEW NOTES -->
+
+      <section
+        class="response-style-ai-card mt-4 mb-4 pb-4"
+        data-interview-notes-root
+      >
 
         <div
           class="
@@ -89,18 +423,136 @@
             justify-content-between
             gap-3
             flex-wrap
-            mt-4
+            mb-3
           "
         >
 
           <div>
 
-            <h3 class="insight-summary-title mb-1 mt-4">
-              {% trans "Pre-interview decision support" %}
+            <div class="purpose-fit-section-title mb-1">
+              {% trans "Interview notes and candidate examples" %}
+            </div>
+
+            <div class="small text-muted">
+              {% blocktrans %}Include relevant examples, working methods, context and answers that may support, challenge or add nuance to the assessment profile.{% endblocktrans %}
+            </div>
+
+          </div>
+
+
+          {% if interview_notes_updated_at %}
+
+            <span
+              class="small text-muted"
+              data-interview-notes-last-saved
+            >
+              {% blocktrans with saved_at=interview_notes_updated_at|date:"j M Y, H:i" %}Last saved {{ saved_at }}{% endblocktrans %}
+            </span>
+
+          {% else %}
+
+            <span
+              class="small text-muted"
+              data-interview-notes-last-saved
+            ></span>
+
+          {% endif %}
+
+        </div>
+
+
+        <label
+          for="candidate-interview-notes"
+          class="visually-hidden"
+        >
+          {% trans "Interview notes and candidate examples" %}
+        </label>
+
+        <textarea
+          id="candidate-interview-notes"
+          class="form-control"
+          rows="12"
+          maxlength="30000"
+          placeholder="{% trans 'Paste interview notes, candidate examples and relevant observations here…' %}"
+          data-interview-notes-input
+        >{{ interview_notes }}</textarea>
+
+
+        <div
+          class="
+            d-flex
+            align-items-center
+            justify-content-between
+            gap-3
+            flex-wrap
+            mt-3
+          "
+        >
+
+          <div>
+
+            <span
+              class="small text-muted"
+              data-interview-notes-count
+            >
+              {% blocktrans with character_count=interview_notes|length %}{{ character_count }} / 30,000 characters{% endblocktrans %}
+            </span>
+
+            <span
+              class="small ms-2"
+              data-interview-notes-status
+            ></span>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-interview-notes-save
+          >
+            <i data-feather="save"></i>
+            {% trans "Save interview notes" %}
+          </button>
+
+        </div>
+
+
+        <div
+          class="alert alert-danger d-none mt-3 mb-0"
+          data-interview-notes-error
+        >
+          {% trans "The interview notes could not be saved." %}
+        </div>
+
+      </section>
+
+
+      <!-- POST-INTERVIEW DECISION SUPPORT -->
+
+      <section
+        class="border-top pt-4 mt-4"
+        data-post-interview-section
+      >
+
+        <div
+          class="
+            d-flex
+            align-items-start
+            justify-content-between
+            gap-3
+            flex-wrap
+          "
+        >
+
+          <div>
+
+            <h3 class="insight-summary-title mb-1">
+              {% trans "Post-interview decision support" %}
             </h3>
 
             <p class="text-muted small mb-0">
-              {% blocktrans %}Uses the available assessment interpretations, process purpose and context to prepare a focused and evidence-based discussion.{% endblocktrans %}
+              {% blocktrans %}Compares the assessment indications with the saved interview evidence, candidate examples and interviewer observations.{% endblocktrans %}
             </p>
 
           </div>
@@ -114,30 +566,30 @@
                 rounded-pill
                 bg-warning-subtle
                 text-warning-emphasis
-                {% if pre_interview_decision_support_status != 'outdated' %}
+                {% if post_interview_decision_support_status != 'outdated' %}
                   d-none
                 {% endif %}
               "
-              data-pre-interview-status-badge
+              data-post-interview-status-badge
             >
               {% trans "Needs update" %}
             </span>
 
 
-{% if has_pre_interview_decision_support %}
+            {% if has_interview_notes and has_post_interview_decision_support %}
 
-  <button
-    type="button"
-    class="btn btn-icon btn-light"
-    title="{% trans 'Generate updated decision support' %}"
-    aria-label="{% trans 'Generate updated decision support' %}"
-    data-pre-interview-generate
-    data-regenerate="true"
-  >
-    <i data-feather="refresh-cw"></i>
-  </button>
+              <button
+                type="button"
+                class="btn btn-icon btn-light"
+                title="{% trans 'Generate updated post-interview decision support' %}"
+                aria-label="{% trans 'Generate updated post-interview decision support' %}"
+                data-post-interview-generate
+                data-regenerate="true"
+              >
+                <i data-feather="refresh-cw"></i>
+              </button>
 
-{% endif %}
+            {% endif %}
 
           </div>
 
@@ -151,11 +603,11 @@
             alert
             alert-warning
             mt-4
-            {% if pre_interview_decision_support_status != 'outdated' %}
+            {% if post_interview_decision_support_status != 'outdated' %}
               d-none
             {% endif %}
           "
-          data-pre-interview-outdated
+          data-post-interview-outdated
         >
 
           <div class="d-flex align-items-start gap-2">
@@ -168,11 +620,11 @@
             <div>
 
               <div class="fw-semibold small mb-1">
-                {% trans "The process information has changed" %}
+                {% trans "The interview evidence has changed" %}
               </div>
 
               <div class="small">
-                {% blocktrans %}This decision support was created using an earlier purpose or process context. Generate an updated version before relying on it.{% endblocktrans %}
+                {% blocktrans %}This synthesis was generated using an earlier version of the interview notes or process information. Generate an updated version before relying on it.{% endblocktrans %}
               </div>
 
             </div>
@@ -193,7 +645,7 @@
             py-4
             d-none
           "
-          data-pre-interview-thinking
+          data-post-interview-thinking
         >
 
           <span
@@ -203,7 +655,7 @@
           ></span>
 
           <span>
-            {% trans "Combining the available evidence and preparing decision support…" %}
+            {% trans "Comparing the assessment evidence with the interview notes…" %}
           </span>
 
         </div>
@@ -216,13 +668,13 @@
             alert
             alert-danger
             mt-4
-            {% if pre_interview_decision_support_status != 'failed' %}
+            {% if post_interview_decision_support_status != 'failed' %}
               d-none
             {% endif %}
           "
-          data-pre-interview-error
+          data-post-interview-error
         >
-          {% trans "The pre-interview decision support could not be generated." %}
+          {% trans "The post-interview decision support could not be generated." %}
         </div>
 
 
@@ -232,62 +684,74 @@
           class="
             combined-questions-empty-state
             mt-4
-            {% if has_pre_interview_decision_support %}
+            {% if has_post_interview_decision_support %}
               d-none
             {% endif %}
           "
-          data-pre-interview-empty
+          data-post-interview-empty
         >
 
           <div class="combined-questions-empty-state__icon">
-            <i data-feather="clipboard"></i>
+            <i data-feather="message-circle"></i>
           </div>
 
           <h3 class="personality-questions-section-title mb-2">
-            {% trans "Prepare the interview" %}
+            {% trans "Post-interview synthesis" %}
           </h3>
 
-          <p
-            class="text-muted small mb-0 mx-auto"
-            style="max-width: 560px;"
-          >
-            {% blocktrans %}Generate a synthesis of the available assessment evidence, cautious interpretations, discussion guidance and priority validation questions.{% endblocktrans %}
-          </p>
 
-          {% if not has_pre_interview_decision_support %}
+          {% if has_interview_notes %}
 
-  <div class="d-flex justify-content-center mt-4">
+            <p
+              class="text-muted small mb-0 mx-auto"
+              style="max-width: 580px;"
+            >
+              {% blocktrans %}The interview evidence has been saved. Generate a synthesis to compare it with the assessment indications and identify remaining uncertainties.{% endblocktrans %}
+            </p>
 
-    <button
-      type="button"
-      class="btn btn-primary"
-      data-pre-interview-generate
-      data-regenerate="false"
-    >
-      {% trans "Generate decision support" %}
-    </button>
 
-  </div>
+            {% if not has_post_interview_decision_support %}
 
-{% endif %}
+              <div class="d-flex justify-content-center mt-4">
+
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  data-post-interview-generate
+                  data-regenerate="false"
+                >
+                  {% trans "Generate post-interview decision support" %}
+                </button>
+
+              </div>
+
+            {% endif %}
+
+
+          {% else %}
+
+            <p
+              class="text-muted small mb-0 mx-auto"
+              style="max-width: 580px;"
+            >
+              {% blocktrans %}Add and save interview evidence before generating the post-interview synthesis.{% endblocktrans %}
+            </p>
+
+          {% endif %}
 
         </div>
 
 
-        <!-- ================================================== -->
-        <!-- GENERATED CONTENT -->
-        <!-- ================================================== -->
+        <!-- GENERATED RESULT -->
 
         <div
           class="
-            {% if not has_pre_interview_decision_support %}
+            {% if not has_post_interview_decision_support %}
               d-none
             {% endif %}
           "
-          data-pre-interview-content
+          data-post-interview-content
         >
-
-          <!-- OVERALL SYNTHESIS -->
 
           <section class="purpose-fit-section mt-4">
 
@@ -295,215 +759,340 @@
               {% trans "Overall synthesis" %}
             </h3>
 
-<div
-  class="purpose-fit-summary"
-  data-pre-interview-overall-synthesis
->{{ pre_interview_decision_support.overall_synthesis }}</div>
+            <div class="purpose-fit-summary">
+              {{ post_interview_decision_support.overall_synthesis }}
+            </div>
 
           </section>
 
 
- <!-- INDICATIONS + CAUTION -->
+          <!-- SUPPORTED INDICATIONS + ADDED NUANCE -->
 
-<div class="row g-4 mt-1 post-evidence-grid">
+          <div class="row g-4 mt-1 post-evidence-grid mb-4">
 
-  <!-- PURPOSE-RELEVANT INDICATIONS -->
+            <div class="col-12 col-xl-6 post-evidence-col post-evidence-col--left">
 
-  <div
-    class="
-      col-12
-      col-xl-6
-      post-evidence-col
-      post-evidence-col--left
-    "
-  >
+              <section class="h-100 mt-4 pe-3">
 
-    <section class="h-100 mt-4 pe-3">
+                <div class="post-evidence-column__header">
 
-      <div class="post-evidence-column__header">
+                  <div>
 
-        <div>
+                    <div class="response-style-item__title">
+                      {% trans "Evidence supporting assessment indications" %}
+                    </div>
 
-          <div class="response-style-item__title">
-            {% trans "Purpose-relevant indications" %}
-          </div>
+                    <div class="post-evidence-column__description">
+                      {% blocktrans %}Interview evidence that supports patterns identified in the assessment results.{% endblocktrans %}
+                    </div>
 
-          <div class="post-evidence-column__description">
-            {% blocktrans %}Assessment indications that may be particularly relevant to the purpose and context of this process.{% endblocktrans %}
-          </div>
+                  </div>
 
-        </div>
-
-      </div>
-
-
-      <div
-        class="post-evidence-list"
-        data-pre-interview-indications
-      >
-
-        {% for item in pre_interview_decision_support.purpose_relevant_indications %}
-
-          <article class="post-evidence-item">
-
-            <h4 class="post-evidence-item__title">
-              {{ item.title }}
-            </h4>
-
-
-            {% if item.interpretation %}
-
-              <div>
-
-                <div class="post-evidence-block__text">
-                  {{ item.interpretation }}
                 </div>
 
-              </div>
 
-            {% endif %}
+                <div class="post-evidence-list">
+
+                  {% for item in post_interview_decision_support.supported_indications %}
+
+                    <article class="post-evidence-item">
+
+                      <h4 class="post-evidence-item__title">
+                        {{ item.title }}
+                      </h4>
 
 
-            {% if item.evidence_sources %}
+                      {% if item.assessment_indication %}
 
-              <div class="mt-2">
+                        <div
+                          class="
+                            post-evidence-block
+                            post-evidence-block--assessment
+                          "
+                        >
 
-                <div class="d-flex flex-wrap gap-1">
+                          <div class="post-evidence-block__label">
+                            <i data-feather="bar-chart-2"></i>
+                            {% trans "Assessment indication" %}
+                          </div>
 
-                  {% for source in item.evidence_sources %}
+                          <div class="post-evidence-block__text">
+                            {{ item.assessment_indication }}
+                          </div>
 
-                    <span class="personality-trait-pill">
-                      {{ source }}
-                    </span>
+                        </div>
+
+                      {% endif %}
+
+
+                      {% if item.interview_evidence %}
+
+                        <div
+                          class="
+                            post-evidence-block
+                            post-evidence-block--interview
+                          "
+                        >
+
+                          <div class="post-evidence-block__label">
+                            <i data-feather="message-square"></i>
+                            {% trans "Interview evidence" %}
+                          </div>
+
+                          <div class="post-evidence-block__text">
+                            {{ item.interview_evidence }}
+                          </div>
+
+                        </div>
+
+                      {% endif %}
+
+
+                      {% if item.interpretation %}
+
+                        <div class="post-evidence-interpretation">
+
+                          <div class="post-evidence-interpretation__icon">
+                            <i data-feather="git-merge"></i>
+                          </div>
+
+                          <div>
+
+                            <div class="post-evidence-interpretation__label">
+                              {% trans "Combined interpretation" %}
+                            </div>
+
+                            <div class="post-evidence-interpretation__text">
+                              {{ item.interpretation }}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      {% endif %}
+
+                    </article>
+
+                  {% empty %}
+
+                    <div class="post-evidence-empty">
+                      {% blocktrans %}No assessment indications received sufficient support from the available interview evidence.{% endblocktrans %}
+                    </div>
 
                   {% endfor %}
 
                 </div>
 
-              </div>
+              </section>
 
-            {% endif %}
-
-          </article>
-
-        {% empty %}
-
-          <div class="post-evidence-empty">
-            {% blocktrans %}No purpose-relevant indications were identified from the available assessment evidence.{% endblocktrans %}
-          </div>
-
-        {% endfor %}
-
-      </div>
-
-    </section>
-
-  </div>
+            </div>
 
 
-  <!-- CAUTIOUS INTERPRETATIONS -->
+            <div class="col-12 col-xl-6 post-evidence-col">
 
-  <div class="col-12 col-xl-6 post-evidence-col">
+              <section class="h-100 mt-4 ps-3">
 
-    <section class="h-100 mt-4 ps-3">
+                <div class="post-evidence-column__header">
 
-      <div class="post-evidence-column__header">
+                  <div>
 
-        <div>
+                    <div class="response-style-item__title">
+                      {% trans "What the interview adds or nuances" %}
+                    </div>
 
-          <div class="response-style-item__title">
-            {% trans "What requires cautious interpretation" %}
-          </div>
+                    <div class="post-evidence-column__description">
+                      {% blocktrans %}Areas where the interview adds context or suggests a more nuanced interpretation.{% endblocktrans %}
+                    </div>
 
-          <div class="post-evidence-column__description">
-            {% blocktrans %}Assessment indications that require validation, context or additional behavioural evidence.{% endblocktrans %}
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div
-        class="post-evidence-list"
-        data-pre-interview-cautions
-      >
-
-        {% for item in pre_interview_decision_support.cautious_interpretations %}
-
-          <article class="post-evidence-item">
-
-            <h4 class="post-evidence-item__title">
-              {{ item.title }}
-            </h4>
-
-
-            {% if item.interpretation %}
-
-              <div>
-
-                <div class="post-evidence-block__text">
-                  {{ item.interpretation }}
-                </div>
-
-              </div>
-
-            {% endif %}
-
-
-            {% if item.reason_for_caution %}
-
-              <div class="post-evidence-interpretation">
-
-                <div class="post-evidence-interpretation__icon">
-                  <i data-feather="alert-triangle"></i>
-                </div>
-
-                <div>
-
-                  <div class="post-evidence-interpretation__label">
-                    {% trans "Why caution is needed" %}
-                  </div>
-
-                  <div class="post-evidence-interpretation__text">
-                    {{ item.reason_for_caution }}
                   </div>
 
                 </div>
 
-              </div>
 
-            {% endif %}
+                <div class="post-evidence-list">
 
-          </article>
+                  {% for item in post_interview_decision_support.added_nuance %}
 
-        {% empty %}
+                    <article class="post-evidence-item">
 
-          <div class="post-evidence-empty">
-            {% blocktrans %}No indications requiring particular caution were identified from the available assessment evidence.{% endblocktrans %}
+                      <h4 class="post-evidence-item__title">
+                        {{ item.title }}
+                      </h4>
+
+
+                      {% if item.assessment_indication %}
+
+                        <div
+                          class="
+                            post-evidence-block
+                            post-evidence-block--assessment
+                          "
+                        >
+
+                          <div class="post-evidence-block__label">
+                            <i data-feather="bar-chart-2"></i>
+                            {% trans "Assessment indication" %}
+                          </div>
+
+                          <div class="post-evidence-block__text">
+                            {{ item.assessment_indication }}
+                          </div>
+
+                        </div>
+
+                      {% endif %}
+
+
+                      {% if item.interview_evidence %}
+
+                        <div
+                          class="
+                            post-evidence-block
+                            post-evidence-block--interview
+                          "
+                        >
+
+                          <div class="post-evidence-block__label">
+                            <i data-feather="message-square"></i>
+                            {% trans "Interview evidence" %}
+                          </div>
+
+                          <div class="post-evidence-block__text">
+                            {{ item.interview_evidence }}
+                          </div>
+
+                        </div>
+
+                      {% endif %}
+
+
+                      {% if item.interpretation %}
+
+                        <div class="post-evidence-interpretation">
+
+                          <div class="post-evidence-interpretation__icon">
+                            <i data-feather="git-merge"></i>
+                          </div>
+
+                          <div>
+
+                            <div class="post-evidence-interpretation__label">
+                              {% trans "Combined interpretation" %}
+                            </div>
+
+                            <div class="post-evidence-interpretation__text">
+                              {{ item.interpretation }}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      {% endif %}
+
+                    </article>
+
+                  {% empty %}
+
+                    <div class="post-evidence-empty">
+                      {% blocktrans %}No additional nuance was identified from the available interview evidence.{% endblocktrans %}
+                    </div>
+
+                  {% endfor %}
+
+                </div>
+
+              </section>
+
+            </div>
+
           </div>
 
-        {% endfor %}
 
-      </div>
+          {% if post_interview_decision_support.contradictions %}
 
-    </section>
+            <section class="border-top pt-4 mt-4 mb-4 pb-4">
 
-  </div>
+              <h3 class="insight-summary-title mb-1">
+                {% trans "Contradictions or tensions to consider" %}
+              </h3>
 
-</div>
+              <p class="text-muted small mb-3">
+                {% blocktrans %}These differences should be explored rather than resolved automatically in favour of either source.{% endblocktrans %}
+              </p>
 
 
-          <!-- DISCUSSION GUIDANCE -->
+              <div class="d-grid gap-3">
 
-          <section class="border-top pt-4 mt-4 mb-4 pb-4">
+                {% for item in post_interview_decision_support.contradictions %}
 
-            <h3 class="insight-summary-title mb-1 mt-4">
-              {% trans "How to approach the discussion" %}
+                  <article class="purpose-fit-section">
+
+                    <div class="d-flex align-items-start gap-3">
+
+                      <div class="purpose-fit-list-icon flex-shrink-0">
+                        <i data-feather="shuffle"></i>
+                      </div>
+
+                      <div>
+
+                        <div class="purpose-fit-section-title mb-2">
+                          {{ item.title }}
+                        </div>
+
+
+                        {% if item.assessment_evidence %}
+
+                          <div class="post-evidence-interpretation__text mb-2">
+                            <strong>{% trans "Assessment evidence:" %}</strong>
+                            {{ item.assessment_evidence }}
+                          </div>
+
+                        {% endif %}
+
+
+                        {% if item.interview_evidence %}
+
+                          <div class="post-evidence-interpretation__text mb-2">
+                            <strong>{% trans "Interview evidence:" %}</strong>
+                            {{ item.interview_evidence }}
+                          </div>
+
+                        {% endif %}
+
+
+                        {% if item.interpretation %}
+
+                          <div class="post-evidence-interpretation__text">
+                            {{ item.interpretation }}
+                          </div>
+
+                        {% endif %}
+
+                      </div>
+
+                    </div>
+
+                  </article>
+
+                {% endfor %}
+
+              </div>
+
+            </section>
+
+          {% endif %}
+
+
+          <section class="border-top pt-4 mt-4">
+
+            <h3 class="insight-summary-title mb-1">
+              {% trans "What remains to be explored" %}
             </h3>
 
             <p class="text-muted small mb-0">
-              {% blocktrans %}Suggestions for discussing the profile constructively and collecting relevant behavioural evidence.{% endblocktrans %}
+              {% blocktrans %}Areas where additional evidence may help the responsible decision-maker form a more complete judgement.{% endblocktrans %}
             </p>
 
 
@@ -514,24 +1103,26 @@
                 <section class="purpose-fit-list-card h-100">
 
                   <div class="purpose-fit-section-title">
-                    {% trans "Feedback approach" %}
+                    {% trans "Remaining uncertainties" %}
                   </div>
 
-                  <ul
-                    class="purpose-fit-list"
-                    data-pre-interview-feedback-approach
-                  >
+                  <ul class="purpose-fit-list">
 
-                    {% for item in pre_interview_decision_support.discussion_guidance.feedback_approach %}
+                    {% for item in post_interview_decision_support.remaining_uncertainties %}
 
                       <li>
-
                         <span class="purpose-fit-list-icon">
-                          <i data-feather="message-circle"></i>
+                          <i data-feather="help-circle"></i>
                         </span>
-
                         <span>{{ item }}</span>
+                      </li>
 
+                    {% empty %}
+
+                      <li>
+                        <span class="text-muted">
+                          {% trans "No specific remaining uncertainties were identified." %}
+                        </span>
                       </li>
 
                     {% endfor %}
@@ -548,24 +1139,26 @@
                 <section class="purpose-fit-list-card h-100">
 
                   <div class="purpose-fit-section-title">
-                    {% trans "Interview focus" %}
+                    {% trans "Suggested follow-up" %}
                   </div>
 
-                  <ul
-                    class="purpose-fit-list"
-                    data-pre-interview-interview-focus
-                  >
+                  <ul class="purpose-fit-list">
 
-                    {% for item in pre_interview_decision_support.discussion_guidance.interview_focus %}
+                    {% for item in post_interview_decision_support.suggested_follow_up %}
 
                       <li>
-
                         <span class="purpose-fit-list-icon">
-                          <i data-feather="search"></i>
+                          <i data-feather="arrow-right"></i>
                         </span>
-
                         <span>{{ item }}</span>
+                      </li>
 
+                    {% empty %}
+
+                      <li>
+                        <span class="text-muted">
+                          {% trans "No additional follow-up was suggested." %}
+                        </span>
                       </li>
 
                     {% endfor %}
@@ -581,1030 +1174,44 @@
           </section>
 
 
-          <!-- PRIORITY QUESTIONS -->
+          {% if post_interview_decision_support.context_note %}
 
-          <section class="border-top pt-4 mt-4">
+            <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
 
-            <div
-              class="
-                d-flex
-                align-items-start
-                justify-content-between
-                gap-3
-                flex-wrap
-                mb-3
-              "
-            >
+              <i data-feather="info"></i>
 
               <div>
-
-                <h3 class="insight-summary-title mb-1 pt-4">
-                  {% trans "Priority questions" %}
-                </h3>
-
-                <p class="text-muted small mb-3">
-                  {% blocktrans %}Questions selected to validate, challenge or add context to the overall assessment picture.{% endblocktrans %}
-                </p>
-
-              </div>
-
-
-              <span class="personality-trait-pill">
-                {% blocktrans count question_count=pre_interview_decision_support.validation_questions|length %}
-  {{ question_count }} question
-{% plural %}
-  {{ question_count }} questions
-{% endblocktrans %}
-              </span>
-
-            </div>
-
-
-            <div
-              class="personality-question-list"
-              data-pre-interview-questions
-            >
-
-              {% for item in pre_interview_decision_support.validation_questions %}
-
-                <article class="personality-question-card">
-
-                  <div class="personality-question-card__header">
-
-                    <div class="personality-question-card__number">
-                      {{ forloop.counter }}
-                    </div>
-
-                    <div class="personality-question-card__heading">
-
-                      <div class="personality-question-card__text">
-                        {{ item.question }}
-                      </div>
-
-                    </div>
-
-                  </div>
-
-
-                  <div class="personality-question-card__details">
-
-                    {% if item.why %}
-
-                      <div
-                        class="
-                          personality-question-card__detail
-                          personality-question-card__detail--why
-                        "
-                      >
-
-                        <div class="personality-question-card__detail-icon">
-                          <i data-feather="compass"></i>
-                        </div>
-
-                        <div>
-
-                          <div class="personality-question-card__detail-title">
-                            {% trans "Why this matters" %}
-                          </div>
-
-                          <div class="personality-question-card__detail-text">
-                            {{ item.why }}
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    {% endif %}
-
-
-                    {% if item.listen_for %}
-
-                      <div
-                        class="
-                          personality-question-card__detail
-                          personality-question-card__detail--listen
-                        "
-                      >
-
-                        <div class="personality-question-card__detail-icon">
-                          <i data-feather="headphones"></i>
-                        </div>
-
-                        <div>
-
-                          <div class="personality-question-card__detail-title">
-                            {% trans "What to look for in the answer" %}
-                          </div>
-
-                          <div class="personality-question-card__detail-text">
-                            {{ item.listen_for }}
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    {% endif %}
-
-                  </div>
-
-                </article>
-
-              {% endfor %}
-
-            </div>
-
-          </section>
-
-
-          <!-- EVIDENCE GAPS -->
-
-          <section class="purpose-fit-section border-top pt-4 mt-4">
-
-
-
-              <div class="purpose-fit-section-title">
-                {% trans "Evidence still missing" %}
-              </div>
-
-              <ul
-                class="purpose-fit-list"
-                data-pre-interview-evidence-gaps
-              >
-
-                {% for item in pre_interview_decision_support.evidence_gaps %}
-
-                  <li>
-
-                    <span class="purpose-fit-list-icon">
-                      <i data-feather="alert-circle"></i>
-                    </span>
-
-                    <span>{{ item }}</span>
-
-                  </li>
-
-                {% endfor %}
-
-              </ul>
-
-          </section>
-
-
-          <!-- CONTEXT NOTE -->
-
-          <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-            <i data-feather="info"></i>
-
-            <div data-pre-interview-context-note>
-              {{ pre_interview_decision_support.context_note }}
-            </div>
-
-          </div>
-
-          
-  <!-- HUMAN DECISION REMINDER -->
-
-  <div class="personality-questions-context-note mt-4">
-
-    <div class="d-flex align-items-start gap-3">
-
-      <div class="personality-questions-context-note__icon">
-        <i data-feather="user-check"></i>
-      </div>
-
-      <div>
-
-        <div class="personality-questions-context-note__title">
-          {% trans "Decision support, not a decision" %}
-        </div>
-
-        <div>
-          {% blocktrans %}Talena organises and interprets available evidence but does not determine whether the candidate should be selected, rejected, promoted or placed in a role.{% endblocktrans %}
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- ================================================== -->
-      <!-- AFTER INTERVIEW PANEL -->
-      <!-- ================================================== -->
-
-      <div
-        id="decision-support-after-panel"
-        class="personality-view-panel mt-4"
-        role="tabpanel"
-        aria-labelledby="decision-support-after-tab"
-        data-decision-panel="after"
-        hidden
-      >
-
-        <div class="pt-4">
-
-          <h3 class="insight-summary-title mb-1">
-            {% trans "Add interview evidence" %}
-          </h3>
-
-          <p class="text-muted small mb-0">
-            {% blocktrans %}Add relevant interview notes, behavioural examples and candidate reflections. Talena will compare this evidence with the assessment indications.{% endblocktrans %}
-          </p>
-
-        </div>
-
-
-        <!-- INTERVIEW NOTES -->
-
-        <section
-          class="response-style-ai-card mt-4 mb-4 pb-4"
-          data-interview-notes-root
-        >
-
-          <div
-            class="
-              d-flex
-              align-items-start
-              justify-content-between
-              gap-3
-              flex-wrap
-              mb-3
-            "
-          >
-
-            <div>
-
-              <div class="purpose-fit-section-title mb-1">
-                {% trans "Interview notes and candidate examples" %}
-              </div>
-
-              <div class="small text-muted">
-                {% blocktrans %}Include relevant examples, working methods, context and answers that may support, challenge or add nuance to the assessment profile.{% endblocktrans %}
-              </div>
-
-            </div>
-
-
-            {% if interview_notes_updated_at %}
-
-              <span
-                class="small text-muted"
-                data-interview-notes-last-saved
-              >
-                {% blocktrans with saved_at=interview_notes_updated_at|date:"j M Y, H:i" %}Last saved {{ saved_at }}{% endblocktrans %}
-              </span>
-
-            {% else %}
-
-              <span
-                class="small text-muted"
-                data-interview-notes-last-saved
-              ></span>
-
-            {% endif %}
-
-          </div>
-
-
-          <label
-            for="candidate-interview-notes"
-            class="form-label fw-semibold"
-          >
-          </label>
-
-          <textarea
-            id="candidate-interview-notes"
-            class="form-control"
-            rows="12"
-            maxlength="30000"
-            placeholder="{% trans 'Paste interview notes, candidate examples and relevant observations here…' %}"
-            data-interview-notes-input
-          >{{ interview_notes }}</textarea>
-
-
-          <div
-            class="
-              d-flex
-              align-items-center
-              justify-content-between
-              gap-3
-              flex-wrap
-              mt-3
-            "
-          >
-
-            <div>
-
-              <span
-                class="small text-muted"
-                data-interview-notes-count
-              >
-                {% blocktrans with character_count=interview_notes|length %}{{ character_count }} / 30,000 characters{% endblocktrans %}
-              </span>
-
-              <span
-                class="small ms-2"
-                data-interview-notes-status
-              ></span>
-
-            </div>
-
-
-            <button
-              type="button"
-              class="btn btn-primary"
-              data-interview-notes-save
-            >
-              {% trans "Save interview notes" %}
-            </button>
-
-          </div>
-
-
-          <div
-            class="alert alert-danger d-none mt-3 mb-0"
-            data-interview-notes-error
-          >
-            {% trans "The interview notes could not be saved." %}
-          </div>
-
-        </section>
-
-<!-- ================================================== -->
-<!-- POST-INTERVIEW DECISION SUPPORT -->
-<!-- ================================================== -->
-
-<section
-  class="border-top pt-4 mt-4"
-  data-post-interview-section
->
-
-  <!-- HEADER -->
-
-  <div
-    class="
-      d-flex
-      align-items-start
-      justify-content-between
-      gap-3
-      flex-wrap
-    "
-  >
-
-    <div>
-
-
-      <h3 class="insight-summary-title mb-1">
-        {% trans "Post-interview decision support" %}
-      </h3>
-
-      <p class="text-muted small mb-0">
-        {% blocktrans %}Compares the assessment indications with the saved interview evidence, candidate examples and interviewer observations.{% endblocktrans %}
-      </p>
-
-    </div>
-
-
-    <div class="d-flex align-items-center gap-2">
-
-      <span
-        class="
-          badge
-          rounded-pill
-          bg-warning-subtle
-          text-warning-emphasis
-          {% if post_interview_decision_support_status != 'outdated' %}
-            d-none
-          {% endif %}
-        "
-        data-post-interview-status-badge
-      >
-        {% trans "Needs update" %}
-      </span>
-
-
-{% if has_interview_notes and has_post_interview_decision_support %}
-
-  <button
-    type="button"
-    class="btn btn-icon btn-light"
-    title="{% trans 'Generate updated post-interview decision support' %}"
-    aria-label="{% trans 'Generate updated post-interview decision support' %}"
-    data-post-interview-generate
-    data-regenerate="true"
-  >
-    <i data-feather="refresh-cw"></i>
-  </button>
-
-{% endif %}
-
-    </div>
-
-  </div>
-
-
-  <!-- OUTDATED WARNING -->
-
-  <div
-    class="
-      alert
-      alert-warning
-      mt-4
-      {% if post_interview_decision_support_status != 'outdated' %}
-        d-none
-      {% endif %}
-    "
-    data-post-interview-outdated
-  >
-
-    <div class="d-flex align-items-start gap-2">
-
-      <i
-        data-feather="alert-circle"
-        class="flex-shrink-0 mt-1"
-      ></i>
-
-      <div>
-
-        <div class="fw-semibold small mb-1">
-          {% trans "The interview evidence has changed" %}
-        </div>
-
-        <div class="small">
-          {% blocktrans %}This synthesis was generated using an earlier version of the interview notes or process information. Generate an updated version before relying on it.{% endblocktrans %}
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- LOADING -->
-
-  <div
-    class="
-      d-flex
-      align-items-center
-      gap-2
-      text-muted
-      py-4
-      d-none
-    "
-    data-post-interview-thinking
-  >
-
-    <span
-      class="spinner-border spinner-border-sm"
-      role="status"
-      aria-hidden="true"
-    ></span>
-
-    <span>
-      {% trans "Comparing the assessment evidence with the interview notes…" %}
-    </span>
-
-  </div>
-
-
-  <!-- ERROR -->
-
-  <div
-    class="
-      alert
-      alert-danger
-      mt-4
-      {% if post_interview_decision_support_status != 'failed' %}
-        d-none
-      {% endif %}
-    "
-    data-post-interview-error
-  >
-    {% trans "The post-interview decision support could not be generated." %}
-  </div>
-
-
-  <!-- EMPTY STATE -->
-
-  <div
-    class="
-      combined-questions-empty-state
-      mt-4
-      {% if has_post_interview_decision_support %}
-        d-none
-      {% endif %}
-    "
-    data-post-interview-empty
-  >
-
-    <div class="combined-questions-empty-state__icon">
-      <i data-feather="message-circle"></i>
-    </div>
-
-    <h3 class="personality-questions-section-title mb-2">
-      {% trans "Post-interview synthesis" %}
-    </h3>
-
-
-{% if has_interview_notes %}
-
-  <p
-    class="text-muted small mb-0 mx-auto"
-    style="max-width: 580px;"
-  >
-    {% blocktrans %}The interview evidence has been saved. Generate a synthesis to compare it with the assessment indications and identify remaining uncertainties.{% endblocktrans %}
-  </p>
-
-
-  {% if not has_post_interview_decision_support %}
-
-    <div class="d-flex justify-content-center mt-4">
-
-      <button
-        type="button"
-        class="btn btn-primary"
-        data-post-interview-generate
-        data-regenerate="false"
-      >
-        {% trans "Generate post-interview decision support" %}
-      </button>
-
-    </div>
-
-  {% endif %}
-
-
-{% else %}
-
-  <p
-    class="text-muted small mb-0 mx-auto"
-    style="max-width: 580px;"
-  >
-    {% blocktrans %}Add and save interview evidence before generating the post-interview synthesis.{% endblocktrans %}
-  </p>
-
-{% endif %}
-
-  </div>
-
-
-  <!-- ================================================== -->
-  <!-- GENERATED RESULT -->
-  <!-- ================================================== -->
-
-  <div
-    class="
-      {% if not has_post_interview_decision_support %}
-        d-none
-      {% endif %}
-    "
-    data-post-interview-content
-  >
-
-    <!-- OVERALL SYNTHESIS -->
-
-    <section class="purpose-fit-section mt-4">
-
-      <h3 class="purpose-fit-section-title mb-2">
-        {% trans "Overall synthesis" %}
-      </h3>
-
-<div class="purpose-fit-summary">{{ post_interview_decision_support.overall_synthesis }}</div>
-
-    </section>
-
-<!-- SUPPORTED INDICATIONS + ADDED NUANCE -->
-
-<div class="row g-4 mt-1 post-evidence-grid mb-4">
-
-  <!-- SUPPORTED INDICATIONS -->
-
- <div class="col-12 col-xl-6 post-evidence-col post-evidence-col--left">
-
-    <section
-      class="
-        h-100
-        mt-4
-        pe-3
-      "
-    >
-
-      <div class="post-evidence-column__header">
-
-
-        <div>
-
-          <div class="response-style-item__title">
-            {% trans "Evidence supporting assessment indications" %}
-          </div>
-
-          <div class="post-evidence-column__description">
-            {% blocktrans %}Interview evidence that supports patterns identified in the assessment results.{% endblocktrans %}
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="post-evidence-list">
-
-        {% for item in post_interview_decision_support.supported_indications %}
-
-          <article class="post-evidence-item">
-
-            <h4 class="post-evidence-item__title">
-              {{ item.title }}
-            </h4>
-
-
-            {% if item.assessment_indication %}
-
-              <div
-                class="
-                  post-evidence-block
-                  post-evidence-block--assessment
-                "
-              >
-
-                <div class="post-evidence-block__label">
-                  <i data-feather="bar-chart-2"></i>
-                  {% trans "Assessment indication" %}
-                </div>
-
-                <div class="post-evidence-block__text">
-                  {{ item.assessment_indication }}
-                </div>
-
-              </div>
-
-            {% endif %}
-
-
-            {% if item.interview_evidence %}
-
-              <div
-                class="
-                  post-evidence-block
-                  post-evidence-block--interview
-                "
-              >
-
-                <div class="post-evidence-block__label">
-                  <i data-feather="message-square"></i>
-                  {% trans "Interview evidence" %}
-                </div>
-
-                <div class="post-evidence-block__text">
-                  {{ item.interview_evidence }}
-                </div>
-
-              </div>
-
-            {% endif %}
-
-
-            {% if item.interpretation %}
-
-              <div class="post-evidence-interpretation">
-
-                <div class="post-evidence-interpretation__icon">
-                  <i data-feather="git-merge"></i>
-                </div>
-
-                <div>
-
-                  <div class="post-evidence-interpretation__label">
-                    {% trans "Combined interpretation" %}
-                  </div>
-
-                  <div class="post-evidence-interpretation__text">
-                    {{ item.interpretation }}
-                  </div>
-
-                </div>
-
-              </div>
-
-            {% endif %}
-
-          </article>
-
-        {% empty %}
-
-          <div class="post-evidence-empty">
-            {% blocktrans %}No assessment indications received sufficient support from the available interview evidence.{% endblocktrans %}
-          </div>
-
-        {% endfor %}
-
-      </div>
-
-    </section>
-
-  </div>
-
-
-<!-- ADDED NUANCE -->
-
-<div class="col-12 col-xl-6 post-evidence-col">
-
-  <section
-    class="
-      h-100
-      mt-4
-      ps-3
-    "
-  >
-
-    <div class="post-evidence-column__header">
-
-      <div>
-
-        <div class="response-style-item__title">
-          {% trans "What the interview adds or nuances" %}
-        </div>
-
-        <div class="post-evidence-column__description">
-          {% blocktrans %}Areas where the interview adds context or suggests a more nuanced interpretation.{% endblocktrans %}
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="post-evidence-list">
-
-      {% for item in post_interview_decision_support.added_nuance %}
-
-        <article class="post-evidence-item">
-
-          <h4 class="post-evidence-item__title">
-            {{ item.title }}
-          </h4>
-
-
-          {% if item.assessment_indication %}
-
-            <div
-              class="
-                post-evidence-block
-                post-evidence-block--assessment
-              "
-            >
-
-              <div class="post-evidence-block__label">
-                <i data-feather="bar-chart-2"></i>
-                {% trans "Assessment indication" %}
-              </div>
-
-              <div class="post-evidence-block__text">
-                {{ item.assessment_indication }}
+                {{ post_interview_decision_support.context_note }}
               </div>
 
             </div>
 
           {% endif %}
-
-
-          {% if item.interview_evidence %}
-
-            <div
-              class="
-                post-evidence-block
-                post-evidence-block--interview
-              "
-            >
-
-              <div class="post-evidence-block__label">
-                <i data-feather="message-square"></i>
-                {% trans "Interview evidence" %}
-              </div>
-
-              <div class="post-evidence-block__text">
-                {{ item.interview_evidence }}
-              </div>
-
-            </div>
-
-          {% endif %}
-
-
-          {% if item.interpretation %}
-
-            <div class="post-evidence-interpretation">
-
-              <div class="post-evidence-interpretation__icon">
-                <i data-feather="git-merge"></i>
-              </div>
-
-              <div>
-
-                <div class="post-evidence-interpretation__label">
-                  {% trans "Combined interpretation" %}
-                </div>
-
-                <div class="post-evidence-interpretation__text">
-                  {{ item.interpretation }}
-                </div>
-
-              </div>
-
-            </div>
-
-          {% endif %}
-
-        </article>
-
-      {% empty %}
-
-        <div class="post-evidence-empty">
-          {% blocktrans %}No additional nuance was identified from the available interview evidence.{% endblocktrans %}
-        </div>
-
-      {% endfor %}
-
-    </div>
-
-  </section>
-
-</div>
-
-</div>
-    <!-- CONTRADICTIONS -->
-
-    {% if post_interview_decision_support.contradictions %}
-
-      <section class="border-top pt-4 mt-4 mb-4 pb-4">
-
-        <h3 class="insight-summary-title mb-1 mt-4">
-          {% trans "Contradictions or tensions to consider" %}
-        </h3>
-
-        <p class="text-muted small mb-3">
-          {% blocktrans %}These differences should be explored rather than resolved automatically in favour of either source.{% endblocktrans %}
-        </p>
-
-
-        <div class="d-grid gap-3">
-
-          {% for item in post_interview_decision_support.contradictions %}
-
-            <article class="purpose-fit-section">
-
-              <div class="d-flex align-items-start gap-3">
-
-                <div class="purpose-fit-list-icon flex-shrink-0">
-                  <i data-feather="shuffle"></i>
-                </div>
-
-                <div>
-
-                  <div class="purpose-fit-section-title mb-2">
-                    {{ item.title }}
-                  </div>
-
-
-                  {% if item.assessment_evidence %}
-
-                    <div class="post-evidence-interpretation__text mb-2">
-
-                      <strong>
-                        {% trans "Assessment evidence:" %}
-                      </strong>
-
-                      {{ item.assessment_evidence }}
-
-                    </div>
-
-                  {% endif %}
-
-
-                  {% if item.interview_evidence %}
-
-                    <div class="post-evidence-interpretation__text mb-2">
-
-                      <strong>
-                        {% trans "Interview evidence:" %}
-                      </strong>
-
-                      {{ item.interview_evidence }}
-
-                    </div>
-
-                  {% endif %}
-
-
-                  <div class="post-evidence-interpretation__text mb-2">
-                    {{ item.interpretation }}
-                  </div>
-
-                </div>
-
-              </div>
-
-            </article>
-
-          {% endfor %}
 
         </div>
 
       </section>
 
-    {% endif %}
 
+      <div class="personality-questions-context-note mt-4">
 
-    <!-- UNCERTAINTIES + FOLLOW-UP -->
+        <div class="d-flex align-items-start gap-3">
 
-    <section class="border-top pt-4 mt-4">
+          <div class="personality-questions-context-note__icon">
+            <i data-feather="user-check"></i>
+          </div>
 
-      <h3 class="insight-summary-title mb-1 mt-4">
-        {% trans "What remains to be explored" %}
-      </h3>
+          <div>
 
-      <p class="text-muted small mb-0">
-        {% blocktrans %}Areas where additional evidence may help the responsible decision-maker form a more complete judgement.{% endblocktrans %}
-      </p>
-
-
-      <div class="row g-4 mt-1">
-
-        <!-- REMAINING UNCERTAINTIES -->
-
-        <div class="col-lg-6">
-
-          <section class="purpose-fit-list-card h-100">
-
-            <div class="purpose-fit-section-title">
-              {% trans "Remaining uncertainties" %}
+            <div class="personality-questions-context-note__title">
+              {% trans "Decision support, not a decision" %}
             </div>
 
-            <ul class="purpose-fit-list">
-
-              {% for item in post_interview_decision_support.remaining_uncertainties %}
-
-                <li>
-
-                  <span class="purpose-fit-list-icon">
-                    <i data-feather="help-circle"></i>
-                  </span>
-
-                  <span>
-                    {{ item }}
-                  </span>
-
-                </li>
-
-              {% endfor %}
-
-            </ul>
-
-          </section>
-
-        </div>
-
-
-        <!-- SUGGESTED FOLLOW-UP -->
-
-        <div class="col-lg-6">
-
-          <section class="purpose-fit-list-card h-100">
-
-            <div class="purpose-fit-section-title">
-              {% trans "Suggested follow-up" %}
+            <div>
+              {% blocktrans %}Talena organises and interprets available evidence but does not determine whether the candidate should be selected, rejected, promoted or placed in a role.{% endblocktrans %}
             </div>
 
-            <ul class="purpose-fit-list">
-
-              {% for item in post_interview_decision_support.suggested_follow_up %}
-
-                <li>
-
-                  <span class="purpose-fit-list-icon">
-                    <i data-feather="arrow-right"></i>
-                  </span>
-
-                  <span>
-                    {{ item }}
-                  </span>
-
-                </li>
-
-              {% endfor %}
-
-            </ul>
-
-          </section>
+          </div>
 
         </div>
 
@@ -1612,52 +1219,6 @@
 
     </section>
 
-
-    <!-- CONTEXT NOTE -->
-
-    <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-      <i data-feather="info"></i>
-
-      <div>
-        {{ post_interview_decision_support.context_note }}
-      </div>
-
-    </div>
-
   </div>
 
-</section>
-
-
-  <!-- HUMAN DECISION REMINDER -->
-
-  <div class="personality-questions-context-note mt-4">
-
-    <div class="d-flex align-items-start gap-3">
-
-      <div class="personality-questions-context-note__icon">
-        <i data-feather="user-check"></i>
-      </div>
-
-      <div>
-
-        <div class="personality-questions-context-note__title">
-          {% trans "Decision support, not a decision" %}
-        </div>
-
-        <div>
-          {% blocktrans %}Talena organises and interprets available evidence but does not determine whether the candidate should be selected, rejected, promoted or placed in a role.{% endblocktrans %}
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-       
-      </div>
-
-    </div>
-
-</section>
+</div>
