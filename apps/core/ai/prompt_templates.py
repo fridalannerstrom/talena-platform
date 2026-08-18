@@ -6465,12 +6465,10 @@ By default, do not include raw assessment scores.
         },
     },
         "post_interview_decision_support": {
-        "name": "Post-interview decision support",
+        "name": "After interview · Overall synthesis",
         "category": "Final output",
         "description": (
-            "Controls the tone, emphasis and synthesis style used when "
-            "Talena combines assessment evidence with interview notes "
-            "after the interview."
+            "Controls only the Overall synthesis section in After interview."
         ),
         "defaults": {
 
@@ -6961,6 +6959,108 @@ used and which relevant limitations remain.
 
         },
     },
+
+    "post_interview_supported_indications": {
+        "name": "After interview · Evidence supporting assessment indications",
+        "category": "Interview",
+        "description": "Controls only the supported assessment indications section.",
+        "defaults": {
+            "sv": """Styr endast sektionen Evidence supporting assessment indications i Efter intervju.
+
+Identifiera intervjuevidens som är förenlig med tidigare assessment-indikationer.
+Som standard, ge 2 till 4 relevanta items.
+Skilj tydligt mellan assessment-indikation, intervju-evidens och integrerad tolkning.
+Ett intervju-exempel bevisar inte automatiskt ett stabilt beteende, kompetens eller framtida prestation.
+Hitta inte på stöd bara för att fylla sektionen. Listan får vara tom.""".strip(),
+            "en": """Control only the Evidence supporting assessment indications section in After interview.
+
+Identify interview evidence consistent with earlier assessment indications.
+By default, provide 2 to 4 relevant items.
+Distinguish assessment indication, interview evidence and integrated interpretation.
+An interview example does not automatically prove stable behaviour, competence or future performance.
+Do not invent support merely to populate the section. The list may be empty.""".strip(),
+        },
+    },
+
+    "post_interview_added_nuance": {
+        "name": "After interview · What the interview adds or nuances",
+        "category": "Interview",
+        "description": "Controls only the added nuance section in After interview.",
+        "defaults": {
+            "sv": """Styr endast sektionen What the interview adds or nuances i Efter intervju.
+
+Identifiera intervjuevidens som faktiskt förändrar, begränsar, förtydligar eller nyanserar en tidigare assessment-tolkning.
+Som standard, ge 2 till 4 relevanta items.
+Förankra varje item i faktiskt assessment- och intervjuunderlag.
+Skapa inte nyans som saknar stöd. Listan får vara tom.""".strip(),
+            "en": """Control only the What the interview adds or nuances section in After interview.
+
+Identify interview evidence that materially changes, limits, clarifies or adds nuance to an earlier assessment interpretation.
+By default, provide 2 to 4 relevant items.
+Ground each item in actual assessment and interview evidence.
+Do not invent unsupported nuance. The list may be empty.""".strip(),
+        },
+    },
+
+    "post_interview_contradictions": {
+        "name": "After interview · Contradictions or tensions",
+        "category": "Interview",
+        "description": "Controls only the contradictions or tensions section in After interview.",
+        "defaults": {
+            "sv": """Styr endast sektionen Contradictions or tensions to consider i Efter intervju.
+
+Identifiera relevanta skillnader eller spänningar mellan assessment- och intervjuunderlag.
+Som standard, ge 0 till 3 items.
+Beskriv skillnader neutralt. En skillnad betyder inte automatiskt att någon källa är fel.
+Hitta inte på motsägelser för att fylla sektionen. Listan får vara tom.""".strip(),
+            "en": """Control only the Contradictions or tensions to consider section in After interview.
+
+Identify meaningful differences or tensions between assessment and interview evidence.
+By default, provide 0 to 3 items.
+Describe differences neutrally. A difference does not automatically mean either source is wrong.
+Do not invent contradictions to populate the section. The list may be empty.""".strip(),
+        },
+    },
+
+    "post_interview_remaining_uncertainties": {
+        "name": "After interview · Remaining uncertainties",
+        "category": "Interview",
+        "description": "Controls only the remaining uncertainties section in After interview.",
+        "defaults": {
+            "sv": """Styr endast sektionen Remaining uncertainties i Efter intervju.
+
+Identifiera verkliga frågor eller informationsgap som fortfarande inte kan besvaras säkert efter assessment och intervju.
+Som standard, ge upp till 5 korta punkter.
+Hitta inte på osäkerheter bara för att fylla sektionen. Listan får vara tom.""".strip(),
+            "en": """Control only the Remaining uncertainties section in After interview.
+
+Identify genuine questions or evidence gaps that still cannot be answered confidently after assessment and interview.
+By default, provide up to 5 concise items.
+Do not invent uncertainty merely to populate the section. The list may be empty.""".strip(),
+        },
+    },
+
+    "post_interview_suggested_follow_up": {
+        "name": "After interview · Suggested follow-up",
+        "category": "Interview",
+        "description": "Controls only the suggested follow-up section in After interview.",
+        "defaults": {
+            "sv": """Styr endast sektionen Suggested follow-up i Efter intervju.
+
+Föreslå proportionerliga nästa steg som kan ge bättre evidens kring verkliga kvarstående frågor.
+Som standard, ge 2 till 5 relevanta uppföljningar.
+Föreslå endast sådant som har tydlig koppling till underlaget och kvarstående osäkerhet.
+Gör inte beslut om anställning, avslag, placering eller befordran.""".strip(),
+            "en": """Control only the Suggested follow-up section in After interview.
+
+Suggest proportionate next steps that may provide better evidence for genuine remaining questions.
+By default, provide 2 to 5 relevant follow-up actions.
+Recommend only actions clearly connected to the evidence and remaining uncertainty.
+Do not make hiring, rejection, placement or promotion decisions.""".strip(),
+        },
+    },
+
+
 }
 
 

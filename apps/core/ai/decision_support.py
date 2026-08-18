@@ -23,7 +23,10 @@ from .shared_context import (
     get_process_purpose_key,
 )
 
-from .prompt_templates import get_ai_prompt_instructions
+from .prompt_templates import (
+    get_ai_prompt_instructions,
+    get_ai_feature_prompt_instructions,
+)
 
 # ============================================================
 # Shared normalisation helpers
@@ -2497,14 +2500,29 @@ def build_post_interview_decision_support_prompt(
         )
     )
 
-    admin_instructions = (
-        get_ai_prompt_instructions(
-            key=(
-                "post_interview_"
-                "decision_support"
-            ),
-            language=language_code,
-        )
+    overall_instructions = get_ai_prompt_instructions(
+        key="post_interview_decision_support",
+        language=language_code,
+    )
+    supported_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_supported_indications",
+        language=language_code,
+    )
+    nuance_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_added_nuance",
+        language=language_code,
+    )
+    contradictions_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_contradictions",
+        language=language_code,
+    )
+    uncertainties_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_remaining_uncertainties",
+        language=language_code,
+    )
+    follow_up_instructions = get_ai_feature_prompt_instructions(
+        key="post_interview_suggested_follow_up",
+        language=language_code,
     )
 
     shared_context = build_shared_ai_context(
@@ -2562,26 +2580,35 @@ INTERVIEW NOTES AND CANDIDATE EXAMPLES
 
 ADMINISTRATOR AI GUIDANCE
 
-The following guidance is controlled by Talena administrators.
+OVERALL SYNTHESIS GUIDANCE
+Applies only to overall_synthesis_delta and context_note.
+{overall_instructions}
 
-It controls all non-technical decisions about:
+SUPPORTED INDICATIONS GUIDANCE
+Applies only to supported_indications.
+{supported_instructions}
 
-- assessment interpretation
-- interpretation of interview notes
-- evidence weighting
-- comparison of assessment and interview evidence
-- synthesis
-- treatment of contradictions
-- treatment of uncertainty
-- use of purpose and process context
-- conclusions
-- number of items in each section
-- suggested follow-up
-- caution
-- tone
-- communication style
+ADDED NUANCE GUIDANCE
+Applies only to added_nuance.
+{nuance_instructions}
 
-{admin_instructions}
+CONTRADICTIONS GUIDANCE
+Applies only to contradictions.
+{contradictions_instructions}
+
+REMAINING UNCERTAINTIES GUIDANCE
+Applies only to remaining_uncertainties.
+{uncertainties_instructions}
+
+SUGGESTED FOLLOW-UP GUIDANCE
+Applies only to suggested_follow_up.
+{follow_up_instructions}
+
+SECTION ISOLATION
+Treat each guidance block as authoritative only for its corresponding event.
+Instructions for one section must not change another section's substantive content or item count.
+Global Talena guidance still applies across all sections.
+Do not change required event names, JSON fields, NDJSON structure or streaming order.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT

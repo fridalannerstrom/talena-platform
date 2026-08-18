@@ -674,26 +674,51 @@ Do not invent interview evidence.
         "purpose": "hiring",
         "purpose_label": "Recruitment",
         "context": RECRUITMENT_CONTEXT,
-        "evidence": (
-            ALL_ASSESSMENT_EVIDENCE
-            + "\n\n"
-            + INTERVIEW_EVIDENCE
-        ),
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
         "task": """
-Generate sample post-interview decision support.
-
-Integrate assessment evidence with the supplied sample interview
-notes.
-
-Distinguish clearly between:
-
-Evidence supporting assessment indications
-What the interview adds or nuances
-What remains uncertain
-What requires cautious interpretation
-
-Do not invent evidence beyond the supplied information.
+Generate only sample content for After interview · Overall synthesis.
+Do not generate the other After interview sections.
 """.strip(),
+    },
+
+    "post_interview_supported_indications": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
+        "task": "Generate only Evidence supporting assessment indications.",
+    },
+
+    "post_interview_added_nuance": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
+        "task": "Generate only What the interview adds or nuances.",
+    },
+
+    "post_interview_contradictions": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
+        "task": "Generate only Contradictions or tensions to consider.",
+    },
+
+    "post_interview_remaining_uncertainties": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
+        "task": "Generate only Remaining uncertainties.",
+    },
+
+    "post_interview_suggested_follow_up": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": RECRUITMENT_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
+        "task": "Generate only Suggested follow-up.",
     },
 }
 
