@@ -9657,6 +9657,118 @@ regenerateButton?.addEventListener(
     );
   }
 
+  function renderInterviewGuidance(root, guidance) {
+    if (!guidance) {
+      return;
+    }
+
+    const workspace = root.closest(
+      "[data-candidate-insights-workspace]"
+    );
+
+    const scope = workspace || document;
+
+    const targets = scope.querySelectorAll(
+      "[data-response-style-interview-guidance]"
+    );
+
+    if (!targets.length) {
+      return;
+    }
+
+    const approachText = String(
+      guidance.recommended_approach || ""
+    ).trim();
+
+    const validQuestions = Array.isArray(
+      guidance.questions
+    )
+      ? guidance.questions
+          .map(function (question) {
+            return String(question || "").trim();
+          })
+          .filter(Boolean)
+      : [];
+
+    targets.forEach(function (target) {
+      const content = target.querySelector(
+        "[data-response-style-interview-content]"
+      );
+
+      const empty = target.querySelector(
+        "[data-response-style-interview-empty]"
+      );
+
+      const approachSection = target.querySelector(
+        "[data-response-style-interview-approach-section]"
+      );
+
+      const approach = target.querySelector(
+        "[data-response-style-interview-approach]"
+      );
+
+      const questionsSection = target.querySelector(
+        "[data-response-style-interview-questions-section]"
+      );
+
+      const questionsList = target.querySelector(
+        "[data-response-style-interview-questions]"
+      );
+
+      setText(approach, approachText);
+
+      setHidden(
+        approachSection,
+        !approachText
+      );
+
+      if (questionsList) {
+        questionsList.replaceChildren();
+
+        validQuestions.forEach(function (question) {
+          const item = document.createElement("li");
+
+          const icon = document.createElement("span");
+          icon.className = "purpose-fit-list-icon";
+          icon.innerHTML =
+            '<i data-feather="message-circle"></i>';
+
+          const text = document.createElement("span");
+          text.textContent = question;
+
+          item.appendChild(icon);
+          item.appendChild(text);
+
+          questionsList.appendChild(item);
+        });
+      }
+
+      setHidden(
+        questionsSection,
+        validQuestions.length === 0
+      );
+
+      const hasInterviewGuidance = Boolean(
+        approachText || validQuestions.length
+      );
+
+      setHidden(
+        content,
+        !hasInterviewGuidance
+      );
+
+      setHidden(
+        empty,
+        hasInterviewGuidance
+      );
+    });
+
+    if (window.feather) {
+      window.feather.replace();
+    }
+  }
+
+
 
   function renderGuidance(root, guidance) {
     if (!guidance) {
@@ -9726,6 +9838,11 @@ regenerateButton?.addEventListener(
     renderQuestions(
       root,
       guidance.questions
+    );
+
+    renderInterviewGuidance(
+      root,
+      guidance
     );
 
     const combinationSection = find(

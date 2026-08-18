@@ -5455,6 +5455,13 @@ def process_candidate_final_output(
         or {}
     )
 
+    # #188: Prepare for interview uses the saved response-style
+    # interview approach from the same one-call response-style result.
+    response_style_guidance = (
+        invitation.ai_response_style_guidance
+        or {}
+    )
+
     # Talena final output post-interview language batch 1
     language_code = get_request_ai_language(
         request
@@ -5564,6 +5571,10 @@ def process_candidate_final_output(
 
             "combined_questions_refresh_url": (
                 combined_questions_refresh_url
+            ),
+
+            "response_style_guidance": (
+                response_style_guidance
             ),
 
             "pre_interview_decision_support": (

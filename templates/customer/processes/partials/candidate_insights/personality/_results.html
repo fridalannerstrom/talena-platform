@@ -281,48 +281,6 @@
   </div>
 
 
-  <!-- PRACTICAL APPROACH -->
-  <div
-    class="response-style-ai-content__section"
-    data-guidance-approach-section
-    {% if not response_style_guidance.recommended_approach %}hidden{% endif %}
-  >
-
-    <div class="response-style-ai-content__label">
-       {% trans "Practical approach" %}
-    </div>
-
-    <p
-      class="response-style-ai-content__text"
-      data-guidance-approach
-    >
-      {{ response_style_guidance.recommended_approach }}
-    </p>
-
-  </div>
-
-
-  <!-- FOLLOW-UP QUESTIONS -->
-  <details
-    class="response-style-ai-content__questions"
-    data-guidance-questions-section
-    {% if not response_style_guidance.questions %}hidden{% endif %}
-  >
-
-    <summary class="response-style-ai-content__questions-toggle">
-       {% trans "Questions to explore" %}
-    </summary>
-
-    <ul
-      class="response-style-ai-content__questions-list mt-2"
-      data-guidance-questions
-    >
-      {% for question in response_style_guidance.questions %}
-        <li>{{ question }}</li>
-      {% endfor %}
-    </ul>
-
-  </details>
 
 </div>
 
