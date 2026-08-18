@@ -45,32 +45,6 @@
 
   {% if has_combined_questions %}
 
-    <!-- INTRODUCTION -->
-    <div class="personality-questions-context-note mt-4">
-
-      <div class="d-flex align-items-start gap-3">
-
-        <div class="personality-questions-context-note__icon">
-          <i data-feather="message-circle"></i>
-        </div>
-
-        <div>
-
-          <div class="personality-questions-context-note__title">
-            {% trans "How to use these questions" %}
-          </div>
-
-          <div>
-            {% blocktrans %}Use the questions to explore assessment indications through concrete examples, reflections and practical experience. They should support a structured conversation rather than replace professional judgement.{% endblocktrans %}
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
     <!-- QUESTION SECTIONS -->
     <div class="combined-question-sections mt-4">
 
@@ -109,9 +83,47 @@
     {% endblocktrans %}
   </span>
 
+  <span class="personality-trait-pill text-nowrap">
+    <i data-feather="clock"></i>
+    ~ {{ section.estimated_minutes }} min
+  </span>
+
 </div>
 
           </header>
+
+          <!-- SECTION-SPECIFIC STATIC GUIDANCE -->
+          <div class="personality-questions-context-note mt-3">
+
+            <div class="d-flex align-items-start gap-3">
+
+              <div class="personality-questions-context-note__icon">
+                <i data-feather="message-circle"></i>
+              </div>
+
+              <div>
+
+                <div class="personality-questions-context-note__title">
+                  {% trans "How to use these questions" %}
+                </div>
+
+                <div>
+                  {% if section.key == "personality" %}
+                    {% blocktrans %}Use these questions to explore how the candidate's personality preferences appear in real situations. Ask for concrete examples of what the person did, how they adapted and what the outcome was. Treat the assessment result as a hypothesis to explore, not as proof of behaviour or competence.{% endblocktrans %}
+
+                  {% elif section.key == "motivation" %}
+                    {% blocktrans %}Use these questions to understand what may create energy and engagement, what may reduce motivation and how different drivers are balanced in practice. Ask for concrete situations and avoid treating higher or lower results as inherently good or bad.{% endblocktrans %}
+
+                  {% elif section.key == "cognitive" %}
+                    {% blocktrans %}Use these questions to explore how the candidate works with information, complexity and problem solving in practice. Listen for working methods, strategies, priorities and how the person uses support or checking. The assessment result is an indication from the test situation, not a measure of the candidate's overall ability or competence.{% endblocktrans %}
+                  {% endif %}
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
 
           <!-- QUESTIONS -->
           <div class="personality-question-list mt-3">

@@ -1,5 +1,13 @@
-{% load i18n %}
+{% load i18n interview_config %}
+{% interview_section_meta "motivation" as interview_meta %}
 {# Talena motivation Results language batch 1 #}
+<div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+  <span class="personality-trait-pill text-nowrap">
+    <i data-feather="clock"></i>
+    ~ {{ interview_meta.estimated_minutes }} min
+  </span>
+</div>
+
 <div
   class="personality-question-list"
   data-motivation-questions-list

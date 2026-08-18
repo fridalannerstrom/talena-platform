@@ -132,6 +132,10 @@ from .forms import SelfRegisterForm
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _, get_language
+
+from apps.processes.interview_config import (
+    get_interview_section_config,
+)
 from django.views.decorators.http import require_POST
 from django.core.mail import EmailMultiAlternatives
 from apps.emails.models import EmailTemplate, EmailLog
@@ -2092,6 +2096,26 @@ def build_combined_candidate_questions(
         },
     ]
 
+    # #191: central interview order, counts and time estimates.
+    for source in question_sources:
+        interview_meta = get_interview_section_config(
+            source["key"]
+        )
+
+        source["interview_order"] = (
+            interview_meta["order"]
+        )
+        source["target_question_count"] = (
+            interview_meta["question_count"]
+        )
+        source["estimated_minutes"] = (
+            interview_meta["estimated_minutes"]
+        )
+
+    question_sources.sort(
+        key=lambda source: source["interview_order"]
+    )
+
     sections = []
     total_count = 0
 
@@ -2158,6 +2182,15 @@ def build_combined_candidate_questions(
             "is_outdated": status == "outdated",
             "questions": questions,
             "question_count": len(questions),
+            "target_question_count": (
+                source["target_question_count"]
+            ),
+            "estimated_minutes": (
+                source["estimated_minutes"]
+            ),
+            "interview_order": (
+                source["interview_order"]
+            ),
         })
 
         total_count += len(questions)

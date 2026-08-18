@@ -7104,3 +7104,14 @@ msgstr "Flexibel process"
 
 msgid "Create a flexible process based on the current need."
 msgstr "Skapa en flexibel process utifrån det aktuella behovet."
+# #190 section-specific interview question guidance
+msgid "Use these questions to explore how the candidate's personality preferences appear in real situations. Ask for concrete examples of what the person did, how they adapted and what the outcome was. Treat the assessment result as a hypothesis to explore, not as proof of behaviour or competence."
+msgstr "Använd frågorna för att utforska hur kandidatens personlighetspreferenser visar sig i konkreta situationer. Be om exempel på vad personen gjorde, hur hen anpassade sig och vad utfallet blev. Behandla testresultatet som en hypotes att utforska, inte som ett bevis på beteende eller kompetens."
+
+# #190 section-specific interview question guidance
+msgid "Use these questions to understand what may create energy and engagement, what may reduce motivation and how different drivers are balanced in practice. Ask for concrete situations and avoid treating higher or lower results as inherently good or bad."
+msgstr "Använd frågorna för att förstå vad som kan skapa energi och engagemang, vad som kan minska motivationen och hur olika drivkrafter balanseras i praktiken. Be om konkreta situationer och undvik att behandla högre eller lägre resultat som i sig bra eller dåliga."
+
+# #190 section-specific interview question guidance
+msgid "Use these questions to explore how the candidate works with information, complexity and problem solving in practice. Listen for working methods, strategies, priorities and how the person uses support or checking. The assessment result is an indication from the test situation, not a measure of the candidate's overall ability or competence."
+msgstr "Använd frågorna för att utforska hur kandidaten arbetar med information, komplexitet och problemlösning i praktiken. Lyssna efter arbetssätt, strategier, prioriteringar och hur personen använder stöd eller kontroll. Testresultatet är en indikation från testsituationen, inte ett mått på kandidatens hela förmåga eller kompetens."

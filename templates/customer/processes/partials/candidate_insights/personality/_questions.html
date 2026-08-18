@@ -1,4 +1,5 @@
-{% load i18n personality_i18n %}
+{% load i18n personality_i18n interview_config %}
+{% interview_section_meta "personality" as interview_meta %}
 {# Talena personality UI and response styles language batch 1 #}
 {% if has_personality_results %}
   <section
@@ -145,6 +146,14 @@ aria-label="{% trans 'Generate new personality questions' %}"
 
         </section>
 
+
+        <!-- STANDARD INTERVIEW TIME -->
+        <div class="d-flex align-items-center gap-2 flex-wrap mt-4">
+          <span class="personality-trait-pill text-nowrap">
+            <i data-feather="clock"></i>
+            ~ {{ interview_meta.estimated_minutes }} min
+          </span>
+        </div>
 
         <!-- QUESTIONS -->
         <section
