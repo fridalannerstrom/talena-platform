@@ -1,137 +1,56 @@
 {% extends "customer/core/layouts/customer_base.html" %}
 {% load dict_extras static i18n %}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-list.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
+<div class="container-fluid px-2 px-md-3 process-list-page">
 
-<div class="container-fluid px-2 px-md-3">
-
-  <!-- Header -->
-
-  <div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
-
+  <header class="process-list-page-header">
     <div>
-      <h1 class="h4 mb-1">
-        {% trans "Test processes" %}
-      </h1>
-
-      <div class="text-muted">
-        {% trans "Overview of your test processes and their status." %}
-      </div>
+      <div class="process-list-eyebrow">{% trans "Assessment workflows" %}</div>
+      <h1>{% trans "Test processes" %}</h1>
+      <p>{% trans "Overview of your test processes and their status." %}</p>
     </div>
-
 
     {% if not show_archived %}
-
-      <a
-        class="btn btn-primary"
-        href="{% url 'processes:process_create' %}"
-      >
+      <a class="btn btn-primary process-create-button" href="{% url 'processes:process_create' %}">
+        <i data-feather="plus"></i>
         {% trans "Create test process" %}
       </a>
-
     {% endif %}
+  </header>
 
-  </div>
-
-
-  <!-- Controls -->
-
-  <div class="card mb-3">
-
-    <div class="card-body process-list-header">
-
-      <div class="row g-2 align-items-center">
-
-        <div class="col-12 col-md-6 col-lg-5">
-
-          <div class="input-group">
-
-            <span class="input-group-text bg-white">
-              <i
-                data-feather="search"
-                style="width:16px;height:16px;"
-              ></i>
-            </span>
-
-            <input
-              id="processSearch"
-              type="text"
-              class="form-control"
-              placeholder="{% trans 'Search by title or assessment package...' %}"
-              aria-label="{% trans 'Search test processes' %}"
-            >
-
-          </div>
-
-        </div>
-
-
-        <div class="col-12 col-md-6 col-lg-4">
-
-          <select
-            id="packageFilter"
-            class="form-select"
-            aria-label="{% trans 'Filter by assessment package' %}"
-          >
-            <option value="">
-              {% trans "All assessment packages" %}
-            </option>
-          </select>
-
-        </div>
-
-
-        <div class="col-12 col-lg-3">
-
-          <select
-            id="sortBy"
-            class="form-select"
-            aria-label="{% trans 'Sort test processes' %}"
-          >
-            <option value="created_desc">
-              {% trans "Sort: Newest first" %}
-            </option>
-
-            <option value="created_asc">
-              {% trans "Sort: Oldest first" %}
-            </option>
-
-            <option value="candidates_desc">
-              {% trans "Sort: Most candidates" %}
-            </option>
-
-            <option value="candidates_asc">
-              {% trans "Sort: Fewest candidates" %}
-            </option>
-
-            <option value="title_asc">
-              {% trans "Sort: Title A–Z" %}
-            </option>
-
-            <option value="title_desc">
-              {% trans "Sort: Title Z–A" %}
-            </option>
-          </select>
-
-        </div>
-
-      </div>
-
+  <section class="process-toolbar" aria-label="{% trans 'Process tools' %}">
+    <div class="process-search-wrap">
+      <i data-feather="search"></i>
+      <input
+        id="processSearch"
+        type="text"
+        class="form-control"
+        placeholder="{% trans 'Search by title, purpose or assessment package...' %}"
+        aria-label="{% trans 'Search test processes' %}"
+      >
     </div>
 
-  </div>
+    <select id="packageFilter" class="form-select" aria-label="{% trans 'Filter by assessment package' %}">
+      <option value="">{% trans "All assessment packages" %}</option>
+    </select>
 
+    <select id="sortBy" class="form-select" aria-label="{% trans 'Sort test processes' %}">
+      <option value="created_desc">{% trans "Sort: Newest first" %}</option>
+      <option value="created_asc">{% trans "Sort: Oldest first" %}</option>
+      <option value="candidates_desc">{% trans "Sort: Most candidates" %}</option>
+      <option value="candidates_asc">{% trans "Sort: Fewest candidates" %}</option>
+      <option value="title_asc">{% trans "Sort: Title A–Z" %}</option>
+      <option value="title_desc">{% trans "Sort: Title Z–A" %}</option>
+    </select>
+  </section>
 
-  <!-- Tabs -->
-
-  <div class="mt-3 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-    <div
-      class="seg-tabs"
-      role="tablist"
-      aria-label="{% trans 'Show test processes' %}"
-    >
-
+  <div class="process-list-subnav">
+    <div class="seg-tabs" role="tablist" aria-label="{% trans 'Show test processes' %}">
       <a
         href="{% url 'processes:process_list' %}"
         class="seg-tab {% if not show_archived %}is-active{% endif %}"
@@ -141,7 +60,6 @@
         {% trans "Active" %}
       </a>
 
-
       <a
         href="{% url 'processes:process_list' %}?archived=1"
         class="seg-tab {% if show_archived %}is-active{% endif %}"
@@ -150,589 +68,250 @@
       >
         {% trans "Archived" %}
       </a>
-
     </div>
 
-
     {% if show_archived %}
-
-      <div class="text-muted small">
-        {% trans "These are the processes you have archived." %}
-      </div>
-
+      <div class="process-list-helper">{% trans "These are the processes you have archived." %}</div>
     {% endif %}
-
   </div>
 
-
   {% if processes %}
-
-    <div
-      id="processGrid"
-      class="process-grid"
-    >
-
+    <div id="processGrid" class="process-grid">
       {% for p in processes %}
-
-        <div
-          class="process-card card"
+        <article
+          class="process-card"
           role="button"
           tabindex="0"
           data-href="{% url 'processes:process_detail' p.id %}"
           data-title="{{ p.name|default:''|lower }}"
           data-package="{{ p.project_name_snapshot|default:'' }}"
           data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
-          data-labels-lower="
-            {% if p.is_historical %}
-              historical
-            {% else %}
-              {% for lab in p.labels.all %}
-                {{ lab.name|lower }}
-              {% endfor %}
-            {% endif %}
-          "
-          data-candidates="
-            {% if p.is_historical %}
-              {{ p.historical_candidates_count|default:0 }}
-            {% else %}
-              {{ p.live_candidates_count|default:0 }}
-            {% endif %}
-          "
+          data-purpose-lower="{{ p.purpose|purpose_label|lower }}"
+          data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
+          data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
           data-created="{{ p.created_at|date:'Y-m-d' }}"
         >
+          <div class="process-card-topline">
+            <span class="process-purpose-badge">
+              {{ p.purpose|purpose_label }}
+            </span>
 
-          <div class="card-body process-card-body">
+            {% with can_edit=can_edit_by_process_id|get_item:p.id %}
+              <div class="process-card-actions {% if not can_edit or p.is_historical %}is-placeholder{% endif %}">
+                {% if can_edit and not p.is_historical %}
+                  {% if not show_archived %}
+                    <a
+                      class="icon-btn"
+                      href="{% url 'processes:process_update' p.id %}"
+                      aria-label="{% trans 'Edit' %}"
+                      title="{% trans 'Edit' %}"
+                      onclick="event.stopPropagation();"
+                    >
+                      <i data-feather="edit-2"></i>
+                    </a>
 
-            <!-- Labels and actions -->
-
-            <div class="d-flex align-items-start justify-content-between gap-3">
-
-              <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
-
-                {% if p.is_historical %}
-
-                  <span class="process-label">
-                    {% trans "Historical" %}
-                  </span>
-
-                {% else %}
-
-                  {% if p.labels.exists %}
-
-                    {% for lab in p.labels.all %}
-                      <span class="process-label">
-                        {{ lab.name }}
-                      </span>
-                    {% endfor %}
-
+                    <form
+                      method="post"
+                      action="{% url 'processes:process_archive' p.id %}"
+                      data-confirm="{% trans 'Archive this process?' %}"
+                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
+                    >
+                      {% csrf_token %}
+                      <button type="submit" class="icon-btn" aria-label="{% trans 'Archive' %}" title="{% trans 'Archive' %}">
+                        <i data-feather="archive"></i>
+                      </button>
+                    </form>
                   {% else %}
+                    <form
+                      method="post"
+                      action="{% url 'processes:process_unarchive' p.id %}"
+                      data-confirm="{% trans 'Restore this process to active processes?' %}"
+                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
+                    >
+                      {% csrf_token %}
+                      <button type="submit" class="icon-btn" aria-label="{% trans 'Restore' %}" title="{% trans 'Restore' %}">
+                        <i data-feather="rotate-ccw"></i>
+                      </button>
+                    </form>
 
-                    <span class="process-label process-label-muted">
-                      {% trans "Uncategorised" %}
-                    </span>
-
+                    <form
+                      method="post"
+                      action="{% url 'processes:process_delete' p.id %}"
+                      data-confirm="{% trans 'Permanently delete this archived process? This cannot be undone.' %}"
+                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
+                    >
+                      {% csrf_token %}
+                      <button type="submit" class="icon-btn icon-btn-danger" aria-label="{% trans 'Delete' %}" title="{% trans 'Delete' %}">
+                        <i data-feather="trash-2"></i>
+                      </button>
+                    </form>
                   {% endif %}
-
                 {% endif %}
-
               </div>
-
-
-              {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-
-                <div
-                  class="
-                    card-actions
-                    d-inline-flex
-                    gap-1
-                    align-items-center
-                    flex-shrink-0
-                    {% if not can_edit or p.is_historical %}
-                      is-placeholder
-                    {% endif %}
-                  "
-                >
-
-                  {% if can_edit and not p.is_historical %}
-
-                    {% if not show_archived %}
-
-                      <a
-                        class="icon-btn"
-                        href="{% url 'processes:process_update' p.id %}"
-                        aria-label="{% trans 'Edit' %}"
-                        title="{% trans 'Edit' %}"
-                        onclick="event.stopPropagation();"
-                      >
-                        <i data-feather="edit"></i>
-                      </a>
-
-
-                      <form
-                        method="post"
-                        action="{% url 'processes:process_archive' p.id %}"
-                        class="d-inline"
-                        data-confirm="{% trans 'Archive this process?' %}"
-                        onsubmit="
-                          event.stopPropagation();
-                          return confirm(this.dataset.confirm);
-                        "
-                      >
-                        {% csrf_token %}
-
-                        <button
-                          type="submit"
-                          class="icon-btn"
-                          aria-label="{% trans 'Archive' %}"
-                          title="{% trans 'Archive' %}"
-                        >
-                          <i data-feather="archive"></i>
-                        </button>
-                      </form>
-
-
-                    {% else %}
-
-                      <form
-                        method="post"
-                        action="{% url 'processes:process_unarchive' p.id %}"
-                        class="d-inline"
-                        data-confirm="{% trans 'Restore this process to active processes?' %}"
-                        onsubmit="
-                          event.stopPropagation();
-                          return confirm(this.dataset.confirm);
-                        "
-                      >
-                        {% csrf_token %}
-
-                        <button
-                          type="submit"
-                          class="icon-btn"
-                          aria-label="{% trans 'Restore' %}"
-                          title="{% trans 'Restore' %}"
-                        >
-                          <i data-feather="rotate-ccw"></i>
-                        </button>
-                      </form>
-
-
-                      <form
-                        method="post"
-                        action="{% url 'processes:process_delete' p.id %}"
-                        class="d-inline"
-                        data-confirm="{% trans 'Permanently delete this archived process? This cannot be undone.' %}"
-                        onsubmit="
-                          event.stopPropagation();
-                          return confirm(this.dataset.confirm);
-                        "
-                      >
-                        {% csrf_token %}
-
-                        <button
-                          type="submit"
-                          class="icon-btn icon-btn-danger"
-                          aria-label="{% trans 'Delete' %}"
-                          title="{% trans 'Delete' %}"
-                        >
-                          <i data-feather="trash-2"></i>
-                        </button>
-                      </form>
-
-                    {% endif %}
-
-
-                  {% else %}
-
-                    <span class="icon-btn"></span>
-                    <span class="icon-btn"></span>
-
-                  {% endif %}
-
-                </div>
-
-              {% endwith %}
-
-            </div>
-
-
-            <!-- Title -->
-
-            <div class="mt-3">
-
-              <div class="process-title">
-                {{ p.name }}
-              </div>
-
-
-{% if p.is_historical %}
-  <div class="text-muted small">
-    {% trans "Historical test data" %}
-  </div>
-{% endif %}
-
-            </div>
-
-
-            <div class="card-divider"></div>
-
-
-            <!-- Footer meta -->
-
-            <div class="card-footer-meta">
-
-              <div class="meta-item">
-
-                <i
-                  data-feather="users"
-                  class="icon-16"
-                ></i>
-
-                <span>
-                  {% trans "Candidates:" %}
-
-                  <strong>
-                    {% if p.is_historical %}
-                      {{ p.historical_candidates_count|default:0 }}
-                    {% else %}
-                      {{ p.live_candidates_count|default:0 }}
-                    {% endif %}
-                  </strong>
-                </span>
-
-              </div>
-
-
-              <div class="meta-item">
-
-                <i
-                  data-feather="calendar"
-                  class="icon-16"
-                ></i>
-
-                <span>
-                  {% trans "Created:" %}
-
-                  <strong>
-                    {{ p.created_at|date:"Y-m-d" }}
-                  </strong>
-                </span>
-
-              </div>
-
-            </div>
-
+            {% endwith %}
           </div>
 
-        </div>
+          <div class="process-card-content">
+            <h2 class="process-title">{{ p.name }}</h2>
 
+            {% if p.is_historical %}
+              <div class="process-package">{% trans "Historical test data" %}</div>
+            {% elif p.project_name_snapshot %}
+              <div class="process-package">
+                <span>{% trans "Assessment package" %}</span>
+                {{ p.project_name_snapshot }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="process-card-labels">
+            {% if p.is_historical %}
+              <span class="process-label process-label-muted">{% trans "Historical" %}</span>
+            {% elif p.labels.exists %}
+              {% for lab in p.labels.all|slice:":3" %}
+                <span class="process-label">{{ lab.name }}</span>
+              {% endfor %}
+              {% if p.labels.all|length > 3 %}
+                <span class="process-label process-label-muted">+{{ p.labels.all|length|add:"-3" }}</span>
+              {% endif %}
+            {% else %}
+              <span class="process-label process-label-muted">{% trans "Uncategorised" %}</span>
+            {% endif %}
+          </div>
+
+          <footer class="process-card-footer">
+            <div class="process-meta-item">
+              <i data-feather="users"></i>
+              <span>{% trans "Candidates" %}</span>
+              <strong>
+                {% if p.is_historical %}
+                  {{ p.historical_candidates_count|default:0 }}
+                {% else %}
+                  {{ p.live_candidates_count|default:0 }}
+                {% endif %}
+              </strong>
+            </div>
+
+            <div class="process-meta-item">
+              <i data-feather="calendar"></i>
+              <span>{{ p.created_at|date:"Y-m-d" }}</span>
+            </div>
+
+            <div class="process-card-open" aria-hidden="true">
+              <i data-feather="arrow-up-right"></i>
+            </div>
+          </footer>
+        </article>
       {% endfor %}
-
     </div>
-
-
   {% else %}
+    <div class="process-empty-state">
+      <div class="process-empty-icon"><i data-feather="folder"></i></div>
 
-    <!-- Empty state -->
-
-    <div class="card empty-state">
-
-      <div class="card-body p-5 text-center">
-
-        {% if show_archived %}
-
-          <div class="h5 mb-1">
-            {% trans "No archived test processes" %}
-          </div>
-
-          <div class="text-muted mb-3">
-            {% trans "When you archive a process, it will appear here." %}
-          </div>
-
-
-        {% else %}
-
-          <img
-            src="{% static 'images/talena-empty-state.png' %}"
-            alt="Talena"
-            style="max-width: 220px;"
-          >
-
-          <br><br>
-
-          <div class="h5 mb-1">
-            {% trans "You do not have any test processes yet" %}
-          </div>
-
-          <div class="text-muted mb-3">
-            {% trans "Create a test process to start sending assessments to candidates." %}
-          </div>
-
-          <a
-            class="btn btn-primary"
-            href="{% url 'processes:process_create' %}"
-          >
-            {% trans "Create your first test process" %}
-          </a>
-
-        {% endif %}
-
-      </div>
-
+      {% if show_archived %}
+        <h2>{% trans "No archived test processes" %}</h2>
+        <p>{% trans "When you archive a process, it will appear here." %}</p>
+      {% else %}
+        <h2>{% trans "You do not have any test processes yet" %}</h2>
+        <p>{% trans "Create a test process to start sending assessments to candidates." %}</p>
+        <a class="btn btn-primary" href="{% url 'processes:process_create' %}">{% trans "Create your first test process" %}</a>
+      {% endif %}
     </div>
-
   {% endif %}
 
 </div>
 
-
 <script>
   (function () {
     const grid = document.getElementById("processGrid");
+    if (!grid) return;
 
-    if (!grid) {
-      return;
-    }
-
-    const cards = Array.from(
-      grid.querySelectorAll(".process-card")
-    );
-
-    const searchInput =
-      document.getElementById("processSearch");
-
-    const filterSelect =
-      document.getElementById("packageFilter");
-
-    const sortSelect =
-      document.getElementById("sortBy");
-
+    const cards = Array.from(grid.querySelectorAll(".process-card"));
+    const searchInput = document.getElementById("processSearch");
+    const filterSelect = document.getElementById("packageFilter");
+    const sortSelect = document.getElementById("sortBy");
 
     const packages = new Map();
 
     cards.forEach((card) => {
-      const label =
-        (card.dataset.package || "").trim();
-
-      if (label) {
-        packages.set(
-          label.toLowerCase(),
-          label
-        );
-      }
+      const label = (card.dataset.package || "").trim();
+      if (label) packages.set(label.toLowerCase(), label);
     });
-
 
     Array.from(packages.values())
       .sort((a, b) => a.localeCompare(b))
       .forEach((label) => {
-        const option =
-          document.createElement("option");
-
-        option.value =
-          label.toLowerCase();
-
-        option.textContent =
-          label;
-
+        const option = document.createElement("option");
+        option.value = label.toLowerCase();
+        option.textContent = label;
         filterSelect.appendChild(option);
       });
 
+    function matches(card, query, packageValue) {
+      const haystack = [
+        card.dataset.title || "",
+        card.dataset.packageLower || "",
+        card.dataset.purposeLower || "",
+        card.dataset.labelsLower || ""
+      ].join(" ");
 
-    function matches(
-      card,
-      query,
-      packageValue
-    ) {
-      const title =
-        card.dataset.title || "";
-
-      const assessmentPackage =
-        card.dataset.packageLower || "";
-
-      const labels =
-        card.dataset.labelsLower || "";
-
-      const filterMatches =
-        !packageValue ||
-        assessmentPackage === packageValue;
-
-      const queryMatches =
-        !query ||
-        title.includes(query) ||
-        assessmentPackage.includes(query) ||
-        labels.includes(query);
-
-      return (
-        queryMatches &&
-        filterMatches
-      );
+      const filterMatches = !packageValue || (card.dataset.packageLower || "") === packageValue;
+      const queryMatches = !query || haystack.includes(query);
+      return filterMatches && queryMatches;
     }
 
-
-    function sortCards(
-      list,
-      mode
-    ) {
+    function sortCards(list, mode) {
       const copy = [...list];
-
       const sortFunction = {
-        created_desc: (a, b) =>
-          (b.dataset.created || "")
-            .localeCompare(
-              a.dataset.created || ""
-            ),
-
-        created_asc: (a, b) =>
-          (a.dataset.created || "")
-            .localeCompare(
-              b.dataset.created || ""
-            ),
-
-        candidates_desc: (a, b) =>
-          parseInt(
-            b.dataset.candidates || "0",
-            10
-          ) -
-          parseInt(
-            a.dataset.candidates || "0",
-            10
-          ),
-
-        candidates_asc: (a, b) =>
-          parseInt(
-            a.dataset.candidates || "0",
-            10
-          ) -
-          parseInt(
-            b.dataset.candidates || "0",
-            10
-          ),
-
-        title_asc: (a, b) =>
-          (a.dataset.title || "")
-            .localeCompare(
-              b.dataset.title || ""
-            ),
-
-        title_desc: (a, b) =>
-          (b.dataset.title || "")
-            .localeCompare(
-              a.dataset.title || ""
-            )
+        created_desc: (a, b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
+        created_asc: (a, b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
+        candidates_desc: (a, b) => parseInt(b.dataset.candidates || "0", 10) - parseInt(a.dataset.candidates || "0", 10),
+        candidates_asc: (a, b) => parseInt(a.dataset.candidates || "0", 10) - parseInt(b.dataset.candidates || "0", 10),
+        title_asc: (a, b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
+        title_desc: (a, b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
       }[mode] || (() => 0);
 
       copy.sort(sortFunction);
-
       return copy;
     }
 
-
     function render() {
-      const query =
-        (searchInput.value || "")
-          .trim()
-          .toLowerCase();
+      const query = (searchInput.value || "").trim().toLowerCase();
+      const packageValue = (filterSelect.value || "").trim().toLowerCase();
+      const sortedCards = sortCards(
+        cards.filter((card) => matches(card, query, packageValue)),
+        sortSelect.value
+      );
 
-      const packageValue =
-        (filterSelect.value || "")
-          .trim()
-          .toLowerCase();
-
-      const mode =
-        sortSelect.value;
-
-      const visibleCards =
-        cards.filter((card) =>
-          matches(
-            card,
-            query,
-            packageValue
-          )
-        );
-
-      const sortedCards =
-        sortCards(
-          visibleCards,
-          mode
-        );
-
-      cards.forEach((card) => {
-        card.style.display = "none";
-      });
-
+      cards.forEach((card) => { card.style.display = "none"; });
       sortedCards.forEach((card) => {
         card.style.display = "";
         grid.appendChild(card);
       });
     }
 
-
     cards.forEach((card) => {
       const openCard = () => {
-        const href =
-          card.dataset.href;
-
-        if (href) {
-          window.location.href =
-            href;
-        }
+        if (card.dataset.href) window.location.href = card.dataset.href;
       };
 
-      card.addEventListener(
-        "click",
-        (event) => {
-          if (
-            event.target.closest("a") ||
-            event.target.closest("button") ||
-            event.target.closest("form")
-          ) {
-            return;
-          }
+      card.addEventListener("click", (event) => {
+        if (event.target.closest("a, button, form")) return;
+        openCard();
+      });
 
-          openCard();
-        }
-      );
-
-      card.addEventListener(
-        "keydown",
-        (event) => {
-          if (
-            event.key === "Enter" ||
-            event.key === " "
-          ) {
-            if (
-              event.target.closest("a") ||
-              event.target.closest("button") ||
-              event.target.closest("form")
-            ) {
-              return;
-            }
-
-            event.preventDefault();
-            openCard();
-          }
-        }
-      );
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        if (event.target.closest("a, button, form")) return;
+        event.preventDefault();
+        openCard();
+      });
     });
 
-
-    searchInput.addEventListener(
-      "input",
-      render
-    );
-
-    filterSelect.addEventListener(
-      "change",
-      render
-    );
-
-    sortSelect.addEventListener(
-      "change",
-      render
-    );
-
+    searchInput.addEventListener("input", render);
+    filterSelect.addEventListener("change", render);
+    sortSelect.addEventListener("change", render);
     render();
   })();
 </script>
-
 {% endblock %}
