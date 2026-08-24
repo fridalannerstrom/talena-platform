@@ -1,0 +1,60 @@
+/* =========================================================
+   TALENA FORMS
+   ---------------------------------------------------------
+   Opt-in form controls for screens migrated to the refreshed
+   Talena design system. Existing Bootstrap/form styles remain
+   untouched until migration.
+   ========================================================= */
+
+.talena-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.talena-label {
+  color: var(--talena-text);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.talena-input,
+.talena-select,
+.talena-textarea {
+  width: 100%;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-md);
+  background: var(--talena-surface);
+  color: var(--talena-text);
+  font: inherit;
+  transition:
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+.talena-input,
+.talena-select {
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+}
+
+.talena-textarea {
+  min-height: 110px;
+  padding: 0.8rem;
+  resize: vertical;
+}
+
+.talena-input:focus,
+.talena-select:focus,
+.talena-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 111, 97, 0.6);
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.10);
+}
+
+.talena-help-text {
+  color: var(--talena-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
