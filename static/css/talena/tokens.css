@@ -1,0 +1,67 @@
+/* =========================================================
+   TALENA DESIGN TOKENS
+   ---------------------------------------------------------
+   Single source of truth for the refreshed Talena brand.
+
+   Important during migration:
+   - These variables do not override Bootstrap yet.
+   - Existing screens should remain visually unchanged.
+   - New/refactored Talena CSS should reference these tokens
+     instead of introducing new hard-coded brand values.
+   ========================================================= */
+
+:root {
+  /* Brand */
+  --talena-coral: #ff6f61;
+  --talena-coral-hover: #e96358;
+  --talena-coral-strong: #cf5950;
+  --talena-coral-soft: #fff1ee;
+
+  /* Ink and text */
+  --talena-ink: #171312;
+  --talena-text: #292524;
+  --talena-text-muted: #77706c;
+  --talena-text-subtle: #9a928d;
+
+  /* Surfaces */
+  --talena-bg: #faf9f7;
+  --talena-surface: #ffffff;
+  --talena-surface-soft: #f7f5f2;
+  --talena-surface-warm: #fff8f3;
+  --talena-surface-dark: #191514;
+
+  /* Borders */
+  --talena-border: #e7e2de;
+  --talena-border-strong: #d8d1cc;
+
+  /* Semantic */
+  --talena-success: #6e9f7d;
+  --talena-success-soft: #edf5ef;
+  --talena-warning: #c9954e;
+  --talena-warning-soft: #fff7e8;
+  --talena-danger: #cf5950;
+  --talena-danger-soft: #fff0ee;
+  --talena-info: #668b91;
+  --talena-info-soft: #eef5f5;
+
+  /* Shape */
+  --talena-radius-xs: 6px;
+  --talena-radius-sm: 8px;
+  --talena-radius-md: 12px;
+  --talena-radius-lg: 18px;
+  --talena-radius-xl: 24px;
+  --talena-radius-pill: 999px;
+
+  /* Shadows */
+  --talena-shadow-xs: 0 1px 3px rgba(23, 19, 18, 0.04);
+  --talena-shadow-sm: 0 2px 10px rgba(23, 19, 18, 0.04);
+  --talena-shadow-md: 0 12px 32px rgba(23, 19, 18, 0.07);
+  --talena-shadow-lg: 0 24px 60px rgba(23, 19, 18, 0.10);
+
+  /* Motion */
+  --talena-transition-fast: 150ms ease;
+  --talena-transition-base: 220ms ease;
+
+  /* Layout */
+  --talena-content-max: 1440px;
+}
