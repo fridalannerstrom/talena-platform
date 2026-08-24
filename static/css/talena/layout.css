@@ -1,0 +1,57 @@
+/* =========================================================
+   TALENA LAYOUT
+   ---------------------------------------------------------
+   Opt-in layout primitives for screens migrated to the new
+   Talena design system. Existing application layout remains
+   owned by legacy style.css until each area is migrated.
+   ========================================================= */
+
+.talena-page {
+  width: 100%;
+}
+
+.talena-page-inner {
+  width: min(100%, var(--talena-content-max));
+  margin-inline: auto;
+}
+
+.talena-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.talena-stack--sm {
+  gap: 0.625rem;
+}
+
+.talena-stack--lg {
+  gap: 1.5rem;
+}
+
+.talena-cluster {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.talena-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.talena-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.talena-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .talena-grid--2,
+  .talena-grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
