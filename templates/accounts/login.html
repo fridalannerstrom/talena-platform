@@ -14,13 +14,23 @@
 
   <title>{% trans "Log in" %} | Talena</title>
 
-  <link
-    rel="stylesheet"
-    href="{% static 'css/auth.css' %}"
-  >
+<link
+  rel="stylesheet"
+  href="{% static 'css/talena/tokens.css' %}"
+>
+
+<link
+  rel="stylesheet"
+  href="{% static 'css/auth.css' %}"
+>
+
+<link
+  rel="stylesheet"
+  href="{% static 'css/talena/pages/login.css' %}"
+>
 </head>
 
-<body>
+<body class="talena-login">
 
   <main class="auth-shell">
 
@@ -297,10 +307,61 @@
     </section>
 
     <!-- RIGHT -->
-    <aside
-      class="auth-right"
-      aria-hidden="true"
-    ></aside>
+<aside class="auth-right">
+
+  <div class="login-showcase">
+
+    <div class="login-showcase-badge">
+      A note from the Talena team
+    </div>
+
+    <h2 class="login-showcase-title">
+      Welcome to Talena.
+      <span>Make yourself at home.</span>
+    </h2>
+
+    <p class="login-showcase-copy">
+      We built Talena to make assessment work clearer,
+      calmer and a little more useful. Explore the results,
+      ask questions and use the tools in the way that works
+      best for you.
+    </p>
+
+    <div class="login-showcase-card login-welcome-card">
+
+      <div class="login-welcome-card-top">
+
+        <div class="login-welcome-icon">
+          👋
+        </div>
+
+        <div>
+          <div class="login-showcase-card-title">
+            From the people behind Talena
+          </div>
+
+          <p class="login-welcome-card-copy">
+            We hope you enjoy working in Talena.
+            And if there's something we could make better,
+            we'd genuinely love to hear it.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="login-welcome-footer">
+        <span>Built with care by Talent Qode</span>
+
+        <span class="login-welcome-dot"></span>
+
+        <span>Since 2006</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</aside>
 
   </main>
 
