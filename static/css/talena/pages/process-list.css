@@ -1,150 +1,119 @@
 /* =========================================================
    TALENA — TEST PROCESS LIST
-   ---------------------------------------------------------
-   Clean, editorial process overview inspired by the refreshed
-   Talena website and Candidate Intelligence workspace.
-
-   This stylesheet is intentionally scoped to pages containing
-   .process-list-header so legacy process/detail screens remain
-   untouched while migration continues.
+   Card-grid refresh for the new Talena visual language.
    ========================================================= */
 
-
-/* =========================================================
-   PAGE SHELL
-   ========================================================= */
-
-main .container-fluid:has(.process-list-header) {
+.process-list-page {
   color: var(--talena-text);
 }
 
-main .container-fluid:has(.process-list-header) > .d-flex:first-child {
-  align-items: center !important;
-  margin-bottom: 1.8rem !important;
-  padding-bottom: 0;
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.process-list-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.8rem;
 }
 
-main .container-fluid:has(.process-list-header) > .d-flex:first-child h1 {
-  margin: 0 0 0.35rem !important;
+.process-list-eyebrow {
+  margin-bottom: 0.55rem;
+  color: var(--talena-coral);
+  font-size: 0.64rem;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.process-list-page-header h1 {
+  margin: 0;
   color: var(--talena-ink);
-  font-size: clamp(1.8rem, 2.3vw, 2.35rem) !important;
-  font-weight: 720;
-  line-height: 1.05;
-  letter-spacing: -0.045em;
+  font-size: clamp(2rem, 2.8vw, 2.7rem);
+  font-weight: 730;
+  line-height: 1;
+  letter-spacing: -0.05em;
 }
 
-main .container-fluid:has(.process-list-header) > .d-flex:first-child .text-muted {
-  color: var(--talena-text-muted) !important;
+.process-list-page-header p {
+  margin: 0.55rem 0 0;
+  color: var(--talena-text-muted);
   font-size: 0.82rem;
-  line-height: 1.55;
 }
 
-main .container-fluid:has(.process-list-header) > .d-flex:first-child > .btn-primary {
-  min-height: 42px;
-  padding: 0.68rem 1rem;
+.process-create-button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.48rem;
+  min-height: 44px;
+  padding: 0.7rem 1rem !important;
   border: 1px solid var(--talena-ink) !important;
   border-radius: var(--talena-radius-pill) !important;
   background: var(--talena-ink) !important;
   color: #fff !important;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 680;
-  box-shadow: 0 8px 22px rgba(23, 19, 18, 0.10) !important;
+  box-shadow: 0 10px 25px rgba(23, 19, 18, 0.11) !important;
   transition:
     transform var(--talena-transition-fast),
     box-shadow var(--talena-transition-fast),
     background-color var(--talena-transition-fast);
 }
 
-main .container-fluid:has(.process-list-header) > .d-flex:first-child > .btn-primary:hover {
+.process-create-button:hover {
   transform: translateY(-1px);
-  border-color: #000 !important;
   background: #000 !important;
-  box-shadow: 0 12px 28px rgba(23, 19, 18, 0.14) !important;
+  box-shadow: 0 14px 30px rgba(23, 19, 18, 0.15) !important;
+}
+
+.process-create-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 
 /* =========================================================
-   FILTER TOOLBAR
+   TOOLBAR
    ========================================================= */
 
-main .container-fluid:has(.process-list-header) > .card:has(.process-list-header) {
-  margin-bottom: 1rem !important;
-  border: 1px solid var(--talena-border) !important;
-  border-radius: var(--talena-radius-lg) !important;
-  background: rgba(255, 255, 255, 0.86) !important;
-  box-shadow: var(--talena-shadow-xs) !important;
-  overflow: hidden;
-}
-
-.process-list-header {
-  padding: 0.82rem !important;
-}
-
-.process-list-header .row {
-  --bs-gutter-x: 0.55rem;
-  --bs-gutter-y: 0.55rem;
-}
-
-.process-list-header .input-group,
-.process-list-header .form-select {
-  min-height: 42px;
-}
-
-.process-list-header .input-group {
-  flex-wrap: nowrap;
+.process-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(210px, 0.95fr) minmax(210px, 0.8fr);
+  gap: 0.55rem;
+  padding: 0.72rem;
   border: 1px solid var(--talena-border);
-  border-radius: 12px;
-  background: var(--talena-surface-soft);
-  overflow: hidden;
-  transition:
-    border-color var(--talena-transition-fast),
-    background-color var(--talena-transition-fast),
-    box-shadow var(--talena-transition-fast);
+  border-radius: var(--talena-radius-lg);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--talena-shadow-xs);
 }
 
-.process-list-header .input-group:focus-within {
-  border-color: rgba(255, 111, 97, 0.38);
-  background: #fff;
-  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.065);
+.process-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.process-list-header .input-group-text {
-  width: 42px;
-  padding: 0;
-  justify-content: center;
-  border: 0 !important;
-  background: transparent !important;
+.process-search-wrap > svg {
+  position: absolute;
+  left: 0.85rem;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
   color: var(--talena-text-subtle);
+  pointer-events: none;
 }
 
-.process-list-header .input-group-text svg {
-  width: 15px !important;
-  height: 15px !important;
-  stroke-width: 1.8;
-}
-
-.process-list-header .form-control {
-  min-height: 40px;
-  padding: 0.55rem 0.75rem 0.55rem 0;
-  border: 0 !important;
-  background: transparent !important;
-  color: var(--talena-text);
-  font-size: 0.76rem;
-  box-shadow: none !important;
-}
-
-.process-list-header .form-control::placeholder {
-  color: var(--talena-text-subtle);
-}
-
-.process-list-header .form-select {
-  padding: 0.55rem 2.25rem 0.55rem 0.82rem;
+.process-toolbar .form-control,
+.process-toolbar .form-select {
+  min-height: 42px;
   border: 1px solid var(--talena-border) !important;
   border-radius: 12px !important;
   background-color: var(--talena-surface-soft) !important;
   color: var(--talena-text);
   font-size: 0.74rem;
-  font-weight: 520;
   box-shadow: none !important;
   transition:
     border-color var(--talena-transition-fast),
@@ -152,297 +121,206 @@ main .container-fluid:has(.process-list-header) > .card:has(.process-list-header
     box-shadow var(--talena-transition-fast);
 }
 
-.process-list-header .form-select:hover {
+.process-toolbar .form-control {
+  padding-left: 2.35rem;
+}
+
+.process-toolbar .form-control::placeholder {
+  color: var(--talena-text-subtle);
+}
+
+.process-toolbar .form-control:hover,
+.process-toolbar .form-select:hover {
   border-color: var(--talena-border-strong) !important;
   background-color: #fff !important;
 }
 
-.process-list-header .form-select:focus {
-  border-color: rgba(255, 111, 97, 0.38) !important;
+.process-toolbar .form-control:focus,
+.process-toolbar .form-select:focus {
+  border-color: rgba(255, 111, 97, 0.36) !important;
   background-color: #fff !important;
   box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.065) !important;
 }
 
 
 /* =========================================================
-   ACTIVE / ARCHIVED SWITCHER
+   SUBNAV
    ========================================================= */
 
-main .container-fluid:has(.process-list-header) > .mt-3.mb-3 {
-  margin-top: 0.85rem !important;
-  margin-bottom: 1rem !important;
+.process-list-subnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.95rem 0 1.15rem;
 }
 
-main .container-fluid:has(.process-list-header) .seg-tabs {
+.process-list-subnav .seg-tabs {
   display: inline-flex;
   gap: 0.25rem;
   padding: 0.25rem;
   border: 1px solid var(--talena-border);
   border-radius: var(--talena-radius-pill);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.75);
 }
 
-main .container-fluid:has(.process-list-header) .seg-tab {
-  min-height: 32px;
+.process-list-subnav .seg-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 32px;
   padding: 0.45rem 0.82rem;
-  border: 0 !important;
-  border-radius: var(--talena-radius-pill) !important;
-  background: transparent !important;
+  border-radius: var(--talena-radius-pill);
   color: var(--talena-text-muted) !important;
-  font-size: 0.69rem;
-  font-weight: 620;
+  font-size: 0.68rem;
+  font-weight: 650;
   text-decoration: none;
-  transition:
-    color var(--talena-transition-fast),
-    background-color var(--talena-transition-fast),
-    box-shadow var(--talena-transition-fast);
 }
 
-main .container-fluid:has(.process-list-header) .seg-tab:hover {
+.process-list-subnav .seg-tab:hover {
+  background: var(--talena-surface-soft);
   color: var(--talena-ink) !important;
-  background: var(--talena-surface-soft) !important;
 }
 
-main .container-fluid:has(.process-list-header) .seg-tab.is-active {
-  background: var(--talena-coral-soft) !important;
+.process-list-subnav .seg-tab.is-active {
+  background: var(--talena-coral-soft);
   color: var(--talena-coral-strong) !important;
   box-shadow: inset 0 0 0 1px rgba(255, 111, 97, 0.12);
 }
 
-main .container-fluid:has(.process-list-header) > .mt-3.mb-3 > .text-muted {
-  color: var(--talena-text-subtle) !important;
-  font-size: 0.69rem !important;
+.process-list-helper {
+  color: var(--talena-text-subtle);
+  font-size: 0.68rem;
 }
 
 
 /* =========================================================
-   PROCESS LIST SURFACE
+   PROCESS GRID
    ========================================================= */
 
 .process-grid {
-  display: block !important;
-  border: 1px solid var(--talena-border);
-  border-radius: var(--talena-radius-xl);
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: var(--talena-shadow-xs);
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  align-items: stretch;
 }
 
-.process-grid .process-card {
+.process-card {
   position: relative;
-  margin: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--talena-border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 276px;
+  padding: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-lg);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 111, 97, 0.035),
+      transparent 9rem
+    ),
+    rgba(255, 255, 255, 0.93);
+  box-shadow: var(--talena-shadow-xs);
   cursor: pointer;
   transition:
-    background-color var(--talena-transition-base),
-    box-shadow var(--talena-transition-base);
+    transform var(--talena-transition-base),
+    border-color var(--talena-transition-base),
+    box-shadow var(--talena-transition-base),
+    background-color var(--talena-transition-base);
 }
 
-.process-grid .process-card:last-child {
-  border-bottom: 0 !important;
-}
-
-.process-grid .process-card::before {
+.process-card::after {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--talena-coral);
-  opacity: 0;
-  transform: scaleY(0.4);
-  transition:
-    opacity var(--talena-transition-fast),
-    transform var(--talena-transition-base);
+  top: 0;
+  right: 0;
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgba(255, 111, 97, 0.055);
+  border-radius: 0 0 0 100%;
+  pointer-events: none;
 }
 
-.process-grid .process-card:hover,
-.process-grid .process-card:focus-visible {
-  z-index: 1;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 111, 97, 0.045) 0%,
-      rgba(255, 255, 255, 0.98) 22%,
-      rgba(255, 255, 255, 0.98) 100%
-    ) !important;
+.process-card:hover,
+.process-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(255, 111, 97, 0.24);
+  background-color: #fff;
+  box-shadow: var(--talena-shadow-md);
   outline: none;
-  box-shadow: inset 0 0 0 1px rgba(255, 111, 97, 0.08) !important;
-}
-
-.process-grid .process-card:hover::before,
-.process-grid .process-card:focus-visible::before {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-.process-card .process-card-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    "title meta actions"
-    "labels meta actions";
-  column-gap: 1.35rem;
-  row-gap: 0.55rem;
-  align-items: center;
-  min-height: 104px;
-  padding: 1.15rem 1.2rem !important;
-}
-
-/* Break the old labels/actions wrapper into grid children. */
-.process-card .process-card-body > .d-flex:first-child {
-  display: contents !important;
-}
-
-.process-card .process-card-body > .d-flex:first-child > div:first-child {
-  grid-area: labels;
-  min-width: 0;
-  margin-top: 0 !important;
-  gap: 0.35rem !important;
-}
-
-.process-card .process-card-body > .mt-3 {
-  grid-area: title;
-  min-width: 0;
-  margin-top: 0 !important;
-}
-
-.process-card .process-title {
-  color: var(--talena-ink);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.018em;
-}
-
-.process-card .process-title + .text-muted,
-.process-card .process-card-body > .mt-3 .text-muted {
-  margin-top: 0.22rem;
-  color: var(--talena-text-subtle) !important;
-  font-size: 0.66rem !important;
-}
-
-.process-card .card-divider {
-  display: none;
 }
 
 
 /* =========================================================
-   LABELS
+   CARD TOPLINE / PURPOSE
    ========================================================= */
 
-.process-card .process-label {
+.process-card-topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 32px;
+}
+
+.process-purpose-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
-  padding: 0.28rem 0.52rem;
-  border: 1px solid rgba(255, 111, 97, 0.14) !important;
-  border-radius: var(--talena-radius-pill) !important;
-  background: var(--talena-coral-soft) !important;
-  color: var(--talena-coral-strong) !important;
+  min-height: 26px;
+  max-width: calc(100% - 72px);
+  padding: 0.32rem 0.58rem;
+  border: 1px solid rgba(255, 111, 97, 0.16);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
   font-size: 0.59rem;
-  font-weight: 650;
+  font-weight: 720;
   line-height: 1;
-}
-
-.process-card .process-label-muted {
-  border-color: var(--talena-border) !important;
-  background: var(--talena-surface-soft) !important;
-  color: var(--talena-text-subtle) !important;
-}
-
-
-/* =========================================================
-   META
-   ========================================================= */
-
-.process-card .card-footer-meta {
-  grid-area: meta;
-  display: flex !important;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-  min-width: 230px;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-}
-
-.process-card .meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.38rem;
-  min-width: 0;
-  color: var(--talena-text-muted) !important;
-  font-size: 0.65rem;
+  letter-spacing: 0.025em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.process-card .meta-item svg {
-  width: 14px !important;
-  height: 14px !important;
-  color: var(--talena-text-subtle);
-  stroke-width: 1.8;
+.process-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
 }
 
-.process-card .meta-item strong {
-  color: var(--talena-text);
-  font-weight: 650;
+.process-card-actions form {
+  display: inline-flex;
+  margin: 0;
 }
 
-
-/* =========================================================
-   ROW ACTIONS
-   ========================================================= */
-
-.process-card .card-actions {
-  grid-area: actions;
-  align-self: center;
-  margin-left: 0.2rem;
-}
-
-.process-card .card-actions.is-placeholder {
-  visibility: hidden;
+.process-card-actions.is-placeholder {
+  min-width: 62px;
 }
 
 .process-card .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: 1px solid transparent !important;
-  border-radius: 10px !important;
+  border-radius: 9px !important;
   background: transparent !important;
   color: var(--talena-text-subtle) !important;
   box-shadow: none !important;
-  transition:
-    color var(--talena-transition-fast),
-    border-color var(--talena-transition-fast),
-    background-color var(--talena-transition-fast),
-    transform var(--talena-transition-fast);
 }
 
 .process-card .icon-btn:hover,
 .process-card .icon-btn:focus-visible {
-  transform: translateY(-1px);
   border-color: var(--talena-border) !important;
   background: #fff !important;
   color: var(--talena-ink) !important;
   outline: none;
-}
-
-.process-card .icon-btn svg {
-  width: 14px !important;
-  height: 14px !important;
-  stroke-width: 1.8;
 }
 
 .process-card .icon-btn-danger:hover,
@@ -452,42 +330,197 @@ main .container-fluid:has(.process-list-header) > .mt-3.mb-3 > .text-muted {
   color: var(--talena-danger) !important;
 }
 
+.process-card .icon-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.8;
+}
+
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.process-card-content {
+  margin-top: 1.05rem;
+}
+
+.process-title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 0.98rem;
+  font-weight: 720;
+  line-height: 1.32;
+  letter-spacing: -0.025em;
+}
+
+.process-package {
+  display: -webkit-box;
+  margin-top: 0.45rem;
+  overflow: hidden;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.process-package > span {
+  margin-right: 0.28rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   CARD LABELS
+   ========================================================= */
+
+.process-card-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.process-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 0.28rem 0.5rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+  font-size: 0.57rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-label-muted {
+  color: var(--talena-text-subtle);
+}
+
+
+/* =========================================================
+   CARD FOOTER
+   ========================================================= */
+
+.process-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--talena-border);
+}
+
+.process-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.61rem;
+  white-space: nowrap;
+}
+
+.process-meta-item svg {
+  width: 13px;
+  height: 13px;
+  color: var(--talena-text-subtle);
+  stroke-width: 1.8;
+}
+
+.process-meta-item strong {
+  color: var(--talena-ink);
+  font-weight: 700;
+}
+
+.process-card-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-subtle);
+  transition:
+    background-color var(--talena-transition-fast),
+    color var(--talena-transition-fast),
+    transform var(--talena-transition-fast);
+}
+
+.process-card:hover .process-card-open {
+  transform: translate(1px, -1px);
+  background: var(--talena-ink);
+  color: #fff;
+}
+
+.process-card-open svg {
+  width: 12px;
+  height: 12px;
+}
+
 
 /* =========================================================
    EMPTY STATE
    ========================================================= */
 
-main .container-fluid:has(.process-list-header) > .empty-state {
-  border: 1px dashed var(--talena-border-strong) !important;
-  border-radius: var(--talena-radius-xl) !important;
-  background:
-    radial-gradient(
-      circle at 50% 15%,
-      rgba(255, 111, 97, 0.055),
-      transparent 15rem
-    ),
-    rgba(255, 255, 255, 0.72) !important;
-  box-shadow: none !important;
+.process-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 330px;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--talena-border-strong);
+  border-radius: var(--talena-radius-xl);
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center;
 }
 
-main .container-fluid:has(.process-list-header) > .empty-state .h5 {
+.process-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  border-radius: 15px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.process-empty-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.process-empty-state h2 {
+  margin: 0;
   color: var(--talena-ink);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 1rem;
+  font-weight: 720;
 }
 
-main .container-fluid:has(.process-list-header) > .empty-state .text-muted {
-  color: var(--talena-text-muted) !important;
-  font-size: 0.78rem;
+.process-empty-state p {
+  max-width: 420px;
+  margin: 0.45rem 0 1rem;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
 }
 
-main .container-fluid:has(.process-list-header) > .empty-state .btn-primary {
+.process-empty-state .btn-primary {
   border-color: var(--talena-ink) !important;
   border-radius: var(--talena-radius-pill) !important;
   background: var(--talena-ink) !important;
-  color: #fff !important;
-  font-size: 0.74rem;
-  font-weight: 650;
 }
 
 
@@ -495,52 +528,39 @@ main .container-fluid:has(.process-list-header) > .empty-state .btn-primary {
    RESPONSIVE
    ========================================================= */
 
-@media (max-width: 1100px) {
-  .process-card .process-card-body {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "title actions"
-      "labels actions"
-      "meta meta";
-  }
-
-  .process-card .card-footer-meta {
-    justify-content: flex-start;
-    min-width: 0;
-    padding-top: 0.15rem !important;
+@media (max-width: 1180px) {
+  .process-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 767px) {
-  main .container-fluid:has(.process-list-header) > .d-flex:first-child {
-    align-items: flex-start !important;
+@media (max-width: 900px) {
+  .process-toolbar {
+    grid-template-columns: 1fr 1fr;
   }
 
-  main .container-fluid:has(.process-list-header) > .d-flex:first-child > .btn-primary {
-    width: 100%;
-    justify-content: center;
+  .process-search-wrap {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .process-list-page-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
+  .process-toolbar,
   .process-grid {
-    border-radius: var(--talena-radius-lg);
+    grid-template-columns: 1fr;
   }
 
-  .process-card .process-card-body {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "title actions"
-      "labels labels"
-      "meta meta";
-    column-gap: 0.75rem;
-    padding: 1rem !important;
+  .process-search-wrap {
+    grid-column: auto;
   }
 
-  .process-card .card-footer-meta {
-    flex-wrap: wrap;
-    gap: 0.55rem 0.9rem;
-  }
-
-  .process-card .process-title {
-    font-size: 0.84rem;
+  .process-list-subnav {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
