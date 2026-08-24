@@ -1,9 +1,9 @@
 /* =========================================================
    TALENA LAYOUT
    ---------------------------------------------------------
-   Opt-in layout primitives for screens migrated to the new
-   Talena design system. Existing application layout remains
-   owned by legacy style.css until each area is migrated.
+   Shared layout primitives and the refreshed customer
+   application shell. Legacy style.css still owns untouched
+   product areas while screens are migrated incrementally.
    ========================================================= */
 
 .talena-page {
@@ -49,9 +49,320 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+
+/* =========================================================
+   CUSTOMER APPLICATION SHELL
+   ========================================================= */
+
+body.nav-fixed {
+  background: var(--talena-bg);
+  color: var(--talena-text);
+}
+
+#layoutSidenav_content {
+  background: var(--talena-bg);
+}
+
+#layoutSidenav_content > main {
+  min-height: calc(100vh - 64px);
+  background:
+    radial-gradient(
+      circle at 88% 5%,
+      rgba(255, 111, 97, 0.025),
+      transparent 24rem
+    ),
+    var(--talena-bg);
+}
+
+#layoutSidenav_content > main > .container-xl {
+  width: 100%;
+  max-width: var(--talena-content-max);
+}
+
+
+/* =========================================================
+   TOP NAVIGATION
+   ========================================================= */
+
+.talena-topnav {
+  min-height: 64px;
+  padding-inline: 1.5rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.talena-topnav .nav-search {
+  width: min(320px, 28vw);
+}
+
+.talena-topnav .nav-search .form-control {
+  min-height: 38px;
+  padding-left: 2.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text);
+  font-size: 0.78rem;
+  box-shadow: none;
+  transition:
+    background-color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.talena-topnav .nav-search .form-control::placeholder {
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .nav-search .form-control:hover {
+  border-color: var(--talena-border);
+  background: #fff;
+}
+
+.talena-topnav .nav-search .form-control:focus {
+  border-color: rgba(255, 111, 97, 0.38);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.07);
+}
+
+.talena-topnav .nav-search-icon {
+  color: var(--talena-text-subtle);
+}
+
+
+/* Language control */
+
+.talena-topnav .talena-language-trigger {
+  min-height: 38px;
+  padding: 6px 11px;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #fff;
+  color: var(--talena-text);
+  box-shadow: var(--talena-shadow-xs);
+  transition:
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+.talena-topnav .talena-language-trigger:hover,
+.talena-topnav .talena-language-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.28);
+  background: var(--talena-surface-warm);
+  box-shadow: var(--talena-shadow-sm);
+}
+
+.talena-topnav .talena-language-current-label {
+  color: var(--talena-text);
+  font-weight: 600;
+}
+
+.talena-topnav .talena-language-chevron {
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .talena-language-menu,
+.talena-topnav .dropdown-user .dropdown-menu,
+.talena-topnav #globalSearchDropdown {
+  margin-top: 0.55rem;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: var(--talena-radius-lg);
+  background: #fff;
+  box-shadow: var(--talena-shadow-md) !important;
+  overflow: hidden;
+}
+
+.talena-topnav .talena-language-option {
+  border-radius: var(--talena-radius-sm);
+  color: var(--talena-text);
+}
+
+.talena-topnav .talena-language-option:hover {
+  background: var(--talena-surface-soft);
+}
+
+.talena-topnav .talena-language-option.is-active {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+
+/* User control */
+
+.talena-topnav .dropdown-user > .btn {
+  width: 38px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-topnav .dropdown-user > .btn:hover,
+.talena-topnav .dropdown-user > .btn[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.3);
+  background: var(--talena-surface-warm);
+}
+
+.talena-topnav .dropdown-user > .btn img {
+  border-radius: 50%;
+}
+
+.talena-topnav .dropdown-menu .dropdown-item {
+  color: var(--talena-text);
+  font-size: 0.8rem;
+}
+
+.talena-topnav .dropdown-menu .dropdown-item:hover,
+.talena-topnav .dropdown-menu .dropdown-item:focus {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink);
+}
+
+.talena-topnav .dropdown-item-icon {
+  color: var(--talena-text-subtle);
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.talena-sidebar {
+  border-right: 1px solid var(--talena-border);
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.talena-sidebar .talena-sidebar-brand {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid rgba(231, 226, 222, 0.7);
+}
+
+.talena-sidebar .talena-brand-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.talena-sidebar .talena-sidebar-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.talena-sidebar .sidenav-menu {
+  padding-top: 0.6rem;
+}
+
+.talena-sidebar .sidenav-menu-heading {
+  margin: 0;
+  padding: 1.35rem 1.25rem 0.45rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.61rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.talena-sidebar .sidebar-link {
+  min-height: 42px;
+  margin: 2px 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 11px;
+  color: #5f5955 !important;
+  font-size: 0.79rem;
+  font-weight: 550;
+  transition:
+    color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    transform var(--talena-transition-fast);
+}
+
+.talena-sidebar .sidebar-link:hover {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink) !important;
+}
+
+.talena-sidebar .sidebar-link.active {
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-ink) !important;
+  font-weight: 650;
+}
+
+.talena-sidebar .sidebar-link .nav-link-icon {
+  width: 1.35rem;
+  margin-right: 0.55rem;
+  color: #aaa19b !important;
+  transition: color var(--talena-transition-fast);
+}
+
+.talena-sidebar .sidebar-link .nav-link-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.8;
+}
+
+.talena-sidebar .sidebar-link:hover .nav-link-icon {
+  color: var(--talena-text) !important;
+}
+
+.talena-sidebar .sidebar-link.active .nav-link-icon {
+  color: var(--talena-coral) !important;
+}
+
+.talena-sidebar .talena-sidebar-footer {
+  border-top: 1px solid var(--talena-border);
+  background: #fff;
+}
+
+.talena-sidebar .sidenav-footer-subtitle {
+  color: var(--talena-text-subtle);
+}
+
+.talena-sidebar .sidenav-footer-title {
+  color: var(--talena-text);
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   SHARED SHELL DETAILS
+   ========================================================= */
+
+.talena-topnav .dropdown-divider,
+.talena-sidebar .dropdown-divider {
+  border-color: var(--talena-border);
+}
+
+.talena-topnav .search-tag {
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
 @media (max-width: 900px) {
   .talena-grid--2,
   .talena-grid--3 {
     grid-template-columns: 1fr;
+  }
+
+  .talena-topnav {
+    padding-inline: 0.85rem;
   }
 }
