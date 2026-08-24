@@ -1,258 +1,411 @@
 /* =========================================================
    TALENA DASHBOARD
-   Extracted from customer_dashboard.html without visual changes.
-   This file is the migration home for dashboard-specific styles.
+   Refreshed to the new Talena visual language.
+   All rules are scoped to the customer dashboard.
    ========================================================= */
 
-.process-rows{
-  display: grid;
-  gap: .55rem;
+.dashboard {
+  color: var(--talena-text);
 }
 
-/* Makes the entire row a clean clickable link row */
-.process-row-link{
+.dashboard h1,
+.dashboard h2,
+.dashboard h3 {
+  color: var(--talena-ink);
+  letter-spacing: -0.025em;
+}
+
+.dashboard h1 {
+  font-size: clamp(1.65rem, 2vw, 2rem);
+  font-weight: 700;
+}
+
+.dashboard h3 {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.dashboard .text-muted,
+.dashboard-date {
+  color: var(--talena-text-muted) !important;
+}
+
+.dashboard-date {
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   QUICK ACCESS
+   ========================================================= */
+
+.dashboard .quick-access {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.dashboard .quick-access h3 {
+  margin-bottom: 0.9rem;
+}
+
+.dashboard .quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.dashboard .quick-card {
+  position: relative;
+  display: block;
+  min-height: 132px;
+  padding: 1.15rem 1.2rem;
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: var(--talena-radius-lg) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--talena-text) !important;
+  text-decoration: none !important;
+  box-shadow: var(--talena-shadow-xs);
+  transition:
+    transform var(--talena-transition-base),
+    border-color var(--talena-transition-base),
+    box-shadow var(--talena-transition-base),
+    background-color var(--talena-transition-base);
+}
+
+.dashboard .quick-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 111, 97, 0.28) !important;
+  background: #fff !important;
+  box-shadow: var(--talena-shadow-md);
+}
+
+.dashboard .quick-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.8rem;
+  border: 1px solid rgba(255, 111, 97, 0.16);
+  border-radius: 11px;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.dashboard .quick-card.testprocess-card .quick-card-icon {
+  border-color: rgba(201, 149, 78, 0.16);
+  background: var(--talena-warning-soft) !important;
+  color: #9b6c2f !important;
+}
+
+.dashboard .quick-card.settings-card .quick-card-icon {
+  border-color: rgba(102, 139, 145, 0.16);
+  background: var(--talena-info-soft) !important;
+  color: var(--talena-info) !important;
+}
+
+.dashboard .quick-card-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.9;
+}
+
+.dashboard .quick-card-title {
+  color: var(--talena-ink) !important;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.dashboard .quick-card-desc {
+  margin-top: 0.22rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   DASHBOARD BUTTONS
+   ========================================================= */
+
+.dashboard .btn.btn-primary {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.dashboard .btn.btn-primary:hover,
+.dashboard .btn.btn-primary:focus {
+  border-color: #000 !important;
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.dashboard .btn.btn-sm {
+  padding: 0.42rem 0.72rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   OVERVIEW STATS
+   ========================================================= */
+
+.dashboard .row.g-3.mb-3 > [class*="col-"] > .border.bg-white {
+  min-height: 82px;
+  padding: 0.9rem 1rem !important;
+  border-color: var(--talena-border) !important;
+  border-radius: var(--talena-radius-md) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.dashboard .row.g-3.mb-3 > [class*="col-"] > .border.bg-white .small {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.66rem;
+}
+
+.dashboard .row.g-3.mb-3 > [class*="col-"] > .border.bg-white .h3 {
+  margin-bottom: 0;
+  color: var(--talena-ink);
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+
+/* =========================================================
+   PROCESS ROWS
+   ========================================================= */
+
+.process-rows {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.process-row-link {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: .9rem;
+  gap: 0.9rem;
   align-items: center;
-
-  padding: .75rem .9rem;
-  border: 1px solid rgba(0,0,0,.10);
-  border-radius: 10px;
-  background: #fff;
-
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--talena-text);
   text-decoration: none;
-  color: #000;
-    transition:
-    box-shadow 0.25s ease,
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    background-color 0.25s ease;
+  box-shadow: var(--talena-shadow-xs);
+  transition:
+    transform var(--talena-transition-base),
+    border-color var(--talena-transition-base),
+    box-shadow var(--talena-transition-base),
+    background-color var(--talena-transition-base);
 }
 
-.process-row-link:hover{
+.process-row-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 111, 97, 0.26);
   background: #fff;
-  border-color: rgba(123, 87, 209, 0.22);
-  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
-  color: black;
+  color: var(--talena-text);
+  box-shadow: var(--talena-shadow-sm);
 }
 
-.process-row-link svg{
- width: 12px;
- color: #505050;
+.process-row-link svg {
+  width: 12px;
+  color: var(--talena-text-muted);
+}
+
+.process-name {
+  color: var(--talena-ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.process-sub {
+  margin-top: 0.16rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.66rem !important;
+}
+
+.process-info-pill {
+  border-color: var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
 }
 
 .process-info-text {
-  font-weight: 600;
-  color: #505050;
+  color: var(--talena-text-muted);
+  font-weight: 650;
 }
 
-.process-chip{
-  font-weight: 500;
-  padding: .28rem .6rem;
+.process-label {
+  border-color: rgba(255, 111, 97, 0.14) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-label-muted,
+.process-label-more {
+  border-color: var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+}
+
+.process-chip {
   max-width: 120px;
+  padding: 0.28rem 0.6rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.process-name{
-  font-weight: 600;
-}
 
-.process-sub{
-  margin-top: .15rem;
-}
+/* =========================================================
+   RECENT ACTIVITY
+   ========================================================= */
+
+.recent-activity-list,
 .dashboard-activity-list {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
+.recent-activity-item,
 .dashboard-activity-item {
+  width: 100%;
   min-width: 0;
 }
 
+.recent-activity-card,
 .dashboard-activity-panel {
   display: block;
-  background: #fff;
-  border: 1px solid #ececf2;
-  border-radius: 14px;
-  padding: 0.9rem 1rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  color: inherit;
   text-decoration: none;
-  color: inherit;
+  box-shadow: var(--talena-shadow-xs);
   transition:
-    box-shadow 0.35s ease,
-    transform 0.2s ease,
-    border-color 0.25s ease,
-    background-color 0.25s ease;
+    transform var(--talena-transition-base),
+    border-color var(--talena-transition-base),
+    box-shadow var(--talena-transition-base),
+    background-color var(--talena-transition-base);
 }
 
+.recent-activity-card:hover,
 .dashboard-activity-panel--link:hover {
-  transform: translateY(-2px);
-  border-color: rgba(123, 87, 209, 0.22);
-  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
+  transform: translateY(-1px);
+  border-color: rgba(255, 111, 97, 0.24);
+  background: #fff;
   color: inherit;
+  box-shadow: var(--talena-shadow-sm);
 }
 
+.recent-activity-head,
 .dashboard-activity-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.58rem;
 }
 
+.recent-activity-badge,
 .dashboard-activity-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
-  padding: 0.24rem 0.58rem;
-  font-size: 0.62rem;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-}
-/* Recent activity - clean list */
-.recent-activity-list {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.recent-activity-item {
-  width: 100%;
-  min-width: 0;
-}
-
-.recent-activity-card {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  background: #fff;
-  border: 1px solid #ececf2;
-  border-radius: 14px;
-  padding: 0.95rem 1rem;
-  text-decoration: none;
-  color: inherit;
-  transition:
-    box-shadow 0.35s ease,
-    transform 0.2s ease,
-    border-color 0.25s ease,
-    background-color 0.25s ease;
-}
-
-.recent-activity-card:hover {
-  border-color: rgba(123, 87, 209, 0.22);
-  box-shadow: 0 12px 30px rgba(25, 25, 45, 0.09);
-  color: inherit;
-}
-
-.recent-activity-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.65rem;
-}
-
-.recent-activity-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.62rem;
-  font-weight: 500;
+  padding: 0.24rem 0.56rem;
+  border-radius: var(--talena-radius-pill);
+  font-size: 0.6rem;
+  font-weight: 650;
   line-height: 1;
   white-space: nowrap;
 }
 
 .recent-activity-time {
-  font-size: 0.68rem;
-  color: #8b92a6;
+  color: var(--talena-text-subtle);
+  font-size: 0.64rem;
   white-space: nowrap;
 }
 
 .recent-activity-title {
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin-bottom: 0.32rem;
+  color: var(--talena-ink);
+  font-size: 0.76rem;
+  font-weight: 650;
   line-height: 1.45;
-  color: #1f2430;
-  margin-bottom: 0.4rem;
-
-  white-space: normal;
-  overflow-wrap: normal;
-  word-break: normal;
 }
 
 .recent-activity-process {
-  font-size: 0.7rem;
-  color: #667085;
-  line-height: 1.4;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
 
-  white-space: normal;
-  overflow-wrap: normal;
-  word-break: normal;
+.recent-activity-badge.is-invite {
+  background: var(--talena-warning-soft);
+  color: #8b632f;
+}
+
+.recent-activity-badge.is-added {
+  background: var(--talena-info-soft);
+  color: #557b81;
+}
+
+.recent-activity-badge.is-status {
+  background: var(--talena-success-soft);
+  color: #567d63;
+}
+
+.recent-activity-badge.is-created {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.recent-activity-badge.is-default {
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+}
+
+.recent-activity-empty,
+.latest-process-empty {
+  border: 1px dashed var(--talena-border-strong);
+  border-radius: var(--talena-radius-lg);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--talena-text-muted);
 }
 
 .recent-activity-empty {
   padding: 1rem;
-  border: 1px dashed #d9dbe7;
-  border-radius: 14px;
-  color: #8b92a6;
-  background: #fafbfc;
-}
-
-.recent-activity-badge.is-invite {
-  background: #fff4d8;
-  color: #946200;
-}
-
-.recent-activity-badge.is-added {
-  background: #e6f4ff;
-  color: #0b69b3;
-}
-
-.recent-activity-badge.is-status {
-  background: #e8f8ee;
-  color: #1d8a52;
-}
-
-.recent-activity-badge.is-created {
-  background: #f1ebff;
-  color: #7b57d1;
-}
-
-.recent-activity-badge.is-default {
-  background: #f3f4f6;
-  color: #6b7280;
 }
 
 .latest-process-empty {
   min-height: 160px;
   padding: 2rem 1.5rem;
-  border: 1px dashed #d9dbe7;
-  border-radius: 14px;
-  background: #fafbfc;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #8b92a6;
 }
 
 .latest-process-empty-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  background: #f1f2f7;
-  color: #667085;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
+  width: 42px;
+  height: 42px;
   margin-bottom: 0.85rem;
+  border-radius: 50%;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
 }
 
 .latest-process-empty-icon svg {
@@ -261,22 +414,30 @@
 }
 
 .latest-process-empty-title {
+  margin-bottom: 0.35rem;
+  color: var(--talena-ink);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1f2430;
-  margin-bottom: 0.35rem;
 }
 
 .latest-process-empty-text {
   max-width: 420px;
+  color: var(--talena-text-muted);
   font-size: 0.82rem;
   line-height: 1.5;
-  color: #8b92a6;
 }
 
-/* Responsive: row becomes two rows */
-@media (max-width: 992px){
-  .process-row-link{
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .dashboard .quick-access-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .process-row-link {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "main meta"
@@ -284,8 +445,8 @@
     align-items: start;
   }
 
-  .process-col-main{ grid-area: main; }
-  .process-col-meta{ grid-area: meta; justify-self: end; }
-  .process-col-label{ grid-area: label; }
-  .process-col-date{ grid-area: date; justify-self: end; }
+  .process-col-main { grid-area: main; }
+  .process-col-meta { grid-area: meta; justify-self: end; }
+  .process-col-label { grid-area: label; }
+  .process-col-date { grid-area: date; justify-self: end; }
 }
