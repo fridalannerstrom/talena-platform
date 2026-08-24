@@ -1,0 +1,36 @@
+/* =========================================================
+   TALENA BASE
+   ---------------------------------------------------------
+   Global Talena-specific foundations for the refreshed UI.
+
+   Migration rule:
+   Keep selectors opt-in while legacy style.css remains active.
+   Do not redefine generic Bootstrap/body styles here yet.
+   ========================================================= */
+
+.talena-ui {
+  color: var(--talena-text);
+}
+
+.talena-ui a {
+  text-underline-offset: 0.14em;
+}
+
+.talena-focus-ring:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, 0.22);
+  outline-offset: 2px;
+}
+
+.talena-muted {
+  color: var(--talena-text-muted);
+}
+
+.talena-eyebrow {
+  margin: 0;
+  color: var(--talena-coral-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
