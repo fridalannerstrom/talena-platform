@@ -1,0 +1,90 @@
+/* =========================================================
+   TALENA COMPONENTS
+   ---------------------------------------------------------
+   Shared opt-in UI primitives for the refreshed product.
+   Prefix new reusable components with .talena- while the
+   legacy stylesheet is being retired incrementally.
+   ========================================================= */
+
+.talena-card {
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-lg);
+  background: var(--talena-surface);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-card--soft {
+  background: var(--talena-surface-soft);
+}
+
+.talena-card--dark {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--talena-surface-dark);
+  color: #fff;
+}
+
+.talena-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 28px;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface);
+  color: var(--talena-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.talena-pill--coral {
+  border-color: rgba(255, 111, 97, 0.24);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.talena-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--talena-radius-pill);
+  font: inherit;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast);
+}
+
+.talena-button:hover {
+  transform: translateY(-1px);
+}
+
+.talena-button--primary {
+  background: var(--talena-ink);
+  color: #fff;
+  box-shadow: var(--talena-shadow-sm);
+}
+
+.talena-button--secondary {
+  border-color: var(--talena-border);
+  background: var(--talena-surface);
+  color: var(--talena-text);
+}
