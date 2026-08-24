@@ -13,7 +13,17 @@
   <title>{% block title %}Talena{% endblock %}</title>
 
   <link href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" rel="stylesheet" />
+
+  {# Legacy SB Admin Pro / Bootstrap + existing Talena styles. #}
   <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+
+  {# Talena design refresh foundation. Opt-in during migration. #}
+  <link href="{% static 'css/talena/tokens.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/base.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/layout.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/components.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/forms.css' %}" rel="stylesheet" />
+
   <link rel="icon" type="image/x-icon" href="" />
   <script src="https://kit.fontawesome.com/e2348d3361.js" crossorigin="anonymous"></script>
 
