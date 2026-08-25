@@ -2,6 +2,10 @@
 {% load static i18n %}
 {# Talena invitation email template i18n batch 1 #}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-email.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block process_content %}
 
 <div class="email-template-page">
@@ -142,86 +146,6 @@
 
   </div>
 </div>
-
-<style>
-.email-template-page .merge-field-list {
-  display: grid;
-  gap: .55rem;
-}
-
-.email-template-page .merge-field-item {
-  width: 100%;
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: #fff;
-  border-radius: 12px;
-  padding: .7rem .8rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .65rem;
-  align-items: center;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background-color .18s ease,
-    border-color .18s ease,
-    transform .12s ease,
-    box-shadow .18s ease;
-}
-
-.email-template-page .merge-field-item:hover {
-  background: rgba(123, 87, 209, .045);
-  border-color: rgba(123, 87, 209, .28);
-  box-shadow: 0 8px 20px rgba(25, 25, 45, .05);
-}
-
-.email-template-page .merge-field-item.is-copied {
-  border-color: rgba(25,135,84,.35);
-  background: rgba(25,135,84,.06);
-}
-
-.email-template-page .merge-field-item code {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(123, 87, 209, .08);
-  color: #5f3fd1;
-  padding: .22rem .5rem;
-  font-size: .78rem;
-  white-space: nowrap;
-}
-
-.email-template-page .merge-field-item span {
-  color: #6b7280;
-  font-size: .74rem;
-  line-height: 1.25;
-}
-
-.email-template-page .merge-note,
-.email-template-page .template-tip {
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: rgba(123, 87, 209, .045);
-  border-radius: 14px;
-  padding: .85rem .95rem;
-}
-
-.email-template-page textarea {
-  min-height: 300px;
-  resize: vertical;
-  line-height: 1.35rem;
-}
-
-.email-template-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: .45rem .75rem;
-  font-size: .78rem;
-  font-weight: 750;
-  background: #f1e8ff;
-  color: #6d3adf;
-  white-space: nowrap;
-}
-</style>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
