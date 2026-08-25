@@ -6,9 +6,18 @@
   <link href="{% static 'css/talena/pages/process-email.css' %}" rel="stylesheet" />
 {% endblock %}
 
+{% block extra_js %}
+  <script src="{% static 'js/talena/process-email.js' %}"></script>
+{% endblock %}
+
 {% block process_content %}
 
-<div class="email-template-page">
+<div
+  class="email-template-page"
+  data-email-template-page
+  data-copied-prefix="{% trans 'Copied:' %}"
+  data-copy-failed-message="{% trans 'Could not copy. Please select and copy manually.' %}"
+>
 
   <div class="row g-4">
 
@@ -71,7 +80,7 @@
             </button>
           </div>
 
-          <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
+          <div data-copy-status class="small text-muted mt-3" aria-live="polite"></div>
 
           <div class="merge-note mt-3">
             <div class="fw-semibold mb-1">{% trans "Example" %}</div>
@@ -104,7 +113,6 @@
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
           {% endif %}
 
-          <!-- Subject -->
           <div class="mb-3">
             <label class="form-label">{% trans "Subject line" %}</label>
             {{ form.subject }}
@@ -113,7 +121,6 @@
             {% endif %}
           </div>
 
-          <!-- Body -->
           <div class="mb-3">
             <label class="form-label">{% trans "Message" %}</label>
             {{ form.body }}
@@ -146,49 +153,5 @@
 
   </div>
 </div>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const status = document.getElementById("phCopyStatus");
-    const copiedPrefix = '{% trans "Copied:" %}';
-    const copyFailedMessage = '{% trans "Could not copy. Please select and copy manually." %}';
-
-    function setStatus(text) {
-      if (!status) return;
-      status.textContent = text;
-    }
-
-    async function copyText(val) {
-      if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(val);
-      }
-
-      const tmp = document.createElement("textarea");
-      tmp.value = val;
-      document.body.appendChild(tmp);
-      tmp.select();
-      document.execCommand("copy");
-      tmp.remove();
-    }
-
-    document.querySelectorAll(".merge-field-item").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const val = btn.dataset.copy || btn.innerText;
-
-        try {
-          await copyText(val);
-
-          btn.classList.add("is-copied");
-          setStatus(`${copiedPrefix} ${val}`);
-
-          setTimeout(() => btn.classList.remove("is-copied"), 900);
-          btn.blur();
-        } catch (e) {
-          setStatus(copyFailedMessage);
-        }
-      });
-    });
-  });
-</script>
 
 {% endblock %}
