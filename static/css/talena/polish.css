@@ -1,0 +1,187 @@
+/* =========================================================
+   TALENA — CUSTOMER UI POLISH
+   ---------------------------------------------------------
+   Final migration layer for generic Bootstrap primitives that
+   can still appear inside customer-facing screens.
+
+   Rules are intentionally scoped to the customer main area.
+   Page-specific CSS loads later and may override these defaults.
+   ========================================================= */
+
+#layoutSidenav_content main {
+  color: var(--talena-text);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .btn:not(.btn-close) {
+  border-radius: var(--talena-radius-pill);
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    transform var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+#layoutSidenav_content main .btn:not(.btn-sm):not(.btn-lg):not(.btn-close) {
+  min-height: 40px;
+  padding: 0.58rem 0.9rem;
+}
+
+#layoutSidenav_content main .btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-1px);
+}
+
+#layoutSidenav_content main .btn-primary {
+  border-color: var(--talena-ink);
+  background: var(--talena-ink);
+  color: #fff;
+}
+
+#layoutSidenav_content main .btn-primary:hover,
+#layoutSidenav_content main .btn-primary:focus,
+#layoutSidenav_content main .btn-primary:active {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(23, 19, 18, 0.07);
+}
+
+#layoutSidenav_content main .btn-outline-secondary,
+#layoutSidenav_content main .btn-light {
+  border-color: var(--talena-border);
+  background: #fff;
+  color: var(--talena-text);
+}
+
+#layoutSidenav_content main .btn-outline-secondary:hover,
+#layoutSidenav_content main .btn-outline-secondary:focus,
+#layoutSidenav_content main .btn-light:hover,
+#layoutSidenav_content main .btn-light:focus {
+  border-color: rgba(255, 111, 97, 0.25);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.055);
+}
+
+/* ---------------------------------------------------------
+   FORM CONTROLS
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main input.form-control,
+#layoutSidenav_content main select.form-select {
+  min-height: 42px;
+}
+
+#layoutSidenav_content main .form-control,
+#layoutSidenav_content main .form-select {
+  border-color: var(--talena-border);
+  border-radius: var(--talena-radius-md);
+  background-color: #fbfaf9;
+  color: var(--talena-text);
+  box-shadow: none;
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+#layoutSidenav_content main .form-control:hover,
+#layoutSidenav_content main .form-select:hover {
+  border-color: var(--talena-border-strong);
+}
+
+#layoutSidenav_content main .form-control:focus,
+#layoutSidenav_content main .form-select:focus {
+  border-color: rgba(255, 111, 97, 0.46);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.07);
+}
+
+#layoutSidenav_content main .form-control::placeholder {
+  color: var(--talena-text-subtle);
+  opacity: 1;
+}
+
+#layoutSidenav_content main .form-label {
+  color: var(--talena-text);
+  font-weight: 650;
+}
+
+#layoutSidenav_content main .form-text,
+#layoutSidenav_content main .text-muted {
+  color: var(--talena-text-muted) !important;
+}
+
+/* ---------------------------------------------------------
+   CARDS / ALERTS / BADGES
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .card {
+  border-color: var(--talena-border);
+  border-radius: var(--talena-radius-lg);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+#layoutSidenav_content main .card-header {
+  border-bottom-color: var(--talena-border);
+}
+
+#layoutSidenav_content main .alert {
+  border-width: 1px;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+#layoutSidenav_content main .alert-danger {
+  border-color: rgba(207, 89, 80, 0.18);
+  background: var(--talena-danger-soft);
+  color: #8f403a;
+}
+
+#layoutSidenav_content main .alert-warning {
+  border-color: rgba(201, 149, 78, 0.2);
+  background: var(--talena-warning-soft);
+  color: #86622f;
+}
+
+#layoutSidenav_content main .alert-success {
+  border-color: rgba(110, 159, 125, 0.2);
+  background: var(--talena-success-soft);
+  color: #52755d;
+}
+
+#layoutSidenav_content main .alert-info {
+  border-color: rgba(102, 139, 145, 0.18);
+  background: var(--talena-info-soft);
+  color: #4f7278;
+}
+
+#layoutSidenav_content main .badge {
+  border-radius: var(--talena-radius-pill);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+/* ---------------------------------------------------------
+   KEYBOARD FOCUS
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main a:focus-visible,
+#layoutSidenav_content main button:focus-visible,
+#layoutSidenav_content main [tabindex]:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, 0.2);
+  outline-offset: 2px;
+}
+
+#layoutSidenav_content main button:disabled,
+#layoutSidenav_content main .btn.disabled,
+#layoutSidenav_content main .btn:disabled {
+  cursor: not-allowed;
+  transform: none;
+}
