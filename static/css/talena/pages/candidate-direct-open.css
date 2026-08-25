@@ -1,0 +1,81 @@
+/* ============================================================
+   TALENA — DIRECT CANDIDATE LINK BRIDGE
+   Keeps legacy direct candidate URLs inside the modern workspace.
+   ============================================================ */
+
+.candidate-direct-open {
+  max-width: 720px;
+  margin: 8vh auto 0;
+  padding: 2.2rem;
+  border: 1px solid var(--talena-border, #e7e0db);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(255, 111, 97, 0.08), transparent 34%),
+    #fff;
+  box-shadow: var(--talena-shadow-sm, 0 16px 42px rgba(28, 20, 17, 0.06));
+  text-align: center;
+}
+
+.candidate-direct-open__icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1rem;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: 14px;
+  background: var(--talena-coral-soft, #fff0ed);
+  color: var(--talena-coral-strong, #e95e52);
+}
+
+.candidate-direct-open__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.candidate-direct-open__eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--talena-coral-strong, #e95e52);
+  font-size: 0.64rem;
+  font-weight: 780;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+}
+
+.candidate-direct-open__title {
+  margin: 0;
+  color: var(--talena-ink, #171312);
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  font-weight: 760;
+  letter-spacing: -0.04em;
+}
+
+.candidate-direct-open__copy {
+  max-width: 500px;
+  margin: 0.75rem auto 0;
+  color: var(--talena-text-muted, #7c746f);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.candidate-direct-open__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  margin-top: 1.35rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid #171312;
+  border-radius: 999px;
+  background: #171312;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 720;
+  text-decoration: none;
+}
+
+.candidate-direct-open__action:hover {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
