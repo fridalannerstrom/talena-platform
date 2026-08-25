@@ -1,0 +1,123 @@
+/* =========================================================
+   TALENA SELF-REGISTRATION DARK PANEL
+   Matches the visual language of the Talena login screen.
+   ========================================================= */
+
+.auth-right.registration-right,
+.auth-right.success-right {
+  position: relative;
+
+  overflow: hidden;
+
+  border-color: rgba(255, 255, 255, 0.06);
+
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(255, 111, 97, 0.26),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(201, 149, 78, 0.10),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #171312 0%,
+      #1d1715 52%,
+      #261916 100%
+    );
+}
+
+.auth-right.registration-right::before,
+.auth-right.success-right::before {
+  content: "";
+  display: block;
+
+  position: absolute;
+  top: -120px;
+  right: -140px;
+
+  width: 500px;
+  height: 500px;
+
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+.auth-right.registration-right::after,
+.auth-right.success-right::after {
+  content: "";
+  display: block;
+
+  position: absolute;
+  right: -30px;
+  bottom: -250px;
+
+  width: 560px;
+  height: 560px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 111, 97, 0.045);
+  filter: blur(20px);
+
+  pointer-events: none;
+}
+
+.registration-right-content,
+.success-decoration {
+  position: relative;
+  z-index: 1;
+}
+
+.registration-step {
+  border-color: rgba(255, 255, 255, 0.10);
+
+  background: rgba(255, 255, 255, 0.055);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 10px 28px rgba(0, 0, 0, 0.08);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.registration-step-number {
+  border-color: rgba(255, 111, 97, 0.20);
+  background: rgba(255, 111, 97, 0.09);
+  color: #ff8176;
+}
+
+.registration-step strong {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.registration-step p {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.success-decoration {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.success-decoration-mark {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.055);
+  color: #ff8176;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 50px rgba(0, 0, 0, 0.12);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.success-decoration p {
+  color: rgba(255, 255, 255, 0.88);
+}
