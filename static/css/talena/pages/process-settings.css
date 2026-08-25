@@ -194,6 +194,12 @@
   font-size: .68rem;
 }
 
+.process-settings-page .process-settings-lock-icon {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
 .process-settings-page .tip-block {
   padding: .8rem 0;
   border-bottom: 1px solid var(--talena-border);
