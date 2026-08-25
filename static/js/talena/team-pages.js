@@ -36,6 +36,19 @@
     }
   }
 
+  function getTeamStyleLabelMap(chartElement) {
+    return {
+      Connector: chartElement.dataset.styleConnector || "Connector",
+      Catalyst: chartElement.dataset.styleCatalyst || "Catalyst",
+      Director: chartElement.dataset.styleDirector || "Director",
+      Energiser: chartElement.dataset.styleEnergiser || "Energiser",
+      Architect: chartElement.dataset.styleArchitect || "Architect",
+      Harmoniser: chartElement.dataset.styleHarmoniser || "Harmoniser",
+      Analyst: chartElement.dataset.styleAnalyst || "Analyst",
+      Auditor: chartElement.dataset.styleAuditor || "Auditor"
+    };
+  }
+
   function initTeamStyleChart() {
     const chartElement = document.getElementById("teamStyleAverageChart");
 
@@ -51,13 +64,18 @@
       return;
     }
 
+    const styleLabelMap = getTeamStyleLabelMap(chartElement);
+    const displayLabels = labels.map(function (label) {
+      return styleLabelMap[label] || label;
+    });
+
     const averageLabel = chartElement.dataset.averageLabel || "Average";
     const maximumLabel = chartElement.dataset.maximumLabel || "Maximum";
 
     new window.Chart(chartElement, {
       type: "radar",
       data: {
-        labels: labels,
+        labels: displayLabels,
         datasets: [
           {
             label: averageLabel,
@@ -68,6 +86,7 @@
             pointBorderColor: "#ffffff",
             pointBorderWidth: 2,
             pointRadius: 3,
+            pointHoverRadius: 4,
             borderWidth: 2,
             fill: true
           },
@@ -80,6 +99,7 @@
             pointBorderColor: "#ffffff",
             pointBorderWidth: 2,
             pointRadius: 2.5,
+            pointHoverRadius: 3.5,
             borderWidth: 1.5,
             borderDash: [5, 4],
             fill: false
@@ -89,6 +109,10 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: "nearest"
+        },
         scales: {
           r: {
             min: 0,
@@ -101,6 +125,7 @@
             },
             pointLabels: {
               color: "#6F6762",
+              padding: 10,
               font: {
                 size: 10,
                 weight: 600
@@ -125,6 +150,15 @@
               font: {
                 size: 10,
                 weight: 600
+              }
+            }
+          },
+          tooltip: {
+            displayColors: true,
+            padding: 10,
+            callbacks: {
+              label: function (context) {
+                return `${context.dataset.label}: ${context.formattedValue} / 10`;
               }
             }
           }
