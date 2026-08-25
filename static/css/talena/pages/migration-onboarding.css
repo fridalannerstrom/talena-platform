@@ -1,0 +1,186 @@
+/* =========================================================
+   TALENA — MIGRATION ONBOARDING
+   ---------------------------------------------------------
+   Global welcome modal shown to migrated customer accounts.
+   ========================================================= */
+
+.migration-welcome-dialog {
+  max-width: 500px;
+}
+
+.migration-welcome-modal {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 111, 97, 0.14) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(
+      circle at 92% 4%,
+      rgba(255, 111, 97, 0.1),
+      transparent 31%
+    ),
+    #fff !important;
+  box-shadow:
+    0 28px 72px rgba(23, 19, 18, 0.15),
+    0 6px 18px rgba(23, 19, 18, 0.04) !important;
+}
+
+.migration-welcome-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+}
+
+.migration-welcome-close .btn-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.72);
+  background-size: 10px;
+  opacity: 0.62;
+}
+
+.migration-welcome-close .btn-close:hover,
+.migration-welcome-close .btn-close:focus {
+  background-color: var(--talena-surface-soft);
+  opacity: 1;
+}
+
+.migration-welcome-content {
+  padding: 48px 42px 38px;
+  text-align: center;
+}
+
+.migration-welcome-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin: 0 auto 24px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.migration-welcome-brand img {
+  display: block;
+  width: auto;
+  height: 24px;
+}
+
+.migration-welcome-eyebrow {
+  margin-bottom: 0.55rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.65rem;
+  font-weight: 720;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.migration-welcome-title {
+  margin-bottom: 12px;
+  color: var(--talena-ink);
+  font-size: 1.7rem;
+  font-weight: 740;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.migration-welcome-text {
+  max-width: 382px;
+  margin: 0 auto 20px;
+  color: var(--talena-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.62;
+}
+
+.migration-welcome-stats {
+  display: inline-flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 14px;
+  background: var(--talena-surface-soft);
+}
+
+.migration-welcome-stat {
+  min-width: 128px;
+  padding: 0.7rem 0.85rem;
+  color: var(--talena-text-muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.migration-welcome-stat + .migration-welcome-stat {
+  border-left: 1px solid var(--talena-border);
+}
+
+.migration-welcome-stat strong {
+  display: block;
+  margin-bottom: 0.08rem;
+  color: var(--talena-ink);
+  font-size: 1.05rem;
+  font-weight: 740;
+}
+
+.migration-welcome-primary,
+.migration-welcome-secondary {
+  width: 100%;
+  min-height: 46px;
+  border-radius: var(--talena-radius-pill) !important;
+  font-size: 0.76rem;
+  font-weight: 680;
+}
+
+.migration-welcome-primary {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 22px rgba(23, 19, 18, 0.1) !important;
+}
+
+.migration-welcome-primary:hover,
+.migration-welcome-primary:focus {
+  border-color: #000 !important;
+  background: #000 !important;
+}
+
+.migration-welcome-secondary {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+}
+
+.migration-welcome-secondary:hover,
+.migration-welcome-secondary:focus {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+@media (max-width: 575.98px) {
+  .migration-welcome-dialog {
+    margin: 18px;
+  }
+
+  .migration-welcome-content {
+    padding: 46px 24px 28px;
+  }
+
+  .migration-welcome-stats {
+    display: flex;
+    width: 100%;
+  }
+
+  .migration-welcome-stat {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
