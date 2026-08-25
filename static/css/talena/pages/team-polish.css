@@ -52,6 +52,10 @@
   padding: 1.2rem !important;
 }
 
+.talena-team-page .card-body.p-0 {
+  padding: 0 !important;
+}
+
 /* Team list */
 .talena-team-page .team-list-card {
   box-shadow: 0 12px 30px rgba(38, 31, 28, 0.035) !important;
