@@ -34,151 +34,6 @@
   <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/js/all.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" crossorigin="anonymous"></script>
 
-  <script>
-(function () {
-  "use strict";
-
-  if (!window.feather || !window.feather.icons) {
-    return;
-  }
-
-  /**
-   * Safer replacement for feather.replace().
-   *
-   * Feather's built-in replace() parses an SVG string and then uses
-   * replaceChild(). Dynamic candidate markup can occasionally make
-   * that conversion fail, which aborts replacement of every remaining
-   * icon on the page.
-   *
-   * Here we create the base SVG first, copy attributes using the DOM
-   * API, and replace icons individually.
-   */
-  window.safeFeatherReplace = function (
-    scope = document,
-    globalAttributes = {}
-  ) {
-    const elements = Array.from(
-      scope.querySelectorAll("[data-feather]")
-    );
-
-    elements.forEach((element) => {
-      const iconName =
-        element.getAttribute("data-feather");
-
-      const icon =
-        window.feather.icons[iconName];
-
-      if (!icon) {
-        console.warn(
-          `Unknown Feather icon: ${iconName}`,
-          element
-        );
-        return;
-      }
-
-      try {
-        const template =
-          document.createElement("template");
-
-        template.innerHTML =
-          icon.toSvg().trim();
-
-        const svg =
-          template.content.firstElementChild;
-
-        if (!(svg instanceof SVGElement)) {
-          throw new Error(
-            `Could not create SVG for icon "${iconName}".`
-          );
-        }
-
-        /*
-         * Preserve attributes from the original <i>.
-         * Classes need to be merged with Feather's own
-         * "feather feather-{name}" classes.
-         */
-        Array.from(element.attributes).forEach(
-          (attribute) => {
-            if (
-              attribute.name === "data-feather"
-            ) {
-              return;
-            }
-
-            if (attribute.name === "class") {
-              const featherClasses =
-                svg.getAttribute("class") || "";
-
-              svg.setAttribute(
-                "class",
-                `${featherClasses} ${attribute.value}`.trim()
-              );
-
-              return;
-            }
-
-            svg.setAttribute(
-              attribute.name,
-              attribute.value
-            );
-          }
-        );
-
-        /*
-         * Support attributes supplied to feather.replace(),
-         * should any existing code use them.
-         */
-        Object.entries(
-          globalAttributes || {}
-        ).forEach(([name, value]) => {
-          if (name === "class") {
-            const existing =
-              svg.getAttribute("class") || "";
-
-            svg.setAttribute(
-              "class",
-              `${existing} ${value}`.trim()
-            );
-
-            return;
-          }
-
-          svg.setAttribute(
-            name,
-            String(value)
-          );
-        });
-
-        element.replaceWith(svg);
-
-      } catch (error) {
-        console.error(
-          `Feather icon "${iconName}" could not be rendered:`,
-          error,
-          element
-        );
-      }
-    });
-  };
-
-
-  /*
-   * Keep the existing Talena code working.
-   *
-   * All current calls to feather.replace() will now use
-   * the safer renderer above automatically.
-   */
-  window.feather.replace = function (
-    attributes = {}
-  ) {
-    window.safeFeatherReplace(
-      document,
-      attributes
-    );
-  };
-})();
-</script>
-
   {% block extra_css %}{% endblock %}
 </head>
 
@@ -200,15 +55,26 @@
     </div>
   </div>
 
-{% include "customer/core/partials/migration_onboarding_modal.html" %}
+  {% include "customer/core/partials/migration_onboarding_modal.html" %}
 
   <!-- Global Modal (reusable) -->
-  <div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="appModal"
+    tabindex="-1"
+    aria-hidden="true"
+    data-close-label="{% trans 'Close' %}"
+  >
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="appModalTitle">Modal</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"
+          ></button>
         </div>
 
         <div class="modal-body" id="appModalBody">
@@ -216,158 +82,13 @@
         </div>
 
         <div class="modal-footer" id="appModalFooter">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            {% trans "Close" %}
+          </button>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-    function openAppModal({ title, bodyHtml, footerHtml }) {
-      const titleEl = document.getElementById("appModalTitle");
-      const bodyEl = document.getElementById("appModalBody");
-      const footerEl = document.getElementById("appModalFooter");
-
-      titleEl.textContent = title || "Modal";
-      bodyEl.innerHTML = bodyHtml || "";
-      footerEl.innerHTML = footerHtml || `
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-      `;
-
-      const modal = new bootstrap.Modal(document.getElementById("appModal"));
-      modal.show();
-    }
-
-    async function copyToClipboard(text, statusElId) {
-      try {
-        await navigator.clipboard.writeText(text);
-        if (statusElId) {
-          const el = document.getElementById(statusElId);
-          if (el) {
-            el.textContent = "Copied!";
-            el.classList.remove("text-muted");
-            el.classList.add("text-success");
-            setTimeout(() => {
-              el.textContent = "";
-            }, 2000);
-          }
-        }
-      } catch (e) {
-        console.error("Copy failed:", e);
-        alert("Could not copy. Please copy manually.");
-      }
-    }
-  </script>
-
-  <script>
-    (function () {
-      const input = document.getElementById("globalSearchInput");
-      const menu = document.getElementById("globalSearchDropdown");
-      if (!input || !menu) return;
-
-      let timer = null;
-      let lastQuery = "";
-      let abortController = null;
-
-      function hideMenu() {
-        menu.classList.remove("show");
-        menu.innerHTML = "";
-      }
-
-      function showMenu(html) {
-        menu.innerHTML = html;
-        menu.classList.add("show");
-      }
-
-      function escapeHtml(str) {
-        return (str || "").replace(/[&<>"']/g, (m) => ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#039;"
-        }[m]));
-      }
-
-      async function runSearch(query) {
-        if (abortController) abortController.abort();
-        abortController = new AbortController();
-
-        const res = await fetch(`/search/?q=${encodeURIComponent(query)}`, {
-          signal: abortController.signal,
-          headers: { "X-Requested-With": "XMLHttpRequest" }
-        });
-
-        if (!res.ok) return [];
-        const data = await res.json();
-        return data.results || [];
-      }
-
-      function iconFor(type) {
-        if (type === "candidate") return "👤";
-        if (type === "process") return "🧪";
-        if (type === "customer") return "🏢";
-        return "🔎";
-      }
-
-      function badgeLabel(type) {
-        if (type === "customer") return "Customer";
-        if (type === "candidate") return "Candidate";
-        if (type === "process") return "Test process";
-        return "";
-      }
-
-      input.addEventListener("input", () => {
-        const q = input.value.trim();
-
-        if (q.length < 2) {
-          hideMenu();
-          return;
-        }
-
-        if (q === lastQuery) return;
-        lastQuery = q;
-
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-          try {
-            const results = await runSearch(q);
-
-            if (!results.length) {
-              showMenu(`<span class="dropdown-item-text text-muted">No results found</span>`);
-              return;
-            }
-
-            const html = results.map(r => `
-              <a class="dropdown-item d-flex align-items-center justify-content-between py-2"
-                 href="${escapeHtml(r.url)}">
-
-                <span class="fw-medium text-body">
-                  ${escapeHtml(r.label)}
-                </span>
-
-                <span class="search-tag">
-                  ${badgeLabel(r.type)}
-                </span>
-              </a>
-            `).join("");
-
-            showMenu(html);
-          } catch (e) {
-            if (e.name !== "AbortError") hideMenu();
-          }
-        }, 180);
-      });
-
-      document.addEventListener("click", (evt) => {
-        if (!menu.contains(evt.target) && evt.target !== input) hideMenu();
-      });
-
-      input.addEventListener("keydown", (evt) => {
-        if (evt.key === "Escape") hideMenu();
-      });
-    })();
-  </script>
 
   {# Global vendor JS #}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
@@ -377,13 +98,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/bundle.js" crossorigin="anonymous"></script>
 
+  {# Shared customer shell behaviour #}
+  <script src="{% static 'js/talena/customer-shell.js' %}"></script>
+
   {# Per-page JS #}
   {% block extra_js %}{% endblock %}
-
-  <script>
-    // Feather icons init, useful globally
-    if (window.feather) feather.replace();
-  </script>
 
 </body>
 </html>
