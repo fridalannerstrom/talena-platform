@@ -278,8 +278,9 @@
     });
   }
 
+  installSafeFeatherRenderer();
+
   function initialiseCustomerShell() {
-    installSafeFeatherRenderer();
     initGlobalSearch();
 
     if (window.feather) {
