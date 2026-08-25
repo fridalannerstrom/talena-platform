@@ -3,14 +3,14 @@
 <div id="layoutSidenav_nav">
   <nav class="sidenav sidenav-light talena-sidebar">
 
-    <!-- Sidebar brand -->
     <div class="talena-sidebar-brand">
       <a
         href="{% url 'core:customer_dashboard' %}"
         class="talena-brand-link"
+        aria-label="Talena"
       >
         <img
-          src="{% static 'images/symbol.svg' %}"
+          src="{% static 'images/talena-logo.svg' %}"
           alt="Talena"
           class="talena-sidebar-logo"
         >
@@ -19,8 +19,6 @@
 
     {% include "shared/partials/talena_mode_switcher.html" with active_mode="workspace" %}
 
-
-    <!-- Sidebar navigation -->
     <div class="sidenav-menu">
       <div
         class="nav accordion talena-sidebar-nav"
@@ -32,135 +30,84 @@
         </div>
 
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'customer_dashboard' %}
-              active
-            {% endif %}
-          "
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}"
           href="{% url 'core:customer_dashboard' %}"
         >
           <div class="nav-link-icon">
             <i data-feather="grid"></i>
           </div>
-
           <span>{% trans "Dashboard" %}</span>
         </a>
 
-
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'settings' %}
-              active
-            {% endif %}
-          "
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
           href="{% url 'portal:settings' %}?mode=workspace"
         >
           <div class="nav-link-icon">
             <i data-feather="settings"></i>
           </div>
-
           <span>{% trans "Account settings" %}</span>
         </a>
-
 
         <div class="sidenav-menu-heading">
           {% trans "Assessments" %}
         </div>
 
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'process_list' %}
-              active
-            {% endif %}
-          "
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_list' %}active{% endif %}"
           href="{% url 'processes:process_list' %}"
         >
           <div class="nav-link-icon">
             <i data-feather="list"></i>
           </div>
-
           <span>{% trans "Test processes" %}</span>
         </a>
 
-
         <a
-  class="
-    nav-link
-    sidebar-link
-    {% if request.resolver_match.url_name == 'process_create' %}
-      active
-    {% endif %}
-  "
-  href="{% url 'processes:process_create' %}"
->
-  <div class="nav-link-icon">
-    <i data-feather="plus"></i>
-  </div>
-
-  <span>{% trans "Create new test process" %}</span>
-</a>
-
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'process_create' %}active{% endif %}"
+          href="{% url 'processes:process_create' %}"
+        >
+          <div class="nav-link-icon">
+            <i data-feather="plus"></i>
+          </div>
+          <span>{% trans "Create new test process" %}</span>
+        </a>
 
         <div class="sidenav-menu-heading">
           {% trans "Candidates" %}
         </div>
 
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'candidate_list' %}
-              active
-            {% endif %}
-          "
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'candidate_list' %}active{% endif %}"
           href="{% url 'candidates:candidate_list' %}"
         >
           <div class="nav-link-icon">
             <i data-feather="users"></i>
           </div>
-
           <span>{% trans "All candidates" %}</span>
         </a>
 
-
         <a
-          class="
-            nav-link
-            sidebar-link
-            {% if request.resolver_match.url_name == 'team_list' %}
-              active
-            {% endif %}
-          "
+          class="nav-link sidebar-link {% if request.resolver_match.url_name == 'team_list' %}active{% endif %}"
           href="{% url 'teams:team_list' %}"
         >
           <div class="nav-link-icon">
             <i data-feather="users"></i>
           </div>
-
           <span>{% trans "Teams" %}</span>
         </a>
 
       </div>
     </div>
 
-    <!-- Sidebar footer -->
     <div class="sidenav-footer talena-sidebar-footer">
       <div class="sidenav-footer-content">
-
         <div class="sidenav-footer-subtitle">
           {% trans "Signed in as" %}
         </div>
-
         <div class="sidenav-footer-title">
           {{ request.user.get_full_name|default:request.user.email }}
         </div>
-
       </div>
     </div>
 
