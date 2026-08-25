@@ -3,113 +3,6 @@
 
 {% block process_content %}
 
-<style>
-  .role-context-toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: min(360px, calc(100vw - 32px));
-  z-index: 1050;
-
-  padding: 1rem 1.15rem 1.05rem;
-  border-radius: 18px;
-  border: 1px solid rgba(126, 87, 194, 0.18);
-
-  background:
-    radial-gradient(circle at top left, rgba(168, 121, 255, 0.18), transparent 38%),
-    linear-gradient(135deg, #ffffff 0%, #fbf9ff 100%);
-
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.14),
-    0 3px 10px rgba(15, 23, 42, 0.04);
-
-  animation: roleContextToastIn 0.35s ease-out;
-}
-
-.role-context-toast.is-hidden {
-  display: none;
-}
-
-.role-context-toast__eyebrow {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #8b5cf6;
-  margin-bottom: 0.25rem;
-}
-
-.role-context-toast__title {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #111827;
-  padding-right: 1.75rem;
-}
-
-.role-context-toast__text {
-  margin: 0.35rem 0 0.85rem;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  color: #6b7280;
-}
-
-.role-context-toast__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.86rem;
-  font-weight: 800;
-  color: #111827;
-  text-decoration: none;
-}
-
-.role-context-toast__link:hover {
-  color: #7c3aed;
-}
-
-.role-context-toast__close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-
-  width: 28px;
-  height: 28px;
-
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: #9ca3af;
-
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.role-context-toast__close:hover {
-  background: rgba(15, 23, 42, 0.05);
-  color: #111827;
-}
-
-@keyframes roleContextToastIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@media (max-width: 576px) {
-  .role-context-toast {
-    right: 16px;
-    bottom: 16px;
-  }
-}
-</style>
-
 {% if not process.is_historical %}
   {# STATUS OVERVIEW #}
   <div class="process-kpi-grid mb-4">
@@ -138,368 +31,367 @@
 {% endif %}
 
 
-  {# CANDIDATES TABLE #}
-  <div class="card process-section-card">
+{# CANDIDATES TABLE #}
+<div class="card process-section-card">
 
-    <div class="card-header bg-white d-flex align-items-center justify-content-between gap-3 flex-wrap py-3 px-4">
-<div>
-  <div class="fw-semibold">
-    {% trans "Candidates" %}
+  <div class="card-header bg-white d-flex align-items-center justify-content-between gap-3 flex-wrap py-3 px-4">
+    <div>
+      <div class="fw-semibold">
+        {% trans "Candidates" %}
+      </div>
+
+      <div class="text-muted small">
+        {% if process.is_historical %}
+          {% blocktrans count candidate_count=historical_candidates|length %}
+            {{ candidate_count }} candidate in this historical test process
+          {% plural %}
+            {{ candidate_count }} candidates in this historical test process
+          {% endblocktrans %}
+        {% else %}
+          {% blocktrans count candidate_count=invitations|length %}
+            {{ candidate_count }} candidate in this test process
+          {% plural %}
+            {{ candidate_count }} candidates in this test process
+          {% endblocktrans %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% if can_edit and not process.is_historical %}
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button
+          id="send-tests-btn"
+          type="submit"
+          form="send-tests-form"
+          class="btn btn-primary btn-sm"
+          disabled
+          aria-disabled="true"
+        >
+          <i data-feather="send" class="icon-16"></i>
+          {% trans "Send assessments" %}
+        </button>
+      </div>
+    {% endif %}
   </div>
 
-  <div class="text-muted small">
+  <div class="card-body p-0">
 
-    {% if process.is_historical %}
+    {% if not process.is_historical %}
+      <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
+        {% csrf_token %}
+    {% endif %}
 
-      {% blocktrans count candidate_count=historical_candidates|length %}
-        {{ candidate_count }} candidate in this historical test process
-      {% plural %}
-        {{ candidate_count }} candidates in this historical test process
-      {% endblocktrans %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 process-table">
+          <thead class="table-light">
+            <tr>
+              {% if can_edit and not process.is_historical %}
+                <th style="width:44px;" class="ps-4">
+                  <input type="checkbox" id="select-all">
+                </th>
+              {% endif %}
 
-    {% else %}
+              <th>{% trans "Candidate" %}</th>
 
-      {% blocktrans count candidate_count=invitations|length %}
-        {{ candidate_count }} candidate in this test process
-      {% plural %}
-        {{ candidate_count }} candidates in this test process
-      {% endblocktrans %}
+              {% if process.is_historical %}
+                <th style="width: 190px;">{% trans "Type" %}</th>
+                <th style="width: 160px;">{% trans "Status" %}</th>
+                <th style="width: 170px;">{% trans "Imported" %}</th>
+              {% else %}
+                <th style="width: 190px;">{% trans "Invitation" %}</th>
+                <th style="width: 160px;">{% trans "Status" %}</th>
+                <th style="width: 170px;">{% trans "Registered" %}</th>
+              {% endif %}
 
+              {% if can_edit and not process.is_historical %}
+                <th class="text-end pe-4" style="width:90px;"></th>
+              {% endif %}
+            </tr>
+          </thead>
+
+          <tbody>
+            {% if process.is_historical %}
+
+              {% for hc in historical_candidates %}
+                <tr class="candidate-row">
+                  <td>
+                    <div class="d-flex align-items-center gap-3 process-detail-table">
+                      <div class="user-initials-yellow">
+                        {% with fn=hc.candidate.first_name|default:"" ln=hc.candidate.last_name|default:"" %}
+                          {% if fn or ln %}
+                            {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                          {% else %}
+                            ?
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+
+                      <div class="min-w-0">
+                        <div class="fw-semibold text-truncate">
+                          <a
+                            href="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
+                            class="user-link js-open-candidate"
+                            data-sheet-url="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
+                            data-candidate-id="{{ hc.candidate.id }}"
+                            data-candidate-name="{{ hc.candidate.first_name }} {{ hc.candidate.last_name|escape }}"
+                          >
+                            {% if hc.candidate.first_name or hc.candidate.last_name %}
+                              {{ hc.candidate.first_name }} {{ hc.candidate.last_name }}
+                            {% else %}
+                              {{ hc.candidate.email }}
+                            {% endif %}
+                          </a>
+                        </div>
+
+                        <div class="text-muted small text-truncate">
+                          {{ hc.candidate.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="badge bg-secondary">Historical</span>
+                  </td>
+
+                  <td>
+                    <span class="badge bg-success">
+                      {{ hc.status|default:"Imported" }}
+                    </span>
+                  </td>
+
+                  <td class="text-muted">
+                    {{ hc.created_at|date:"Y-m-d" }}
+                    <div class="small text-muted">
+                      {{ hc.created_at|date:"H:i" }}
+                    </div>
+                  </td>
+                </tr>
+
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="p-5 text-center text-muted empty-state">
+                    <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
+                    <div class="fw-semibold text-dark mb-1">No historical candidates yet</div>
+                    <div class="small text-muted">
+                      No manually imported candidates have been added to this historical process.
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+
+            {% else %}
+
+              {% for inv in invitations %}
+                <tr class="candidate-row">
+
+                  {% if can_edit %}
+                    <td class="ps-4">
+                      <input
+                        type="checkbox"
+                        name="invitation_ids"
+                        value="{{ inv.id }}"
+                        class="row-check"
+                      >
+                    </td>
+                  {% endif %}
+
+                  <td>
+                    <div class="d-flex align-items-center gap-3 process-detail-table">
+                      <div class="user-initials-yellow">
+                        {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
+                          {% if fn or ln %}
+                            {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
+                          {% else %}
+                            ?
+                          {% endif %}
+                        {% endwith %}
+                      </div>
+
+                      <div class="min-w-0">
+                        <div class="fw-semibold text-truncate">
+                          <a
+                            href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                            class="user-link js-open-candidate"
+                            data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
+                            data-candidate-id="{{ inv.candidate.id }}"
+                            data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}"
+                          >
+                            {% if inv.candidate.first_name or inv.candidate.last_name %}
+                              {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
+                            {% else %}
+                              {{ inv.candidate.email }}
+                            {% endif %}
+                          </a>
+                        </div>
+
+                        <div class="text-muted small text-truncate">
+                          {{ inv.candidate.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    {% if inv.source == "self_registered" %}
+                      <span class="badge bg-info text-dark">
+                        {% trans "Self-registered" %}
+                      </span>
+                    {% else %}
+                      <span class="badge bg-primary">
+                        {% trans "Invited" %}
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      data-invitation-id="{{ inv.id }}"
+                      data-status-badge="1"
+                    >
+                      {{ inv.status_label }}
+                    </span>
+                  </td>
+
+                  <td class="text-muted">
+                    {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
+                    <div class="small text-muted">
+                      {{ inv.invited_at|default:inv.created_at|date:"H:i" }}
+                    </div>
+                  </td>
+
+                  {% if can_edit %}
+                    <td class="text-end pe-4">
+                      <button
+                        type="submit"
+                        class="button-icon"
+                        form="send-tests-form"
+                        formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
+                        formmethod="post"
+                        onclick="return confirm('{% trans 'Are you sure you want to remove this candidate?' %}');"
+                        aria-label="{% trans 'Remove candidate' %}"
+                      >
+                        <i data-feather="trash-2"></i>
+                      </button>
+                    </td>
+                  {% endif %}
+                </tr>
+
+              {% empty %}
+                <tr>
+                  <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
+                    <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
+
+                    {% if can_edit %}
+                      <div class="fw-semibold text-dark mb-1">
+                        {% trans "No candidates yet" %}
+                      </div>
+
+                      <div class="text-muted mb-3">
+                        {% trans "Add a candidate manually or share the self-registration link." %}
+                      </div>
+
+                      <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          class="btn btn-primary js-add-candidate"
+                          data-url="{% url 'processes:process_add_candidate' process.id %}"
+                        >
+                          {% trans "Add candidate" %}
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary js-selfreg">
+                          {% trans "Self-registration link" %}
+                        </button>
+                      </div>
+                    {% else %}
+                      <div class="fw-semibold text-dark mb-1">No candidates yet</div>
+                      <div class="small text-muted">
+                        {% trans "You have read-only access to this process." %}
+                      </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+    {% if not process.is_historical %}
+      </form>
     {% endif %}
 
   </div>
 </div>
 
-      {% if can_edit and not process.is_historical %}
-        <div class="d-flex align-items-center gap-2 flex-wrap">
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
+
+  <button
+    type="button"
+    class="sheet-nav sheet-nav-prev"
+    id="candidatePrevBtn"
+    aria-label="{% trans 'Previous candidate' %}"
+  >
+    <i data-feather="chevron-left"></i>
+  </button>
+
+  <button
+    type="button"
+    class="sheet-nav sheet-nav-next"
+    id="candidateNextBtn"
+    aria-label="{% trans 'Next candidate' %}"
+  >
+    <i data-feather="chevron-right"></i>
+  </button>
+
+  <div class="candidate-sheet-inner">
+    <div class="offcanvas-header justify-content-end">
+      <span id="candidateSheetLabel" class="visually-hidden">
+        {% trans "Candidate" %}
+      </span>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body" id="candidateSheetBody">
+      <div class="text-muted">{% trans "Loading…" %}</div>
+    </div>
+  </div>
+</div>
+
+{% if not process.is_historical %}
+  <div class="modal fade" id="globalEmailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{% trans "Invitation email" %}</h5>
           <button
-            id="send-tests-btn"
-            type="submit"
-            form="send-tests-form"
-            class="btn btn-primary btn-sm"
-            disabled
-            aria-disabled="true"
-          >
-<i data-feather="send" class="icon-16"></i>
-{% trans "Send assessments" %}
-          </button>
-        </div>
-      {% endif %}
-    </div>
-
-    <div class="card-body p-0">
-
-      {% if not process.is_historical %}
-        <form id="send-tests-form" method="post" action="{% url 'processes:process_send_tests' process.id %}">
-          {% csrf_token %}
-      {% endif %}
-
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 process-table">
-            <thead class="table-light">
-              <tr>
-                {% if can_edit and not process.is_historical %}
-                  <th style="width:44px;" class="ps-4">
-                    <input type="checkbox" id="select-all">
-                  </th>
-                {% endif %}
-
-                <th>{% trans "Candidate" %}</th>
-
-{% if process.is_historical %}
-  <th style="width: 190px;">{% trans "Type" %}</th>
-  <th style="width: 160px;">{% trans "Status" %}</th>
-  <th style="width: 170px;">{% trans "Imported" %}</th>
-{% else %}
-  <th style="width: 190px;">{% trans "Invitation" %}</th>
-  <th style="width: 160px;">{% trans "Status" %}</th>
-  <th style="width: 170px;">{% trans "Registered" %}</th>
-{% endif %}
-                {% if can_edit and not process.is_historical %}
-                  <th class="text-end pe-4" style="width:90px;"></th>
-                {% endif %}
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {% if process.is_historical %}
-
-                {% for hc in historical_candidates %}
-                  <tr class="candidate-row">
-
-                    <td>
-                      <div class="d-flex align-items-center gap-3 process-detail-table">
-                        <div class="user-initials-yellow">
-                          {% with fn=hc.candidate.first_name|default:"" ln=hc.candidate.last_name|default:"" %}
-                            {% if fn or ln %}
-                              {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-                            {% else %}
-                              ?
-                            {% endif %}
-                          {% endwith %}
-                        </div>
-
-                        <div class="min-w-0">
-                          <div class="fw-semibold text-truncate">
-<a href="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
-   class="user-link js-open-candidate"
-   data-sheet-url="{% url 'processes:process_candidate_detail' process.id hc.candidate.id %}"
-   data-candidate-id="{{ hc.candidate.id }}"
-   data-candidate-name="{{ hc.candidate.first_name }} {{ hc.candidate.last_name|escape }}">
-                              {% if hc.candidate.first_name or hc.candidate.last_name %}
-                                {{ hc.candidate.first_name }} {{ hc.candidate.last_name }}
-                              {% else %}
-                                {{ hc.candidate.email }}
-                              {% endif %}
-                            </a>
-                          </div>
-
-                          <div class="text-muted small text-truncate">
-                            {{ hc.candidate.email }}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-                      <span class="badge bg-secondary">Historical</span>
-                    </td>
-
-                    <td>
-                      <span class="badge bg-success">
-                        {{ hc.status|default:"Imported" }}
-                      </span>
-                    </td>
-
-                    <td class="text-muted">
-                      {{ hc.created_at|date:"Y-m-d" }}
-                      <div class="small text-muted">
-                        {{ hc.created_at|date:"H:i" }}
-                      </div>
-                    </td>
-
-                  </tr>
-
-                {% empty %}
-                  <tr>
-                    <td colspan="4" class="p-5 text-center text-muted empty-state">
-                      <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
-
-                      <div class="fw-semibold text-dark mb-1">No historical candidates yet</div>
-                      <div class="small text-muted">
-                        No manually imported candidates have been added to this historical process.
-                      </div>
-                    </td>
-                  </tr>
-                {% endfor %}
-
-              {% else %}
-
-                {% for inv in invitations %}
-                  <tr class="candidate-row">
-
-                    {% if can_edit %}
-                      <td class="ps-4">
-                        <input type="checkbox"
-                               name="invitation_ids"
-                               value="{{ inv.id }}"
-                               class="row-check">
-                      </td>
-                    {% endif %}
-
-                    <td>
-                      <div class="d-flex align-items-center gap-3 process-detail-table">
-                        <div class="user-initials-yellow">
-                          {% with fn=inv.candidate.first_name|default:"" ln=inv.candidate.last_name|default:"" %}
-                            {% if fn or ln %}
-                              {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
-                            {% else %}
-                              ?
-                            {% endif %}
-                          {% endwith %}
-                        </div>
-
-                        <div class="min-w-0">
-                          <div class="fw-semibold text-truncate">
-<a href="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-   class="user-link js-open-candidate"
-   data-sheet-url="{% url 'processes:process_candidate_detail' process.id inv.candidate.id %}"
-   data-candidate-id="{{ inv.candidate.id }}"
-   data-candidate-name="{{ inv.candidate.first_name }} {{ inv.candidate.last_name|escape }}">
-                              {% if inv.candidate.first_name or inv.candidate.last_name %}
-                                {{ inv.candidate.first_name }} {{ inv.candidate.last_name }}
-                              {% else %}
-                                {{ inv.candidate.email }}
-                              {% endif %}
-                            </a>
-                          </div>
-
-                          <div class="text-muted small text-truncate">
-                            {{ inv.candidate.email }}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-{% if inv.source == "self_registered" %}
-  <span class="badge bg-info text-dark">
-    {% trans "Self-registered" %}
-  </span>
-{% else %}
-  <span class="badge bg-primary">
-    {% trans "Invited" %}
-  </span>
-{% endif %}
-                    </td>
-
-                    <td>
-                      <span class="badge"
-                            data-invitation-id="{{ inv.id }}"
-                            data-status-badge="1">
-                        {{ inv.status_label }}
-                      </span>
-                    </td>
-
-                    <td class="text-muted">
-                      {{ inv.invited_at|default:inv.created_at|date:"Y-m-d" }}
-                      <div class="small text-muted">
-                        {{ inv.invited_at|default:inv.created_at|date:"H:i" }}
-                      </div>
-                    </td>
-
-                    {% if can_edit %}
-                      <td class="text-end pe-4">
-                        <button type="submit"
-                                class="button-icon"
-                                form="send-tests-form"
-                                formaction="{% url 'processes:remove_candidate_from_process' process.id inv.candidate_id %}"
-                                formmethod="post"
-                                onclick="return confirm('{% trans 'Are you sure you want to remove this candidate?' %}');"
-                                aria-label="{% trans 'Remove candidate' %}"
-                          <i data-feather="trash-2"></i>
-                        </button>
-                      </td>
-                    {% endif %}
-
-                  </tr>
-
-                {% empty %}
-                  <tr>
-                    <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
-                      <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
-
-                      {% if can_edit %}
-<div class="fw-semibold text-dark mb-1">
-  {% trans "No candidates yet" %}
-</div>
-
-<div class="text-muted mb-3">
-  {% trans "Add a candidate manually or share the self-registration link." %}
-</div>
-
-                        <div class="d-flex justify-content-center gap-2 flex-wrap">
-                          <button type="button"
-                                  class="btn btn-primary js-add-candidate"
-                                  data-url="{% url 'processes:process_add_candidate' process.id %}">
-                            {% trans "Add candidate" %}
-                          </button>
-
-                          <button type="button"
-                                  class="btn btn-outline-secondary js-selfreg">
-                            {% trans "Self-registration link" %}
-                          </button>
-                        </div>
-                      {% else %}
-                        <div class="fw-semibold text-dark mb-1">No candidates yet</div>
-<div class="small text-muted">
-  {% trans "You have read-only access to this process." %}
-</div>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-
-              {% endif %}
-
-            </tbody>
-          </table>
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"
+          ></button>
         </div>
 
-      {% if not process.is_historical %}
-        </form>
-      {% endif %}
+        <div class="modal-body">
+          <div class="activity-email-meta mb-3">
+            <p class="mb-1">
+              <strong>{% trans "To:" %}</strong>
+              <span id="globalEmailTo"></span>
+            </p>
 
+            <p class="mb-0">
+              <strong>{% trans "Subject:" %}</strong>
+              <span id="globalEmailSubject"></span>
+            </p>
+          </div>
+          <div class="activity-email-body" id="globalEmailBody"></div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="offcanvas offcanvas-bottom" tabindex="-1" id="candidateSheet">
-
-    <button type="button"
-            class="sheet-nav sheet-nav-prev"
-            id="candidatePrevBtn"
-            aria-label="{% trans 'Previous candidate' %}"
-      <i data-feather="chevron-left"></i>
-    </button>
-
-    <button type="button"
-            class="sheet-nav sheet-nav-next"
-            id="candidateNextBtn"
-            aria-label="{% trans 'Next candidate' %}"
-      <i data-feather="chevron-right"></i>
-    </button>
-
-    <div class="candidate-sheet-inner">
-
-      <div class="offcanvas-header justify-content-end">
-        <span id="candidateSheetLabel" class="visually-hidden">
-  {% trans "Candidate" %}
-</span>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-      </div>
-
-      <div class="offcanvas-body" id="candidateSheetBody">
-        <div class="text-muted">{% trans "Loading…" %}</div>
-      </div>
-
-    </div>
-  </div>
-
-  {% if not process.is_historical %}
-    <div class="modal fade" id="globalEmailModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-<h5 class="modal-title">{% trans "Invitation email" %}</h5>
-<button
-  type="button"
-  class="btn-close"
-  data-bs-dismiss="modal"
-  aria-label="{% trans 'Close' %}"
-></button>
-          </div>
-
-          <div class="modal-body">
-            <div class="activity-email-meta mb-3">
-<p class="mb-1">
-  <strong>{% trans "To:" %}</strong>
-  <span id="globalEmailTo"></span>
-</p>
-
-<p class="mb-0">
-  <strong>{% trans "Subject:" %}</strong>
-  <span id="globalEmailSubject"></span>
-</p>
-            </div>
-            <div class="activity-email-body" id="globalEmailBody"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-
-</div>
-</div>
+{% endif %}
 
 {% endblock %}
