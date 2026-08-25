@@ -226,6 +226,212 @@
 }
 
 /* ---------------------------------------------------------
+   Assessment reports
+   --------------------------------------------------------- */
+
+.process-page .candidate-insights-workspace + .card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.process-page .reports-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid transparent !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-ink) !important;
+  text-align: left;
+  box-shadow: none !important;
+}
+
+.process-page .reports-toggle:hover {
+  background: #fff !important;
+}
+
+.process-page .reports-toggle:not(.collapsed) {
+  border-bottom-color: var(--talena-border) !important;
+  background: #fff !important;
+}
+
+.process-page .reports-toggle .fw-semibold {
+  color: var(--talena-ink) !important;
+  font-size: 0.72rem !important;
+  font-weight: 690 !important;
+}
+
+.process-page .reports-toggle__right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.process-page .reports-toggle .badge {
+  min-height: 25px;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #fff !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.57rem !important;
+  font-weight: 650 !important;
+}
+
+.process-page .reports-toggle__chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--talena-transition-fast);
+}
+
+.process-page .reports-toggle:not(.collapsed) .reports-toggle__chevron {
+  transform: rotate(225deg);
+}
+
+.process-page #candidateAssessmentReports .card-body {
+  padding: 0.55rem 1rem 0.7rem !important;
+}
+
+.process-page #candidateAssessmentReports .list-group-item {
+  padding: 0.78rem 0 !important;
+  border-color: var(--talena-border) !important;
+  background: transparent !important;
+}
+
+.process-page #candidateAssessmentReports .fw-semibold {
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+}
+
+.process-page #candidateAssessmentReports .small.text-muted {
+  font-size: 0.6rem !important;
+  line-height: 1.45;
+}
+
+.process-page #candidateAssessmentReports .btn-outline-dark {
+  min-height: 34px;
+  padding: 0.45rem 0.7rem;
+  border-color: var(--talena-border) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  font-size: 0.61rem;
+  font-weight: 650;
+  box-shadow: none !important;
+}
+
+.process-page #candidateAssessmentReports .btn-outline-dark:hover,
+.process-page #candidateAssessmentReports .btn-outline-dark:focus {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+/* ---------------------------------------------------------
+   Empty states
+   --------------------------------------------------------- */
+
+.process-page .combined-questions-empty-state {
+  max-width: none;
+  padding: 1.6rem 1rem !important;
+  border: 1px dashed var(--talena-border-strong) !important;
+  border-radius: 14px !important;
+  background: var(--talena-surface-soft) !important;
+  box-shadow: none !important;
+}
+
+.process-page .combined-questions-empty-state > .text-muted {
+  max-width: 600px !important;
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------
+   Floating Talena AI
+   --------------------------------------------------------- */
+
+.process-page .candidate-ai-floating-panel {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 24px 70px rgba(23, 19, 18, 0.16) !important;
+}
+
+.process-page .candidate-ai-floating-header {
+  padding: 0.9rem 1rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: linear-gradient(180deg, #fff, var(--talena-surface-soft)) !important;
+}
+
+.process-page .candidate-ai-floating-title {
+  color: var(--talena-ink) !important;
+  font-weight: 720 !important;
+}
+
+.process-page .candidate-ai-floating-subtitle {
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .candidate-ai-floating-close {
+  border: 1px solid var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-text-muted) !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-ai-floating-close:hover {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .candidate-ai-empty__icon {
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .candidate-ai-floating-input-wrap textarea.form-control {
+  border-color: var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-ai-floating-input-wrap textarea.form-control:focus {
+  border-color: rgba(255, 111, 97, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.09) !important;
+}
+
+.process-page .candidate-ai-floating-send {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-ai-floating-launcher {
+  min-height: 44px !important;
+  box-shadow: 0 12px 26px rgba(23, 19, 18, 0.14) !important;
+}
+
+.process-page .candidate-ai-floating-launcher:focus-visible,
+.process-page .candidate-ai-floating-close:focus-visible,
+.process-page .candidate-ai-floating-send:focus-visible {
+  outline: 0 !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.12) !important;
+}
+
+/* ---------------------------------------------------------
    Responsive polish
    --------------------------------------------------------- */
 
@@ -249,5 +455,13 @@
   .process-page .candidate-insights-navigation .candidate-tab,
   .process-page .candidate-insights-view-option {
     font-size: 0.63rem !important;
+  }
+
+  .process-page .candidate-ai-floating-panel {
+    border-radius: 16px !important;
+  }
+
+  .process-page #candidateAssessmentReports .list-group-item {
+    align-items: flex-start !important;
   }
 }
