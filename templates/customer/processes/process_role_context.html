@@ -3,6 +3,10 @@
 {# Talena process context i18n batch 1 #}
 {# Talena process context translated fallback repair 1 #}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-context.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block process_content %}
 
 <div class="purpose-context-page">
@@ -258,73 +262,5 @@
   </div>
 
 </div>
-
-
-<style>
-.purpose-context-page .context-guide-list {
-  display: grid;
-  gap: .75rem;
-}
-
-.purpose-context-page .context-guide-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .75rem;
-  align-items: flex-start;
-  padding: .8rem .85rem;
-  border: 1px solid rgba(123, 87, 209, .14);
-  border-radius: 14px;
-  background: #fff;
-}
-
-.purpose-context-page .context-guide-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 999px;
-  background: rgba(123, 87, 209, .08);
-  color: #5f3fd1;
-  font-size: .78rem;
-  font-weight: 800;
-}
-
-.purpose-context-page .context-note,
-.purpose-context-page .context-tip {
-  padding: .85rem .95rem;
-  border: 1px solid rgba(123, 87, 209, .14);
-  border-radius: 14px;
-  background: rgba(123, 87, 209, .045);
-}
-
-.purpose-context-page textarea[name="context_text"] {
-  min-height: 520px;
-  resize: vertical;
-  line-height: 1.55;
-}
-
-.purpose-context-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: .45rem .75rem;
-  border-radius: 999px;
-  background: #f1e8ff;
-  color: #6d3adf;
-  font-size: .78rem;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
-.purpose-context-header {
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
-}
-
-@media (max-width: 991px) {
-  .purpose-context-page textarea[name="context_text"] {
-    min-height: 360px;
-  }
-}
-</style>
 
 {% endblock %}
