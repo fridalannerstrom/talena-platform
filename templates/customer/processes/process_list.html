@@ -30,13 +30,13 @@
         id="processSearch"
         type="text"
         class="form-control"
-        placeholder="{% trans 'Search by title, purpose or assessment package...' %}"
+        placeholder="{% trans 'Search by title, purpose or assessment...' %}"
         aria-label="{% trans 'Search test processes' %}"
       >
     </div>
 
-    <select id="packageFilter" class="form-select" aria-label="{% trans 'Filter by assessment package' %}">
-      <option value="">{% trans "All assessment packages" %}</option>
+    <select id="purposeFilter" class="form-select" aria-label="{% trans 'Filter by purpose' %}">
+      <option value="">{% trans "All purposes" %}</option>
     </select>
 
     <select id="sortBy" class="form-select" aria-label="{% trans 'Sort test processes' %}">
@@ -84,9 +84,9 @@
           tabindex="0"
           data-href="{% url 'processes:process_detail' p.id %}"
           data-title="{{ p.name|default:''|lower }}"
-          data-package="{{ p.project_name_snapshot|default:'' }}"
-          data-package-lower="{{ p.project_name_snapshot|default:''|lower }}"
+          data-purpose="{{ p.purpose|purpose_label }}"
           data-purpose-lower="{{ p.purpose|purpose_label|lower }}"
+          data-tests-lower="{% for test in p.selected_tests %}{{ test|lower }} {% endfor %}"
           data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
           data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
           data-created="{{ p.created_at|date:'Y-m-d' }}"
@@ -155,11 +155,37 @@
             <h2 class="process-title">{{ p.name }}</h2>
 
             {% if p.is_historical %}
-              <div class="process-package">{% trans "Historical test data" %}</div>
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessments" %}</span>
+                <div class="process-tests-fallback">{% trans "Historical test data" %}</div>
+              </div>
+            {% elif p.selected_tests %}
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessments" %}</span>
+                <div class="process-test-chips">
+                  {% for test in p.selected_tests %}
+                    <span class="process-test-chip">
+                      {% if test == "personality" %}
+                        {% trans "Personality" %}
+                      {% elif test == "motivation" %}
+                        {% trans "Motivation" %}
+                      {% elif test == "verbal" %}
+                        {% trans "Verbal" %}
+                      {% elif test == "logical" %}
+                        {% trans "Logical" %}
+                      {% elif test == "numerical" %}
+                        {% trans "Numerical" %}
+                      {% else %}
+                        {{ test|capfirst }}
+                      {% endif %}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
             {% elif p.project_name_snapshot %}
-              <div class="process-package">
-                <span>{% trans "Assessment package" %}</span>
-                {{ p.project_name_snapshot }}
+              <div class="process-tests-block">
+                <span class="process-tests-label">{% trans "Assessment setup" %}</span>
+                <div class="process-tests-fallback">{{ p.project_name_snapshot }}</div>
               </div>
             {% endif %}
           </div>
@@ -174,8 +200,6 @@
               {% if p.labels.all|length > 3 %}
                 <span class="process-label process-label-muted">+{{ p.labels.all|length|add:"-3" }}</span>
               {% endif %}
-            {% else %}
-              <span class="process-label process-label-muted">{% trans "Uncategorised" %}</span>
             {% endif %}
           </div>
 
@@ -228,34 +252,34 @@
 
     const cards = Array.from(grid.querySelectorAll(".process-card"));
     const searchInput = document.getElementById("processSearch");
-    const filterSelect = document.getElementById("packageFilter");
+    const purposeFilter = document.getElementById("purposeFilter");
     const sortSelect = document.getElementById("sortBy");
 
-    const packages = new Map();
+    const purposes = new Map();
 
     cards.forEach((card) => {
-      const label = (card.dataset.package || "").trim();
-      if (label) packages.set(label.toLowerCase(), label);
+      const label = (card.dataset.purpose || "").trim();
+      if (label) purposes.set(label.toLowerCase(), label);
     });
 
-    Array.from(packages.values())
+    Array.from(purposes.values())
       .sort((a, b) => a.localeCompare(b))
       .forEach((label) => {
         const option = document.createElement("option");
         option.value = label.toLowerCase();
         option.textContent = label;
-        filterSelect.appendChild(option);
+        purposeFilter.appendChild(option);
       });
 
-    function matches(card, query, packageValue) {
+    function matches(card, query, purposeValue) {
       const haystack = [
         card.dataset.title || "",
-        card.dataset.packageLower || "",
         card.dataset.purposeLower || "",
+        card.dataset.testsLower || "",
         card.dataset.labelsLower || ""
       ].join(" ");
 
-      const filterMatches = !packageValue || (card.dataset.packageLower || "") === packageValue;
+      const filterMatches = !purposeValue || (card.dataset.purposeLower || "") === purposeValue;
       const queryMatches = !query || haystack.includes(query);
       return filterMatches && queryMatches;
     }
@@ -277,9 +301,9 @@
 
     function render() {
       const query = (searchInput.value || "").trim().toLowerCase();
-      const packageValue = (filterSelect.value || "").trim().toLowerCase();
+      const purposeValue = (purposeFilter.value || "").trim().toLowerCase();
       const sortedCards = sortCards(
-        cards.filter((card) => matches(card, query, packageValue)),
+        cards.filter((card) => matches(card, query, purposeValue)),
         sortSelect.value
       );
 
@@ -309,7 +333,7 @@
     });
 
     searchInput.addEventListener("input", render);
-    filterSelect.addEventListener("change", render);
+    purposeFilter.addEventListener("change", render);
     sortSelect.addEventListener("change", render);
     render();
   })();
