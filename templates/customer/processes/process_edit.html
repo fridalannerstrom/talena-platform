@@ -6,8 +6,15 @@
   <link href="{% static 'css/talena/pages/process-settings.css' %}" rel="stylesheet" />
 {% endblock %}
 
+{% block extra_js %}
+  <script src="{% static 'js/talena/process-settings.js' %}" defer></script>
+{% endblock %}
+
 {% block process_content %}
-<div class="process-settings-page">
+<div
+  class="process-settings-page"
+  data-template-locked="{{ template_locked|yesno:'true,false' }}"
+>
 
   {% if error %}
     <div class="alert alert-danger">
@@ -155,7 +162,7 @@
                   </div>
 
                   <div class="alert alert-warning d-flex align-items-start gap-2">
-                    <div style="font-size: 1.2rem; line-height: 1;">🔒</div>
+                    <div class="process-settings-lock-icon" aria-hidden="true">🔒</div>
                     <div>
                       <strong>{% trans "The selected assessments are locked." %}</strong><br>
                       {% trans "You can still update the process name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
@@ -326,49 +333,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      if (window.feather) {
-        feather.replace();
-      }
-
-      const templateLocked = {{ template_locked|yesno:"true,false" }};
-      const purposeRadios = document.querySelectorAll(".js-purpose-radio");
-      const testCheckboxes = document.querySelectorAll(".js-test-checkbox");
-
-      purposeRadios.forEach(function (radio) {
-        radio.addEventListener("change", function () {
-          if (!radio.checked) {
-            return;
-          }
-
-          if (templateLocked) {
-            return;
-          }
-
-          const recommended = (radio.dataset.recommendedTests || "")
-            .split(",")
-            .map(function (item) {
-              return item.trim();
-            })
-            .filter(Boolean);
-
-          if (!recommended.length) {
-            return;
-          }
-
-          testCheckboxes.forEach(function (checkbox) {
-            checkbox.checked = recommended.includes(checkbox.value);
-          });
-
-          if (window.feather) {
-            feather.replace();
-          }
-        });
-      });
-    });
-  </script>
 
 </div>
 {% endblock %}
