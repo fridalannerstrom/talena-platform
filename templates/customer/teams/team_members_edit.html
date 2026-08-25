@@ -3,6 +3,7 @@
 
 {% block extra_css %}
   <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -54,7 +55,7 @@
           <table class="table align-middle mb-0 team-table" id="candidateTable">
             <thead>
               <tr>
-                <th style="width: 50px;"></th>
+                <th class="team-select-column"></th>
                 <th>{% trans "Candidate" %}</th>
                 <th>{% trans "Email" %}</th>
               </tr>
