@@ -14,20 +14,20 @@
 
   <title>{% trans "Log in" %} | Talena</title>
 
-<link
-  rel="stylesheet"
-  href="{% static 'css/talena/tokens.css' %}"
->
+  <link
+    rel="stylesheet"
+    href="{% static 'css/talena/tokens.css' %}"
+  >
 
-<link
-  rel="stylesheet"
-  href="{% static 'css/auth.css' %}"
->
+  <link
+    rel="stylesheet"
+    href="{% static 'css/auth.css' %}"
+  >
 
-<link
-  rel="stylesheet"
-  href="{% static 'css/talena/pages/login.css' %}"
->
+  <link
+    rel="stylesheet"
+    href="{% static 'css/talena/pages/login.css' %}"
+  >
 </head>
 
 <body class="talena-login">
@@ -307,178 +307,65 @@
     </section>
 
     <!-- RIGHT -->
-<aside class="auth-right">
+    <aside class="auth-right">
 
-  <div class="login-showcase">
+      <div class="login-showcase">
 
-    <div class="login-showcase-badge">
-      A note from the Talena team
-    </div>
-
-    <h2 class="login-showcase-title">
-      Welcome to Talena.
-      <span>Make yourself at home.</span>
-    </h2>
-
-    <p class="login-showcase-copy">
-      We built Talena to make assessment work clearer,
-      calmer and a little more useful. Explore the results,
-      ask questions and use the tools in the way that works
-      best for you.
-    </p>
-
-    <div class="login-showcase-card login-welcome-card">
-
-      <div class="login-welcome-card-top">
-
-        <div class="login-welcome-icon">
-          👋
+        <div class="login-showcase-badge">
+          A note from the Talena team
         </div>
 
-        <div>
-          <div class="login-showcase-card-title">
-            From the people behind Talena
+        <h2 class="login-showcase-title">
+          Welcome to Talena.
+          <span>Make yourself at home.</span>
+        </h2>
+
+        <p class="login-showcase-copy">
+          We built Talena to make assessment work clearer,
+          calmer and a little more useful. Explore the results,
+          ask questions and use the tools in the way that works
+          best for you.
+        </p>
+
+        <div class="login-showcase-card login-welcome-card">
+
+          <div class="login-welcome-card-top">
+
+            <div class="login-welcome-icon">
+              👋
+            </div>
+
+            <div>
+              <div class="login-showcase-card-title">
+                From the people behind Talena
+              </div>
+
+              <p class="login-welcome-card-copy">
+                We hope you enjoy working in Talena.
+                And if there's something we could make better,
+                we'd genuinely love to hear it.
+              </p>
+            </div>
+
           </div>
 
-          <p class="login-welcome-card-copy">
-            We hope you enjoy working in Talena.
-            And if there's something we could make better,
-            we'd genuinely love to hear it.
-          </p>
+          <div class="login-welcome-footer">
+            <span>Built with care by Talent Qode</span>
+
+            <span class="login-welcome-dot"></span>
+
+            <span>Since 2006</span>
+          </div>
+
         </div>
 
       </div>
 
-      <div class="login-welcome-footer">
-        <span>Built with care by Talent Qode</span>
-
-        <span class="login-welcome-dot"></span>
-
-        <span>Since 2006</span>
-      </div>
-
-    </div>
-
-  </div>
-
-</aside>
+    </aside>
 
   </main>
 
-  <!-- Login fields -->
-  <script>
-    (function () {
-      const usernameField =
-        document.getElementById("id_username");
-
-      const passwordField =
-        document.getElementById("id_password");
-
-      if (usernameField) {
-        usernameField.classList.add("input");
-        usernameField.setAttribute(
-          "autocomplete",
-          "username"
-        );
-      }
-
-      if (passwordField) {
-        passwordField.classList.add("input");
-        passwordField.setAttribute(
-          "autocomplete",
-          "current-password"
-        );
-      }
-    })();
-  </script>
-
-  <!-- Language dropdown -->
-  <script>
-    (function () {
-      const dropdown = document.querySelector(
-        "[data-registration-language-dropdown]"
-      );
-
-      if (!dropdown) {
-        return;
-      }
-
-      const trigger = dropdown.querySelector(
-        "[data-registration-language-trigger]"
-      );
-
-      const menu = dropdown.querySelector(
-        "[data-registration-language-menu]"
-      );
-
-      if (!trigger || !menu) {
-        return;
-      }
-
-      function openDropdown() {
-        menu.hidden = false;
-
-        trigger.setAttribute(
-          "aria-expanded",
-          "true"
-        );
-      }
-
-      function closeDropdown() {
-        menu.hidden = true;
-
-        trigger.setAttribute(
-          "aria-expanded",
-          "false"
-        );
-      }
-
-      function toggleDropdown() {
-        const isOpen =
-          trigger.getAttribute("aria-expanded") === "true";
-
-        if (isOpen) {
-          closeDropdown();
-        } else {
-          openDropdown();
-        }
-      }
-
-      trigger.addEventListener(
-        "click",
-        function (event) {
-          event.stopPropagation();
-          toggleDropdown();
-        }
-      );
-
-      menu.addEventListener(
-        "click",
-        function (event) {
-          event.stopPropagation();
-        }
-      );
-
-      document.addEventListener(
-        "click",
-        function () {
-          closeDropdown();
-        }
-      );
-
-      document.addEventListener(
-        "keydown",
-        function (event) {
-          if (event.key !== "Escape") {
-            return;
-          }
-
-          closeDropdown();
-          trigger.focus();
-        }
-      );
-    })();
-  </script>
+  <script src="{% static 'js/talena/auth-page.js' %}"></script>
 
 </body>
 </html>
