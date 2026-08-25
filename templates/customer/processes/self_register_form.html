@@ -232,63 +232,6 @@
 
   </main>
 
-  <script>
-    (function () {
-      const fields = [
-        {
-          element: document.getElementById("{{ form.first_name.id_for_label }}"),
-          autocomplete: "given-name"
-        },
-        {
-          element: document.getElementById("{{ form.last_name.id_for_label }}"),
-          autocomplete: "family-name"
-        },
-        {
-          element: document.getElementById("{{ form.email.id_for_label }}"),
-          autocomplete: "email"
-        }
-      ];
-
-      fields.forEach(function (field) {
-        if (!field.element) return;
-        field.element.classList.add("input");
-        field.element.setAttribute("autocomplete", field.autocomplete);
-      });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      const dropdown = document.querySelector("[data-registration-language-dropdown]");
-      if (!dropdown) return;
-
-      const trigger = dropdown.querySelector("[data-registration-language-trigger]");
-      const menu = dropdown.querySelector("[data-registration-language-menu]");
-      if (!trigger || !menu) return;
-
-      function closeDropdown() {
-        menu.hidden = true;
-        trigger.setAttribute("aria-expanded", "false");
-      }
-
-      trigger.addEventListener("click", function (event) {
-        event.stopPropagation();
-        const isOpen = trigger.getAttribute("aria-expanded") === "true";
-        menu.hidden = isOpen;
-        trigger.setAttribute("aria-expanded", isOpen ? "false" : "true");
-      });
-
-      menu.addEventListener("click", function (event) {
-        event.stopPropagation();
-      });
-
-      document.addEventListener("click", closeDropdown);
-      document.addEventListener("keydown", function (event) {
-        if (event.key !== "Escape") return;
-        closeDropdown();
-        trigger.focus();
-      });
-    })();
-  </script>
+  <script src="{% static 'js/talena/auth-page.js' %}"></script>
 </body>
 </html>
