@@ -6,7 +6,15 @@
   id="sidenavAccordion"
 >
 
-  <form class="me-3 d-none d-lg-block py-1 talena-global-search-form">
+  <form
+    class="me-3 d-none d-lg-block py-1 talena-global-search-form"
+    data-global-search
+    data-search-url="/search/"
+    data-no-results-label="{% trans 'No results found' %}"
+    data-customer-label="{% trans 'Customer' %}"
+    data-candidate-label="{% trans 'Candidate' %}"
+    data-process-label="{% trans 'Test process' %}"
+  >
     <div class="position-relative nav-search">
       <i data-feather="search" class="nav-search-icon"></i>
       <input
