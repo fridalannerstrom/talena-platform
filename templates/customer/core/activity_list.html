@@ -1,303 +1,199 @@
 {% extends "customer/core/layouts/customer_base.html" %}
-{% load i18n %}
+{% load static i18n %}
 
 {% block title %}
   {% trans "Activity" %} | Talena
 {% endblock %}
 
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/activity-list.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
+<div class="container-fluid activity-page">
 
-<div class="container-fluid px-2 px-md-3 dashboard">
-
-  <!-- PAGE HEADER -->
-
-  <div
-    class="
-      d-flex
-      align-items-start
-      justify-content-between
-      mb-4
-      flex-wrap
-      gap-3
-    "
-  >
+  <header class="activity-page-header">
     <div>
-      <h1 class="h4 mb-1">
-        {% trans "Activity" %}
-      </h1>
-
-      <div class="text-muted">
+      <p class="activity-page-eyebrow">{% trans "Workspace activity" %}</p>
+      <h1 class="activity-page-title">{% trans "Activity" %}</h1>
+      <p class="activity-page-description">
         {% trans "Activity across the test processes you have access to." %}
-      </div>
+      </p>
     </div>
 
-    <a
-      href="{% url 'core:customer_dashboard' %}"
-      class="btn btn-primary btn-sm rounded-pill"
-    >
-      <i
-        data-feather="arrow-left"
-        class="me-1"
-      ></i>
-
+    <a href="{% url 'core:customer_dashboard' %}" class="activity-back-link">
+      <i data-feather="arrow-left" aria-hidden="true"></i>
       {% trans "Back to dashboard" %}
     </a>
-  </div>
+  </header>
 
+  <section class="activity-summary-bar" aria-labelledby="activity-list-title">
+    <div>
+      <h2 class="activity-summary-title" id="activity-list-title">
+        {% trans "All activity" %}
+      </h2>
+      <p class="activity-summary-copy">
+        {% trans "A chronological log of activity across your accessible processes." %}
+      </p>
+    </div>
 
-  <!-- ACTIVITY CONTENT -->
+    <span class="activity-count-pill">
+      {% blocktrans count event_count=page_obj.paginator.count %}
+        {{ event_count }} recorded event
+      {% plural %}
+        {{ event_count }} recorded events
+      {% endblocktrans %}
+    </span>
+  </section>
 
-  <div class="row g-5 mt-1">
+  {% if activity_events %}
+    <div class="activity-list">
+      {% for event in activity_events %}
+        <article class="activity-item">
+          {% if event.process %}
+            <a
+              href="{% url 'processes:process_detail' event.process.pk %}"
+              class="activity-card"
+            >
+          {% else %}
+            <div class="activity-card">
+          {% endif %}
 
-    <div class="col-12 col-xl-8">
+              <span
+                class="activity-event-icon
+                  {% if event.verb == 'invite_sent' %}is-invite
+                  {% elif event.verb == 'candidate_added' %}is-added
+                  {% elif event.verb == 'test_started' or event.verb == 'status_changed' %}is-started
+                  {% elif event.verb == 'test_completed' or event.verb == 'all_tests_completed' %}is-completed
+                  {% elif event.verb == 'process_created' %}is-created
+                  {% endif %}"
+                aria-hidden="true"
+              >
+                {% if event.verb == "invite_sent" %}
+                  <i data-feather="mail"></i>
+                {% elif event.verb == "candidate_added" %}
+                  <i data-feather="user-plus"></i>
+                {% elif event.verb == "candidate_removed" %}
+                  <i data-feather="user-minus"></i>
+                {% elif event.verb == "test_started" %}
+                  <i data-feather="play"></i>
+                {% elif event.verb == "test_completed" or event.verb == "all_tests_completed" %}
+                  <i data-feather="check-circle"></i>
+                {% elif event.verb == "status_changed" %}
+                  <i data-feather="refresh-cw"></i>
+                {% elif event.verb == "process_created" %}
+                  <i data-feather="folder-plus"></i>
+                {% elif event.verb == "process_archived" %}
+                  <i data-feather="archive"></i>
+                {% else %}
+                  <i data-feather="activity"></i>
+                {% endif %}
+              </span>
 
-      <div
-        class="
-          d-flex
-          align-items-center
-          justify-content-between
-          flex-wrap
-          gap-2
-          mb-3
-        "
-      >
-        <div>
-          <h3 class="mb-1">
-            {% trans "All activity" %}
-          </h3>
-
-          <div class="text-muted small">
-            {% blocktrans count event_count=page_obj.paginator.count %}
-              {{ event_count }} recorded event
-            {% plural %}
-              {{ event_count }} recorded events
-            {% endblocktrans %}
-          </div>
-        </div>
-      </div>
-
-
-      {% if activity_events %}
-
-        <div class="recent-activity-list">
-
-          {% for event in activity_events %}
-
-            <div class="recent-activity-item">
-
-              {% if event.process %}
-
-                <a
-                  href="{% url 'processes:process_detail' event.process.pk %}"
-                  class="recent-activity-card"
-                >
-
-              {% else %}
-
-                <div class="recent-activity-card">
-
-              {% endif %}
-
-
-                <div class="recent-activity-head">
-
+              <div class="activity-copy">
+                <div class="activity-meta-row">
                   <span
-                    class="
-                      recent-activity-badge
-
-                      {% if event.verb == 'invite_sent' %}
-                        is-invite
-
-                      {% elif event.verb == 'candidate_added' %}
-                        is-added
-
-                      {% elif event.verb == 'status_changed' %}
-                        is-status
-
-                      {% elif event.verb == 'test_started' %}
-                        is-status
-
-                      {% elif event.verb == 'test_completed' %}
-                        is-status
-
-                      {% elif event.verb == 'all_tests_completed' %}
-                        is-status
-
-                      {% elif event.verb == 'process_created' %}
-                        is-created
-
-                      {% else %}
-                        is-default
-                      {% endif %}
-                    "
+                    class="activity-badge
+                      {% if event.verb == 'invite_sent' %}is-invite
+                      {% elif event.verb == 'candidate_added' %}is-added
+                      {% elif event.verb == 'test_started' or event.verb == 'status_changed' %}is-started
+                      {% elif event.verb == 'test_completed' or event.verb == 'all_tests_completed' %}is-completed
+                      {% elif event.verb == 'process_created' %}is-created
+                      {% endif %}"
                   >
-
                     {% if event.verb == "invite_sent" %}
-
                       {% trans "Invitation sent" %}
-
                     {% elif event.verb == "candidate_added" %}
-
                       {% trans "Candidate added" %}
-
                     {% elif event.verb == "candidate_removed" %}
-
                       {% trans "Candidate removed" %}
-
                     {% elif event.verb == "test_started" %}
-
                       {% trans "Assessment started" %}
-
                     {% elif event.verb == "test_completed" %}
-
                       {% trans "Assessment completed" %}
-
                     {% elif event.verb == "all_tests_completed" %}
-
                       {% trans "All assessments completed" %}
-
                     {% elif event.verb == "status_changed" %}
-
                       {% trans "Status updated" %}
-
                     {% elif event.verb == "process_created" %}
-
                       {% trans "Process created" %}
-
                     {% elif event.verb == "process_archived" %}
-
                       {% trans "Process archived" %}
-
                     {% else %}
-
                       {% trans "Activity" %}
-
                     {% endif %}
-
                   </span>
-
-
-                  <span class="recent-activity-time">
-                    {{ event.created_at|date:"Y-m-d H:i" }}
-                  </span>
-
                 </div>
 
-
-                <div class="recent-activity-title">
+                <div class="activity-message">
                   {{ event.message }}
                 </div>
 
-
                 {% if event.process %}
-
-                  <div class="recent-activity-process">
+                  <div class="activity-process">
                     {% trans "Process:" %}
-
                     {{ event.process.project_name_snapshot|default:event.process.project_code|default:event.process.name }}
                   </div>
-
                 {% endif %}
+              </div>
 
+              <time class="activity-time" datetime="{{ event.created_at|date:'c' }}">
+                {{ event.created_at|date:"Y-m-d H:i" }}
+              </time>
 
               {% if event.process %}
-
-                </a>
-
-              {% else %}
-
-                </div>
-
+                <span class="activity-card-arrow" aria-hidden="true">
+                  <i data-feather="arrow-up-right"></i>
+                </span>
               {% endif %}
 
+          {% if event.process %}
+            </a>
+          {% else %}
             </div>
-
-          {% endfor %}
-
-        </div>
-
-
-        <!-- PAGINATION -->
-
-        {% if page_obj.has_other_pages %}
-
-          <nav
-            class="
-              d-flex
-              align-items-center
-              justify-content-between
-              gap-3
-              mt-4
-            "
-            aria-label="{% trans 'Activity pages' %}"
-          >
-
-            <div>
-
-              {% if page_obj.has_previous %}
-
-                <a
-                  href="?page={{ page_obj.previous_page_number }}"
-                  class="btn btn-light btn-sm rounded-pill"
-                >
-                  <i
-                    data-feather="chevron-left"
-                    class="me-1"
-                  ></i>
-
-                  {% trans "Previous" %}
-                </a>
-
-              {% endif %}
-
-            </div>
-
-
-            <div class="text-muted small">
-              {% trans "Page" %}
-              {{ page_obj.number }}
-              {% trans "of" %}
-              {{ page_obj.paginator.num_pages }}
-            </div>
-
-
-            <div>
-
-              {% if page_obj.has_next %}
-
-                <a
-                  href="?page={{ page_obj.next_page_number }}"
-                  class="btn btn-light btn-sm rounded-pill"
-                >
-                  {% trans "Next" %}
-
-                  <i
-                    data-feather="chevron-right"
-                    class="ms-1"
-                  ></i>
-                </a>
-
-              {% endif %}
-
-            </div>
-
-          </nav>
-
-        {% endif %}
-
-
-      {% else %}
-
-        <div class="recent-activity-empty">
-          {% trans "No activity yet." %}
-        </div>
-
-      {% endif %}
-
+          {% endif %}
+        </article>
+      {% endfor %}
     </div>
 
-  </div>
+    {% if page_obj.has_other_pages %}
+      <nav class="activity-pagination" aria-label="{% trans 'Activity pages' %}">
+        <div>
+          {% if page_obj.has_previous %}
+            <a
+              href="?page={{ page_obj.previous_page_number }}"
+              class="activity-pagination-link"
+            >
+              <i data-feather="chevron-left" aria-hidden="true"></i>
+              {% trans "Previous" %}
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="activity-pagination-status">
+          {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+        </div>
+
+        <div class="activity-pagination-next">
+          {% if page_obj.has_next %}
+            <a
+              href="?page={{ page_obj.next_page_number }}"
+              class="activity-pagination-link"
+            >
+              {% trans "Next" %}
+              <i data-feather="chevron-right" aria-hidden="true"></i>
+            </a>
+          {% endif %}
+        </div>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="activity-empty">
+      {% trans "No activity yet." %}
+    </div>
+  {% endif %}
 
 </div>
-
 {% endblock %}
