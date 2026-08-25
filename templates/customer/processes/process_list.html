@@ -105,7 +105,6 @@
                       href="{% url 'processes:process_update' p.id %}"
                       aria-label="{% trans 'Edit' %}"
                       title="{% trans 'Edit' %}"
-                      onclick="event.stopPropagation();"
                     >
                       <i data-feather="edit-2"></i>
                     </a>
@@ -114,7 +113,6 @@
                       method="post"
                       action="{% url 'processes:process_archive' p.id %}"
                       data-confirm="{% trans 'Archive this process?' %}"
-                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Archive' %}" title="{% trans 'Archive' %}">
@@ -126,7 +124,6 @@
                       method="post"
                       action="{% url 'processes:process_unarchive' p.id %}"
                       data-confirm="{% trans 'Restore this process to active processes?' %}"
-                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn" aria-label="{% trans 'Restore' %}" title="{% trans 'Restore' %}">
@@ -138,7 +135,6 @@
                       method="post"
                       action="{% url 'processes:process_delete' p.id %}"
                       data-confirm="{% trans 'Permanently delete this archived process? This cannot be undone.' %}"
-                      onsubmit="event.stopPropagation(); return confirm(this.dataset.confirm);"
                     >
                       {% csrf_token %}
                       <button type="submit" class="icon-btn icon-btn-danger" aria-label="{% trans 'Delete' %}" title="{% trans 'Delete' %}">
@@ -244,98 +240,9 @@
   {% endif %}
 
 </div>
+{% endblock %}
 
-<script>
-  (function () {
-    const grid = document.getElementById("processGrid");
-    if (!grid) return;
-
-    const cards = Array.from(grid.querySelectorAll(".process-card"));
-    const searchInput = document.getElementById("processSearch");
-    const purposeFilter = document.getElementById("purposeFilter");
-    const sortSelect = document.getElementById("sortBy");
-
-    const purposes = new Map();
-
-    cards.forEach((card) => {
-      const label = (card.dataset.purpose || "").trim();
-      if (label) purposes.set(label.toLowerCase(), label);
-    });
-
-    Array.from(purposes.values())
-      .sort((a, b) => a.localeCompare(b))
-      .forEach((label) => {
-        const option = document.createElement("option");
-        option.value = label.toLowerCase();
-        option.textContent = label;
-        purposeFilter.appendChild(option);
-      });
-
-    function matches(card, query, purposeValue) {
-      const haystack = [
-        card.dataset.title || "",
-        card.dataset.purposeLower || "",
-        card.dataset.testsLower || "",
-        card.dataset.labelsLower || ""
-      ].join(" ");
-
-      const filterMatches = !purposeValue || (card.dataset.purposeLower || "") === purposeValue;
-      const queryMatches = !query || haystack.includes(query);
-      return filterMatches && queryMatches;
-    }
-
-    function sortCards(list, mode) {
-      const copy = [...list];
-      const sortFunction = {
-        created_desc: (a, b) => (b.dataset.created || "").localeCompare(a.dataset.created || ""),
-        created_asc: (a, b) => (a.dataset.created || "").localeCompare(b.dataset.created || ""),
-        candidates_desc: (a, b) => parseInt(b.dataset.candidates || "0", 10) - parseInt(a.dataset.candidates || "0", 10),
-        candidates_asc: (a, b) => parseInt(a.dataset.candidates || "0", 10) - parseInt(b.dataset.candidates || "0", 10),
-        title_asc: (a, b) => (a.dataset.title || "").localeCompare(b.dataset.title || ""),
-        title_desc: (a, b) => (b.dataset.title || "").localeCompare(a.dataset.title || "")
-      }[mode] || (() => 0);
-
-      copy.sort(sortFunction);
-      return copy;
-    }
-
-    function render() {
-      const query = (searchInput.value || "").trim().toLowerCase();
-      const purposeValue = (purposeFilter.value || "").trim().toLowerCase();
-      const sortedCards = sortCards(
-        cards.filter((card) => matches(card, query, purposeValue)),
-        sortSelect.value
-      );
-
-      cards.forEach((card) => { card.style.display = "none"; });
-      sortedCards.forEach((card) => {
-        card.style.display = "";
-        grid.appendChild(card);
-      });
-    }
-
-    cards.forEach((card) => {
-      const openCard = () => {
-        if (card.dataset.href) window.location.href = card.dataset.href;
-      };
-
-      card.addEventListener("click", (event) => {
-        if (event.target.closest("a, button, form")) return;
-        openCard();
-      });
-
-      card.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        if (event.target.closest("a, button, form")) return;
-        event.preventDefault();
-        openCard();
-      });
-    });
-
-    searchInput.addEventListener("input", render);
-    purposeFilter.addEventListener("change", render);
-    sortSelect.addEventListener("change", render);
-    render();
-  })();
-</script>
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/talena/process-list.js' %}"></script>
 {% endblock %}
