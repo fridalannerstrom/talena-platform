@@ -142,7 +142,7 @@
 
 .activity-card {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto 28px;
   gap: 0.85rem;
   align-items: start;
   padding: 0.95rem 1rem;
