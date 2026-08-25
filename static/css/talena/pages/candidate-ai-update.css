@@ -1,0 +1,108 @@
+/* =========================================================
+   TALENA — CANDIDATE AI UPDATE
+   Scoped to process pages and the global AI refresh flow.
+   ========================================================= */
+
+.process-page [data-global-ai-update-banner] {
+  overflow: hidden;
+  border: 1px solid rgba(201,149,78,.2) !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255,205,145,.11), transparent 32%),
+    var(--talena-warning-soft) !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.process-page [data-global-ai-update-banner] .card-body {
+  padding: 1rem 1.05rem !important;
+}
+
+.process-page .global-ai-update-icon {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201,149,78,.2);
+  border-radius: 11px;
+  background: rgba(255,255,255,.6);
+  color: #946b31;
+}
+
+.process-page .global-ai-update-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.process-page .global-ai-update-copy {
+  max-width: 700px;
+  color: var(--talena-text-muted);
+  font-size: .69rem;
+  line-height: 1.55;
+}
+
+.process-page [data-global-ai-update-banner] .btn-primary,
+.process-page [data-global-ai-update-modal] .btn-primary {
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page [data-global-ai-update-banner] .btn-primary:hover,
+.process-page [data-global-ai-update-modal] .btn-primary:hover {
+  border-color: #000 !important;
+  background: #000 !important;
+}
+
+.process-page [data-global-ai-update-modal] .modal-content {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 50px rgba(23,19,18,.12) !important;
+}
+
+.process-page [data-global-ai-update-modal] .modal-header,
+.process-page [data-global-ai-update-modal] .modal-footer {
+  border-color: var(--talena-border) !important;
+}
+
+.process-page .global-ai-update-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+}
+
+.process-page .global-ai-update-progress-track .progress-bar {
+  width: 0;
+  border-radius: inherit;
+  background: var(--talena-coral) !important;
+  transition: width .2s ease;
+}
+
+.process-page .global-ai-update-complete-icon {
+  width: 52px;
+  height: 52px;
+}
+
+.process-page .global-ai-update-complete-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.process-page .global-ai-update-complete-copy {
+  max-width: 420px;
+}
+
+@media (max-width: 767px) {
+  .process-page [data-global-ai-update-banner] .card-body {
+    padding: .9rem !important;
+  }
+
+  .process-page [data-global-ai-update-banner] .btn-primary {
+    width: 100%;
+  }
+}
