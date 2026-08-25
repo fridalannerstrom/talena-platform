@@ -94,6 +94,10 @@ body.nav-fixed {
   -webkit-backdrop-filter: blur(14px);
 }
 
+.talena-topnav .talena-global-search-form {
+  margin: 0;
+}
+
 .talena-topnav .nav-search {
   width: min(320px, 28vw);
 }
@@ -132,11 +136,41 @@ body.nav-fixed {
   color: var(--talena-text-subtle);
 }
 
+.talena-topnav .talena-topnav-actions {
+  gap: 0.5rem;
+}
+
+.talena-header-icon-button {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--talena-text-muted);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-header-icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.talena-mobile-search-menu {
+  width: min(320px, calc(100vw - 2rem));
+  padding: 0.75rem;
+}
+
 
 /* Language control */
 
 .talena-topnav .talena-language-trigger {
   min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 6px 11px;
   border: 1px solid var(--talena-border);
   border-radius: var(--talena-radius-pill);
@@ -158,16 +192,30 @@ body.nav-fixed {
 
 .talena-topnav .talena-language-current-label {
   color: var(--talena-text);
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .talena-topnav .talena-language-chevron {
+  display: inline-flex;
   color: var(--talena-text-subtle);
 }
 
+.talena-topnav .talena-language-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.talena-topnav .talena-language-flag {
+  width: 18px;
+  height: auto;
+  display: block;
+}
+
 .talena-topnav .talena-language-menu,
-.talena-topnav .dropdown-user .dropdown-menu,
-.talena-topnav #globalSearchDropdown {
+.talena-topnav .talena-user-menu,
+.talena-topnav #globalSearchDropdown,
+.talena-topnav .talena-mobile-search-menu {
   margin-top: 0.55rem;
   border: 1px solid var(--talena-border) !important;
   border-radius: var(--talena-radius-lg);
@@ -176,9 +224,31 @@ body.nav-fixed {
   overflow: hidden;
 }
 
+.talena-topnav .talena-language-menu {
+  min-width: 190px;
+  padding: 0.45rem;
+}
+
+.talena-topnav .talena-language-menu-label {
+  padding: 0.45rem 0.6rem 0.35rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .talena-topnav .talena-language-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border: 0;
   border-radius: var(--talena-radius-sm);
+  background: transparent;
   color: var(--talena-text);
+  text-align: left;
 }
 
 .talena-topnav .talena-language-option:hover {
@@ -190,32 +260,124 @@ body.nav-fixed {
   color: var(--talena-coral-strong);
 }
 
+.talena-topnav .talena-language-option-copy {
+  flex: 1;
+}
+
+.talena-topnav .talena-language-option-name {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.talena-topnav .talena-language-option-check {
+  color: var(--talena-coral-strong);
+  font-weight: 800;
+}
+
 
 /* User control */
 
-.talena-topnav .dropdown-user > .btn {
+.talena-user-trigger {
   width: 38px;
   height: 38px;
+  display: inline-grid;
+  place-items: center;
   padding: 2px;
   border: 1px solid var(--talena-border);
   border-radius: 50%;
   background: #fff;
+  color: var(--talena-text);
   box-shadow: var(--talena-shadow-xs);
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
 }
 
-.talena-topnav .dropdown-user > .btn:hover,
-.talena-topnav .dropdown-user > .btn[aria-expanded="true"] {
-  border-color: rgba(255, 111, 97, 0.3);
+.talena-user-trigger::after {
+  display: none;
+}
+
+.talena-user-trigger:hover,
+.talena-user-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.32);
   background: var(--talena-surface-warm);
+  box-shadow: var(--talena-shadow-sm);
 }
 
-.talena-topnav .dropdown-user > .btn img {
+.talena-header-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
+  object-fit: cover;
+}
+
+.talena-header-avatar--fallback {
+  border: 1px solid rgba(255, 111, 97, 0.24);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.73rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.talena-topnav .talena-user-menu {
+  width: 270px;
+  padding: 0.45rem;
+}
+
+.talena-user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.65rem;
+}
+
+.talena-user-menu-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.talena-user-menu-copy {
+  min-width: 0;
+}
+
+.talena-user-menu-name {
+  overflow: hidden;
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talena-user-menu-email {
+  margin-top: 0.15rem;
+  overflow: hidden;
+  color: var(--talena-text-subtle);
+  font-size: 0.69rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .talena-topnav .dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: var(--talena-radius-sm);
+  background: transparent;
   color: var(--talena-text);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .talena-topnav .dropdown-menu .dropdown-item:hover,
@@ -225,7 +387,14 @@ body.nav-fixed {
 }
 
 .talena-topnav .dropdown-item-icon {
+  width: 1.3rem;
+  margin-right: 0.45rem;
   color: var(--talena-text-subtle);
+}
+
+.talena-topnav .dropdown-item-icon svg {
+  width: 15px;
+  height: 15px;
 }
 
 
@@ -242,7 +411,7 @@ body.nav-fixed {
 .talena-sidebar .talena-sidebar-brand {
   display: flex;
   align-items: center;
-  min-height: 64px;
+  min-height: 72px;
   padding: 0 1.25rem;
   border-bottom: 1px solid rgba(231, 226, 222, 0.7);
 }
@@ -250,18 +419,19 @@ body.nav-fixed {
 .talena-sidebar .talena-brand-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   text-decoration: none;
 }
 
 .talena-sidebar .talena-sidebar-logo {
-  width: 28px;
-  height: 28px;
+  display: block;
+  width: 108px;
+  max-width: 100%;
+  height: auto;
   object-fit: contain;
 }
 
 .talena-sidebar .sidenav-menu {
-  padding-top: 0.6rem;
+  padding-top: 0.45rem;
 }
 
 .talena-sidebar .sidenav-menu-heading {
@@ -364,5 +534,9 @@ body.nav-fixed {
 
   .talena-topnav {
     padding-inline: 0.85rem;
+  }
+
+  .talena-topnav .talena-language-current-label {
+    display: none;
   }
 }
