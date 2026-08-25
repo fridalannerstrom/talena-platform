@@ -90,3 +90,106 @@
   background: var(--talena-surface);
   color: var(--talena-text);
 }
+
+/* =========================================================
+   SHARED APP MODAL
+   ---------------------------------------------------------
+   #appModal is the reusable Bootstrap modal in the customer
+   shell. Styling it here keeps injected flows consistent.
+   ========================================================= */
+
+#appModal .modal-dialog {
+  max-width: 520px;
+}
+
+#appModal .modal-content {
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--talena-shadow-lg);
+}
+
+#appModal .modal-header {
+  align-items: center;
+  min-height: 72px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--talena-border);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 111, 97, 0.08),
+      transparent 14rem
+    ),
+    #fff;
+}
+
+#appModal .modal-title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+}
+
+#appModal .btn-close {
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.84);
+  background-size: 10px;
+  opacity: 0.72;
+  box-shadow: none;
+}
+
+#appModal .btn-close:hover,
+#appModal .btn-close:focus {
+  border-color: rgba(255, 111, 97, 0.22);
+  background-color: var(--talena-coral-soft);
+  opacity: 1;
+  box-shadow: none;
+}
+
+#appModal .modal-body {
+  padding: 1.2rem 1.25rem 1.3rem;
+  color: var(--talena-text);
+}
+
+#appModal .modal-footer {
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem 1.1rem;
+  border-top: 1px solid var(--talena-border);
+  background: var(--talena-surface-soft);
+}
+
+#appModal .modal-footer .btn {
+  min-height: 38px;
+  padding: 0.55rem 0.82rem;
+  border-radius: var(--talena-radius-pill);
+  font-size: 0.68rem;
+  font-weight: 660;
+  box-shadow: none;
+}
+
+#appModal .modal-footer .btn-light,
+#appModal .modal-footer .btn-outline-secondary {
+  border: 1px solid var(--talena-border);
+  background: #fff;
+  color: var(--talena-text);
+}
+
+#appModal .modal-footer .btn-light:hover,
+#appModal .modal-footer .btn-outline-secondary:hover {
+  border-color: rgba(255, 111, 97, 0.22);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+@media (max-width: 640px) {
+  #appModal .modal-dialog {
+    margin: 0.75rem;
+  }
+}
