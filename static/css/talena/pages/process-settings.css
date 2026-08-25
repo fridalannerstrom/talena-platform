@@ -1,0 +1,255 @@
+/* =========================================================
+   TALENA — PROCESS SETTINGS
+   Scoped to .process-settings-page.
+   ========================================================= */
+
+.process-settings-page {
+  color: var(--talena-text);
+}
+
+.process-settings-page .process-section-card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.process-settings-page .process-section-card > .card-header {
+  padding: 1rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: transparent !important;
+}
+
+.process-settings-page .process-section-card > .card-header .fw-semibold {
+  color: var(--talena-ink);
+  font-size: .88rem;
+  font-weight: 700 !important;
+  letter-spacing: -.015em;
+}
+
+.process-settings-page .process-section-card > .card-header .text-muted {
+  margin-top: .15rem;
+  color: var(--talena-text-muted) !important;
+  font-size: .67rem !important;
+  line-height: 1.5;
+}
+
+.process-settings-page .form-label {
+  color: var(--talena-text);
+  font-size: .7rem;
+  font-weight: 660;
+}
+
+.process-settings-page .form-control,
+.process-settings-page .form-select,
+.process-settings-page input[type="text"] {
+  min-height: 42px;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: #fbfaf9 !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.process-settings-page .form-control:focus,
+.process-settings-page .form-select:focus,
+.process-settings-page input[type="text"]:focus {
+  border-color: rgba(255,111,97,.42) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255,111,97,.065) !important;
+}
+
+.process-settings-page .form-text,
+.process-settings-page .text-muted.small {
+  color: var(--talena-text-muted) !important;
+  font-size: .66rem !important;
+  line-height: 1.5;
+}
+
+.process-settings-page .border-top {
+  border-color: var(--talena-border) !important;
+}
+
+.process-settings-page .template-select {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: .65rem;
+}
+
+.process-settings-page .template-option {
+  min-width: 0;
+}
+
+.process-settings-page .template-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.process-settings-page .template-card.process-edit {
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .85rem .9rem;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.8) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: border-color var(--talena-transition-fast), background-color var(--talena-transition-fast), transform var(--talena-transition-fast), box-shadow var(--talena-transition-fast);
+}
+
+.process-settings-page .template-option:hover .template-card.process-edit {
+  transform: translateY(-1px);
+  border-color: rgba(255,111,97,.22) !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgba(23,19,18,.04) !important;
+}
+
+.process-settings-page .template-radio:checked + .template-card.process-edit {
+  border-color: rgba(255,111,97,.34) !important;
+  background: var(--talena-coral-soft) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,111,97,.06) !important;
+}
+
+.process-settings-page .template-option.is-disabled .template-card.process-edit {
+  opacity: .62;
+  cursor: not-allowed;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-settings-page .template-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  min-width: 0;
+}
+
+.process-settings-page .template-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,111,97,.14);
+  border-radius: 10px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: .7rem;
+}
+
+.process-settings-page .template-text {
+  min-width: 0;
+}
+
+.process-settings-page .template-title {
+  display: block;
+  color: var(--talena-ink);
+  font-size: .72rem;
+  font-weight: 680;
+  line-height: 1.3;
+}
+
+.process-settings-page .template-description {
+  display: block;
+  margin-top: .2rem;
+  color: var(--talena-text-muted);
+  font-size: .62rem;
+  line-height: 1.45;
+}
+
+.process-settings-page .template-check {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  color: transparent;
+}
+
+.process-settings-page .template-radio:checked + .template-card .template-check {
+  border-color: var(--talena-coral);
+  background: var(--talena-coral);
+  color: #fff;
+}
+
+.process-settings-page .template-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-settings-page .alert-warning {
+  border: 1px solid rgba(201,149,78,.2) !important;
+  border-radius: 14px !important;
+  background: var(--talena-warning-soft) !important;
+  color: var(--talena-text) !important;
+  font-size: .68rem;
+}
+
+.process-settings-page .tip-block {
+  padding: .8rem 0;
+  border-bottom: 1px solid var(--talena-border);
+  color: var(--talena-text-muted);
+  line-height: 1.55;
+}
+
+.process-settings-page .tip-block:first-child {
+  padding-top: 0;
+}
+
+.process-settings-page .tip-block:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.process-settings-page .tip-block .fw-semibold {
+  color: var(--talena-ink) !important;
+  font-size: .69rem;
+}
+
+.process-settings-page .btn-primary {
+  min-height: 40px;
+  padding: .62rem .9rem;
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: .69rem;
+  font-weight: 670;
+  box-shadow: none !important;
+}
+
+.process-settings-page .btn-primary:hover {
+  border-color: #000 !important;
+  background: #000 !important;
+}
+
+.process-settings-page .btn-outline-secondary {
+  min-height: 40px;
+  padding: .62rem .9rem;
+  border-color: var(--talena-border) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  font-size: .69rem;
+  font-weight: 630;
+}
+
+.process-settings-page .btn-outline-secondary:hover {
+  border-color: rgba(255,111,97,.22) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+@media (max-width: 991px) {
+  .process-settings-page .template-select {
+    grid-template-columns: 1fr;
+  }
+}
