@@ -85,7 +85,7 @@
 
 .process-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(210px, 0.95fr) minmax(210px, 0.8fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(200px, 0.85fr) minmax(210px, 0.8fr);
   gap: 0.48rem;
   padding: 0.58rem;
   border: 1px solid var(--talena-border);
@@ -214,7 +214,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 242px;
+  min-height: 250px;
   padding: 1.05rem;
   overflow: hidden;
   border: 1px solid var(--talena-border);
@@ -280,7 +280,7 @@
   display: flex;
   align-items: center;
   gap: 0.05rem;
-  opacity: 0.62;
+  opacity: 0.56;
   transition: opacity var(--talena-transition-fast);
 }
 
@@ -339,36 +339,62 @@
    ========================================================= */
 
 .process-card-content {
-  margin-top: 0.9rem;
+  margin-top: 0.86rem;
 }
 
 .process-title {
+  min-height: 2.55em;
   margin: 0;
   color: var(--talena-ink);
-  font-size: 0.98rem;
+  font-size: 1rem;
   font-weight: 720;
-  line-height: 1.3;
+  line-height: 1.28;
   letter-spacing: -0.025em;
 }
 
-.process-package {
+.process-tests-block {
+  margin-top: 0.72rem;
+}
+
+.process-tests-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+  font-weight: 740;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.process-test-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.process-test-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0.26rem 0.48rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 8px;
+  background: #fbfaf9;
+  color: var(--talena-text);
+  font-size: 0.56rem;
+  font-weight: 620;
+  line-height: 1;
+}
+
+.process-tests-fallback {
   display: -webkit-box;
-  margin-top: 0.55rem;
   overflow: hidden;
   color: var(--talena-text-muted);
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-}
-
-.process-package > span {
-  margin-right: 0.3rem;
-  color: var(--talena-text-subtle);
-  font-size: 0.54rem;
-  font-weight: 720;
-  letter-spacing: 0.055em;
-  text-transform: uppercase;
 }
 
 
@@ -381,7 +407,11 @@
   flex-wrap: wrap;
   gap: 0.27rem;
   margin-top: auto;
-  padding-top: 0.82rem;
+  padding-top: 0.72rem;
+}
+
+.process-card-labels:empty {
+  display: none;
 }
 
 .process-label {
@@ -415,6 +445,10 @@
   margin-top: 0.72rem;
   padding-top: 0.7rem;
   border-top: 1px solid rgba(231, 226, 222, 0.9);
+}
+
+.process-card-labels:empty + .process-card-footer {
+  margin-top: auto;
 }
 
 .process-meta-item {
@@ -561,6 +595,10 @@
   }
 
   .process-card {
-    min-height: 220px;
+    min-height: 230px;
+  }
+
+  .process-title {
+    min-height: 0;
   }
 }
