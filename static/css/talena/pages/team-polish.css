@@ -1,0 +1,231 @@
+/* =========================================================
+   TALENA — TEAM WORKSPACE POLISH
+   ---------------------------------------------------------
+   Final consistency layer for team list, detail, forms and
+   member management. Keep this scoped to .talena-team-page.
+   ========================================================= */
+
+/* Page rhythm */
+.talena-team-page {
+  padding-top: 2rem !important;
+  padding-bottom: 3rem !important;
+}
+
+.talena-team-page .team-page-header {
+  margin-bottom: 1.15rem;
+}
+
+.talena-team-page .team-page-description {
+  margin-top: 0.42rem;
+}
+
+/* Actions and focus */
+.talena-team-page .btn,
+.talena-team-page .team-view-link {
+  transition:
+    color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    transform var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.talena-team-page .btn:focus-visible,
+.talena-team-page .team-view-link:focus-visible,
+.talena-team-page input:focus-visible,
+.talena-team-page textarea:focus-visible,
+.talena-team-page .form-check-input:focus-visible {
+  outline: 0 !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.11) !important;
+}
+
+/* Shared cards */
+.talena-team-page .card {
+  border-radius: 19px !important;
+}
+
+.talena-team-page .card-header {
+  padding: 1.05rem 1.2rem !important;
+}
+
+.talena-team-page .card-body {
+  padding: 1.2rem !important;
+}
+
+/* Team list */
+.talena-team-page .team-list-card {
+  box-shadow: 0 12px 30px rgba(38, 31, 28, 0.035) !important;
+}
+
+.talena-team-page .team-list-card .team-table tbody tr {
+  min-height: 54px;
+}
+
+.talena-team-page .team-list-card .team-table tbody td {
+  padding-top: 0.82rem;
+  padding-bottom: 0.82rem;
+}
+
+.talena-team-page .team-view-link {
+  width: 32px;
+  height: 32px;
+}
+
+/* Summary strip */
+.talena-team-page .team-summary-strip {
+  margin-bottom: 1.15rem;
+  border-radius: 18px;
+}
+
+.talena-team-page .team-summary-item {
+  position: relative;
+  min-height: 94px;
+  padding: 1rem 1.1rem;
+}
+
+.talena-team-page .team-summary-item:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--talena-coral);
+}
+
+.talena-team-page .team-summary-value {
+  margin-top: 0.3rem;
+  font-size: 1.32rem;
+}
+
+/* Team style analytics */
+.talena-team-page .team-analytics-grid {
+  gap: 1.1rem;
+}
+
+.talena-team-page .team-analytics-panel {
+  padding: 1.05rem;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255,111,97,0.035), transparent 34%),
+    #fff;
+}
+
+.talena-team-page .team-analytics-panel .fw-semibold {
+  font-size: 0.74rem;
+}
+
+.talena-team-page .team-style-chart-box {
+  height: 300px;
+  margin-top: 0.55rem;
+}
+
+.talena-team-page .team-style-rank-list {
+  gap: 0.62rem;
+}
+
+.talena-team-page .team-style-rank-row {
+  min-height: 32px;
+}
+
+.talena-team-page .team-style-bar {
+  height: 8px;
+  border: 0;
+  background: #eeeae7;
+}
+
+.talena-team-page .team-style-bar-fill {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+}
+
+.talena-team-page .team-data-badge {
+  min-height: 27px;
+  padding-inline: 0.62rem;
+}
+
+/* Data tables */
+.talena-team-page .team-table .team-member-column {
+  min-width: 220px;
+}
+
+.talena-team-page .team-table .team-select-column {
+  width: 50px;
+}
+
+.talena-team-page .team-score-badge {
+  min-width: 29px;
+  height: 26px;
+  background: #fff;
+}
+
+.talena-team-page .team-member-initials {
+  width: 35px;
+  height: 35px;
+}
+
+/* Member management */
+.talena-team-page .team-member-toolbar {
+  padding: 0.8rem 0.9rem;
+  background: rgba(250,248,246,0.76);
+}
+
+.talena-team-page .team-member-search input {
+  min-height: 42px;
+  background: #fff !important;
+}
+
+.talena-team-page .form-check-input {
+  cursor: pointer;
+}
+
+/* Forms */
+.talena-team-page .team-form-card {
+  border-radius: 20px !important;
+}
+
+.talena-team-page .team-form-card .card-body {
+  padding: 1.45rem !important;
+}
+
+.talena-team-page .team-form-card input,
+.talena-team-page .team-form-card textarea {
+  background: #fff !important;
+}
+
+/* Empty states */
+.talena-team-page .team-empty-state {
+  padding: 3rem 1.5rem !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,111,97,0.035), transparent 42%);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .talena-team-page .team-summary-item:first-child::before {
+    inset: 0 0 auto 0;
+    width: auto;
+    height: 3px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .talena-team-page {
+    padding-top: 1.25rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .talena-team-page .team-page-actions {
+    width: 100%;
+  }
+
+  .talena-team-page .team-page-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .talena-team-page .team-style-chart-box {
+    height: 265px;
+  }
+
+  .talena-team-page .card-header,
+  .talena-team-page .card-body {
+    padding: 1rem !important;
+  }
+}
