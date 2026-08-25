@@ -102,11 +102,11 @@
     );
 
     cards.forEach(function (card) {
-      card.hidden = true;
+      card.classList.add("d-none");
     });
 
     visibleCards.forEach(function (card) {
-      card.hidden = false;
+      card.classList.remove("d-none");
       grid.appendChild(card);
     });
   }
