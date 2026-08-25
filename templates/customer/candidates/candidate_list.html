@@ -13,7 +13,7 @@
   <header class="candidate-directory__header">
     <div>
       <p class="candidate-directory__eyebrow">
-        {% trans "Candidate directory" %}
+        {% trans "Candidates" %}
       </p>
 
       <h1 class="candidate-directory__title">
@@ -26,11 +26,7 @@
     </div>
 
     <div class="candidate-directory__count">
-      {% blocktrans count candidate_count=candidates|length %}
-        {{ candidate_count }} candidate
-      {% plural %}
-        {{ candidate_count }} candidates
-      {% endblocktrans %}
+      {% trans "Candidates" %}: {{ candidates|length }}
     </div>
   </header>
 
@@ -45,7 +41,7 @@
         <input
           type="search"
           class="form-control candidate-directory__search"
-          placeholder="{% trans 'Search by name, email, team or assessment...' %}"
+          placeholder="{% trans 'Search candidates...' %}"
           aria-label="{% trans 'Search candidates' %}"
           id="candidateSearch"
           autocomplete="off"
