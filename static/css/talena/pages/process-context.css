@@ -1,0 +1,320 @@
+/* =========================================================
+   TALENA — PROCESS CONTEXT
+   Purpose-aware context editor for Candidate Insights.
+   ========================================================= */
+
+.purpose-context-page {
+  color: var(--talena-text);
+}
+
+.purpose-context-page > .row {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+}
+
+
+/* =========================================================
+   SHARED PANELS
+   ========================================================= */
+
+.purpose-context-page .process-section-card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 4px 18px rgba(23, 19, 18, 0.035) !important;
+}
+
+.purpose-context-page .purpose-context-header {
+  padding: 1.05rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+}
+
+.purpose-context-page .purpose-context-header .fw-semibold {
+  color: var(--talena-ink);
+  font-size: 0.9rem;
+  font-weight: 720 !important;
+  letter-spacing: -0.015em;
+}
+
+.purpose-context-page .purpose-context-header .text-muted {
+  max-width: 660px;
+  margin-top: 0.18rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   GUIDANCE COLUMN
+   ========================================================= */
+
+.purpose-context-page .col-lg-4 .process-section-card,
+.purpose-context-page .col-xl-3 .process-section-card {
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(255, 111, 97, 0.055),
+      transparent 12rem
+    ),
+    rgba(255, 255, 255, 0.92) !important;
+}
+
+.purpose-context-page .col-lg-4 .card-body,
+.purpose-context-page .col-xl-3 .card-body {
+  padding: 1rem !important;
+}
+
+.purpose-context-page .context-guide-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.purpose-context-page .context-guide-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.78rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.purpose-context-page .context-guide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 111, 97, 0.16);
+  border-radius: 9px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.65rem;
+  font-weight: 760;
+}
+
+.purpose-context-page .context-guide-item .fw-semibold {
+  margin-bottom: 0.16rem;
+  color: var(--talena-ink);
+  font-size: 0.7rem !important;
+  font-weight: 680 !important;
+}
+
+.purpose-context-page .context-guide-item .text-muted {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.64rem !important;
+  line-height: 1.5;
+}
+
+.purpose-context-page .context-note {
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 13px;
+  background: #f9f7f5;
+}
+
+.purpose-context-page .context-note .fw-semibold {
+  color: var(--talena-ink);
+  font-size: 0.68rem;
+  font-weight: 680 !important;
+}
+
+.purpose-context-page .context-note .text-muted {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.63rem !important;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   EDITOR PANEL
+   ========================================================= */
+
+.purpose-context-page form.process-section-card > .card-body {
+  padding: 1.2rem !important;
+}
+
+.purpose-context-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 0.34rem 0.58rem;
+  border: 1px solid rgba(255, 111, 97, 0.15);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.59rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.purpose-context-page .form-label {
+  margin-bottom: 0.42rem;
+  color: var(--talena-ink);
+  font-size: 0.72rem;
+  font-weight: 680 !important;
+}
+
+.purpose-context-page textarea[name="context_text"] {
+  min-height: 500px;
+  padding: 1rem 1.05rem;
+  resize: vertical;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: #fbfaf9 !important;
+  color: var(--talena-text) !important;
+  font-size: 0.78rem;
+  line-height: 1.62;
+  box-shadow: inset 0 1px 2px rgba(23, 19, 18, 0.02) !important;
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.purpose-context-page textarea[name="context_text"]:hover {
+  border-color: var(--talena-border-strong) !important;
+}
+
+.purpose-context-page textarea[name="context_text"]:focus {
+  border-color: rgba(255, 111, 97, 0.4) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.06) !important;
+  outline: none;
+}
+
+.purpose-context-page .form-text {
+  margin-top: 0.42rem;
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.61rem;
+  line-height: 1.45;
+}
+
+.purpose-context-page .context-tip {
+  position: relative;
+  padding: 0.85rem 0.95rem 0.85rem 2.8rem;
+  border: 1px solid rgba(255, 111, 97, 0.13);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 111, 97, 0.055),
+      rgba(255, 255, 255, 0.75)
+    );
+}
+
+.purpose-context-page .context-tip::before {
+  content: "✦";
+  position: absolute;
+  top: 0.85rem;
+  left: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 8px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.68rem;
+}
+
+.purpose-context-page .context-tip .fw-semibold {
+  color: var(--talena-ink);
+  font-size: 0.68rem;
+  font-weight: 690 !important;
+}
+
+.purpose-context-page .context-tip .text-muted {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.64rem !important;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   ALERTS + ACTIONS
+   ========================================================= */
+
+.purpose-context-page .alert-light {
+  border-color: var(--talena-border) !important;
+  border-radius: 13px;
+  background: #f9f7f5 !important;
+}
+
+.purpose-context-page .alert-danger {
+  border-color: rgba(207, 89, 80, 0.16) !important;
+  border-radius: 13px;
+  background: var(--talena-danger-soft) !important;
+}
+
+.purpose-context-page .btn-primary {
+  min-height: 40px;
+  padding: 0.62rem 0.92rem !important;
+  border: 1px solid var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: 0.7rem;
+  font-weight: 680;
+  box-shadow: 0 8px 20px rgba(23, 19, 18, 0.09) !important;
+}
+
+.purpose-context-page .btn-primary:hover {
+  transform: translateY(-1px);
+  background: #000 !important;
+  box-shadow: 0 11px 25px rgba(23, 19, 18, 0.13) !important;
+}
+
+.purpose-context-page .btn-outline-secondary {
+  min-height: 40px;
+  padding: 0.62rem 0.92rem !important;
+  border: 1px solid var(--talena-border-strong) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  font-size: 0.7rem;
+  font-weight: 620;
+}
+
+.purpose-context-page .btn-outline-secondary:hover {
+  border-color: var(--talena-ink) !important;
+  color: var(--talena-ink) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1199px) {
+  .purpose-context-page textarea[name="context_text"] {
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 991px) {
+  .purpose-context-page textarea[name="context_text"] {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 576px) {
+  .purpose-context-page form.process-section-card > .card-body {
+    padding: 1rem !important;
+  }
+
+  .purpose-context-page .purpose-context-header {
+    padding: 0.95rem 1rem !important;
+  }
+
+  .purpose-context-page textarea[name="context_text"] {
+    min-height: 320px;
+  }
+}
