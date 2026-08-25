@@ -196,6 +196,36 @@
 }
 
 /* ---------------------------------------------------------
+   Personality trait selection dialog
+   --------------------------------------------------------- */
+
+.process-page .personality-traits-dialog__count {
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .personality-trait-option input {
+  accent-color: var(--talena-coral) !important;
+}
+
+.process-page .personality-trait-option__check {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-trait-option input:checked + .personality-trait-option__control {
+  border-color: rgba(255, 111, 97, 0.34) !important;
+  background: var(--talena-coral-soft) !important;
+}
+
+.process-page .personality-trait-option input:checked + .personality-trait-option__control .personality-trait-option__check {
+  border-color: var(--talena-coral) !important;
+  background: var(--talena-coral) !important;
+  color: #fff !important;
+}
+
+/* ---------------------------------------------------------
    Responsive polish
    --------------------------------------------------------- */
 
