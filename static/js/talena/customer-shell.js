@@ -99,11 +99,13 @@
       return;
     }
 
+    const closeLabel = modalElement.dataset.closeLabel || "Close";
+
     titleElement.textContent = title || "Modal";
     bodyElement.innerHTML = bodyHtml || "";
     footerElement.innerHTML = footerHtml || `
       <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-        Close
+        ${closeLabel}
       </button>
     `;
 
