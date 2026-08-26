@@ -1,18 +1,18 @@
 # apps/processes/services/send_tests.py
 import uuid
-from django.conf import settings
-from django.utils import timezone
-from django.core.mail import EmailMultiAlternatives
 
-from apps.emails.models import EmailTemplate, EmailLog
-from apps.emails.utils import (
-    render_placeholders,
-    get_default_invitation_template,
-    format_assessment_names,
-)
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.utils import timezone
+
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
-
+from apps.emails.models import EmailLog, EmailTemplate
+from apps.emails.utils import (
+    format_assessment_names,
+    get_default_invitation_template,
+    render_placeholders,
+)
 from apps.processes.services.assessment_usage import (
     register_sent_assessments,
 )
@@ -39,6 +39,7 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
 
     sent_count = 0
     skipped_count = 0
+    errors = []
 
     # Resolve the SOVA project id once when available. Failure here must not
     # prevent ordering because the project code is still sufficient for SOVA.
@@ -46,11 +47,15 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
     try:
         accounts = client.get_accounts_with_projects()
         for account in accounts:
-            if (account.get("code") or "").strip() != (process.account_code or "").strip():
+            if (account.get("code") or "").strip() != (
+                process.account_code or ""
+            ).strip():
                 continue
 
             for project in account.get("projects") or []:
-                if (project.get("code") or "").strip() == (process.project_code or "").strip():
+                if (project.get("code") or "").strip() == (
+                    process.project_code or ""
+                ).strip():
                     sova_project_id = project.get("id")
                     break
             break
@@ -79,7 +84,9 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
             # The assessment URL is our strongest signal that SOVA already
             # accepted the order. This is especially important after an email
             # failure: retrying must never create another SOVA assessment.
-            existing_test_url = (getattr(inv, "assessment_url", None) or "").strip()
+            existing_test_url = (
+                getattr(inv, "assessment_url", None) or ""
+            ).strip()
 
             if existing_test_url:
                 test_url = existing_test_url
@@ -88,7 +95,6 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                     or getattr(inv, "sova_request_id", None)
                     or f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
                 )
-                resp = getattr(inv, "sova_payload", None) or {}
 
                 reuse_update_fields = []
 
@@ -113,7 +119,9 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 )
 
             else:
-                request_id = f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+                request_id = (
+                    f"talena-{process.id}-{candidate.id}-{uuid.uuid4().hex}"
+                )
 
                 payload = {
                     "request_id": request_id,
@@ -133,7 +141,10 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                     },
                 }
 
-                resp = client.order_assessment(process.project_code, payload)
+                resp = client.order_assessment(
+                    process.project_code,
+                    payload,
+                )
                 test_url = (resp or {}).get("url")
 
                 if not test_url:
@@ -209,7 +220,9 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 "last_name": candidate.last_name or "",
                 "email": candidate.email or "",
                 "process_name": process.name or "",
-                "assessments": format_assessment_names(process.selected_tests),
+                "assessments": format_assessment_names(
+                    process.selected_tests
+                ),
                 "job_title": process.job_title or "",
                 "job_location": process.job_location or "",
                 "assessment_url": test_url or "",
@@ -291,18 +304,16 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 except Exception:
                     pass
 
-            inv._send_error = str(exc)
+            errors.append(
+                {
+                    "invitation_id": inv.id,
+                    "email": inv.candidate.email,
+                    "error": str(exc),
+                }
+            )
 
     return {
         "sent_count": sent_count,
         "skipped_count": skipped_count,
-        "errors": [
-            {
-                "invitation_id": inv.id,
-                "email": inv.candidate.email,
-                "error": getattr(inv, "_send_error", None),
-            }
-            for inv in invitations
-            if getattr(inv, "_send_error", None)
-        ],
+        "errors": errors,
     }
