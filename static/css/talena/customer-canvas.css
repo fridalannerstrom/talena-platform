@@ -110,6 +110,31 @@
   display: inline-block;
 }
 
+/* =========================================================
+   SHARED TAG / BADGE BORDER
+   ---------------------------------------------------------
+   Keep pastel tags visually defined against white cards.
+   The border follows the tag's own text colour so semantic
+   variants (sage, amber, coral, neutral, etc.) stay coherent.
+   ========================================================= */
+
+.talena-customer-canvas :where(
+  .badge,
+  .talena-pill,
+  .process-label,
+  [class$="-badge"],
+  [class*="-badge "],
+  [class$="-pill"],
+  [class*="-pill "],
+  [class$="-tag"],
+  [class*="-tag "]
+) {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: rgba(23, 19, 18, 0.10) !important;
+  border-color: color-mix(in srgb, currentColor 20%, transparent) !important;
+}
+
 /* ---------------------------------------------------------
    RESPONSIVE
    --------------------------------------------------------- */
