@@ -425,7 +425,7 @@ class HistoricalCandidateForm(forms.Form):
             self.fields["teams"].initial = (
                 candidate.team_memberships
                 .filter(team__company=company, team__is_archived=False)
-                .values_list("candidate_id", flat=True)
+                .values_list("team_id", flat=True)
             )
 
     def clean_historical_reports(self):
