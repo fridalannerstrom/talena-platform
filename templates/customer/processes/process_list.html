@@ -185,6 +185,18 @@
           </div>
 
           <div class="process-card-content">
+                     <div class="process-card-labels">
+            {% if p.is_historical %}
+              <span class="process-label process-label-muted">{% trans "Historical" %}</span>
+            {% elif p.labels.exists %}
+              {% for lab in p.labels.all|slice:":3" %}
+                <span class="process-label">{{ lab.name }}</span>
+              {% endfor %}
+              {% if p.labels.all|length > 3 %}
+                <span class="process-label process-label-muted">+{{ p.labels.all|length|add:"-3" }}</span>
+              {% endif %}
+            {% endif %}
+          </div>
             <h2 class="process-title">{{ p.name }}</h2>
 
             {% if p.is_historical %}
@@ -220,19 +232,6 @@
                 <span class="process-tests-label">{% trans "Assessment setup" %}</span>
                 <div class="process-tests-fallback">{{ p.project_name_snapshot }}</div>
               </div>
-            {% endif %}
-          </div>
-
-          <div class="process-card-labels">
-            {% if p.is_historical %}
-              <span class="process-label process-label-muted">{% trans "Historical" %}</span>
-            {% elif p.labels.exists %}
-              {% for lab in p.labels.all|slice:":3" %}
-                <span class="process-label">{{ lab.name }}</span>
-              {% endfor %}
-              {% if p.labels.all|length > 3 %}
-                <span class="process-label process-label-muted">+{{ p.labels.all|length|add:"-3" }}</span>
-              {% endif %}
             {% endif %}
           </div>
 

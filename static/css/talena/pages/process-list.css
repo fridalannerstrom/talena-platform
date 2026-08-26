@@ -384,7 +384,6 @@
 .process-card-content {
   position: relative;
   z-index: 1;
-  margin-top: 1.25rem;
 }
 
 .process-title {
@@ -393,8 +392,9 @@
   color: var(--talena-ink);
   font-size: 1.18rem;
   font-weight: 740;
-  line-height: 1.22;
+  line-height: 1.25;
   letter-spacing: -0.035em;
+  margin-top: 1rem;
 }
 
 .process-tests-block {
