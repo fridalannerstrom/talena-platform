@@ -1,0 +1,8 @@
+{% extends "errors/base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Access denied" %} | Talena{% endblock %}
+{% block error_code %}403{% endblock %}
+{% block error_title %}{% trans "You don't have access to this page." %}{% endblock %}
+{% block error_message %}{% trans "Your account is signed in, but the requested area is outside your current permissions." %}{% endblock %}
+{% block error_hint %}{% trans "Return to Talena and continue from an area you have access to, or ask an administrator if your access should be updated." %}{% endblock %}
