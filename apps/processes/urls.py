@@ -258,7 +258,18 @@ _PROCESS_VIEW_ROUTE_NAMES = {
 }
 
 _PROCESS_EDIT_ROUTE_NAMES = {
+    # Core process write routes. Keep these centrally guarded even though the
+    # views also perform local checks, so a future refactor cannot accidentally
+    # weaken Viewer/Editor/Own permissions.
+    "process_update",
+    "process_delete",
+    "process_add_candidate",
     "remove_candidate_from_process",
+    "process_send_tests",
+    "process_archive",
+    "process_unarchive",
+
+    # Candidate/AI write routes.
     "process_candidate_summary_stream",
     "process_candidate_summary_regenerate",
     "process_candidate_purpose_fit_stream",
