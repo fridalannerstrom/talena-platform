@@ -93,33 +93,7 @@
         >
           <div class="process-card-topline">
             <div class="process-purpose">
-              <span class="process-purpose-icon" aria-hidden="true">
-                {% if p.is_historical %}
-                  <i data-feather="archive"></i>
-                {% elif p.purpose == "recruitment" or p.purpose == "hiring" or p.purpose == "recruiting" or p.purpose == "selection" %}
-                  <i data-feather="briefcase"></i>
-                {% elif p.purpose == "team_development" or p.purpose == "team development" %}
-                  <i data-feather="users"></i>
-                {% elif p.purpose == "leader_development" or p.purpose == "leadership_development" or p.purpose == "leadership development" %}
-                  <i data-feather="award"></i>
-                {% elif p.purpose == "leadership_potential" or p.purpose == "leadership potential" %}
-                  <i data-feather="star"></i>
-                {% elif p.purpose == "employee_development" or p.purpose == "employee development" or p.purpose == "development" %}
-                  <i data-feather="trending-up"></i>
-                {% elif p.purpose == "career_path" or p.purpose == "career path" %}
-                  <i data-feather="map"></i>
-                {% elif p.purpose == "onboarding" %}
-                  <i data-feather="user-plus"></i>
-                {% elif p.purpose == "role_match" or p.purpose == "role match" %}
-                  <i data-feather="target"></i>
-                {% elif p.purpose == "reorganisation" or p.purpose == "reorganization" %}
-                  <i data-feather="shuffle"></i>
-                {% elif p.purpose == "flexible" or p.purpose == "unsure" or p.purpose == "flexible_process" or p.purpose == "flexible process" %}
-                  <i data-feather="sliders"></i>
-                {% else %}
-                  <i data-feather="layers"></i>
-                {% endif %}
-              </span>
+              
 
               <span class="process-purpose-copy">
                 <span class="process-purpose-label">{% trans "Purpose" %}</span>
@@ -185,6 +159,9 @@
           </div>
 
           <div class="process-card-content">
+
+            <h2 class="process-title">{{ p.name }}</h2>
+
                      <div class="process-card-labels">
             {% if p.is_historical %}
               <span class="process-label process-label-muted">{% trans "Historical" %}</span>
@@ -197,7 +174,6 @@
               {% endif %}
             {% endif %}
           </div>
-            <h2 class="process-title">{{ p.name }}</h2>
 
             {% if p.is_historical %}
               <div class="process-tests-block">
