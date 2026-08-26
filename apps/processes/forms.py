@@ -73,26 +73,26 @@ class TestProcessCreateForm(forms.ModelForm):
 
 class CandidateCreateForm(forms.Form):
     first_name = forms.CharField(
-        label="Förnamn",
+        label=_("First name"),
         widget=forms.TextInput(attrs={
             "class": "form-control form-control-sm",
-            "placeholder": "Förnamn",
+            "placeholder": _("First name"),
             "autocomplete": "given-name"
         })
     )
     last_name = forms.CharField(
-        label="Efternamn",
+        label=_("Last name"),
         widget=forms.TextInput(attrs={
             "class": "form-control form-control-sm",
-            "placeholder": "Efternamn",
+            "placeholder": _("Last name"),
             "autocomplete": "family-name"
         })
     )
     email = forms.EmailField(
-        label="E-post",
+        label=_("Email"),
         widget=forms.EmailInput(attrs={
             "class": "form-control form-control-sm",
-            "placeholder": "namn@företag.se",
+            "placeholder": _("Email"),
             "autocomplete": "email"
         })
     )
