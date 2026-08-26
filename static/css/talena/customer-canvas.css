@@ -1,0 +1,67 @@
+/* =========================================================
+   TALENA — CUSTOMER PAGE CANVAS
+   ---------------------------------------------------------
+   One shared outer geometry for the logged-in customer app.
+   Dashboard is the canonical reference:
+   - max width: 1320px
+   - centered content
+   - consistent top / side / bottom spacing
+
+   Page-specific CSS owns the components inside the canvas,
+   not the overall page width or outer padding.
+   ========================================================= */
+
+.talena-customer-canvas {
+  width: min(100%, 1320px);
+  margin: 0 auto;
+  padding: 2.4rem 1rem 4rem;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   NORMALISE MIGRATED CUSTOMER PAGE ROOTS
+   --------------------------------------------------------- */
+
+.talena-customer-canvas > .dashboard-page,
+.talena-customer-canvas > .process-list-page,
+.talena-customer-canvas > .candidate-directory,
+.talena-customer-canvas > .talena-team-page,
+.talena-customer-canvas > .talena-settings-page,
+.talena-customer-canvas > .activity-page,
+.talena-customer-canvas > .talena-chat-page,
+.talena-customer-canvas > .process-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+/* The create-process wizard still uses a legacy container-fluid root. */
+.talena-customer-canvas > .container-fluid:has(#processCreateWizardForm) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Generic direct page roots should never exceed the shared canvas. */
+.talena-customer-canvas > * {
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 1199.98px) {
+  .talena-customer-canvas {
+    padding-inline: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .talena-customer-canvas {
+    padding: 1.5rem 0.85rem 3rem;
+  }
+}
