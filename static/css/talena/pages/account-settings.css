@@ -164,6 +164,16 @@
   box-shadow: 0 8px 22px rgba(46, 31, 26, 0.08);
 }
 
+.avatar-img--fallback {
+  display: grid;
+  place-items: center;
+  background: var(--talena-coral-soft, #fff1ee);
+  color: var(--talena-coral-strong, #e95e52);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .avatar-camera {
   position: absolute;
   right: -2px;
