@@ -59,7 +59,7 @@
   background: var(--talena-ink) !important;
   color: #fff !important;
   font-size: 0.72rem;
-  font-weight: 680;
+  font-weight: 600;
   box-shadow: 0 8px 22px rgba(23, 19, 18, 0.09) !important;
   transition:
     transform var(--talena-transition-fast),
@@ -218,7 +218,7 @@
   padding: 1.05rem;
   overflow: hidden;
   border: 1px solid var(--talena-border);
-  border-radius: 16px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 2px 9px rgba(23, 19, 18, 0.025);
   cursor: pointer;
@@ -302,8 +302,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 1px solid transparent !important;
   border-radius: 8px !important;

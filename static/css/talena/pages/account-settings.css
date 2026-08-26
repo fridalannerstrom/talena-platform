@@ -8,7 +8,7 @@
   --settings-muted: var(--talena-text-muted, #7c746f);
   --settings-surface: var(--talena-surface, #ffffff);
   --settings-soft: #faf8f6;
-  --settings-coral: var(--talena-coral, #ff6f61);
+  --settings-coral: var(--talena-coral-strong, #ff6f61);
   --settings-coral-soft: #fff1ee;
   --settings-green: #4f7d60;
 
@@ -73,7 +73,7 @@
 .settings-panel {
   overflow: hidden;
   border: 1px solid var(--settings-border);
-  border-radius: 20px;
+  border-radius: 10px;
   background: var(--settings-surface);
   box-shadow: 0 14px 36px rgba(32, 24, 20, 0.045);
 }
@@ -134,10 +134,8 @@
   padding: 1rem;
   margin-bottom: 1.35rem;
   border: 1px solid var(--settings-border);
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 8% 20%, rgba(255, 111, 97, 0.08), transparent 34%),
-    #fcfbfa;
+  border-radius: 10px;
+  background: #faf8f6;
 }
 
 .settings-avatar-wrap {
@@ -230,7 +228,7 @@
   min-height: 46px;
   padding: 0.72rem 0.85rem;
   border: 1px solid #ded7d2;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fbfaf9;
   color: #201c1a;
   font-size: 0.88rem;
@@ -279,7 +277,6 @@
   background: #171312;
   color: #fff;
   font-size: 0.8rem;
-  font-weight: 750;
   box-shadow: 0 8px 18px rgba(23, 19, 18, 0.1);
 }
 

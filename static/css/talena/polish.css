@@ -16,18 +16,6 @@
    BUTTONS
    --------------------------------------------------------- */
 
-#layoutSidenav_content main .btn:not(.btn-close) {
-  border-radius: var(--talena-radius-pill);
-  font-weight: 650;
-  box-shadow: none;
-  transition:
-    transform var(--talena-transition-fast),
-    border-color var(--talena-transition-fast),
-    background-color var(--talena-transition-fast),
-    color var(--talena-transition-fast),
-    box-shadow var(--talena-transition-fast);
-}
-
 #layoutSidenav_content main .btn:not(.btn-sm):not(.btn-lg):not(.btn-close) {
   min-height: 40px;
   padding: 0.58rem 0.9rem;
@@ -81,7 +69,6 @@
 #layoutSidenav_content main .form-control,
 #layoutSidenav_content main .form-select {
   border-color: var(--talena-border);
-  border-radius: var(--talena-radius-md);
   background-color: #fbfaf9;
   color: var(--talena-text);
   box-shadow: none;

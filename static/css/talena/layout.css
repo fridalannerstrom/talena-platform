@@ -192,8 +192,8 @@ body.nav-fixed {
 
 .talena-topnav .talena-language-current-label {
   color: var(--talena-text);
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .talena-topnav .talena-language-chevron {
@@ -315,7 +315,6 @@ body.nav-fixed {
 }
 
 .talena-header-avatar--fallback {
-  border: 1px solid rgba(255, 111, 97, 0.24);
   background: var(--talena-coral-soft);
   color: var(--talena-coral-strong);
   font-size: 0.73rem;

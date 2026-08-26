@@ -25191,22 +25191,6 @@ color: #6E63E3;
     white-space: nowrap;
   }
 
-  .talena-language-option-check {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 20px;
-    height: 20px;
-
-    color: #ffffff;
-    background: #6d3adf;
-
-    border-radius: 50%;
-
-    font-size: 0.68rem;
-    font-weight: 900;
-  }
 
   .talena-language-trigger {
   display: inline-flex;
