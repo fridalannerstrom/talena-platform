@@ -1,0 +1,150 @@
+/* =========================================================
+   TALENA — SHARED QA HARDENING
+   ---------------------------------------------------------
+   Low-risk resilience layer shared by Customer and Admin.
+   Focuses on responsive behaviour, overflow safety,
+   viewport-safe overlays and accessible focus/motion states.
+   ========================================================= */
+
+/* Prevent flex/grid children from forcing app pages wider than the viewport. */
+#layoutSidenav_content main .card,
+#layoutSidenav_content main .card-body,
+#layoutSidenav_content main .card-header,
+#layoutSidenav_content main .row > *,
+#layoutSidenav_content main .d-flex > * {
+  min-width: 0;
+}
+
+/* Long emails, identifiers and generated copy should wrap rather than break layouts. */
+#layoutSidenav_content main td,
+#layoutSidenav_content main .form-text,
+#layoutSidenav_content main .alert,
+#layoutSidenav_content main .modal-body,
+#layoutSidenav_content main code {
+  overflow-wrap: anywhere;
+}
+
+/* Tables remain usable on narrower laptops and tablets. */
+#layoutSidenav_content main .table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#layoutSidenav_content main .table {
+  margin-bottom: 0;
+}
+
+/* Keep dropdowns and overlays inside the viewport. */
+.talena-topnav .dropdown-menu,
+body.nav-fixed .dropdown-menu {
+  max-width: calc(100vw - 1rem);
+}
+
+.modal-dialog {
+  margin-inline: auto;
+}
+
+.modal-content {
+  max-height: calc(100dvh - 1.5rem);
+}
+
+.modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Consistent keyboard focus, including legacy links/buttons. */
+body.nav-fixed a:focus-visible,
+body.nav-fixed button:focus-visible,
+body.nav-fixed [role="button"]:focus-visible,
+body.nav-fixed input:focus-visible,
+body.nav-fixed select:focus-visible,
+body.nav-fixed textarea:focus-visible {
+  outline: 2px solid rgba(255, 111, 97, 0.58);
+  outline-offset: 2px;
+}
+
+/* Narrow laptop safety. */
+@media (max-width: 1199.98px) {
+  #layoutSidenav_content > main > .container-xl,
+  #layoutSidenav_content > main > .container-fluid {
+    padding-inline: 1.25rem !important;
+  }
+
+  .talena-topnav .nav-search {
+    width: min(300px, 34vw);
+  }
+}
+
+/* Tablet / collapsed-navigation safety. */
+@media (max-width: 991.98px) {
+  #layoutSidenav_content > main > .container-xl,
+  #layoutSidenav_content > main > .container-fluid {
+    padding-inline: 1rem !important;
+  }
+
+  #layoutSidenav_content main .card-header.d-flex,
+  #layoutSidenav_content main .card-body.d-flex {
+    column-gap: 0.75rem;
+  }
+
+  .modal-dialog {
+    max-width: calc(100vw - 1.5rem);
+  }
+}
+
+/* Mobile hardening. The product remains desktop-first, but should not implode. */
+@media (max-width: 767.98px) {
+  #layoutSidenav_content > main > .container-xl,
+  #layoutSidenav_content > main > .container-fluid {
+    margin-top: 1.5rem !important;
+    padding-inline: 0.85rem !important;
+  }
+
+  #layoutSidenav_content main h1 {
+    overflow-wrap: anywhere;
+  }
+
+  #layoutSidenav_content main .btn:not(.btn-sm):not(.btn-close),
+  #layoutSidenav_content main .form-control,
+  #layoutSidenav_content main .form-select {
+    min-height: 42px;
+  }
+
+  /* Prevent iOS Safari from zooming form controls on focus. */
+  #layoutSidenav_content main input,
+  #layoutSidenav_content main select,
+  #layoutSidenav_content main textarea,
+  .modal input,
+  .modal select,
+  .modal textarea {
+    font-size: 16px;
+  }
+
+  .modal-dialog {
+    margin: 0.75rem;
+    max-width: calc(100vw - 1.5rem);
+  }
+
+  .modal-content {
+    max-height: calc(100dvh - 1.5rem);
+  }
+}
+
+/* Respect users who request less motion. */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
