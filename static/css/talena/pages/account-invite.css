@@ -162,6 +162,9 @@
 .talena-invite .invite-button {
   width: 100%;
   min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 2px;
   border: 1px solid var(--talena-ink);
   border-radius: var(--talena-radius-pill);
@@ -170,11 +173,13 @@
   font: inherit;
   font-size: 0.82rem;
   font-weight: 680;
+  text-decoration: none;
   box-shadow: 0 10px 26px rgba(23, 19, 18, 0.12);
 }
 
 .talena-invite .invite-button:hover {
   background: #000;
+  color: #fff;
   transform: translateY(-1px);
 }
 
