@@ -205,7 +205,7 @@
 .process-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.78rem;
+  gap: 1rem;
   align-items: stretch;
 }
 
@@ -214,13 +214,13 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 250px;
-  padding: 1.05rem;
+  min-height: 300px;
+  padding: 1.25rem;
   overflow: hidden;
   border: 1px solid var(--talena-border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 2px 9px rgba(23, 19, 18, 0.025);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 3px 12px rgba(23, 19, 18, 0.025);
   cursor: pointer;
   transition:
     transform var(--talena-transition-base),
@@ -230,15 +230,23 @@
 }
 
 .process-card::after {
-  display: none;
+  content: "";
+  position: absolute;
+  top: -72px;
+  right: -64px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 111, 97, 0.07), transparent 68%);
+  pointer-events: none;
 }
 
 .process-card:hover,
 .process-card:focus-visible {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: rgba(255, 111, 97, 0.22);
   background: #fff;
-  box-shadow: 0 12px 28px rgba(23, 19, 18, 0.065);
+  box-shadow: 0 16px 36px rgba(23, 19, 18, 0.07);
   outline: none;
 }
 
@@ -253,34 +261,69 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
-  min-height: 29px;
+  gap: 0.85rem;
 }
 
-.process-purpose-badge {
-  display: inline-flex;
+.process-purpose {
+  display: flex;
   align-items: center;
-  min-height: 24px;
-  max-width: calc(100% - 72px);
-  padding: 0.29rem 0.53rem;
-  border: 1px solid rgba(255, 111, 97, 0.14);
-  border-radius: var(--talena-radius-pill);
-  background: rgba(255, 111, 97, 0.075);
+  min-width: 0;
+  gap: 0.72rem;
+}
+
+.process-purpose-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 111, 97, 0.22);
+  border-radius: 13px;
+  background: var(--talena-coral-soft);
   color: var(--talena-coral-strong);
-  font-size: 0.57rem;
-  font-weight: 710;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.process-purpose-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+}
+
+.process-purpose-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.16rem;
+}
+
+.process-purpose-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+  font-weight: 760;
   line-height: 1;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+}
+
+.process-purpose-value {
+  max-width: 190px;
   overflow: hidden;
+  color: var(--talena-text);
+  font-size: 0.7rem;
+  font-weight: 690;
+  line-height: 1.2;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .process-card-actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 0.05rem;
-  opacity: 0.56;
+  gap: 0.18rem;
+  opacity: 0.52;
   transition: opacity var(--talena-transition-fast);
 }
 
@@ -302,11 +345,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid transparent !important;
-  border-radius: 8px !important;
+  border-radius: 50% !important;
   background: transparent !important;
   color: var(--talena-text-subtle) !important;
   box-shadow: none !important;
@@ -315,7 +358,7 @@
 .process-card .icon-btn:hover,
 .process-card .icon-btn:focus-visible {
   border-color: var(--talena-border) !important;
-  background: #fff !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   color: var(--talena-ink) !important;
   outline: none;
 }
@@ -328,9 +371,9 @@
 }
 
 .process-card .icon-btn svg {
-  width: 12px;
-  height: 12px;
-  stroke-width: 1.8;
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.7;
 }
 
 
@@ -339,30 +382,32 @@
    ========================================================= */
 
 .process-card-content {
-  margin-top: 0.86rem;
+  position: relative;
+  z-index: 1;
+  margin-top: 1.25rem;
 }
 
 .process-title {
-  min-height: 2.55em;
+  min-height: 2.5em;
   margin: 0;
   color: var(--talena-ink);
-  font-size: 1rem;
-  font-weight: 720;
-  line-height: 1.28;
-  letter-spacing: -0.025em;
+  font-size: 1.18rem;
+  font-weight: 740;
+  line-height: 1.22;
+  letter-spacing: -0.035em;
 }
 
 .process-tests-block {
-  margin-top: 0.72rem;
+  margin-top: 1rem;
 }
 
 .process-tests-label {
   display: block;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
   color: var(--talena-text-subtle);
   font-size: 0.52rem;
-  font-weight: 740;
-  letter-spacing: 0.075em;
+  font-weight: 760;
+  letter-spacing: 0.085em;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -370,20 +415,20 @@
 .process-test-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.28rem;
+  gap: 0.35rem;
 }
 
 .process-test-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 0.26rem 0.48rem;
-  border: 1px solid var(--talena-border);
-  border-radius: 8px;
-  background: #fbfaf9;
+  min-height: 26px;
+  padding: 0.34rem 0.58rem;
+  border: 1px solid #ddd6d1;
+  border-radius: 9px;
+  background: #f6f4f2;
   color: var(--talena-text);
-  font-size: 0.56rem;
-  font-weight: 620;
+  font-size: 0.6rem;
+  font-weight: 650;
   line-height: 1;
 }
 
@@ -391,7 +436,7 @@
   display: -webkit-box;
   overflow: hidden;
   color: var(--talena-text-muted);
-  font-size: 0.63rem;
+  font-size: 0.66rem;
   line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -403,11 +448,13 @@
    ========================================================= */
 
 .process-card-labels {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.27rem;
+  gap: 0.32rem;
   margin-top: auto;
-  padding-top: 0.72rem;
+  padding-top: 1rem;
 }
 
 .process-card-labels:empty {
@@ -417,14 +464,14 @@
 .process-label {
   display: inline-flex;
   align-items: center;
-  min-height: 21px;
-  padding: 0.25rem 0.45rem;
-  border: 1px solid var(--talena-border);
+  min-height: 24px;
+  padding: 0.3rem 0.52rem;
+  border: 1px solid #ddd6d1;
   border-radius: var(--talena-radius-pill);
   background: #f8f6f4;
   color: var(--talena-text-muted);
-  font-size: 0.54rem;
-  font-weight: 640;
+  font-size: 0.56rem;
+  font-weight: 650;
   line-height: 1;
 }
 
@@ -439,25 +486,36 @@
    ========================================================= */
 
 .process-card-footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.68rem;
-  margin-top: 0.72rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid rgba(231, 226, 222, 0.9);
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid rgba(231, 226, 222, 0.95);
 }
 
 .process-card-labels:empty + .process-card-footer {
   margin-top: auto;
 }
 
+.process-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .process-meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.32rem;
   min-width: 0;
   color: var(--talena-text-muted);
-  font-size: 0.59rem;
+  font-size: 0.6rem;
   white-space: nowrap;
 }
 
@@ -470,32 +528,37 @@
 
 .process-meta-item strong {
   color: var(--talena-ink);
-  font-weight: 690;
+  font-weight: 720;
 }
 
 .process-card-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-left: auto;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--talena-ink);
   border-radius: 50%;
-  background: transparent;
-  color: var(--talena-text-subtle);
+  background: var(--talena-ink);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(23, 19, 18, 0.12);
   transition:
-    color var(--talena-transition-fast),
-    transform var(--talena-transition-fast);
+    transform var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
 }
 
 .process-card:hover .process-card-open {
-  transform: translate(1px, -1px);
-  color: var(--talena-coral-strong);
+  transform: translate(2px, -2px);
+  background: #000;
+  box-shadow: 0 8px 18px rgba(23, 19, 18, 0.17);
 }
 
 .process-card-open svg {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
 }
 
 
@@ -595,7 +658,7 @@
   }
 
   .process-card {
-    min-height: 230px;
+    min-height: 280px;
   }
 
   .process-title {
