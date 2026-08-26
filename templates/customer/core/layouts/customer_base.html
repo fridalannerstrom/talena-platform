@@ -37,6 +37,9 @@
 
   {% block extra_css %}{% endblock %}
 
+  {# Shared logged-in customer page geometry. Loaded after page CSS on purpose. #}
+  <link href="{% static 'css/talena/customer-canvas.css' %}" rel="stylesheet" />
+
   {# Final low-risk viewport/accessibility hardening. #}
   <link href="{% static 'css/talena/qa.css' %}" rel="stylesheet" />
 </head>
@@ -50,7 +53,7 @@
 
     <div id="layoutSidenav_content">
       <main>
-        <div class="container-xl px-4 mt-5">
+        <div class="talena-customer-canvas">
           {% block content %}{% endblock %}
         </div>
       </main>
