@@ -58,12 +58,17 @@
                     class="avatar-img"
                   >
                 {% else %}
-                  <img
+                  <span
                     id="avatarPreview"
-                    src="{% static 'images/avatar-default.png' %}"
-                    alt="{% trans 'Default profile picture' %}"
-                    class="avatar-img"
+                    class="avatar-img avatar-img--fallback"
+                    aria-hidden="true"
                   >
+                    {% if request.user.first_name %}
+                      {{ request.user.first_name|slice:":1"|upper }}
+                    {% else %}
+                      {{ request.user.email|slice:":1"|upper }}
+                    {% endif %}
+                  </span>
                 {% endif %}
 
                 <span class="avatar-camera" aria-hidden="true">
