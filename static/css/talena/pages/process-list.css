@@ -214,7 +214,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 300px;
+  min-height: 290px;
   padding: 1.25rem;
   overflow: hidden;
   border: 1px solid var(--talena-border);
@@ -516,6 +516,7 @@
   color: var(--talena-text-muted);
   font-size: 0.6rem;
   white-space: nowrap;
+  font-weight: 550;
 }
 
 .process-meta-item svg {

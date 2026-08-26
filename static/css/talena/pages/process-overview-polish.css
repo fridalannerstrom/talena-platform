@@ -18,30 +18,7 @@
   padding: 1rem 1.15rem !important;
 }
 
-.process-page .process-kpi-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 1.1rem auto;
-  height: 2px;
-  border-radius: 999px;
-  background: transparent;
-}
 
-.process-page .process-kpi-card:nth-child(1)::before {
-  background: rgba(255, 111, 97, 0.72);
-}
-
-.process-page .process-kpi-card:nth-child(2)::before {
-  background: rgba(200, 154, 90, 0.58);
-}
-
-.process-page .process-kpi-card:nth-child(3)::before {
-  background: rgba(201, 130, 118, 0.54);
-}
-
-.process-page .process-kpi-card:nth-child(4)::before {
-  background: rgba(126, 159, 139, 0.72);
-}
 
 .process-page .process-kpi-card .text-muted,
 .process-page .process-kpi-label {

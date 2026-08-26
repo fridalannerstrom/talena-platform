@@ -38,18 +38,6 @@
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
   border-radius: 10px !important;
-  background:
-    radial-gradient(
-      circle at 92% -15%,
-      rgba(255, 111, 97, 0.10),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 70% 120%,
-      rgba(222, 180, 105, 0.055),
-      transparent 30%
-    ),
-    rgba(255, 255, 255, 0.94) !important;
   box-shadow: 0 12px 34px rgba(23, 19, 18, 0.045) !important;
 }
 

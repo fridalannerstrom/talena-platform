@@ -160,9 +160,7 @@
 
           <div class="process-card-content">
 
-            <h2 class="process-title">{{ p.name }}</h2>
-
-                     <div class="process-card-labels">
+                                 <div class="process-card-labels">
             {% if p.is_historical %}
               <span class="process-label process-label-muted">{% trans "Historical" %}</span>
             {% elif p.labels.exists %}
@@ -174,6 +172,8 @@
               {% endif %}
             {% endif %}
           </div>
+
+            <h2 class="process-title">{{ p.name }}</h2>
 
             {% if p.is_historical %}
               <div class="process-tests-block">

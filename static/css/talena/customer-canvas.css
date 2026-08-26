@@ -213,7 +213,7 @@
 }
 
 .process-list-page .process-title {
-  margin-top: 0.7rem;
+  margin-top: 1.1rem;
 }
 
 .process-list-page .process-tests-block {
@@ -222,10 +222,7 @@
 
 .process-list-page .process-tests-label {
   margin-bottom: 0.42rem;
-}
-
-.process-list-page .process-test-chips {
-  gap: 0.28rem;
+  margin-top: 0.5rem;
 }
 
 
