@@ -203,7 +203,7 @@
 .process-list-page .process-card-labels {
   flex: 0 0 24px;
   min-height: 24px;
-  margin-top: 0.85rem;
+  margin-top: 1rem;
   padding-top: 0;
 }
 
@@ -228,15 +228,6 @@
   gap: 0.28rem;
 }
 
-.process-list-page .process-test-chip {
-  min-height: 22px;
-  padding: 0.24rem 0.46rem;
-  border-color: rgba(96, 83, 76, 0.13);
-  border-radius: 7px;
-  background: #faf8f6;
-  font-size: 0.54rem;
-  font-weight: 640;
-}
 
 .process-list-page .process-card-footer {
   flex: 0 0 auto;

@@ -37,7 +37,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
-  border-radius: 22px !important;
+  border-radius: 10px !important;
   background:
     radial-gradient(
       circle at 92% -15%,
@@ -111,7 +111,7 @@
   min-width: 0 !important;
   padding: 0.72rem 0.82rem !important;
   border: 1px solid var(--talena-border) !important;
-  border-radius: 13px !important;
+  border-radius: 10px !important;
   background: rgba(250, 249, 247, 0.72) !important;
   box-shadow: none !important;
 }
@@ -137,7 +137,7 @@
 .process-page .process-mini-info__value {
   color: var(--talena-ink) !important;
   font-size: 0.75rem !important;
-  font-weight: 660 !important;
+  font-weight: 550 !important;
 }
 
 .process-page .process-pill,
@@ -166,7 +166,7 @@
   padding: 0.62rem 0.88rem;
   border-radius: var(--talena-radius-pill) !important;
   font-size: 0.7rem;
-  font-weight: 670;
+  font-weight: 550;
   box-shadow: none !important;
 }
 
@@ -219,7 +219,7 @@
   min-height: 36px !important;
   padding: 0 0.78rem !important;
   border: 1px solid transparent !important;
-  border-radius: 10px !important;
+  border-radius: 7px !important;
   color: var(--talena-text-muted) !important;
   font-size: 0.68rem !important;
   font-weight: 610 !important;
@@ -254,7 +254,7 @@
   margin-bottom: 1rem !important;
   overflow: hidden;
   border: 1px solid var(--talena-border);
-  border-radius: 18px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--talena-shadow-xs);
 }

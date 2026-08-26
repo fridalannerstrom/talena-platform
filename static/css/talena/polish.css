@@ -151,7 +151,7 @@
 
 #layoutSidenav_content main .badge {
   border-radius: var(--talena-radius-pill);
-  font-weight: 650;
+  font-weight: 550;
   letter-spacing: 0;
 }
 

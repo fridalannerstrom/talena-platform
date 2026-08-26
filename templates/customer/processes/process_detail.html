@@ -171,7 +171,6 @@
               {% empty %}
                 <tr>
                   <td colspan="4" class="p-5 text-center text-muted empty-state">
-                    <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
                     <div class="fw-semibold text-dark mb-1">No historical candidates yet</div>
                     <div class="small text-muted">
                       No manually imported candidates have been added to this historical process.
@@ -281,8 +280,6 @@
               {% empty %}
                 <tr>
                   <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
-                    <img src="{% static 'images/talena-empty-state.png' %}" alt="Talena"><br>
-
                     {% if can_edit %}
                       <div class="fw-semibold text-dark mb-1">
                         {% trans "No candidates yet" %}
