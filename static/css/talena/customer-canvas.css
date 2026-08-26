@@ -51,6 +51,65 @@
   min-width: 0;
 }
 
+/* =========================================================
+   SHARED CUSTOMER PAGE EYEBROW
+   ---------------------------------------------------------
+   Dashboard is the canonical version. Existing page-specific
+   eyebrow/kicker classes are normalised here so navigation
+   between pages keeps the same visual rhythm.
+
+   New customer pages should use .talena-page-eyebrow.
+   ========================================================= */
+
+.talena-page-eyebrow,
+.dashboard-eyebrow,
+.process-list-eyebrow,
+.candidate-directory__eyebrow,
+.talena-team-page .team-page-eyebrow,
+.settings-page-kicker,
+.activity-page-eyebrow,
+.talena-chat-eyebrow,
+.talena-customer-canvas > .container-fluid:has(#processCreateWizardForm)
+  > .d-flex:first-child .text-muted.small {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.7rem !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.66rem !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase !important;
+}
+
+/* Dashboard already has a real dot element in the template. */
+.dashboard-eyebrow-dot,
+.talena-page-eyebrow::before,
+.process-list-eyebrow::before,
+.candidate-directory__eyebrow::before,
+.talena-team-page .team-page-eyebrow::before,
+.settings-page-kicker::before,
+.activity-page-eyebrow::before,
+.talena-chat-eyebrow::before,
+.talena-customer-canvas > .container-fluid:has(#processCreateWizardForm)
+  > .d-flex:first-child .text-muted.small::before {
+  content: "";
+  flex: 0 0 6px;
+  width: 6px !important;
+  height: 6px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--talena-coral) !important;
+  box-shadow: 0 0 0 5px rgba(255, 111, 97, 0.08) !important;
+}
+
+/* The dashboard dot is markup, not a pseudo element. */
+.dashboard-eyebrow-dot {
+  display: inline-block;
+}
+
 /* ---------------------------------------------------------
    RESPONSIVE
    --------------------------------------------------------- */
