@@ -664,3 +664,61 @@
     min-height: 0;
   }
 }
+
+
+/* =========================================================
+   PROCESS CARD FINAL POLISH
+   ---------------------------------------------------------
+   Keep titles single-line, use coral separators between
+   assessment names, and keep cards pure white.
+   ========================================================= */
+
+.process-card,
+.process-card:hover,
+.process-card:focus-visible {
+  background: #fff !important;
+}
+
+.process-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.process-card-content {
+  min-width: 0;
+}
+
+.process-title {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.process-test-chips {
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow: hidden;
+  font-size: 0;
+}
+
+.process-test-chip {
+  flex: 0 0 auto;
+  min-height: 0;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+.process-test-chip:not(:last-of-type)::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  flex: 0 0 4px;
+  margin: 0 0.48rem;
+  border-radius: 50%;
+  background: var(--talena-coral);
+  vertical-align: middle;
+}
