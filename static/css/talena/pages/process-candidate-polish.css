@@ -14,10 +14,6 @@
   margin-bottom: 1rem !important;
 }
 
-.process-page .candidate-insights-panel {
-  padding: 1.2rem !important;
-}
-
 .process-page .candidate-insights-subnavigation {
   margin-bottom: 0.85rem !important;
 }
@@ -446,10 +442,6 @@
 
   .process-page .candidate-profile-header .candidate-profile-tabs {
     padding-inline: 1rem !important;
-  }
-
-  .process-page .candidate-insights-panel {
-    padding: 0.9rem !important;
   }
 
   .process-page .candidate-insights-navigation .candidate-tab,

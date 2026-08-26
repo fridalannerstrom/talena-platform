@@ -37,7 +37,7 @@
 
 /* Candidate card */
 .process-page .process-section-card {
-  border-radius: 19px !important;
+  border-radius: 10px !important;
   box-shadow: 0 12px 30px rgba(38, 31, 28, 0.038) !important;
 }
 

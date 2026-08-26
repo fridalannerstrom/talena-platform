@@ -124,8 +124,8 @@
 .process-page .process-mini-info .quick-card-title,
 .process-page .process-mini-info__value {
   color: var(--talena-ink) !important;
-  font-size: 0.75rem !important;
-  font-weight: 550 !important;
+  font-size: 0.66rem !important;
+  font-weight: 500 !important;
 }
 
 .process-page .process-pill,
@@ -285,7 +285,7 @@
 .process-page .process-section-card {
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
-  border-radius: 18px !important;
+  border-radius: 10px !important;
   background: rgba(255, 255, 255, 0.94) !important;
   box-shadow: var(--talena-shadow-xs) !important;
 }
