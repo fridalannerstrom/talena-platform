@@ -92,9 +92,46 @@
           data-created="{{ p.created_at|date:'Y-m-d' }}"
         >
           <div class="process-card-topline">
-            <span class="process-purpose-badge">
-              {{ p.purpose|purpose_label }}
-            </span>
+            <div class="process-purpose">
+              <span class="process-purpose-icon" aria-hidden="true">
+                {% if p.is_historical %}
+                  <i data-feather="archive"></i>
+                {% elif p.purpose == "recruitment" or p.purpose == "hiring" or p.purpose == "recruiting" or p.purpose == "selection" %}
+                  <i data-feather="briefcase"></i>
+                {% elif p.purpose == "team_development" or p.purpose == "team development" %}
+                  <i data-feather="users"></i>
+                {% elif p.purpose == "leader_development" or p.purpose == "leadership_development" or p.purpose == "leadership development" %}
+                  <i data-feather="award"></i>
+                {% elif p.purpose == "leadership_potential" or p.purpose == "leadership potential" %}
+                  <i data-feather="star"></i>
+                {% elif p.purpose == "employee_development" or p.purpose == "employee development" or p.purpose == "development" %}
+                  <i data-feather="trending-up"></i>
+                {% elif p.purpose == "career_path" or p.purpose == "career path" %}
+                  <i data-feather="map"></i>
+                {% elif p.purpose == "onboarding" %}
+                  <i data-feather="user-plus"></i>
+                {% elif p.purpose == "role_match" or p.purpose == "role match" %}
+                  <i data-feather="target"></i>
+                {% elif p.purpose == "reorganisation" or p.purpose == "reorganization" %}
+                  <i data-feather="shuffle"></i>
+                {% elif p.purpose == "flexible" or p.purpose == "unsure" or p.purpose == "flexible_process" or p.purpose == "flexible process" %}
+                  <i data-feather="sliders"></i>
+                {% else %}
+                  <i data-feather="layers"></i>
+                {% endif %}
+              </span>
+
+              <span class="process-purpose-copy">
+                <span class="process-purpose-label">{% trans "Purpose" %}</span>
+                <span class="process-purpose-value">
+                  {% if p.is_historical %}
+                    {% trans "Historical" %}
+                  {% else %}
+                    {{ p.purpose|purpose_label }}
+                  {% endif %}
+                </span>
+              </span>
+            </div>
 
             {% with can_edit=can_edit_by_process_id|get_item:p.id %}
               <div class="process-card-actions {% if not can_edit or p.is_historical %}is-placeholder{% endif %}">
@@ -200,21 +237,23 @@
           </div>
 
           <footer class="process-card-footer">
-            <div class="process-meta-item">
-              <i data-feather="users"></i>
-              <span>{% trans "Candidates" %}</span>
-              <strong>
-                {% if p.is_historical %}
-                  {{ p.historical_candidates_count|default:0 }}
-                {% else %}
-                  {{ p.live_candidates_count|default:0 }}
-                {% endif %}
-              </strong>
-            </div>
+            <div class="process-card-meta">
+              <div class="process-meta-item">
+                <i data-feather="users"></i>
+                <span>{% trans "Candidates" %}</span>
+                <strong>
+                  {% if p.is_historical %}
+                    {{ p.historical_candidates_count|default:0 }}
+                  {% else %}
+                    {{ p.live_candidates_count|default:0 }}
+                  {% endif %}
+                </strong>
+              </div>
 
-            <div class="process-meta-item">
-              <i data-feather="calendar"></i>
-              <span>{{ p.created_at|date:"Y-m-d" }}</span>
+              <div class="process-meta-item">
+                <i data-feather="calendar"></i>
+                <span>{{ p.created_at|date:"Y-m-d" }}</span>
+              </div>
             </div>
 
             <div class="process-card-open" aria-hidden="true">
