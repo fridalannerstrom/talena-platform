@@ -135,6 +135,117 @@
   border-color: color-mix(in srgb, currentColor 20%, transparent) !important;
 }
 
+/* =========================================================
+   PROCESS CARD FINISHING LAYER
+   ---------------------------------------------------------
+   Keep the content the user chose, but align card rhythm:
+   visible utility actions, a stable content area, smaller
+   assessment chips and a full-width footer divider.
+   ========================================================= */
+
+.process-list-page .process-grid {
+  grid-auto-rows: 1fr;
+}
+
+.process-list-page .process-card {
+  height: 100%;
+}
+
+.process-list-page .process-card-actions {
+  gap: 0.34rem;
+  opacity: 1;
+}
+
+.process-list-page .process-card .icon-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(80, 69, 63, 0.13) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #8a817c !important;
+  box-shadow: 0 1px 2px rgba(23, 19, 18, 0.025) !important;
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    color var(--talena-transition-fast),
+    transform var(--talena-transition-fast);
+}
+
+.process-list-page .process-card .icon-btn:hover,
+.process-list-page .process-card .icon-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 111, 97, 0.28) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-list-page .process-card .icon-btn-danger:hover,
+.process-list-page .process-card .icon-btn-danger:focus-visible {
+  border-color: rgba(207, 89, 80, 0.24) !important;
+  background: var(--talena-danger-soft) !important;
+  color: var(--talena-danger) !important;
+}
+
+.process-list-page .process-card .icon-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.8;
+}
+
+.process-list-page .process-card-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Reserve one label row even when a process has no labels. */
+.process-list-page .process-card-labels {
+  flex: 0 0 24px;
+  min-height: 24px;
+  margin-top: 0.85rem;
+  padding-top: 0;
+}
+
+.process-list-page .process-card-labels:empty {
+  display: flex;
+  visibility: hidden;
+}
+
+.process-list-page .process-title {
+  margin-top: 0.7rem;
+}
+
+.process-list-page .process-tests-block {
+  margin-top: 0.85rem;
+}
+
+.process-list-page .process-tests-label {
+  margin-bottom: 0.42rem;
+}
+
+.process-list-page .process-test-chips {
+  gap: 0.28rem;
+}
+
+.process-list-page .process-test-chip {
+  min-height: 22px;
+  padding: 0.24rem 0.46rem;
+  border-color: rgba(96, 83, 76, 0.13);
+  border-radius: 7px;
+  background: #faf8f6;
+  font-size: 0.54rem;
+  font-weight: 640;
+}
+
+.process-list-page .process-card-footer {
+  flex: 0 0 auto;
+  width: auto;
+  margin: auto -1.25rem -1.25rem;
+  padding: 0.9rem 1.25rem 1.05rem;
+  border-top: 1px solid rgba(219, 211, 205, 0.82);
+}
+
 /* ---------------------------------------------------------
    RESPONSIVE
    --------------------------------------------------------- */
@@ -155,6 +266,10 @@
   .talena-customer-canvas {
     margin-top: 1.5rem;
     padding: 2.4rem 1.85rem 3rem;
+  }
+
+  .process-list-page .process-card-footer {
+    margin-inline: -1.25rem;
   }
 }
 
