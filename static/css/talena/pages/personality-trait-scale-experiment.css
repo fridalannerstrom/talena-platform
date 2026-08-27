@@ -198,8 +198,9 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
 /* The final filled segment is the exact response-style value. */
 .process-page .response-style-scale__segment--filled:not(:has(+ .response-style-scale__segment--filled)) {
   position: relative;
-  height: 12px !important;
+  height: 11px !important;
   background: #f25549 !important;
+  margin-top: -0.5px;
   box-shadow:
     0 0 0 2px #fff,
     0 0 0 3px rgba(242, 85, 73, 0.38) !important;

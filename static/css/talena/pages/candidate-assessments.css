@@ -218,15 +218,15 @@
 }
 
 .process-page .response-style-profile {
-  gap: 0.75rem !important;
-  margin-top: 0.75rem;
+  gap: 1rem !important;
+  margin-top: 0.62rem;
 }
 
 .process-page .response-style-profile__pole-text,
 .process-page .personality-trait-card__pole p,
 .process-page .personality-indicator-row__pole p {
   color: var(--talena-text-muted) !important;
-  font-size: 0.64rem !important;
+  font-size: 0.62rem !important;
   line-height: 1.45;
 }
 
@@ -258,9 +258,7 @@
   padding: 0.9rem 0.95rem !important;
   border: 1px solid rgba(255, 111, 97, 0.15) !important;
   border-radius: 13px !important;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 111, 97, 0.055), transparent 30%),
-    #fffaf8 !important;
+  background: var(--talena-surface-soft);
   box-shadow: none !important;
 }
 
@@ -272,7 +270,7 @@
 }
 
 .process-page .response-style-ai-content__label {
-  color: var(--talena-text-subtle) !important;
+  color: #635e5a !important;
   font-size: 0.56rem !important;
   font-weight: 690 !important;
   letter-spacing: 0.045em;

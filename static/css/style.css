@@ -26762,9 +26762,7 @@ color: #6E63E3;
 .response-style-profile {
   display: grid;
   grid-template-columns:
-    minmax(190px, 1fr)
-    minmax(280px, 420px)
-    minmax(190px, 1fr);
+minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
   align-items: center;
   gap: 24px;
 
