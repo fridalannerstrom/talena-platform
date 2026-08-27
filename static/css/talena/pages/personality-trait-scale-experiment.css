@@ -1,15 +1,18 @@
 /* =========================================================
-   TALENA — PERSONALITY TRAIT SCALE EXPERIMENT
+   TALENA - PERSONALITY SCALE PROTOTYPE
    ---------------------------------------------------------
-   Prototype for Personality > Results > Trait Profile only.
+   Approved visual language for Personality > Results > Trait
+   Profile, now extended to Response Styles.
+
    The scale communicates distance from the STEN average range
    without implying that either end is positive or negative.
-
-   If this treatment is approved, the same visual language can
-   later be extended to response styles and indicator scales.
    ========================================================= */
 
-/* Average range on the STEN scale is 4–7. Keep it calm and
+/* =========================================================
+   TRAIT PROFILE
+   ========================================================= */
+
+/* Average range on the STEN scale is 4-7. Keep it calm and
    neutral, then gradually increase the coral tint toward the
    outer ends so distance from the average is easier to scan. */
 .process-page .personality-quick-scale__segment[data-score="4"],
@@ -81,7 +84,7 @@
 }
 
 /* Keep the 5/6 midpoint visible while the four-box average
-   range (4–7) carries the broader average-zone meaning. */
+   range (4-7) carries the broader average-zone meaning. */
 .process-page .personality-quick-scale__center-line {
   height: 18px !important;
   background: rgba(23, 19, 18, 0.24) !important;
@@ -115,9 +118,6 @@
   font-weight: 650;
 }
 
-/* The current template still contains the English word Average.
-   Give Swedish UI the intended label without changing data or
-   touching the other personality scale templates yet. */
 html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2) {
   font-size: 0 !important;
 }
@@ -125,4 +125,126 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
 html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2)::before {
   content: "Genomsnitt";
   font-size: 0.52rem;
+}
+
+
+/* =========================================================
+   RESPONSE STYLES
+   =========================================================
+   The response-style data already provides a side and a distance
+   from the midpoint. Reverse the left half visually so both halves
+   grow from the centre outward, then apply the same average-zone,
+   active-path and endpoint treatment as the Trait Profile.
+   ========================================================= */
+
+.process-page .response-style-scale__track {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr) !important;
+  gap: 4px !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.process-page .response-style-scale__side {
+  display: flex !important;
+  gap: 4px !important;
+  min-width: 0;
+}
+
+.process-page .response-style-scale__side--left {
+  flex-direction: row-reverse !important;
+}
+
+.process-page .response-style-scale__side--right {
+  flex-direction: row !important;
+}
+
+.process-page .response-style-scale__segment {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 9px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #eeeae7 !important;
+  box-shadow: none !important;
+  transition:
+    background-color 160ms ease,
+    height 160ms ease,
+    box-shadow 160ms ease;
+}
+
+/* The first two positions on either side correspond to STEN
+   4-7 and therefore form the calm average zone. Positions farther
+   from the centre progressively pick up more coral tint. */
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(3) {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(4) {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(5) {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+
+/* Existing --filled segments represent the route from the midpoint
+   to the result. Use the same active coral as the Trait Profile. */
+.process-page .response-style-scale__segment--filled {
+  background: #ff8a7d !important;
+}
+
+/* The final filled segment is the exact response-style value. */
+.process-page .response-style-scale__segment--filled:not(:has(+ .response-style-scale__segment--filled)) {
+  position: relative;
+  height: 12px !important;
+  background: #f25549 !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(242, 85, 73, 0.38) !important;
+}
+
+.process-page .response-style-scale__center-line {
+  width: 1px !important;
+  height: 18px !important;
+  align-self: center;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+/* Match the Trait Profile labels: arrows at the poles and a
+   clear average label in the centre. */
+.process-page .response-style-scale__label--left,
+.process-page .response-style-scale__label--right {
+  font-size: 0 !important;
+}
+
+.process-page .response-style-scale__label--left::before,
+.process-page .response-style-scale__label--right::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .response-style-scale__label--left::before {
+  content: "←";
+}
+
+.process-page .response-style-scale__label--right::before {
+  content: "→";
+}
+
+.process-page .response-style-scale__label--center {
+  color: var(--talena-text-muted) !important;
+  font-size: 0 !important;
+  font-weight: 650 !important;
+}
+
+.process-page .response-style-scale__label--center::before {
+  content: "Average";
+  font-size: 0.52rem;
+}
+
+html[lang^="sv"] .process-page .response-style-scale__label--center::before {
+  content: "Genomsnitt";
 }
