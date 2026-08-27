@@ -172,3 +172,32 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* ---------------------------------------------------------
+   PERSONALITY TRAIT SUMMARY
+   Match the visual language used by "Keep in mind when reading
+   the profile" in the response-style AI insight.
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .process-page .personality-trait-card__summary {
+  border-color: rgba(255, 111, 97, 0.15) !important;
+  background: var(--talena-surface-soft) !important;
+  text-align: left !important;
+}
+
+#layoutSidenav_content main .process-page .personality-trait-card__summary-label {
+  color: #635e5a !important;
+  font-size: 0.56rem !important;
+  font-weight: 690 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0.045em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+}
+
+#layoutSidenav_content main .process-page .personality-trait-card__summary-text {
+  color: var(--talena-text) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.6 !important;
+  text-align: left !important;
+}
