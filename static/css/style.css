@@ -3366,11 +3366,6 @@ color: #6CACCB;
    PROFILE CATEGORIES
 ========================================================= */
 
-.personality-profile-section {
-  margin: 0;
-  padding-top: 30px;
-}
-
 .personality-profile-section + .personality-profile-section {
   margin-top: 12px;
   padding-top: 34px;
@@ -3389,8 +3384,6 @@ color: #6CACCB;
   line-height: 1.4;
   letter-spacing: 0.025em;
   text-transform: uppercase;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #ebe8f1;
 }
 
 .personality-profile-section__traits {
@@ -27649,12 +27642,9 @@ minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-
   padding: 4px;
-
   border: 1px solid #e1def6;
   border-radius: 12px;
-
   background: #f7f6fc;
 }
 

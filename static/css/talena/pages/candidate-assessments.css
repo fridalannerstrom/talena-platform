@@ -194,6 +194,7 @@
   color: var(--talena-ink) !important;
   font-size: 0.78rem !important;
   font-weight: 690 !important;
+  margin-bottom: 10px;
 }
 
 .process-page .response-style-item__subtitle {
@@ -331,7 +332,6 @@
 }
 
 .process-page .personality-profile-section__header {
-  padding: 0.78rem 0.9rem !important;
   border-bottom: 1px solid var(--talena-border) !important;
   background: var(--talena-surface-soft) !important;
 }
@@ -339,7 +339,7 @@
 .process-page .personality-profile-section__title {
   margin: 0 !important;
   color: var(--talena-ink) !important;
-  font-size: 0.73rem !important;
+  font-size: 0.69rem !important;
   font-weight: 700 !important;
 }
 
@@ -363,7 +363,7 @@
 
 .process-page .personality-trait-card__title {
   color: var(--talena-ink) !important;
-  font-size: 0.75rem !important;
+  font-size: 0.9rem !important;
   font-weight: 690 !important;
 }
 
