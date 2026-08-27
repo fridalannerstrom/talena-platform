@@ -342,7 +342,7 @@
   border-radius: 9px !important;
   background: transparent !important;
   color: var(--talena-text-muted) !important;
-  font-size: 0.62rem !important;
+  font-size: 0.7rem !important;
   font-weight: 550 !important;
   white-space: nowrap;
 }
@@ -729,12 +729,6 @@
 
 .process-page .candidate-insights-navigation .candidate-profile-tabs {
   gap: 0.32rem !important;
-}
-
-.process-page .candidate-insights-navigation .candidate-tab {
-  min-height: 36px !important;
-  padding: 0.48rem 0.75rem !important;
-  border-radius: 5px !important;
 }
 
 .process-page .candidate-insights-navigation .candidate-tab.is-active,

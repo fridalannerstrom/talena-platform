@@ -26990,11 +26990,6 @@ minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
   }
 }
 
-.personality-profile {
-  display: grid;
-  gap: 2rem;
-}
-
 .personality-profile-section__header {
   margin-bottom: 1rem;
 }
