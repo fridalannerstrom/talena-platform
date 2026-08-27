@@ -19,14 +19,14 @@
 
   /* Ink and text */
   --talena-ink: #171312;
-  --talena-text: #292524;
+  --talena-text: #6d6765;
   --talena-text-muted: #77706c;
   --talena-text-subtle: #9a928d;
 
   /* Surfaces */
   --talena-bg: #faf9f7;
   --talena-surface: #ffffff;
-  --talena-surface-soft: #f7f5f2;
+  --talena-surface-soft: #f8f7f4;
   --talena-surface-warm: #fff8f3;
   --talena-surface-dark: #191514;
 

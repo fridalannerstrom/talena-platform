@@ -77,11 +77,12 @@
 
 .process-page .candidate-profile-header .candidate-profile-tabs {
   gap: 1rem !important;
+  border-bottom: 1px solid var(--talena-border);
 }
 
 .process-page .candidate-profile-header .candidate-tab {
   min-height: 43px !important;
-  font-size: 0.66rem !important;
+  font-size: 0.7rem !important;
 }
 
 /* ---------------------------------------------------------

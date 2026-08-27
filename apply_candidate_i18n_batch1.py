@@ -206,7 +206,7 @@ PLANS = (
         path="templates/customer/processes/partials/candidate_insights/tabs/_overview.html",
         preamble="",
         replacements=(
-            r('       ✨ AI-generated insight', '       ✨ {% trans "AI-generated insight" %}'),
+            r('       AI-generated insight', '       {% trans "AI-generated insight" %}'),
             r('       AI Summary', '       {% trans "AI Summary" %}'),
             r(
                 '''       A combined interpretation of the candidate’s available assessment
