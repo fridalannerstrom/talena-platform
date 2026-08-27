@@ -430,8 +430,8 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 .personality-question-card__text {
   max-width: 640px !important;
   color: var(--talena-ink) !important;
-  font-size: 0.82rem !important;
-  font-weight: 690 !important;
+  font-size: 1.2rem !important;
+  font-weight: 550 !important;
   line-height: 1.48 !important;
   letter-spacing: -0.012em !important;
 }
