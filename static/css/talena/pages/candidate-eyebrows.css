@@ -1,0 +1,43 @@
+/* =========================================================
+   TALENA — CANDIDATE INSIGHT EYEBROWS
+   ---------------------------------------------------------
+   Mirrors the dashboard eyebrow component inside the
+   dynamically loaded candidate insights workspace.
+   ========================================================= */
+
+.process-page .insight-summary-kicker,
+.process-page .candidate-section-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  margin: 0 0 0.7rem !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.66rem !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase !important;
+}
+
+.process-page .insight-summary-kicker::before,
+.process-page .candidate-section-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--talena-coral);
+  box-shadow: 0 0 0 5px rgba(255, 111, 97, 0.08);
+}
+
+/* Keep the eyebrow visually attached to its heading. */
+.process-page .candidate-section-eyebrow + .insight-summary-title,
+.process-page .candidate-section-eyebrow + .cognitive-result-card__title,
+.process-page .candidate-section-eyebrow + .personality-questions-section-title {
+  margin-top: 0 !important;
+}
+
+/* The old templates sometimes carry Bootstrap mt-4 on kickers. */
+.process-page .insight-summary-kicker.mt-4 {
+  margin-top: 0 !important;
+}
