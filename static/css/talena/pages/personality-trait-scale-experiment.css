@@ -1,20 +1,11 @@
 /* =========================================================
    TALENA - PERSONALITY SCALE PROTOTYPE
-   ---------------------------------------------------------
-   Approved visual language for Personality > Results > Trait
-   Profile, now extended to Response Styles.
-
-   The scale communicates distance from the STEN average range
-   without implying that either end is positive or negative.
    ========================================================= */
 
 /* =========================================================
-   TRAIT PROFILE
+   TRAIT PROFILE - SEGMENTED QUICK VIEW
    ========================================================= */
 
-/* Average range on the STEN scale is 4-7. Keep it calm and
-   neutral, then gradually increase the coral tint toward the
-   outer ends so distance from the average is easier to scan. */
 .process-page .personality-quick-scale__segment[data-score="4"],
 .process-page .personality-quick-scale__segment[data-score="5"],
 .process-page .personality-quick-scale__segment[data-score="6"],
@@ -37,24 +28,12 @@
   background: rgba(255, 111, 97, 0.25) !important;
 }
 
-/* ---------------------------------------------------------
-   ACTIVE RESULT PATH
-   ---------------------------------------------------------
-   Colour the route from the 5/6 midpoint out to the candidate's
-   actual STEN result. This makes direction + distance readable
-   at a glance while the softer zone colours remain contextual.
-   --------------------------------------------------------- */
-
-/* Left of midpoint: selected result -> STEN 5. */
+/* Active path, midpoint -> selected result. */
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="1"]) .personality-quick-scale__segment:is([data-score="1"], [data-score="2"], [data-score="3"], [data-score="4"], [data-score="5"]),
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="2"]) .personality-quick-scale__segment:is([data-score="2"], [data-score="3"], [data-score="4"], [data-score="5"]),
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="3"]) .personality-quick-scale__segment:is([data-score="3"], [data-score="4"], [data-score="5"]),
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="4"]) .personality-quick-scale__segment:is([data-score="4"], [data-score="5"]),
-.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="5"]) .personality-quick-scale__segment[data-score="5"] {
-  background: #ff8a7d !important;
-}
-
-/* Right of midpoint: STEN 6 -> selected result. */
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="5"]) .personality-quick-scale__segment[data-score="5"],
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="6"]) .personality-quick-scale__segment[data-score="6"],
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="7"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"]),
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="8"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"], [data-score="8"]),
@@ -63,8 +42,6 @@
   background: #ff8a7d !important;
 }
 
-/* The candidate's exact result is the strongest point on the
-   active route, so users can still distinguish the final value. */
 .process-page .personality-quick-scale__segment--selected {
   position: relative;
   height: 12px !important;
@@ -74,8 +51,6 @@
     0 0 0 3px rgba(242, 85, 73, 0.38) !important;
 }
 
-/* Give the path a little visual continuity without turning the
-   segmented STEN scale into one solid progress bar. */
 .process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected) .personality-quick-scale__segment {
   transition:
     background-color 160ms ease,
@@ -83,15 +58,11 @@
     box-shadow 160ms ease;
 }
 
-/* Keep the 5/6 midpoint visible while the four-box average
-   range (4-7) carries the broader average-zone meaning. */
 .process-page .personality-quick-scale__center-line {
   height: 18px !important;
   background: rgba(23, 19, 18, 0.24) !important;
 }
 
-/* Replace Left / Right with directional anchors. The pole
-   descriptions beside the scale explain what each end means. */
 .process-page .personality-quick-scale__labels span:first-child,
 .process-page .personality-quick-scale__labels span:last-child {
   font-size: 0 !important;
@@ -127,14 +98,8 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
   font-size: 0.52rem;
 }
 
-
 /* =========================================================
    RESPONSE STYLES
-   =========================================================
-   The response-style data already provides a side and a distance
-   from the midpoint. Reverse the left half visually so both halves
-   grow from the centre outward, then apply the same average-zone,
-   active-path and endpoint treatment as the Trait Profile.
    ========================================================= */
 
 .process-page .response-style-scale__track {
@@ -173,9 +138,6 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
     box-shadow 160ms ease;
 }
 
-/* The first two positions on either side correspond to STEN
-   4-7 and therefore form the calm average zone. Positions farther
-   from the centre progressively pick up more coral tint. */
 .process-page .response-style-scale__side .response-style-scale__segment:nth-child(3) {
   background: rgba(255, 111, 97, 0.10) !important;
 }
@@ -188,19 +150,15 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
   background: rgba(255, 111, 97, 0.25) !important;
 }
 
-/* Existing --filled segments represent the route from the midpoint
-   to the result. Keep this selector more specific than the contextual
-   nth-child tint rules above so every active segment is coloured. */
 .process-page .response-style-scale__side .response-style-scale__segment.response-style-scale__segment--filled {
   background: #ff8a7d !important;
 }
 
-/* The final filled segment is the exact response-style value. */
 .process-page .response-style-scale__segment--filled:not(:has(+ .response-style-scale__segment--filled)) {
   position: relative;
   height: 11px !important;
-  background: #f25549 !important;
   margin-top: -0.5px;
+  background: #f25549 !important;
   box-shadow:
     0 0 0 2px #fff,
     0 0 0 3px rgba(242, 85, 73, 0.38) !important;
@@ -213,8 +171,6 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
   background: rgba(23, 19, 18, 0.24) !important;
 }
 
-/* Match the Trait Profile labels: arrows at the poles and a
-   clear average label in the centre. */
 .process-page .response-style-scale__label--left,
 .process-page .response-style-scale__label--right {
   font-size: 0 !important;
@@ -251,15 +207,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   content: "Genomsnitt";
 }
 
-/* ---------------------------------------------------------
-   RESPONSE STYLE LAYOUT POLISH
-   ---------------------------------------------------------
-   Match the visual hierarchy of the Trait Profile: trait name
-   centred above the scale, with only the descriptive pole text on
-   the left and right. The redundant Left score / Right score
-   captions are hidden.
-   --------------------------------------------------------- */
-
 .process-page .response-style-item__header {
   justify-content: center !important;
   margin-bottom: 0 !important;
@@ -284,12 +231,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 
 /* =========================================================
    TRAIT & INDICATOR PROFILE - INDICATOR SCALE
-   ---------------------------------------------------------
-   Make indicator scales match the Trait Profile:
-   - same segment styling
-   - same centre-out active path
-   - same arrow labels
-   - hide redundant Left score / Right score labels
    ========================================================= */
 
 .process-page .personality-indicator-row__pole-label {
@@ -329,7 +270,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   gap: 4px !important;
 }
 
-/* Base segments */
 .process-page .personality-indicator-scale__segment {
   display: block;
   height: 9px !important;
@@ -343,25 +283,26 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
     box-shadow 160ms ease !important;
 }
 
-/* Average-zone context, same visual logic as trait profile */
-.process-page .personality-indicator-scale__side .personality-indicator-scale__segment:nth-child(3) {
-  background: rgba(255, 111, 97, 0.10) !important;
-}
-
-.process-page .personality-indicator-scale__side .personality-indicator-scale__segment:nth-child(4) {
-  background: rgba(255, 111, 97, 0.17) !important;
-}
-
-.process-page .personality-indicator-scale__side .personality-indicator-scale__segment:nth-child(5) {
+/* Exact same contextual STEN shading as the Trait Profile. */
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(1),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(5) {
   background: rgba(255, 111, 97, 0.25) !important;
 }
 
-/* Active path from midpoint to result */
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(2),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(4) {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(3),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(3) {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
 .process-page .personality-indicator-scale__side .personality-indicator-scale__segment.personality-indicator-scale__segment--filled {
   background: #ff8a7d !important;
 }
 
-/* Exact result */
 .process-page .personality-indicator-scale__segment--selected {
   position: relative;
   height: 12px !important;
@@ -371,7 +312,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
     0 0 0 3px rgba(242, 85, 73, 0.38) !important;
 }
 
-/* Centre divider */
 .process-page .personality-indicator-scale__center-line {
   display: block;
   width: 1px !important;
@@ -381,7 +321,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   background: rgba(23, 19, 18, 0.24) !important;
 }
 
-/* Labels below scale */
 .process-page .personality-indicator-scale__labels {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
@@ -392,7 +331,6 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   font-weight: 650 !important;
 }
 
-/* Replace Vänster / Höger with arrows */
 .process-page .personality-indicator-scale__label--left,
 .process-page .personality-indicator-scale__label--right {
   font-size: 0 !important;
@@ -410,23 +348,23 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   justify-self: start;
 }
 
-.process-page .personality-indicator-scale__label--center {
-  justify-self: center;
-  color: var(--talena-text-muted) !important;
-  font-size: 0 !important;
-  font-weight: 650 !important;
+.process-page .personality-indicator-scale__label--left::before {
+  content: "←";
 }
 
 .process-page .personality-indicator-scale__label--right {
   justify-self: end;
 }
 
-.process-page .personality-indicator-scale__label--left::before {
-  content: "←";
-}
-
 .process-page .personality-indicator-scale__label--right::before {
   content: "→";
+}
+
+.process-page .personality-indicator-scale__label--center {
+  justify-self: center;
+  color: var(--talena-text-muted) !important;
+  font-size: 0 !important;
+  font-weight: 650 !important;
 }
 
 .process-page .personality-indicator-scale__label--center::before {
@@ -436,4 +374,153 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 
 html[lang^="sv"] .process-page .personality-indicator-scale__label--center::before {
   content: "Genomsnitt";
+}
+
+/* =========================================================
+   DETAILED TRAIT GRAPH
+   ========================================================= */
+
+/* Pole descriptions already explain the ends; remove duplicate labels. */
+.process-page .personality-trait-card__main .personality-trait-card__pole-label {
+  display: none !important;
+}
+
+/* Tighten the graph without changing the STEN logic. */
+.process-page .personality-trait-card__header {
+  margin-bottom: 0.8rem !important;
+}
+
+.process-page .personality-graph__bars {
+  height: 104px !important;
+  padding-top: 26px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(1),
+.process-page .personality-graph__segment:nth-child(10) {
+  height: 14px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(2),
+.process-page .personality-graph__segment:nth-child(9) {
+  height: 25px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(3),
+.process-page .personality-graph__segment:nth-child(8) {
+  height: 39px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(4),
+.process-page .personality-graph__segment:nth-child(7) {
+  height: 55px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(5),
+.process-page .personality-graph__segment:nth-child(6) {
+  height: 70px !important;
+}
+
+.process-page .personality-graph__marker {
+  width: 30px !important;
+  height: 30px !important;
+  bottom: calc(100% + 8px) !important;
+  font-size: 0.75rem !important;
+}
+
+.process-page .personality-graph__marker::after {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+/* Left / Right -> arrows. */
+.process-page .personality-graph__axis span:first-child,
+.process-page .personality-graph__axis span:last-child {
+  font-size: 0 !important;
+}
+
+.process-page .personality-graph__axis span:first-child::before,
+.process-page .personality-graph__axis span:last-child::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .personality-graph__axis span:first-child::before {
+  content: "←";
+}
+
+.process-page .personality-graph__axis span:last-child::before {
+  content: "→";
+}
+
+html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2) {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::before {
+  content: "Genomsnitt";
+  color: var(--talena-text-muted);
+  font-size: 0.55rem;
+  font-weight: 650;
+}
+
+/* =========================================================
+   PERSONALITY SECTION HEADERS - CONSISTENT ACROSS ALL SUBTABS
+   ========================================================= */
+
+.process-page .personality-profile-section__header,
+.process-page .personality-quick-section__header {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  padding: 0.72rem 0.9rem !important;
+  margin: 0 !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-profile-section__title,
+.process-page .personality-quick-section__title {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+/* Swedish section names. Keep canonical English names untouched in data. */
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(1) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(2) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(3) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(1) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title::before {
+  content: "Leda och samarbeta med andra";
+  font-size: 0.69rem;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(2) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title::before {
+  content: "Organisation och tankestil";
+  font-size: 0.69rem;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(3) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title::before {
+  content: "Samspel och känslohantering";
+  font-size: 0.69rem;
 }
