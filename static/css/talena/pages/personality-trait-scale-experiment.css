@@ -189,8 +189,9 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
 }
 
 /* Existing --filled segments represent the route from the midpoint
-   to the result. Use the same active coral as the Trait Profile. */
-.process-page .response-style-scale__segment--filled {
+   to the result. Keep this selector more specific than the contextual
+   nth-child tint rules above so every active segment is coloured. */
+.process-page .response-style-scale__side .response-style-scale__segment.response-style-scale__segment--filled {
   background: #ff8a7d !important;
 }
 
