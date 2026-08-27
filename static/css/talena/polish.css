@@ -201,3 +201,131 @@
   line-height: 1.6 !important;
   text-align: left !important;
 }
+
+/* ---------------------------------------------------------
+   CANDIDATE INSIGHTS — AI TAB LABELS
+   Make it explicit that the interpretation views are AI-supported.
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .process-page
+.candidate-insights-view-option[data-insights-subtab="interpretation"] span {
+  font-size: 0 !important;
+}
+
+#layoutSidenav_content main .process-page
+.candidate-insights-view-option[data-insights-subtab="interpretation"] span::after {
+  content: "AI-interpretation";
+  font-size: 0.63rem;
+  font-weight: 550;
+  line-height: 1;
+}
+
+html[lang^="sv"] #layoutSidenav_content main .process-page
+.candidate-insights-view-option[data-insights-subtab="interpretation"] span::after {
+  content: "AI-tolkning";
+}
+
+/* ---------------------------------------------------------
+   PERSONALITY — RESPONSE STYLES EYEBROW
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .response-styles-header::before {
+  content: "Personality";
+  display: block;
+  width: fit-content;
+  margin-bottom: 0.45rem;
+  padding-left: 16px;
+  background:
+    radial-gradient(
+      circle at 6px 50%,
+      var(--talena-coral) 0 3px,
+      rgba(255, 111, 97, 0.13) 3px 7px,
+      transparent 7px
+    );
+  color: var(--talena-coral-strong);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+html[lang^="sv"] #layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .response-styles-header::before {
+  content: "Personlighet";
+}
+
+/* ---------------------------------------------------------
+   PERSONALITY — RESULT SUMMARY (#155)
+   Rename the third profile view and move explanatory copy before
+   the result content so the reader gets context first.
+   --------------------------------------------------------- */
+
+#layoutSidenav_content main .process-page #personality-descriptions-tab span {
+  font-size: 0 !important;
+}
+
+#layoutSidenav_content main .process-page #personality-descriptions-tab span::after {
+  content: "Result summary";
+  font-size: 0.7rem;
+  font-weight: 550;
+}
+
+html[lang^="sv"] #layoutSidenav_content main .process-page
+#personality-descriptions-tab span::after {
+  content: "Resultatsammanfattning";
+}
+
+#layoutSidenav_content main .process-page
+#personality-descriptions-view {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#layoutSidenav_content main .process-page
+#personality-descriptions-view[hidden] {
+  display: none !important;
+}
+
+#layoutSidenav_content main .process-page
+#personality-descriptions-view > .small.text-muted.border-top {
+  order: -1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 1rem !important;
+  padding-top: 0 !important;
+  padding-bottom: 0.9rem !important;
+  border-top: 0 !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+}
+
+/* Response-style disclaimer is also explanatory context: keep it
+   directly below the section intro instead of after the AI card. */
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .response-styles-header {
+  order: 0 !important;
+}
+
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .small.text-muted.border-bottom {
+  order: 1 !important;
+  margin-top: -0.35rem !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.9rem !important;
+}
+
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .response-style-card {
+  order: 2 !important;
+}
+
+#layoutSidenav_content main .process-page
+[data-response-style-guidance-root] > .response-style-ai-card {
+  order: 3 !important;
+}
