@@ -5,7 +5,7 @@
   <section
     data-personality-questions-root
     data-stream-url="{{ personality_questions_stream_url }}"
-    data-regenerate-url="{{ personality_questions_regenerate_url }}"
+    data-regenerate-url="{{ personality_interpretation_regenerate_url }}"
     data-update-traits-url="{{ personality_traits_update_url }}"
     data-status="{{ personality_questions_status }}"
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
@@ -52,8 +52,8 @@
             type="button"
             class="btn btn-icon btn-light"
             data-personality-questions-regenerate
-title="{% trans 'Generate new personality questions' %}"
-aria-label="{% trans 'Generate new personality questions' %}"
+            title="{% trans 'Generate new personality questions' %}"
+            aria-label="{% trans 'Generate new personality questions' %}"
           >
             <i data-feather="refresh-cw"></i>
           </button>
@@ -108,9 +108,9 @@ aria-label="{% trans 'Generate new personality questions' %}"
         <!-- SELECTED TRAITS -->
         <section class="personality-questions-traits mt-4">
 
-          <div class="personality-questions-section-header">
+          <div class="personality-questions-section-header flex-nowrap align-items-center">
 
-            <div>
+            <div class="flex-grow-1">
               <h3 class="personality-questions-section-title mb-1">
                 {% trans "Traits used for these questions" %}
               </h3>
@@ -133,7 +133,7 @@ aria-label="{% trans 'Generate new personality questions' %}"
 
             <button
               type="button"
-              class="btn btn-primary text-nowrap"
+              class="btn btn-primary text-nowrap ms-auto align-self-center"
               data-personality-traits-edit
             >
               {% trans "Change traits" %}
@@ -144,22 +144,21 @@ aria-label="{% trans 'Generate new personality questions' %}"
         </section>
 
 
-        <!-- STANDARD INTERVIEW TIME -->
-        <div class="d-flex align-items-center gap-2 flex-wrap mt-4">
-          <span class="personality-trait-pill text-nowrap">
-            <i data-feather="clock"></i>
-            ~ {{ interview_meta.estimated_minutes }} min
-          </span>
-        </div>
-
         <!-- QUESTIONS -->
         <section
           class="personality-questions-section mt-4"
           data-personality-questions-list-section
         >
-          <h3 class="personality-questions-section-title">
-            {% trans "Questions to explore" %}
-          </h3>
+          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+            <h3 class="personality-questions-section-title mb-0">
+              {% trans "Questions to explore" %}
+            </h3>
+
+            <span class="personality-trait-pill text-nowrap ms-auto">
+              <i data-feather="clock"></i>
+              ~ {{ interview_meta.estimated_minutes }} min
+            </span>
+          </div>
 
           <div
             class="personality-question-list"
