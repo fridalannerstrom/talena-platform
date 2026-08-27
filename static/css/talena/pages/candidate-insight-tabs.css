@@ -1,0 +1,206 @@
+/* =========================================================
+   TALENA — CANDIDATE INSIGHT TAB HIERARCHY
+   ---------------------------------------------------------
+   Gives every candidate-insight area the same visual rhythm:
+   page header -> divider -> local tabs -> divider -> content.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   MAIN INSIGHT PAGE SHELLS
+   --------------------------------------------------------- */
+
+.process-page .candidate-insight-page {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 14px 36px rgba(23, 19, 18, 0.04) !important;
+}
+
+.process-page .candidate-insight-page-header {
+  padding: 1.5rem 1.5rem 1.15rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: #fff;
+}
+
+.process-page .candidate-insight-page-header .insight-summary-kicker {
+  margin-bottom: 0.55rem !important;
+}
+
+.process-page .candidate-insight-page-title {
+  margin: 0 0 0.35rem;
+  color: var(--talena-ink);
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem);
+  font-weight: 725;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.process-page .candidate-insight-page-description {
+  max-width: 780px;
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+
+/* ---------------------------------------------------------
+   LOCAL TABS
+   Match Overview / Sent tests / Test link / Activity.
+   --------------------------------------------------------- */
+
+.process-page .candidate-insight-page .candidate-insights-subnavigation {
+  margin: 0 !important;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: #fff;
+}
+
+.process-page .candidate-insight-page .candidate-insights-subnavigation__layout {
+  margin: 0 !important;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-switcher {
+  display: flex;
+  align-items: center;
+  gap: 1.05rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-option {
+  position: relative;
+  min-height: 45px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem;
+  font-weight: 550;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-option svg {
+  display: none !important;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-option:hover {
+  border-bottom-color: rgba(255, 111, 97, 0.28) !important;
+  background: transparent !important;
+  color: var(--talena-ink) !important;
+}
+
+.process-page .candidate-insight-page .candidate-insights-view-option.is-active,
+.process-page .candidate-insight-page .candidate-insights-view-option[aria-selected="true"] {
+  border-bottom-color: var(--talena-coral) !important;
+  background: transparent !important;
+  color: var(--talena-coral-strong) !important;
+  font-weight: 550;
+}
+
+.process-page .candidate-insight-page .candidate-insights-subworkspace__panels {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.process-page .candidate-insight-page .candidate-insights-subpanel > .purpose-fit-card,
+.process-page .candidate-insight-page .candidate-insights-subpanel > .personality-questions-card {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   TEAM STYLES
+   The page header now lives above the existing team content.
+   --------------------------------------------------------- */
+
+.process-page .candidate-insight-page-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.process-page #candidate-insights-panel-team-styles .team-styles-section {
+  margin: 0 !important;
+}
+
+.process-page #candidate-insights-panel-team-styles .team-styles-section > div > .team-styles-header:first-child {
+  display: none !important;
+}
+
+
+/* ---------------------------------------------------------
+   EMPTY STATES INSIDE THE NEW PAGE SHELL
+   --------------------------------------------------------- */
+
+.process-page .candidate-insight-page > .combined-questions-empty-state,
+.process-page .candidate-insight-page .candidate-insights-subworkspace + .combined-questions-empty-state {
+  margin: 1.25rem 1.5rem 1.5rem !important;
+}
+
+
+/* ---------------------------------------------------------
+   PREPARE / AFTER INTERVIEW
+   Keep existing markup, but give the first header the same
+   full-width header treatment as the other insight pages.
+   --------------------------------------------------------- */
+
+.process-page #candidate-insights-panel-prepare-interview > .final-output-card,
+.process-page #candidate-insights-panel-after-interview > .final-output-card {
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 14px 36px rgba(23, 19, 18, 0.04) !important;
+}
+
+.process-page #candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child,
+.process-page #candidate-insights-panel-after-interview > .final-output-card > div:first-child {
+  margin: -1.15rem -1.2rem 1.15rem !important;
+  padding: 1.5rem 1.5rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: #fff;
+}
+
+.process-page #candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child .insight-summary-kicker,
+.process-page #candidate-insights-panel-after-interview > .final-output-card > div:first-child .insight-summary-kicker {
+  margin-bottom: 0.55rem !important;
+}
+
+.process-page #candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child .insight-summary-title,
+.process-page #candidate-insights-panel-after-interview > .final-output-card > div:first-child .insight-summary-title {
+  margin-bottom: 0.35rem !important;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 620px) {
+  .process-page .candidate-insight-page-header {
+    padding: 1.15rem 1rem 0.95rem;
+  }
+
+  .process-page .candidate-insight-page .candidate-insights-subnavigation {
+    padding: 0 1rem;
+  }
+
+  .process-page .candidate-insight-page .candidate-insights-view-switcher {
+    gap: 0.9rem;
+  }
+
+  .process-page .candidate-insight-page .candidate-insights-subworkspace__panels,
+  .process-page .candidate-insight-page-body {
+    padding: 1rem;
+  }
+}
