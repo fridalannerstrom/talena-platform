@@ -46,6 +46,7 @@
     const personalityLabel = getTabLabel(root, "personality");
     const motivationLabel = getTabLabel(root, "motivation");
     const cognitiveLabel = getTabLabel(root, "cognitive");
+    const teamStylesLabel = getTabLabel(root, "team-styles");
     const interviewLabel = getInterviewLabel();
 
     const aiLabel =
@@ -77,7 +78,7 @@
       root.querySelector(
         ".team-styles-section .team-styles-header h2.insight-summary-title"
       ),
-      personalityLabel
+      teamStylesLabel
     );
 
     root.querySelectorAll(".cognitive-result-card__header h3").forEach((heading) => {
