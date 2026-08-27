@@ -261,7 +261,7 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 
 .process-page .response-style-item__header {
   justify-content: center !important;
-  margin-bottom: 0.25rem !important;
+  margin-bottom: 0 !important;
   text-align: center;
 }
 
@@ -275,7 +275,7 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 }
 
 .process-page .response-style-profile {
-  margin-top: 0.3rem !important;
+  margin-top: 0 !important;
 }
 
 .process-page .response-style-profile .personality-trait-card__pole-label {
