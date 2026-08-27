@@ -282,3 +282,56 @@ html[lang^="sv"] .process-page .response-style-scale__label--center::before {
 .process-page .response-style-profile .personality-trait-card__pole-label {
   display: none !important;
 }
+
+/* =========================================================
+   TRAIT & INDICATOR PROFILE - INDICATOR SCALE
+   ---------------------------------------------------------
+   Give indicator scales the same calm segmented treatment as
+   the Trait Profile: neutral inactive blocks, coral path from
+   the midpoint to the result and a light centre divider.
+   ========================================================= */
+
+.process-page .personality-indicator-scale {
+  grid-template-columns: minmax(0, 1fr) 2px minmax(0, 1fr) !important;
+  gap: 4px !important;
+}
+
+.process-page .personality-indicator-scale__side {
+  gap: 4px !important;
+}
+
+.process-page .personality-indicator-scale__segment {
+  height: 9px !important;
+  border-radius: 999px !important;
+  background: #e8e6e3 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.process-page .personality-indicator-scale__side .personality-indicator-scale__segment.personality-indicator-scale__segment--filled,
+.process-page .personality-indicator-scale__side .personality-indicator-scale__segment.personality-indicator-scale__segment--selected {
+  background: #ff8074 !important;
+}
+
+.process-page .personality-indicator-scale__segment--selected {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.process-page .personality-indicator-scale__center-line {
+  width: 2px !important;
+  height: 18px !important;
+  border-radius: 999px !important;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+.process-page .personality-indicator-scale__labels {
+  margin-top: 5px !important;
+  color: #9a9793 !important;
+  font-size: 0.61rem !important;
+  font-weight: 600 !important;
+}
