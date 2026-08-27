@@ -248,3 +248,35 @@ html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2
 html[lang^="sv"] .process-page .response-style-scale__label--center::before {
   content: "Genomsnitt";
 }
+
+/* ---------------------------------------------------------
+   RESPONSE STYLE LAYOUT POLISH
+   ---------------------------------------------------------
+   Match the visual hierarchy of the Trait Profile: trait name
+   centred above the scale, with only the descriptive pole text on
+   the left and right. The redundant Left score / Right score
+   captions are hidden.
+   --------------------------------------------------------- */
+
+.process-page .response-style-item__header {
+  justify-content: center !important;
+  margin-bottom: 0.25rem !important;
+  text-align: center;
+}
+
+.process-page .response-style-item__header > div:first-child {
+  width: 100%;
+}
+
+.process-page .response-style-item__title {
+  margin: 0 !important;
+  text-align: center;
+}
+
+.process-page .response-style-profile {
+  margin-top: 0.3rem !important;
+}
+
+.process-page .response-style-profile .personality-trait-card__pole-label {
+  display: none !important;
+}
