@@ -13,14 +13,13 @@
   overflow: hidden;
   border: 1px solid var(--talena-border) !important;
   border-radius: 10px !important;
-  background: #fff !important;
+  background: #fff;
   box-shadow: 0 14px 36px rgba(23, 19, 18, 0.04) !important;
 }
 
 .process-page .candidate-insight-page-header {
   padding: 1.5rem 1.5rem 1.15rem;
   border-bottom: 1px solid var(--talena-border);
-  background: #fff;
 }
 
 .process-page .candidate-insight-page-header .insight-summary-kicker {
@@ -54,7 +53,6 @@
   margin: 0 !important;
   padding: 0 1.5rem;
   border-bottom: 1px solid var(--talena-border);
-  background: #fff;
 }
 
 .process-page .candidate-insight-page .candidate-insights-subnavigation__layout {

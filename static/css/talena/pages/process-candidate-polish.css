@@ -112,16 +112,6 @@
    Results / Interpretation / Questions
    --------------------------------------------------------- */
 
-.process-page .candidate-insights-view-switcher {
-  padding: 0.25rem !important;
-}
-
-.process-page .candidate-insights-view-option {
-  min-height: 34px !important;
-  padding: 0.46rem 0.7rem !important;
-  font-size: 0.64rem !important;
-}
-
 /* ---------------------------------------------------------
    Shared headings inside insight cards
    --------------------------------------------------------- */
