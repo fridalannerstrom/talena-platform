@@ -165,7 +165,7 @@
             data-personality-questions-list
           >
             {% for item in personality_questions.questions %}
-<article class="personality-question-card">
+<article class="personality-question-card align-items-stretch">
 
   <div class="personality-question-card__header">
 
@@ -193,7 +193,7 @@
 
 
   {% if item.why or item.listen_for %}
-    <div class="personality-question-card__details">
+    <div class="personality-question-card__details align-self-stretch h-100">
 
       {% if item.why %}
         <div
