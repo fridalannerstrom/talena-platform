@@ -182,7 +182,7 @@
   padding: 0.9rem 0.95rem !important;
   border: 1px solid var(--talena-border) !important;
   border-radius: 13px !important;
-  background: var(--talena-surface-soft) !important;
+  background: #fff;
   box-shadow: none !important;
 }
 
