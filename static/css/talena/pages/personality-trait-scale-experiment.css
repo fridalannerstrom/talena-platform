@@ -1,0 +1,93 @@
+/* =========================================================
+   TALENA — PERSONALITY TRAIT SCALE EXPERIMENT
+   ---------------------------------------------------------
+   Prototype for Personality > Results > Trait Profile only.
+   The scale communicates distance from the STEN average range
+   without implying that either end is positive or negative.
+
+   If this treatment is approved, the same visual language can
+   later be extended to response styles and indicator scales.
+   ========================================================= */
+
+/* Average range on the STEN scale is 4–7. Keep it calm and
+   neutral, then gradually increase the coral tint toward the
+   outer ends so distance from the average is easier to scan. */
+.process-page .personality-quick-scale__segment[data-score="4"],
+.process-page .personality-quick-scale__segment[data-score="5"],
+.process-page .personality-quick-scale__segment[data-score="6"],
+.process-page .personality-quick-scale__segment[data-score="7"] {
+  background: #eeeae7 !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="3"],
+.process-page .personality-quick-scale__segment[data-score="8"] {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="2"],
+.process-page .personality-quick-scale__segment[data-score="9"] {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="1"],
+.process-page .personality-quick-scale__segment[data-score="10"] {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+
+/* The candidate's actual result must remain unmistakable even
+   when it sits inside one of the softly coloured outer zones. */
+.process-page .personality-quick-scale__segment--selected {
+  position: relative;
+  height: 11px !important;
+  background: var(--talena-coral) !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(255, 111, 97, 0.30) !important;
+}
+
+/* Keep the 5/6 midpoint visible while the four-box average
+   range (4–7) carries the broader average-zone meaning. */
+.process-page .personality-quick-scale__center-line {
+  height: 18px !important;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+/* Replace Left / Right with directional anchors. The pole
+   descriptions beside the scale explain what each end means. */
+.process-page .personality-quick-scale__labels span:first-child,
+.process-page .personality-quick-scale__labels span:last-child {
+  font-size: 0 !important;
+}
+
+.process-page .personality-quick-scale__labels span:first-child::before,
+.process-page .personality-quick-scale__labels span:last-child::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .personality-quick-scale__labels span:first-child::before {
+  content: "←";
+}
+
+.process-page .personality-quick-scale__labels span:last-child::before {
+  content: "→";
+}
+
+.process-page .personality-quick-scale__labels span:nth-child(2) {
+  color: var(--talena-text-muted) !important;
+  font-weight: 650;
+}
+
+/* The current template still contains the English word Average.
+   Give Swedish UI the intended label without changing data or
+   touching the other personality scale templates yet. */
+html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2) {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2)::before {
+  content: "Genomsnitt";
+  font-size: 0.52rem;
+}
