@@ -34,3 +34,18 @@
   line-height: 1.2;
   text-transform: uppercase;
 }
+
+/* Personality trait selector: an empty option should look empty. */
+#layoutSidenav_content main .process-page [data-personality-traits-editor]
+.personality-trait-option__check svg {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+#layoutSidenav_content main .process-page [data-personality-traits-editor]
+.personality-trait-option input:checked
++ .personality-trait-option__control
+.personality-trait-option__check svg {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
