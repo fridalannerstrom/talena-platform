@@ -374,8 +374,8 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
   gap: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
-  border: 1px solid rgba(255, 111, 97, 0.19) !important;
-  border-radius: 16px !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
   background: #fff !important;
   box-shadow: 0 8px 24px rgba(23, 19, 18, 0.025) !important;
   transition:
@@ -465,9 +465,7 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
   justify-content: center !important;
   gap: 0 !important;
   min-width: 0 !important;
-  padding: 0.65rem 0 !important;
-  border-left: 1px solid rgba(255, 111, 97, 0.16) !important;
-  background: linear-gradient(135deg, rgba(255, 248, 244, 0.58), rgba(255, 255, 255, 0.92)) !important;
+  border-left: 1px solid var(--talena-border) !important;
 }
 
 #layoutSidenav_content main .process-page [data-personality-questions-root]
@@ -511,7 +509,7 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 .personality-question-card__detail-title {
   margin-bottom: 0.2rem !important;
   color: var(--talena-ink) !important;
-  font-size: 0.61rem !important;
+  font-size: 0.75rem !important;
   font-weight: 720 !important;
   line-height: 1.35 !important;
 }
@@ -519,7 +517,7 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
 #layoutSidenav_content main .process-page [data-personality-questions-root]
 .personality-question-card__detail-text {
   color: var(--talena-text-muted) !important;
-  font-size: 0.62rem !important;
+  font-size: 0.72rem !important;
   line-height: 1.5 !important;
 }
 
