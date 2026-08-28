@@ -56,6 +56,16 @@
       : "traits";
   }
 
+  function selectedMode(root) {
+    const checked = Array.from(
+      root.querySelectorAll("[data-personality-trait-checkbox]:checked")
+    );
+
+    return checked.some((checkbox) => optionBasis(checkbox) === "competencies")
+      ? "competencies"
+      : "traits";
+  }
+
   function modeButton(root, mode) {
     return root.querySelector(
       `[data-question-basis-tab="${mode}"]`
@@ -132,6 +142,14 @@
     localiseRenderedFocusLabels(root);
   }
 
+  function syncModeToSavedSelection(root) {
+    if (!root) {
+      return;
+    }
+
+    setMode(root, selectedMode(root), false);
+  }
+
   function initialiseRoot(root) {
     if (!root || root.dataset.questionBasisUiInitialised === "true") {
       return;
@@ -163,6 +181,18 @@
       const mode = tab.dataset.questionBasisTab;
       setMode(root, mode, true);
       return;
+    }
+
+    const editorAction = event.target.closest(
+      "[data-personality-traits-edit], [data-personality-traits-cancel]"
+    );
+
+    if (editorAction) {
+      const root = editorAction.closest(ROOT_SELECTOR);
+      // Existing Talena JS restores the saved checkbox selection in the
+      // target click handler. Run after that handler so the visible mode and
+      // copy follow the saved selection as well.
+      window.setTimeout(() => syncModeToSavedSelection(root), 0);
     }
   });
 
