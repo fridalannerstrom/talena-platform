@@ -1,6 +1,9 @@
-{% load i18n personality_i18n interview_config %}
+{% load i18n personality_i18n interview_config personality_question_competencies %}
+{% get_current_language as LANGUAGE_CODE %}
 {% interview_section_meta "personality" as interview_meta %}
-{# Talena personality UI and response styles language batch 1 #}
+{% personality_question_competency_groups as competency_groups %}
+{% personality_question_selection_basis selected_personality_traits as question_basis %}
+
 {% if has_personality_results %}
   <section
     data-personality-questions-root
@@ -9,414 +12,422 @@
     data-update-traits-url="{{ personality_traits_update_url }}"
     data-status="{{ personality_questions_status }}"
     data-has-result="{% if personality_questions %}true{% else %}false{% endif %}"
+    data-question-basis="{{ question_basis }}"
   >
 
-      <!-- HEADER -->
-      <div class="personality-questions-header mt-4">
-
-        <div>
-          <div class="insight-summary-kicker mt-4">
-             ✨ {% trans "AI-supported questions" %}
-          </div>
-
-<h2 class="insight-summary-title mb-1">
-  {% trans "Personality questions" %}
-</h2>
-
-          <p class="text-muted small mb-0">
-             {% blocktrans %}Explore selected personality traits through practical, purpose-aware questions.{% endblocktrans %}
-          </p>
+    <div class="personality-questions-header mt-4">
+      <div>
+        <div class="insight-summary-kicker mt-4">
+          ✨ {% trans "AI-supported questions" %}
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <h2 class="insight-summary-title mb-1">
+          {% trans "Personality questions" %}
+        </h2>
 
-          <span class="personality-trait-pill text-nowrap">
-            <i data-feather="clock"></i>
-            ~ {{ interview_meta.estimated_minutes }} min
-          </span>
+        <p class="text-muted small mb-0">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Utforska personlighet genom praktiska, syftesanpassade frågor baserade på valda personlighetsdrag eller kompetenser.
+          {% else %}
+            Explore personality through practical, purpose-aware questions based on selected traits or competencies.
+          {% endif %}
+        </p>
+      </div>
 
-<span
-  class="
-    badge
-    rounded-pill
-    bg-warning-subtle
-    text-warning-emphasis
-    {% if personality_questions_status != 'outdated' %}
-      d-none
-    {% endif %}
-  "
-  data-personality-questions-status-badge
-  data-bs-toggle="tooltip"
-  data-bs-placement="top"
-  title="{% trans 'The selected traits, process purpose or context have changed.' %}"
->
-  {% trans "Needs update" %}
-</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="personality-trait-pill text-nowrap">
+          <i data-feather="clock"></i>
+          ~ {{ interview_meta.estimated_minutes }} min
+        </span>
+
+        <span
+          class="badge rounded-pill bg-warning-subtle text-warning-emphasis {% if personality_questions_status != 'outdated' %}d-none{% endif %}"
+          data-personality-questions-status-badge
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="{% trans 'The selected traits, process purpose or context have changed.' %}"
+        >
+          {% trans "Needs update" %}
+        </span>
+
+        <button
+          type="button"
+          class="btn btn-icon btn-light"
+          data-personality-questions-regenerate
+          title="{% trans 'Generate new personality questions' %}"
+          aria-label="{% trans 'Generate new personality questions' %}"
+        >
+          <i data-feather="refresh-cw"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="d-none" data-personality-questions-outdated aria-hidden="true"></div>
+
+    <div class="{% if personality_questions %}d-none{% endif %}" data-personality-questions-thinking>
+      <div class="d-flex align-items-center gap-2 text-muted py-3">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <span>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Skapar relevanta personlighetsfrågor…
+          {% else %}
+            Creating relevant personality questions…
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="alert alert-danger d-none mt-4" data-personality-questions-error>
+      {% trans "The personality questions could not be generated." %}
+    </div>
+
+    <div class="{% if not personality_questions %}d-none{% endif %}" data-personality-questions-content>
+
+      <section class="personality-questions-section mt-4" data-personality-questions-list-section>
+        <div class="personality-question-list" data-personality-questions-list>
+          {% for item in personality_questions.questions %}
+            <article class="personality-question-card">
+              <div class="personality-question-card__header">
+                <div class="personality-question-card__number">
+                  {{ forloop.counter }}
+                </div>
+
+                <div class="personality-question-card__heading">
+                  <div class="personality-question-card__text">
+                    {{ item.question }}
+                  </div>
+
+                  {% if item.traits %}
+                    <div class="personality-question-card__traits">
+                      {% for trait in item.traits %}
+                        <span>{{ trait|personality_question_focus_label }}</span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if item.why or item.listen_for %}
+                <div class="personality-question-card__details">
+                  {% if item.why %}
+                    <div class="personality-question-card__detail personality-question-card__detail--why">
+                      <div class="personality-question-card__detail-icon">
+                        <i data-feather="compass"></i>
+                      </div>
+                      <div>
+                        <div class="personality-question-card__detail-title">
+                          {% trans "Why this matters" %}
+                        </div>
+                        <div class="personality-question-card__detail-text">
+                          {{ item.why }}
+                        </div>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  {% if item.listen_for %}
+                    <div class="personality-question-card__detail personality-question-card__detail--listen">
+                      <div class="personality-question-card__detail-icon">
+                        <i data-feather="headphones"></i>
+                      </div>
+                      <div>
+                        <div class="personality-question-card__detail-title">
+                          {% trans "What to listen for" %}
+                        </div>
+                        <div class="personality-question-card__detail-text">
+                          {{ item.listen_for }}
+                        </div>
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="personality-questions-traits mt-4">
+        <div class="personality-questions-section-header flex-nowrap align-items-center">
+          <div class="flex-grow-1">
+            <h3 class="personality-questions-section-title mb-1" data-question-basis-summary-title>
+              {% if question_basis == "competencies" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kompetenser som används i frågorna{% else %}Competencies used for these questions{% endif %}
+              {% else %}
+                {% trans "Traits used for these questions" %}
+              {% endif %}
+            </h3>
+
+            <p class="small text-muted mb-0" data-question-basis-summary-description>
+              {% if question_basis == "competencies" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, processens syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg.
+                {% else %}
+                  Talena created the questions from these competencies, their definitions, the process purpose and available context. Personality data is supporting evidence only, not a direct competency rating.
+                {% endif %}
+              {% else %}
+                {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+              {% endif %}
+            </p>
+
+            <div class="personality-trait-pill-list mt-3" data-personality-selected-traits>
+              {% for trait in personality_questions.selected_traits %}
+                <span class="personality-trait-pill">
+                  {{ trait|personality_question_focus_label }}
+                </span>
+              {% endfor %}
+            </div>
+          </div>
 
           <button
             type="button"
-            class="btn btn-icon btn-light"
-            data-personality-questions-regenerate
-            title="{% trans 'Generate new personality questions' %}"
-            aria-label="{% trans 'Generate new personality questions' %}"
+            class="btn btn-primary text-nowrap ms-auto align-self-center"
+            data-personality-traits-edit
           >
-            <i data-feather="refresh-cw"></i>
+            <span data-question-basis-edit-label>
+              {% if question_basis == "competencies" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra kompetenser{% else %}Change competencies{% endif %}
+              {% else %}
+                {% trans "Change traits" %}
+              {% endif %}
+            </span>
           </button>
-
         </div>
+      </section>
 
+      <div class="personality-questions-context-note mt-4">
+        <div class="personality-questions-context-note__title">
+          {% trans "How Talena created these questions" %}
+        </div>
+        <div data-personality-questions-context-note>
+          {{ personality_questions.context_note }}
+        </div>
       </div>
 
-<!-- Hidden hook retained for existing JavaScript -->
-<div
-  class="d-none"
-  data-personality-questions-outdated
-  aria-hidden="true"
-></div>
+      <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
+        <i data-feather="info"></i>
+        <div>
+          {% blocktrans trimmed %}
+            Personality results describe likely behavioural preferences,
+            not fixed behaviour or proven competence. Use the questions
+            to explore, confirm or challenge the assessment indications.
+          {% endblocktrans %}
+        </div>
+      </div>
 
-      <!-- THINKING -->
-      <div
-        class="{% if personality_questions %}d-none{% endif %}"
-        data-personality-questions-thinking
+      <dialog
+        class="personality-traits-dialog"
+        data-personality-traits-editor
+        aria-labelledby="personalityTraitsDialogTitle"
       >
-        <div class="d-flex align-items-center gap-2 text-muted py-3">
+        <div class="personality-traits-dialog__shell">
+          <div class="personality-traits-dialog__header">
+            <div>
+              <div class="insight-summary-kicker">
+                {% trans "Personality questions" %}
+              </div>
 
-          <span
-            class="spinner-border spinner-border-sm"
-            role="status"
-            aria-hidden="true"
-          ></span>
-
-          <span>
-             {% trans "Selecting relevant traits and creating questions…" %}
-          </span>
-
-        </div>
-      </div>
-
-
-      <!-- ERROR -->
-      <div
-        class="alert alert-danger d-none mt-4"
-        data-personality-questions-error
-      >
-        {% trans "The personality questions could not be generated." %}
-      </div>
-
-
-      <!-- CONTENT -->
-    <div
-        class="{% if not personality_questions %}d-none{% endif %}"
-        data-personality-questions-content
-      >
-
-        <!-- QUESTIONS -->
-        <section
-          class="personality-questions-section mt-4"
-          data-personality-questions-list-section
-        >
-          <div
-            class="personality-question-list"
-            data-personality-questions-list
-          >
-            {% for item in personality_questions.questions %}
-<article class="personality-question-card">
-
-  <div class="personality-question-card__header">
-
-    <div class="personality-question-card__number">
-      {{ forloop.counter }}
-    </div>
-
-    <div class="personality-question-card__heading">
-
-      <div class="personality-question-card__text">
-        {{ item.question }}
-      </div>
-
-      {% if item.traits %}
-        <div class="personality-question-card__traits">
-          {% for trait in item.traits %}
-            <span>{{ trait|personality_label }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-    </div>
-
-  </div>
-
-
-  {% if item.why or item.listen_for %}
-    <div class="personality-question-card__details">
-
-      {% if item.why %}
-        <div
-          class="
-            personality-question-card__detail
-            personality-question-card__detail--why
-          "
-        >
-
-          <div class="personality-question-card__detail-icon">
-            <i data-feather="compass"></i>
-          </div>
-
-          <div>
-            <div class="personality-question-card__detail-title">
-              {% trans "Why this matters" %}
-            </div>
-
-            <div class="personality-question-card__detail-text">
-              {{ item.why }}
-            </div>
-          </div>
-
-        </div>
-      {% endif %}
-
-
-      {% if item.listen_for %}
-        <div
-          class="
-            personality-question-card__detail
-            personality-question-card__detail--listen
-          "
-        >
-
-          <div class="personality-question-card__detail-icon">
-            <i data-feather="headphones"></i>
-          </div>
-
-          <div>
-            <div class="personality-question-card__detail-title">
-              {% trans "What to listen for" %}
-            </div>
-
-            <div class="personality-question-card__detail-text">
-              {{ item.listen_for }}
-            </div>
-          </div>
-
-        </div>
-      {% endif %}
-
-    </div>
-  {% endif %}
-
-</article>
-            {% endfor %}
-          </div>
-        </section>
-
-
-        <!-- SELECTED TRAITS -->
-        <section class="personality-questions-traits mt-4">
-
-          <div class="personality-questions-section-header flex-nowrap align-items-center">
-
-            <div class="flex-grow-1">
-              <h3 class="personality-questions-section-title mb-1">
-                {% trans "Traits used for these questions" %}
+              <h3
+                class="personality-traits-dialog__title"
+                id="personalityTraitsDialogTitle"
+                data-question-basis-dialog-title
+              >
+                {% if question_basis == "competencies" %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj kompetenser att utforska{% else %}Select competencies to explore{% endif %}
+                {% else %}
+                  {% trans "Select traits to explore" %}
+                {% endif %}
               </h3>
 
-              <p class="small text-muted mb-0">
-                    {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+              <p class="personality-traits-dialog__description" data-question-basis-dialog-description>
+                {% if question_basis == "competencies" %}
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Välj upp till sex kompetenser från Sovas 38-kompetensramverk. Talena skapar alltid åtta personlighetsfrågor och fördelar dem över de valda områdena.
+                  {% else %}
+                    Select up to six competencies from Sova's 38-competency framework. Talena always creates eight personality questions and distributes them across the selected areas.
+                  {% endif %}
+                {% else %}
+                  {% blocktrans trimmed %}
+                    Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated using the selected traits, process purpose and available context.
+                  {% endblocktrans %}
+                {% endif %}
               </p>
-
-              <div
-                class="personality-trait-pill-list mt-3"
-                data-personality-selected-traits
-              >
-                {% for trait in personality_questions.selected_traits %}
-                  <span class="personality-trait-pill">
-                    {{ trait|personality_label }}
-                  </span>
-                {% endfor %}
-              </div>
             </div>
 
             <button
               type="button"
-              class="btn btn-primary text-nowrap ms-auto align-self-center"
-              data-personality-traits-edit
+              class="personality-traits-dialog__close"
+              data-personality-traits-cancel
+              aria-label="{% trans 'Close trait selection' %}"
             >
-              {% trans "Change traits" %}
+              <i data-feather="x"></i>
+            </button>
+          </div>
+
+          <div class="personality-question-basis-tabs" role="tablist" aria-label="Question basis">
+            <button
+              type="button"
+              class="personality-question-basis-tab {% if question_basis != 'competencies' %}is-active{% endif %}"
+              data-question-basis-tab="traits"
+              aria-selected="{% if question_basis != 'competencies' %}true{% else %}false{% endif %}"
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                data-summary-title="Personlighetsdrag som används i frågorna"
+                data-summary-description="Talena skapade frågorna utifrån dessa personlighetsdrag, processens syfte och tillgänglig kontext. Ändra urvalet för att påverka nästa uppsättning frågor."
+                data-edit-label="Ändra personlighetsdrag"
+                data-dialog-title="Välj personlighetsdrag att utforska"
+                data-dialog-description="Välj upp till sex personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och kontext."
+                data-status-label="Välj upp till 6 personlighetsdrag"
+              {% else %}
+                data-summary-title="Traits used for these questions"
+                data-summary-description="Talena generated the questions using these personality traits, the process purpose and available context. Change the selection to shape the next set of questions."
+                data-edit-label="Change traits"
+                data-dialog-title="Select traits to explore"
+                data-dialog-description="Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context."
+                data-status-label="Select up to 6 traits"
+              {% endif %}
+            >
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetsdrag (18){% else %}Personality traits (18){% endif %}
             </button>
 
+            <button
+              type="button"
+              class="personality-question-basis-tab {% if question_basis == 'competencies' %}is-active{% endif %}"
+              data-question-basis-tab="competencies"
+              aria-selected="{% if question_basis == 'competencies' %}true{% else %}false{% endif %}"
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                data-summary-title="Kompetenser som används i frågorna"
+                data-summary-description="Talena skapade frågorna utifrån dessa kompetenser, deras definitioner, processens syfte och tillgänglig kontext. Personlighetsdata används endast som stödjande evidens, inte som ett direkt kompetensbetyg."
+                data-edit-label="Ändra kompetenser"
+                data-dialog-title="Välj kompetenser att utforska"
+                data-dialog-description="Välj upp till sex kompetenser från Sovas 38-kompetensramverk. Talena skapar alltid åtta personlighetsfrågor och fördelar dem över de valda områdena."
+                data-status-label="Välj upp till 6 kompetenser"
+              {% else %}
+                data-summary-title="Competencies used for these questions"
+                data-summary-description="Talena created the questions from these competencies, their definitions, the process purpose and available context. Personality data is supporting evidence only, not a direct competency rating."
+                data-edit-label="Change competencies"
+                data-dialog-title="Select competencies to explore"
+                data-dialog-description="Select up to six competencies from Sova's 38-competency framework. Talena always creates eight personality questions and distributes them across the selected areas."
+                data-status-label="Select up to 6 competencies"
+              {% endif %}
+            >
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kompetenser (38){% else %}Competencies (38){% endif %}
+            </button>
           </div>
 
-        </section>
+          <div class="personality-traits-dialog__status">
+            <span data-question-basis-status-label>
+              {% if question_basis == "competencies" %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Välj upp till 6 kompetenser{% else %}Select up to 6 competencies{% endif %}
+              {% else %}
+                {% trans "Select up to 6 traits" %}
+              {% endif %}
+            </span>
 
-
-        <!-- CONTEXT NOTE -->
-        <div class="personality-questions-context-note mt-4">
-
-          <div class="personality-questions-context-note__title">
-            {% trans "How Talena created these questions" %}
+            <span class="personality-traits-dialog__count" data-personality-traits-count>
+              {% trans "0 selected" %}
+            </span>
           </div>
 
-          <div data-personality-questions-context-note>
-            {{ personality_questions.context_note }}
+          <div
+            class="personality-question-basis-panel"
+            data-question-basis-panel="traits"
+            {% if question_basis == "competencies" %}hidden{% endif %}
+          >
+            <div class="personality-traits-dialog__body" data-personality-traits-options>
+              {% for section in personality_profile.sections %}
+                <section class="personality-traits-dialog__section">
+                  <div class="personality-traits-dialog__grid">
+                    {% for trait in section.traits %}
+                      <label class="personality-trait-option">
+                        <input
+                          type="checkbox"
+                          value="{{ trait.name }}"
+                          data-personality-trait-checkbox
+                          data-question-basis-option="traits"
+                          data-question-focus-label="{{ trait.label }}"
+                          {% if trait.name in selected_personality_traits %}checked{% endif %}
+                        >
+
+                        <span class="personality-trait-option__control">
+                          <span class="personality-trait-option__content">
+                            <span class="personality-trait-option__name">
+                              {{ trait.label }}
+                            </span>
+                          </span>
+                          <span class="personality-trait-option__check">
+                            <i data-feather="check"></i>
+                          </span>
+                        </span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </section>
+              {% endfor %}
+            </div>
           </div>
 
+          <div
+            class="personality-question-basis-panel"
+            data-question-basis-panel="competencies"
+            {% if question_basis != "competencies" %}hidden{% endif %}
+          >
+            <div class="personality-traits-dialog__body personality-competency-options">
+              {% for group in competency_groups %}
+                <section class="personality-competency-domain">
+                  <div class="personality-competency-domain__title">
+                    {{ group.label }}
+                    <span>{{ group.items|length }}</span>
+                  </div>
+
+                  <div class="personality-traits-dialog__grid">
+                    {% for competency in group.items %}
+                      <label class="personality-trait-option">
+                        <input
+                          type="checkbox"
+                          value="{{ competency.token }}"
+                          data-personality-trait-checkbox
+                          data-question-basis-option="competencies"
+                          data-question-focus-label="{{ competency.label }}"
+                          {% if competency.token in selected_personality_traits %}checked{% endif %}
+                        >
+
+                        <span class="personality-trait-option__control">
+                          <span class="personality-trait-option__content">
+                            <span class="personality-trait-option__name">
+                              {{ competency.label }}
+                            </span>
+                          </span>
+                          <span class="personality-trait-option__check">
+                            <i data-feather="check"></i>
+                          </span>
+                        </span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </section>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="personality-question-basis-error" data-question-basis-empty-error hidden>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Välj minst en kompetens för att skapa kompetensbaserade frågor.
+            {% else %}
+              Select at least one competency to create competency-based questions.
+            {% endif %}
+          </div>
+
+          <div class="personality-traits-dialog__footer">
+            <button type="button" class="btn btn-light" data-personality-traits-cancel>
+              {% trans "Cancel" %}
+            </button>
+
+            <button type="button" class="btn btn-primary" data-personality-traits-save>
+              {% trans "Save and generate" %}
+            </button>
+          </div>
         </div>
-
-
-        <!-- DISCLAIMER -->
-        <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-          <i data-feather="info"></i>
-
-<div>
-  {% blocktrans trimmed %}
-    Personality results describe likely behavioural preferences,
-    not fixed behaviour or proven competence. Use the questions
-    to explore, confirm or challenge the assessment indications.
-  {% endblocktrans %}
-</div>
-
-        </div>
-
-      <!-- TRAIT SELECTION DIALOG -->
-<dialog
-  class="personality-traits-dialog"
-  data-personality-traits-editor
-  aria-labelledby="personalityTraitsDialogTitle"
->
-  <div class="personality-traits-dialog__shell">
-
-    <!-- HEADER -->
-    <div class="personality-traits-dialog__header">
-
-      <div>
-<div class="insight-summary-kicker">
-  {% trans "Personality questions" %}
-</div>
-
-        <h3
-          class="personality-traits-dialog__title"
-          id="personalityTraitsDialogTitle"
-        >
-          {% trans "Select traits to explore" %}
-        </h3>
-<p class="personality-traits-dialog__description">
-  {% blocktrans trimmed %}
-    Choose up to six traits, or leave all traits unselected to let Talena choose based on the process purpose and context. Questions will be generated using the selected traits, process purpose and available context.
-  {% endblocktrans %}
-</p>
-      </div>
-
-      <button
-        type="button"
-        class="personality-traits-dialog__close"
-        data-personality-traits-cancel
-        aria-label="{% trans 'Close trait selection' %}"
-      >
-        <i data-feather="x"></i>
-      </button>
-
+      </dialog>
     </div>
-
-
-    <!-- SELECTION STATUS -->
-    <div class="personality-traits-dialog__status">
-      <span>
-        {% trans "Select up to 6 traits" %}
-      </span>
-
-      <span
-        class="personality-traits-dialog__count"
-        data-personality-traits-count
-      >
-        {% trans "0 selected" %}
-      </span>
-    </div>
-
-
-    <!-- OPTIONS -->
-    <div
-      class="personality-traits-dialog__body"
-      data-personality-traits-options
-    >
-
-      {% for section in personality_profile.sections %}
-
-        <section class="personality-traits-dialog__section">
-
-          <div class="personality-traits-dialog__grid">
-
-            {% for trait in section.traits %}
-
-              <label class="personality-trait-option">
-
-                <input
-                  type="checkbox"
-                  value="{{ trait.name }}"
-                  data-personality-trait-checkbox
-                  {% if trait.name in selected_personality_traits %}
-                    checked
-                  {% endif %}
-                >
-
-<span class="personality-trait-option__control">
-
-  <span class="personality-trait-option__content">
-
-    <span class="personality-trait-option__name">
-      {{ trait.label }}
-    </span>
-  </span>
-
-  <span class="personality-trait-option__check">
-    <i data-feather="check"></i>
-  </span>
-
-</span>
-
-              </label>
-
-            {% endfor %}
-
-          </div>
-
-        </section>
-
-      {% endfor %}
-
-    </div>
-
-
-    <!-- FOOTER -->
-    <div class="personality-traits-dialog__footer">
-
-      <button
-        type="button"
-        class="btn btn-light"
-        data-personality-traits-cancel
-      >
-        {% trans "Cancel" %}
-      </button>
-
-<button
-  type="button"
-  class="btn btn-primary"
-  data-personality-traits-save
->
-  {% trans "Save and generate" %}
-</button>
-    </div>
-
-  </div>
-</dialog>
-<!-- /TRAIT SELECTION DIALOG -->
-
-
-      </div>
-
   </section>
 {% endif %}
-
-
-
-
