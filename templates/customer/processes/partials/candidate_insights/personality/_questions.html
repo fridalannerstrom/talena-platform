@@ -30,6 +30,11 @@
 
         <div class="d-flex align-items-center gap-2">
 
+          <span class="personality-trait-pill text-nowrap">
+            <i data-feather="clock"></i>
+            ~ {{ interview_meta.estimated_minutes }} min
+          </span>
+
 <span
   class="
     badge
@@ -105,61 +110,11 @@
         data-personality-questions-content
       >
 
-        <!-- SELECTED TRAITS -->
-        <section class="personality-questions-traits mt-4">
-
-          <div class="personality-questions-section-header flex-nowrap align-items-center">
-
-            <div class="flex-grow-1">
-              <h3 class="personality-questions-section-title mb-1">
-                {% trans "Traits used for these questions" %}
-              </h3>
-
-              <p class="small text-muted mb-0">
-                    {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
-              </p>
-
-              <div
-                class="personality-trait-pill-list mt-3"
-                data-personality-selected-traits
-              >
-                {% for trait in personality_questions.selected_traits %}
-                  <span class="personality-trait-pill">
-                    {{ trait|personality_label }}
-                  </span>
-                {% endfor %}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              class="btn btn-primary text-nowrap ms-auto align-self-center"
-              data-personality-traits-edit
-            >
-              {% trans "Change traits" %}
-            </button>
-
-          </div>
-
-        </section>
-
-
         <!-- QUESTIONS -->
         <section
           class="personality-questions-section mt-4"
           data-personality-questions-list-section
         >
-          <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
-            <h3 class="insight-summary-sub-title mb-0">
-              {% trans "Questions to explore" %}
-            </h3>
-
-            <span class="personality-trait-pill text-nowrap ms-auto">
-              <i data-feather="clock"></i>
-              ~ {{ interview_meta.estimated_minutes }} min
-            </span>
-          </div>
-
           <div
             class="personality-question-list"
             data-personality-questions-list
@@ -252,6 +207,45 @@
 </article>
             {% endfor %}
           </div>
+        </section>
+
+
+        <!-- SELECTED TRAITS -->
+        <section class="personality-questions-traits mt-4">
+
+          <div class="personality-questions-section-header flex-nowrap align-items-center">
+
+            <div class="flex-grow-1">
+              <h3 class="personality-questions-section-title mb-1">
+                {% trans "Traits used for these questions" %}
+              </h3>
+
+              <p class="small text-muted mb-0">
+                    {% blocktrans %}Talena generated the questions below using these personality traits, the process purpose and any available context. Change the selection to shape the next set of questions.{% endblocktrans %}
+              </p>
+
+              <div
+                class="personality-trait-pill-list mt-3"
+                data-personality-selected-traits
+              >
+                {% for trait in personality_questions.selected_traits %}
+                  <span class="personality-trait-pill">
+                    {{ trait|personality_label }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-primary text-nowrap ms-auto align-self-center"
+              data-personality-traits-edit
+            >
+              {% trans "Change traits" %}
+            </button>
+
+          </div>
+
         </section>
 
 
