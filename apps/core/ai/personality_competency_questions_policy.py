@@ -537,9 +537,9 @@ def install_personality_competency_questions_policy() -> None:
         ]
 
         if competency_items:
-            # Competency and trait selections are intentionally mutually exclusive.
-            if len(competency_items) != len(raw_items):
-                return []
+            # A competency selection wins as one complete basis. Any trait
+            # values included in the same request are discarded so Talena
+            # never persists a mixed trait/competency selection.
             return normalise_competency_tokens(competency_items)
 
         return original_normalise_selected_traits(
