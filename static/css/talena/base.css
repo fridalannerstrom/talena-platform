@@ -143,8 +143,48 @@
   font-weight: 600;
 }
 
+/* Keep the personality-question dialog inside the viewport. Only the option
+   list scrolls; the header, basis tabs, status row and action footer remain
+   reachable at all times. */
+#layoutSidenav_content main .process-page .personality-traits-dialog {
+  overflow: hidden;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__shell {
+  height: min(86vh, 850px);
+  max-height: min(86vh, 850px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__header,
+#layoutSidenav_content main .process-page .personality-question-basis-tabs,
+#layoutSidenav_content main .process-page .personality-traits-dialog__status,
+#layoutSidenav_content main .process-page .personality-traits-dialog__footer {
+  flex: 0 0 auto;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__footer {
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 -8px 20px rgba(36, 28, 24, 0.04);
+}
+
 @media (max-width: 700px) {
   #layoutSidenav_content main .process-page .personality-question-basis-tabs {
     grid-template-columns: 1fr;
+  }
+
+  #layoutSidenav_content main .process-page .personality-traits-dialog__shell {
+    height: 92vh;
+    max-height: 92vh;
   }
 }
