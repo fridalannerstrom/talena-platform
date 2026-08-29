@@ -77,7 +77,7 @@
         <!-- MORE PROMINENT DRIVERS -->
         <article class="mb-4">
           <div class="response-style-item__header">
-            <div style="flex: 1; text-align: right;">
+            <div style="flex: 1; text-align: left;">
               <h4 class="insight-summary-title mb-1">
                 {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s most prominent drivers{% endblocktrans %}
               </h4>
@@ -120,7 +120,7 @@
         <!-- LESS PROMINENT DRIVERS -->
         <article class="mb-4 motivation-least-prominent">
           <div class="response-style-item__header">
-            <div style="flex: 1; text-align: right;">
+            <div style="flex: 1; text-align: left;">
               <h4 class="insight-summary-title mb-1">
                 {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s least prominent drivers{% endblocktrans %}
               </h4>
