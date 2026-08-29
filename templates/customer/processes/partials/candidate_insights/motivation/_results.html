@@ -1,5 +1,6 @@
 {% load i18n motivation_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
+{% get_current_language as motivation_language %}
 {# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
@@ -79,11 +80,19 @@
           <div class="response-style-item__header">
             <div style="flex: 1; text-align: left;">
               <h4 class="insight-summary-title mb-1">
-                {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s most prominent drivers{% endblocktrans %}
+                {% if motivation_language|slice:":2" == "sv" %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}s mest framträdande drivkrafter
+                {% else %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}'s most prominent drivers
+                {% endif %}
               </h4>
 
               <div class="response-style-item__subtitle">
-                {% trans "Factors more likely to provide energy and engagement" %}
+                {% if motivation_language|slice:":2" == "sv" %}
+                  Faktorer som sannolikt ger energi och engagemang
+                {% else %}
+                  Factors more likely to provide energy and engagement
+                {% endif %}
               </div>
             </div>
 
@@ -122,11 +131,19 @@
           <div class="response-style-item__header">
             <div style="flex: 1; text-align: left;">
               <h4 class="insight-summary-title mb-1">
-                {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s least prominent drivers{% endblocktrans %}
+                {% if motivation_language|slice:":2" == "sv" %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}s minst framträdande drivkrafter
+                {% else %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}'s least prominent drivers
+                {% endif %}
               </h4>
 
               <div class="response-style-item__subtitle">
-                {% trans "Factors less likely to be a central source of energy and engagement" %}
+                {% if motivation_language|slice:":2" == "sv" %}
+                  Faktorer som mindre sannolikt är en central källa till energi och engagemang
+                {% else %}
+                  Factors less likely to be a central source of energy and engagement
+                {% endif %}
               </div>
             </div>
 
@@ -171,7 +188,6 @@
             {% trans "All motivation factors" %}
           </h3>
 
-          {% get_current_language as motivation_language %}
           <p>
             {% if motivation_language|slice:":2" == "sv" %}
               Alla motivationsfaktorer visas i fallande ordning, från mer framträdande till mindre centrala.
