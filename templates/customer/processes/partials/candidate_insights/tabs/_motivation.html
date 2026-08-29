@@ -34,42 +34,39 @@
             <span>{% trans "Results" %}</span>
           </button>
 
+          <!-- INTERPRETATION -->
+          <button
+            type="button"
+            id="motivation-tab-interpretation"
+            class="candidate-insights-view-option"
+            role="tab"
+            aria-selected="false"
+            aria-controls="motivation-subpanel-interpretation"
+            data-insights-subtab="interpretation"
+          >
+            <i data-feather="zap"></i>
+            <span>{% trans "Interpretation" %}</span>
+          </button>
 
-            <!-- INTERPRETATION -->
-            <button
-              type="button"
-              id="motivation-tab-interpretation"
-              class="candidate-insights-view-option"
-              role="tab"
-              aria-selected="false"
-              aria-controls="motivation-subpanel-interpretation"
-              data-insights-subtab="interpretation"
-            >
-              <i data-feather="zap"></i>
-              <span>{% trans "Interpretation" %}</span>
-            </button>
-
-
-            <!-- QUESTIONS -->
-            <button
-              type="button"
-              id="motivation-tab-questions"
-              class="candidate-insights-view-option"
-              role="tab"
-              aria-selected="false"
-              aria-controls="motivation-subpanel-questions"
-              data-insights-subtab="questions"
-            >
-              <i data-feather="help-circle"></i>
-              <span>{% trans "Questions" %}</span>
-            </button>
+          <!-- QUESTIONS -->
+          <button
+            type="button"
+            id="motivation-tab-questions"
+            class="candidate-insights-view-option"
+            role="tab"
+            aria-selected="false"
+            aria-controls="motivation-subpanel-questions"
+            data-insights-subtab="questions"
+          >
+            <i data-feather="help-circle"></i>
+            <span>{% trans "Questions" %}</span>
+          </button>
 
         </div>
 
       </div>
 
     </section>
-
 
     <div class="candidate-insights-subworkspace__panels">
 
@@ -84,293 +81,174 @@
         {% include "customer/processes/partials/candidate_insights/motivation/_results.html" %}
       </div>
 
-
-  <!-- INTERPRETATION -->
-<div
-  id="motivation-subpanel-interpretation"
-  class="candidate-insights-subpanel"
-  role="tabpanel"
-  aria-labelledby="motivation-tab-interpretation"
-  data-insights-subpanel="interpretation"
-  hidden
->
-
-  <section
-    class="purpose-fit-card motivation-ai-card"
-    data-motivation-ai-root
-    data-stream-url="{{ motivation_interpretation_stream_url }}"
-    data-regenerate-url="{{ motivation_interpretation_regenerate_url }}"
-    data-status="{{ motivation_interpretation_status }}"
-    data-has-result="{% if motivation_interpretation %}true{% else %}false{% endif %}"
-  >
-
-    <!-- INTERPRETATION HEADER -->
-    <div class="motivation-ai-header mb-4">
-
-      <div>
-
-        <div class="insight-summary-kicker mt-4">
-          ✨ {% trans "AI-generated insight" %}
-        </div>
-
-        <h2 class="insight-summary-title mb-1">
-          {% trans "Motivation interpretation" %}
-        </h2>
-
-        <p class="text-muted small mb-0">
-          {% blocktrans %}A practical interpretation of the motivation profile in relation to the selected purpose and process context.{% endblocktrans %}
-        </p>
-
+      <!-- INTERPRETATION -->
+      <div
+        id="motivation-subpanel-interpretation"
+        class="candidate-insights-subpanel"
+        role="tabpanel"
+        aria-labelledby="motivation-tab-interpretation"
+        data-insights-subpanel="interpretation"
+        hidden
+      >
+        {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
       </div>
 
+      <!-- QUESTIONS -->
+      <div
+        id="motivation-subpanel-questions"
+        class="candidate-insights-subpanel"
+        role="tabpanel"
+        aria-labelledby="motivation-tab-questions"
+        data-insights-subpanel="questions"
+        hidden
+      >
 
-      <div class="d-flex align-items-center gap-2">
-
-        <span
-          class="
-            badge
-            rounded-pill
-            bg-warning-subtle
-            text-warning-emphasis
-            {% if motivation_interpretation_status != 'outdated' %}
-              d-none
-            {% endif %}
-          "
-          data-motivation-ai-status-badge
+        <section
+          class="purpose-fit-card motivation-questions-card"
+          data-motivation-questions-root
+          data-stream-url="{{ motivation_questions_stream_url }}"
+          data-regenerate-url="{{ motivation_questions_regenerate_url }}"
+          data-status="{{ motivation_questions_status }}"
+          data-has-result="{% if motivation_questions.questions %}true{% else %}false{% endif %}"
         >
-          {% trans "Needs update" %}
-        </span>
 
-        <button
-          type="button"
-          class="btn btn-icon btn-light"
-          data-motivation-ai-regenerate
-          title="{% trans 'Generate a new motivation interpretation' %}"
-          aria-label="{% trans 'Generate a new motivation interpretation' %}"
-        >
-          <i data-feather="refresh-cw"></i>
-        </button>
+          <!-- QUESTIONS HEADER -->
+          <div class="motivation-ai-header mb-4">
 
-      </div>
+            <div>
 
-    </div>
+              <div class="insight-summary-kicker mt-4">
+                ✨ {% trans "AI-supported questions" %}
+              </div>
 
-<!-- Hidden hook retained for existing JavaScript -->
-<div
-  class="d-none"
-  data-motivation-ai-outdated
-  aria-hidden="true"
-></div>
+              <h2 class="insight-summary-title mb-1">
+                {% trans "Motivation questions" %}
+              </h2>
 
+              <p class="text-muted small mb-0">
+                {% blocktrans %}Practical questions for exploring how the motivation profile may appear in relevant work situations.{% endblocktrans %}
+              </p>
 
-    <!-- THINKING -->
-    <div
-      class="{% if motivation_interpretation %}d-none{% endif %}"
-      data-motivation-ai-thinking
-    >
+            </div>
 
-      <div class="d-flex align-items-center gap-2 text-muted py-3">
+            <div class="d-flex align-items-center gap-2">
 
-        <span
-          class="spinner-border spinner-border-sm"
-          role="status"
-          aria-hidden="true"
-        ></span>
+              <span
+                class="
+                  badge
+                  rounded-pill
+                  bg-warning-subtle
+                  text-warning-emphasis
+                  {% if motivation_questions_status != 'outdated' %}
+                    d-none
+                  {% endif %}
+                "
+                data-motivation-questions-status-badge
+              >
+                {% trans "Needs update" %}
+              </span>
 
-        <span>
-          {% trans "Interpreting the motivation profile…" %}
-        </span>
+              <button
+                type="button"
+                class="btn btn-icon btn-light"
+                data-motivation-questions-regenerate
+                title="{% trans 'Generate new motivation questions' %}"
+                aria-label="{% trans 'Generate new motivation questions' %}"
+              >
+                <i data-feather="refresh-cw"></i>
+              </button>
 
-      </div>
+            </div>
 
-    </div>
-
-
-    <!-- ERROR -->
-    <div
-      class="alert alert-danger d-none mt-4"
-      data-motivation-ai-error
-    >
-      {% trans "The motivation interpretation could not be generated." %}
-    </div>
-
-
-    <!-- INTERPRETATION CONTENT -->
-    <div
-      class="{% if not motivation_interpretation %}d-none{% endif %}"
-      data-motivation-ai-content
-    >
-      {% include "customer/processes/partials/candidate_insights/motivation/_interpretation.html" %}
-    </div>
-
-  </section>
-
-</div>
-
-
-<!-- QUESTIONS -->
-<div
-  id="motivation-subpanel-questions"
-  class="candidate-insights-subpanel"
-  role="tabpanel"
-  aria-labelledby="motivation-tab-questions"
-  data-insights-subpanel="questions"
-  hidden
->
-
-  <section
-    class="purpose-fit-card motivation-questions-card"
-    data-motivation-questions-root
-    data-stream-url="{{ motivation_questions_stream_url }}"
-    data-regenerate-url="{{ motivation_questions_regenerate_url }}"
-    data-status="{{ motivation_questions_status }}"
-    data-has-result="{% if motivation_questions.questions %}true{% else %}false{% endif %}"
-  >
-
-    <!-- QUESTIONS HEADER -->
-    <div class="motivation-ai-header mb-4">
-
-      <div>
-
-        <div class="insight-summary-kicker mt-4">
-          ✨ {% trans "AI-supported questions" %}
-        </div>
-
-        <h2 class="insight-summary-title mb-1">
-          {% trans "Motivation questions" %}
-        </h2>
-
-        <p class="text-muted small mb-0">
-          {% blocktrans %}Practical questions for exploring how the motivation profile may appear in relevant work situations.{% endblocktrans %}
-        </p>
-
-      </div>
-
-
-      <div class="d-flex align-items-center gap-2">
-
-        <span
-          class="
-            badge
-            rounded-pill
-            bg-warning-subtle
-            text-warning-emphasis
-            {% if motivation_questions_status != 'outdated' %}
-              d-none
-            {% endif %}
-          "
-          data-motivation-questions-status-badge
-        >
-          {% trans "Needs update" %}
-        </span>
-
-        <button
-          type="button"
-          class="btn btn-icon btn-light"
-          data-motivation-questions-regenerate
-          title="{% trans 'Generate new motivation questions' %}"
-          aria-label="{% trans 'Generate new motivation questions' %}"
-        >
-          <i data-feather="refresh-cw"></i>
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- OUTDATED WARNING -->
-    <div
-      class="
-        alert
-        alert-warning
-        mt-4
-        {% if motivation_questions_status != 'outdated' %}
-          d-none
-        {% endif %}
-      "
-      data-motivation-questions-outdated
-    >
-
-      <div class="d-flex align-items-start gap-2">
-
-        <i
-          data-feather="alert-circle"
-          class="flex-shrink-0 mt-1"
-        ></i>
-
-        <div>
-
-          <div class="fw-semibold small mb-1">
-            {% trans "The process information has changed" %}
           </div>
 
-          <div class="small">
-            {% blocktrans %}These questions were generated using an earlier process purpose or context. Refresh them to include the latest information.{% endblocktrans %}
+          <!-- OUTDATED WARNING -->
+          <div
+            class="
+              alert
+              alert-warning
+              mt-4
+              {% if motivation_questions_status != 'outdated' %}
+                d-none
+              {% endif %}
+            "
+            data-motivation-questions-outdated
+          >
+
+            <div class="d-flex align-items-start gap-2">
+
+              <i
+                data-feather="alert-circle"
+                class="flex-shrink-0 mt-1"
+              ></i>
+
+              <div>
+
+                <div class="fw-semibold small mb-1">
+                  {% trans "The process information has changed" %}
+                </div>
+
+                <div class="small">
+                  {% blocktrans %}These questions were generated using an earlier process purpose or context. Refresh them to include the latest information.{% endblocktrans %}
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
 
-        </div>
+          <!-- THINKING -->
+          <div
+            class="{% if motivation_questions.questions %}d-none{% endif %}"
+            data-motivation-questions-thinking
+          >
+
+            <div class="d-flex align-items-center gap-2 text-muted py-3">
+
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                {% trans "Generating motivation questions…" %}
+              </span>
+
+            </div>
+
+          </div>
+
+          <!-- ERROR -->
+          <div
+            class="alert alert-danger d-none mt-4"
+            data-motivation-questions-error
+          >
+            {% trans "The motivation questions could not be generated." %}
+          </div>
+
+          <!-- QUESTIONS CONTENT -->
+          <div
+            class="{% if not motivation_questions.questions %}d-none{% endif %}"
+            data-motivation-questions-content
+          >
+            {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
+          </div>
+
+        </section>
 
       </div>
-
-    </div>
-
-
-    <!-- THINKING -->
-    <div
-      class="{% if motivation_questions.questions %}d-none{% endif %}"
-      data-motivation-questions-thinking
-    >
-
-      <div class="d-flex align-items-center gap-2 text-muted py-3">
-
-        <span
-          class="spinner-border spinner-border-sm"
-          role="status"
-          aria-hidden="true"
-        ></span>
-
-        <span>
-          {% trans "Generating motivation questions…" %}
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <!-- ERROR -->
-    <div
-      class="alert alert-danger d-none mt-4"
-      data-motivation-questions-error
-    >
-      {% trans "The motivation questions could not be generated." %}
-    </div>
-
-
-    <!-- QUESTIONS CONTENT -->
-    <div
-      class="{% if not motivation_questions.questions %}d-none{% endif %}"
-      data-motivation-questions-content
-    >
-      {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
-    </div>
-
-  </section>
-
-</div>
 
     </div>
 
   </div>
-
 
 {% elif has_motivation_results %}
 
   <div class="alert alert-light border">
     {% trans "Motivation results exist, but the motivation profile could not be built." %}
   </div>
-
 
 {% else %}
 
