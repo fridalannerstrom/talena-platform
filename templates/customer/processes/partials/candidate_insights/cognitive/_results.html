@@ -152,7 +152,25 @@
     </div>
 
     <!-- STATIC PERCENTILE GUIDE -->
-    <section class="purpose-fit-section mt-4">
+    <section class="purpose-fit-section mt-4 cognitive-percentile-guide">
+      <style>
+        .cognitive-percentile-guide .cognitive-percentile-guide__list {
+          margin-top: 0.4rem !important;
+          margin-bottom: 0 !important;
+          padding-left: 1.05rem !important;
+        }
+
+        .cognitive-percentile-guide .cognitive-percentile-guide__list li {
+          margin: 0 0 0.3rem !important;
+          padding: 0 !important;
+          line-height: 1.45 !important;
+        }
+
+        .cognitive-percentile-guide .cognitive-percentile-guide__list li:last-child {
+          margin-bottom: 0 !important;
+        }
+      </style>
+
       <div class="insight-summary-kicker">
         {% if LANGUAGE_CODE|slice:":2" == "sv" %}Percentilguide{% else %}Percentile guide{% endif %}
       </div>
@@ -205,14 +223,14 @@
             </div>
           </div>
           <div class="col-lg-8">
-            <p class="purpose-fit-summary mb-2">
+            <p class="purpose-fit-summary mb-1">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 Är ofta tillräcklig för <strong>mindre komplexa arbetsuppgifter</strong>, vilket kan innebära:
               {% else %}
                 Is often sufficient for <strong>less complex work tasks</strong>, which may include:
               {% endif %}
             </p>
-            <ul class="purpose-fit-summary mb-0 ps-3">
+            <ul class="purpose-fit-summary cognitive-percentile-guide__list">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 <li>Följa etablerade rutiner eller instruktioner</li>
                 <li>Utföra återkommande och förutsägbara aktiviteter</li>
@@ -238,14 +256,14 @@
             </div>
           </div>
           <div class="col-lg-8">
-            <p class="purpose-fit-summary mb-2">
+            <p class="purpose-fit-summary mb-1">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 Är ofta tillräcklig för <strong>relativt komplexa arbetsuppgifter</strong>, vilket kan innebära:
               {% else %}
                 Is often sufficient for <strong>relatively complex work tasks</strong>, which may include:
               {% endif %}
             </p>
-            <ul class="purpose-fit-summary mb-0 ps-3">
+            <ul class="purpose-fit-summary cognitive-percentile-guide__list">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 <li>Viss grad av problemlösning eller felsökning</li>
                 <li>Anpassa sig till förändrade situationer eller ny information</li>
@@ -271,14 +289,14 @@
             </div>
           </div>
           <div class="col-lg-8">
-            <p class="purpose-fit-summary mb-2">
+            <p class="purpose-fit-summary mb-1">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 Är ofta tillräcklig för <strong>mer komplexa arbetsuppgifter</strong>, vilket kan innebära:
               {% else %}
                 Is often sufficient for <strong>more complex work tasks</strong>, which may include:
               {% endif %}
             </p>
-            <ul class="purpose-fit-summary mb-0 ps-3">
+            <ul class="purpose-fit-summary cognitive-percentile-guide__list">
               {% if LANGUAGE_CODE|slice:":2" == "sv" %}
                 <li>Analysera abstrakt eller tvetydig information</li>
                 <li>Strategiskt tänkande och planering</li>
