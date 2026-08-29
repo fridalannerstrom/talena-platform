@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {# Talena candidate insights workspace #}
 {% trans "context" as context_fallback %}
 {% trans "Add context" as add_context_fallback %}
@@ -7,7 +8,11 @@
 {% trans "Explore the candidate’s overall personality traits and the detailed indicators that contribute to each result." as personality_panel_description %}
 {% trans "Motivation" as motivation_panel_title %}
 {% trans "The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale." as motivation_panel_description %}
-{% trans "Cognitive abilities" as cognitive_panel_title %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Färdighet" as cognitive_panel_title %}
+{% else %}
+  {% trans "Skills" as cognitive_panel_title %}
+{% endif %}
 {% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and process context." as cognitive_panel_description %}
 {% trans "Team styles" as team_styles_panel_title %}
 {% blocktrans trimmed asvar team_styles_panel_description %}
@@ -143,7 +148,7 @@
         </div>
 
 
-        <!-- COGNITIVE ABILITIES -->
+        <!-- SKILLS -->
 
         <div
           id="candidate-insights-panel-cognitive"
