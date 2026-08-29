@@ -83,18 +83,48 @@
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
 
+  function applyRenderedArcTheme(chart, colours) {
+    const arcs = chart?.getDatasetMeta?.(0)?.data || [];
+    const dataset = chart?.data?.datasets?.[0];
+
+    if (!dataset || !arcs.length) {
+      return;
+    }
+
+    arcs.forEach((arc, index) => {
+      const colour = colours[index];
+
+      if (!arc?.options || !colour) {
+        return;
+      }
+
+      /*
+       * Chart.js keeps resolved element options on each ArcElement. Updating
+       * only dataset.backgroundColor was enough for the active/hover style,
+       * but the resting arcs could retain the palette they were created with.
+       * Keep both resolved and dataset-level colours in sync.
+       */
+      arc.options.backgroundColor = colour;
+      arc.options.hoverBackgroundColor = colour;
+      arc.options.borderColor = "#ffffff";
+      arc.options.hoverBorderColor = "#ffffff";
+      arc.options.hoverBorderWidth = dataset.borderWidth;
+      arc.options.hoverOffset = 0;
+    });
+  }
+
   function applyDatasetTheme(chart) {
     const canvas = chart?.canvas;
     const dataset = chart?.data?.datasets?.[0];
 
     if (!canvas?.matches("[data-motivation-rose-chart]") || !dataset) {
-      return;
+      return [];
     }
 
     const items = getRoseItems(canvas);
 
     if (!items.length) {
-      return;
+      return [];
     }
 
     const colours = items.map(paletteFor);
@@ -105,6 +135,10 @@
     dataset.hoverBorderColor = "#ffffff";
     dataset.hoverBorderWidth = dataset.borderWidth;
     dataset.hoverOffset = 0;
+
+    applyRenderedArcTheme(chart, colours);
+
+    return colours;
   }
 
   function drawDomainOverlay(chart) {
@@ -243,7 +277,7 @@
       return false;
     }
 
-    applyDatasetTheme(chart);
+    const colours = applyDatasetTheme(chart);
     const patched = patchLocalLabelsPlugin(chart);
 
     if (chart.options?.scales?.r) {
@@ -270,6 +304,15 @@
 
     chart.$talenaBrandTheme = true;
     chart.update("none");
+
+    /*
+     * Re-apply the resolved ArcElement styles after Chart.js has rebuilt its
+     * option cache, then redraw without another update cycle.
+     */
+    if (colours.length) {
+      applyRenderedArcTheme(chart, colours);
+      chart.draw();
+    }
 
     /* Fallback for an unexpected Chart.js config shape. */
     if (!patched) {
