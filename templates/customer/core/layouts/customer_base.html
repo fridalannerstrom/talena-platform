@@ -113,5 +113,8 @@
   {# Per-page JS #}
   {% block extra_js %}{% endblock %}
 
+  {# Keeps Chart.js team-style arc geometry stable during hover redraws. #}
+  <script src="{% static 'js/talena/team-style-hover-fix.js' %}"></script>
+
 </body>
 </html>
