@@ -114,12 +114,6 @@
                       {{ item|motivation_top_interpretation }}
                     </p>
                   </div>
-
-                  {% if item.score is not None %}
-                    <div class="team-style-result__value">
-                      {{ item.score }}/5
-                    </div>
-                  {% endif %}
                 </div>
               </div>
             {% endfor %}
@@ -166,12 +160,6 @@
                         {{ item|motivation_bottom_interpretation }}
                       </p>
                     </div>
-
-                    {% if item.score is not None %}
-                      <div class="team-style-result__value">
-                        {{ item.score }}/5
-                      </div>
-                    {% endif %}
                   </div>
                 </div>
               {% endfor %}
@@ -237,16 +225,6 @@
                     {% endif %}
                   </p>
                 </div>
-
-                {% if item.score is not None %}
-                  <div class="team-style-result__value">
-                    {{ item.score }}/5
-                  </div>
-                {% else %}
-                  <div class="team-style-result__value motivation-factor-result__missing">
-                    {% trans "N/A" %}
-                  </div>
-                {% endif %}
               </div>
 
               {% if item.score is not None %}
