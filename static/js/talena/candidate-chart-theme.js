@@ -16,18 +16,18 @@
    */
 
   const DOMAIN_PALETTE = [
-    { rgb: [255, 111, 97] },
-    { rgb: [228, 162, 155] },
-    { rgb: [157, 183, 168] },
-    { rgb: [215, 176, 110] },
+    { rgb: [239, 94, 82] },
+    { rgb: [207, 137, 127] },
+    { rgb: [126, 162, 143] },
+    { rgb: [197, 151, 79] },
   ];
 
   const OPACITY_BY_SCORE = {
-    1: 0.34,
-    2: 0.48,
-    3: 0.64,
-    4: 0.8,
-    5: 0.94,
+    1: 0.38,
+    2: 0.52,
+    3: 0.68,
+    4: 0.84,
+    5: 0.96,
   };
 
   function getRoseItems(canvas) {
@@ -78,7 +78,7 @@
 
   function paletteFor(item) {
     const palette = DOMAIN_PALETTE[item.domainIndex % DOMAIN_PALETTE.length];
-    const opacity = OPACITY_BY_SCORE[item.score] || 0.64;
+    const opacity = OPACITY_BY_SCORE[item.score] || 0.68;
 
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
@@ -99,16 +99,18 @@
       }
 
       /*
-       * Chart.js keeps resolved element options on each ArcElement. Updating
-       * only dataset.backgroundColor was enough for the active/hover style,
-       * but the resting arcs could retain the palette they were created with.
-       * Keep both resolved and dataset-level colours in sync.
+       * Chart.js resolves active/hover styles onto each ArcElement. Enforce the
+       * same Talena colour immediately before every draw so an active segment
+       * can never fall back to the palette that existed when the chart was
+       * first created.
        */
       arc.options.backgroundColor = colour;
       arc.options.hoverBackgroundColor = colour;
       arc.options.borderColor = "#ffffff";
       arc.options.hoverBorderColor = "#ffffff";
+      arc.options.borderWidth = dataset.borderWidth;
       arc.options.hoverBorderWidth = dataset.borderWidth;
+      arc.options.offset = 0;
       arc.options.hoverOffset = 0;
     });
   }
@@ -270,6 +272,31 @@
     return true;
   }
 
+  function patchChartDraw(chart) {
+    if (!chart || chart.$talenaMotivationDrawPatched) {
+      return;
+    }
+
+    const originalDraw = chart.draw;
+
+    if (typeof originalDraw !== "function") {
+      return;
+    }
+
+    chart.draw = function talenaMotivationDraw(...args) {
+      /*
+       * Hover styles are applied by Chart.js immediately before render. Reset
+       * every resolved arc option at the final possible moment, then let the
+       * normal Chart.js draw pipeline run. Tooltips still work, but colour,
+       * border and offset remain visually unchanged on hover.
+       */
+      applyDatasetTheme(this);
+      return originalDraw.apply(this, args);
+    };
+
+    chart.$talenaMotivationDrawPatched = true;
+  }
+
   function themeMotivationRose(canvas) {
     const chart = canvas?._motivationRoseChartInstance;
 
@@ -277,8 +304,9 @@
       return false;
     }
 
-    const colours = applyDatasetTheme(chart);
+    applyDatasetTheme(chart);
     const patched = patchLocalLabelsPlugin(chart);
+    patchChartDraw(chart);
 
     if (chart.options?.scales?.r) {
       const radial = chart.options.scales.r;
@@ -304,15 +332,6 @@
 
     chart.$talenaBrandTheme = true;
     chart.update("none");
-
-    /*
-     * Re-apply the resolved ArcElement styles after Chart.js has rebuilt its
-     * option cache, then redraw without another update cycle.
-     */
-    if (colours.length) {
-      applyRenderedArcTheme(chart, colours);
-      chart.draw();
-    }
 
     /* Fallback for an unexpected Chart.js config shape. */
     if (!patched) {
