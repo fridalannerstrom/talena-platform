@@ -2,17 +2,11 @@
   "use strict";
 
   /*
-   * Canvas theme adapter for the motivation rose.
+   * Canvas theme adapter for the motivation rose and team-style polar chart.
    *
-   * The chart itself is still created inside process_base.html. That chart
-   * owns a local `motivationRoseLabels` plugin which draws factor labels,
-   * domain headings and the original white domain separators on every canvas
-   * redraw, including hover/tooltip redraws.
-   *
-   * Rather than competing with that plugin from a second global plugin, Talena
-   * wraps the local plugin once and performs its final hierarchy styling at
-   * the end of the SAME synchronous afterDraw pass. This removes the hover
-   * flicker and gives the chart one deterministic visual state.
+   * Both charts are created inside process_base.html and own local afterDraw
+   * plugins. Talena wraps those local plugins so the final labels, separators
+   * and colours are drawn in one deterministic pass, including hover redraws.
    */
 
   const DOMAIN_PALETTE = [
@@ -21,6 +15,13 @@
     { rgb: [126, 162, 143] },
     { rgb: [197, 151, 79] },
   ];
+
+  const TEAM_STYLE_PALETTE = {
+    explore: DOMAIN_PALETTE[0],
+    lead: DOMAIN_PALETTE[1],
+    deliver: DOMAIN_PALETTE[2],
+    review: DOMAIN_PALETTE[3],
+  };
 
   const OPACITY_BY_SCORE = {
     1: 0.38,
@@ -49,6 +50,29 @@
           domain: element.dataset.factorDomain || "",
           score,
           domainIndex: Number.isFinite(domainIndex) ? domainIndex : 0,
+        };
+      })
+      .filter((item) => Number.isFinite(item.score));
+  }
+
+  function getTeamStyleItems(canvas) {
+    const root = canvas.closest("[data-team-style-chart-root]");
+
+    if (!root) {
+      return [];
+    }
+
+    return Array.from(
+      root.querySelectorAll("[data-team-style-chart-item]")
+    )
+      .map((element) => {
+        const score = Number(element.dataset.styleScore);
+
+        return {
+          name: element.dataset.styleName || "",
+          score,
+          quadrantKey: element.dataset.quadrantKey || "explore",
+          quadrantLabel: element.dataset.quadrantLabel || "",
         };
       })
       .filter((item) => Number.isFinite(item.score));
@@ -83,6 +107,13 @@
     return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
   }
 
+  function teamStylePaletteFor(item) {
+    const palette = TEAM_STYLE_PALETTE[item.quadrantKey] || DOMAIN_PALETTE[0];
+    const opacity = OPACITY_BY_SCORE[item.score] || 0.68;
+
+    return `rgba(${palette.rgb[0]}, ${palette.rgb[1]}, ${palette.rgb[2]}, ${opacity})`;
+  }
+
   function applyRenderedArcTheme(chart, colours) {
     const arcs = chart?.getDatasetMeta?.(0)?.data || [];
     const dataset = chart?.data?.datasets?.[0];
@@ -98,12 +129,6 @@
         return;
       }
 
-      /*
-       * Chart.js resolves active/hover styles onto each ArcElement. Enforce the
-       * same Talena colour immediately before every draw so an active segment
-       * can never fall back to the palette that existed when the chart was
-       * first created.
-       */
       arc.options.backgroundColor = colour;
       arc.options.hoverBackgroundColor = colour;
       arc.options.borderColor = "#ffffff";
@@ -143,6 +168,38 @@
     return colours;
   }
 
+  function applyTeamStyleDatasetTheme(chart) {
+    const canvas = chart?.canvas;
+    const dataset = chart?.data?.datasets?.[0];
+
+    if (!canvas?.matches("[data-team-style-chart]") || !dataset) {
+      return [];
+    }
+
+    const items = getTeamStyleItems(canvas);
+
+    if (!items.length) {
+      return [];
+    }
+
+    const compact = canvas.clientWidth < 620;
+    const colours = items.map(teamStylePaletteFor);
+
+    dataset.backgroundColor = colours;
+    dataset.hoverBackgroundColor = colours;
+    dataset.borderColor = "#ffffff";
+    dataset.hoverBorderColor = "#ffffff";
+    dataset.borderWidth = compact ? 2 : 3;
+    dataset.hoverBorderWidth = dataset.borderWidth;
+    dataset.borderRadius = compact ? 7 : 12;
+    dataset.spacing = compact ? 1 : 2;
+    dataset.hoverOffset = 0;
+
+    applyRenderedArcTheme(chart, colours);
+
+    return colours;
+  }
+
   function drawDomainOverlay(chart) {
     const canvas = chart?.canvas;
 
@@ -168,7 +225,6 @@
 
     ctx.save();
 
-    /* Four clear boundaries, including the join between last and first area. */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
 
@@ -189,7 +245,6 @@
       ctx.stroke();
     });
 
-    /* Larger black area headings, using normal title casing. */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
       const lastArc = arcs[group.endIndex];
@@ -209,7 +264,6 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      /* Remove the coloured legacy heading that was drawn immediately before. */
       const measured = ctx.measureText(label);
       const clearWidth = measured.width + (compact ? 12 : 18);
       const clearHeight = compact ? 22 : 28;
@@ -228,7 +282,176 @@
     ctx.restore();
   }
 
-  function findLocalLabelsPlugin(chart) {
+  function wrapLabel(value, maxLength) {
+    const words = String(value || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    const lines = [];
+    let currentLine = "";
+
+    words.forEach((word) => {
+      const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+      if (nextLine.length > maxLength && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = nextLine;
+      }
+    });
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines.slice(0, 2);
+  }
+
+  function drawTeamStyleOverlay(chart) {
+    const canvas = chart?.canvas;
+
+    if (!canvas?.matches("[data-team-style-chart]")) {
+      return;
+    }
+
+    const items = getTeamStyleItems(canvas);
+    const arcs = chart.getDatasetMeta(0)?.data || [];
+    const radialScale = chart.scales?.r;
+
+    if (!items.length || !arcs.length || !radialScale) {
+      return;
+    }
+
+    const compact = canvas.clientWidth < 620;
+    const centerX = radialScale.xCenter;
+    const centerY = radialScale.yCenter;
+    const drawingArea = radialScale.drawingArea;
+    const styleLabelRadius = drawingArea + (compact ? 18 : 28);
+    const quadrantLabelRadius = drawingArea + (compact ? 48 : 68);
+    const ctx = chart.ctx;
+
+    ctx.save();
+
+    /* Only show the four meaningful area boundaries, like the motivation rose. */
+    items.forEach((item, index) => {
+      const previous = items[(index - 1 + items.length) % items.length];
+      const arc = arcs[index];
+
+      if (!arc || previous?.quadrantKey === item.quadrantKey) {
+        return;
+      }
+
+      const angle = arc.startAngle;
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(angle) * drawingArea,
+        centerY + Math.sin(angle) * drawingArea
+      );
+      ctx.strokeStyle = "rgba(23, 19, 18, 0.26)";
+      ctx.lineWidth = compact ? 1.6 : 2.1;
+      ctx.stroke();
+    });
+
+    /* Team-style names are always visible, so hover is optional rather than required. */
+    items.forEach((item, index) => {
+      const arc = arcs[index];
+
+      if (!arc) {
+        return;
+      }
+
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const labelX = centerX + cosine * styleLabelRadius;
+      const labelY = centerY + sine * styleLabelRadius;
+      const labelLines = wrapLabel(item.name, compact ? 11 : 16);
+
+      if (cosine > 0.25) {
+        ctx.textAlign = "left";
+      } else if (cosine < -0.25) {
+        ctx.textAlign = "right";
+      } else {
+        ctx.textAlign = "center";
+      }
+
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#475467";
+      ctx.font = compact
+        ? "600 9px Inter, system-ui, sans-serif"
+        : "600 11px Inter, system-ui, sans-serif";
+
+      const lineHeight = compact ? 11 : 14;
+      const firstLineY = labelY - ((labelLines.length - 1) * lineHeight) / 2;
+
+      labelLines.forEach((line, lineIndex) => {
+        ctx.fillText(
+          line,
+          labelX,
+          firstLineY + lineIndex * lineHeight
+        );
+      });
+
+      const scoreRadius = Math.max(
+        arc.innerRadius + 16,
+        arc.outerRadius - (compact ? 13 : 17)
+      );
+      const scoreX = centerX + cosine * scoreRadius;
+      const scoreY = centerY + sine * scoreRadius;
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = compact
+        ? "700 9px Inter, system-ui, sans-serif"
+        : "700 11px Inter, system-ui, sans-serif";
+      ctx.fillText(String(item.score), scoreX, scoreY);
+    });
+
+    /* Place each area heading outside its two styles using a circular mean. */
+    const quadrants = new Map();
+
+    items.forEach((item, index) => {
+      const arc = arcs[index];
+
+      if (!arc) {
+        return;
+      }
+
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const current = quadrants.get(item.quadrantKey) || {
+        label: item.quadrantLabel,
+        cosine: 0,
+        sine: 0,
+      };
+
+      current.cosine += Math.cos(angle);
+      current.sine += Math.sin(angle);
+      quadrants.set(item.quadrantKey, current);
+    });
+
+    quadrants.forEach((quadrant) => {
+      const angle = Math.atan2(quadrant.sine, quadrant.cosine);
+      const x = centerX + Math.cos(angle) * quadrantLabelRadius;
+      const y = centerY + Math.sin(angle) * quadrantLabelRadius;
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#171312";
+      ctx.font = compact
+        ? "800 12px Inter, system-ui, sans-serif"
+        : "800 16px Inter, system-ui, sans-serif";
+      ctx.fillText(String(quadrant.label || ""), x, y);
+    });
+
+    ctx.restore();
+  }
+
+  function findLocalLabelsPlugin(chart, pluginId) {
     const candidates = [];
 
     if (Array.isArray(chart?.config?.plugins)) {
@@ -240,7 +463,7 @@
     }
 
     return candidates.find(
-      (plugin) => plugin && plugin.id === "motivationRoseLabels"
+      (plugin) => plugin && plugin.id === pluginId
     ) || null;
   }
 
@@ -249,7 +472,7 @@
       return Boolean(chart?.$talenaMotivationLocalPluginPatched);
     }
 
-    const plugin = findLocalLabelsPlugin(chart);
+    const plugin = findLocalLabelsPlugin(chart, "motivationRoseLabels");
 
     if (!plugin || typeof plugin.afterDraw !== "function") {
       return false;
@@ -272,6 +495,28 @@
     return true;
   }
 
+  function patchTeamStyleLabelsPlugin(chart) {
+    if (!chart || chart.$talenaTeamStyleLocalPluginPatched) {
+      return Boolean(chart?.$talenaTeamStyleLocalPluginPatched);
+    }
+
+    const plugin = findLocalLabelsPlugin(chart, "teamStyleThemeLabels");
+
+    if (!plugin || typeof plugin.afterDraw !== "function") {
+      return false;
+    }
+
+    /* Replace the legacy coloured corner headings with the Talena rose hierarchy. */
+    plugin.afterDraw = function talenaTeamStyleAfterDraw(currentChart) {
+      drawTeamStyleOverlay(currentChart);
+    };
+
+    plugin.$talenaWrapped = true;
+    chart.$talenaTeamStyleLocalPluginPatched = true;
+
+    return true;
+  }
+
   function patchChartDraw(chart) {
     if (!chart || chart.$talenaMotivationDrawPatched) {
       return;
@@ -284,17 +529,30 @@
     }
 
     chart.draw = function talenaMotivationDraw(...args) {
-      /*
-       * Hover styles are applied by Chart.js immediately before render. Reset
-       * every resolved arc option at the final possible moment, then let the
-       * normal Chart.js draw pipeline run. Tooltips still work, but colour,
-       * border and offset remain visually unchanged on hover.
-       */
       applyDatasetTheme(this);
       return originalDraw.apply(this, args);
     };
 
     chart.$talenaMotivationDrawPatched = true;
+  }
+
+  function patchTeamStyleChartDraw(chart) {
+    if (!chart || chart.$talenaTeamStyleDrawPatched) {
+      return;
+    }
+
+    const originalDraw = chart.draw;
+
+    if (typeof originalDraw !== "function") {
+      return;
+    }
+
+    chart.draw = function talenaTeamStyleDraw(...args) {
+      applyTeamStyleDatasetTheme(this);
+      return originalDraw.apply(this, args);
+    };
+
+    chart.$talenaTeamStyleDrawPatched = true;
   }
 
   function themeMotivationRose(canvas) {
@@ -333,9 +591,82 @@
     chart.$talenaBrandTheme = true;
     chart.update("none");
 
-    /* Fallback for an unexpected Chart.js config shape. */
     if (!patched) {
       drawDomainOverlay(chart);
+    }
+
+    return true;
+  }
+
+  function themeTeamStyleChart(canvas) {
+    const chart = canvas?._teamStyleChartInstance;
+
+    if (!chart) {
+      return false;
+    }
+
+    const compact = canvas.clientWidth < 620;
+
+    applyTeamStyleDatasetTheme(chart);
+    const patched = patchTeamStyleLabelsPlugin(chart);
+    patchTeamStyleChartDraw(chart);
+
+    if (chart.options?.scales?.r) {
+      const radial = chart.options.scales.r;
+
+      if (radial.ticks) {
+        radial.ticks.color = "#9c938e";
+        radial.ticks.backdropColor = "rgba(255, 255, 255, 0.9)";
+        radial.ticks.backdropPadding = 2;
+        radial.ticks.font = {
+          ...(radial.ticks.font || {}),
+          size: compact ? 9 : 10,
+        };
+      }
+
+      if (radial.grid) {
+        radial.grid.color = "rgba(23, 19, 18, 0.10)";
+      }
+
+      if (radial.angleLines) {
+        radial.angleLines.display = false;
+      }
+
+      if (radial.pointLabels) {
+        radial.pointLabels.display = false;
+      }
+    }
+
+    if (chart.options?.layout) {
+      chart.options.layout.padding = compact
+        ? {
+            top: 64,
+            right: 64,
+            bottom: 64,
+            left: 64,
+          }
+        : {
+            top: 98,
+            right: 105,
+            bottom: 98,
+            left: 105,
+          };
+    }
+
+    if (chart.options) {
+      chart.options.transitions = chart.options.transitions || {};
+      chart.options.transitions.active = {
+        animation: {
+          duration: 0,
+        },
+      };
+    }
+
+    chart.$talenaBrandTheme = true;
+    chart.update("none");
+
+    if (!patched) {
+      drawTeamStyleOverlay(chart);
     }
 
     return true;
@@ -345,6 +676,10 @@
     document
       .querySelectorAll("[data-motivation-rose-chart]")
       .forEach((canvas) => themeMotivationRose(canvas));
+
+    document
+      .querySelectorAll("[data-team-style-chart]")
+      .forEach((canvas) => themeTeamStyleChart(canvas));
   }
 
   function scheduleThemePasses() {
@@ -364,6 +699,7 @@
   document.addEventListener("click", (event) => {
     if (
       event.target.closest("[data-insights-tab='motivation']") ||
+      event.target.closest("[data-insights-tab='team-styles']") ||
       event.target.closest("[data-insights-subtab]")
     ) {
       scheduleThemePasses();
