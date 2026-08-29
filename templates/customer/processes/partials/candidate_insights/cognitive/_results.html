@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <!-- COGNITIVE ASSESSMENT RESULTS -->
 {% if candidate_insights.cognitive_results %}
@@ -16,12 +17,16 @@
             <div class="cognitive-result-card__header">
               <div>
                 <h3 class="cognitive-result-card__title">
-                  {{ result.title }}
+                  {% if result.key == "logical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
+                  {% elif result.key == "numerical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
+                  {% elif result.key == "verbal" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
+                  {% else %}
+                    {{ result.title }}
+                  {% endif %}
                 </h3>
-
-                <div class="cognitive-result-card__subtitle">
-                  {% trans "Cognitive assessment" %}
-                </div>
               </div>
             </div>
 
@@ -89,12 +94,16 @@
             <div class="cognitive-result-card__header">
               <div>
                 <h3 class="cognitive-result-card__title">
-                  {{ result.title }}
+                  {% if result.key == "logical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
+                  {% elif result.key == "numerical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
+                  {% elif result.key == "verbal" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
+                  {% else %}
+                    {{ result.title }}
+                  {% endif %}
                 </h3>
-
-                <div class="cognitive-result-card__subtitle">
-                  {% trans "Cognitive assessment" %}
-                </div>
               </div>
             </div>
 
