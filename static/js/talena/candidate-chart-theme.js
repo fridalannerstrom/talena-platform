@@ -102,10 +102,8 @@
     ctx.save();
 
     /*
-     * Deliberately draw every group boundary, including the first/last join.
-     * The base chart already has subtle white separators; these darker lines
-     * create the clearer four-part structure requested for the motivation
-     * profile without making every individual factor feel boxed in.
+     * Draw every group boundary, including the first/last join, so the four
+     * motivation domains remain visually clear at rest and during hover.
      */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
@@ -128,9 +126,8 @@
     });
 
     /*
-     * Domain headings are hierarchy labels, not data colours. Clear the old
-     * coloured label area and redraw them in Talena's primary text colour so
-     * SAMHÖRIGHET / INFLYTANDE / UTVECKLING / INTRESSE read as section names.
+     * Domain headings are hierarchy labels rather than data colours. Clear
+     * the legacy coloured text first, then redraw in Talena's primary colour.
      */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
@@ -181,10 +178,9 @@
       }
 
       /*
-       * The original chart also has its own local afterDraw plugin. Schedule
-       * our hierarchy overlay one frame later so the Talena separator lines
-       * and black domain headings always sit on top, including after hover or
-       * responsive redraws.
+       * The original chart has a local afterDraw plugin of its own. A final
+       * overlay pass keeps the Talena hierarchy styling above that legacy
+       * drawing during normal and responsive renders.
        */
       if (chart.$talenaMotivationOverlayFrame) {
         window.cancelAnimationFrame(chart.$talenaMotivationOverlayFrame);
@@ -212,6 +208,28 @@
     }
   }
 
+  function bindStableHoverOverlay(canvas, chart) {
+    if (!canvas || !chart || canvas.dataset.talenaMotivationHoverBound === "true") {
+      return;
+    }
+
+    canvas.dataset.talenaMotivationHoverBound = "true";
+
+    /*
+     * Chart.js redraws the canvas for active/tooltip states. The legacy local
+     * plugin used to briefly repaint the old coloured headings during those
+     * redraws. This listener is registered after the chart's own listeners and
+     * immediately restores the Talena overlay in the same event cycle.
+     */
+    const restoreOverlay = () => {
+      drawDomainOverlay(chart);
+    };
+
+    ["mousemove", "mouseout", "touchmove", "touchend"].forEach((eventName) => {
+      canvas.addEventListener(eventName, restoreOverlay, { passive: true });
+    });
+  }
+
   function themeMotivationRose(canvas) {
     const chart = canvas?._motivationRoseChartInstance;
 
@@ -236,6 +254,28 @@
 
     dataset.borderColor = "#ffffff";
     dataset.hoverBorderColor = "#ffffff";
+    dataset.hoverBorderWidth = dataset.borderWidth;
+    dataset.hoverOffset = 0;
+
+    if (chart.options) {
+      /*
+       * Keep tooltips, but remove the active-element animation that caused the
+       * canvas to flip between legacy and Talena styling for several frames.
+       */
+      chart.options.transitions = chart.options.transitions || {};
+      chart.options.transitions.active = {
+        animation: {
+          duration: 0,
+        },
+      };
+
+      const tooltip = chart.options.plugins?.tooltip;
+      if (tooltip) {
+        tooltip.animation = {
+          duration: 0,
+        };
+      }
+    }
 
     if (chart.options?.scales?.r) {
       const radial = chart.options.scales.r;
@@ -250,8 +290,13 @@
       }
     }
 
+    bindStableHoverOverlay(canvas, chart);
+
     chart.$talenaBrandTheme = true;
     chart.update("none");
+
+    /* Make the first themed frame deterministic as well. */
+    drawDomainOverlay(chart);
 
     return true;
   }
