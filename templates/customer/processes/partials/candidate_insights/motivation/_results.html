@@ -1,4 +1,4 @@
-{% load i18n motivation_i18n %}
+{% load i18n motivation_i18n motivation_list_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
 {# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
@@ -194,7 +194,7 @@
                   </h5>
 
                   <p class="team-style-result__description">
-                    {{ item|motivation_description }}
+                    {{ item|motivation_list_description }}
                   </p>
                 </div>
 
