@@ -313,3 +313,34 @@ def motivation_least_prominent(value):
 
     scored_items.sort(key=lambda entry: entry[0])
     return [item for _, item in scored_items[:3]]
+
+
+@register.filter
+def motivation_bottom_interpretation(value):
+    if not isinstance(value, dict):
+        return value
+
+    content = FACTOR_CONTENT.get(
+        _item_key(value)
+    )
+    description = (
+        content["description"]
+        if _is_swedish() and content
+        else value.get("description", "")
+    )
+
+    if _is_swedish():
+        explanation = (
+            "Ett lägre resultat är inte negativt, utan visar att faktorn "
+            "sannolikt är en mindre central källa till motivation för personen."
+        )
+    else:
+        explanation = (
+            "A lower result is not negative; it indicates that this factor "
+            "is likely to be a less central source of motivation for the person."
+        )
+
+    if not description:
+        return explanation
+
+    return f"{description} {explanation}"
