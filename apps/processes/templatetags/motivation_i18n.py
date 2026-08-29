@@ -288,3 +288,28 @@ def motivation_top_interpretation(value):
         f"{description} Resultatet tyder på att detta kan vara en "
         "mer framträdande källa till energi och engagemang."
     )
+
+
+@register.filter
+def motivation_least_prominent(value):
+    if not isinstance(value, dict):
+        return []
+
+    scored_items = []
+    for domain in value.get("domains") or []:
+        if not isinstance(domain, dict):
+            continue
+
+        for item in domain.get("items") or []:
+            if not isinstance(item, dict) or item.get("score") is None:
+                continue
+
+            try:
+                sort_score = float(item.get("score"))
+            except (TypeError, ValueError):
+                continue
+
+            scored_items.append((sort_score, item))
+
+    scored_items.sort(key=lambda entry: entry[0])
+    return [item for _, item in scored_items[:3]]
