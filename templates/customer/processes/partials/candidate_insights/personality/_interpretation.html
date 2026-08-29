@@ -1,5 +1,6 @@
 {% load i18n %}
 {% trans "Personality interpretation" as personality_interpretation_fallback %}
+{% get_current_language as personality_interpretation_language %}
 {# Talena personality UI and response styles language batch 1 #}
 {% if has_personality_results %}
 
@@ -128,7 +129,11 @@
         <section class="mt-4 purpose-fit-section">
 
           <h3 class="mb-2 purpose-fit-section-title">
-             {% trans "Overall personality interpretation" %}
+            {% if personality_interpretation_language|slice:":2" == "sv" %}
+              Övergripande tolkning
+            {% else %}
+              Overall interpretation
+            {% endif %}
           </h3>
 
 <div
