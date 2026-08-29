@@ -316,6 +316,39 @@ def motivation_least_prominent(value):
 
 
 @register.filter
+def motivation_factors_descending(value):
+    if not isinstance(value, dict):
+        return []
+
+    scored_items = []
+    unscored_items = []
+
+    for domain in value.get("domains") or []:
+        if not isinstance(domain, dict):
+            continue
+
+        for item in domain.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+
+            score = item.get("score")
+            if score is None:
+                unscored_items.append(item)
+                continue
+
+            try:
+                sort_score = float(score)
+            except (TypeError, ValueError):
+                unscored_items.append(item)
+                continue
+
+            scored_items.append((sort_score, item))
+
+    scored_items.sort(key=lambda entry: entry[0], reverse=True)
+    return [item for _, item in scored_items] + unscored_items
+
+
+@register.filter
 def motivation_bottom_interpretation(value):
     if not isinstance(value, dict):
         return value
