@@ -76,6 +76,100 @@
     return groups;
   }
 
+  function drawDomainOverlay(chart) {
+    const canvas = chart?.canvas;
+
+    if (!canvas?.matches("[data-motivation-rose-chart]")) {
+      return;
+    }
+
+    const items = getRoseItems(canvas);
+    const groups = buildDomainGroups(items);
+    const arcs = chart.getDatasetMeta(0)?.data || [];
+    const radialScale = chart.scales?.r;
+
+    if (!items.length || !groups.length || !arcs.length || !radialScale) {
+      return;
+    }
+
+    const compact = canvas.clientWidth < 620;
+    const centerX = radialScale.xCenter;
+    const centerY = radialScale.yCenter;
+    const drawingArea = radialScale.drawingArea;
+    const domainLabelRadius = drawingArea + (compact ? 47 : 68);
+    const ctx = chart.ctx;
+
+    ctx.save();
+
+    /*
+     * Deliberately draw every group boundary, including the first/last join.
+     * The base chart already has subtle white separators; these darker lines
+     * create the clearer four-part structure requested for the motivation
+     * profile without making every individual factor feel boxed in.
+     */
+    groups.forEach((group) => {
+      const firstArc = arcs[group.startIndex];
+
+      if (!firstArc) {
+        return;
+      }
+
+      const angle = firstArc.startAngle;
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(angle) * drawingArea,
+        centerY + Math.sin(angle) * drawingArea
+      );
+      ctx.strokeStyle = "rgba(23, 19, 18, 0.26)";
+      ctx.lineWidth = compact ? 1.6 : 2.1;
+      ctx.stroke();
+    });
+
+    /*
+     * Domain headings are hierarchy labels, not data colours. Clear the old
+     * coloured label area and redraw them in Talena's primary text colour so
+     * SAMHÖRIGHET / INFLYTANDE / UTVECKLING / INTRESSE read as section names.
+     */
+    groups.forEach((group) => {
+      const firstArc = arcs[group.startIndex];
+      const lastArc = arcs[group.endIndex];
+
+      if (!firstArc || !lastArc) {
+        return;
+      }
+
+      const middleAngle = (firstArc.startAngle + lastArc.endAngle) / 2;
+      const domainX = centerX + Math.cos(middleAngle) * domainLabelRadius;
+      const domainY = centerY + Math.sin(middleAngle) * domainLabelRadius;
+      const label = String(group.domain || "").toUpperCase();
+      const font = compact
+        ? "800 10.5px Inter, system-ui, sans-serif"
+        : "800 13px Inter, system-ui, sans-serif";
+
+      ctx.font = font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const measured = ctx.measureText(label);
+      const clearWidth = measured.width + (compact ? 8 : 12);
+      const clearHeight = compact ? 17 : 21;
+
+      ctx.clearRect(
+        domainX - clearWidth / 2,
+        domainY - clearHeight / 2,
+        clearWidth,
+        clearHeight
+      );
+
+      ctx.fillStyle = "#171312";
+      ctx.fillText(label, domainX, domainY);
+    });
+
+    ctx.restore();
+  }
+
   const talenaMotivationDomainPlugin = {
     id: "talenaMotivationDomainTheme",
 
@@ -86,50 +180,20 @@
         return;
       }
 
-      const items = getRoseItems(canvas);
-      const groups = buildDomainGroups(items);
-      const arcs = chart.getDatasetMeta(0)?.data || [];
-      const radialScale = chart.scales?.r;
-
-      if (!items.length || !groups.length || !arcs.length || !radialScale) {
-        return;
+      /*
+       * The original chart also has its own local afterDraw plugin. Schedule
+       * our hierarchy overlay one frame later so the Talena separator lines
+       * and black domain headings always sit on top, including after hover or
+       * responsive redraws.
+       */
+      if (chart.$talenaMotivationOverlayFrame) {
+        window.cancelAnimationFrame(chart.$talenaMotivationOverlayFrame);
       }
 
-      const compact = canvas.clientWidth < 620;
-      const centerX = radialScale.xCenter;
-      const centerY = radialScale.yCenter;
-      const domainLabelRadius =
-        radialScale.drawingArea + (compact ? 46 : 66);
-      const ctx = chart.ctx;
-
-      ctx.save();
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = compact
-        ? "750 9px Inter, system-ui, sans-serif"
-        : "750 11px Inter, system-ui, sans-serif";
-
-      groups.forEach((group) => {
-        const firstArc = arcs[group.startIndex];
-        const lastArc = arcs[group.endIndex];
-
-        if (!firstArc || !lastArc) {
-          return;
-        }
-
-        const middleAngle = (firstArc.startAngle + lastArc.endAngle) / 2;
-        const palette =
-          DOMAIN_PALETTE[group.domainIndex % DOMAIN_PALETTE.length];
-
-        ctx.fillStyle = palette.solid;
-        ctx.fillText(
-          String(group.domain || "").toUpperCase(),
-          centerX + Math.cos(middleAngle) * domainLabelRadius,
-          centerY + Math.sin(middleAngle) * domainLabelRadius
-        );
+      chart.$talenaMotivationOverlayFrame = window.requestAnimationFrame(() => {
+        chart.$talenaMotivationOverlayFrame = null;
+        drawDomainOverlay(chart);
       });
-
-      ctx.restore();
     },
   };
 
