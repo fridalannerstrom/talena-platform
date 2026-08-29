@@ -1,4 +1,4 @@
-{% load i18n motivation_i18n motivation_list_i18n %}
+{% load i18n motivation_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
 {# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
@@ -194,7 +194,31 @@
                   </h5>
 
                   <p class="team-style-result__description">
-                    {{ item|motivation_list_description }}
+                    {% if motivation_language|slice:":2" == "sv" %}
+                      {% if item.key == "attachment" %}Motiveras av socialt samspel samt av att få stöd och arbeta i team.
+                      {% elif item.key == "customer_service" %}Motiveras av kundinriktade miljöer samt av att förstå kunders behov och ge god service.
+                      {% elif item.key == "work_life_balance" %}Motiveras av att kunna bevara en hälsosam balans mellan arbete och fritid.
+                      {% elif item.key == "people_development" %}Motiveras av att hjälpa andra att växa och utvecklas.
+                      {% elif item.key == "stability" %}Motiveras av anställningstrygghet samt stabilitet och enhetlighet i organisationen.
+                      {% elif item.key == "authority" %}Motiveras av bekräftelse gällande yrkesmässig status samt att utöva makt och inflytande över andra.
+                      {% elif item.key == "acquisition" %}Motiveras av ökat välstånd och ekonomisk belöning.
+                      {% elif item.key == "independence" %}Motiveras av att själv kunna styra över sin egen tid och sitt arbetssätt.
+                      {% elif item.key == "recognition" %}Motiveras av synlighet, beröm och av att få sina prestationer erkända inför andra.
+                      {% elif item.key == "making_a_difference" %}Motiveras av att bidra till organisationen, samhället eller någon sorts större syfte.
+                      {% elif item.key == "achievement" %}Motiveras av att uppnå mål, bemästra svårigheter och konkurrera med andra.
+                      {% elif item.key == "quality" %}Motiveras av att leverera arbetsresultat med hög precision och kvalitet i tid.
+                      {% elif item.key == "ethics" %}Motiveras av att upprätthålla höga etiska normer både för egen del och för organisationens del.
+                      {% elif item.key == "commercial_focus" %}Motiveras av att skapa intäkter och vinst för organisationen.
+                      {% elif item.key == "creativity" %}Motiveras av nyskapande och att hitta nya möjligheter till kreativitet.
+                      {% elif item.key == "enjoyment" %}Motiveras av att trivas på arbetet och ha roligt med kollegorna.
+                      {% elif item.key == "risk" %}Motiveras av att få mandat att ta risker i arbetet.
+                      {% elif item.key == "variety" %}Motiveras av variation i arbetet, nya och varierade arbetssätt samt förändring.
+                      {% elif item.key == "learning" %}Motiveras av möjligheter till vidareutveckling, fortbildning och att lära sig nya färdigheter.
+                      {% elif item.key == "curiosity" %}Motiveras av att hitta ny information och lösa nya problem.
+                      {% else %}{{ item|motivation_description }}{% endif %}
+                    {% else %}
+                      {{ item|motivation_description }}
+                    {% endif %}
                   </p>
                 </div>
 
