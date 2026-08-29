@@ -1,10 +1,15 @@
 {% load i18n %}
+{% get_current_language as motivation_interpretation_language %}
 {# Talena motivation Results language batch 1 #}
 <!-- OVERALL INTERPRETATION -->
 <section class="mt-4 purpose-fit-section">
 
   <h3 class="motivation-ai-section__title">
-    {% trans "Overall motivation interpretation" %}
+    {% if motivation_interpretation_language|slice:":2" == "sv" %}
+      Övergripande tolkning
+    {% else %}
+      Overall interpretation
+    {% endif %}
   </h3>
 
   <div
@@ -40,7 +45,11 @@
     <div>
 
       <h3 class="mb-2 purpose-fit-section-title">
-        {% trans "Realistic expectation setting" %}
+        {% if motivation_interpretation_language|slice:":2" == "sv" %}
+          Att kommunicera till kandidaten
+        {% else %}
+          What to communicate to the candidate
+        {% endif %}
       </h3>
 
       <div
@@ -72,7 +81,11 @@
     >
 
       <div class="purpose-fit-section-title">
-        {% trans "Conditions likely to support engagement" %}
+        {% if motivation_interpretation_language|slice:":2" == "sv" %}
+          Sannolika beteenden
+        {% else %}
+          Likely behaviours
+        {% endif %}
       </div>
 
       <ul
