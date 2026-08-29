@@ -1,4 +1,5 @@
-{% load i18n %}
+{% load i18n interview_config %}
+{% interview_section_meta "motivation" as motivation_interview_meta %}
 {# Talena candidate i18n batch 1 #}
 {% trans "No motivation assessment available" as no_motivation_title %}
 {% trans "A motivation assessment could provide additional insight into likely sources of energy, engagement and preferred working conditions." as no_motivation_description %}
@@ -104,7 +105,6 @@
       >
 
         <section
-          class="purpose-fit-card motivation-questions-card"
           data-motivation-questions-root
           data-stream-url="{{ motivation_questions_stream_url }}"
           data-regenerate-url="{{ motivation_questions_regenerate_url }}"
@@ -113,10 +113,9 @@
         >
 
           <!-- QUESTIONS HEADER -->
-          <div class="motivation-ai-header mb-4">
+          <div class="personality-questions-header mt-4">
 
             <div>
-
               <div class="insight-summary-kicker mt-4">
                 ✨ {% trans "AI-supported questions" %}
               </div>
@@ -128,22 +127,20 @@
               <p class="text-muted small mb-0">
                 {% blocktrans %}Practical questions for exploring how the motivation profile may appear in relevant work situations.{% endblocktrans %}
               </p>
-
             </div>
 
             <div class="d-flex align-items-center gap-2">
+              <span class="personality-trait-pill text-nowrap">
+                <i data-feather="clock"></i>
+                ~ {{ motivation_interview_meta.estimated_minutes }} min
+              </span>
 
               <span
-                class="
-                  badge
-                  rounded-pill
-                  bg-warning-subtle
-                  text-warning-emphasis
-                  {% if motivation_questions_status != 'outdated' %}
-                    d-none
-                  {% endif %}
-                "
+                class="badge rounded-pill bg-warning-subtle text-warning-emphasis {% if motivation_questions_status != 'outdated' %}d-none{% endif %}"
                 data-motivation-questions-status-badge
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="{% trans 'The process purpose or context has changed.' %}"
               >
                 {% trans "Needs update" %}
               </span>
@@ -157,55 +154,23 @@
               >
                 <i data-feather="refresh-cw"></i>
               </button>
-
             </div>
 
           </div>
 
-          <!-- OUTDATED WARNING -->
+          <!-- Hidden hook retained for existing JavaScript -->
           <div
-            class="
-              alert
-              alert-warning
-              mt-4
-              {% if motivation_questions_status != 'outdated' %}
-                d-none
-              {% endif %}
-            "
+            class="d-none"
             data-motivation-questions-outdated
-          >
-
-            <div class="d-flex align-items-start gap-2">
-
-              <i
-                data-feather="alert-circle"
-                class="flex-shrink-0 mt-1"
-              ></i>
-
-              <div>
-
-                <div class="fw-semibold small mb-1">
-                  {% trans "The process information has changed" %}
-                </div>
-
-                <div class="small">
-                  {% blocktrans %}These questions were generated using an earlier process purpose or context. Refresh them to include the latest information.{% endblocktrans %}
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
+            aria-hidden="true"
+          ></div>
 
           <!-- THINKING -->
           <div
             class="{% if motivation_questions.questions %}d-none{% endif %}"
             data-motivation-questions-thinking
           >
-
             <div class="d-flex align-items-center gap-2 text-muted py-3">
-
               <span
                 class="spinner-border spinner-border-sm"
                 role="status"
@@ -215,9 +180,7 @@
               <span>
                 {% trans "Generating motivation questions…" %}
               </span>
-
             </div>
-
           </div>
 
           <!-- ERROR -->
