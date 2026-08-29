@@ -1,14 +1,14 @@
 {% load i18n %}
 
 <!-- PRACTICAL INTERPRETATION -->
-<section class="cognitive-ai-section purpose-fit-section">
+<section class="mt-4 purpose-fit-section">
 
-  <h3 class="cognitive-ai-section__title">
+  <h3 class="mb-2 purpose-fit-section-title">
     {% trans "Practical interpretation" %}
   </h3>
 
   <div
-    class="cognitive-ai-interpretation"
+    class="purpose-fit-summary"
     data-cognitive-ai-interpretation
   >
     {{ cognitive_interpretation.interpretation }}
@@ -19,21 +19,21 @@
 
 <!-- RELEVANT CONSIDERATIONS -->
 <section
-  class="cognitive-ai-section mt-4"
+  class="purpose-fit-list-card purpose-fit-list-card--verify mt-4"
   data-cognitive-ai-considerations-section
 >
 
-  <h3 class="cognitive-ai-section__title">
+  <div class="purpose-fit-section-title">
     {% trans "Relevant considerations" %}
-  </h3>
+  </div>
 
   <ul
-    class="cognitive-ai-considerations"
+    class="purpose-fit-list"
     data-cognitive-ai-considerations
   >
     {% for item in cognitive_interpretation.considerations %}
       <li>
-        <span class="cognitive-ai-list-icon">
+        <span class="purpose-fit-list-icon">
           <i data-feather="search"></i>
         </span>
 
@@ -45,32 +45,31 @@
 </section>
 
 
-<!-- CONTEXT NOTE -->
-<div class="cognitive-ai-context-note mt-4">
+<!-- CONTEXT NOTE + DISCLAIMER -->
+<div
+  class="small text-muted border-top pt-3 mt-4"
+>
+  <div class="d-flex align-items-start gap-2">
 
-  <div class="cognitive-ai-context-note__title">
-    {% trans "How Talena created this interpretation" %}
+    <i
+      data-feather="info"
+      class="flex-shrink-0"
+    ></i>
+
+    <div>
+      <div data-cognitive-ai-context-note>
+        {{ cognitive_interpretation.context_note }}
+      </div>
+
+      <div class="mt-2">
+        {% blocktrans trimmed %}
+          Cognitive assessment results describe relative performance on specific
+          reasoning tasks. They do not measure personality, motivation, experience
+          or overall intelligence, and should be considered together with other
+          relevant evidence.
+        {% endblocktrans %}
+      </div>
+    </div>
+
   </div>
-
-  <div data-cognitive-ai-context-note>
-    {{ cognitive_interpretation.context_note }}
-  </div>
-
-</div>
-
-
-<!-- DISCLAIMER -->
-<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-  <i data-feather="info"></i>
-
-  <div>
-    {% blocktrans trimmed %}
-      Cognitive assessment results describe relative performance on specific
-      reasoning tasks. They do not measure personality, motivation, experience
-      or overall intelligence, and should be considered together with other
-      relevant evidence.
-    {% endblocktrans %}
-  </div>
-
 </div>
