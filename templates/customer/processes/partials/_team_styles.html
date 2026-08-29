@@ -21,12 +21,27 @@
       </header>
 
       <!-- FULL-WIDTH POLAR CHART -->
-      <div class="team-style-chart-card mb-4">
+      <div class="team-style-chart-card mb-4" data-team-style-chart-root>
         <div class="team-style-polar-wrap">
           <canvas
             id="teamStylePolarChart"
+            data-team-style-chart
             aria-label="{% trans 'Team role profile chart' %}"
           ></canvas>
+        </div>
+
+        <div class="d-none" aria-hidden="true">
+          {% for style in team_style_profile.chart_styles %}
+            {% if style.available %}
+              <span
+                data-team-style-chart-item
+                data-style-name="{{ style.title }}"
+                data-style-score="{{ style.display_value }}"
+                data-quadrant-key="{{ style.quadrant_key }}"
+                data-quadrant-label="{{ style.quadrant_label }}"
+              ></span>
+            {% endif %}
+          {% endfor %}
         </div>
       </div>
 
