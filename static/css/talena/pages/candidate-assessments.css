@@ -826,7 +826,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
-  margin-top: 0.45rem;
+  margin-top: 0rem;
 }
 
 .process-page .personality-question-card__traits span {

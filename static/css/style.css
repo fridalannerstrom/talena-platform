@@ -28753,7 +28753,6 @@ minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
 }
 
 .personality-question-card__traits span {

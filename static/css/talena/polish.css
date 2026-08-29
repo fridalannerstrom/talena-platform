@@ -441,7 +441,6 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 0.35rem !important;
-  margin-top: 0.72rem !important;
 }
 
 #layoutSidenav_content main .process-page [data-personality-questions-root]
@@ -455,7 +454,7 @@ html[lang^="sv"] #layoutSidenav_content main .process-page
   background: rgba(255, 111, 97, 0.065) !important;
   color: var(--talena-coral-strong) !important;
   font-size: 0.56rem !important;
-  font-weight: 650 !important;
+  font-weight: 550 !important;
 }
 
 #layoutSidenav_content main .process-page [data-personality-questions-root]

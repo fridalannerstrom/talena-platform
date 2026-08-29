@@ -3,7 +3,7 @@
 {# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
-  <section class="purpose-fit-card motivation-profile-card">
+  <section class="">
     <div class="mt-4">
 
       <!-- HEADER -->
@@ -96,12 +96,12 @@
 
 
           <!-- MORE PROMINENT DRIVERS -->
-          <article class="insight-summary-content motivation-summary-group mb-4">
+          <article class="mb-4">
 
             <div class="response-style-item__header">
 
               <div>
-<h4 class="response-style-item__title">
+<h4 class="insight-summary-title mb-1">
   {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s most prominent drivers{% endblocktrans %}
 </h4>
 
@@ -155,7 +155,7 @@
 
         <div>
 
-          <h3 class="motivation-full-profile-heading__title mt-4">
+          <h3 class="insight-summary-title mb-1 mt-4">
             {% trans "All motivation factors" %}
           </h3>
 
