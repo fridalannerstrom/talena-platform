@@ -16,10 +16,10 @@
    */
 
   const DOMAIN_PALETTE = [
-    { rgb: [231, 106, 94] },
-    { rgb: [201, 130, 118] },
-    { rgb: [126, 159, 139] },
-    { rgb: [200, 154, 90] },
+    { rgb: [255, 111, 97] },
+    { rgb: [228, 162, 155] },
+    { rgb: [157, 183, 168] },
+    { rgb: [215, 176, 110] },
   ];
 
   const OPACITY_BY_SCORE = {
@@ -127,7 +127,7 @@
     const centerX = radialScale.xCenter;
     const centerY = radialScale.yCenter;
     const drawingArea = radialScale.drawingArea;
-    const domainLabelRadius = drawingArea + (compact ? 47 : 68);
+    const domainLabelRadius = drawingArea + (compact ? 49 : 72);
     const ctx = chart.ctx;
 
     ctx.save();
@@ -153,7 +153,7 @@
       ctx.stroke();
     });
 
-    /* Black, stronger area headings. */
+    /* Larger black area headings, using normal title casing. */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
       const lastArc = arcs[group.endIndex];
@@ -165,18 +165,18 @@
       const middleAngle = (firstArc.startAngle + lastArc.endAngle) / 2;
       const domainX = centerX + Math.cos(middleAngle) * domainLabelRadius;
       const domainY = centerY + Math.sin(middleAngle) * domainLabelRadius;
-      const label = String(group.domain || "").toUpperCase();
+      const label = String(group.domain || "");
 
       ctx.font = compact
-        ? "800 10.5px Inter, system-ui, sans-serif"
-        : "800 13px Inter, system-ui, sans-serif";
+        ? "800 12px Inter, system-ui, sans-serif"
+        : "800 16px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       /* Remove the coloured legacy heading that was drawn immediately before. */
       const measured = ctx.measureText(label);
-      const clearWidth = measured.width + (compact ? 8 : 12);
-      const clearHeight = compact ? 17 : 21;
+      const clearWidth = measured.width + (compact ? 12 : 18);
+      const clearHeight = compact ? 22 : 28;
 
       ctx.clearRect(
         domainX - clearWidth / 2,
