@@ -171,91 +171,72 @@
             {% trans "All motivation factors" %}
           </h3>
 
+          {% get_current_language as motivation_language %}
           <p>
-            {% blocktrans %}Results are grouped according to the four areas in the motivation model.{% endblocktrans %}
+            {% if motivation_language|slice:":2" == "sv" %}
+              Alla motivationsfaktorer visas i fallande ordning, från mer framträdande till mindre centrala.
+            {% else %}
+              All motivation factors are shown in descending order, from more prominent to less central.
+            {% endif %}
           </p>
         </div>
       </div>
 
-      <!-- COMPLETE PROFILE -->
-      {% for domain in motivation_insights.domains %}
-        <article class="insight-summary-content mb-4 motivation-domain-section">
+      <!-- COMPLETE PROFILE, SORTED BY SCORE -->
+      {% with sorted_factors=motivation_insights|motivation_factors_descending %}
+        <div class="motivation-factor-list">
+          {% for item in sorted_factors %}
+            <div class="team-style-result motivation-factor-result">
+              <div class="team-style-result__header motivation-factor-result__header">
+                <div>
+                  <h5 class="motivation-factor-result__name">
+                    {{ item|motivation_name }}
+                  </h5>
 
-          <!-- DOMAIN HEADER -->
-          <div class="response-style-item__header motivation-domain-section__header">
-            <div class="motivation-domain-section__title-wrap">
-              <div class="motivation-domain-section__icon">
-                <i class="{{ domain.icon_class }}"></i>
-              </div>
-
-              <div>
-                <h4 class="response-style-item__title">
-                  {{ domain|motivation_domain_title }}
-                </h4>
-
-                <div class="response-style-item__subtitle">
-                  {{ domain|motivation_domain_subtitle }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FACTORS -->
-          <div class="motivation-factor-list">
-            {% for item in domain.items %}
-              <div class="team-style-result motivation-factor-result">
-                <div class="team-style-result__header motivation-factor-result__header">
-                  <div>
-                    <h5 class="motivation-factor-result__name">
-                      {{ item|motivation_name }}
-                    </h5>
-
-                    <p class="team-style-result__description">
-                      {{ item|motivation_description }}
-                    </p>
-                  </div>
-
-                  {% if item.score is not None %}
-                    <div class="team-style-result__value">
-                      {{ item.score }}/5
-                    </div>
-                  {% else %}
-                    <div class="team-style-result__value motivation-factor-result__missing">
-                      {% trans "N/A" %}
-                    </div>
-                  {% endif %}
+                  <p class="team-style-result__description">
+                    {{ item|motivation_description }}
+                  </p>
                 </div>
 
                 {% if item.score is not None %}
-                  <div
-                    class="response-style-scale response-style-scale--linear team-style-result__scale motivation-factor-result__scale"
-                    role="meter"
-                    aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
-                    aria-valuemin="1"
-                    aria-valuemax="5"
-                    aria-valuenow="{{ item.score }}"
-                  >
-                    <div class="response-style-scale__segments">
-                      {% for segment in item.segments %}
-                        <span
-                          class="response-style-scale__segment {% if segment.number == item.score %}response-style-scale__segment--marker{% endif %} {% if segment.filled %}response-style-scale__segment--filled{% endif %}"
-                        ></span>
-                      {% endfor %}
-                    </div>
-
-                    <div class="response-style-scale__labels">
-                      <span>{% trans "Less central" %}</span>
-                      <span>{% trans "Mid-range" %}</span>
-                      <span>{% trans "More prominent" %}</span>
-                    </div>
+                  <div class="team-style-result__value">
+                    {{ item.score }}/5
+                  </div>
+                {% else %}
+                  <div class="team-style-result__value motivation-factor-result__missing">
+                    {% trans "N/A" %}
                   </div>
                 {% endif %}
               </div>
-            {% endfor %}
-          </div>
 
-        </article>
-      {% endfor %}
+              {% if item.score is not None %}
+                <div
+                  class="response-style-scale response-style-scale--linear team-style-result__scale motivation-factor-result__scale"
+                  role="meter"
+                  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
+                  aria-valuemin="1"
+                  aria-valuemax="5"
+                  aria-valuenow="{{ item.score }}"
+                >
+                  <div class="response-style-scale__segments">
+                    {% for segment in item.segments %}
+                      <span
+                        class="response-style-scale__segment {% if segment.number == item.score %}response-style-scale__segment--marker{% endif %} {% if segment.filled %}response-style-scale__segment--filled{% endif %}"
+                      ></span>
+                    {% endfor %}
+                  </div>
+
+                  <div class="response-style-scale__labels">
+                    <span>{% trans "Less central" %}</span>
+                    <span>{% trans "Mid-range" %}</span>
+                    <span>{% trans "More prominent" %}</span>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endwith %}
 
       <!-- FOOTER -->
       <footer class="team-styles-footer motivation-profile-footer">
