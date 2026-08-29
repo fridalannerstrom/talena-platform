@@ -2,20 +2,24 @@
   "use strict";
 
   /*
-   * Transitional chart-brand layer.
+   * Canvas theme adapter for the motivation rose.
    *
-   * Most candidate visualisations are CSS-driven and now live in
-   * candidate-charts.css. The motivation rose is rendered on canvas by
-   * Chart.js inside the existing process script, so CSS cannot recolour it.
-   * Keep all Talena-specific canvas styling here until that chart setup is
-   * extracted from process_base.html.
+   * The chart itself is still created inside process_base.html. That chart
+   * owns a local `motivationRoseLabels` plugin which draws factor labels,
+   * domain headings and the original white domain separators on every canvas
+   * redraw, including hover/tooltip redraws.
+   *
+   * Rather than competing with that plugin from a second global plugin, Talena
+   * wraps the local plugin once and performs its final hierarchy styling at
+   * the end of the SAME synchronous afterDraw pass. This removes the hover
+   * flicker and gives the chart one deterministic visual state.
    */
 
   const DOMAIN_PALETTE = [
-    { rgb: [231, 106, 94], solid: "#e76a5e" },
-    { rgb: [201, 130, 118], solid: "#c98276" },
-    { rgb: [126, 159, 139], solid: "#7e9f8b" },
-    { rgb: [200, 154, 90], solid: "#c89a5a" },
+    { rgb: [231, 106, 94] },
+    { rgb: [201, 130, 118] },
+    { rgb: [126, 159, 139] },
+    { rgb: [200, 154, 90] },
   ];
 
   const OPACITY_BY_SCORE = {
@@ -25,10 +29,6 @@
     4: 0.8,
     5: 0.94,
   };
-
-  function getChartLibrary() {
-    return window.TeamStyleChartJS || window.Chart || null;
-  }
 
   function getRoseItems(canvas) {
     const root = canvas.closest("[data-motivation-rose-chart-root]");
@@ -85,25 +85,22 @@
 
   function applyDatasetTheme(chart) {
     const canvas = chart?.canvas;
+    const dataset = chart?.data?.datasets?.[0];
 
-    if (!canvas?.matches("[data-motivation-rose-chart]")) {
+    if (!canvas?.matches("[data-motivation-rose-chart]") || !dataset) {
       return;
     }
 
     const items = getRoseItems(canvas);
-    const dataset = chart.data?.datasets?.[0];
 
-    if (!dataset || !items.length) {
+    if (!items.length) {
       return;
     }
 
-    /*
-     * This runs for every Chart.js render, including hover renders. That is
-     * important because the original motivation chart is initialised with the
-     * older purple/blue palette in process_base.html.
-     */
-    dataset.backgroundColor = items.map(paletteFor);
-    dataset.hoverBackgroundColor = items.map(paletteFor);
+    const colours = items.map(paletteFor);
+
+    dataset.backgroundColor = colours;
+    dataset.hoverBackgroundColor = colours;
     dataset.borderColor = "#ffffff";
     dataset.hoverBorderColor = "#ffffff";
     dataset.hoverBorderWidth = dataset.borderWidth;
@@ -135,11 +132,7 @@
 
     ctx.save();
 
-    /*
-     * Draw all four domain boundaries. The legacy local plugin draws white
-     * separators; this final render-stage overlay replaces that hierarchy with
-     * the darker Talena dividers requested for the motivation profile.
-     */
+    /* Four clear boundaries, including the join between last and first area. */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
 
@@ -160,10 +153,7 @@
       ctx.stroke();
     });
 
-    /*
-     * Domain headings are hierarchy labels, not data colours. Clear the old
-     * coloured heading and redraw it with Talena's primary text colour.
-     */
+    /* Black, stronger area headings. */
     groups.forEach((group) => {
       const firstArc = arcs[group.startIndex];
       const lastArc = arcs[group.endIndex];
@@ -176,14 +166,14 @@
       const domainX = centerX + Math.cos(middleAngle) * domainLabelRadius;
       const domainY = centerY + Math.sin(middleAngle) * domainLabelRadius;
       const label = String(group.domain || "").toUpperCase();
-      const font = compact
+
+      ctx.font = compact
         ? "800 10.5px Inter, system-ui, sans-serif"
         : "800 13px Inter, system-ui, sans-serif";
-
-      ctx.font = font;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
+      /* Remove the coloured legacy heading that was drawn immediately before. */
       const measured = ctx.measureText(label);
       const clearWidth = measured.width + (compact ? 8 : 12);
       const clearHeight = compact ? 17 : 21;
@@ -202,41 +192,48 @@
     ctx.restore();
   }
 
-  const talenaMotivationDomainPlugin = {
-    id: "talenaMotivationDomainTheme",
+  function findLocalLabelsPlugin(chart) {
+    const candidates = [];
 
-    /*
-     * Enforce the Talena palette immediately before datasets are painted.
-     * This makes newly created charts and all hover redraws deterministic.
-     */
-    beforeDatasetsDraw(chart) {
-      applyDatasetTheme(chart);
-    },
-
-    /*
-     * afterRender runs after the chart's own local afterDraw plugin. This is
-     * the key to avoiding the old/new hover flicker: the black headings and
-     * dark domain separators are now the final synchronous canvas operation
-     * for every render, rather than an animation-frame patch afterwards.
-     */
-    afterRender(chart) {
-      drawDomainOverlay(chart);
-    },
-  };
-
-  function registerPlugin() {
-    const ChartLibrary = getChartLibrary();
-
-    if (!ChartLibrary || ChartLibrary.__talenaMotivationThemeRegistered) {
-      return;
+    if (Array.isArray(chart?.config?.plugins)) {
+      candidates.push(...chart.config.plugins);
     }
 
-    try {
-      ChartLibrary.register(talenaMotivationDomainPlugin);
-      ChartLibrary.__talenaMotivationThemeRegistered = true;
-    } catch (error) {
-      console.warn("[TALENA CHART THEME] Could not register chart plugin", error);
+    if (Array.isArray(chart?.config?._config?.plugins)) {
+      candidates.push(...chart.config._config.plugins);
     }
+
+    return candidates.find(
+      (plugin) => plugin && plugin.id === "motivationRoseLabels"
+    ) || null;
+  }
+
+  function patchLocalLabelsPlugin(chart) {
+    if (!chart || chart.$talenaMotivationLocalPluginPatched) {
+      return Boolean(chart?.$talenaMotivationLocalPluginPatched);
+    }
+
+    const plugin = findLocalLabelsPlugin(chart);
+
+    if (!plugin || typeof plugin.afterDraw !== "function") {
+      return false;
+    }
+
+    const originalAfterDraw = plugin.afterDraw;
+
+    plugin.afterDraw = function talenaMotivationAfterDraw(
+      currentChart,
+      args,
+      options
+    ) {
+      originalAfterDraw.call(this, currentChart, args, options);
+      drawDomainOverlay(currentChart);
+    };
+
+    plugin.$talenaWrapped = true;
+    chart.$talenaMotivationLocalPluginPatched = true;
+
+    return true;
   }
 
   function themeMotivationRose(canvas) {
@@ -247,6 +244,7 @@
     }
 
     applyDatasetTheme(chart);
+    const patched = patchLocalLabelsPlugin(chart);
 
     if (chart.options?.scales?.r) {
       const radial = chart.options.scales.r;
@@ -261,10 +259,6 @@
       }
     }
 
-    /*
-     * Keep the tooltip, but remove active-element movement. There should be no
-     * visual jump when moving between factors.
-     */
     if (chart.options) {
       chart.options.transitions = chart.options.transitions || {};
       chart.options.transitions.active = {
@@ -276,14 +270,16 @@
 
     chart.$talenaBrandTheme = true;
     chart.update("none");
-    drawDomainOverlay(chart);
+
+    /* Fallback for an unexpected Chart.js config shape. */
+    if (!patched) {
+      drawDomainOverlay(chart);
+    }
 
     return true;
   }
 
   function themeAvailableCharts() {
-    registerPlugin();
-
     document
       .querySelectorAll("[data-motivation-rose-chart]")
       .forEach((canvas) => themeMotivationRose(canvas));
@@ -294,9 +290,6 @@
       window.setTimeout(themeAvailableCharts, delay);
     });
   }
-
-  /* Register as early as possible so charts created later inherit the plugin. */
-  registerPlugin();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", scheduleThemePasses, {
