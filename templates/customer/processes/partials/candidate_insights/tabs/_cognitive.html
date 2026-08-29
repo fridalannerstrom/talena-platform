@@ -1,4 +1,5 @@
-{% load i18n %}
+{% load i18n interview_config %}
+{% interview_section_meta "cognitive" as cognitive_interview_meta %}
 {# Talena candidate i18n batch 1 #}
 {% trans "No cognitive assessment results available" as no_cognitive_title %}
 {% trans "Cognitive assessments could provide additional evidence about performance on specific reasoning and problem-solving tasks." as no_cognitive_description %}
@@ -225,7 +226,6 @@
   >
 
 <section
-  class="purpose-fit-card cognitive-questions-card"
   data-cognitive-questions-root
   data-stream-url="{{ cognitive_questions_stream_url }}"
   data-regenerate-url="{{ cognitive_questions_regenerate_url }}"
@@ -234,7 +234,7 @@
 >
 
   <!-- QUESTIONS HEADER -->
-  <div class="cognitive-ai-header mb-4">
+  <div class="personality-questions-header mt-4">
 
     <div>
 
@@ -254,6 +254,11 @@
 
 
     <div class="d-flex align-items-center gap-2">
+
+      <span class="personality-trait-pill text-nowrap">
+        <i data-feather="clock"></i>
+        ~ {{ cognitive_interview_meta.estimated_minutes }} min
+      </span>
 
       <span
         class="
