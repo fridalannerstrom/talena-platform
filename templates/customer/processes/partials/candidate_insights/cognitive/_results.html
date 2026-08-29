@@ -151,6 +151,155 @@
 
     </div>
 
+    <!-- STATIC PERCENTILE GUIDE -->
+    <section class="purpose-fit-section mt-4">
+      <div class="insight-summary-kicker">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Percentilguide{% else %}Percentile guide{% endif %}
+      </div>
+
+      <h3 class="insight-summary-sub-title mb-2">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Så tolkar du percentiler
+        {% else %}
+          How to interpret percentiles
+        {% endif %}
+      </h3>
+
+      <p class="purpose-fit-summary mb-0">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          Percentilen visar hur kandidatens resultat förhåller sig till en referensgrupp. Använd nivåerna nedan som stöd för att förstå vilken grad av uppgiftskomplexitet resultatet ofta är tillräckligt för.
+        {% else %}
+          A percentile shows how the candidate's result compares with a reference group. Use the levels below as guidance when considering the level of task complexity the result is often sufficient for.
+        {% endif %}
+      </p>
+
+      <div class="border-top mt-3">
+
+        <div class="row g-3 py-3 border-bottom align-items-start">
+          <div class="col-lg-4">
+            <div class="purpose-fit-section-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 1–19:e percentilen{% else %}≈ 1st–19th percentile{% endif %}
+            </div>
+            <div class="small text-muted">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mer tid kan behövas{% else %}More time may be needed{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <p class="purpose-fit-summary mb-0">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Det innebär troligen att det tar längre tid för kandidaten att lösa den här typen av uppgift. Om uppgiften är mer komplex kan det innebära en utmaning.
+              {% else %}
+                The candidate is likely to need more time to solve this type of task. More complex tasks may therefore be more challenging.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="row g-3 py-3 border-bottom align-items-start">
+          <div class="col-lg-4">
+            <div class="purpose-fit-section-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 20–40:e percentilen{% else %}≈ 20th–40th percentile{% endif %}
+            </div>
+            <div class="small text-muted">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre komplexa arbetsuppgifter{% else %}Less complex work tasks{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <p class="purpose-fit-summary mb-2">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Är ofta tillräcklig för <strong>mindre komplexa arbetsuppgifter</strong>, vilket kan innebära:
+              {% else %}
+                Is often sufficient for <strong>less complex work tasks</strong>, which may include:
+              {% endif %}
+            </p>
+            <ul class="purpose-fit-summary mb-0 ps-3">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                <li>Följa etablerade rutiner eller instruktioner</li>
+                <li>Utföra återkommande och förutsägbara aktiviteter</li>
+                <li>Arbeta med konkret och tydlig information</li>
+                <li>Begränsat behov av problemlösning eller beslutsfattande</li>
+              {% else %}
+                <li>Following established routines or instructions</li>
+                <li>Performing recurring and predictable activities</li>
+                <li>Working with concrete and clear information</li>
+                <li>Limited need for problem-solving or decision-making</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="row g-3 py-3 border-bottom align-items-start">
+          <div class="col-lg-4">
+            <div class="purpose-fit-section-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 40–60:e percentilen{% else %}≈ 40th–60th percentile{% endif %}
+            </div>
+            <div class="small text-muted">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Relativt komplexa arbetsuppgifter{% else %}Relatively complex work tasks{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <p class="purpose-fit-summary mb-2">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Är ofta tillräcklig för <strong>relativt komplexa arbetsuppgifter</strong>, vilket kan innebära:
+              {% else %}
+                Is often sufficient for <strong>relatively complex work tasks</strong>, which may include:
+              {% endif %}
+            </p>
+            <ul class="purpose-fit-summary mb-0 ps-3">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                <li>Viss grad av problemlösning eller felsökning</li>
+                <li>Anpassa sig till förändrade situationer eller ny information</li>
+                <li>Fatta beslut med måttliga konsekvenser</li>
+                <li>Bearbeta och koppla samman flera informationsdelar</li>
+              {% else %}
+                <li>Some degree of problem-solving or troubleshooting</li>
+                <li>Adapting to changing situations or new information</li>
+                <li>Making decisions with moderate consequences</li>
+                <li>Processing and connecting several pieces of information</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="row g-3 pt-3 align-items-start">
+          <div class="col-lg-4">
+            <div class="purpose-fit-section-title mb-1">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 60:e percentilen och uppåt{% else %}≈ 60th percentile and above{% endif %}
+            </div>
+            <div class="small text-muted">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mer komplexa arbetsuppgifter{% else %}More complex work tasks{% endif %}
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <p class="purpose-fit-summary mb-2">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                Är ofta tillräcklig för <strong>mer komplexa arbetsuppgifter</strong>, vilket kan innebära:
+              {% else %}
+                Is often sufficient for <strong>more complex work tasks</strong>, which may include:
+              {% endif %}
+            </p>
+            <ul class="purpose-fit-summary mb-0 ps-3">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                <li>Analysera abstrakt eller tvetydig information</li>
+                <li>Strategiskt tänkande och planering</li>
+                <li>Lösa nya eller oförutsägbara problem</li>
+                <li>Fatta beslut med stora och betydande konsekvenser</li>
+                <li>Snabbt lära sig och tillämpa nya koncept</li>
+              {% else %}
+                <li>Analysing abstract or ambiguous information</li>
+                <li>Strategic thinking and planning</li>
+                <li>Solving new or unpredictable problems</li>
+                <li>Making decisions with major and significant consequences</li>
+                <li>Quickly learning and applying new concepts</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    <!-- /STATIC PERCENTILE GUIDE -->
+
     <div class="small text-muted border-top pt-3 mt-4">
       {% blocktrans trimmed %}
         Percentiles describe relative performance compared with a reference
