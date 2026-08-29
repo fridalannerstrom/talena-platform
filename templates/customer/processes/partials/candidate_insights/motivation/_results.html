@@ -245,9 +245,15 @@
                   </div>
 
                   <div class="response-style-scale__labels">
-                    <span>{% trans "Less central" %}</span>
-                    <span>{% trans "Mid-range" %}</span>
-                    <span>{% trans "More prominent" %}</span>
+                    {% if motivation_language|slice:":2" == "sv" %}
+                      <span>Mindre viktigt</span>
+                      <span>Medel</span>
+                      <span>Mer viktigt</span>
+                    {% else %}
+                      <span>Less important</span>
+                      <span>Average</span>
+                      <span>More important</span>
+                    {% endif %}
                   </div>
                 </div>
               {% endif %}
