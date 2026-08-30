@@ -111,6 +111,10 @@
         <span class="team-anonymity-label">Anonymisera</span>
         <span class="team-anonymity-switch" aria-hidden="true"></span>
       </button>
+      <a href="{% url 'teams:team_members_edit' team.pk %}" class="btn btn-primary team-primary-action">
+        <i data-feather="users" class="icon-14"></i>
+        {% trans "Edit members" %}
+      </a>
       <a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-outline-secondary team-secondary-action">
         <i data-feather="edit-3" class="icon-14"></i>
         {% trans "Edit team" %}
