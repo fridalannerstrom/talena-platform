@@ -131,13 +131,40 @@
 }
 
 .talena-team-page .team-style-bar {
-  height: 8px;
+  position: relative;
+  height: 6px;
+  overflow: visible;
   border: 0;
   background: #eeeae7;
 }
 
 .talena-team-page .team-style-bar-fill {
+  position: relative;
+  min-width: 0;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+  transition: width 220ms ease;
+}
+
+.talena-team-page .team-style-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--talena-coral);
+  box-shadow: 0 1px 5px rgba(60, 38, 34, 0.16);
+  transform: translateY(-50%);
+}
+
+.talena-team-page .team-style-bar-fill-max::after {
+  background: #8fb29a;
+}
+
+.talena-team-page .team-style-bar-fill.is-empty::after {
+  display: none;
 }
 
 .talena-team-page .team-data-badge {
