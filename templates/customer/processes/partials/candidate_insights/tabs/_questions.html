@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {# Talena candidate i18n batch 1 #}
 
 <style>
@@ -215,11 +216,15 @@
     {% if has_combined_questions %}
 
       <span class="personality-trait-pill text-nowrap">
-        {% blocktrans count question_count=combined_question_count %}
-          {{ question_count }} question
-        {% plural %}
-          {{ question_count }} questions
-        {% endblocktrans %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          {% if combined_question_count == 1 %}1 fråga{% else %}{{ combined_question_count }} frågor{% endif %}
+        {% else %}
+          {% blocktrans count question_count=combined_question_count %}
+            {{ question_count }} question
+          {% plural %}
+            {{ question_count }} questions
+          {% endblocktrans %}
+        {% endif %}
       </span>
 
     {% endif %}
@@ -256,11 +261,15 @@
             <div class="combined-question-section__badges">
 
               <span class="personality-trait-pill text-nowrap">
-                {% blocktrans count question_count=section.question_count %}
-                  {{ question_count }} question
-                {% plural %}
-                  {{ question_count }} questions
-                {% endblocktrans %}
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  {% if section.question_count == 1 %}1 fråga{% else %}{{ section.question_count }} frågor{% endif %}
+                {% else %}
+                  {% blocktrans count question_count=section.question_count %}
+                    {{ question_count }} question
+                  {% plural %}
+                    {{ question_count }} questions
+                  {% endblocktrans %}
+                {% endif %}
               </span>
 
               <span class="personality-trait-pill text-nowrap">
@@ -435,3 +444,65 @@
   {% endif %}
 
 </section>
+
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+<script>
+  (() => {
+    const root = document.getElementById('candidate-insights-panel-prepare-interview');
+    if (!root) return;
+
+    const translations = new Map([
+      ['Prepare for interview', 'Förbered inför intervju'],
+      ['Use the assessment evidence to prepare the conversation and focus the interview on areas that are useful to explore further.', 'Använd testresultaten för att förbereda samtalet och fokusera intervjun på områden som är värdefulla att utforska vidare.'],
+      ['Needs update', 'Behöver uppdateras'],
+      ['Generate updated decision support', 'Generera uppdaterat beslutsstöd'],
+      ['The process information has changed', 'Processinformationen har ändrats'],
+      ['This interview preparation was created using an earlier purpose or process context. Generate an updated version before relying on it.', 'Den här intervjuförberedelsen skapades med ett tidigare syfte eller en tidigare processkontext. Generera en uppdaterad version innan du använder den som underlag.'],
+      ['Combining the available evidence and preparing the interview…', 'Sammanställer tillgängligt underlag och förbereder intervjun…'],
+      ['The interview preparation could not be generated.', 'Intervjuförberedelsen kunde inte genereras.'],
+      ['Prepare the interview', 'Förbered intervjun'],
+      ['Generate an overall synthesis and practical guidance before reviewing the candidate-specific interview questions.', 'Generera en övergripande sammanställning och praktisk vägledning innan du går igenom de kandidatspecifika intervjufrågorna.'],
+      ['Generate interview preparation', 'Generera intervjuförberedelse'],
+      ['Overall synthesis', 'Övergripande sammanställning'],
+      ['AI-generated insight', 'AI-genererad insikt'],
+      ['How to approach the conversation', 'Så kan du lägga upp samtalet'],
+      ['Practical interview guidance based on how the candidate used the personality questionnaire response scale.', 'Praktisk intervjuguide baserad på hur kandidaten använde svarsskalan i personlighetstestet.'],
+      ['Recommended approach', 'Rekommenderat upplägg'],
+      ['Questions to explore', 'Frågor att utforska'],
+      ['Response-style interview guidance is not available yet.', 'Intervjuguide baserad på svarsstil är inte tillgänglig ännu.']
+    ]);
+
+    const applySwedishLabels = () => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const value = node.nodeValue;
+        const trimmed = value.trim();
+        const replacement = translations.get(trimmed);
+
+        if (replacement) {
+          node.nodeValue = value.replace(trimmed, replacement);
+        }
+      }
+
+      root.querySelectorAll('[title], [aria-label]').forEach((element) => {
+        ['title', 'aria-label'].forEach((attribute) => {
+          const value = element.getAttribute(attribute);
+          const replacement = translations.get(value);
+          if (replacement) element.setAttribute(attribute, replacement);
+        });
+      });
+    };
+
+    applySwedishLabels();
+
+    const observer = new MutationObserver(applySwedishLabels);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  })();
+</script>
+{% endif %}
