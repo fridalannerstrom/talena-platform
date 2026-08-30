@@ -1,0 +1,31 @@
+{% if interview_meta.guidance %}
+  <div class="personality-questions-context-note mt-3 interview-section-guidance">
+    <div class="d-flex align-items-start gap-3">
+      <div class="personality-questions-context-note__icon">
+        <i data-feather="message-circle"></i>
+      </div>
+
+      <div class="flex-grow-1">
+        <div class="personality-questions-context-note__title">
+          {{ interview_meta.guidance_label }}
+        </div>
+
+        <div>
+          {{ interview_meta.guidance }}
+        </div>
+
+        {% if interview_meta.transition %}
+          <div class="mt-3 pt-3 border-top">
+            <div class="personality-questions-context-note__title">
+              {{ interview_meta.transition_label }}
+            </div>
+
+            <div class="fst-italic">
+              “{{ interview_meta.transition }}”
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}

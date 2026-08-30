@@ -334,6 +334,7 @@
     class="{% if not cognitive_questions.questions %}d-none{% endif %}"
     data-cognitive-questions-content
   >
+    {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=cognitive_interview_meta %}
     {% include "customer/processes/partials/candidate_insights/cognitive/_questions.html" %}
   </div>
 

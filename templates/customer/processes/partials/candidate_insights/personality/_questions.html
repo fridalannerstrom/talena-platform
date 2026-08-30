@@ -83,6 +83,8 @@
 
     <div class="{% if not personality_questions %}d-none{% endif %}" data-personality-questions-content>
 
+      {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=interview_meta %}
+
       <section class="personality-questions-section mt-4" data-personality-questions-list-section>
         <div class="personality-question-list" data-personality-questions-list>
           {% for item in personality_questions.questions %}

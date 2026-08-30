@@ -196,6 +196,7 @@
             class="{% if not motivation_questions.questions %}d-none{% endif %}"
             data-motivation-questions-content
           >
+            {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=motivation_interview_meta %}
             {% include "customer/processes/partials/candidate_insights/motivation/_questions.html" %}
           </div>
 
