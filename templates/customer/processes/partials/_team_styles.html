@@ -59,100 +59,64 @@
             {{ title }}: {{ value }} out of 5
           {% endblocktrans %}
 
-          <article class="insight-summary-content mb-4">
+          <article class="insight-summary-content mb-4 team-style-profile-card">
 
-            <!-- STYLE HEADER -->
-            <div class="response-style-item__header">
+            <!-- STYLE + DEFINITION -->
+            <div class="team-style-profile-card__intro">
+              <h4 class="response-style-item__title team-style-profile-card__title">
+                {{ style.title }}
+              </h4>
 
-              <div>
-                <h4 class="response-style-item__title">
-                  {{ style.title }}
-                </h4>
-
-                <div class="response-style-item__subtitle">
-                  {% blocktrans trimmed with quadrant=style.quadrant_label %}
-                    {{ quadrant }} team style
-                  {% endblocktrans %}
-                </div>
-              </div>
-
+              <p class="team-style-profile-card__definition">
+                {{ style.contribution }}
+              </p>
             </div>
 
-            <!-- RESULT -->
-            <div class="team-style-result">
+            <!-- SCALE -->
+            <div
+              class="
+                response-style-scale
+                response-style-scale--linear
+                team-style-result__scale
+                team-style-profile-card__scale
+              "
+              role="meter"
+              aria-label="{{ team_style_aria }}"
+              aria-valuemin="1"
+              aria-valuemax="5"
+              aria-valuenow="{{ style.display_value }}"
+            >
 
-              <div class="team-style-result__header">
-                <div>
-                  <div class="team-style-result__label">
-                    {% trans "Team style result" %}
-                  </div>
-                </div>
+              <div class="response-style-scale__segments">
 
-                <div class="team-style-result__value">
-                  {{ style.display_value }}/5
-                </div>
-              </div>
+                {% for segment in style.scale_segments %}
+                  <span
+                    class="
+                      response-style-scale__segment
 
-              <div
-                class="
-                  response-style-scale
-                  response-style-scale--linear
-                  team-style-result__scale
-                "
-                role="meter"
-                aria-label="{{ team_style_aria }}"
-                aria-valuemin="1"
-                aria-valuemax="5"
-                aria-valuenow="{{ style.display_value }}"
-              >
+                      {% if segment == style.display_value %}
+                        response-style-scale__segment--marker
+                      {% endif %}
 
-                <div class="response-style-scale__segments">
-
-                  {% for segment in style.scale_segments %}
-                    <span
-                      class="
-                        response-style-scale__segment
-
-                        {% if segment == style.display_value %}
-                          response-style-scale__segment--marker
-                        {% endif %}
-
-                        {% if segment <= style.display_value %}
-                          response-style-scale__segment--filled
-                        {% endif %}
-                      "
-                    ></span>
-                  {% endfor %}
-
-                </div>
-
-                <div class="response-style-scale__labels">
-                  <span>{% trans "Less likely" %}</span>
-                  <span>{% trans "Typical" %}</span>
-                  <span>{% trans "More likely" %}</span>
-                </div>
+                      {% if segment <= style.display_value %}
+                        response-style-scale__segment--filled
+                      {% endif %}
+                    "
+                  ></span>
+                {% endfor %}
 
               </div>
 
-            </div>
-
-            <!-- TEAM STYLE DESCRIPTION -->
-            <div class="team-style-description">
-
-              <div>
-                <div class="team-style-description__label">
-                  {% trans "About this team style" %}
-                </div>
-
-                <p class="team-style-description__text">
-                  {{ style.contribution }}
-                </p>
+              <div class="response-style-scale__labels">
+                <span>{% trans "Less likely" %}</span>
+                <span>{% trans "Typical" %}</span>
+                <span>{% trans "More likely" %}</span>
               </div>
 
             </div>
 
             <!-- PRACTICAL GUIDANCE -->
-            <details class="purpose-fit-explainer team-style-guidance-explainer mb-4">
+            <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
 
               <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
                 {% trans "Practical guidance" %}
