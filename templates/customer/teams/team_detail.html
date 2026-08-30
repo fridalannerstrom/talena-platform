@@ -156,7 +156,7 @@
   {% if team_style_stats.members_with_scores %}
     <div class="team-summary-strip">
       <div class="team-summary-item">
-        <div class="team-summary-label">{% trans "Members with data" %}</div>
+        <div class="team-summary-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Medlemmar med data{% else %}{% trans "Members with data" %}{% endif %}</div>
         <div class="team-summary-value">{{ team_style_stats.members_with_scores }}</div>
         <div class="team-summary-meta">
           {% blocktrans trimmed with total=team_style_stats.members_total %}
