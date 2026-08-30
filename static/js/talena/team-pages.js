@@ -21,6 +21,47 @@
     });
   }
 
+  function initTeamStyleRankBars() {
+    const rows = document.querySelectorAll(
+      ".talena-team-page .team-style-rank-row"
+    );
+
+    rows.forEach(function (row) {
+      const fill = row.querySelector(".team-style-bar-fill");
+      const score = row.querySelector(".team-style-rank-score");
+
+      if (!fill || !score) {
+        return;
+      }
+
+      const scoreText = (score.textContent || "")
+        .trim()
+        .replace(",", ".");
+      const match = scoreText.match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*5/);
+
+      if (!match) {
+        fill.style.width = "0%";
+        fill.classList.add("is-empty");
+        return;
+      }
+
+      const value = Number.parseFloat(match[1]);
+
+      if (!Number.isFinite(value)) {
+        fill.style.width = "0%";
+        fill.classList.add("is-empty");
+        return;
+      }
+
+      const clampedValue = Math.max(0, Math.min(5, value));
+      const percent = (clampedValue / 5) * 100;
+
+      fill.style.width = `${percent}%`;
+      fill.classList.remove("is-empty");
+      fill.setAttribute("aria-hidden", "true");
+    });
+  }
+
   function readJsonScript(id) {
     const element = document.getElementById(id);
 
@@ -169,6 +210,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     initCandidateSearch();
+    initTeamStyleRankBars();
     initTeamStyleChart();
   });
 })();
