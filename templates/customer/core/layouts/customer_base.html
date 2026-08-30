@@ -114,6 +114,9 @@
   {# Per-page JS #}
   {% block extra_js %}{% endblock %}
 
+  {# Candidate post-interview hierarchy refinement. Safe no-op outside candidate insights. #}
+  <script src="{% static 'js/talena/after-interview-structure.js' %}"></script>
+
   {# Keeps Chart.js team-style arc geometry stable during hover redraws. #}
   <script src="{% static 'js/talena/team-style-hover-fix.js' %}"></script>
 
