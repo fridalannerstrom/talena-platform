@@ -19,6 +19,12 @@
   margin-top: 0.42rem;
 }
 
+.talena-team-page .team-back-link {
+  display: flex !important;
+  width: max-content;
+  margin-bottom: 1.15rem !important;
+}
+
 /* Actions and focus */
 .talena-team-page .btn,
 .talena-team-page .team-view-link {
