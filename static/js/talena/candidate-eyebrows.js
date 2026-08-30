@@ -2,6 +2,7 @@
   "use strict";
 
   const WORKSPACE_SELECTOR = "[data-candidate-insights-workspace]";
+  const AFTER_INTERVIEW_STYLE_ID = "talena-after-interview-simplified-styles";
 
   const SWEDISH_INTERVIEW_TRANSLATIONS = new Map([
     ["Prepare for interview", "Förbered inför intervju"],
@@ -46,6 +47,28 @@
     return (document.documentElement.lang || "").toLowerCase().startsWith("sv");
   }
 
+  function setText(element, swedish, english) {
+    if (!element) return;
+    element.textContent = isSwedish() ? swedish : english;
+  }
+
+  function replaceExactText(root, replacements) {
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+
+    while ((node = walker.nextNode())) {
+      const value = node.nodeValue;
+      const trimmed = value.trim();
+      const replacement = replacements.get(trimmed);
+
+      if (replacement) {
+        node.nodeValue = value.replace(trimmed, replacement);
+      }
+    }
+  }
+
   function translateInterviewUi(scope) {
     if (!isSwedish() || !scope) return;
 
@@ -65,18 +88,7 @@
     }
 
     [...new Set(panels)].forEach((panel) => {
-      const walker = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT);
-      let node;
-
-      while ((node = walker.nextNode())) {
-        const value = node.nodeValue;
-        const trimmed = value.trim();
-        const replacement = SWEDISH_INTERVIEW_TRANSLATIONS.get(trimmed);
-
-        if (replacement) {
-          node.nodeValue = value.replace(trimmed, replacement);
-        }
-      }
+      replaceExactText(panel, SWEDISH_INTERVIEW_TRANSLATIONS);
 
       panel.querySelectorAll("[title], [aria-label]").forEach((element) => {
         ["title", "aria-label"].forEach((attribute) => {
@@ -88,6 +100,338 @@
         });
       });
     });
+  }
+
+  function ensureAfterInterviewStyles() {
+    if (document.getElementById(AFTER_INTERVIEW_STYLE_ID)) return;
+
+    const style = document.createElement("style");
+    style.id = AFTER_INTERVIEW_STYLE_ID;
+    style.textContent = `
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      [data-interview-notes-root] {
+        margin-top: 1.4rem !important;
+        margin-bottom: 0 !important;
+        padding: 1.15rem 1.2rem !important;
+        border: 1px solid var(--talena-border) !important;
+        border-radius: 12px !important;
+        background: #fff !important;
+        box-shadow: none !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      [data-post-interview-section] {
+        margin-top: 1.5rem !important;
+        padding-top: 1.5rem !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      [data-post-interview-empty] {
+        margin-top: 1rem !important;
+        padding: 1.15rem !important;
+        border: 1px solid var(--talena-border) !important;
+        border-radius: 12px !important;
+        background: rgba(255, 248, 242, 0.42) !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      [data-post-interview-empty] .combined-questions-empty-state__icon {
+        display: none !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      [data-post-interview-content] > .purpose-fit-section:first-child {
+        margin-top: 1.15rem !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      .post-evidence-grid {
+        margin-top: 0.35rem !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      .post-evidence-col > section {
+        margin-top: 1rem !important;
+      }
+
+      #candidate-insights-panel-after-interview.after-interview-simplified
+      .personality-questions-context-note:last-child {
+        margin-top: 1.5rem !important;
+        border-top: 1px solid var(--talena-border) !important;
+        border-right: 0 !important;
+        border-bottom: 0 !important;
+        border-left: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 1rem 0 0 !important;
+      }
+
+      @media (max-width: 767px) {
+        #candidate-insights-panel-after-interview.after-interview-simplified
+        [data-interview-notes-root] {
+          padding: 1rem !important;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  function simplifyAfterInterviewPanel(panel) {
+    if (!panel) return;
+
+    ensureAfterInterviewStyles();
+    panel.classList.add("after-interview-simplified");
+
+    const isSv = isSwedish();
+    const copy = isSv
+      ? {
+          header: "Efter intervju",
+          headerDescription:
+            "Samla intervjuunderlaget och jämför det med testresultaten för att nyansera bilden och se vad som återstår att utforska.",
+          notesTitle: "Intervjuunderlag",
+          notesDescription:
+            "Samla relevanta exempel, svar och observationer från intervjun här.",
+          compileTitle: "Sammanställ underlag",
+          compileDescription:
+            "Jämför testresultaten med det sparade intervjuunderlaget och skapa en gemensam, nyanserad bild.",
+          compileButton: "Sammanställ underlag",
+          updateButton: "Uppdatera sammanställningen",
+          readyTitle: "Redo att sammanställa",
+          overall: "Övergripande sammanställning",
+          supports: "Det intervjun stärker",
+          supportsDescription:
+            "Intervjuunderlag som stödjer eller bekräftar mönster i testresultaten.",
+          nuances: "Det intervjun nyanserar",
+          nuancesDescription:
+            "Områden där intervjun tillför kontext eller ger anledning till en mer nyanserad tolkning.",
+          contradictions: "Skillnader att utforska vidare",
+          contradictionsDescription:
+            "Här skiljer sig testindikationer och intervjuunderlag åt. Utforska skillnaderna i stället för att automatiskt prioritera den ena källan.",
+          remains: "Kvar att utforska",
+          remainsDescription:
+            "Områden där mer underlag kan hjälpa till att skapa en mer komplett bild.",
+          uncertainties: "Kvarstående frågetecken",
+          nextSteps: "Nästa steg",
+          assessment: "Indikation från test",
+          interview: "Intervjuunderlag",
+          combined: "Samlad tolkning",
+          disclaimerTitle: "Beslutsstöd, inte ett beslut",
+          outdatedTitle: "Intervjuunderlaget har ändrats",
+          loading: "Jämför testresultat med intervjuunderlaget…",
+          error: "Underlaget kunde inte sammanställas."
+        }
+      : {
+          header: "After interview",
+          headerDescription:
+            "Bring the interview evidence together with the assessment results to add context, nuance and identify what still needs to be explored.",
+          notesTitle: "Interview evidence",
+          notesDescription:
+            "Capture relevant examples, answers and observations from the interview here.",
+          compileTitle: "Compile evidence",
+          compileDescription:
+            "Compare the assessment results with the saved interview evidence and create one balanced, contextualised view.",
+          compileButton: "Compile evidence",
+          updateButton: "Update compiled evidence",
+          readyTitle: "Ready to compile",
+          overall: "Overall synthesis",
+          supports: "What the interview supports",
+          supportsDescription:
+            "Interview evidence that supports or reinforces patterns in the assessment results.",
+          nuances: "What the interview adds or nuances",
+          nuancesDescription:
+            "Areas where the interview adds context or suggests a more nuanced interpretation.",
+          contradictions: "Differences to explore further",
+          contradictionsDescription:
+            "Assessment indications and interview evidence differ here. Explore the difference rather than automatically favouring either source.",
+          remains: "What remains to be explored",
+          remainsDescription:
+            "Areas where additional evidence may help create a more complete picture.",
+          uncertainties: "Remaining questions",
+          nextSteps: "Next steps",
+          assessment: "Assessment indication",
+          interview: "Interview evidence",
+          combined: "Combined interpretation",
+          disclaimerTitle: "Decision support, not a decision",
+          outdatedTitle: "The interview evidence has changed",
+          loading: "Comparing assessment results with the interview evidence…",
+          error: "The evidence could not be compiled."
+        };
+
+    const card = panel.querySelector(".final-output-card");
+    const cardHeader = card?.firstElementChild;
+    setText(
+      cardHeader?.querySelector("h2.insight-summary-title"),
+      "Efter intervju",
+      "After interview"
+    );
+    setText(
+      cardHeader?.querySelector("p.text-muted"),
+      copy.headerDescription,
+      copy.headerDescription
+    );
+
+    const notesRoot = panel.querySelector("[data-interview-notes-root]");
+    if (notesRoot) {
+      setText(
+        notesRoot.querySelector(".purpose-fit-section-title"),
+        copy.notesTitle,
+        copy.notesTitle
+      );
+      setText(
+        notesRoot.querySelector(".purpose-fit-section-title + .small.text-muted"),
+        copy.notesDescription,
+        copy.notesDescription
+      );
+    }
+
+    const postSection = panel.querySelector("[data-post-interview-section]");
+    if (!postSection) return;
+
+    const postHeader = postSection.firstElementChild;
+    setText(
+      postHeader?.querySelector("h3.insight-summary-title"),
+      copy.compileTitle,
+      copy.compileTitle
+    );
+    setText(
+      postHeader?.querySelector("p.text-muted"),
+      copy.compileDescription,
+      copy.compileDescription
+    );
+
+    postSection.querySelectorAll("[data-post-interview-generate]").forEach((button) => {
+      const isRegenerate = button.dataset.regenerate === "true";
+
+      if (isRegenerate) {
+        button.setAttribute("title", copy.updateButton);
+        button.setAttribute("aria-label", copy.updateButton);
+      } else {
+        const icon = button.querySelector("svg, i");
+        button.textContent = copy.compileButton;
+        if (icon) {
+          button.prepend(icon);
+        }
+      }
+    });
+
+    setText(
+      postSection.querySelector("[data-post-interview-outdated] .fw-semibold"),
+      copy.outdatedTitle,
+      copy.outdatedTitle
+    );
+
+    const thinking = postSection.querySelector("[data-post-interview-thinking]");
+    if (thinking) {
+      const textNodes = [...thinking.querySelectorAll("span")];
+      setText(textNodes[textNodes.length - 1], copy.loading, copy.loading);
+    }
+
+    setText(
+      postSection.querySelector("[data-post-interview-error]"),
+      copy.error,
+      copy.error
+    );
+
+    const emptyState = postSection.querySelector("[data-post-interview-empty]");
+    setText(
+      emptyState?.querySelector(".personality-questions-section-title"),
+      copy.readyTitle,
+      copy.readyTitle
+    );
+
+    const content = postSection.querySelector("[data-post-interview-content]");
+    if (!content) return;
+
+    setText(
+      content.querySelector(":scope > .purpose-fit-section:first-child .purpose-fit-section-title"),
+      copy.overall,
+      copy.overall
+    );
+
+    const leftColumn = content.querySelector(".post-evidence-col--left");
+    setText(
+      leftColumn?.querySelector(".response-style-item__title"),
+      copy.supports,
+      copy.supports
+    );
+    setText(
+      leftColumn?.querySelector(".post-evidence-column__description"),
+      copy.supportsDescription,
+      copy.supportsDescription
+    );
+
+    const rightColumn = [...content.querySelectorAll(".post-evidence-col")]
+      .find((column) => !column.classList.contains("post-evidence-col--left"));
+    setText(
+      rightColumn?.querySelector(".response-style-item__title"),
+      copy.nuances,
+      copy.nuances
+    );
+    setText(
+      rightColumn?.querySelector(".post-evidence-column__description"),
+      copy.nuancesDescription,
+      copy.nuancesDescription
+    );
+
+    content.querySelectorAll(".post-evidence-block--assessment .post-evidence-block__label")
+      .forEach((element) => setText(element, copy.assessment, copy.assessment));
+    content.querySelectorAll(".post-evidence-block--interview .post-evidence-block__label")
+      .forEach((element) => setText(element, copy.interview, copy.interview));
+    content.querySelectorAll(".post-evidence-interpretation__label")
+      .forEach((element) => setText(element, copy.combined, copy.combined));
+
+    content.querySelectorAll("h3.insight-summary-title").forEach((heading) => {
+      const current = heading.textContent.trim();
+
+      if (
+        current === "Contradictions or tensions to consider"
+        || current === "Motsägelser eller spänningar att beakta"
+      ) {
+        setText(heading, copy.contradictions, copy.contradictions);
+        setText(
+          heading.parentElement?.querySelector("p.text-muted"),
+          copy.contradictionsDescription,
+          copy.contradictionsDescription
+        );
+      }
+
+      if (
+        current === "What remains to be explored"
+        || current === "Vad som återstår att utforska"
+      ) {
+        setText(heading, copy.remains, copy.remains);
+        setText(
+          heading.parentElement?.querySelector("p.text-muted"),
+          copy.remainsDescription,
+          copy.remainsDescription
+        );
+      }
+    });
+
+    content.querySelectorAll(".purpose-fit-list-card .purpose-fit-section-title")
+      .forEach((title) => {
+        const current = title.textContent.trim();
+
+        if (
+          current === "Remaining uncertainties"
+          || current === "Kvarstående osäkerheter"
+        ) {
+          setText(title, copy.uncertainties, copy.uncertainties);
+        }
+
+        if (
+          current === "Suggested follow-up"
+          || current === "Föreslagen uppföljning"
+        ) {
+          setText(title, copy.nextSteps, copy.nextSteps);
+        }
+      });
+
+    const disclaimer = panel.querySelector(
+      ".personality-questions-context-note:last-child .personality-questions-context-note__title"
+    );
+    setText(disclaimer, copy.disclaimerTitle, copy.disclaimerTitle);
   }
 
   function getTabLabel(root, key) {
@@ -206,12 +550,30 @@
   function scan(scope) {
     translateInterviewUi(scope);
 
+    const afterPanels = [];
+    if (scope.matches?.("#candidate-insights-panel-after-interview")) {
+      afterPanels.push(scope);
+    }
+    scope.querySelectorAll?.("#candidate-insights-panel-after-interview")
+      .forEach((panel) => afterPanels.push(panel));
+    const closestAfterPanel = scope.closest?.("#candidate-insights-panel-after-interview");
+    if (closestAfterPanel) {
+      afterPanels.push(closestAfterPanel);
+    }
+    [...new Set(afterPanels)].forEach(simplifyAfterInterviewPanel);
+
     if (scope.matches?.(WORKSPACE_SELECTOR)) {
+      simplifyAfterInterviewPanel(
+        scope.querySelector("#candidate-insights-panel-after-interview")
+      );
       initCandidateEyebrows(scope);
     }
 
     scope.querySelectorAll?.(WORKSPACE_SELECTOR).forEach((workspace) => {
       translateInterviewUi(workspace);
+      simplifyAfterInterviewPanel(
+        workspace.querySelector("#candidate-insights-panel-after-interview")
+      );
       initCandidateEyebrows(workspace);
     });
   }
