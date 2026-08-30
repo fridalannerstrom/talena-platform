@@ -49,7 +49,9 @@
 
   function setText(element, swedish, english) {
     if (!element) return;
-    element.textContent = isSwedish() ? swedish : english;
+    const next = isSwedish() ? swedish : english;
+    if (element.textContent.trim() === next) return;
+    element.textContent = next;
   }
 
   function replaceExactText(root, replacements) {
@@ -183,10 +185,8 @@
     ensureAfterInterviewStyles();
     panel.classList.add("after-interview-simplified");
 
-    const isSv = isSwedish();
-    const copy = isSv
+    const copy = isSwedish()
       ? {
-          header: "Efter intervju",
           headerDescription:
             "Samla intervjuunderlaget och jämför det med testresultaten för att nyansera bilden och se vad som återstår att utforska.",
           notesTitle: "Intervjuunderlag",
@@ -222,7 +222,6 @@
           error: "Underlaget kunde inte sammanställas."
         }
       : {
-          header: "After interview",
           headerDescription:
             "Bring the interview evidence together with the assessment results to add context, nuance and identify what still needs to be explored.",
           notesTitle: "Interview evidence",
@@ -304,9 +303,13 @@
       const isRegenerate = button.dataset.regenerate === "true";
 
       if (isRegenerate) {
-        button.setAttribute("title", copy.updateButton);
-        button.setAttribute("aria-label", copy.updateButton);
-      } else {
+        if (button.getAttribute("title") !== copy.updateButton) {
+          button.setAttribute("title", copy.updateButton);
+        }
+        if (button.getAttribute("aria-label") !== copy.updateButton) {
+          button.setAttribute("aria-label", copy.updateButton);
+        }
+      } else if (button.textContent.trim() !== copy.compileButton) {
         const icon = button.querySelector("svg, i");
         button.textContent = copy.compileButton;
         if (icon) {
@@ -387,6 +390,8 @@
       if (
         current === "Contradictions or tensions to consider"
         || current === "Motsägelser eller spänningar att beakta"
+        || current === "Skillnader att utforska vidare"
+        || current === "Differences to explore further"
       ) {
         setText(heading, copy.contradictions, copy.contradictions);
         setText(
@@ -399,6 +404,7 @@
       if (
         current === "What remains to be explored"
         || current === "Vad som återstår att utforska"
+        || current === "Kvar att utforska"
       ) {
         setText(heading, copy.remains, copy.remains);
         setText(
@@ -416,6 +422,8 @@
         if (
           current === "Remaining uncertainties"
           || current === "Kvarstående osäkerheter"
+          || current === "Kvarstående frågetecken"
+          || current === "Remaining questions"
         ) {
           setText(title, copy.uncertainties, copy.uncertainties);
         }
@@ -423,6 +431,8 @@
         if (
           current === "Suggested follow-up"
           || current === "Föreslagen uppföljning"
+          || current === "Nästa steg"
+          || current === "Next steps"
         ) {
           setText(title, copy.nextSteps, copy.nextSteps);
         }
