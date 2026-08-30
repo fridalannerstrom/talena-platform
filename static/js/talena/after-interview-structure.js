@@ -2,7 +2,7 @@
   "use strict";
 
   const PANEL_SELECTOR = "#candidate-insights-panel-after-interview";
-  const STYLE_ID = "talena-after-interview-structure-v2";
+  const STYLE_ID = "talena-after-interview-structure-v3";
 
   const TEXT = {
     sv: {
@@ -42,43 +42,113 @@
   function ensureStyles() {
     if (document.getElementById(STYLE_ID)) return;
 
+    const oldStyle = document.getElementById("talena-after-interview-structure-v2");
+    oldStyle?.remove();
+
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
-      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-column__header {
-        display: block !important;
-        margin-bottom: 1rem !important;
-        text-align: left !important;
+      ${PANEL_SELECTOR} [data-post-interview-content] {
+        display: grid !important;
+        gap: 1rem !important;
+        margin-top: 1rem !important;
       }
 
+      ${PANEL_SELECTOR} [data-post-interview-content] > .purpose-fit-section,
+      ${PANEL_SELECTOR} [data-post-interview-content] > .post-evidence-grid,
+      ${PANEL_SELECTOR} [data-post-interview-content] > section {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+      }
+
+      ${PANEL_SELECTOR} .post-evidence-grid {
+        width: 100% !important;
+        margin: 0 !important;
+      }
+
+      ${PANEL_SELECTOR} .post-evidence-grid .post-evidence-col {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-section-shell {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 1.2rem 1.25rem !important;
+        border: 1px solid var(--talena-border) !important;
+        border-radius: 14px !important;
+        background: #fff !important;
+        box-shadow: none !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-section-shell.border-top {
+        border-top: 1px solid var(--talena-border) !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-section-shell.pt-4,
+      ${PANEL_SELECTOR} .after-interview-section-shell.pb-4 {
+        padding-top: 1.2rem !important;
+        padding-bottom: 1.2rem !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-section-shell > h3.insight-summary-title,
       ${PANEL_SELECTOR} .after-interview-role-support .response-style-item__title {
-        margin: 0 0 0.25rem !important;
+        margin: 0 0 0.22rem !important;
         color: var(--talena-ink) !important;
-        font-size: clamp(1.35rem, 1.9vw, 1.7rem) !important;
+        font-size: clamp(1.15rem, 1.65vw, 1.42rem) !important;
         font-weight: 725 !important;
-        line-height: 1.12 !important;
-        letter-spacing: -0.035em !important;
+        line-height: 1.15 !important;
+        letter-spacing: -0.03em !important;
         text-align: left !important;
       }
 
+      ${PANEL_SELECTOR} .after-interview-section-shell > p.text-muted,
       ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-column__description {
-        max-width: 760px;
+        max-width: 780px;
+        margin: 0 0 1rem !important;
         color: var(--talena-text-muted) !important;
-        font-size: 0.72rem !important;
+        font-size: 0.71rem !important;
         line-height: 1.55 !important;
         text-align: left !important;
       }
 
-      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-list {
-        display: grid !important;
-        gap: 0.8rem !important;
+      ${PANEL_SELECTOR} .after-interview-summary-shell .purpose-fit-section-title {
+        margin-bottom: 0.55rem !important;
+        font-size: 0.88rem !important;
+        font-weight: 650 !important;
       }
 
-      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-item {
-        padding: 1rem 1.05rem !important;
+      ${PANEL_SELECTOR} .after-interview-summary-shell .purpose-fit-summary {
+        margin: 0 !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-role-support {
+        padding-right: 1.25rem !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-column__header {
+        display: block !important;
+        margin-bottom: 0 !important;
+        text-align: left !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-list,
+      ${PANEL_SELECTOR} .after-interview-role-exploration .d-grid,
+      ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list {
+        display: grid !important;
+        gap: 0.65rem !important;
+        margin: 0 !important;
+      }
+
+      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-item,
+      ${PANEL_SELECTOR} .after-interview-role-exploration article.purpose-fit-section,
+      ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list li {
+        margin: 0 !important;
+        padding: 0.82rem 0.9rem !important;
         border: 1px solid var(--talena-border) !important;
-        border-radius: 12px !important;
-        background: #fff !important;
+        border-radius: 11px !important;
+        background: rgba(250, 249, 247, 0.42) !important;
         box-shadow: none !important;
       }
 
@@ -88,7 +158,7 @@
         gap: 0.6rem !important;
         margin: 0 !important;
         color: var(--talena-ink) !important;
-        font-size: 0.83rem !important;
+        font-size: 0.8rem !important;
         font-weight: 650 !important;
       }
 
@@ -108,17 +178,19 @@
       }
 
       ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-interpretation {
-        margin: 0.58rem 0 0 2.18rem !important;
+        margin: 0.48rem 0 0 2.18rem !important;
         padding: 0 !important;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
       }
 
-      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-interpretation__text {
+      ${PANEL_SELECTOR} .after-interview-role-support .post-evidence-interpretation__text,
+      ${PANEL_SELECTOR} .after-interview-role-exploration .post-evidence-interpretation__text,
+      ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list li {
         color: var(--talena-text) !important;
-        font-size: 0.73rem !important;
-        line-height: 1.55 !important;
+        font-size: 0.72rem !important;
+        line-height: 1.5 !important;
       }
 
       ${PANEL_SELECTOR} .after-interview-role-exploration .purpose-fit-list-icon {
@@ -126,9 +198,13 @@
         color: #946b31 !important;
       }
 
+      ${PANEL_SELECTOR} .after-interview-role-exploration article.purpose-fit-section > .d-flex {
+        gap: 0.75rem !important;
+      }
+
       ${PANEL_SELECTOR} .after-interview-evidence-gaps {
-        margin-top: 1rem;
-        padding-top: 1rem;
+        margin-top: 0.9rem;
+        padding-top: 0.9rem;
         border-top: 1px solid var(--talena-border);
       }
 
@@ -148,9 +224,11 @@
 
       ${PANEL_SELECTOR} .after-interview-evidence-gaps .purpose-fit-list-card {
         margin: 0 !important;
-        padding: 0.85rem 0.95rem !important;
+        padding: 0.8rem 0.9rem !important;
+        border: 1px solid var(--talena-border) !important;
         border-radius: 11px !important;
-        background: rgba(250, 249, 247, 0.62) !important;
+        background: rgba(250, 249, 247, 0.42) !important;
+        box-shadow: none !important;
       }
 
       ${PANEL_SELECTOR} .after-interview-evidence-gaps .purpose-fit-section-title {
@@ -159,7 +237,7 @@
 
       ${PANEL_SELECTOR} .after-interview-next-steps-section > .row {
         display: block !important;
-        margin-top: 0.75rem !important;
+        margin: 0 !important;
       }
 
       ${PANEL_SELECTOR} .after-interview-next-steps-section .after-interview-next-steps-column {
@@ -170,32 +248,33 @@
 
       ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list-card {
         height: auto !important;
+        margin: 0 !important;
         padding: 0 !important;
         border: 0 !important;
         background: transparent !important;
+        box-shadow: none !important;
       }
 
       ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list-card > .purpose-fit-section-title {
         display: none !important;
       }
 
-      ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list {
-        display: grid;
-        gap: 0.55rem;
-        margin: 0 !important;
-      }
-
       ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list li {
-        margin: 0 !important;
-        padding: 0.72rem 0.8rem !important;
-        border: 1px solid var(--talena-border) !important;
-        border-radius: 11px !important;
-        background: #fff !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.7rem !important;
       }
 
       ${PANEL_SELECTOR} .after-interview-next-steps-section .purpose-fit-list-icon {
         background: #e3f2e7 !important;
         color: #567d63 !important;
+      }
+
+      @media (max-width: 767px) {
+        ${PANEL_SELECTOR} .after-interview-section-shell {
+          padding: 1rem !important;
+          border-radius: 12px !important;
+        }
       }
     `;
 
@@ -231,7 +310,7 @@
   function createAreasSection(referenceSection) {
     const c = copy();
     const section = document.createElement("section");
-    section.className = "border-top pt-4 mt-4 mb-4 pb-4 after-interview-role-exploration";
+    section.className = "after-interview-section-shell after-interview-role-exploration";
     section.innerHTML = `
       <h3 class="insight-summary-title mb-1"></h3>
       <p class="text-muted small mb-3"></p>
@@ -243,14 +322,32 @@
     return section;
   }
 
+  function applyUnifiedShells(content) {
+    const summarySection = content.querySelector(":scope > .purpose-fit-section:first-child");
+    summarySection?.classList.add(
+      "after-interview-section-shell",
+      "after-interview-summary-shell"
+    );
+
+    const leftColumn = content.querySelector(".post-evidence-col--left");
+    const roleSupportSection = leftColumn?.querySelector(":scope > section");
+    roleSupportSection?.classList.add(
+      "after-interview-section-shell",
+      "after-interview-role-support"
+    );
+  }
+
   function restructurePanel(panel) {
-    if (!panel || panel.dataset.afterInterviewStructureV2 === "true") return;
+    if (!panel) return;
 
     const content = panel.querySelector("[data-post-interview-content]");
     if (!content) return;
 
-    panel.dataset.afterInterviewStructureV2 = "true";
     ensureStyles();
+    applyUnifiedShells(content);
+
+    if (panel.dataset.afterInterviewStructureV3 === "true") return;
+    panel.dataset.afterInterviewStructureV3 = "true";
 
     const c = copy();
 
@@ -267,7 +364,9 @@
       "What remains to be explored",
       "Vad som återstår att utforska",
       "Kvar att utforska",
-      "What remains to explore"
+      "What remains to explore",
+      "Nästa steg",
+      "Next steps"
     ]);
 
     if (!remainsMatch?.section) return;
@@ -278,7 +377,10 @@
       areasMatch.heading.textContent = c.areas;
       const description = areasMatch.heading.parentElement?.querySelector("p.text-muted");
       if (description) description.textContent = c.areasDescription;
-      areasSection.classList.add("after-interview-role-exploration");
+      areasSection.classList.add(
+        "after-interview-section-shell",
+        "after-interview-role-exploration"
+      );
     }
 
     const remainsSection = remainsMatch.section;
@@ -335,7 +437,10 @@
     const remainsDescription = remainsMatch.heading.parentElement?.querySelector("p.text-muted");
     if (remainsDescription) remainsDescription.textContent = c.nextDescription;
 
-    remainsSection.classList.add("after-interview-next-steps-section");
+    remainsSection.classList.add(
+      "after-interview-section-shell",
+      "after-interview-next-steps-section"
+    );
 
     const nextColumn = nextStepsCard?.closest(".col-lg-6, .col-12");
     nextColumn?.classList.add("after-interview-next-steps-column");
