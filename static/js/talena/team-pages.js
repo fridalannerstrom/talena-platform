@@ -776,3 +776,349 @@
     initTeamStyleGuide();
   });
 })();
+
+(function () {
+  "use strict";
+
+  function isSwedish() {
+    return (document.documentElement.lang || "")
+      .toLowerCase()
+      .startsWith("sv");
+  }
+
+  function parseScoreOutOfFive(value) {
+    const normalized = String(value || "").trim().replace(",", ".");
+    const match = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*5/);
+
+    if (!match) {
+      return null;
+    }
+
+    const parsed = Number.parseFloat(match[1]);
+    return Number.isFinite(parsed)
+      ? Math.max(0, Math.min(5, parsed))
+      : null;
+  }
+
+  function formatScore(value, swedish) {
+    return value.toLocaleString(swedish ? "sv-SE" : "en-US", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
+  }
+
+  function injectStyles() {
+    if (document.getElementById("team-extreme-tabs-styles")) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "team-extreme-tabs-styles";
+    style.textContent = `
+      .talena-team-page .team-extreme-comparison-row > [class*="col-"] {
+        display: flex;
+      }
+
+      .talena-team-page .team-extreme-comparison-row > [class*="col-"] > .card {
+        width: 100%;
+        height: 100%;
+      }
+
+      .talena-team-page .team-extreme-card {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .talena-team-page .team-extreme-card .card-body {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .talena-team-page .team-extreme-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.3rem;
+        padding: 0.24rem;
+        border: 1px solid var(--talena-border);
+        border-radius: 12px;
+        background: var(--talena-surface-soft);
+      }
+
+      .talena-team-page .team-extreme-tab {
+        min-height: 34px;
+        padding: 0.42rem 0.65rem;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--talena-text-muted);
+        font-size: 0.63rem;
+        font-weight: 680;
+        transition:
+          color var(--talena-transition-fast),
+          border-color var(--talena-transition-fast),
+          background-color var(--talena-transition-fast),
+          box-shadow var(--talena-transition-fast);
+      }
+
+      .talena-team-page .team-extreme-tab:hover {
+        color: var(--talena-ink);
+      }
+
+      .talena-team-page .team-extreme-tab.is-active {
+        border-color: rgba(255,111,97,0.2);
+        background: #fff;
+        color: var(--talena-coral-strong);
+        box-shadow: 0 2px 8px rgba(56,40,34,0.045);
+      }
+
+      .talena-team-page .team-extreme-tab:focus-visible {
+        outline: 0;
+        box-shadow: 0 0 0 3px rgba(255,111,97,0.11);
+      }
+
+      .talena-team-page .team-extreme-panels {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+
+      .talena-team-page .team-extreme-panel {
+        display: none;
+        width: 100%;
+      }
+
+      .talena-team-page .team-extreme-panel.is-active {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+      }
+
+      .talena-team-page .team-extreme-panel .team-style-rank-list {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.72rem;
+        margin-top: 0.95rem !important;
+        margin-bottom: 0;
+      }
+
+      .talena-team-page .team-style-bar-fill-min {
+        background: linear-gradient(90deg, #d8cec6 0%, #b7a99e 100%);
+      }
+
+      .talena-team-page .team-style-bar-fill-min::after {
+        background: #b7a99e;
+      }
+
+      @media (max-width: 991.98px) {
+        .talena-team-page .team-extreme-comparison-row > [class*="col-"] {
+          display: block;
+        }
+
+        .talena-team-page .team-extreme-panel .team-style-rank-list {
+          justify-content: flex-start;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function findComparisonRow(page) {
+    return Array.from(page.querySelectorAll(".row.g-4.mb-4")).find(function (row) {
+      const columns = Array.from(row.children).filter(function (child) {
+        return child.classList.contains("col-lg-6");
+      });
+
+      if (columns.length !== 2) {
+        return false;
+      }
+
+      const leftList = columns[0].querySelector(".team-style-rank-list");
+      const rightTable = columns[1].querySelector("table.team-table");
+      const headers = rightTable && rightTable.querySelectorAll("thead th");
+
+      return Boolean(leftList && rightTable && headers && headers.length === 3);
+    });
+  }
+
+  function readMinimumRows(table) {
+    return Array.from(table.querySelectorAll("tbody tr"))
+      .map(function (row) {
+        const cells = row.querySelectorAll("td");
+        if (cells.length < 3) {
+          return null;
+        }
+
+        const label = (
+          cells[0].querySelector(".fw-semibold")?.textContent || ""
+        ).trim();
+        const quadrant = (
+          cells[0].querySelector(".text-muted")?.textContent || ""
+        ).trim();
+        const value = parseScoreOutOfFive(cells[2].textContent || "");
+
+        if (!label || value === null) {
+          return null;
+        }
+
+        return { label: label, quadrant: quadrant, value: value };
+      })
+      .filter(Boolean)
+      .sort(function (a, b) {
+        return b.value - a.value;
+      });
+  }
+
+  function buildMinimumList(rows, swedish) {
+    const list = document.createElement("div");
+    list.className = "team-style-rank-list mt-0";
+
+    rows.forEach(function (item) {
+      const row = document.createElement("div");
+      row.className = "team-style-rank-row";
+
+      const width = Math.max(0, Math.min(100, (item.value / 5) * 100));
+      row.innerHTML = `
+        <div class="team-style-rank-label">
+          <div class="fw-semibold"></div>
+          <div class="text-muted small"></div>
+        </div>
+        <div class="team-style-bar-wrap">
+          <div class="team-style-bar">
+            <div class="team-style-bar-fill team-style-bar-fill-min" style="width:${width}%"></div>
+          </div>
+        </div>
+        <div class="team-style-rank-score">${formatScore(item.value, swedish)} / 5</div>
+      `;
+
+      row.querySelector(".fw-semibold").textContent = item.label;
+      row.querySelector(".text-muted").textContent = item.quadrant;
+      list.appendChild(row);
+    });
+
+    return list;
+  }
+
+  function initTeamExtremeTabs() {
+    const page = document.querySelector(".talena-team-page");
+    if (!page || page.dataset.extremeTabsReady === "true") {
+      return;
+    }
+
+    const comparisonRow = findComparisonRow(page);
+    if (!comparisonRow) {
+      return;
+    }
+
+    const columns = Array.from(comparisonRow.children).filter(function (child) {
+      return child.classList.contains("col-lg-6");
+    });
+    const leftCard = columns[0].querySelector(".card");
+    const rightTable = columns[1].querySelector("table.team-table");
+    const header = leftCard && leftCard.querySelector(".card-header");
+    const body = leftCard && leftCard.querySelector(".card-body");
+    const maximumList = body && body.querySelector(".team-style-rank-list");
+    const minimumRows = rightTable ? readMinimumRows(rightTable) : [];
+
+    if (!leftCard || !header || !body || !maximumList || !minimumRows.length) {
+      return;
+    }
+
+    injectStyles();
+
+    const swedish = isSwedish();
+    const copy = swedish
+      ? {
+          title: "Sammanvägda teamstilar",
+          subtitle: "Växla mellan teamets högsta och lägsta observerade poäng för varje teamstil.",
+          maximum: "Maxvärde",
+          minimum: "Minvärde"
+        }
+      : {
+          title: "Composite team styles",
+          subtitle: "Switch between the highest and lowest observed score in the team for each style.",
+          maximum: "Maximum",
+          minimum: "Minimum"
+        };
+
+    const title = header.querySelector(".fw-semibold");
+    const subtitle = header.querySelector(".text-muted");
+    if (title) {
+      title.textContent = copy.title;
+    }
+    if (subtitle) {
+      subtitle.textContent = copy.subtitle;
+    }
+
+    comparisonRow.classList.add("team-extreme-comparison-row");
+    leftCard.classList.add("team-extreme-card");
+    maximumList.classList.add("team-extreme-rank-list");
+
+    const minimumList = buildMinimumList(minimumRows, swedish);
+    minimumList.classList.add("team-extreme-rank-list");
+
+    const tabs = document.createElement("div");
+    tabs.className = "team-extreme-tabs";
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", copy.title);
+
+    const maxButton = document.createElement("button");
+    maxButton.type = "button";
+    maxButton.className = "team-extreme-tab is-active";
+    maxButton.textContent = copy.maximum;
+    maxButton.setAttribute("role", "tab");
+    maxButton.setAttribute("aria-selected", "true");
+
+    const minButton = document.createElement("button");
+    minButton.type = "button";
+    minButton.className = "team-extreme-tab";
+    minButton.textContent = copy.minimum;
+    minButton.setAttribute("role", "tab");
+    minButton.setAttribute("aria-selected", "false");
+
+    tabs.append(maxButton, minButton);
+
+    const panels = document.createElement("div");
+    panels.className = "team-extreme-panels";
+
+    const maxPanel = document.createElement("div");
+    maxPanel.className = "team-extreme-panel is-active";
+    maxPanel.setAttribute("role", "tabpanel");
+    maxPanel.appendChild(maximumList);
+
+    const minPanel = document.createElement("div");
+    minPanel.className = "team-extreme-panel";
+    minPanel.setAttribute("role", "tabpanel");
+    minPanel.hidden = true;
+    minPanel.appendChild(minimumList);
+
+    panels.append(maxPanel, minPanel);
+    body.replaceChildren(tabs, panels);
+
+    function selectTab(mode) {
+      const showMaximum = mode === "maximum";
+      maxButton.classList.toggle("is-active", showMaximum);
+      minButton.classList.toggle("is-active", !showMaximum);
+      maxButton.setAttribute("aria-selected", showMaximum ? "true" : "false");
+      minButton.setAttribute("aria-selected", showMaximum ? "false" : "true");
+      maxPanel.classList.toggle("is-active", showMaximum);
+      minPanel.classList.toggle("is-active", !showMaximum);
+      maxPanel.hidden = !showMaximum;
+      minPanel.hidden = showMaximum;
+    }
+
+    maxButton.addEventListener("click", function () {
+      selectTab("maximum");
+    });
+    minButton.addEventListener("click", function () {
+      selectTab("minimum");
+    });
+
+    page.dataset.extremeTabsReady = "true";
+  }
+
+  document.addEventListener("DOMContentLoaded", initTeamExtremeTabs);
+})();
