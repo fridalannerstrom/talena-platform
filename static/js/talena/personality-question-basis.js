@@ -35,6 +35,17 @@
     });
   }
 
+  function clearOtherModeSelections(root, mode) {
+    optionCheckboxes(root).forEach((checkbox) => {
+      if (optionBasis(checkbox) === mode || !checkbox.checked) {
+        return;
+      }
+
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
   function unlockOptionInputs(root) {
     optionCheckboxes(root).forEach((checkbox) => {
       checkbox.disabled = false;
@@ -195,10 +206,10 @@
       panel.hidden = panel.dataset.questionBasisPanel !== mode;
     });
 
-    // Keep the draft selection in the inactive tab intact while the dialog is
-    // open. This lets users compare traits and competencies without losing
-    // work simply by switching tabs. Only the active mode is submitted when
-    // Save and generate is clicked.
+    // Switching tabs alone must never change the current draft selection.
+    // As soon as the user actively checks an option in the other basis, the
+    // change handler clears the previous basis so traits and competencies can
+    // never be mixed in one selection.
     updateModeCopy(root, mode);
     updateSelectionLimitState(root);
     localiseRenderedFocusLabels(root);
@@ -297,12 +308,11 @@
   });
 
   // Capture the click before the existing personality-question save handler.
-  // Draft selections may now exist in both tabs, so strip the inactive tab
-  // immediately before save. This preserves the user's drafts while browsing
-  // but guarantees that Talena persists one question basis, never a mixed
-  // trait/competency selection. Competency mode still requires at least one
-  // explicit competency; trait mode keeps the existing "Talena may choose"
-  // behaviour when no traits are checked.
+  // Switching tabs may leave an earlier selection visible in the inactive
+  // basis until the user makes a new choice, so keep this final guard as well:
+  // only the active basis may ever be submitted. Competency mode still
+  // requires at least one explicit competency; trait mode keeps the existing
+  // "Talena may choose" behaviour when no traits are checked.
   document.addEventListener("click", function (event) {
     const saveButton = event.target.closest("[data-personality-traits-save]");
     if (!saveButton) {
@@ -348,8 +358,16 @@
     }
 
     const mode = optionBasis(checkbox);
-    if (checkbox.checked && activeMode(root) !== mode) {
-      setMode(root, mode);
+
+    if (checkbox.checked) {
+      if (activeMode(root) !== mode) {
+        setMode(root, mode);
+      }
+
+      // The first active choice in one basis replaces any selection from the
+      // other basis. Merely switching tabs does not trigger this, so users can
+      // inspect both lists without losing their current selection.
+      clearOtherModeSelections(root, mode);
     }
 
     const emptyError = root.querySelector("[data-question-basis-empty-error]");
