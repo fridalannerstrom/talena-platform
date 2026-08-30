@@ -185,6 +185,7 @@
     ensureAfterInterviewStyles();
     panel.classList.add("after-interview-simplified");
 
+    // Ticket #177: the final interview action is Compile evidence / Sammanställ underlag.
     const copy = isSwedish()
       ? {
           headerDescription:
