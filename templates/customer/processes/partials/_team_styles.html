@@ -152,93 +152,108 @@
             </div>
 
             <!-- PRACTICAL GUIDANCE -->
-            <div class="team-style-guidance">
+            <details class="team-style-guidance-disclosure">
 
-              <div class="team-style-guidance__header">
-                <div class="team-style-guidance__label">
+              <summary class="team-style-guidance-disclosure__summary">
+                <span class="team-style-guidance-disclosure__label">
                   {% trans "Practical guidance" %}
-                </div>
+                </span>
 
-                {% if style.relevance.guidance_intro %}
-                  <p>
-                    {{ style.relevance.guidance_intro }}
-                  </p>
-                {% else %}
-                  <p>
-                    {% trans "Points to consider when working and communicating with this candidate." %}
-                  </p>
-                {% endif %}
+                <span
+                  class="team-style-guidance-disclosure__icon"
+                  aria-hidden="true"
+                >
+                  <i data-feather="chevron-down"></i>
+                </span>
+              </summary>
+
+              <div class="team-style-guidance-disclosure__content">
+                <div class="team-style-guidance">
+
+                  <div class="team-style-guidance__header">
+                    {% if style.relevance.guidance_intro %}
+                      <p>
+                        {{ style.relevance.guidance_intro }}
+                      </p>
+                    {% else %}
+                      <p>
+                        {% trans "Points to consider when working and communicating with this candidate." %}
+                      </p>
+                    {% endif %}
+                  </div>
+
+                  <div class="team-style-guidance__grid">
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="message-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Communication style" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.communication_tendency }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="alert-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Possible limitations" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.possible_overuse }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="shield"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Build trust by" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.build_trust }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="x-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Try to avoid" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.avoid }}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
               </div>
 
-              <div class="team-style-guidance__grid">
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="message-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Communication style" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.communication_tendency }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="alert-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Possible limitations" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.possible_overuse }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="shield"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Build trust by" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.build_trust }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="x-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Try to avoid" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.avoid }}
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
+            </details>
 
           </article>
         {% endfor %}
