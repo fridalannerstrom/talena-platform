@@ -53,8 +53,33 @@
   width: 100% !important;
 }
 
+.process-page .team-style-profile-card__direction {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.35rem;
+  color: var(--talena-text-subtle);
+}
+
+.process-page .team-style-profile-card__direction-line {
+  display: block;
+  height: 1px;
+  flex: 1 1 auto;
+  background: rgba(23, 19, 18, 0.18);
+}
+
+.process-page .team-style-profile-card__direction svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  margin-left: -1px;
+  stroke-width: 1.7;
+}
+
 .process-page .team-style-profile-card__scale .response-style-scale__labels {
-  margin-top: 0.35rem !important;
+  margin-top: 0.18rem !important;
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.52rem !important;
 }
 
 /* ---------------------------------------------------------
@@ -73,12 +98,41 @@
 }
 
 .process-page .team-style-guidance-explainer__title {
-  display: block !important;
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
   width: 100% !important;
   min-width: 0 !important;
   margin: 0 !important;
   box-sizing: border-box;
   white-space: normal;
+  list-style: none;
+}
+
+.process-page .team-style-guidance-explainer__title::-webkit-details-marker {
+  display: none;
+}
+
+.process-page .team-style-guidance-explainer__title::marker {
+  content: "";
+}
+
+.process-page .team-style-guidance-explainer__title::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transform-origin: center;
+  transition: transform 160ms ease;
+}
+
+.process-page .team-style-guidance-explainer[open] > .team-style-guidance-explainer__title::after {
+  transform: rotate(225deg) translate(-1px, -1px);
 }
 
 .process-page .team-style-guidance-explainer__content {
@@ -96,5 +150,11 @@
 @media (max-width: 620px) {
   .process-page .team-style-profile-card {
     padding: 0.85rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-page .team-style-guidance-explainer__title::after {
+    transition: none;
   }
 }
