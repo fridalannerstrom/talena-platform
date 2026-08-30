@@ -79,7 +79,7 @@
         aria-controls="candidate-insights-panel-prepare-interview"
         data-insights-tab="prepare-interview"
       >
-        {% trans "Prepare for interview" %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inför intervju{% else %}Prepare for interview{% endif %}
       </button>
 
 
