@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block content %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <div class="container-fluid py-4 talena-team-page">
 
@@ -38,7 +39,7 @@
               <th>{% trans "Team" %}</th>
               <th>{% trans "Description" %}</th>
               <th>{% trans "Members" %}</th>
-              <th class="text-end">{% trans "Open" %}</th>
+              <th class="text-end">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Öppna{% else %}{% trans "Open" %}{% endif %}</th>
             </tr>
           </thead>
 
@@ -65,11 +66,15 @@
                 <td>
                   <span class="team-member-count">
                     <i data-feather="user" class="icon-14"></i>
-                    {% blocktrans count member_count=team.member_count %}
-                      {{ member_count }} member
-                    {% plural %}
-                      {{ member_count }} members
-                    {% endblocktrans %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      {{ team.member_count }} {% if team.member_count == 1 %}medlem{% else %}medlemmar{% endif %}
+                    {% else %}
+                      {% blocktrans count member_count=team.member_count %}
+                        {{ member_count }} member
+                      {% plural %}
+                        {{ member_count }} members
+                      {% endblocktrans %}
+                    {% endif %}
                   </span>
                 </td>
 
