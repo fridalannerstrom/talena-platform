@@ -1,103 +1,117 @@
 /* =========================================================
    TALENA — TEAM STYLES
-   Collapsible practical guidance.
+   Team-specific refinements for the shared Overview explainer.
    ========================================================= */
 
-.process-page .team-style-guidance-disclosure {
-  margin-top: 1rem;
-  border-top: 1px solid var(--talena-border);
+/* Keep the shared Overview explainer geometry intact when opened. */
+.process-page .team-style-guidance-explainer {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
 }
 
-.process-page .team-style-guidance-disclosure__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 52px;
-  padding: 0.78rem 0;
-  list-style: none;
-  cursor: pointer;
-  user-select: none;
+.process-page .team-style-guidance-explainer__title {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  white-space: normal;
 }
 
-.process-page .team-style-guidance-disclosure__summary::-webkit-details-marker {
-  display: none;
+.process-page .team-style-guidance-explainer__content {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  box-sizing: border-box;
 }
 
-.process-page .team-style-guidance-disclosure__summary::marker {
-  display: none;
-  content: "";
+.process-page .team-style-guidance-explainer[open] > .team-style-guidance-explainer__title {
+  margin-bottom: 0 !important;
 }
 
-.process-page .team-style-guidance-disclosure__label {
-  color: var(--talena-ink);
-  font-size: 0.72rem;
-  font-weight: 680;
-  line-height: 1.3;
+/* Practical guidance content, visually aligned with motivation factor cards. */
+.process-page .team-style-guidance-explainer .team-style-guidance {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-.process-page .team-style-guidance-disclosure__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 31px;
-  height: 31px;
-  flex: 0 0 31px;
-  border: 1px solid rgba(255, 111, 97, 0.18);
-  border-radius: 9px;
-  background: var(--talena-coral-soft);
-  color: var(--talena-coral-strong);
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    transform 180ms ease;
+.process-page .team-style-guidance-explainer .team-style-guidance__header {
+  margin: 0 0 0.65rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
 }
 
-.process-page .team-style-guidance-disclosure__icon svg {
-  width: 15px;
-  height: 15px;
-  stroke-width: 1.8;
-  transition: transform 180ms ease;
+.process-page .team-style-guidance-explainer .team-style-guidance__header p {
+  margin: 0 !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.69rem !important;
+  line-height: 1.55 !important;
 }
 
-.process-page .team-style-guidance-disclosure__summary:hover .team-style-guidance-disclosure__label {
-  color: var(--talena-coral-strong);
+.process-page .team-style-guidance-explainer .team-style-guidance__grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0.55rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
 }
 
-.process-page .team-style-guidance-disclosure__summary:hover .team-style-guidance-disclosure__icon {
-  border-color: rgba(255, 111, 97, 0.3);
-  background: rgba(255, 111, 97, 0.11);
+.process-page .team-style-guidance-explainer .team-style-guidance__item {
+  display: block !important;
+  min-width: 0 !important;
+  padding: 0.78rem 0.88rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: rgba(250, 249, 247, 0.72) !important;
+  box-shadow: none !important;
 }
 
-.process-page .team-style-guidance-disclosure[open] > .team-style-guidance-disclosure__summary .team-style-guidance-disclosure__icon svg {
-  transform: rotate(180deg);
+.process-page .team-style-guidance-explainer .team-style-guidance__item-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  margin: 0 0 0.25rem !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }
 
-.process-page .team-style-guidance-disclosure__summary:focus-visible {
-  outline: 2px solid rgba(255, 111, 97, 0.36);
-  outline-offset: 4px;
-  border-radius: 8px;
+.process-page .team-style-guidance-explainer .team-style-guidance__item-header svg {
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 14px !important;
+  color: var(--talena-coral-strong) !important;
+  stroke-width: 1.8 !important;
 }
 
-.process-page .team-style-guidance-disclosure__content {
-  padding: 0.1rem 0 0.35rem;
+.process-page .team-style-guidance-explainer .team-style-guidance__item p {
+  margin: 0 !important;
+  padding-left: 1.18rem !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.68rem !important;
+  line-height: 1.5 !important;
 }
 
-.process-page .team-style-guidance-disclosure .team-style-guidance {
-  margin-top: 0 !important;
-}
+@media (max-width: 620px) {
+  .process-page .team-style-guidance-explainer .team-style-guidance__item {
+    padding: 0.72rem 0.76rem !important;
+  }
 
-.process-page .team-style-guidance-disclosure .team-style-guidance__header {
-  margin-bottom: 0.75rem;
-}
-
-.process-page .team-style-guidance-disclosure .team-style-guidance__header p {
-  margin-bottom: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .process-page .team-style-guidance-disclosure__icon,
-  .process-page .team-style-guidance-disclosure__icon svg {
-    transition: none;
+  .process-page .team-style-guidance-explainer .team-style-guidance__item p {
+    padding-left: 0 !important;
   }
 }
