@@ -21,6 +21,25 @@
     });
   }
 
+  function parseScoreOutOfFive(value) {
+    const normalized = String(value || "")
+      .trim()
+      .replace(",", ".");
+    const match = normalized.match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*5/);
+
+    if (!match) {
+      return null;
+    }
+
+    const parsed = Number.parseFloat(match[1]);
+
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+
+    return Math.max(0, Math.min(5, parsed));
+  }
+
   function initTeamStyleRankBars() {
     const rows = document.querySelectorAll(
       ".talena-team-page .team-style-rank-row"
@@ -34,27 +53,15 @@
         return;
       }
 
-      const scoreText = (score.textContent || "")
-        .trim()
-        .replace(",", ".");
-      const match = scoreText.match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*5/);
+      const value = parseScoreOutOfFive(score.textContent || "");
 
-      if (!match) {
+      if (value === null) {
         fill.style.width = "0%";
         fill.classList.add("is-empty");
         return;
       }
 
-      const value = Number.parseFloat(match[1]);
-
-      if (!Number.isFinite(value)) {
-        fill.style.width = "0%";
-        fill.classList.add("is-empty");
-        return;
-      }
-
-      const clampedValue = Math.max(0, Math.min(5, value));
-      const percent = (clampedValue / 5) * 100;
+      const percent = (value / 5) * 100;
 
       fill.style.width = `${percent}%`;
       fill.classList.remove("is-empty");
@@ -75,6 +82,40 @@
       console.warn(`Could not parse ${id}.`, error);
       return [];
     }
+  }
+
+  function readTeamStyleMinimumValues(expectedCount) {
+    const tables = document.querySelectorAll(
+      ".talena-team-page .team-table"
+    );
+
+    for (const table of tables) {
+      const headers = table.querySelectorAll("thead th");
+      const rows = table.querySelectorAll("tbody tr");
+
+      if (headers.length !== 3 || rows.length !== expectedCount) {
+        continue;
+      }
+
+      const values = Array.from(rows).map(function (row) {
+        const cells = row.querySelectorAll("td");
+
+        if (cells.length < 3) {
+          return null;
+        }
+
+        return parseScoreOutOfFive(cells[2].textContent || "");
+      });
+
+      if (
+        values.length === expectedCount
+        && values.every(function (value) { return value !== null; })
+      ) {
+        return values;
+      }
+    }
+
+    return [];
   }
 
   function getTeamStyleLabelMap(chartElement) {
@@ -105,47 +146,69 @@
       return;
     }
 
+    const minimumValues = readTeamStyleMinimumValues(labels.length);
     const styleLabelMap = getTeamStyleLabelMap(chartElement);
     const displayLabels = labels.map(function (label) {
       return styleLabelMap[label] || label;
     });
 
     const averageLabel = chartElement.dataset.averageLabel || "Average";
+    const minimumLabel = chartElement.dataset.minimumLabel || "Minimum";
     const maximumLabel = chartElement.dataset.maximumLabel || "Maximum";
+
+    const datasets = [
+      {
+        label: averageLabel,
+        data: averageValues,
+        borderColor: "#FF6F61",
+        backgroundColor: "rgba(255, 111, 97, 0.11)",
+        pointBackgroundColor: "#FF6F61",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+        fill: true
+      }
+    ];
+
+    if (minimumValues.length === labels.length) {
+      datasets.push({
+        label: minimumLabel,
+        data: minimumValues,
+        borderColor: "#B7A99E",
+        backgroundColor: "rgba(183, 169, 158, 0.02)",
+        pointBackgroundColor: "#B7A99E",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 2.5,
+        pointHoverRadius: 3.5,
+        borderWidth: 1.5,
+        borderDash: [2, 4],
+        fill: false
+      });
+    }
+
+    datasets.push({
+      label: maximumLabel,
+      data: maxValues,
+      borderColor: "#8FAF98",
+      backgroundColor: "rgba(143, 175, 152, 0.03)",
+      pointBackgroundColor: "#8FAF98",
+      pointBorderColor: "#ffffff",
+      pointBorderWidth: 2,
+      pointRadius: 2.5,
+      pointHoverRadius: 3.5,
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      fill: false
+    });
 
     new window.Chart(chartElement, {
       type: "radar",
       data: {
         labels: displayLabels,
-        datasets: [
-          {
-            label: averageLabel,
-            data: averageValues,
-            borderColor: "#FF6F61",
-            backgroundColor: "rgba(255, 111, 97, 0.11)",
-            pointBackgroundColor: "#FF6F61",
-            pointBorderColor: "#ffffff",
-            pointBorderWidth: 2,
-            pointRadius: 3,
-            pointHoverRadius: 4,
-            borderWidth: 2,
-            fill: true
-          },
-          {
-            label: maximumLabel,
-            data: maxValues,
-            borderColor: "#8FAF98",
-            backgroundColor: "rgba(143, 175, 152, 0.03)",
-            pointBackgroundColor: "#8FAF98",
-            pointBorderColor: "#ffffff",
-            pointBorderWidth: 2,
-            pointRadius: 2.5,
-            pointHoverRadius: 3.5,
-            borderWidth: 1.5,
-            borderDash: [5, 4],
-            fill: false
-          }
-        ]
+        datasets: datasets
       },
       options: {
         responsive: true,
