@@ -1,4 +1,39 @@
 {% load i18n %}
+{% get_current_language as cognitive_interpretation_language %}
+
+<!-- Hidden streamed context note retained for JavaScript compatibility -->
+<div
+  class="d-none"
+  data-cognitive-ai-context-note
+  aria-hidden="true"
+>{{ cognitive_interpretation.context_note }}</div>
+
+<!-- AI / EVIDENCE NOTE -->
+<div class="personality-questions-context-note mt-4">
+  <div class="d-flex align-items-start gap-3">
+    <div class="personality-questions-context-note__icon">
+      <i data-feather="info"></i>
+    </div>
+
+    <div class="flex-grow-1">
+      <div class="personality-questions-context-note__title">
+        {% if cognitive_interpretation_language|slice:":2" == "sv" %}
+          Om AI-tolkningen
+        {% else %}
+          About the AI interpretation
+        {% endif %}
+      </div>
+
+      <div>
+        {% if cognitive_interpretation_language|slice:":2" == "sv" %}
+          AI-tolkningen bygger på kandidatens färdighetsresultat, processens syfte och tillgänglig kontext. Percentiler beskriver relativ prestation i specifika uppgifter och bör vägas samman med annat relevant underlag.
+        {% else %}
+          The AI interpretation is based on the candidate's skills results, the process purpose and available context. Percentiles describe relative performance on specific tasks and should be considered alongside other relevant evidence.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- PRACTICAL INTERPRETATION -->
 <section class="mt-4 purpose-fit-section">
@@ -43,33 +78,3 @@
   </ul>
 
 </section>
-
-
-<!-- CONTEXT NOTE + DISCLAIMER -->
-<div
-  class="small text-muted border-top pt-3 mt-4"
->
-  <div class="d-flex align-items-start gap-2">
-
-    <i
-      data-feather="info"
-      class="flex-shrink-0"
-    ></i>
-
-    <div>
-      <div data-cognitive-ai-context-note>
-        {{ cognitive_interpretation.context_note }}
-      </div>
-
-      <div class="mt-2">
-        {% blocktrans trimmed %}
-          Cognitive assessment results describe relative performance on specific
-          reasoning tasks. They do not measure personality, motivation, experience
-          or overall intelligence, and should be considered together with other
-          relevant evidence.
-        {% endblocktrans %}
-      </div>
-    </div>
-
-  </div>
-</div>
