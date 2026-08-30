@@ -48,7 +48,7 @@
     <!-- QUESTION SECTIONS -->
     <div class="combined-question-sections mt-4">
 
-      {% for section in combined_question_sections %}
+      {% for section in combined_question_sections|dictsort:"key" %}
 
         <section>
 
