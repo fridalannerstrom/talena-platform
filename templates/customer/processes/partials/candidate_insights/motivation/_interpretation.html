@@ -105,6 +105,40 @@
     data-motivation-ai-content
   >
 
+    <!-- Hidden streamed context note retained for JavaScript compatibility -->
+    <div
+      class="d-none"
+      data-motivation-ai-context-note
+      aria-hidden="true"
+    >{{ motivation_interpretation.context_note }}</div>
+
+    <!-- AI / EVIDENCE NOTE -->
+    <div class="personality-questions-context-note mt-4">
+      <div class="d-flex align-items-start gap-3">
+        <div class="personality-questions-context-note__icon">
+          <i data-feather="info"></i>
+        </div>
+
+        <div class="flex-grow-1">
+          <div class="personality-questions-context-note__title">
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              Om AI-tolkningen
+            {% else %}
+              About the AI interpretation
+            {% endif %}
+          </div>
+
+          <div>
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              AI-tolkningen bygger på motivationsprofilen, processens syfte och tillgänglig kontext. Resultaten beskriver möjliga drivkrafter och preferenser, inte styrkor eller svagheter i sig.
+            {% else %}
+              The AI interpretation is based on the motivation profile, the process purpose and available context. The results describe possible drivers and preferences, not strengths or weaknesses in themselves.
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- OVERALL INTERPRETATION -->
     <section class="mt-4 purpose-fit-section">
       <h3 class="mb-2 purpose-fit-section-title">
@@ -231,34 +265,6 @@
 
     </div>
     <!-- /LIKELY BEHAVIOURS + EXPLORE -->
-
-    <!-- CONTEXT NOTE -->
-    <div
-      class="
-        small
-        text-muted
-        border-top
-        pt-3
-        mt-4
-      "
-    >
-      <div class="d-flex align-items-start gap-2">
-        <i
-          data-feather="info"
-          class="flex-shrink-0"
-        ></i>
-
-        <div>
-          <div data-motivation-ai-context-note>
-            {{ motivation_interpretation.context_note }}
-          </div>
-
-          <div class="mt-2">
-            {% blocktrans %}Motivation results describe possible sources of energy, engagement and preference. Less central factors are not weaknesses and do not indicate limited capability or poor values.{% endblocktrans %}
-          </div>
-        </div>
-      </div>
-    </div>
 
   </div>
 
