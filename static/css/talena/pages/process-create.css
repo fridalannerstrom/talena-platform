@@ -245,11 +245,18 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 #processCreateWizardForm .test-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.75rem;
+  align-items: stretch;
+}
+
+#processCreateWizardForm .test-card {
+  display: block;
+  height: 100%;
 }
 
 #processCreateWizardForm .test-card-inner {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 285px;
   padding: 1.15rem 1.15rem 1.45rem;
   border: 1px solid var(--talena-border);
