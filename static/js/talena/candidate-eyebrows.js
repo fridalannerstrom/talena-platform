@@ -148,7 +148,7 @@
 
       #candidate-insights-panel-after-interview.after-interview-simplified
       .post-evidence-grid {
-        margin-top: 0.35rem !important;
+        display: none !important;
       }
 
       #candidate-insights-panel-after-interview.after-interview-simplified
