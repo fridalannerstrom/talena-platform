@@ -248,6 +248,8 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 }
 
 #processCreateWizardForm .test-card-inner {
+  display: flex;
+  flex-direction: column;
   min-height: 285px;
   padding: 1.15rem;
   border: 1px solid var(--talena-border);
@@ -269,7 +271,7 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 }
 
 #processCreateWizardForm .test-card-top {
-  margin-bottom: 2.8rem;
+  margin-bottom: 0;
 }
 
 #processCreateWizardForm .test-icon {
@@ -283,10 +285,9 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 }
 
 #processCreateWizardForm .test-guidance-badge {
-  position: absolute;
-  top: 64px;
-  left: 1.15rem;
-  margin: 0;
+  position: static;
+  align-self: flex-start;
+  margin: auto 0 0.8rem;
   padding: 0.3rem 0.58rem;
   border: 1px solid transparent;
   border-radius: var(--talena-radius-pill);
