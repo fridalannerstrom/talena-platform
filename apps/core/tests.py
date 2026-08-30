@@ -6,6 +6,10 @@ from apps.core.ai.motivation_interpretation import (
     build_motivation_evidence_text,
     extract_motivation_results,
 )
+from apps.core.ai.post_interview_role_context_policy import (
+    install_post_interview_role_context_policy,
+)
+from apps.core.ai.prompt_templates import AI_PROMPT_REGISTRY
 
 
 class MotivationAIEvidenceTests(SimpleTestCase):
@@ -143,4 +147,63 @@ class MotivationAIEvidenceTests(SimpleTestCase):
         self.assertIn(
             "Score meaning: More prominent motivational driver.",
             evidence,
+        )
+
+
+class PostInterviewRoleContextPolicyTests(SimpleTestCase):
+    def setUp(self):
+        install_post_interview_role_context_policy()
+
+    def test_role_support_prompt_is_exposed_to_admin(self):
+        definition = AI_PROMPT_REGISTRY[
+            "post_interview_supported_indications"
+        ]
+
+        self.assertEqual(
+            definition["name"],
+            "After interview · Role support",
+        )
+        self.assertIn(
+            "processkontext",
+            definition["defaults"]["sv"].lower(),
+        )
+        self.assertIn(
+            "process context",
+            definition["defaults"]["en"].lower(),
+        )
+
+    def test_areas_to_explore_prompt_is_role_context_focused(self):
+        definition = AI_PROMPT_REGISTRY[
+            "post_interview_contradictions"
+        ]
+
+        self.assertEqual(
+            definition["name"],
+            "After interview · Areas to explore",
+        )
+        self.assertIn(
+            "roll- eller kontextområde",
+            definition["defaults"]["sv"].lower(),
+        )
+        self.assertIn(
+            "role or context area",
+            definition["defaults"]["en"].lower(),
+        )
+
+    def test_next_steps_stays_decision_support_not_decision(self):
+        definition = AI_PROMPT_REGISTRY[
+            "post_interview_suggested_follow_up"
+        ]
+
+        self.assertEqual(
+            definition["name"],
+            "After interview · Next steps",
+        )
+        self.assertIn(
+            "anställning",
+            definition["defaults"]["sv"].lower(),
+        )
+        self.assertIn(
+            "hiring",
+            definition["defaults"]["en"].lower(),
         )
