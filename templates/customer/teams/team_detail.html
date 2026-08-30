@@ -7,6 +7,81 @@
 {% block extra_css %}
   <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+  <style>
+    .talena-team-page .team-anonymity-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-height: 38px;
+      padding: 0.42rem 0.72rem;
+      border: 1px solid var(--talena-border);
+      border-radius: var(--talena-radius-pill);
+      background: #fff;
+      color: var(--talena-text);
+      font: inherit;
+      font-size: 0.64rem;
+      font-weight: 680;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(52, 39, 34, 0.035);
+      transition:
+        border-color var(--talena-transition-fast),
+        box-shadow var(--talena-transition-fast),
+        color var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-toggle:hover {
+      border-color: rgba(255, 111, 97, 0.32);
+      color: var(--talena-ink);
+    }
+
+    .talena-team-page .team-anonymity-toggle:focus-visible {
+      outline: 0;
+      box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.11);
+    }
+
+    .talena-team-page .team-anonymity-switch {
+      position: relative;
+      width: 32px;
+      height: 18px;
+      flex: 0 0 auto;
+      border-radius: var(--talena-radius-pill);
+      background: #e9e5e2;
+      transition: background-color var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(51, 39, 34, 0.18);
+      transition: transform var(--talena-transition-fast);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] {
+      border-color: rgba(255, 111, 97, 0.24);
+      color: var(--talena-coral-strong);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] .team-anonymity-switch {
+      background: var(--talena-coral);
+    }
+
+    .talena-team-page .team-anonymity-toggle[aria-checked="true"] .team-anonymity-switch::after {
+      transform: translateX(14px);
+    }
+
+    @media (max-width: 767.98px) {
+      .talena-team-page .team-anonymity-toggle {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -26,6 +101,16 @@
     </div>
 
     <div class="team-page-actions">
+      <button
+        type="button"
+        id="teamAnonymityToggle"
+        class="team-anonymity-toggle"
+        role="switch"
+        aria-checked="false"
+      >
+        <span class="team-anonymity-label">Anonymisera</span>
+        <span class="team-anonymity-switch" aria-hidden="true"></span>
+      </button>
       <a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-outline-secondary team-secondary-action">
         <i data-feather="edit-3" class="icon-14"></i>
         {% trans "Edit team" %}
@@ -399,4 +484,181 @@
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/talena/team-pages.js' %}"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      function normalize(value) {
+        return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+      }
+
+      function storeText(element, anonymousText) {
+        if (!element) {
+          return;
+        }
+        if (!element.dataset.originalText) {
+          element.dataset.originalText = element.textContent.trim();
+        }
+        element.dataset.anonymousText = anonymousText;
+      }
+
+      function storeTitle(element, anonymousTitle) {
+        if (!element || !element.hasAttribute("title")) {
+          return;
+        }
+        if (!element.dataset.originalTitle) {
+          element.dataset.originalTitle = element.getAttribute("title") || "";
+        }
+        element.dataset.anonymousTitle = anonymousTitle;
+      }
+
+      function initTeamAnonymity() {
+        const page = document.querySelector(".talena-team-page");
+        const toggle = document.getElementById("teamAnonymityToggle");
+        if (!page || !toggle) {
+          return;
+        }
+
+        const swedish = (document.documentElement.lang || "")
+          .toLowerCase()
+          .startsWith("sv");
+        const strings = swedish
+          ? {
+              anonymise: "Anonymisera",
+              showNames: "Visa namn",
+              member: "Medlem",
+              hidden: "Dold"
+            }
+          : {
+              anonymise: "Anonymise",
+              showNames: "Show names",
+              member: "Member",
+              hidden: "Hidden"
+            };
+
+        const label = toggle.querySelector(".team-anonymity-label");
+        const addCandidatesAction = page.querySelector(
+          "a.team-primary-action[href*='/members/']"
+        );
+        const candidatesCard = addCandidatesAction && addCandidatesAction.closest(".card");
+        const candidateRows = candidatesCard
+          ? Array.from(candidatesCard.querySelectorAll("tbody tr"))
+          : [];
+
+        const people = [];
+        const byEmail = new Map();
+        const byName = new Map();
+
+        candidateRows.forEach(function (row, index) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length < 2) {
+            return;
+          }
+
+          const initialsElement = cells[0].querySelector(".team-member-initials");
+          const nameElement = cells[0].querySelector("strong");
+          const emailElement = cells[1].querySelector(".text-muted");
+          const name = nameElement ? nameElement.textContent.trim() : "";
+          const email = emailElement ? emailElement.textContent.trim() : "";
+          const number = people.length + 1;
+          const person = {
+            number: number,
+            name: name,
+            email: email,
+            alias: `${strings.member} ${number}`,
+            initials: `M${number}`,
+            hiddenEmail: strings.hidden
+          };
+
+          people.push(person);
+          if (email) {
+            byEmail.set(normalize(email), person);
+          }
+          if (name && !byName.has(normalize(name))) {
+            byName.set(normalize(name), person);
+          }
+
+          storeText(initialsElement, person.initials);
+          storeText(nameElement, person.alias);
+          storeText(emailElement, person.hiddenEmail);
+        });
+
+        page.querySelectorAll(".team-member-profile-item").forEach(function (item) {
+          const nameElement = item.querySelector(".team-member-profile-name");
+          const emailElement = item.querySelector(".team-member-profile-email");
+          const initialsElement = item.querySelector(".team-member-initials");
+          const email = emailElement ? normalize(emailElement.textContent) : "";
+          const name = nameElement ? normalize(nameElement.textContent) : "";
+          const person = byEmail.get(email) || byName.get(name);
+
+          if (!person) {
+            return;
+          }
+
+          storeText(initialsElement, person.initials);
+          storeText(nameElement, person.alias);
+          storeText(emailElement, person.hiddenEmail);
+        });
+
+        page.querySelectorAll(".team-score-badge[title]").forEach(function (badge) {
+          const person = byName.get(normalize(badge.getAttribute("title")));
+          if (!person) {
+            return;
+          }
+          storeText(badge, person.initials);
+          storeTitle(badge, person.alias);
+        });
+
+        function apply(anonymous) {
+          page.querySelectorAll("[data-original-text][data-anonymous-text]")
+            .forEach(function (element) {
+              element.textContent = anonymous
+                ? element.dataset.anonymousText
+                : element.dataset.originalText;
+            });
+
+          page.querySelectorAll("[data-original-title][data-anonymous-title]")
+            .forEach(function (element) {
+              element.setAttribute(
+                "title",
+                anonymous
+                  ? element.dataset.anonymousTitle
+                  : element.dataset.originalTitle
+              );
+            });
+
+          toggle.setAttribute("aria-checked", anonymous ? "true" : "false");
+          if (label) {
+            label.textContent = anonymous ? strings.showNames : strings.anonymise;
+          }
+
+          try {
+            window.sessionStorage.setItem(
+              "talena-team-anonymous-{{ team.pk }}",
+              anonymous ? "1" : "0"
+            );
+          } catch (error) {
+            // Privacy mode still works if sessionStorage is unavailable.
+          }
+        }
+
+        let initialAnonymous = false;
+        try {
+          initialAnonymous = window.sessionStorage.getItem(
+            "talena-team-anonymous-{{ team.pk }}"
+          ) === "1";
+        } catch (error) {
+          initialAnonymous = false;
+        }
+
+        apply(initialAnonymous);
+
+        toggle.addEventListener("click", function () {
+          apply(toggle.getAttribute("aria-checked") !== "true");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", initTeamAnonymity);
+    })();
+  </script>
 {% endblock %}
