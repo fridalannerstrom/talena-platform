@@ -517,4 +517,18 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
   #processCreateWizardForm .candidate-language-grid {
     grid-template-columns: 1fr;
   }
+
+  #processCreateWizardForm .purpose-card-inner,
+  #processCreateWizardForm .test-card-inner {
+    min-height: 0;
+  }
+
+  #processCreateWizardForm .wizard-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  #processCreateWizardForm .wizard-actions .btn {
+    width: 100%;
+  }
 }
