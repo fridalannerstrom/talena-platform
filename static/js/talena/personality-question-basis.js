@@ -126,8 +126,12 @@
     const count = checkedOptions(root, mode).length;
     const countElement = root.querySelector("[data-personality-traits-count]");
 
-    if (countElement && mode === "competencies" && count === 0) {
-      countElement.textContent = isSwedish() ? "0 valda" : "0 selected";
+    if (countElement) {
+      if (isSwedish()) {
+        countElement.textContent = `${count} ${count === 1 ? "vald" : "valda"}`;
+      } else {
+        countElement.textContent = `${count} selected`;
+      }
     }
 
     root.classList.toggle(
@@ -354,7 +358,7 @@
     }
 
     // Runs after the existing checkbox change listener, undoing its blanket
-    // disabled state while keeping its selected-count copy intact.
+    // disabled state while keeping the selected count scoped to the active tab.
     updateSelectionLimitState(root);
   });
 
