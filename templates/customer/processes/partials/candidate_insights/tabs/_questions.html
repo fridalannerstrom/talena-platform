@@ -20,9 +20,168 @@
     box-shadow: none !important;
   }
 
+  /* Match the split question-card layout used in the assessment tabs. */
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-list {
+    display: grid !important;
+    gap: 0.78rem !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.14fr) minmax(300px, 0.86fr) !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--talena-border) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(23, 19, 18, 0.025) !important;
+    transition:
+      border-color var(--talena-transition-fast),
+      box-shadow var(--talena-transition-fast),
+      transform var(--talena-transition-fast) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card:hover {
+    border-color: rgba(255, 111, 97, 0.32) !important;
+    box-shadow: 0 10px 28px rgba(23, 19, 18, 0.045) !important;
+    transform: translateY(-1px);
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__header {
+    display: grid !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    align-content: start !important;
+    align-items: start !important;
+    gap: 0.8rem !important;
+    min-width: 0 !important;
+    padding: 1.18rem 1.25rem !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__number {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    border: 1px solid rgba(255, 111, 97, 0.2) !important;
+    border-radius: 10px !important;
+    background: var(--talena-coral-soft) !important;
+    color: var(--talena-coral-strong) !important;
+    font-size: 0.66rem !important;
+    font-weight: 750 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    min-width: 0 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__text {
+    max-width: 640px !important;
+    color: var(--talena-ink) !important;
+    font-size: 1.2rem !important;
+    font-weight: 550 !important;
+    line-height: 1.48 !important;
+    letter-spacing: -0.012em !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__details {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    border-left: 1px solid var(--talena-border) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail {
+    display: grid !important;
+    grid-template-columns: 26px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 0.65rem !important;
+    padding: 0.75rem 1.05rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail + .personality-question-card__detail {
+    border-top: 1px solid rgba(23, 19, 18, 0.07) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 26px !important;
+    height: 26px !important;
+    border: 1px solid rgba(255, 111, 97, 0.13) !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: var(--talena-coral-strong) !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-icon svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-title {
+    margin-bottom: 0.2rem !important;
+    color: var(--talena-ink) !important;
+    font-size: 0.75rem !important;
+    font-weight: 720 !important;
+    line-height: 1.35 !important;
+  }
+
+  #layoutSidenav_content main .process-page [data-combined-questions-root]
+  .personality-question-card__detail-text {
+    color: var(--talena-text-muted) !important;
+    font-size: 0.72rem !important;
+    line-height: 1.5 !important;
+  }
+
+  @media (max-width: 900px) {
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card {
+      grid-template-columns: 1fr !important;
+    }
+
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card__details {
+      border-top: 1px solid rgba(255, 111, 97, 0.16) !important;
+      border-left: 0 !important;
+    }
+  }
+
   @media (max-width: 767px) {
     .process-page #candidate-insights-panel-prepare-interview > .combined-questions-card {
       padding: 1rem 0.9rem 0.9rem !important;
+    }
+  }
+
+  @media (max-width: 620px) {
+    #layoutSidenav_content main .process-page [data-combined-questions-root]
+    .personality-question-card__header {
+      padding: 1rem !important;
     }
   }
 </style>
@@ -68,8 +227,6 @@
   </div>
 
 
-  
-
   {% if has_combined_questions %}
 
     <!-- QUESTION SECTIONS -->
@@ -83,8 +240,6 @@
           <header class="combined-question-section__header mb-1 mt-4 pt-4 border-top">
 
             <div class="combined-question-section__heading">
-
-
               <div>
 
                 <h3 class="personality-questions-section-title mb-1">
@@ -96,26 +251,24 @@
                 </p>
 
               </div>
-
             </div>
 
+            <div class="combined-question-section__badges">
 
-<div class="combined-question-section__badges">
+              <span class="personality-trait-pill text-nowrap">
+                {% blocktrans count question_count=section.question_count %}
+                  {{ question_count }} question
+                {% plural %}
+                  {{ question_count }} questions
+                {% endblocktrans %}
+              </span>
 
-  <span class="personality-trait-pill text-nowrap">
-    {% blocktrans count question_count=section.question_count %}
-      {{ question_count }} question
-    {% plural %}
-      {{ question_count }} questions
-    {% endblocktrans %}
-  </span>
+              <span class="personality-trait-pill text-nowrap">
+                <i data-feather="clock"></i>
+                ~ {{ section.estimated_minutes }} min
+              </span>
 
-  <span class="personality-trait-pill text-nowrap">
-    <i data-feather="clock"></i>
-    ~ {{ section.estimated_minutes }} min
-  </span>
-
-</div>
+            </div>
 
           </header>
 
@@ -157,7 +310,7 @@
 
             {% for item in section.questions %}
 
-              <article class="purpose-fit-section">
+              <article class="personality-question-card">
 
                 <!-- QUESTION HEADER -->
                 <div class="personality-question-card__header">
@@ -165,7 +318,6 @@
                   <div class="personality-question-card__number">
                     {{ forloop.counter }}
                   </div>
-
 
                   <div class="personality-question-card__heading">
 
@@ -177,7 +329,6 @@
 
                 </div>
 
-
                 <!-- WHY + LISTEN FOR -->
                 {% if item.why or item.listen_for %}
 
@@ -185,16 +336,11 @@
 
                     {% if item.why %}
 
-                      <div
-                        class="
-                          personality-question-card__detail
-                        "
-                      >
+                      <div class="personality-question-card__detail personality-question-card__detail--why">
 
                         <div class="personality-question-card__detail-icon">
                           <i data-feather="compass"></i>
                         </div>
-
 
                         <div>
 
@@ -212,19 +358,13 @@
 
                     {% endif %}
 
-
                     {% if item.listen_for %}
 
-                      <div
-                        class="
-                          personality-question-card__detail
-                        "
-                      >
+                      <div class="personality-question-card__detail personality-question-card__detail--listen">
 
                         <div class="personality-question-card__detail-icon">
                           <i data-feather="headphones"></i>
                         </div>
-
 
                         <div>
 
@@ -258,18 +398,16 @@
 
     </div>
 
-
     <!-- DISCLAIMER -->
     <div class="purpose-fit-disclaimer border-top pt-3 mt-4">
 
       <i data-feather="info"></i>
 
-<div>
-  {% blocktrans %}These questions bring together the currently saved question sets from the available assessment areas. Use them to explore and validate assessment indications rather than as standalone evidence.{% endblocktrans %}
-</div>
+      <div>
+        {% blocktrans %}These questions bring together the currently saved question sets from the available assessment areas. Use them to explore and validate assessment indications rather than as standalone evidence.{% endblocktrans %}
+      </div>
 
     </div>
-
 
   {% else %}
 
@@ -288,9 +426,9 @@
         {% trans "No assessment questions are available yet" %}
       </h3>
 
-<p class="text-muted small mb-0">
-  {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
-</p>
+      <p class="text-muted small mb-0">
+        {% blocktrans %}This page brings together the candidate’s currently saved questions from Personality, Motivation and Cognitive abilities. Questions can be changed or regenerated within each assessment category.{% endblocktrans %}
+      </p>
 
     </div>
 
