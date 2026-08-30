@@ -248,7 +248,7 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 }
 
 #processCreateWizardForm .test-card-inner {
-  min-height: 220px;
+  min-height: 250px;
   padding: 1.15rem;
   border: 1px solid var(--talena-border);
   border-radius: var(--talena-radius-lg);
@@ -263,9 +263,9 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 }
 
 #processCreateWizardForm .test-card input:checked + .test-card-inner {
-  border-color: rgba(255, 111, 97, 0.48);
-  background: linear-gradient(145deg, var(--talena-coral-soft), #fff 76%);
-  box-shadow: 0 10px 28px rgba(255, 111, 97, 0.08);
+  border-color: color-mix(in srgb, var(--talena-danger) 68%, var(--talena-ink));
+  background: #fff;
+  box-shadow: none;
 }
 
 #processCreateWizardForm .test-card-top {
