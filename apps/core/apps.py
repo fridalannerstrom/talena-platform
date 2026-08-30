@@ -13,6 +13,9 @@ class CoreConfig(AppConfig):
         from .ai.post_interview_role_context_policy import (
             install_post_interview_role_context_policy,
         )
+        from .ai.post_interview_role_context_policy_v2 import (
+            install_post_interview_role_context_policy_v2,
+        )
 
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
@@ -20,3 +23,4 @@ class CoreConfig(AppConfig):
         install_question_count_policy()
         install_personality_competency_questions_policy()
         install_post_interview_role_context_policy()
+        install_post_interview_role_context_policy_v2()
