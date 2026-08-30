@@ -173,7 +173,7 @@
     }
   }
 
-  function setMode(root, mode, clearOtherMode) {
+  function setMode(root, mode) {
     if (!root || !["traits", "competencies"].includes(mode)) {
       return;
     }
@@ -191,17 +191,10 @@
       panel.hidden = panel.dataset.questionBasisPanel !== mode;
     });
 
-    if (clearOtherMode) {
-      root.querySelectorAll("[data-personality-trait-checkbox]").forEach((checkbox) => {
-        if (optionBasis(checkbox) === mode || !checkbox.checked) {
-          return;
-        }
-
-        checkbox.checked = false;
-        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-    }
-
+    // Keep the draft selection in the inactive tab intact while the dialog is
+    // open. This lets users compare traits and competencies without losing
+    // work simply by switching tabs. Only the active mode is submitted when
+    // Save and generate is clicked.
     updateModeCopy(root, mode);
     updateSelectionLimitState(root);
     localiseRenderedFocusLabels(root);
@@ -212,7 +205,7 @@
       return;
     }
 
-    setMode(root, selectedMode(root), false);
+    setMode(root, selectedMode(root));
     updateSelectionLimitState(root);
   }
 
@@ -222,7 +215,7 @@
     }
 
     root.dataset.questionBasisUiInitialised = "true";
-    setMode(root, activeMode(root), false);
+    setMode(root, activeMode(root));
     updateQuestionsIntro(root);
     updateSelectionLimitState(root);
 
@@ -279,7 +272,7 @@
     if (tab) {
       const root = tab.closest(ROOT_SELECTOR);
       const mode = tab.dataset.questionBasisTab;
-      setMode(root, mode, true);
+      setMode(root, mode);
       return;
     }
 
@@ -300,8 +293,12 @@
   });
 
   // Capture the click before the existing personality-question save handler.
-  // Competency mode requires an explicit competency selection, while trait mode
-  // keeps the existing "Talena may choose" behaviour when nothing is checked.
+  // Draft selections may now exist in both tabs, so strip the inactive tab
+  // immediately before save. This preserves the user's drafts while browsing
+  // but guarantees that Talena persists one question basis, never a mixed
+  // trait/competency selection. Competency mode still requires at least one
+  // explicit competency; trait mode keeps the existing "Talena may choose"
+  // behaviour when no traits are checked.
   document.addEventListener("click", function (event) {
     const saveButton = event.target.closest("[data-personality-traits-save]");
     if (!saveButton) {
@@ -309,26 +306,30 @@
     }
 
     const root = saveButton.closest(ROOT_SELECTOR);
-    if (!root || activeMode(root) !== "competencies") {
+    if (!root) {
       return;
     }
 
-    const selectedCompetencies = Array.from(
-      root.querySelectorAll("[data-personality-trait-checkbox]:checked")
-    ).filter((checkbox) => optionBasis(checkbox) === "competencies");
+    const mode = activeMode(root);
+    const selectedActiveOptions = checkedOptions(root, mode);
 
-    if (selectedCompetencies.length) {
+    if (mode === "competencies" && !selectedActiveOptions.length) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const emptyError = root.querySelector("[data-question-basis-empty-error]");
+      if (emptyError) {
+        emptyError.hidden = false;
+        emptyError.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
       return;
     }
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    const emptyError = root.querySelector("[data-question-basis-empty-error]");
-    if (emptyError) {
-      emptyError.hidden = false;
-      emptyError.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
+    optionCheckboxes(root).forEach((checkbox) => {
+      if (optionBasis(checkbox) !== mode && checkbox.checked) {
+        checkbox.checked = false;
+      }
+    });
   }, true);
 
   document.addEventListener("change", function (event) {
@@ -344,7 +345,7 @@
 
     const mode = optionBasis(checkbox);
     if (checkbox.checked && activeMode(root) !== mode) {
-      setMode(root, mode, true);
+      setMode(root, mode);
     }
 
     const emptyError = root.querySelector("[data-question-basis-empty-error]");
