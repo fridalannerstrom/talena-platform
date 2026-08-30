@@ -10,8 +10,13 @@ class CoreConfig(AppConfig):
         from .ai.personality_competency_questions_policy import (
             install_personality_competency_questions_policy,
         )
+        from .ai.post_interview_role_context_policy import (
+            install_post_interview_role_context_policy,
+        )
 
-        # Install the product-level 3 / 3 / 8 count contract first so the
-        # competency extension inherits the same protected question count.
+        # Install product-level prompt and question policies at startup so
+        # admin metadata, protected defaults and runtime behaviour stay in
+        # sync across the application.
         install_question_count_policy()
         install_personality_competency_questions_policy()
+        install_post_interview_role_context_policy()
