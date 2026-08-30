@@ -125,6 +125,37 @@
         data-personality-ai-content
       >
 
+        <!-- AI / EVIDENCE NOTE -->
+        <div class="personality-questions-context-note mt-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="personality-questions-context-note__icon">
+              <i data-feather="info"></i>
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="personality-questions-context-note__title">
+                {% if personality_interpretation_language|slice:":2" == "sv" %}
+                  Om AI-tolkningen
+                {% else %}
+                  About the AI interpretation
+                {% endif %}
+              </div>
+
+              <div data-personality-ai-context-note>
+                {{ personality_interpretation.context_note }}
+              </div>
+
+              <div class="mt-2">
+                {% if personality_interpretation_language|slice:":2" == "sv" %}
+                  Personlighetsresultat beskriver sannolika beteendemässiga preferenser, inte fasta beteenden eller bevisad kompetens. De bör vägas samman med relevanta exempel, erfarenhet och annat bedömningsunderlag.
+                {% else %}
+                  Personality results describe likely behavioural preferences, not fixed behaviour or proven competence. They should be considered alongside relevant examples, experience and other assessment evidence.
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- OVERALL INTERPRETATION -->
         <section class="mt-4 purpose-fit-section">
 
@@ -182,10 +213,10 @@
         </section>
 
 
-        <!-- SUPPORTIVE + EXPLORE -->
+        <!-- STRENGTHS + DEVELOPMENT AREAS -->
 <div class="row g-4 mt-1">
 
-  <!-- SUPPORTIVE PATTERNS -->
+  <!-- POTENTIAL STRENGTHS -->
   <div class="col-lg-6">
 
     <section
@@ -201,7 +232,11 @@
     >
 
       <div class="purpose-fit-section-title">
-         {% trans "Potentially supportive patterns" %}
+        {% if personality_interpretation_language|slice:":2" == "sv" %}
+          Potentiella styrkor
+        {% else %}
+          Potential strengths
+        {% endif %}
       </div>
 
       <ul
@@ -226,7 +261,7 @@
   </div>
 
 
-  <!-- AREAS TO EXPLORE -->
+  <!-- POTENTIAL DEVELOPMENT AREAS -->
   <div class="col-lg-6">
 
     <section
@@ -242,7 +277,11 @@
     >
 
       <div class="purpose-fit-section-title">
-         {% trans "What to explore or validate" %}
+        {% if personality_interpretation_language|slice:":2" == "sv" %}
+          Potentiella utvecklingsområden
+        {% else %}
+          Potential development areas
+        {% endif %}
       </div>
 
       <ul
@@ -267,32 +306,8 @@
   </div>
 
 </div>
-<!-- /SUPPORTIVE + EXPLORE -->
+<!-- /STRENGTHS + DEVELOPMENT AREAS -->
 
-
-        <!-- CONTEXT NOTE -->
-        <div
-          class="
-            small
-            text-muted
-            border-top
-            pt-3
-            mt-4
-          "
-        >
-          <div class="d-flex align-items-start gap-2">
-
-            <i
-              data-feather="info"
-              class="flex-shrink-0"
-            ></i>
-
-<div data-personality-ai-context-note>{{ personality_interpretation.context_note }}         Personality results describe likely behavioural preferences,
-          not fixed behaviour or proven competence. They should be considered
-          alongside relevant examples, experience and other assessment evidence.</div>
-
-          </div>
-        </div>
       </div>
 
   </section>
