@@ -164,7 +164,7 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
 /* Purpose cards ------------------------------------------- */
 
 #processCreateWizardForm .purpose-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -516,19 +516,5 @@ main .container-fluid:has(#processCreateWizardForm) > .d-flex:first-child > a {
   #processCreateWizardForm .test-grid,
   #processCreateWizardForm .candidate-language-grid {
     grid-template-columns: 1fr;
-  }
-
-  #processCreateWizardForm .purpose-card-inner,
-  #processCreateWizardForm .test-card-inner {
-    min-height: 0;
-  }
-
-  #processCreateWizardForm .wizard-actions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  #processCreateWizardForm .wizard-actions .btn {
-    width: 100%;
   }
 }
