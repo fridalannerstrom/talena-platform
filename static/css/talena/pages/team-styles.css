@@ -1,13 +1,74 @@
 /* =========================================================
    TALENA — TEAM STYLES
-   Team-specific refinements for the shared Overview explainer.
+   Compact result cards + shared Overview disclosure.
    ========================================================= */
 
-/* Keep the shared Overview explainer geometry intact when opened. */
+/* ---------------------------------------------------------
+   TEAM STYLE RESULT CARD
+   Mirrors the quiet hierarchy used by motivation factors:
+   name -> definition -> scale -> practical guidance.
+   --------------------------------------------------------- */
+
+.process-page .team-style-profile-card {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 1rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: rgba(250, 249, 247, 0.72) !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.process-page .team-style-profile-card__intro {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  text-align: left !important;
+}
+
+.process-page .team-style-profile-card__title {
+  margin: 0 0 0.3rem !important;
+  color: var(--talena-ink) !important;
+  text-align: left !important;
+}
+
+.process-page .team-style-profile-card__definition {
+  margin: 0 !important;
+  max-width: 900px;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.69rem !important;
+  line-height: 1.55 !important;
+  text-align: left !important;
+}
+
+.process-page .team-style-profile-card__scale {
+  width: 100% !important;
+  margin-top: 0.9rem !important;
+  margin-bottom: 0 !important;
+}
+
+.process-page .team-style-profile-card__scale .response-style-scale__segments {
+  width: 100% !important;
+}
+
+.process-page .team-style-profile-card__scale .response-style-scale__labels {
+  margin-top: 0.35rem !important;
+}
+
+/* ---------------------------------------------------------
+   PRACTICAL GUIDANCE
+   Reuse the Overview explainer exactly, while preventing the
+   summary/content from collapsing into a narrow column when open.
+   The existing 2x2 guidance layout remains untouched.
+   --------------------------------------------------------- */
+
 .process-page .team-style-guidance-explainer {
   display: block !important;
   width: 100% !important;
   min-width: 0 !important;
+  margin-top: 0.95rem !important;
   box-sizing: border-box;
 }
 
@@ -32,86 +93,8 @@
   margin-bottom: 0 !important;
 }
 
-/* Practical guidance content, visually aligned with motivation factor cards. */
-.process-page .team-style-guidance-explainer .team-style-guidance {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__header {
-  margin: 0 0 0.65rem !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__header p {
-  margin: 0 !important;
-  color: var(--talena-text-muted) !important;
-  font-size: 0.69rem !important;
-  line-height: 1.55 !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__grid {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 0.55rem !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__item {
-  display: block !important;
-  min-width: 0 !important;
-  padding: 0.78rem 0.88rem !important;
-  border: 1px solid var(--talena-border) !important;
-  border-radius: 12px !important;
-  background: rgba(250, 249, 247, 0.72) !important;
-  box-shadow: none !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__item-header {
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.45rem !important;
-  margin: 0 0 0.25rem !important;
-  color: var(--talena-ink) !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  line-height: 1.35 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__item-header svg {
-  width: 14px !important;
-  height: 14px !important;
-  flex: 0 0 14px !important;
-  color: var(--talena-coral-strong) !important;
-  stroke-width: 1.8 !important;
-}
-
-.process-page .team-style-guidance-explainer .team-style-guidance__item p {
-  margin: 0 !important;
-  padding-left: 1.18rem !important;
-  color: var(--talena-text-muted) !important;
-  font-size: 0.68rem !important;
-  line-height: 1.5 !important;
-}
-
 @media (max-width: 620px) {
-  .process-page .team-style-guidance-explainer .team-style-guidance__item {
-    padding: 0.72rem 0.76rem !important;
-  }
-
-  .process-page .team-style-guidance-explainer .team-style-guidance__item p {
-    padding-left: 0 !important;
+  .process-page .team-style-profile-card {
+    padding: 0.85rem !important;
   }
 }
