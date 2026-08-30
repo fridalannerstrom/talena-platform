@@ -13,7 +13,7 @@ from apps.processes.models import (
     TestProcess,
 )
 from apps.teams.models import Team, TeamMembership
-from apps.teams.views import build_team_style_statistics
+from apps.teams.team_report_views import build_team_style_statistics
 
 
 class SeedTeamReportDemoTests(TestCase):
@@ -90,10 +90,19 @@ class SeedTeamReportDemoTests(TestCase):
             3,
         )
 
-        stats = build_team_style_statistics(self.team)
+        stats = build_team_style_statistics(
+            self.team,
+            process_ids=[self.process.id],
+        )
         self.assertEqual(stats["members_total"], 3)
         self.assertEqual(stats["members_with_scores"], 3)
         self.assertTrue(all(row["count"] == 3 for row in stats["average_rows"]))
+        self.assertTrue(
+            all(
+                row["maximum"] is None or row["maximum"] <= 5
+                for row in stats["maximum_rows"]
+            )
+        )
 
     @override_settings(ENVIRONMENT="local", DEBUG=True)
     def test_rerun_refreshes_seed_instead_of_creating_duplicates(self):

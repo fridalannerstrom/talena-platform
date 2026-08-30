@@ -53,7 +53,7 @@
         {% if team_style_stats.strongest_average %}
           <div class="team-summary-value">{% trans team_style_stats.strongest_average.style %}</div>
           <div class="team-summary-meta">
-            {% trans "Average" %} {{ team_style_stats.strongest_average.average }} / 10
+            {% trans "Average" %} {{ team_style_stats.strongest_average.average }} / 5
           </div>
         {% else %}
           <div class="team-summary-value">—</div>
@@ -65,7 +65,7 @@
         {% if team_style_stats.lowest_average %}
           <div class="team-summary-value">{% trans team_style_stats.lowest_average.style %}</div>
           <div class="team-summary-meta">
-            {% trans "Average" %} {{ team_style_stats.lowest_average.average }} / 10
+            {% trans "Average" %} {{ team_style_stats.lowest_average.average }} / 5
           </div>
         {% else %}
           <div class="team-summary-value">—</div>
@@ -138,7 +138,7 @@
                   </div>
 
                   <div class="team-style-rank-score">
-                    {% if row.average is not None %}{{ row.average }} / 10{% else %}—{% endif %}
+                    {% if row.average is not None %}{{ row.average }} / 5{% else %}—{% endif %}
                   </div>
                 </div>
               {% endfor %}
@@ -188,7 +188,7 @@
                   </div>
 
                   <div class="team-style-rank-score">
-                    {% if row.maximum is not None %}{{ row.maximum }} / 10{% else %}—{% endif %}
+                    {% if row.maximum is not None %}{{ row.maximum }} / 5{% else %}—{% endif %}
                   </div>
                 </div>
               {% endfor %}
@@ -232,7 +232,7 @@
                               <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
                             {% endfor %}
                           </div>
-                          <div class="text-muted small mt-1">{{ row.max }} / 10</div>
+                          <div class="text-muted small mt-1">{{ row.max }} / 5</div>
                         {% else %}
                           <span class="text-muted small">—</span>
                         {% endif %}
@@ -245,7 +245,7 @@
                               <span class="team-score-badge" title="{{ person.name }}">{{ person.initials }}</span>
                             {% endfor %}
                           </div>
-                          <div class="text-muted small mt-1">{{ row.min }} / 10</div>
+                          <div class="text-muted small mt-1">{{ row.min }} / 5</div>
                         {% else %}
                           <span class="text-muted small">—</span>
                         {% endif %}

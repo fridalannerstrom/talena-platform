@@ -116,7 +116,7 @@
         scales: {
           r: {
             min: 0,
-            max: 10,
+            max: 5,
             angleLines: {
               color: "rgba(117, 105, 99, 0.10)"
             },
@@ -133,7 +133,7 @@
             },
             ticks: {
               display: false,
-              stepSize: 2
+              stepSize: 1
             }
           }
         },
@@ -158,7 +158,7 @@
             padding: 10,
             callbacks: {
               label: function (context) {
-                return `${context.dataset.label}: ${context.formattedValue} / 10`;
+                return `${context.dataset.label}: ${context.formattedValue} / 5`;
               }
             }
           }
