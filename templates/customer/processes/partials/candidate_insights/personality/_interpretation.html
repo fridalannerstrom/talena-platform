@@ -125,6 +125,13 @@
         data-personality-ai-content
       >
 
+        <!-- Hidden streamed context note retained for JavaScript compatibility -->
+        <div
+          class="d-none"
+          data-personality-ai-context-note
+          aria-hidden="true"
+        >{{ personality_interpretation.context_note }}</div>
+
         <!-- AI / EVIDENCE NOTE -->
         <div class="personality-questions-context-note mt-4">
           <div class="d-flex align-items-start gap-3">
@@ -141,15 +148,11 @@
                 {% endif %}
               </div>
 
-              <div data-personality-ai-context-note>
-                {{ personality_interpretation.context_note }}
-              </div>
-
-              <div class="mt-2">
+              <div>
                 {% if personality_interpretation_language|slice:":2" == "sv" %}
-                  Personlighetsresultat beskriver sannolika beteendemässiga preferenser, inte fasta beteenden eller bevisad kompetens. De bör vägas samman med relevanta exempel, erfarenhet och annat bedömningsunderlag.
+                  AI-tolkningen bygger på personlighetstestet, processens syfte och tillgänglig kontext. Se resultaten som indikationer som bör vägas samman med annat relevant underlag.
                 {% else %}
-                  Personality results describe likely behavioural preferences, not fixed behaviour or proven competence. They should be considered alongside relevant examples, experience and other assessment evidence.
+                  The AI interpretation is based on the personality assessment, the process purpose and available context. Treat the results as indications to consider alongside other relevant evidence.
                 {% endif %}
               </div>
             </div>
