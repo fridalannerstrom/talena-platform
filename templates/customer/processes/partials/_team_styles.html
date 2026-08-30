@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as team_style_language %}
 
 {% if team_style_profile.available %}
   <section class="mb-4 purpose-fit-card team-styles-section">
@@ -113,9 +114,15 @@
               </div>
 
               <div class="response-style-scale__labels">
-                <span>{% trans "Least preferred" %}</span>
-                <span>{% trans "Average" %}</span>
-                <span>{% trans "Most preferred" %}</span>
+                {% if team_style_language|slice:":2" == "sv" %}
+                  <span>Minst föredragen</span>
+                  <span>Medel</span>
+                  <span>Mest föredragen</span>
+                {% else %}
+                  <span>Least preferred</span>
+                  <span>Average</span>
+                  <span>Most preferred</span>
+                {% endif %}
               </div>
 
             </div>
