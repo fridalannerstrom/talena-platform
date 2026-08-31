@@ -19,10 +19,10 @@
           validateIntro:
             "Använd intervjun för att bekräfta, nyansera eller utmana dessa indikationer.",
           cautionReason: "Varför det behöver valideras",
-          approachTitle: "Så kan du lägga upp samtalet",
+          approachTitle: "Så når du fram i samtalet",
           approachIntro:
-            "Konkreta sätt att anpassa samtalets struktur, tempo och uppföljning utifrån kandidatens samlade testunderlag.",
-          approachSectionTitle: "Praktiskt upplägg",
+            "Hur du kan anpassa ton, direkthet, tempo och uppföljning för att få fram en så rättvis och nyanserad bild som möjligt.",
+          approachSectionTitle: "Kommunikationsstrategi",
         }
       : {
           briefingKicker: "Candidate-specific briefing",
@@ -34,10 +34,10 @@
           validateIntro:
             "Use the interview to confirm, nuance or challenge these indications.",
           cautionReason: "Why this needs validation",
-          approachTitle: "How to approach the conversation",
+          approachTitle: "How to reach this candidate in conversation",
           approachIntro:
-            "Concrete ways to adapt the structure, pace and follow-up of the conversation based on the candidate's combined assessment evidence.",
-          approachSectionTitle: "Practical approach",
+            "How to adapt tone, directness, pace and follow-up to obtain the fairest and most nuanced picture possible.",
+          approachSectionTitle: "Communication strategy",
         };
 
   const safeArray = (value) => (Array.isArray(value) ? value : []);
@@ -284,7 +284,7 @@
 
       const icon = document.createElement("span");
       icon.className = "purpose-fit-list-icon";
-      icon.appendChild(makeIcon("arrow-right"));
+      icon.appendChild(makeIcon("message-circle"));
 
       const text = document.createElement("span");
       text.textContent = item;
@@ -341,8 +341,8 @@
       );
       if (approachTitle) approachTitle.textContent = labels.approachSectionTitle;
 
-      // The old response-style-only paragraph is intentionally hidden until
-      // the candidate-specific pre-interview feedback approach is loaded.
+      // The legacy response-style-only paragraph is intentionally hidden until
+      // the candidate-specific communication approach is loaded.
       responseSection.hidden = true;
     }
 
