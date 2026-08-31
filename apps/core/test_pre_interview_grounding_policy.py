@@ -29,11 +29,43 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             self.policy,
         )
         self.assertIn(
-            "Every item in discussion_guidance.feedback_approach",
+            "discussion_guidance.feedback_approach is not another list of interview topics",
+            self.policy,
+        )
+
+    def test_feedback_approach_is_about_communication_not_topics(self):
+        self.assertIn(
+            "explain HOW the interviewer can communicate with this candidate",
             self.policy,
         )
         self.assertIn(
-            "concrete interviewer action",
+            "tone, directness, pacing, amount of reflection time",
+            self.policy,
+        )
+        self.assertIn(
+            "must not repeat discussion_guidance.interview_focus or the 3/3/8 assessment-question topics",
+            self.policy,
+        )
+        self.assertIn(
+            "return an empty feedback_approach array rather than filling the section with generic interview advice",
+            self.policy,
+        )
+
+    def test_response_style_advice_remains_cautious(self):
+        self.assertIn(
+            "more self-critical presentation",
+            self.policy,
+        )
+        self.assertIn(
+            "Do not label the person as humble, insecure or lacking confidence",
+            self.policy,
+        )
+        self.assertIn(
+            "more positive self-presentation",
+            self.policy,
+        )
+        self.assertIn(
+            "Do not imply dishonesty, manipulation or inflated self-worth",
             self.policy,
         )
 
@@ -43,11 +75,11 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             self.policy,
         )
         self.assertIn(
-            "Do not use generic interview best practice",
+            "What supplied evidence about this candidate made me choose this exact focus or conversation adjustment?",
             self.policy,
         )
         self.assertIn(
-            "What supplied evidence about this candidate made me choose this exact focus or conversation adjustment?",
+            "Does this tell the interviewer how to communicate differently with this candidate, rather than merely what topic to discuss?",
             self.policy,
         )
         self.assertIn(
@@ -62,9 +94,5 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
         )
         self.assertIn(
             "Do not diagnose, predict guaranteed behaviour",
-            self.policy,
-        )
-        self.assertIn(
-            "keep response styles conceptually separate from personality traits, motivation and ability",
             self.policy,
         )
