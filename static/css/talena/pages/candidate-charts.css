@@ -1,0 +1,280 @@
+/* =========================================================
+   TALENA CANDIDATE CHARTS & SCALES
+   ---------------------------------------------------------
+   Visualisation-only layer for candidate assessment views.
+   Keeps graph, scale and profile styling out of the general
+   candidate workspace CSS while legacy components are migrated.
+   Everything is scoped to .process-page.
+   ========================================================= */
+
+.process-page {
+  --talena-chart-track: #ebe8e5;
+  --talena-chart-track-soft: #f1efed;
+  --talena-chart-line: rgba(23, 19, 18, 0.18);
+  --talena-chart-accent: var(--talena-coral);
+  --talena-chart-accent-soft: #ff9b89;
+  --talena-chart-label: var(--talena-text-muted);
+}
+
+
+/* =========================================================
+   PERSONALITY QUICK PROFILE
+   ========================================================= */
+
+.process-page .personality-quick-view {
+  margin-top: 1rem !important;
+}
+
+.process-page .personality-quick-section {
+  overflow: hidden;
+  margin-bottom: 0.85rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-quick-section__header {
+  padding: 0.75rem 0.9rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-quick-section__title {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.035em !important;
+  text-transform: uppercase;
+}
+
+.process-page .personality-quick-section__traits {
+  background: #fff !important;
+}
+
+.process-page .personality-quick-row {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
+  gap: 1rem !important;
+  align-items: center !important;
+  padding: 0.82rem 0.9rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: #fff !important;
+}
+
+.process-page .personality-quick-row:last-child {
+  border-bottom: 0 !important;
+}
+
+.process-page .personality-quick-row__pole p {
+  margin: 0 !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.62rem !important;
+  line-height: 1.45 !important;
+}
+
+.process-page .personality-quick-row__pole--right p {
+  text-align: right;
+}
+
+.process-page .personality-quick-row__result {
+  min-width: 0;
+}
+
+.process-page .personality-quick-row__heading {
+  margin-bottom: 0.46rem !important;
+  text-align: center;
+}
+
+.process-page .personality-quick-row__title {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 690 !important;
+}
+
+.process-page .personality-quick-scale {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) 1px repeat(5, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  align-items: center;
+  width: 100%;
+}
+
+.process-page .personality-quick-scale__segment {
+  height: 9px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-quick-scale__segment--selected {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-quick-scale__center-line {
+  width: 1px !important;
+  height: 17px !important;
+  justify-self: center;
+  background: var(--talena-chart-line) !important;
+}
+
+.process-page .personality-quick-scale__labels {
+  display: flex !important;
+  justify-content: space-between;
+  margin-top: 0.3rem !important;
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.52rem !important;
+  line-height: 1;
+}
+
+
+/* =========================================================
+   PERSONALITY DETAILED PROFILE
+   ========================================================= */
+
+.process-page .personality-graph__segment {
+  border: 0 !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-graph__segment--selected {
+  background: linear-gradient(180deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+.process-page .personality-graph__marker {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 14px rgba(23, 19, 18, 0.15) !important;
+}
+
+.process-page .personality-graph__axis,
+.process-page .personality-indicator-scale__labels {
+  color: var(--talena-text-subtle) !important;
+}
+
+.process-page .personality-indicator-scale__segment {
+  border: 0 !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-indicator-scale__segment--filled,
+.process-page .personality-indicator-scale__segment--selected {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+.process-page .personality-indicator-scale__center-line {
+  background: var(--talena-chart-line) !important;
+}
+
+
+/* =========================================================
+   RESPONSE STYLE SCALES
+   ========================================================= */
+
+.process-page .response-style-scale__segment {
+  border: 0 !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .response-style-scale__segment--filled,
+.process-page .response-style-scale__segment--marker {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+.process-page .response-style-scale__center-line {
+  background: var(--talena-chart-line) !important;
+}
+
+.process-page .response-style-scale__labels {
+  color: var(--talena-text-subtle) !important;
+}
+
+
+/* =========================================================
+   MOTIVATION FACTOR SCALES
+   Canvas rose chart remains JS-driven and will be themed when
+   its chart code is extracted from process_base.html.
+   ========================================================= */
+
+.process-page .motivation-factor-result__scale .response-style-scale__segment {
+  min-height: 10px;
+  border-radius: 999px !important;
+  background: var(--talena-chart-track) !important;
+}
+
+.process-page .motivation-factor-result__scale .response-style-scale__segment--filled,
+.process-page .motivation-factor-result__scale .response-style-scale__segment--marker {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+.process-page .motivation-factor-result__scale .response-style-scale__labels {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.52rem !important;
+}
+
+.process-page .motivation-visual-overview {
+  background: #fbfaf8 !important;
+}
+
+.process-page .motivation-rose-chart__canvas-wrap {
+  max-width: 590px !important;
+}
+
+
+/* =========================================================
+   COGNITIVE VISUALISATIONS
+   ========================================================= */
+
+.process-page .cognitive-doughnut {
+  background:
+    conic-gradient(
+      var(--talena-chart-accent) calc(var(--percentile) * 1%),
+      var(--talena-chart-track) 0
+    ) !important;
+  box-shadow: none !important;
+}
+
+.process-page .cognitive-doughnut::before {
+  background: #fff !important;
+}
+
+.process-page .cognitive-comparison__bar {
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .cognitive-comparison__fill {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 980px) {
+  .process-page .personality-quick-row {
+    grid-template-columns: minmax(130px, 0.8fr) minmax(280px, 1.4fr) minmax(130px, 0.8fr) !important;
+    gap: 0.75rem !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .process-page .personality-quick-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+
+  .process-page .personality-quick-row__pole,
+  .process-page .personality-quick-row__pole--right {
+    display: none;
+  }
+}

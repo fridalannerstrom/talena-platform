@@ -1,0 +1,725 @@
+/* =========================================================
+   TALENA — TEST PROCESS LIST
+   Refined card-grid for the new Talena visual language.
+   ========================================================= */
+
+.process-list-page {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  color: var(--talena-text);
+}
+
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.process-list-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 1.55rem;
+}
+
+.process-list-eyebrow {
+  margin-bottom: 0.48rem;
+  color: var(--talena-coral);
+  font-size: 0.62rem;
+  font-weight: 760;
+  letter-spacing: 0.115em;
+  text-transform: uppercase;
+}
+
+.process-list-page-header h1 {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: clamp(2rem, 2.7vw, 2.65rem);
+  font-weight: 735;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.process-list-page-header p {
+  margin: 0.48rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.process-create-button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.46rem;
+  min-height: 42px;
+  padding: 0.68rem 0.98rem !important;
+  border: 1px solid var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(23, 19, 18, 0.09) !important;
+  transition:
+    transform var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+.process-create-button:hover {
+  transform: translateY(-1px);
+  background: #000 !important;
+  box-shadow: 0 11px 27px rgba(23, 19, 18, 0.13) !important;
+}
+
+.process-create-button svg {
+  width: 13px;
+  height: 13px;
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.process-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(200px, 0.85fr) minmax(210px, 0.8fr);
+  gap: 0.48rem;
+  padding: 0.58rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 10px rgba(23, 19, 18, 0.025);
+}
+
+.process-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.process-search-wrap > svg {
+  position: absolute;
+  left: 0.82rem;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  color: var(--talena-text-subtle);
+  pointer-events: none;
+}
+
+.process-toolbar .form-control,
+.process-toolbar .form-select {
+  min-height: 40px;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 11px !important;
+  background-color: #f8f6f4 !important;
+  color: var(--talena-text);
+  font-size: 0.72rem;
+  box-shadow: none !important;
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.process-toolbar .form-control {
+  padding-left: 2.25rem;
+}
+
+.process-toolbar .form-control::placeholder {
+  color: var(--talena-text-subtle);
+}
+
+.process-toolbar .form-control:hover,
+.process-toolbar .form-select:hover {
+  border-color: var(--talena-border-strong) !important;
+  background-color: #fff !important;
+}
+
+.process-toolbar .form-control:focus,
+.process-toolbar .form-select:focus {
+  border-color: rgba(255, 111, 97, 0.34) !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.055) !important;
+}
+
+
+/* =========================================================
+   SUBNAV
+   ========================================================= */
+
+.process-list-subnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.process-list-subnav .seg-tabs {
+  display: inline-flex;
+  gap: 0.18rem;
+  padding: 0.22rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.process-list-subnav .seg-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0.42rem 0.75rem;
+  border-radius: var(--talena-radius-pill);
+  color: var(--talena-text-muted) !important;
+  font-size: 0.66rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.process-list-subnav .seg-tab:hover {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink) !important;
+}
+
+.process-list-subnav .seg-tab.is-active {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 111, 97, 0.11);
+}
+
+.process-list-helper {
+  color: var(--talena-text-subtle);
+  font-size: 0.66rem;
+}
+
+
+/* =========================================================
+   PROCESS GRID
+   ========================================================= */
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.process-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 290px;
+  padding: 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 3px 12px rgba(23, 19, 18, 0.025);
+  cursor: pointer;
+  transition:
+    transform var(--talena-transition-base),
+    border-color var(--talena-transition-base),
+    box-shadow var(--talena-transition-base),
+    background-color var(--talena-transition-base);
+}
+
+.process-card::after {
+  content: "";
+  position: absolute;
+  top: -72px;
+  right: -64px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 111, 97, 0.07), transparent 68%);
+  pointer-events: none;
+}
+
+.process-card:hover,
+.process-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: rgba(255, 111, 97, 0.22);
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(23, 19, 18, 0.07);
+  outline: none;
+}
+
+
+/* =========================================================
+   CARD TOPLINE / PURPOSE
+   ========================================================= */
+
+.process-card-topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.process-purpose {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.72rem;
+}
+
+.process-purpose-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 111, 97, 0.22);
+  border-radius: 13px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.process-purpose-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.8;
+}
+
+.process-purpose-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.16rem;
+}
+
+.process-purpose-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.process-purpose-value {
+  max-width: 190px;
+  overflow: hidden;
+  color: var(--talena-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.process-card-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.18rem;
+  opacity: 0.52;
+  transition: opacity var(--talena-transition-fast);
+}
+
+.process-card:hover .process-card-actions,
+.process-card:focus-within .process-card-actions {
+  opacity: 1;
+}
+
+.process-card-actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.process-card-actions.is-placeholder {
+  min-width: 58px;
+}
+
+.process-card .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: var(--talena-text-subtle) !important;
+  box-shadow: none !important;
+}
+
+.process-card .icon-btn:hover,
+.process-card .icon-btn:focus-visible {
+  border-color: var(--talena-border) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: var(--talena-ink) !important;
+  outline: none;
+}
+
+.process-card .icon-btn-danger:hover,
+.process-card .icon-btn-danger:focus-visible {
+  border-color: rgba(207, 89, 80, 0.18) !important;
+  background: var(--talena-danger-soft) !important;
+  color: var(--talena-danger) !important;
+}
+
+.process-card .icon-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.7;
+}
+
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.process-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.process-title {
+  min-height: 2.5em;
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 1.18rem;
+  font-weight: 740;
+  line-height: 1.25;
+  letter-spacing: -0.035em;
+  margin-top: 1rem;
+}
+
+.process-tests-block {
+  margin-top: 1rem;
+}
+
+.process-tests-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+  font-weight: 500;
+  letter-spacing: 0.085em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.process-test-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.process-test-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  color: var(--talena-text);
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.process-tests-fallback {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+
+/* =========================================================
+   CARD LABELS
+   ========================================================= */
+
+.process-card-labels {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  font-weight: 500;
+}
+
+.process-card-labels:empty {
+  display: none;
+}
+
+.process-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.3rem 0.52rem;
+  border: 1px solid #F5D3CE;
+  border-radius: var(--talena-radius-pill);
+  background: #FFF1EE;
+  color: #D4695A;
+  font-size: 0.56rem;
+  font-weight: 550;
+  line-height: 1;
+}
+
+.process-label-muted {
+  color: var(--talena-text-subtle);
+  opacity: 0.82;
+}
+
+
+/* =========================================================
+   CARD FOOTER
+   ========================================================= */
+
+.process-card-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid rgba(231, 226, 222, 0.95);
+}
+
+.process-card-labels:empty + .process-card-footer {
+  margin-top: auto;
+}
+
+.process-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.process-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.6rem;
+  white-space: nowrap;
+  font-weight: 550;
+}
+
+.process-meta-item svg {
+  width: 12px;
+  height: 12px;
+  color: var(--talena-text-subtle);
+  stroke-width: 1.8;
+}
+
+.process-meta-item strong {
+  color: var(--talena-ink);
+  font-weight: 720;
+}
+
+.process-card-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--talena-ink);
+  border-radius: 50%;
+  background: var(--talena-ink);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(23, 19, 18, 0.12);
+  transition:
+    transform var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.process-card:hover .process-card-open {
+  transform: translate(2px, -2px);
+  background: #000;
+  box-shadow: 0 8px 18px rgba(23, 19, 18, 0.17);
+}
+
+.process-card-open svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.process-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 330px;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--talena-border-strong);
+  border-radius: var(--talena-radius-xl);
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.process-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  border-radius: 15px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.process-empty-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.process-empty-state h2 {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 720;
+}
+
+.process-empty-state p {
+  max-width: 420px;
+  margin: 0.45rem 0 1rem;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+}
+
+.process-empty-state .btn-primary {
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .process-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .process-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .process-search-wrap {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .process-list-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .process-toolbar,
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .process-search-wrap {
+    grid-column: auto;
+  }
+
+  .process-list-subnav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .process-card {
+    min-height: 280px;
+  }
+
+  .process-title {
+    min-height: 0;
+  }
+}
+
+
+/* =========================================================
+   PROCESS CARD FINAL POLISH
+   ---------------------------------------------------------
+   Keep titles single-line, use coral separators between
+   assessment names, and keep cards pure white.
+   ========================================================= */
+
+.process-card,
+.process-card:hover,
+.process-card:focus-visible {
+  background: #fff !important;
+}
+
+.process-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.process-card-content {
+  min-width: 0;
+}
+
+.process-title {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.process-test-chips {
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow: hidden;
+  font-size: 0;
+}
+
+.process-test-chip {
+  flex: 0 0 auto;
+  min-height: 0;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+.process-test-chip:not(:last-of-type)::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  flex: 0 0 4px;
+  margin: 0 0.48rem;
+  border-radius: 50%;
+  background: var(--talena-coral);
+  vertical-align: middle;
+}

@@ -8,7 +8,7 @@
 <!-- RESPONSE STYLES -->
 {% if has_personality_results and response_styles %}
   <section
-    class="mb-4 purpose-fit-card response-styles-section"
+    class="mb-4 purpose-fit-card"
     data-response-style-guidance-root
     data-guidance-stream-url="{{ response_style_guidance_stream_url }}"
     data-guidance-status="{{ response_style_guidance_status|default:'not_started' }}"
@@ -53,16 +53,10 @@
                   {{ style.title }}
                 </h3>
 
-                <div class="response-style-item__subtitle">
-                   {% trans "Questionnaire response pattern" %}
-                </div>
               </div>
 
               {% if style.available %}
                 <div class="response-style-item__result">
-                  <span class="response-style-item__value">
-                    {{ style.value }}/10
-                  </span>
                 </div>
               {% else %}
                 <span
@@ -190,10 +184,10 @@
 
           <div class="response-style-ai-card__heading">
     <div class="insight-summary-kicker">
-       ✨ {% trans "AI-generated insight" %}
+       {% trans "AI-generated insight" %}
     </div>
             <h3
-              class="response-style-item__title"
+              class="insight-summary-sub-title"
               data-guidance-title
             >
              {% blocktrans with candidate_name=candidate.first_name %}What does this mean for {{ candidate_name }}?{% endblocktrans %}
@@ -396,7 +390,7 @@
               <div class="personality-trait-card__header">
 
                 <div>
-                  <h5 class="personality-trait-card__title">
+                  <h5 class="personality-trait-card__title mb-4">
                     {{ trait.label }}
                   </h5>
                 </div>
@@ -520,7 +514,7 @@
 
   <div class="personality-indicator-row__header">
 
-    <div class="personality-indicator-row__name">
+    <div class="personality-quick-row__title">
       {{ indicator.label }}
     </div>
 
@@ -804,7 +798,7 @@
 <!-- TRAIT DESCRIPTIONS VIEW -->
 <div
   id="personality-descriptions-view"
-  class="personality-view-panel personality-trait-descriptions-view mt-4"
+  class="personality-view-panel personality-trait-descriptions-view"
   role="tabpanel"
   aria-labelledby="personality-descriptions-tab"
   data-personality-view-panel="descriptions"

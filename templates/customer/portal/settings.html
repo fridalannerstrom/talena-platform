@@ -1,7 +1,14 @@
 {% extends "../core/layouts/customer_base.html" %}
-{% block content %}
-{% include "shared/_settings_content.html" %}
 {% load static %}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/account-settings.css' %}" rel="stylesheet" />
+{% endblock %}
 
+{% block content %}
+  {% include "shared/_settings_content.html" %}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/talena/account-settings.js' %}"></script>
 {% endblock %}

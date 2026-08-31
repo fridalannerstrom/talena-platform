@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as team_style_language %}
 
 {% if team_style_profile.available %}
   <section class="mb-4 purpose-fit-card team-styles-section">
@@ -21,12 +22,27 @@
       </header>
 
       <!-- FULL-WIDTH POLAR CHART -->
-      <div class="team-style-chart-card mb-4">
+      <div class="team-style-chart-card mb-4" data-team-style-chart-root>
         <div class="team-style-polar-wrap">
           <canvas
             id="teamStylePolarChart"
+            data-team-style-chart
             aria-label="{% trans 'Team role profile chart' %}"
           ></canvas>
+        </div>
+
+        <div class="d-none" aria-hidden="true">
+          {% for style in team_style_profile.chart_styles %}
+            {% if style.available %}
+              <span
+                data-team-style-chart-item
+                data-style-name="{{ style.title }}"
+                data-style-score="{{ style.display_value }}"
+                data-quadrant-key="{{ style.quadrant_key }}"
+                data-quadrant-label="{{ style.quadrant_label }}"
+              ></span>
+            {% endif %}
+          {% endfor %}
         </div>
       </div>
 
@@ -44,186 +60,162 @@
             {{ title }}: {{ value }} out of 5
           {% endblocktrans %}
 
-          <article class="insight-summary-content mb-4">
+          <article class="insight-summary-content mb-4 team-style-profile-card">
 
-            <!-- STYLE HEADER -->
-            <div class="response-style-item__header">
+            <!-- STYLE + DEFINITION -->
+            <div class="team-style-profile-card__intro">
+              <h4 class="response-style-item__title team-style-profile-card__title">
+                {{ style.title }}
+              </h4>
 
-              <div>
-                <h4 class="response-style-item__title">
-                  {{ style.title }}
-                </h4>
-
-                <div class="response-style-item__subtitle">
-                  {% blocktrans trimmed with quadrant=style.quadrant_label %}
-                    {{ quadrant }} team style
-                  {% endblocktrans %}
-                </div>
-              </div>
-
+              <p class="team-style-profile-card__definition">
+                {{ style.contribution }}
+              </p>
             </div>
 
-            <!-- RESULT -->
-            <div class="team-style-result">
+            <!-- SCALE -->
+            <div
+              class="
+                response-style-scale
+                response-style-scale--linear
+                team-style-result__scale
+                team-style-profile-card__scale
+              "
+              role="meter"
+              aria-label="{{ team_style_aria }}"
+              aria-valuemin="1"
+              aria-valuemax="5"
+              aria-valuenow="{{ style.display_value }}"
+            >
 
-              <div class="team-style-result__header">
-                <div>
-                  <div class="team-style-result__label">
-                    {% trans "Team style result" %}
-                  </div>
-                </div>
+              <div class="response-style-scale__segments">
 
-                <div class="team-style-result__value">
-                  {{ style.display_value }}/5
-                </div>
-              </div>
+                {% for segment in style.scale_segments %}
+                  <span
+                    class="
+                      response-style-scale__segment
 
-              <div
-                class="
-                  response-style-scale
-                  response-style-scale--linear
-                  team-style-result__scale
-                "
-                role="meter"
-                aria-label="{{ team_style_aria }}"
-                aria-valuemin="1"
-                aria-valuemax="5"
-                aria-valuenow="{{ style.display_value }}"
-              >
+                      {% if segment == style.display_value %}
+                        response-style-scale__segment--marker
+                      {% endif %}
 
-                <div class="response-style-scale__segments">
-
-                  {% for segment in style.scale_segments %}
-                    <span
-                      class="
-                        response-style-scale__segment
-
-                        {% if segment == style.display_value %}
-                          response-style-scale__segment--marker
-                        {% endif %}
-
-                        {% if segment <= style.display_value %}
-                          response-style-scale__segment--filled
-                        {% endif %}
-                      "
-                    ></span>
-                  {% endfor %}
-
-                </div>
-
-                <div class="response-style-scale__labels">
-                  <span>{% trans "Less likely" %}</span>
-                  <span>{% trans "Typical" %}</span>
-                  <span>{% trans "More likely" %}</span>
-                </div>
+                      {% if segment <= style.display_value %}
+                        response-style-scale__segment--filled
+                      {% endif %}
+                    "
+                  ></span>
+                {% endfor %}
 
               </div>
 
-            </div>
-
-            <!-- TEAM STYLE DESCRIPTION -->
-            <div class="team-style-description">
-
-              <div>
-                <div class="team-style-description__label">
-                  {% trans "About this team style" %}
-                </div>
-
-                <p class="team-style-description__text">
-                  {{ style.contribution }}
-                </p>
+              <div class="response-style-scale__labels">
+                {% if team_style_language|slice:":2" == "sv" %}
+                  <span>Minst föredragen</span>
+                  <span>Medel</span>
+                  <span>Mest föredragen</span>
+                {% else %}
+                  <span>Least preferred</span>
+                  <span>Average</span>
+                  <span>Most preferred</span>
+                {% endif %}
               </div>
 
             </div>
 
             <!-- PRACTICAL GUIDANCE -->
-            <div class="team-style-guidance">
+            <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
 
-              <div class="team-style-guidance__header">
-                <div class="team-style-guidance__label">
-                  {% trans "Practical guidance" %}
+              <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
+                {% trans "Practical guidance" %}
+              </summary>
+
+              <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+                <div class="team-style-guidance">
+
+                  <div class="team-style-guidance__header">
+                    {% if style.relevance.guidance_intro %}
+                      <p>
+                        {{ style.relevance.guidance_intro }}
+                      </p>
+                    {% else %}
+                      <p>
+                        {% trans "Points to consider when working and communicating with this candidate." %}
+                      </p>
+                    {% endif %}
+                  </div>
+
+                  <div class="team-style-guidance__grid">
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="message-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Communication style" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.communication_tendency }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="alert-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Possible limitations" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.possible_overuse }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="shield"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Build trust by" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.build_trust }}
+                      </p>
+
+                    </div>
+
+                    <div class="team-style-guidance__item">
+
+                      <div class="team-style-guidance__item-header">
+                        <i
+                          data-feather="x-circle"
+                          aria-hidden="true"
+                        ></i>
+                        <span>{% trans "Try to avoid" %}</span>
+                      </div>
+
+                      <p>
+                        {{ style.avoid }}
+                      </p>
+
+                    </div>
+
+                  </div>
+
                 </div>
-
-                {% if style.relevance.guidance_intro %}
-                  <p>
-                    {{ style.relevance.guidance_intro }}
-                  </p>
-                {% else %}
-                  <p>
-                    {% trans "Points to consider when working and communicating with this candidate." %}
-                  </p>
-                {% endif %}
               </div>
 
-              <div class="team-style-guidance__grid">
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="message-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Communication style" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.communication_tendency }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="alert-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Possible limitations" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.possible_overuse }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="shield"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Build trust by" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.build_trust }}
-                  </p>
-
-                </div>
-
-                <div class="team-style-guidance__item">
-
-                  <div class="team-style-guidance__item-header">
-                    <i
-                      data-feather="x-circle"
-                      aria-hidden="true"
-                    ></i>
-                    <span>{% trans "Try to avoid" %}</span>
-                  </div>
-
-                  <p>
-                    {{ style.avoid }}
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
+            </details>
 
           </article>
         {% endfor %}

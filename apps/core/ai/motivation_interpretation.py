@@ -29,67 +29,67 @@ from .prompt_templates import (
 )
 
 MOTIVATION_DEFINITIONS = {
-    "attachment": (
-        "Social interaction, support and working as part of a team."
-    ),
-    "work-life balance": (
-        "Maintaining a sustainable balance between work and life "
-        "outside work."
-    ),
-    "stability": (
-        "Predictability, continuity and security in the working "
-        "environment."
+    "affiliation": (
+        "Social interaction, support and a sense of belonging at work."
     ),
     "customer service": (
         "Understanding customer needs and providing helpful service."
     ),
+    "work-life balance": (
+        "Being able to maintain a sustainable balance between work "
+        "and life outside work."
+    ),
     "people development": (
         "Helping other people learn, grow and develop."
     ),
-    "independence": (
-        "Freedom to make decisions and shape how work is carried out."
-    ),
-    "recognition": (
-        "Visibility, praise and acknowledgement for personal contribution."
+    "stability": (
+        "Predictability, continuity and security in the working environment."
     ),
     "authority": (
-        "Status, seniority and the opportunity to influence or lead others."
-    ),
-    "making a difference": (
-        "Contributing to a wider purpose or creating positive impact."
+        "Status, seniority and the opportunity to exercise authority "
+        "or influence over others."
     ),
     "acquisition": (
-        "Financial reward, resources and tangible gain."
+        "Financial reward, wealth, resources and tangible gain."
     ),
-    "commercial focus": (
-        "Creating measurable commercial value and business results."
+    "autonomy": (
+        "Freedom to organise one's own time and approach to work."
+    ),
+    "recognition": (
+        "Visibility, praise and public acknowledgement for achievements."
+    ),
+    "making a difference": (
+        "Making a wider contribution to the organisation, society or a cause."
+    ),
+    "achievement": (
+        "Achieving goals, overcoming challenges and competing with others."
     ),
     "quality": (
-        "Producing accurate and reliable work to a high standard."
+        "Producing accurate, reliable and timely work to a high standard."
     ),
     "learning": (
         "Developing knowledge, capability and new skills."
     ),
-    "achievement": (
-        "Clear goals, challenge and a visible sense of progress."
-    ),
     "ethics": (
         "Acting in line with clear principles and ethical standards."
     ),
-    "risk": (
-        "Taking calculated risks and acting despite uncertainty."
-    ),
-    "enjoyment": (
-        "Positive energy and enjoyment in day-to-day work."
-    ),
-    "variety": (
-        "Change, different tasks and varied ways of working."
+    "commercial value": (
+        "Generating revenue, profit and measurable commercial value."
     ),
     "curiosity": (
-        "Exploring new information, questions and unfamiliar problems."
+        "Finding new information and solving unfamiliar or novel problems."
     ),
     "creativity": (
         "Generating new ideas and finding original approaches."
+    ),
+    "enjoyment": (
+        "Enjoying work and experiencing positive energy in day-to-day work."
+    ),
+    "variety": (
+        "Change, different tasks and varied approaches to work."
+    ),
+    "risk": (
+        "Having scope to take calculated risks and act despite uncertainty."
     ),
 }
 
@@ -220,15 +220,63 @@ def build_motivation_evidence_text(
         ),
     )
 
-    lines = []
+    lines = [
+        "SCALE INTERPRETATION",
+        "",
+        "These are Sova Motivation Questionnaire results on the "
+        "five-point STIVE scale.",
+        "",
+        "A higher score means that the factor is more likely to be "
+        "a prominent source of motivation, energy or engagement.",
+        "",
+        "A lower score means that the factor is less central as a "
+        "source of motivation for this individual.",
+        "",
+        "IMPORTANT:",
+        "- A low score does NOT mean poor performance.",
+        "- A low score does NOT mean low ability or competence.",
+        "- A low score does NOT mean the candidate lacks the quality "
+        "described by the factor.",
+        "- Interpret each score only as the relative motivational "
+        "importance of that factor.",
+        "",
+        "MOTIVATION FACTORS",
+    ]
 
     for result in sorted_results:
-        lines.append(
-            f"- {result['name']}: "
-            f"STIVE {result['score']} of 5"
+        definition = (
+            result.get("definition")
+            or MOTIVATION_DEFINITIONS.get(
+                result["name"].strip().lower(),
+                "",
+            )
         )
 
+        lines.append("")
+        lines.append(
+            f"- {result['name']}: STIVE {result['score']} of 5"
+        )
+
+        if definition:
+            lines.append(
+                f"  Meaning: {definition}"
+            )
+
+        if result["score"] >= 4:
+            lines.append(
+                "  Score meaning: More prominent motivational driver."
+            )
+        elif result["score"] <= 2:
+            lines.append(
+                "  Score meaning: Less central motivational driver."
+            )
+        else:
+            lines.append(
+                "  Score meaning: Mid-range motivational importance."
+            )
+
     return "\n".join(lines)
+
 
 def build_motivation_interpretation_prompt(
     invitation,

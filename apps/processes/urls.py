@@ -15,9 +15,7 @@ urlpatterns = [
     path("new/", views.process_create_v2, name="process_create"),
     path("<int:pk>/", views.process_detail, name="process_detail"),
     path("<int:pk>/add-candidate/", views.process_add_candidate, name="process_add_candidate"),
-    path("<int:pk>/invite/<int:candidate_id>/", views.invite_candidate, name="invite_candidate"),
     path("<int:process_id>/candidate/<int:candidate_id>/", views.process_candidate_detail, name="process_candidate_detail"),
-    path("<int:pk>/smoke-invite/<int:candidate_id>/", views.sova_order_assessment_smoke_test, name="sova_order_assessment_smoke_test"),
 
     # Public self-registration route.
     path("r/<uuid:token>/", views.self_register, name="self_register"),
@@ -260,7 +258,18 @@ _PROCESS_VIEW_ROUTE_NAMES = {
 }
 
 _PROCESS_EDIT_ROUTE_NAMES = {
+    # Core process write routes. Keep these centrally guarded even though the
+    # views also perform local checks, so a future refactor cannot accidentally
+    # weaken Viewer/Editor/Own permissions.
+    "process_update",
+    "process_delete",
+    "process_add_candidate",
     "remove_candidate_from_process",
+    "process_send_tests",
+    "process_archive",
+    "process_unarchive",
+
+    # Candidate/AI write routes.
     "process_candidate_summary_stream",
     "process_candidate_summary_regenerate",
     "process_candidate_purpose_fit_stream",

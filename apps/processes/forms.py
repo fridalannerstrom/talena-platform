@@ -1,25 +1,33 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from .models import TestProcess, Candidate
-from .models import ProcessRoleContext
+
 from apps.accounts.models import OrgUnit
+from apps.processes.services.process_locking import is_test_package_locked
 from apps.teams.models import Team
+
+from .models import Candidate, ProcessRoleContext, TestProcess
+
 
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
 
     sova_template = forms.ChoiceField(
         widget=forms.RadioSelect,
-        required=True
+        required=True,
     )
 
     labels_text = forms.CharField(
         required=False,
-        help_text="Enter one or more tags that describe the testing process. Separate the tags with commas.",
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": "E.g. Admin, Interim, Priority",
-        })
+        help_text=(
+            "Enter one or more tags that describe the testing process. "
+            "Separate the tags with commas."
+        ),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "E.g. Admin, Interim, Priority",
+            }
+        ),
     )
 
     class Meta:
@@ -30,7 +38,7 @@ class TestProcessCreateForm(forms.ModelForm):
         raw = (self.cleaned_data.get("labels_text") or "").strip()
         if not raw:
             return []
-        
+
         # Split by comma, normalize + dedupe
         parts = [p.strip() for p in raw.split(",")]
         parts = [p for p in parts if p]
@@ -42,60 +50,71 @@ class TestProcessCreateForm(forms.ModelForm):
                 seen.add(key)
                 normalized.append(p[:50])  # max length safety
         return normalized
-    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # --- Bootstrap styling ---
-        self.fields["name"].widget.attrs.update({
-            "class": "form-control",
-            "placeholder": "E.g. Salesperson, Stockholm",
-        })
+        self.fields["name"].widget.attrs.update(
+            {
+                "class": "form-control",
+                "placeholder": "E.g. Salesperson, Stockholm",
+            }
+        )
 
         # RadioSelect får inte form-control, men vi kan lägga klass på ul:
-        self.fields["sova_template"].widget.attrs.update({
-            "class": "template-picker-list"
-        })
+        self.fields["sova_template"].widget.attrs.update(
+            {"class": "template-picker-list"}
+        )
 
         instance = getattr(self, "instance", None)
         if instance and instance.pk:
             existing = instance.labels.values_list("name", flat=True)
             self.fields["labels_text"].initial = ", ".join(existing)
 
-        # --- Din befintliga lock-logik ---
-        instance = getattr(self, "instance", None)
-        if instance and instance.pk and instance.is_template_locked():
+        # A persisted SOVA assessment URL locks the package even if the
+        # invitation email failed and the invitation status is therefore
+        # ``failed`` instead of ``sent``.
+        if instance and instance.pk and is_test_package_locked(instance):
             self.fields["sova_template"].disabled = True
-            self.fields["sova_template"].help_text = (
-                "Testpaketet kan inte ändras efter att tester har skickats i processen."
+            self.fields["sova_template"].help_text = _(
+                "The assessment package cannot be changed after assessments "
+                "have been ordered in this process."
             )
+
 
 class CandidateCreateForm(forms.Form):
     first_name = forms.CharField(
-        label="Förnamn",
-        widget=forms.TextInput(attrs={
-            "class": "form-control form-control-sm",
-            "placeholder": "Förnamn",
-            "autocomplete": "given-name"
-        })
+        label=_("First name"),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control form-control-sm",
+                "placeholder": _("First name"),
+                "autocomplete": "given-name",
+            }
+        ),
     )
     last_name = forms.CharField(
-        label="Efternamn",
-        widget=forms.TextInput(attrs={
-            "class": "form-control form-control-sm",
-            "placeholder": "Efternamn",
-            "autocomplete": "family-name"
-        })
+        label=_("Last name"),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control form-control-sm",
+                "placeholder": _("Last name"),
+                "autocomplete": "family-name",
+            }
+        ),
     )
     email = forms.EmailField(
-        label="E-post",
-        widget=forms.EmailInput(attrs={
-            "class": "form-control form-control-sm",
-            "placeholder": "namn@företag.se",
-            "autocomplete": "email"
-        })
+        label=_("Email"),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control form-control-sm",
+                "placeholder": _("Email"),
+                "autocomplete": "email",
+            }
+        ),
     )
+
 
 class SelfRegisterForm(forms.Form):
     first_name = forms.CharField(
@@ -129,6 +148,7 @@ class SelfRegisterForm(forms.Form):
             }
         ),
     )
+
 
 class TestProcessWizardCreateForm(forms.Form):
     purpose = forms.CharField(
@@ -186,6 +206,7 @@ class TestProcessWizardCreateForm(forms.Form):
         ),
     )
 
+
 # Talena process context i18n batch 1
 class ProcessRoleContextForm(forms.ModelForm):
     class Meta:
@@ -195,19 +216,21 @@ class ProcessRoleContextForm(forms.ModelForm):
         ]
 
         widgets = {
-            "context_text": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 18,
-                "placeholder": _(
-                    "Describe the role, situation or development context.\n\n"
-                    "You can include:\n"
-                    "• responsibilities and expectations\n"
-                    "• important requirements or behaviours\n"
-                    "• team or organisational context\n"
-                    "• priorities, challenges or success criteria\n"
-                    "• areas you want Talena to explore"
-                ),
-            }),
+            "context_text": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 18,
+                    "placeholder": _(
+                        "Describe the role, situation or development context.\n\n"
+                        "You can include:\n"
+                        "• responsibilities and expectations\n"
+                        "• important requirements or behaviours\n"
+                        "• team or organisational context\n"
+                        "• priorities, challenges or success criteria\n"
+                        "• areas you want Talena to explore"
+                    ),
+                }
+            ),
         }
 
     def __init__(
@@ -221,8 +244,7 @@ class ProcessRoleContextForm(forms.ModelForm):
         config = context_config or {}
 
         self.fields["context_text"].label = (
-            config.get("context_field_label")
-            or _("Process context")
+            config.get("context_field_label") or _("Process context")
         )
 
         self.fields["context_text"].help_text = (
@@ -249,8 +271,7 @@ class ProcessRoleContextForm(forms.ModelForm):
             self.cleaned_data.get("context_text")
             or ""
         ).strip()
-    
-    
+
 
 class HistoricalTestProcessForm(forms.ModelForm):
     TEST_CHOICES = (
@@ -331,11 +352,13 @@ class HistoricalCandidateForm(forms.Form):
 
     historical_reports = MultipleFileField(
         label="Historical SOVA report PDFs",
-        widget=MultipleFileInput(attrs={
-            "multiple": True,
-            "accept": "application/pdf",
-            "class": "form-control",
-        }),
+        widget=MultipleFileInput(
+            attrs={
+                "multiple": True,
+                "accept": "application/pdf",
+                "class": "form-control",
+            }
+        ),
         required=False,
     )
 
@@ -349,19 +372,23 @@ class HistoricalCandidateForm(forms.Form):
         queryset=Team.objects.none(),
         required=False,
         label="Existing teams",
-        widget=forms.SelectMultiple(attrs={
-            "class": "form-select",
-            "size": "5",
-        }),
+        widget=forms.SelectMultiple(
+            attrs={
+                "class": "form-select",
+                "size": "5",
+            }
+        ),
     )
 
     new_team_name = forms.CharField(
         required=False,
         label="Create new team",
-        widget=forms.TextInput(attrs={
-            "class": "form-control",
-            "placeholder": "Example: Finance Team",
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Example: Finance Team",
+            }
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -409,5 +436,3 @@ class HistoricalCandidateForm(forms.Form):
                 raise forms.ValidationError("Only PDF files are allowed.")
 
         return files
-    
-

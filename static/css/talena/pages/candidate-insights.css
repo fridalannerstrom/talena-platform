@@ -1,0 +1,917 @@
+/* =========================================================
+   TALENA — CANDIDATE INSIGHTS
+   ---------------------------------------------------------
+   New-brand candidate workspace. Everything is scoped to
+   .process-page so legacy/admin candidate views stay intact.
+   ========================================================= */
+
+.process-page .candidate-sheet-layout {
+  color: var(--talena-text);
+}
+
+.process-page .candidate-sheet-main {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   CANDIDATE PROFILE HEADER
+   ========================================================= */
+
+.process-page .candidate-profile-header {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 96% -20%, rgba(255, 111, 97, 0.065), transparent 26%),
+    rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 10px 30px rgba(23, 19, 18, 0.035) !important;
+}
+
+.process-page .candidate-profile-shell {
+  background: transparent !important;
+}
+
+.process-page .candidate-profile-top {
+  padding: 1.25rem 1.35rem 1.05rem !important;
+}
+
+.process-page .candidate-profile-main,
+.process-page .candidate-profile-left,
+.process-page .candidate-profile-title-row {
+  gap: 0.75rem;
+}
+
+.process-page .candidate-profile-avatar,
+.process-page .user-initials-purple {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 50px !important;
+  height: 50px !important;
+  flex: 0 0 50px;
+  border: 1px solid rgba(255, 111, 97, 0.19) !important;
+  border-radius: 50% !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.95rem !important;
+  font-weight: 720 !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-profile-name {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: clamp(1.4rem, 2vw, 1.82rem) !important;
+  font-weight: 725 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.process-page .candidate-profile-email {
+  margin-top: 0.22rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem !important;
+}
+
+.process-page .candidate-status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 0.28rem 0.52rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.55rem !important;
+  font-weight: 550 !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-status-badge.is-success {
+  border-color: rgba(110, 159, 125, 0.2) !important;
+  background: var(--talena-success-soft) !important;
+  color: #567d63 !important;
+}
+
+.process-page .candidate-status-badge.is-info {
+  border-color: rgba(99, 145, 156, 0.18) !important;
+  background: #eef6f6 !important;
+  color: #557b83 !important;
+}
+
+.process-page .candidate-status-badge.is-warning {
+  border-color: rgba(201, 149, 78, 0.2) !important;
+  background: var(--talena-warning-soft) !important;
+  color: #946b31 !important;
+}
+
+
+/* =========================================================
+   SHARED TAB RESET
+   ========================================================= */
+
+.process-page .candidate-tab::before,
+.process-page .candidate-tab::after {
+  display: none !important;
+  content: none !important;
+}
+
+.process-page .candidate-tab {
+  box-shadow: none !important;
+  outline: 0 !important;
+  text-decoration: none !important;
+}
+
+
+/* =========================================================
+   CANDIDATE HEADER TABS
+   ========================================================= */
+
+.process-page .candidate-profile-header .candidate-profile-tabs-wrap {
+  border-top: 1px solid var(--talena-border) !important;
+  border-bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+}
+
+.process-page .candidate-profile-header .candidate-profile-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1.05rem !important;
+  padding: 0 1.35rem !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.process-page .candidate-profile-header .candidate-profile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.process-page .candidate-profile-header .candidate-tab {
+  position: relative;
+  min-height: 45px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem !important;
+  font-weight: 550 !important;
+  white-space: nowrap;
+}
+
+.process-page .candidate-profile-header .candidate-tab:hover {
+  border-bottom-color: rgba(255, 111, 97, 0.28) !important;
+  background: transparent !important;
+  color: var(--talena-ink) !important;
+}
+
+.process-page .candidate-profile-header .candidate-tab.is-active,
+.process-page .candidate-profile-header .candidate-tab[aria-selected="true"] {
+  border-bottom-color: var(--talena-coral) !important;
+  background: transparent !important;
+  color: var(--talena-coral-strong) !important;
+  font-weight: 550 !important;
+}
+
+.process-page .candidate-profile-tab-panels {
+  padding: 0 !important;
+  border-top: 0 !important;
+}
+
+.process-page .candidate-tab-panel {
+  padding: 0.9rem 1.2rem !important;
+}
+
+
+/* =========================================================
+   CANDIDATE OVERVIEW
+   ========================================================= */
+
+.process-page .candidate-overview-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: rgba(250, 249, 247, 0.56);
+}
+
+.process-page .candidate-overview-card {
+  min-width: 0;
+  padding: 0.76rem 0.88rem !important;
+  border: 0 !important;
+  border-right: 1px solid var(--talena-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-overview-card:last-child {
+  border-right: 0 !important;
+}
+
+.process-page .candidate-overview-label {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.54rem !important;
+  font-weight: 670 !important;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-overview-value {
+  margin-top: 0.27rem;
+  color: var(--talena-ink) !important;
+  font-size: 0.72rem !important;
+  font-weight: 670 !important;
+}
+
+.process-page .candidate-inline-item,
+.process-page .candidate-link-panel,
+.process-page .activity-card {
+  border-color: var(--talena-border) !important;
+  border-radius: 13px !important;
+  background: rgba(250, 249, 247, 0.52) !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-inline-title {
+  color: var(--talena-ink) !important;
+  font-weight: 650 !important;
+}
+
+.process-page .candidate-inline-meta {
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .candidate-link-field .form-control {
+  border-color: var(--talena-border) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-link-field .form-control:focus {
+  border-color: rgba(255, 111, 97, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.08) !important;
+}
+
+.process-page .candidate-link-field .btn-primary {
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+
+/* =========================================================
+   ROLE CONTEXT PROMPT
+   ========================================================= */
+
+.process-page .role-context-prompt-card {
+  overflow: hidden;
+  border: 1px solid rgba(255, 111, 97, 0.15) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 111, 97, 0.065), transparent 28%),
+    #fff !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.process-page .role-context-prompt__icon {
+  border: 1px solid rgba(255, 111, 97, 0.16) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .role-context-prompt__action .btn-primary {
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+
+/* =========================================================
+   CANDIDATE INSIGHTS WORKSPACE
+   ========================================================= */
+
+.process-page .candidate-insights-workspace {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 10px 30px rgba(23, 19, 18, 0.038) !important;
+}
+
+.process-page .candidate-insights-workspace__inner {
+  background: transparent !important;
+}
+
+.process-page .candidate-insights-navigation {
+  padding: 0.48rem 0.58rem;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: rgba(250, 249, 247, 0.55) !important;
+}
+
+.process-page .candidate-insights-navigation .candidate-profile-tabs-wrap {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.process-page .candidate-insights-navigation .candidate-profile-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem !important;
+  padding: 0 !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.process-page .candidate-insights-navigation .candidate-profile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.process-page .candidate-insights-navigation .candidate-tab {
+  min-height: 34px !important;
+  padding: 0.46rem 0.68rem !important;
+  border: 1px solid transparent !important;
+  border-bottom: 1px solid transparent !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem !important;
+  font-weight: 550 !important;
+  white-space: nowrap;
+}
+
+.process-page .candidate-insights-navigation .candidate-tab:hover {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-ink) !important;
+}
+
+.process-page .candidate-insights-navigation .candidate-tab.is-active,
+.process-page .candidate-insights-navigation .candidate-tab[aria-selected="true"] {
+  border-color: rgba(255, 111, 97, 0.18) !important;
+  border-bottom-color: rgba(255, 111, 97, 0.18) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+  font-weight: 550 !important;
+}
+
+
+/* =========================================================
+   AI OVERVIEW
+   ========================================================= */
+
+.process-page .ai-overview-header {
+  padding: 1.05rem 1.1rem !important;
+  border-bottom: 1px solid rgba(255, 111, 97, 0.11) !important;
+  background: transparent !important;
+}
+
+.process-page .insight-summary-kicker {
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.57rem !important;
+  font-weight: 730 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.process-page .insight-summary-title {
+  color: var(--talena-ink) !important;
+  font-size: clamp(1.3rem, 1.9vw, 1.65rem) !important;
+  font-weight: 725 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.process-page .insight-summary-sub-title {
+  color: var(--talena-ink) !important;
+  font-size: 1.3rem;
+  font-weight: 725 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.process-page .ai-overview-header .text-muted {
+  max-width: 760px;
+  color: var(--talena-text-muted) !important;
+  line-height: 1.5;
+}
+
+.process-page .ai-overview-header__actions .btn,
+.process-page .js-regenerate-purpose-fit {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--talena-text-muted) !important;
+  box-shadow: none !important;
+}
+
+.process-page .ai-overview-header__actions .btn:hover,
+.process-page .js-regenerate-purpose-fit:hover {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .purpose-fit-section {
+  padding: 1.4rem 1.4rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: #fff;
+}
+
+.process-page .purpose-fit-section-title {
+  color: var(--talena-ink) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+.process-page .purpose-fit-summary {
+  color: var(--talena-text) !important;
+  font-size: 0.75rem !important;
+  line-height: 1.62 !important;
+}
+
+
+
+.process-page .purpose-fit-list-icon {
+  background: #E3F2E7 !important;
+  color: #567d63 !important;
+}
+
+.process-page .purpose-fit-list-card--verify .purpose-fit-list-icon {
+  background: var(--talena-warning-soft) !important;
+  color: #946b31 !important;
+}
+
+.process-page .purpose-fit-help {
+  color: var(--talena-text-subtle) !important;
+}
+
+
+/* =========================================================
+   REPORTS
+   ========================================================= */
+
+.process-page .candidate-insights-workspace + .card,
+.process-page .reports-toggle {
+  border-color: var(--talena-border) !important;
+}
+
+.process-page .reports-toggle {
+  background: #fff !important;
+  color: var(--talena-ink) !important;
+}
+
+.process-page .reports-toggle:hover {
+  background: var(--talena-surface-soft) !important;
+}
+
+
+/* =========================================================
+   FLOATING TALENA AI
+   ========================================================= */
+
+.process-page .candidate-ai-floating-launcher {
+  min-height: 46px;
+  padding: 0.55rem 0.82rem !important;
+  border: 1px solid var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 30px rgba(23, 19, 18, 0.16) !important;
+}
+
+.process-page .candidate-ai-floating-launcher:hover {
+  transform: translateY(-1px);
+  background: #000 !important;
+}
+
+.process-page .candidate-ai-floating-launcher__icon {
+  color: var(--talena-coral) !important;
+}
+
+.process-page .candidate-ai-floating-panel {
+  width: min(410px, calc(100vw - 28px)) !important;
+  overflow: hidden;
+  border: 1px solid rgba(255, 111, 97, 0.14) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 22px 55px rgba(23, 19, 18, 0.17) !important;
+}
+
+.process-page .candidate-ai-floating-header {
+  padding: 0.9rem 0.95rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 111, 97, 0.18), transparent 40%),
+    linear-gradient(145deg, #171312 0%, #241816 100%) !important;
+}
+
+.process-page .candidate-ai-floating-title {
+  color: #fff !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+.process-page .candidate-ai-floating-subtitle {
+  margin-top: 0.1rem;
+  color: rgba(255, 255, 255, 0.52) !important;
+  font-size: 0.65rem !important;
+}
+
+.process-page .candidate-ai-floating-close {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.process-page .candidate-ai-floating-close:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #fff !important;
+}
+
+.process-page .candidate-ai-card {
+  padding: 0.8rem !important;
+  background: #fff !important;
+}
+
+.process-page .candidate-ai-messages {
+  min-height: 235px !important;
+  max-height: 340px !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: rgba(250, 249, 247, 0.58) !important;
+}
+
+.process-page .candidate-ai-empty__icon {
+  border: 1px solid rgba(255, 111, 97, 0.16) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .candidate-ai-empty__title {
+  color: var(--talena-ink) !important;
+}
+
+.process-page .candidate-ai-empty__text {
+  max-width: 230px;
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .candidate-ai-form {
+  margin-top: 0.7rem !important;
+}
+
+.process-page .candidate-ai-floating-input-wrap {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  transition:
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.process-page .candidate-ai-floating-input-wrap:focus-within {
+  border-color: rgba(255, 111, 97, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.08) !important;
+  outline: 0 !important;
+}
+
+.process-page .candidate-ai-floating-input-wrap textarea,
+.process-page .candidate-ai-floating-input-wrap textarea:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-ai-floating-input-wrap textarea::placeholder {
+  color: var(--talena-text-subtle) !important;
+}
+
+.process-page .candidate-ai-floating-send {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-ai-floating-send:hover {
+  background: #000 !important;
+}
+
+
+/* =========================================================
+   DISABLED AI STATE
+   ========================================================= */
+
+.process-page .candidate-ai-card.is-disabled {
+  opacity: 0.8;
+}
+
+.process-page .candidate-ai-disabled {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.8rem;
+  text-align: center;
+}
+
+.process-page .candidate-ai-disabled__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .candidate-ai-disabled__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .process-page .candidate-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .process-page .candidate-overview-card:nth-child(2) {
+    border-right: 0 !important;
+  }
+
+  .process-page .candidate-overview-card:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--talena-border) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .process-page .candidate-profile-top {
+    padding: 1rem !important;
+  }
+
+  .process-page .candidate-profile-main,
+  .process-page .candidate-profile-left {
+    align-items: flex-start !important;
+  }
+
+  .process-page .candidate-profile-header .candidate-profile-tabs {
+    gap: 0.85rem !important;
+    padding: 0 1rem !important;
+  }
+
+  .process-page .candidate-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .process-page .candidate-overview-card {
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--talena-border) !important;
+  }
+
+  .process-page .candidate-overview-card:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .process-page .candidate-ai-floating-panel {
+    width: calc(100vw - 20px) !important;
+  }
+}
+
+
+/* =========================================================
+   CANDIDATE INTELLIGENCE — VISUAL POLISH
+   ---------------------------------------------------------
+   Design-only layer. Removes the card-inside-card feeling and
+   brings the workspace closer to the warm Talena concept.
+   ========================================================= */
+
+.process-page .candidate-insights-workspace {
+  overflow: visible;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-insights-workspace__inner {
+  overflow: visible;
+}
+
+.process-page .candidate-insights-navigation {
+  margin-bottom: 0.9rem;
+  padding: 0.56rem 0.65rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 8px 24px rgba(23, 19, 18, 0.035) !important;
+}
+
+.process-page .candidate-insights-navigation .candidate-profile-tabs {
+  gap: 0.32rem !important;
+}
+
+.process-page .candidate-insights-navigation .candidate-tab.is-active,
+.process-page .candidate-insights-navigation .candidate-tab[aria-selected="true"] {
+  border-color: rgba(255, 111, 97, 0.22) !important;
+  background: #fff3f0 !important;
+  box-shadow: 0 3px 10px rgba(255, 111, 97, 0.07) !important;
+}
+
+.process-page .candidate-insights-workspace__panels {
+  background: rgba(250, 249, 247, 0.56);
+}
+
+
+.process-page .purpose-fit-card.ai-overview-card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 14px 36px rgba(23, 19, 18, 0.04) !important;
+  background-color: #fff;
+}
+
+.process-page .ai-overview-header {
+  padding: 1.5rem 1.5rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+}
+
+.process-page .insight-summary-kicker {
+  margin-bottom: 0.42rem !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.56rem !important;
+  font-weight: 780 !important;
+  letter-spacing: 0.09em !important;
+}
+
+.process-page .ai-overview-header .text-muted {
+  max-width: 800px;
+  font-size: 0.71rem !important;
+  line-height: 1.6 !important;
+}
+
+.process-page .ai-overview-header__actions .btn,
+.process-page .js-regenerate-purpose-fit {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  box-shadow: 0 5px 14px rgba(23, 19, 18, 0.035) !important;
+}
+
+.process-page #purposeFitLoading,
+.process-page #purposeFitResult,
+.process-page #purposeFitError {
+  margin: 0 !important;
+}
+
+.process-page #purposeFitLoading,
+.process-page #purposeFitResult {
+  padding: 1.25rem 1.4rem 1.4rem !important;
+}
+
+
+.process-page .purpose-fit-list-card {
+  padding: 1rem 1.05rem !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+
+.process-page .purpose-fit-section-title--with-help {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+
+.process-page .purpose-fit-help {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 0 !important;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65) !important;
+}
+
+.process-page .purpose-fit-help svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-page .purpose-fit-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.process-page .purpose-fit-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.62rem;
+  padding: 0.76rem 0.8rem;
+  border: 1px solid rgba(23, 19, 18, 0.065);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--talena-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.process-page .purpose-fit-list-card--positive .purpose-fit-list li {
+  border-color: rgba(110, 159, 125, 0.13);
+  background-color: #F5FBF6 !important;
+}
+
+.process-page .purpose-fit-list-card--verify .purpose-fit-list li {
+  border-color: rgba(201, 149, 78, 0.14);
+    background-color: #FFFCF8;
+}
+
+.process-page .purpose-fit-list-icon {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  border-radius: 8px;
+}
+
+.process-page .purpose-fit-list-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-page .purpose-fit-explainer {
+  padding: 0.82rem 0.95rem;
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.process-page .purpose-fit-explainer__title {
+  color: var(--talena-text-muted);
+  font-size: 0.67rem;
+  font-weight: 690;
+  cursor: pointer;
+}
+
+.process-page .purpose-fit-input-pill {
+  border-color: rgba(255, 111, 97, 0.13) !important;
+  background: #fff7f4 !important;
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .purpose-fit-disclaimer {
+  margin-top: 0.95rem;
+  padding-top: 0.85rem !important;
+  border-top-color: rgba(255, 111, 97, 0.12) !important;
+}
+
+@media (max-width: 620px) {
+  .process-page .candidate-insights-navigation {
+    border-radius: 15px !important;
+  }
+
+  .process-page .candidate-insights-navigation .candidate-profile-tabs {
+    overflow-x: auto;
+  }
+
+  .process-page .purpose-fit-card.ai-overview-card {
+    border-radius: 19px !important;
+  }
+
+  .process-page .ai-overview-header {
+    padding: 1.05rem 1rem 0.95rem !important;
+  }
+
+  .process-page #purposeFitLoading,
+  .process-page #purposeFitResult {
+    padding: 1rem !important;
+  }
+}

@@ -1,0 +1,169 @@
+/* =========================================================
+   TALENA — PROCESS EMAIL TEMPLATE
+   Scoped to .email-template-page.
+   ========================================================= */
+
+.email-template-page {
+  color: var(--talena-text);
+}
+
+.email-template-page .process-section-card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.email-template-page .process-section-card > .card-header {
+  padding: 1rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: transparent !important;
+}
+
+.email-template-page .process-section-card > .card-header .fw-semibold {
+  color: var(--talena-ink);
+  font-size: .88rem;
+  font-weight: 700 !important;
+  letter-spacing: -.015em;
+}
+
+.email-template-page .process-section-card > .card-header .text-muted {
+  margin-top: .15rem;
+  color: var(--talena-text-muted) !important;
+  font-size: .67rem !important;
+  line-height: 1.5;
+}
+
+.email-template-page .merge-field-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.email-template-page .merge-field-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: .65rem;
+  align-items: center;
+  padding: .72rem .78rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: rgba(255,255,255,.78);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--talena-transition-fast), background-color var(--talena-transition-fast), transform var(--talena-transition-fast), box-shadow var(--talena-transition-fast);
+}
+
+.email-template-page .merge-field-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,111,97,.24);
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(23,19,18,.045);
+}
+
+.email-template-page .merge-field-item.is-copied {
+  border-color: rgba(110,159,125,.30);
+  background: var(--talena-success-soft);
+}
+
+.email-template-page .merge-field-item code {
+  display: inline-flex;
+  width: fit-content;
+  padding: .25rem .48rem;
+  border: 1px solid rgba(255,111,97,.13);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: .68rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.email-template-page .merge-field-item span {
+  color: var(--talena-text-muted);
+  font-size: .68rem;
+  line-height: 1.35;
+}
+
+.email-template-page .merge-note,
+.email-template-page .template-tip {
+  padding: .85rem .92rem;
+  border: 1px solid rgba(255,111,97,.13);
+  border-radius: 14px;
+  background: rgba(255,111,97,.045);
+}
+
+.email-template-page .merge-note code,
+.email-template-page .template-tip code {
+  color: var(--talena-coral-strong);
+}
+
+.email-template-page .form-label {
+  color: var(--talena-text);
+  font-size: .71rem;
+  font-weight: 660;
+}
+
+.email-template-page .form-control,
+.email-template-page input[type="text"],
+.email-template-page textarea {
+  border-color: var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: #fbfaf9 !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.email-template-page .form-control:focus,
+.email-template-page input[type="text"]:focus,
+.email-template-page textarea:focus {
+  border-color: rgba(255,111,97,.42) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255,111,97,.065) !important;
+}
+
+.email-template-page textarea {
+  min-height: 330px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.email-template-page .btn-primary {
+  min-height: 40px;
+  padding: .62rem .9rem;
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: .69rem;
+  font-weight: 670;
+  box-shadow: none !important;
+}
+
+.email-template-page .btn-primary:hover {
+  border-color: #000 !important;
+  background: #000 !important;
+}
+
+.email-template-page .btn-outline-secondary {
+  min-height: 40px;
+  padding: .62rem .9rem;
+  border-color: var(--talena-border) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+  font-size: .69rem;
+  font-weight: 630;
+}
+
+.email-template-page .btn-outline-secondary:hover {
+  border-color: rgba(255,111,97,.22) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+@media (max-width: 991px) {
+  .email-template-page textarea {
+    min-height: 260px;
+  }
+}

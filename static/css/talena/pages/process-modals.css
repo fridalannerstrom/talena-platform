@@ -1,0 +1,255 @@
+/* =========================================================
+   TALENA — PROCESS MODALS
+   ---------------------------------------------------------
+   Process-specific modal and small-flow styling.
+   Keeps process dialogs visually aligned with the refreshed
+   Talena workspace without changing Bootstrap behaviour.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Add candidate modal
+   --------------------------------------------------------- */
+
+#addCandidateModal .modal-dialog {
+  max-width: 520px;
+}
+
+#addCandidateModal .modal-content {
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: var(--talena-shadow-lg);
+}
+
+#addCandidateModal .modal-header {
+  align-items: flex-start;
+  padding: 1.25rem 1.35rem 1rem;
+  border-bottom: 1px solid var(--talena-border);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(255, 111, 97, 0.08),
+      transparent 15rem
+    ),
+    #fff;
+}
+
+#addCandidateModal .modal-header .subheading {
+  margin: 0 !important;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  text-transform: none;
+}
+
+#addCandidateModal .modal-header .text-muted {
+  margin-top: 0.2rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.72rem !important;
+}
+
+#addCandidateModal .btn-close {
+  width: 30px;
+  height: 30px;
+  margin: -0.1rem -0.1rem 0 0;
+  padding: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.84);
+  background-size: 10px;
+  opacity: 0.72;
+  box-shadow: none;
+}
+
+#addCandidateModal .btn-close:hover,
+#addCandidateModal .btn-close:focus {
+  border-color: rgba(255, 111, 97, 0.22);
+  background-color: var(--talena-coral-soft);
+  opacity: 1;
+  box-shadow: none;
+}
+
+#addCandidateModal .modal-body {
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+
+#addCandidateModal .add-candidate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#addCandidateModal .add-candidate-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+#addCandidateModal .add-candidate-field--email {
+  grid-column: 1 / -1;
+}
+
+#addCandidateModal .form-label {
+  margin-bottom: 0.38rem;
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  font-weight: 660;
+}
+
+#addCandidateModal input,
+#addCandidateModal select,
+#addCandidateModal textarea,
+#addCandidateModal .form-control,
+#addCandidateModal .form-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.68rem 0.78rem;
+  border: 1px solid var(--talena-border-strong) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.78rem !important;
+  box-shadow: none !important;
+  transition:
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+#addCandidateModal input:focus,
+#addCandidateModal select:focus,
+#addCandidateModal textarea:focus,
+#addCandidateModal .form-control:focus,
+#addCandidateModal .form-select:focus {
+  border-color: rgba(255, 111, 97, 0.62) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.08) !important;
+  outline: 0;
+}
+
+#addCandidateModal .alert-danger {
+  margin: 0 0 1rem;
+  padding: 0.72rem 0.82rem;
+  border: 1px solid rgba(207, 89, 80, 0.18);
+  border-radius: 11px;
+  background: var(--talena-danger-soft);
+  color: var(--talena-danger);
+  font-size: 0.72rem;
+}
+
+#addCandidateModal .field-error,
+#addCandidateModal .text-danger {
+  margin-top: 0.32rem;
+  color: var(--talena-danger) !important;
+  font-size: 0.65rem !important;
+}
+
+#addCandidateModal .add-candidate-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.15rem;
+}
+
+#addCandidateModal .add-candidate-tip {
+  max-width: 270px;
+  color: var(--talena-text-subtle);
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+#addCandidateModal .btn-primary {
+  min-height: 40px;
+  padding: 0.6rem 0.95rem;
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: 0.7rem;
+  font-weight: 550;
+  box-shadow: none !important;
+}
+
+#addCandidateModal .btn-primary:hover,
+#addCandidateModal .btn-primary:focus {
+  border-color: #000 !important;
+  background: #000 !important;
+  transform: translateY(-1px);
+}
+
+/* ---------------------------------------------------------
+   Self-registration content injected into #appModal
+   --------------------------------------------------------- */
+
+#appModal .modal-body > p:first-child {
+  margin-bottom: 1rem !important;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+#appModal .modal-body .form-label {
+  margin-bottom: 0.42rem;
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  font-weight: 660;
+}
+
+#appModal .modal-body .form-control[readonly] {
+  min-height: 44px;
+  padding: 0.68rem 0.78rem;
+  border: 1px solid var(--talena-border-strong);
+  border-radius: 11px;
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  box-shadow: none;
+}
+
+#appModal #copySelfRegLinkBtn {
+  min-height: 38px;
+  padding: 0.55rem 0.82rem;
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  font-size: 0.68rem;
+  font-weight: 670;
+  box-shadow: none !important;
+}
+
+#appModal #copyStatus {
+  color: var(--talena-success) !important;
+  font-size: 0.66rem !important;
+  font-weight: 620;
+}
+
+@media (max-width: 640px) {
+  #addCandidateModal .modal-dialog {
+    margin: 0.75rem;
+  }
+
+  #addCandidateModal .add-candidate-fields {
+    grid-template-columns: 1fr;
+  }
+
+  #addCandidateModal .add-candidate-field--email {
+    grid-column: auto;
+  }
+
+  #addCandidateModal .add-candidate-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #addCandidateModal .add-candidate-tip {
+    max-width: none;
+  }
+
+  #addCandidateModal .btn-primary {
+    width: 100%;
+  }
+}

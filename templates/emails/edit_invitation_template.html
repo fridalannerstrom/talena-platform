@@ -2,9 +2,22 @@
 {% load static i18n %}
 {# Talena invitation email template i18n batch 1 #}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-email.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/talena/process-email.js' %}"></script>
+{% endblock %}
+
 {% block process_content %}
 
-<div class="email-template-page">
+<div
+  class="email-template-page"
+  data-email-template-page
+  data-copied-prefix="{% trans 'Copied:' %}"
+  data-copy-failed-message="{% trans 'Could not copy. Please select and copy manually.' %}"
+>
 
   <div class="row g-4">
 
@@ -67,7 +80,7 @@
             </button>
           </div>
 
-          <div id="phCopyStatus" class="small text-muted mt-3" aria-live="polite"></div>
+          <div data-copy-status class="small text-muted mt-3" aria-live="polite"></div>
 
           <div class="merge-note mt-3">
             <div class="fw-semibold mb-1">{% trans "Example" %}</div>
@@ -100,7 +113,6 @@
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
           {% endif %}
 
-          <!-- Subject -->
           <div class="mb-3">
             <label class="form-label">{% trans "Subject line" %}</label>
             {{ form.subject }}
@@ -109,7 +121,6 @@
             {% endif %}
           </div>
 
-          <!-- Body -->
           <div class="mb-3">
             <label class="form-label">{% trans "Message" %}</label>
             {{ form.body }}
@@ -142,129 +153,5 @@
 
   </div>
 </div>
-
-<style>
-.email-template-page .merge-field-list {
-  display: grid;
-  gap: .55rem;
-}
-
-.email-template-page .merge-field-item {
-  width: 100%;
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: #fff;
-  border-radius: 12px;
-  padding: .7rem .8rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .65rem;
-  align-items: center;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background-color .18s ease,
-    border-color .18s ease,
-    transform .12s ease,
-    box-shadow .18s ease;
-}
-
-.email-template-page .merge-field-item:hover {
-  background: rgba(123, 87, 209, .045);
-  border-color: rgba(123, 87, 209, .28);
-  box-shadow: 0 8px 20px rgba(25, 25, 45, .05);
-}
-
-.email-template-page .merge-field-item.is-copied {
-  border-color: rgba(25,135,84,.35);
-  background: rgba(25,135,84,.06);
-}
-
-.email-template-page .merge-field-item code {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(123, 87, 209, .08);
-  color: #5f3fd1;
-  padding: .22rem .5rem;
-  font-size: .78rem;
-  white-space: nowrap;
-}
-
-.email-template-page .merge-field-item span {
-  color: #6b7280;
-  font-size: .74rem;
-  line-height: 1.25;
-}
-
-.email-template-page .merge-note,
-.email-template-page .template-tip {
-  border: 1px solid rgba(123, 87, 209, .14);
-  background: rgba(123, 87, 209, .045);
-  border-radius: 14px;
-  padding: .85rem .95rem;
-}
-
-.email-template-page textarea {
-  min-height: 300px;
-  resize: vertical;
-  line-height: 1.35rem;
-}
-
-.email-template-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: .45rem .75rem;
-  font-size: .78rem;
-  font-weight: 750;
-  background: #f1e8ff;
-  color: #6d3adf;
-  white-space: nowrap;
-}
-</style>
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const status = document.getElementById("phCopyStatus");
-    const copiedPrefix = '{% trans "Copied:" %}';
-    const copyFailedMessage = '{% trans "Could not copy. Please select and copy manually." %}';
-
-    function setStatus(text) {
-      if (!status) return;
-      status.textContent = text;
-    }
-
-    async function copyText(val) {
-      if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(val);
-      }
-
-      const tmp = document.createElement("textarea");
-      tmp.value = val;
-      document.body.appendChild(tmp);
-      tmp.select();
-      document.execCommand("copy");
-      tmp.remove();
-    }
-
-    document.querySelectorAll(".merge-field-item").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const val = btn.dataset.copy || btn.innerText;
-
-        try {
-          await copyText(val);
-
-          btn.classList.add("is-copied");
-          setStatus(`${copiedPrefix} ${val}`);
-
-          setTimeout(() => btn.classList.remove("is-copied"), 900);
-          btn.blur();
-        } catch (e) {
-          setStatus(copyFailedMessage);
-        }
-      });
-    });
-  });
-</script>
 
 {% endblock %}

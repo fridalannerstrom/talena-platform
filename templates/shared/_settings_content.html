@@ -1,92 +1,80 @@
 {% load static i18n %}
 
-<div class="container-fluid px-2 px-md-3">
+<div class="container-fluid talena-settings-page">
 
-  <!-- Header -->
-
-  <div class="d-flex align-items-start justify-content-between mb-4">
-
+  <header class="settings-page-header">
     <div>
-
-      <h2 class="h4 mb-1">
-        {% trans "Account settings" %}
-      </h2>
-
-      <div class="text-muted">
+      <p class="settings-page-kicker">Talena</p>
+      <h1 class="settings-page-title">{% trans "Account settings" %}</h1>
+      <p class="settings-page-description">
         {% trans "Manage your profile and security" %}
+      </p>
+    </div>
+  </header>
+
+  <div class="settings-grid">
+
+    <!-- Profile ------------------------------------------------ -->
+    <section class="settings-panel" aria-labelledby="profile-settings-title">
+      <div class="settings-panel-header">
+        <div class="settings-panel-heading">
+          <div class="settings-panel-icon" aria-hidden="true">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div>
+            <h2 class="settings-panel-title" id="profile-settings-title">
+              {% trans "Account settings" %}
+            </h2>
+            <p class="settings-panel-copy">
+              {% trans "Manage your profile and security" %}
+            </p>
+          </div>
+        </div>
       </div>
 
-    </div>
+      <div class="settings-panel-body">
 
-  </div>
-
-
-  <div class="row g-4">
-
-    <!-- Profile settings -->
-
-    <div class="col-12 col-lg-6">
-
-      <div class="card h-100">
-
-        <div class="card-body p-4">
-
-          <!-- Profile picture -->
-
-          <div class="d-flex flex-column align-items-center text-center mb-4">
-
+        <div class="settings-profile-intro">
+          <div class="settings-avatar-wrap">
             <form
               id="avatarForm"
               method="post"
               enctype="multipart/form-data"
               class="avatar-form"
             >
-
               {% csrf_token %}
-
-              <input
-                type="hidden"
-                name="form_type"
-                value="avatar"
-              >
-
+              <input type="hidden" name="form_type" value="avatar">
 
               <label
                 class="avatar-click"
                 for="id_avatar_image"
                 title="{% trans 'Change profile picture' %}"
               >
-
                 {% if request.user.profile.image %}
-
                   <img
                     id="avatarPreview"
                     src="{{ request.user.profile.image.url }}"
                     alt="{% trans 'Profile picture' %}"
                     class="avatar-img"
                   >
-
                 {% else %}
-
-                  <img
+                  <span
                     id="avatarPreview"
-                    src="{% static 'images/avatar-default.png' %}"
-                    alt="{% trans 'Default profile picture' %}"
-                    class="avatar-img"
+                    class="avatar-img avatar-img--fallback"
+                    aria-hidden="true"
                   >
-
+                    {% if request.user.first_name %}
+                      {{ request.user.first_name|slice:":1"|upper }}
+                    {% else %}
+                      {{ request.user.email|slice:":1"|upper }}
+                    {% endif %}
+                  </span>
                 {% endif %}
 
-
-                <span
-                  class="avatar-camera"
-                  aria-hidden="true"
-                >
+                <span class="avatar-camera" aria-hidden="true">
                   <i class="fa-solid fa-camera"></i>
                 </span>
-
               </label>
-
 
               <input
                 id="id_avatar_image"
@@ -97,314 +85,145 @@
                 class="d-none"
               >
 
-
               {% for err in image_form.image.errors %}
-
-                <div class="text-danger small mt-2">
-                  {{ err }}
-                </div>
-
+                <div class="settings-error">{{ err }}</div>
               {% endfor %}
-
             </form>
+          </div>
 
+          <div>
+            <p class="settings-profile-name">
+              {{ request.user.get_full_name|default:request.user.email }}
+            </p>
+            <p class="settings-profile-email">{{ request.user.email }}</p>
+            <p class="settings-avatar-hint">
+              {% trans "Change profile picture" %}
+            </p>
 
             {% if request.user.profile.image %}
-
-              <form
-                method="post"
-                class="mt-2"
-              >
-
+              <form method="post">
                 {% csrf_token %}
-
-                <input
-                  type="hidden"
-                  name="form_type"
-                  value="remove_avatar"
-                >
-
-                <button
-                  type="submit"
-                  class="btn btn-link btn-sm text-danger p-0"
-                >
+                <input type="hidden" name="form_type" value="remove_avatar">
+                <button type="submit" class="settings-remove-avatar">
                   {% trans "Remove profile picture" %}
                 </button>
-
               </form>
-
             {% endif %}
-
           </div>
-
-
-          <!-- Profile form -->
-
-          <form
-            method="post"
-            class="row g-3"
-            enctype="multipart/form-data"
-          >
-
-            {% csrf_token %}
-
-            <input
-              type="hidden"
-              name="form_type"
-              value="profile"
-            >
-
-
-            <div class="col-12 col-md-6">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ account_form.first_name.id_for_label }}"
-              >
-                {% trans "First name" %}
-              </label>
-
-              {{ account_form.first_name }}
-
-              {% for err in account_form.first_name.errors %}
-
-                <div class="text-danger small">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 col-md-6">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ account_form.last_name.id_for_label }}"
-              >
-                {% trans "Last name" %}
-              </label>
-
-              {{ account_form.last_name }}
-
-              {% for err in account_form.last_name.errors %}
-
-                <div class="text-danger small">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-12">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ account_form.email.id_for_label }}"
-              >
-                {% trans "Email" %}
-              </label>
-
-              <div class="input-group">
-                {{ account_form.email }}
-              </div>
-
-              {% for err in account_form.email.errors %}
-
-                <div class="text-danger small mt-1">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 pt-2">
-
-              <button
-                class="btn btn-primary"
-                type="submit"
-              >
-                {% trans "Save changes" %}
-              </button>
-
-            </div>
-
-          </form>
-
         </div>
 
-      </div>
+        <form method="post" enctype="multipart/form-data" class="settings-form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="profile">
 
-    </div>
-
-
-    <!-- Password settings -->
-
-    <div class="col-12 col-lg-6">
-
-      <div class="card h-100">
-
-        <div class="card-body p-4">
-
-          <h6 class="mb-1">
-            {% trans "Password" %}
-          </h6>
-
-          <div class="text-muted small mb-3">
-            {% trans "Update your password to keep your account secure." %}
+          <div>
+            <label class="form-label" for="{{ account_form.first_name.id_for_label }}">
+              {% trans "First name" %}
+            </label>
+            {{ account_form.first_name }}
+            {% for err in account_form.first_name.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
           </div>
 
+          <div>
+            <label class="form-label" for="{{ account_form.last_name.id_for_label }}">
+              {% trans "Last name" %}
+            </label>
+            {{ account_form.last_name }}
+            {% for err in account_form.last_name.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
+          </div>
 
-          <form
-            method="post"
-            class="row g-3"
-          >
+          <div class="settings-field-full">
+            <label class="form-label" for="{{ account_form.email.id_for_label }}">
+              {% trans "Email" %}
+            </label>
+            {{ account_form.email }}
+            {% for err in account_form.email.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
+          </div>
 
-            {% csrf_token %}
-
-            <input
-              type="hidden"
-              name="form_type"
-              value="password"
-            >
-
-
-            <div class="col-12">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ password_form.old_password.id_for_label }}"
-              >
-                {% trans "Current password" %}
-              </label>
-
-              {{ password_form.old_password }}
-
-              {% for err in password_form.old_password.errors %}
-
-                <div class="text-danger small mt-1">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-md-6">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ password_form.new_password1.id_for_label }}"
-              >
-                {% trans "New password" %}
-              </label>
-
-              {{ password_form.new_password1 }}
-
-              {% for err in password_form.new_password1.errors %}
-
-                <div class="text-danger small mt-1">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-md-6">
-
-              <label
-                class="form-label small text-muted"
-                for="{{ password_form.new_password2.id_for_label }}"
-              >
-                {% trans "Confirm new password" %}
-              </label>
-
-              {{ password_form.new_password2 }}
-
-              {% for err in password_form.new_password2.errors %}
-
-                <div class="text-danger small mt-1">
-                  {{ err }}
-                </div>
-
-              {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 pt-2">
-
-              <button
-                class="btn btn-primary"
-                type="submit"
-              >
-                {% trans "Update password" %}
-              </button>
-
-            </div>
-
-          </form>
-
-        </div>
+          <div class="settings-form-actions">
+            <button class="btn settings-primary-action" type="submit">
+              {% trans "Save changes" %}
+            </button>
+          </div>
+        </form>
 
       </div>
+    </section>
 
-    </div>
+    <!-- Security ----------------------------------------------- -->
+    <section class="settings-panel settings-security-panel" aria-labelledby="password-settings-title">
+      <div class="settings-panel-header">
+        <div class="settings-panel-heading">
+          <div class="settings-panel-icon" aria-hidden="true">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div>
+            <h2 class="settings-panel-title" id="password-settings-title">
+              {% trans "Password" %}
+            </h2>
+            <p class="settings-panel-copy">
+              {% trans "Update your password to keep your account secure." %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel-body">
+        <div class="settings-security-note">
+          <span class="settings-security-note-icon" aria-hidden="true">
+            <i class="fa-solid fa-shield-halved"></i>
+          </span>
+          <span>{% trans "Update your password to keep your account secure." %}</span>
+        </div>
+
+        <form method="post" class="settings-password-grid">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="password">
+
+          <div>
+            <label class="form-label" for="{{ password_form.old_password.id_for_label }}">
+              {% trans "Current password" %}
+            </label>
+            {{ password_form.old_password }}
+            {% for err in password_form.old_password.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="form-label" for="{{ password_form.new_password1.id_for_label }}">
+              {% trans "New password" %}
+            </label>
+            {{ password_form.new_password1 }}
+            {% for err in password_form.new_password1.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div>
+            <label class="form-label" for="{{ password_form.new_password2.id_for_label }}">
+              {% trans "Confirm new password" %}
+            </label>
+            {{ password_form.new_password2 }}
+            {% for err in password_form.new_password2.errors %}
+              <div class="settings-error">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="settings-form-actions">
+            <button class="btn settings-primary-action" type="submit">
+              {% trans "Update password" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
 
   </div>
-
 </div>
-
-
-<script>
-  document
-    .querySelectorAll("input[type='password']")
-    .forEach(function (element) {
-      element.classList.add("form-control");
-    });
-</script>
-
-
-<script>
-  (function () {
-    const input =
-      document.getElementById("id_avatar_image");
-
-    const form =
-      document.getElementById("avatarForm");
-
-    const preview =
-      document.getElementById("avatarPreview");
-
-    if (!input || !form || !preview) {
-      return;
-    }
-
-    input.addEventListener(
-      "change",
-      function () {
-        const file =
-          input.files && input.files[0];
-
-        if (!file) {
-          return;
-        }
-
-        const url =
-          URL.createObjectURL(file);
-
-        preview.src = url;
-
-        form.submit();
-      }
-    );
-  })();
-</script>

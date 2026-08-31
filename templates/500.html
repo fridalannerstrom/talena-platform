@@ -1,0 +1,8 @@
+{% extends "errors/base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Server error" %} | Talena{% endblock %}
+{% block error_code %}500{% endblock %}
+{% block error_title %}{% trans "Talena hit a snag." %}{% endblock %}
+{% block error_message %}{% trans "Something unexpected happened while Talena was processing the request." %}{% endblock %}
+{% block error_hint %}{% trans "Try again in a moment. If the problem continues, the issue may need attention from the Talena team." %}{% endblock %}

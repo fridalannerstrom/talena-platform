@@ -1,0 +1,37 @@
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>{% block page_title %}Talena{% endblock %}</title>
+  <link href="{% static 'css/talena/error-pages.css' %}" rel="stylesheet" />
+</head>
+<body class="talena-error-page">
+  <div class="talena-error-shell">
+    <a href="/" class="talena-error-brand" aria-label="Talena">
+      <img src="{% static 'images/talena-logo.svg' %}" alt="Talena" />
+    </a>
+
+    <main class="talena-error-main">
+      <section class="talena-error-card" aria-labelledby="talenaErrorTitle">
+        <div class="talena-error-kicker">{% trans "Talena" %}</div>
+        <p class="talena-error-code" aria-hidden="true">{% block error_code %}{% endblock %}</p>
+        <h1 class="talena-error-title" id="talenaErrorTitle">{% block error_title %}{% endblock %}</h1>
+        <p class="talena-error-message">{% block error_message %}{% endblock %}</p>
+        <p class="talena-error-hint">{% block error_hint %}{% endblock %}</p>
+
+        <div class="talena-error-actions">
+          <a href="/" class="talena-error-button">{% trans "Back to Talena" %}</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="talena-error-footer">
+      {% trans "Talena · Assessment intelligence by Talent Qode" %}
+    </footer>
+  </div>
+</body>
+</html>

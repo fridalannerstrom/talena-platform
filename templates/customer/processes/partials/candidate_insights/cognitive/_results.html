@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <!-- COGNITIVE ASSESSMENT RESULTS -->
 {% if candidate_insights.cognitive_results %}
@@ -16,12 +17,16 @@
             <div class="cognitive-result-card__header">
               <div>
                 <h3 class="cognitive-result-card__title">
-                  {{ result.title }}
+                  {% if result.key == "logical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
+                  {% elif result.key == "numerical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
+                  {% elif result.key == "verbal" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
+                  {% else %}
+                    {{ result.title }}
+                  {% endif %}
                 </h3>
-
-                <div class="cognitive-result-card__subtitle">
-                  {% trans "Cognitive assessment" %}
-                </div>
               </div>
             </div>
 
@@ -89,12 +94,16 @@
             <div class="cognitive-result-card__header">
               <div>
                 <h3 class="cognitive-result-card__title">
-                  {{ result.title }}
+                  {% if result.key == "logical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
+                  {% elif result.key == "numerical" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
+                  {% elif result.key == "verbal" %}
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
+                  {% else %}
+                    {{ result.title }}
+                  {% endif %}
                 </h3>
-
-                <div class="cognitive-result-card__subtitle">
-                  {% trans "Cognitive assessment" %}
-                </div>
               </div>
             </div>
 
@@ -122,12 +131,6 @@
 
             <div class="cognitive-result-card__content">
 
-              {% if result.measure_label %}
-                <div class="cognitive-result-card__measure">
-                  {{ result.measure_label }}
-                </div>
-              {% endif %}
-
               {% if result.interpretation %}
                 <p class="cognitive-result-card__interpretation">
                   {{ result.interpretation }}
@@ -147,6 +150,316 @@
       {% endfor %}
 
     </div>
+
+    <!-- COLLAPSIBLE PERCENTILE GUIDE -->
+    <details class="purpose-fit-section mt-4 cognitive-percentile-guide">
+      <style>
+        .cognitive-percentile-guide {
+          overflow: hidden;
+        }
+
+        .cognitive-percentile-guide > summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          cursor: pointer;
+          list-style: none;
+          user-select: none;
+        }
+
+        .cognitive-percentile-guide > summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .cognitive-percentile-guide__summary-copy {
+          min-width: 0;
+        }
+
+        .cognitive-percentile-guide__summary-hint {
+          margin-top: 0.25rem;
+          color: var(--talena-text-muted);
+          font-size: 0.72rem;
+          line-height: 1.4;
+        }
+
+        .cognitive-percentile-guide__summary-hint--open {
+          display: none;
+        }
+
+        .cognitive-percentile-guide[open]
+        .cognitive-percentile-guide__summary-hint--closed {
+          display: none;
+        }
+
+        .cognitive-percentile-guide[open]
+        .cognitive-percentile-guide__summary-hint--open {
+          display: block;
+        }
+
+        .cognitive-percentile-guide__chevron {
+          position: relative;
+          flex: 0 0 auto;
+          width: 34px;
+          height: 34px;
+          border: 1px solid var(--talena-border);
+          border-radius: 10px;
+          background: #fff;
+          transition: transform 180ms ease;
+        }
+
+        .cognitive-percentile-guide__chevron::before {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 7px;
+          height: 7px;
+          border-right: 1.5px solid currentColor;
+          border-bottom: 1.5px solid currentColor;
+          transform: translate(-50%, -65%) rotate(45deg);
+        }
+
+        .cognitive-percentile-guide[open]
+        .cognitive-percentile-guide__chevron {
+          transform: rotate(180deg);
+        }
+
+        .cognitive-percentile-guide__content {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid var(--talena-border);
+        }
+
+        .cognitive-percentile-guide__intro {
+          max-width: 860px;
+          margin: 0 !important;
+        }
+
+        .cognitive-percentile-guide__levels {
+          margin-top: 0.9rem;
+          border-top: 1px solid var(--talena-border);
+        }
+
+        .cognitive-percentile-guide__level {
+          display: grid;
+          grid-template-columns: minmax(190px, 0.32fr) minmax(0, 0.68fr);
+          gap: 1.35rem;
+          align-items: start;
+          padding: 0.9rem 0;
+          border-bottom: 1px solid var(--talena-border);
+        }
+
+        .cognitive-percentile-guide__level:last-child {
+          padding-bottom: 0;
+          border-bottom: 0;
+        }
+
+        .cognitive-percentile-guide__level-title {
+          margin: 0 !important;
+          line-height: 1.4 !important;
+        }
+
+        .cognitive-percentile-guide__level-body {
+          min-width: 0;
+        }
+
+        .cognitive-percentile-guide__level-body > :first-child {
+          margin-top: 0 !important;
+        }
+
+        .cognitive-percentile-guide__level-body > :last-child {
+          margin-bottom: 0 !important;
+        }
+
+        .cognitive-percentile-guide .cognitive-percentile-guide__list {
+          display: grid;
+          gap: 0.18rem;
+          margin: 0.42rem 0 0 !important;
+          padding-left: 1.05rem !important;
+        }
+
+        .cognitive-percentile-guide .cognitive-percentile-guide__list li {
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1.45 !important;
+        }
+
+        .cognitive-percentile-guide__repeat-line {
+          margin-top: 0.55rem !important;
+          font-weight: 650;
+        }
+
+        @media (max-width: 720px) {
+          .cognitive-percentile-guide > summary {
+            align-items: flex-start;
+          }
+
+          .cognitive-percentile-guide__level {
+            grid-template-columns: 1fr;
+            gap: 0.35rem;
+            padding: 0.8rem 0;
+          }
+        }
+      </style>
+
+      <summary>
+        <div class="cognitive-percentile-guide__summary-copy">
+          <div class="insight-summary-kicker">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Percentilguide{% else %}Percentile guide{% endif %}
+          </div>
+
+          <h3 class="insight-summary-sub-title mb-0">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Så tolkar du percentiler
+            {% else %}
+              How to interpret percentiles
+            {% endif %}
+          </h3>
+
+          <div class="cognitive-percentile-guide__summary-hint cognitive-percentile-guide__summary-hint--closed">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Öppna guiden för att se hur olika percentilintervall kan tolkas.
+            {% else %}
+              Open the guide to see how different percentile ranges can be interpreted.
+            {% endif %}
+          </div>
+
+          <div class="cognitive-percentile-guide__summary-hint cognitive-percentile-guide__summary-hint--open">
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+              Stäng guiden
+            {% else %}
+              Close guide
+            {% endif %}
+          </div>
+        </div>
+
+        <span class="cognitive-percentile-guide__chevron" aria-hidden="true"></span>
+      </summary>
+
+      <div class="cognitive-percentile-guide__content">
+        <p class="purpose-fit-summary cognitive-percentile-guide__intro">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+            Percentilen visar hur kandidatens resultat förhåller sig till en referensgrupp. Använd nivåerna nedan som stöd för att förstå vilken grad av uppgiftskomplexitet resultatet ofta är tillräckligt för.
+          {% else %}
+            A percentile shows how the candidate's result compares with a reference group. Use the levels below as guidance when considering the level of task complexity the result is often sufficient for.
+          {% endif %}
+        </p>
+
+        <div class="cognitive-percentile-guide__levels">
+
+          <article class="cognitive-percentile-guide__level">
+            <div class="purpose-fit-section-title cognitive-percentile-guide__level-title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 1–19:e percentilen{% else %}≈ 1st–19th percentile{% endif %}
+            </div>
+
+            <div class="cognitive-percentile-guide__level-body">
+              <p class="purpose-fit-summary mb-0">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  innebär troligen att det tar längre tid för kandidaten att lösa denna uppgift och ifall uppgiften är mer komplex kan det innebära en utmaning
+                {% else %}
+                  likely means that the candidate needs more time to solve this task and, if the task is more complex, it may present a challenge.
+                {% endif %}
+              </p>
+            </div>
+          </article>
+
+          <article class="cognitive-percentile-guide__level">
+            <div class="purpose-fit-section-title cognitive-percentile-guide__level-title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 20–40:e percentilen{% else %}≈ 20th–40th percentile{% endif %}
+            </div>
+
+            <div class="cognitive-percentile-guide__level-body">
+              <p class="purpose-fit-summary mb-0">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  är ofta tillräcklig för <strong>mindre komplexa arbetsuppgifter,</strong> vilket kan innebära:
+                {% else %}
+                  is often sufficient for <strong>less complex work tasks,</strong> which may include:
+                {% endif %}
+              </p>
+              <ul class="purpose-fit-summary cognitive-percentile-guide__list">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  <li>Följa etablerade rutiner eller instruktioner</li>
+                  <li>Utföra återkommande och förutsägbara aktiviteter</li>
+                  <li>Arbeta med konkret och tydlig information</li>
+                  <li>Begränsat behov av problemlösning eller beslutsfattande</li>
+                {% else %}
+                  <li>Following established routines or instructions</li>
+                  <li>Performing recurring and predictable activities</li>
+                  <li>Working with concrete and clear information</li>
+                  <li>Limited need for problem-solving or decision-making</li>
+                {% endif %}
+              </ul>
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                <p class="purpose-fit-summary cognitive-percentile-guide__repeat-line">≈ 20–40:e percentilen är ofta tillräcklig</p>
+              {% endif %}
+            </div>
+          </article>
+
+          <article class="cognitive-percentile-guide__level">
+            <div class="purpose-fit-section-title cognitive-percentile-guide__level-title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 40–60:e percentilen{% else %}≈ 40th–60th percentile{% endif %}
+            </div>
+
+            <div class="cognitive-percentile-guide__level-body">
+              <p class="purpose-fit-summary mb-0">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  är ofta tillräcklig för <strong>relativt komplexa arbetsuppgifter,</strong> vilket kan innebära:
+                {% else %}
+                  is often sufficient for <strong>relatively complex work tasks,</strong> which may include:
+                {% endif %}
+              </p>
+              <ul class="purpose-fit-summary cognitive-percentile-guide__list">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  <li>Viss grad av problemlösning eller felsökning</li>
+                  <li>Anpassa sig till förändrade situationer eller ny information</li>
+                  <li>Fatta beslut med måttliga konsekvenser</li>
+                  <li>Bearbeta och koppla samman flera informationsdelar</li>
+                {% else %}
+                  <li>Some degree of problem-solving or troubleshooting</li>
+                  <li>Adapting to changing situations or new information</li>
+                  <li>Making decisions with moderate consequences</li>
+                  <li>Processing and connecting several pieces of information</li>
+                {% endif %}
+              </ul>
+            </div>
+          </article>
+
+          <article class="cognitive-percentile-guide__level">
+            <div class="purpose-fit-section-title cognitive-percentile-guide__level-title">
+              {% if LANGUAGE_CODE|slice:":2" == "sv" %}≈ 60:e percentilen (och uppåt){% else %}≈ 60th percentile (and above){% endif %}
+            </div>
+
+            <div class="cognitive-percentile-guide__level-body">
+              <p class="purpose-fit-summary mb-0">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  är ofta tillräcklig för <strong>mer komplexa arbetsuppgifter,</strong> vilket kan innebära:
+                {% else %}
+                  is often sufficient for <strong>more complex work tasks,</strong> which may include:
+                {% endif %}
+              </p>
+              <ul class="purpose-fit-summary cognitive-percentile-guide__list">
+                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                  <li>Analysera abstrakt eller tvetydig information</li>
+                  <li>Strategiskt tänkande och planering</li>
+                  <li>Lösa nya eller oförutsägbara problem</li>
+                  <li>Fatta beslut med stora och betydande konsekvenser</li>
+                  <li>Snabbt lära sig och tillämpa nya koncept</li>
+                {% else %}
+                  <li>Analysing abstract or ambiguous information</li>
+                  <li>Strategic thinking and planning</li>
+                  <li>Solving new or unpredictable problems</li>
+                  <li>Making decisions with major and significant consequences</li>
+                  <li>Quickly learning and applying new concepts</li>
+                {% endif %}
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </details>
+    <!-- /COLLAPSIBLE PERCENTILE GUIDE -->
 
     <div class="small text-muted border-top pt-3 mt-4">
       {% blocktrans trimmed %}

@@ -1,0 +1,540 @@
+/* =========================================================
+   TALENA LAYOUT
+   ---------------------------------------------------------
+   Shared layout primitives and the refreshed customer
+   application shell. Legacy style.css still owns untouched
+   product areas while screens are migrated incrementally.
+   ========================================================= */
+
+.talena-page {
+  width: 100%;
+}
+
+.talena-page-inner {
+  width: min(100%, var(--talena-content-max));
+  margin-inline: auto;
+}
+
+.talena-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.talena-stack--sm {
+  gap: 0.625rem;
+}
+
+.talena-stack--lg {
+  gap: 1.5rem;
+}
+
+.talena-cluster {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.talena-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.talena-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.talena-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+
+/* =========================================================
+   CUSTOMER APPLICATION SHELL
+   ========================================================= */
+
+body.nav-fixed {
+  background: var(--talena-bg);
+  color: var(--talena-text);
+}
+
+#layoutSidenav_content {
+  background: var(--talena-bg);
+}
+
+#layoutSidenav_content > main {
+  min-height: calc(100vh - 64px);
+  background:
+    radial-gradient(
+      circle at 88% 5%,
+      rgba(255, 111, 97, 0.025),
+      transparent 24rem
+    ),
+    var(--talena-bg);
+}
+
+#layoutSidenav_content > main > .container-xl {
+  width: 100%;
+  max-width: var(--talena-content-max);
+}
+
+
+/* =========================================================
+   TOP NAVIGATION
+   ========================================================= */
+
+.talena-topnav {
+  min-height: 64px;
+  padding-inline: 1.5rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.talena-topnav .talena-global-search-form {
+  margin: 0;
+}
+
+.talena-topnav .nav-search {
+  width: min(320px, 28vw);
+}
+
+.talena-topnav .nav-search .form-control {
+  min-height: 38px;
+  padding-left: 2.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text);
+  font-size: 0.78rem;
+  box-shadow: none;
+  transition:
+    background-color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.talena-topnav .nav-search .form-control::placeholder {
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .nav-search .form-control:hover {
+  border-color: var(--talena-border);
+  background: #fff;
+}
+
+.talena-topnav .nav-search .form-control:focus {
+  border-color: rgba(255, 111, 97, 0.38);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 111, 97, 0.07);
+}
+
+.talena-topnav .nav-search-icon {
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .talena-topnav-actions {
+  gap: 0.5rem;
+}
+
+.talena-header-icon-button {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--talena-text-muted);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-header-icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.talena-mobile-search-menu {
+  width: min(320px, calc(100vw - 2rem));
+  padding: 0.75rem;
+}
+
+
+/* Language control */
+
+.talena-topnav .talena-language-trigger {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 6px 11px;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #fff;
+  color: var(--talena-text);
+  box-shadow: var(--talena-shadow-xs);
+  transition:
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+.talena-topnav .talena-language-trigger:hover,
+.talena-topnav .talena-language-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.28);
+  background: var(--talena-surface-warm);
+  box-shadow: var(--talena-shadow-sm);
+}
+
+.talena-topnav .talena-language-current-label {
+  color: var(--talena-text);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.talena-topnav .talena-language-chevron {
+  display: inline-flex;
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .talena-language-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.talena-topnav .talena-language-flag {
+  width: 18px;
+  height: auto;
+  display: block;
+}
+
+.talena-topnav .talena-language-menu,
+.talena-topnav .talena-user-menu,
+.talena-topnav #globalSearchDropdown,
+.talena-topnav .talena-mobile-search-menu {
+  margin-top: 0.55rem;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: var(--talena-radius-lg);
+  background: #fff;
+  box-shadow: var(--talena-shadow-md) !important;
+  overflow: hidden;
+}
+
+.talena-topnav .talena-language-menu {
+  min-width: 190px;
+  padding: 0.45rem;
+}
+
+.talena-topnav .talena-language-menu-label {
+  padding: 0.45rem 0.6rem 0.35rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.talena-topnav .talena-language-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border: 0;
+  border-radius: var(--talena-radius-sm);
+  background: transparent;
+  color: var(--talena-text);
+  text-align: left;
+}
+
+.talena-topnav .talena-language-option:hover {
+  background: var(--talena-surface-soft);
+}
+
+.talena-topnav .talena-language-option.is-active {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-topnav .talena-language-option-copy {
+  flex: 1;
+}
+
+.talena-topnav .talena-language-option-name {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.talena-topnav .talena-language-option-check {
+  color: var(--talena-coral-strong);
+  font-weight: 800;
+}
+
+
+/* User control */
+
+.talena-user-trigger {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  padding: 2px;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--talena-text);
+  box-shadow: var(--talena-shadow-xs);
+  transition:
+    border-color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.talena-user-trigger::after {
+  display: none;
+}
+
+.talena-user-trigger:hover,
+.talena-user-trigger[aria-expanded="true"] {
+  border-color: rgba(255, 111, 97, 0.32);
+  background: var(--talena-surface-warm);
+  box-shadow: var(--talena-shadow-sm);
+}
+
+.talena-header-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.talena-header-avatar--fallback {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.73rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.talena-topnav .talena-user-menu {
+  width: 270px;
+  padding: 0.45rem;
+}
+
+.talena-user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.65rem;
+}
+
+.talena-user-menu-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.talena-user-menu-copy {
+  min-width: 0;
+}
+
+.talena-user-menu-name {
+  overflow: hidden;
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talena-user-menu-email {
+  margin-top: 0.15rem;
+  overflow: hidden;
+  color: var(--talena-text-subtle);
+  font-size: 0.69rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talena-topnav .dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: var(--talena-radius-sm);
+  background: transparent;
+  color: var(--talena-text);
+  font-size: 0.78rem;
+}
+
+.talena-topnav .dropdown-menu .dropdown-item:hover,
+.talena-topnav .dropdown-menu .dropdown-item:focus {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink);
+}
+
+.talena-topnav .dropdown-item-icon {
+  width: 1.3rem;
+  margin-right: 0.45rem;
+  color: var(--talena-text-subtle);
+}
+
+.talena-topnav .dropdown-item-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.talena-sidebar {
+  border-right: 1px solid var(--talena-border);
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.talena-sidebar .talena-sidebar-brand {
+  display: flex;
+  align-items: center;
+  min-height: 72px;
+  padding: 0 1.25rem;
+}
+
+.talena-sidebar .talena-brand-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.talena-sidebar .talena-sidebar-logo {
+  display: block;
+  width: 108px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.talena-sidebar .sidenav-menu {
+  padding-top: 0.45rem;
+}
+
+.talena-sidebar .sidenav-menu-heading {
+  margin: 0;
+  padding: 1.35rem 1.25rem 0.45rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.61rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.talena-sidebar .sidebar-link {
+  min-height: 42px;
+  margin: 2px 0.65rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 11px;
+  color: #5f5955 !important;
+  font-size: 0.79rem;
+  font-weight: 550;
+  transition:
+    color var(--talena-transition-fast),
+    background-color var(--talena-transition-fast),
+    transform var(--talena-transition-fast);
+}
+
+.talena-sidebar .sidebar-link:hover {
+  background: var(--talena-surface-soft);
+  color: var(--talena-ink) !important;
+}
+
+.talena-sidebar .sidebar-link.active {
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-ink) !important;
+  font-weight: 650;
+}
+
+.talena-sidebar .sidebar-link .nav-link-icon {
+  width: 1.35rem;
+  margin-right: 0.55rem;
+  color: #aaa19b !important;
+  transition: color var(--talena-transition-fast);
+}
+
+.talena-sidebar .sidebar-link .nav-link-icon svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.8;
+}
+
+.talena-sidebar .sidebar-link:hover .nav-link-icon {
+  color: var(--talena-text) !important;
+}
+
+.talena-sidebar .sidebar-link.active .nav-link-icon {
+  color: var(--talena-coral) !important;
+}
+
+.talena-sidebar .talena-sidebar-footer {
+  border-top: 1px solid var(--talena-border);
+  background: #fff;
+}
+
+.talena-sidebar .sidenav-footer-subtitle {
+  color: var(--talena-text-subtle);
+}
+
+.talena-sidebar .sidenav-footer-title {
+  color: var(--talena-text);
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   SHARED SHELL DETAILS
+   ========================================================= */
+
+.talena-topnav .dropdown-divider,
+.talena-sidebar .dropdown-divider {
+  border-color: var(--talena-border);
+}
+
+.talena-topnav .search-tag {
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .talena-grid--2,
+  .talena-grid--3 {
+    grid-template-columns: 1fr;
+  }
+
+  .talena-topnav {
+    padding-inline: 0.85rem;
+  }
+
+  .talena-topnav .talena-language-current-label {
+    display: none;
+  }
+}

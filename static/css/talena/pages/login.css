@@ -1,0 +1,622 @@
+/* =========================================================
+   TALENA LOGIN
+   New brand experience
+   ========================================================= */
+
+.talena-login {
+  --login-max-width: 430px;
+}
+
+
+/* =========================================================
+   SHELL
+   ========================================================= */
+
+.talena-login .auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(520px, 0.96fr) minmax(600px, 1.04fr);
+
+  background: var(--talena-surface);
+}
+
+
+/* =========================================================
+   LEFT
+   ========================================================= */
+
+.talena-login .auth-left {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  padding: 34px 46px 46px;
+
+  background:
+    radial-gradient(
+      circle at 5% 100%,
+      rgba(255, 111, 97, 0.035),
+      transparent 30%
+    ),
+    #fff;
+}
+
+
+/* Topbar */
+
+.talena-login .registration-topbar {
+  width: 100%;
+}
+
+.talena-login .brand-logo {
+  width: 126px;
+  height: auto;
+}
+
+
+/* Login content */
+
+.talena-login .auth-card {
+  width: min(var(--login-max-width), 100%);
+  margin: auto;
+}
+
+.talena-login .auth-title {
+  margin: 0 0 10px;
+
+  color: var(--talena-ink);
+
+  font-family: inherit;
+  font-size: clamp(2rem, 3vw, 2.45rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.talena-login .auth-subtitle {
+  margin: 0 0 30px;
+
+  color: var(--talena-text-muted);
+
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.talena-login .auth-form {
+  margin-top: 0;
+}
+
+.talena-login .field {
+  margin-bottom: 18px;
+}
+
+.talena-login .label {
+  margin-bottom: 8px;
+
+  color: var(--talena-text);
+
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.talena-login .input {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 15px;
+
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+
+  background: #fbfaf9;
+
+  color: var(--talena-text);
+
+  font-family: inherit;
+  font-size: 0.88rem;
+
+  box-shadow: none;
+
+  transition:
+    background-color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast);
+}
+
+.talena-login .input:hover {
+  border-color: var(--talena-border-strong);
+}
+
+.talena-login .input:focus {
+  outline: none;
+
+  border-color: rgba(255, 111, 97, 0.62);
+  background: #fff;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 111, 97, 0.09);
+}
+
+
+/* Primary CTA */
+
+.talena-login .btn {
+  width: 100%;
+  height: 50px;
+
+  margin-top: 6px;
+
+  border: 1px solid var(--talena-ink);
+  border-radius: 999px;
+
+  background: var(--talena-ink);
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 650;
+
+  box-shadow:
+    0 10px 26px rgba(23, 19, 18, 0.12);
+
+  transition:
+    transform var(--talena-transition-fast),
+    box-shadow var(--talena-transition-fast),
+    background-color var(--talena-transition-fast);
+}
+
+.talena-login .btn:hover {
+  background: #000;
+  filter: none;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 14px 32px rgba(23, 19, 18, 0.16);
+}
+
+.talena-login .btn:active {
+  transform: translateY(0);
+}
+
+
+/* Footer */
+
+.talena-login .auth-foot {
+  margin-top: 17px;
+
+  color: var(--talena-text-muted);
+
+  font-size: 0.74rem;
+}
+
+.talena-login .link {
+  color: var(--talena-ink);
+  font-weight: 650;
+
+  text-decoration-color: rgba(23, 19, 18, 0.28);
+}
+
+.talena-login .link:hover {
+  color: var(--talena-coral);
+}
+
+
+/* =========================================================
+   LANGUAGE SWITCHER
+   ========================================================= */
+
+.talena-login .registration-language-trigger {
+  min-height: 42px;
+
+  padding: 7px 13px;
+
+  border-color: var(--talena-border);
+  background: rgba(255, 255, 255, 0.9);
+
+  color: var(--talena-text);
+
+  box-shadow:
+    0 5px 18px rgba(23, 19, 18, 0.05);
+}
+
+.talena-login .registration-language-trigger:hover {
+  border-color: rgba(255, 111, 97, 0.35);
+
+  box-shadow:
+    0 8px 22px rgba(23, 19, 18, 0.07);
+}
+
+.talena-login .registration-language-menu {
+  border-color: var(--talena-border);
+  border-radius: 16px;
+
+  box-shadow: var(--talena-shadow-lg);
+}
+
+.talena-login .registration-language-option.is-active {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-dark);
+}
+
+
+/* =========================================================
+   RIGHT BRAND PANEL
+   ========================================================= */
+
+.talena-login .auth-right {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 16px 16px 16px 0;
+  padding: 64px;
+
+  overflow: hidden;
+
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(255, 111, 97, 0.26),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(201, 149, 78, 0.10),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #171312 0%,
+      #1d1715 52%,
+      #261916 100%
+    );
+}
+
+
+/* Soft graphic glow */
+
+.talena-login .auth-right::before {
+  content: "";
+
+  position: absolute;
+  top: -120px;
+  right: -140px;
+
+  width: 500px;
+  height: 500px;
+
+  border: 1px solid rgba(255, 111, 97, 0.11);
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+.talena-login .auth-right::after {
+  content: "";
+
+  position: absolute;
+  right: -30px;
+  bottom: -250px;
+
+  width: 560px;
+  height: 560px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 111, 97, 0.045);
+  filter: blur(20px);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   RIGHT CONTENT
+   ========================================================= */
+
+.login-showcase {
+  position: relative;
+  z-index: 1;
+
+  width: min(580px, 100%);
+}
+
+.login-showcase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 26px;
+  padding: 8px 13px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.045);
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.login-showcase-badge::before {
+  content: "";
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--talena-coral);
+
+  box-shadow:
+    0 0 0 5px rgba(255, 111, 97, 0.10);
+}
+
+.login-showcase-title {
+  max-width: 520px;
+  margin: 0;
+
+  color: #fff;
+
+  font-size: clamp(2.5rem, 4.2vw, 4.4rem);
+  font-weight: 680;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.login-showcase-title span {
+  display: block;
+
+  margin-top: 8px;
+
+  color: var(--talena-coral);
+}
+
+.login-showcase-copy {
+  max-width: 480px;
+
+  margin: 26px 0 0;
+
+  color: rgba(255, 255, 255, 0.56);
+
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+
+/* Small product card */
+
+.login-showcase-card {
+  margin-top: 42px;
+  padding: 20px;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.055);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.login-showcase-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.login-showcase-card-title {
+  color: #fff;
+
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.login-showcase-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  color: rgba(255, 255, 255, 0.45);
+
+  font-size: 0.67rem;
+}
+
+.login-showcase-status::before {
+  content: "";
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+  background: var(--talena-success);
+}
+
+.login-showcase-signals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.login-showcase-signal {
+  padding: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.login-showcase-signal-label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: rgba(255, 255, 255, 0.40);
+
+  font-size: 0.62rem;
+}
+
+.login-showcase-signal-value {
+  color: rgba(255, 255, 255, 0.87);
+
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   ERRORS
+   ========================================================= */
+
+.talena-login .alert {
+  border-color: rgba(196, 82, 73, 0.2);
+  border-radius: 12px;
+
+  background: #fff3f1;
+  color: #9c413a;
+}
+
+.talena-login .has-error .input {
+  border-color: rgba(196, 82, 73, 0.45);
+  background: #fffafa;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .talena-login .auth-shell {
+    grid-template-columns: minmax(480px, 1fr) 0.85fr;
+  }
+
+  .talena-login .auth-right {
+    padding: 44px;
+  }
+
+  .login-showcase-signals {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 900px) {
+
+  .talena-login .auth-shell {
+    display: block;
+  }
+
+  .talena-login .auth-left {
+    min-height: 100vh;
+    padding: 28px;
+  }
+
+  .talena-login .auth-right {
+    display: none;
+  }
+
+  .talena-login .auth-card {
+    margin: auto;
+  }
+}
+
+
+@media (max-width: 520px) {
+
+  .talena-login .auth-left {
+    padding: 22px 20px;
+  }
+
+  .talena-login .brand-logo {
+    width: 112px;
+  }
+}
+
+/* =========================================================
+   PERSONAL WELCOME CARD
+   ========================================================= */
+
+.login-welcome-card {
+  margin-top: 40px;
+  padding: 22px 24px;
+}
+
+.login-welcome-card-top {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.login-welcome-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: 13px;
+
+  background: rgba(255, 111, 97, 0.08);
+
+  font-size: 18px;
+}
+
+.login-welcome-card-copy {
+  max-width: 430px;
+
+  margin: 7px 0 0;
+
+  color: rgba(255, 255, 255, 0.48);
+
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.login-welcome-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-top: 20px;
+  padding-top: 15px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+
+  color: rgba(255, 255, 255, 0.34);
+
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.login-welcome-dot {
+  width: 3px;
+  height: 3px;
+
+  border-radius: 50%;
+  background: var(--talena-coral);
+}

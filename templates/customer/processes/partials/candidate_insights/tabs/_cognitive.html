@@ -1,4 +1,5 @@
-{% load i18n %}
+{% load i18n interview_config %}
+{% interview_section_meta "cognitive" as cognitive_interview_meta %}
 {# Talena candidate i18n batch 1 #}
 {% trans "No cognitive assessment results available" as no_cognitive_title %}
 {% trans "Cognitive assessments could provide additional evidence about performance on specific reasoning and problem-solving tasks." as no_cognitive_description %}
@@ -102,7 +103,6 @@
   >
 
     <section
-      class="purpose-fit-card cognitive-ai-card"
       data-cognitive-interpretation-root
       data-stream-url="{{ cognitive_interpretation_stream_url }}"
       data-regenerate-url="{{ cognitive_interpretation_regenerate_url }}"
@@ -111,12 +111,14 @@
     >
 
       <!-- INTERPRETATION HEADER -->
-      <div class="cognitive-ai-header mb-4">
+      <div
+        class="d-flex align-items-start justify-content-between gap-3 flex-wrap"
+      >
 
         <div>
 
-          <div class="insight-summary-kicker mt-4">
-            ✨ {% trans "AI-generated insight" %}
+          <div class="insight-summary-kicker">
+            {% trans "AI-generated insight" %}
           </div>
 
           <h2 class="insight-summary-title mb-1">
@@ -174,7 +176,7 @@
         data-cognitive-interpretation-thinking
       >
 
-        <div class="d-flex align-items-center gap-2 text-muted py-3">
+        <div class="d-flex align-items-center gap-2 text-muted py-4">
 
           <span
             class="spinner-border spinner-border-sm"
@@ -224,7 +226,6 @@
   >
 
 <section
-  class="purpose-fit-card cognitive-questions-card"
   data-cognitive-questions-root
   data-stream-url="{{ cognitive_questions_stream_url }}"
   data-regenerate-url="{{ cognitive_questions_regenerate_url }}"
@@ -233,7 +234,7 @@
 >
 
   <!-- QUESTIONS HEADER -->
-  <div class="cognitive-ai-header mb-4">
+  <div class="personality-questions-header mt-4">
 
     <div>
 
@@ -253,6 +254,11 @@
 
 
     <div class="d-flex align-items-center gap-2">
+
+      <span class="personality-trait-pill text-nowrap">
+        <i data-feather="clock"></i>
+        ~ {{ cognitive_interview_meta.estimated_minutes }} min
+      </span>
 
       <span
         class="
@@ -328,6 +334,7 @@
     class="{% if not cognitive_questions.questions %}d-none{% endif %}"
     data-cognitive-questions-content
   >
+    {% include "customer/processes/partials/candidate_insights/_interview_guidance.html" with interview_meta=cognitive_interview_meta %}
     {% include "customer/processes/partials/candidate_insights/cognitive/_questions.html" %}
   </div>
 

@@ -2,7 +2,19 @@
 {% load static i18n %}
 {% load dict_extras %}
 
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/process-settings.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/talena/process-settings.js' %}" defer></script>
+{% endblock %}
+
 {% block process_content %}
+<div
+  class="process-settings-page"
+  data-template-locked="{{ template_locked|yesno:'true,false' }}"
+>
 
   {% if error %}
     <div class="alert alert-danger">
@@ -23,13 +35,13 @@
       <div class="card process-section-card">
 
         <div class="card-header bg-white py-3 px-4">
-<div class="fw-semibold">
-  {% trans "Process settings" %}
-</div>
+          <div class="fw-semibold">
+            {% trans "Process settings" %}
+          </div>
 
-<div class="text-muted small">
-  {% trans "Update the process details, purpose and selected assessments." %}
-</div>
+          <div class="text-muted small">
+            {% trans "Update the process details, purpose and selected assessments." %}
+          </div>
         </div>
 
         <div class="card-body p-4">
@@ -45,12 +57,9 @@
 
             <!-- Name -->
             <div class="mb-4">
-              <label
-  class="form-label"
-  for="{{ form.name.id_for_label }}"
->
-  {% trans "Name" %}
-</label>
+              <label class="form-label" for="{{ form.name.id_for_label }}">
+                {% trans "Name" %}
+              </label>
 
               {{ form.name }}
 
@@ -63,22 +72,15 @@
 
             <!-- Labels -->
             <div class="mb-4">
-<label
-  class="form-label"
-  for="{{ form.labels_text.id_for_label }}"
->
-  {% trans "Labels" %}
-  <span class="text-muted">
-    {% trans "(optional)" %}
-  </span>
-</label>
+              <label class="form-label" for="{{ form.labels_text.id_for_label }}">
+                {% trans "Labels" %}
+                <span class="text-muted">{% trans "(optional)" %}</span>
+              </label>
 
               {{ form.labels_text }}
 
               {% if form.labels_text.help_text %}
-                <div class="form-text">
-                  {{ form.labels_text.help_text }}
-                </div>
+                <div class="form-text">{{ form.labels_text.help_text }}</div>
               {% endif %}
 
               {% if form.labels_text.errors %}
@@ -93,31 +95,24 @@
 
               <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
                 <div>
-<div class="fw-semibold">
-  {% trans "Assessment setup" %}
-</div>
-
-<div class="text-muted small">
-  {% trans "Choose the purpose and the assessments that should be included in this process." %}
-</div>
+                  <div class="fw-semibold">{% trans "Assessment setup" %}</div>
+                  <div class="text-muted small">
+                    {% trans "Choose the purpose and the assessments that should be included in this process." %}
+                  </div>
                 </div>
               </div>
 
               <!-- Purpose -->
               <div class="mb-4">
-<label class="form-label">
-  {% trans "Purpose" %}
-</label>
+                <label class="form-label">{% trans "Purpose" %}</label>
 
-<div class="text-muted small mb-3">
-  {% trans "Changing the purpose updates how Talena interprets and presents candidate results. It does not change assessments already sent." %}
-</div>
+                <div class="text-muted small mb-3">
+                  {% trans "Changing the purpose updates how Talena interprets and presents candidate results. It does not change assessments already sent." %}
+                </div>
 
                 <div class="template-select" role="radiogroup">
-
                   {% for purpose in process_purposes %}
                     <label class="template-option">
-
                       <input
                         class="template-radio js-purpose-radio"
                         type="radio"
@@ -128,36 +123,26 @@
                       >
 
                       <span class="template-card process-edit">
-
                         <span class="template-card-main">
-
                           <span class="template-icon">
                             <i class="fa-solid fa-bullseye"></i>
                           </span>
 
                           <span class="template-text">
-
                             <span class="template-title">
                               {{ purpose.title|default:purpose.label|default:purpose.key }}
                             </span>
 
                             {% if purpose.description %}
-                              <span class="template-description">
-                                {{ purpose.description }}
-                              </span>
+                              <span class="template-description">{{ purpose.description }}</span>
                             {% endif %}
-
                           </span>
                         </span>
 
-                        <span class="template-check">
-                          <i data-feather="check"></i>
-                        </span>
-
+                        <span class="template-check"><i data-feather="check"></i></span>
                       </span>
                     </label>
                   {% endfor %}
-
                 </div>
 
                 {% if form.purpose.errors %}
@@ -167,58 +152,31 @@
                 {% endif %}
               </div>
 
-
               <!-- Selected assessments -->
               <div class="mb-4">
-
-<label class="form-label">
-  {% trans "Selected assessments" %}
-</label>
+                <label class="form-label">{% trans "Selected assessments" %}</label>
 
                 {% if template_locked %}
-<div class="text-muted small mb-3">
-  {% trans "The assessment selection cannot be changed because assessments have already been sent in this process." %}
-</div>
-                {% endif %}
-
-                
-                            {% if template_locked %}
-                <div class="alert alert-warning d-flex align-items-start gap-2">
-                  <div style="font-size: 1.2rem; line-height: 1;">
-                    🔒
+                  <div class="text-muted small mb-3">
+                    {% trans "The assessment selection cannot be changed because assessments have already been sent in this process." %}
                   </div>
 
-<div>
-  <strong>
-    {% trans "The selected assessments are locked." %}
-  </strong>
+                  <div class="alert alert-warning d-flex align-items-start gap-2">
+                    <div class="process-settings-lock-icon" aria-hidden="true">🔒</div>
+                    <div>
+                      <strong>{% trans "The selected assessments are locked." %}</strong><br>
+                      {% trans "You can still update the process name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
+                    </div>
+                  </div>
 
-  <br>
-
-  {% trans "You can still update the process name, labels and purpose. Changing the purpose updates how Talena interprets and presents candidate reports, but the assessments already sent will remain unchanged." %}
-</div>
-                </div>
-
-                <!--
-                  Disabled checkbox fields are not included in POST requests.
-                  These hidden fields preserve the current assessment selection.
-                -->
-                {% for value in process.selected_tests %}
-                  <input
-                    type="hidden"
-                    name="selected_tests"
-                    value="{{ value }}"
-                  >
-                {% endfor %}
-              {% endif %}
+                  {% for value in process.selected_tests %}
+                    <input type="hidden" name="selected_tests" value="{{ value }}">
+                  {% endfor %}
+                {% endif %}
 
                 <div class="template-select" role="group">
-
                   {% for test in available_tests %}
-                    <label
-                      class="template-option {% if template_locked %}is-disabled{% endif %}"
-                    >
-
+                    <label class="template-option {% if template_locked %}is-disabled{% endif %}">
                       <input
                         class="template-radio js-test-checkbox"
                         type="checkbox"
@@ -229,36 +187,26 @@
                       >
 
                       <span class="template-card process-edit">
-
                         <span class="template-card-main">
-
                           <span class="template-icon">
                             <i class="{{ test.icon_class|default:'fa-solid fa-chart-simple' }}"></i>
                           </span>
 
                           <span class="template-text">
-
                             <span class="template-title">
                               {{ test.title|default:test.label|default:test.key }}
                             </span>
 
                             {% if test.description %}
-                              <span class="template-description">
-                                {{ test.description }}
-                              </span>
+                              <span class="template-description">{{ test.description }}</span>
                             {% endif %}
-
                           </span>
                         </span>
 
-                        <span class="template-check">
-                          <i data-feather="check"></i>
-                        </span>
-
+                        <span class="template-check"><i data-feather="check"></i></span>
                       </span>
                     </label>
                   {% endfor %}
-
                 </div>
 
                 {% if form.selected_tests.errors %}
@@ -268,138 +216,85 @@
                 {% endif %}
 
                 {% if not template_locked %}
-<div class="form-text mt-2">
-  {% trans "Tip: choose a purpose first, then adjust the assessments if needed." %}
-</div>
+                  <div class="form-text mt-2">
+                    {% trans "Tip: choose a purpose first, then adjust the assessments if needed." %}
+                  </div>
                 {% endif %}
               </div>
 
               <!-- Candidate language -->
-<div class="mb-4">
+              <div class="mb-4">
+                <label class="form-label">{% trans "Candidate language" %}</label>
 
-  <label class="form-label">
-    {% trans "Candidate language" %}
-  </label>
+                <div class="text-muted small mb-3">
+                  {% trans "Choose the language used for candidate invitations and assessments. Changing the language only affects future invitations; assessments already sent are not changed." %}
+                </div>
 
-  <div class="text-muted small mb-3">
-    {% trans "Choose the language used for candidate invitations and assessments. Changing the language only affects future invitations; assessments already sent are not changed." %}
-  </div>
+                <div class="template-select" role="radiogroup">
+                  <label class="template-option">
+                    <input
+                      class="template-radio"
+                      type="radio"
+                      name="{{ form.candidate_language.html_name }}"
+                      value="sv"
+                      {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}
+                    >
 
-  <div class="template-select" role="radiogroup">
+                    <span class="template-card process-edit">
+                      <span class="template-card-main">
+                        <span class="template-icon"><strong>SV</strong></span>
+                        <span class="template-text">
+                          <span class="template-title">{% trans "Swedish" %}</span>
+                          <span class="template-description">
+                            {% trans "Invitation and assessments in Swedish" %}
+                          </span>
+                        </span>
+                      </span>
+                      <span class="template-check"><i data-feather="check"></i></span>
+                    </span>
+                  </label>
 
-    <!-- Swedish -->
-    <label class="template-option">
+                  <label class="template-option">
+                    <input
+                      class="template-radio"
+                      type="radio"
+                      name="{{ form.candidate_language.html_name }}"
+                      value="en"
+                      {% if form.candidate_language.value == "en" %}checked{% endif %}
+                    >
 
-      <input
-        class="template-radio"
-        type="radio"
-        name="{{ form.candidate_language.html_name }}"
-        value="sv"
-        {% if form.candidate_language.value == "sv" or not form.candidate_language.value %}checked{% endif %}
-      >
+                    <span class="template-card process-edit">
+                      <span class="template-card-main">
+                        <span class="template-icon"><strong>EN</strong></span>
+                        <span class="template-text">
+                          <span class="template-title">{% trans "English" %}</span>
+                          <span class="template-description">
+                            {% trans "Invitation and assessments in English" %}
+                          </span>
+                        </span>
+                      </span>
+                      <span class="template-check"><i data-feather="check"></i></span>
+                    </span>
+                  </label>
+                </div>
 
-      <span class="template-card process-edit">
-
-        <span class="template-card-main">
-
-          <span class="template-icon">
-            <strong>SV</strong>
-          </span>
-
-          <span class="template-text">
-
-            <span class="template-title">
-              {% trans "Swedish" %}
-            </span>
-
-            <span class="template-description">
-              {% trans "Invitation and assessments in Swedish" %}
-            </span>
-
-          </span>
-
-        </span>
-
-        <span class="template-check">
-          <i data-feather="check"></i>
-        </span>
-
-      </span>
-
-    </label>
-
-
-    <!-- English -->
-    <label class="template-option">
-
-      <input
-        class="template-radio"
-        type="radio"
-        name="{{ form.candidate_language.html_name }}"
-        value="en"
-        {% if form.candidate_language.value == "en" %}checked{% endif %}
-      >
-
-      <span class="template-card process-edit">
-
-        <span class="template-card-main">
-
-          <span class="template-icon">
-            <strong>EN</strong>
-          </span>
-
-          <span class="template-text">
-
-            <span class="template-title">
-              {% trans "English" %}
-            </span>
-
-            <span class="template-description">
-              {% trans "Invitation and assessments in English" %}
-            </span>
-
-          </span>
-
-        </span>
-
-        <span class="template-check">
-          <i data-feather="check"></i>
-        </span>
-
-      </span>
-
-    </label>
-
-  </div>
-
-  {% if form.candidate_language.errors %}
-    <div class="text-danger small mt-2">
-      {{ form.candidate_language.errors|striptags }}
-    </div>
-  {% endif %}
-
-</div>
-
+                {% if form.candidate_language.errors %}
+                  <div class="text-danger small mt-2">
+                    {{ form.candidate_language.errors|striptags }}
+                  </div>
+                {% endif %}
+              </div>
             </div>
 
             <div class="d-flex align-items-center gap-2 mt-4">
+              <button class="btn btn-primary" type="submit">
+                {% trans "Save changes" %}
+              </button>
 
-<button
-  class="btn btn-primary"
-  type="submit"
->
-  {% trans "Save changes" %}
-</button>
-
-              <a
-                class="btn btn-outline-secondary"
-                href="{% url 'processes:process_detail' process.id %}"
-              >
+              <a class="btn btn-outline-secondary" href="{% url 'processes:process_detail' process.id %}">
                 {% trans "Cancel" %}
               </a>
-
             </div>
-
           </form>
         </div>
       </div>
@@ -407,104 +302,37 @@
 
     <!-- RIGHT: Help / Summary -->
     <div class="col-12 col-xl-4">
-
       <div class="card process-section-card">
-
         <div class="card-header bg-white py-3 px-4">
-<div class="fw-semibold">
-  {% trans "Tips" %}
-</div>
-
-<div class="text-muted small">
-  {% trans "For a clear and organised process." %}
-</div>
+          <div class="fw-semibold">{% trans "Tips" %}</div>
+          <div class="text-muted small">{% trans "For a clear and organised process." %}</div>
         </div>
 
         <div class="card-body small">
-
           <div class="tip-block mb-3">
-<div class="fw-semibold text-dark mb-1">
-  {% trans "Use labels to stay organised" %}
-</div>
-
-<p class="mb-0">
-  {% trans "Labels are for internal structure. You can use them to group processes by department, role type, project, priority or customer-specific categories." %}
-</p>
+            <div class="fw-semibold text-dark mb-1">{% trans "Use labels to stay organised" %}</div>
+            <p class="mb-0">
+              {% trans "Labels are for internal structure. You can use them to group processes by department, role type, project, priority or customer-specific categories." %}
+            </p>
           </div>
 
           <div class="tip-block mb-3">
-<div class="fw-semibold text-dark mb-1">
-  {% trans "Purpose guides the report" %}
-</div>
-
-<p class="mb-0">
-  {% trans "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the process changes." %}
-</p>
+            <div class="fw-semibold text-dark mb-1">{% trans "Purpose guides the report" %}</div>
+            <p class="mb-0">
+              {% trans "The selected purpose helps Talena understand how candidate results should be interpreted and presented. You can update it later if the focus of the process changes." %}
+            </p>
           </div>
 
           <div class="tip-block">
-<div class="fw-semibold text-dark mb-1">
-  {% trans "Locked assessments?" %}
-</div>
-
-<p class="mb-0">
-  {% trans "Once assessments have been sent, the assessment selection is locked to protect the process history. The purpose can still be updated." %}
-</p>
+            <div class="fw-semibold text-dark mb-1">{% trans "Locked assessments?" %}</div>
+            <p class="mb-0">
+              {% trans "Once assessments have been sent, the assessment selection is locked to protect the process history. The purpose can still be updated." %}
+            </p>
           </div>
-
         </div>
       </div>
-
     </div>
-
   </div>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      if (window.feather) {
-        feather.replace();
-      }
-
-      const templateLocked = {{ template_locked|yesno:"true,false" }};
-      const purposeRadios = document.querySelectorAll(".js-purpose-radio");
-      const testCheckboxes = document.querySelectorAll(".js-test-checkbox");
-
-      purposeRadios.forEach(function (radio) {
-        radio.addEventListener("change", function () {
-          if (!radio.checked) {
-            return;
-          }
-
-          /*
-           * Purpose may still change in a locked process,
-           * but it must not visually or technically change
-           * the assessments already selected.
-           */
-          if (templateLocked) {
-            return;
-          }
-
-          const recommended = (radio.dataset.recommendedTests || "")
-            .split(",")
-            .map(function (item) {
-              return item.trim();
-            })
-            .filter(Boolean);
-
-          if (!recommended.length) {
-            return;
-          }
-
-          testCheckboxes.forEach(function (checkbox) {
-            checkbox.checked = recommended.includes(checkbox.value);
-          });
-
-          if (window.feather) {
-            feather.replace();
-          }
-        });
-      });
-    });
-  </script>
-
+</div>
 {% endblock %}

@@ -1,2 +1,51 @@
-<h1>Invalid or expired link</h1>
-<p>This invite link is not valid anymore. Ask an admin to resend the invite.</p>
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!doctype html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbfaf8">
+  <title>{% trans "Invitation link expired" %} | Talena</title>
+
+  <link rel="stylesheet" href="{% static 'css/talena/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/talena/pages/account-invite.css' %}">
+</head>
+<body class="talena-invite talena-invite-invalid">
+  <main class="auth-shell">
+    <section class="auth-left">
+      <header class="brand registration-topbar">
+        <img src="{% static 'images/talena-logo.svg' %}" alt="Talena" class="brand-logo">
+      </header>
+
+      <div class="auth-card invite-card">
+        <div class="invite-invalid-icon" aria-hidden="true">×</div>
+        <div class="invite-eyebrow">{% trans "Invitation" %}</div>
+        <h1 class="auth-title">{% trans "This link is no longer active" %}</h1>
+        <p class="auth-subtitle">
+          {% trans "The invitation link has expired or is no longer valid. Ask your Talena administrator to send you a new invitation." %}
+        </p>
+
+        <a class="btn invite-button" href="{% url 'core:login' %}">
+          {% trans "Back to sign in" %}
+        </a>
+      </div>
+    </section>
+
+    <aside class="auth-right invite-right" aria-hidden="true">
+      <div class="invite-right-card">
+        <div class="invite-right-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3L4.5 6.5V11.8C4.5 16.4 7.7 20.3 12 21.5C16.3 20.3 19.5 16.4 19.5 11.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="invite-right-title">{% trans "A fresh invite will get you back on track." %}</h2>
+        <p class="invite-right-text">
+          {% trans "For security, Talena invitation links are time-limited. Your administrator can create a new one for you." %}
+        </p>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>

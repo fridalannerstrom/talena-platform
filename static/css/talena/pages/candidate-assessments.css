@@ -1,0 +1,978 @@
+/* =========================================================
+   TALENA CANDIDATE ASSESSMENT VIEWS
+   ---------------------------------------------------------
+   New-brand styling for Personality, Motivation and Cognitive
+   result / interpretation / question views.
+   Scoped to .process-page during the design migration.
+   ========================================================= */
+
+
+/* =========================================================
+   SHARED SUBNAVIGATION
+   Results / Interpretation / Questions
+   ========================================================= */
+
+.process-page .candidate-insights-subnavigation {
+  margin-bottom: 1rem;
+}
+
+.process-page .candidate-insights-subnavigation__layout {
+  margin-bottom: 0 !important;
+}
+
+.process-page .candidate-insights-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.28rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: var(--talena-surface-soft);
+}
+
+.process-page .candidate-insights-view-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 35px;
+  padding: 0.48rem 0.72rem;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.63rem;
+  font-weight: 550;
+  line-height: 1;
+  box-shadow: none !important;
+  transition:
+    background-color var(--talena-transition-fast),
+    border-color var(--talena-transition-fast),
+    color var(--talena-transition-fast);
+}
+
+.process-page .candidate-insights-view-option svg {
+  width: 13px;
+  height: 13px;
+}
+
+.process-page .candidate-insights-view-option:hover {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-ink) !important;
+}
+
+.process-page .candidate-insights-view-option.is-active,
+.process-page .candidate-insights-view-option[aria-selected="true"] {
+  border-color: rgba(255, 111, 97, 0.18) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+  box-shadow: 0 2px 8px rgba(23, 19, 18, 0.04) !important;
+}
+
+.process-page .candidate-insights-subworkspace__panels,
+.process-page .candidate-insights-subpanel {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   SHARED ASSESSMENT SURFACES
+   ========================================================= */
+
+.process-page .candidate-insights-subpanel > .purpose-fit-card,
+.process-page .personality-ai-card,
+.process-page .motivation-ai-card,
+.process-page .motivation-questions-card,
+.process-page .cognitive-ai-card,
+.process-page .cognitive-questions-card,
+.process-page .personality-questions-card {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-ai-card,
+.process-page .motivation-ai-card,
+.process-page .motivation-questions-card,
+.process-page .cognitive-ai-card,
+.process-page .cognitive-questions-card,
+.process-page .personality-questions-card {
+  padding: 1.15rem 1.2rem !important;
+}
+
+.process-page .personality-ai-card > .mt-4,
+.process-page .personality-questions-header.mt-4,
+.process-page .motivation-ai-header .insight-summary-kicker.mt-4,
+.process-page .cognitive-ai-header .insight-summary-kicker.mt-4 {
+  margin-top: 0 !important;
+}
+
+.process-page .personality-ai-card .btn-icon,
+.process-page .personality-questions-card .btn-icon,
+.process-page .motivation-ai-card .btn-icon,
+.process-page .motivation-questions-card .btn-icon,
+.process-page .cognitive-ai-card .btn-icon,
+.process-page .cognitive-questions-card .btn-icon {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: var(--talena-text-muted) !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-ai-card .btn-icon:hover,
+.process-page .personality-questions-card .btn-icon:hover,
+.process-page .motivation-ai-card .btn-icon:hover,
+.process-page .motivation-questions-card .btn-icon:hover,
+.process-page .cognitive-ai-card .btn-icon:hover,
+.process-page .cognitive-questions-card .btn-icon:hover {
+  border-color: rgba(255, 111, 97, 0.25) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .purpose-fit-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.67rem;
+  line-height: 1.55;
+}
+
+.process-page .purpose-fit-disclaimer svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--talena-text-subtle);
+}
+
+
+/* =========================================================
+   PERSONALITY
+   ========================================================= */
+
+.process-page .personality-profile {
+  color: var(--talena-text);
+}
+
+.process-page .response-styles-section {
+  padding: 1.15rem 1.2rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .response-styles-header {
+  margin-top: 0 !important;
+  margin-bottom: 1rem !important;
+}
+
+.process-page .response-style-card {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.process-page .response-style-item {
+  padding: 0.9rem 0.95rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 13px !important;
+  background: #fff;
+  box-shadow: none !important;
+}
+
+.process-page .response-style-item__header {
+  gap: 1rem;
+}
+
+.process-page .response-style-item__title {
+  color: var(--talena-ink) !important;
+  font-size: 0.78rem !important;
+  font-weight: 690 !important;
+  margin-bottom: 10px;
+}
+
+.process-page .response-style-item__subtitle {
+  margin-top: 0.12rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.63rem !important;
+}
+
+.process-page .response-style-item__value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  min-height: 30px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+}
+
+.process-page .response-style-profile {
+  gap: 1rem !important;
+  margin-top: 0.62rem;
+}
+
+.process-page .response-style-profile__pole-text,
+.process-page .personality-trait-card__pole p,
+.process-page .personality-indicator-row__pole p {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.62rem !important;
+  line-height: 1.45;
+}
+
+.process-page .response-style-scale__segment,
+.process-page .personality-indicator-scale__segment {
+  border-radius: 999px !important;
+  background: #ebe8e5 !important;
+}
+
+.process-page .response-style-scale__segment--filled,
+.process-page .response-style-scale__segment--marker,
+.process-page .personality-indicator-scale__segment--filled,
+.process-page .personality-indicator-scale__segment--selected {
+  background: var(--talena-coral) !important;
+}
+
+.process-page .response-style-scale__center-line,
+.process-page .personality-indicator-scale__center-line {
+  background: rgba(23, 19, 18, 0.2) !important;
+}
+
+.process-page .response-style-scale__labels,
+.process-page .personality-graph__axis {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.55rem !important;
+}
+
+.process-page .response-style-ai-card {
+  padding: 0.9rem 0.95rem !important;
+  border: 1px solid rgba(255, 111, 97, 0.15) !important;
+  border-radius: 13px !important;
+  background: var(--talena-surface-soft);
+  box-shadow: none !important;
+}
+
+.process-page .response-style-ai-content__summary,
+.process-page .response-style-ai-content__text {
+  color: var(--talena-text) !important;
+  font-size: 0.7rem !important;
+  line-height: 1.6 !important;
+}
+
+.process-page .response-style-ai-content__label {
+  color: #635e5a !important;
+  font-size: 0.56rem !important;
+  font-weight: 690 !important;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+
+/* Personality profile mode switcher */
+
+.process-page .personality-view-controls {
+  margin: 0.9rem 0 1rem !important;
+}
+
+.process-page .personality-view-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 11px;
+  background: var(--talena-surface-soft);
+}
+
+.process-page .personality-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 33px;
+  padding: 0.45rem 0.65rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.7rem !important;
+  font-weight: 550 !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-view-tab svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-page .personality-view-tab:hover,
+.process-page .personality-view-tab.is-active,
+.process-page .personality-view-tab[aria-selected="true"] {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .personality-profile-section {
+  margin-bottom: 0.85rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+  overflow: hidden;
+}
+
+.process-page .personality-profile-section__header {
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-profile-section__title {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+}
+
+.process-page .personality-profile-section__traits {
+  display: grid;
+  gap: 0 !important;
+}
+
+.process-page .personality-trait-card {
+  padding: 2rem 0.95rem !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-trait-card:last-child {
+  border-bottom: 0 !important;
+}
+
+.process-page .personality-trait-card__title {
+  color: var(--talena-ink) !important;
+  font-size: 1.2rem !important;
+  font-weight: 690 !important;
+}
+
+.process-page .personality-trait-card__main {
+  gap: 0.9rem !important;
+}
+
+.process-page .personality-trait-card__pole-label,
+.process-page .personality-indicator-row__pole-label {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.52rem !important;
+  font-weight: 680 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.process-page .personality-graph__segment {
+  background: #e9e6e3 !important;
+  border-radius: 5px 5px 2px 2px !important;
+}
+
+.process-page .personality-graph__segment--selected {
+  background: linear-gradient(180deg, #ff9b89 0%, var(--talena-coral) 100%) !important;
+}
+
+.process-page .personality-graph__marker {
+  border-color: var(--talena-coral) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+.process-page .personality-trait-card__summary {
+  margin-top: 0.8rem;
+  padding: 0.75rem 0.8rem !important;
+  border: 1px solid rgba(255, 111, 97, 0.12) !important;
+  border-radius: 11px !important;
+  background: #fffaf8 !important;
+}
+
+.process-page .personality-trait-card__summary-label {
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.54rem !important;
+  font-weight: 690 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.process-page .personality-trait-card__summary-text {
+  color: var(--talena-text) !important;
+  font-size: 0.66rem !important;
+  line-height: 1.55;
+}
+
+.process-page .personality-trait-card__indicator-panel {
+  margin-top: 0.85rem;
+  border-top-color: var(--talena-border) !important;
+}
+
+.process-page .personality-indicator-row {
+  border-bottom-color: var(--talena-border) !important;
+}
+
+.process-page .personality-indicator-row__name {
+  color: var(--talena-ink) !important;
+  font-size: 0.66rem !important;
+  font-weight: 650 !important;
+}
+
+
+/* =========================================================
+   MOTIVATION
+   ========================================================= */
+
+.process-page .motivation-profile-card {
+  padding: 1.15rem 1.2rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .motivation-profile-card > .mt-4 {
+  margin-top: 0 !important;
+}
+
+.process-page .motivation-visual-overview {
+  padding: 0.85rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .motivation-rose-chart__canvas-wrap {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.process-page .motivation-rose-chart__empty {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.68rem !important;
+}
+
+.process-page .motivation-summary-group,
+.process-page .motivation-domain-section {
+  padding: 0.95rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .motivation-summary-group {
+  border-color: rgba(255, 111, 97, 0.14) !important;
+  background: #fffaf8 !important;
+}
+
+.process-page .motivation-summary-group__icon,
+.process-page .motivation-domain-section__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 111, 97, 0.14);
+  border-radius: 10px;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-page .motivation-summary-list,
+.process-page .motivation-factor-list {
+  display: grid;
+  gap: 0.55rem !important;
+}
+
+.process-page .motivation-summary-item,
+.process-page .motivation-factor-result {
+  padding: 0.75rem 0.8rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 11px !important;
+  background: var(--talena-surface-soft) !important;
+  box-shadow: none !important;
+}
+
+.process-page .motivation-summary-item__name,
+.process-page .motivation-factor-result__name {
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 680 !important;
+}
+
+.process-page .motivation-summary-item__description,
+.process-page .team-style-result__description {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.62rem !important;
+  line-height: 1.5;
+}
+
+.process-page .team-style-result__value {
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+}
+
+.process-page .motivation-full-profile-heading {
+  border-top-color: var(--talena-border) !important;
+}
+
+.process-page .motivation-full-profile-heading__title {
+  color: var(--talena-ink) !important;
+  font-size: 0.85rem !important;
+  font-weight: 710 !important;
+}
+
+.process-page .motivation-full-profile-heading p,
+.process-page .motivation-profile-footer {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.64rem !important;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   COGNITIVE RESULTS
+   ========================================================= */
+
+.process-page .cognitive-results-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem !important;
+  margin-top: 0 !important;
+}
+
+.process-page .cognitive-result-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0.95rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .cognitive-result-card--missing {
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .cognitive-result-card__title {
+  color: var(--talena-ink) !important;
+  font-size: 0.76rem !important;
+  font-weight: 690 !important;
+}
+
+.process-page .cognitive-result-card__subtitle,
+.process-page .cognitive-result-card__measure {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.6rem !important;
+}
+
+.process-page .cognitive-chart-wrapper {
+  padding: 0.85rem 0 0.75rem !important;
+}
+
+.process-page .cognitive-doughnut {
+  background:
+    conic-gradient(
+      var(--talena-coral) calc(var(--percentile) * 1%),
+      #ece9e6 0
+    ) !important;
+  box-shadow: none !important;
+}
+
+.process-page .cognitive-doughnut::before {
+  background: #fff !important;
+}
+
+.process-page .cognitive-doughnut__value {
+  color: var(--talena-ink) !important;
+  font-weight: 730 !important;
+}
+
+.process-page .cognitive-doughnut__label {
+  color: var(--talena-text-muted) !important;
+  font-size: 0.55rem !important;
+}
+
+.process-page .cognitive-result-card__interpretation {
+  color: var(--talena-text) !important;
+  font-size: 0.66rem !important;
+  line-height: 1.55;
+}
+
+.process-page .cognitive-comparison {
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.process-page .cognitive-comparison__label,
+.process-page .cognitive-comparison__labels,
+.process-page .cognitive-missing-note {
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.54rem !important;
+}
+
+.process-page .cognitive-comparison__bar {
+  overflow: hidden;
+  height: 7px !important;
+  border-radius: 999px;
+  background: #ece9e6 !important;
+}
+
+.process-page .cognitive-comparison__fill {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff9b89 0%, var(--talena-coral) 100%) !important;
+}
+
+
+/* =========================================================
+   INTERPRETATIONS
+   ========================================================= */
+
+.process-page .motivation-ai-header,
+.process-page .cognitive-ai-header,
+.process-page .personality-questions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem !important;
+}
+
+.process-page .motivation-ai-section__title,
+.process-page .cognitive-ai-section__title {
+  margin-bottom: 0.5rem;
+  color: var(--talena-ink) !important;
+  font-size: 0.73rem !important;
+  font-weight: 690 !important;
+}
+
+.process-page .motivation-ai-interpretation,
+.process-page .cognitive-ai-interpretation {
+  color: var(--talena-text) !important;
+  font-size: 0.72rem !important;
+  line-height: 1.62 !important;
+}
+
+.process-page .motivation-ai-context-note,
+.process-page .cognitive-ai-context-note,
+.process-page .personality-questions-context-note {
+  padding: 0.78rem 0.85rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 11px !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.65rem !important;
+  line-height: 1.5;
+}
+
+.process-page .motivation-ai-context-note__title,
+.process-page .cognitive-ai-context-note__title,
+.process-page .personality-questions-context-note__title {
+  margin-bottom: 0.25rem;
+  color: var(--talena-ink) !important;
+  font-weight: 680 !important;
+}
+
+.process-page .cognitive-ai-considerations {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.process-page .cognitive-ai-considerations li {
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid rgba(201, 149, 78, 0.16);
+  border-radius: 10px;
+  background: #fffaf3;
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.process-page .cognitive-ai-list-icon {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border-radius: 50%;
+  background: var(--talena-warning-soft);
+  color: #946b31;
+}
+
+.process-page .cognitive-ai-list-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+
+/* =========================================================
+   INTERVIEW QUESTIONS
+   ========================================================= */
+
+.process-page .personality-questions-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.process-page .personality-questions-section-title {
+  color: var(--talena-ink) !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+}
+
+.process-page .personality-questions-section-header .btn-primary,
+.process-page [data-personality-traits-save] {
+  border-color: var(--talena-ink) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-trait-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.process-page .personality-trait-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 27px;
+  padding: 0.32rem 0.55rem !important;
+  border: 1px solid rgba(255, 111, 97, 0.15) !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.58rem !important;
+  font-weight: 550 !important;
+}
+
+.process-page .personality-trait-pill svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-page .personality-question-list {
+  display: grid;
+  gap: 0.65rem !important;
+}
+
+.process-page .personality-question-card,
+.process-page [data-motivation-question-card],
+.process-page [data-cognitive-question-card] {
+  padding: 0.9rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-question-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.process-page .personality-question-card__number {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  border: 1px solid rgba(255, 111, 97, 0.17) !important;
+  border-radius: 9px !important;
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+}
+
+.process-page .personality-question-card__text {
+  color: var(--talena-ink) !important;
+  font-size: 0.72rem !important;
+  font-weight: 660 !important;
+  line-height: 1.48;
+}
+
+.process-page .personality-question-card__traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0rem;
+}
+
+.process-page .personality-question-card__traits span {
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+  font-size: 0.54rem;
+}
+
+.process-page .personality-question-card__details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem !important;
+}
+
+.process-page .personality-question-card__detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.7rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-question-card__detail-icon {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--talena-coral-strong);
+}
+
+.process-page .personality-question-card__detail-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.process-page .personality-question-card__detail-title {
+  color: var(--talena-ink) !important;
+  font-size: 0.59rem !important;
+  font-weight: 680 !important;
+}
+
+.process-page .personality-question-card__detail-text {
+  margin-top: 0.15rem;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.61rem !important;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   TRAIT SELECTION DIALOG
+   ========================================================= */
+
+.process-page .personality-traits-dialog {
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.process-page .personality-traits-dialog::backdrop {
+  background: rgba(23, 19, 18, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.process-page .personality-traits-dialog__shell {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 24px 70px rgba(23, 19, 18, 0.2) !important;
+}
+
+.process-page .personality-traits-dialog__header,
+.process-page .personality-traits-dialog__status,
+.process-page .personality-traits-dialog__footer {
+  border-color: var(--talena-border) !important;
+}
+
+.process-page .personality-traits-dialog__title {
+  color: var(--talena-ink) !important;
+}
+
+.process-page .personality-traits-dialog__description,
+.process-page .personality-traits-dialog__status {
+  color: var(--talena-text-muted) !important;
+}
+
+.process-page .personality-trait-option__control {
+  border-color: var(--talena-border) !important;
+  border-radius: 10px !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-trait-option input:checked + .personality-trait-option__control {
+  border-color: rgba(255, 111, 97, 0.24) !important;
+  background: var(--talena-coral-soft) !important;
+}
+
+.process-page .personality-trait-option__check {
+  color: var(--talena-coral-strong) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 980px) {
+  .process-page .cognitive-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-page .personality-question-card__details {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .process-page .candidate-insights-view-switcher,
+  .process-page .personality-view-tabs {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .process-page .candidate-insights-view-option,
+  .process-page .personality-view-tab {
+    flex: 0 0 auto;
+  }
+
+  .process-page .response-style-profile,
+  .process-page .personality-trait-card__main,
+  .process-page .personality-indicator-row__profile {
+    grid-template-columns: 1fr !important;
+  }
+
+  .process-page .cognitive-results-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,6 +3,7 @@
 {% trans "Candidate" as candidate_fallback %}
 {% trans "Copied!" as candidate_js_copied %}
 {% trans "Could not copy." as candidate_js_could_not_copy %}
+
 <div class="container-fluid px-2 px-md-3">
   <div class="candidate-sheet-layout candidate-sheet-layout--floating-ai">
 
@@ -17,7 +18,7 @@
             <div class="candidate-profile-main">
 
               <div class="candidate-profile-left">
-                <div class="candidate-profile-avatar user-initials user-initials-purple user-initials-lg">
+                <div class="candidate-profile-avatar user-initials user-initials-lg">
                   {% with fn=candidate.first_name|default:"" ln=candidate.last_name|default:"" %}
                     {% if fn or ln %}
                       {{ fn|slice:":1"|upper }}{{ ln|slice:":1"|upper }}
@@ -81,7 +82,8 @@
                   data-tab-target="overview"
                   role="tab"
                   aria-selected="true"
-                  onclick="switchTabs(this)">
+                  onclick="switchTabs(this)"
+                >
                   {% trans "Overview" %}
                 </button>
 
@@ -92,7 +94,8 @@
                   data-tab-target="tests"
                   role="tab"
                   aria-selected="false"
-                  onclick="switchTabs(this)">
+                  onclick="switchTabs(this)"
+                >
                   {% trans "Sent assessments" %}
                 </button>
 
@@ -103,7 +106,8 @@
                   data-tab-target="link"
                   role="tab"
                   aria-selected="false"
-                  onclick="switchTabs(this)">
+                  onclick="switchTabs(this)"
+                >
                   {% trans "Assessment link" %}
                 </button>
 
@@ -114,21 +118,21 @@
                   data-tab-target="activity"
                   role="tab"
                   aria-selected="false"
-                  onclick="switchTabs(this)">
+                  onclick="switchTabs(this)"
+                >
                   {% trans "Activity" %}
                 </button>
               </div>
             </div>
 
             <div class="candidate-profile-tab-panels">
-
               <div
                 class="candidate-tab-panel is-active"
                 data-tab-group="candidate-main-tabs"
                 data-tab-panel="overview"
-                role="tabpanel">
+                role="tabpanel"
+              >
                 <div class="candidate-overview-grid">
-
                   <div class="candidate-overview-card">
                     <div class="candidate-overview-label">{% trans "Invited" %}</div>
                     <div class="candidate-overview-value">
@@ -160,7 +164,6 @@
                     <div class="candidate-overview-label">{% trans "Assessments completed" %}</div>
                     <div class="candidate-overview-value">{{ tests_completed_count }}</div>
                   </div>
-
                 </div>
               </div>
 
@@ -168,7 +171,8 @@
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
                 data-tab-panel="tests"
-                role="tabpanel">
+                role="tabpanel"
+              >
                 {% if sent_assessments %}
                   <div class="candidate-inline-list">
                     {% for item in sent_assessments %}
@@ -203,7 +207,8 @@
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
                 data-tab-panel="link"
-                role="tabpanel">
+                role="tabpanel"
+              >
                 {% if invitation.assessment_url %}
                   <div class="candidate-link-panel">
                     <div class="candidate-link-panel-text">
@@ -218,12 +223,14 @@
                         id="candidateAssessmentUrl"
                         value="{{ invitation.assessment_url }}"
                         readonly
-                        onclick="this.select()">
+                        onclick="this.select()"
+                      >
 
                       <button
                         class="btn btn-primary"
                         type="button"
-                        onclick="copyCandidateAssessmentUrl(this)">
+                        onclick="copyCandidateAssessmentUrl(this)"
+                      >
                         {% trans "Copy" %}
                       </button>
                     </div>
@@ -237,7 +244,8 @@
                 class="candidate-tab-panel"
                 data-tab-group="candidate-main-tabs"
                 data-tab-panel="activity"
-                role="tabpanel">
+                role="tabpanel"
+              >
                 <div class="activity-timeline">
                   {% for event in activity_events %}
                     <div class="activity-item">
@@ -265,7 +273,8 @@
                               class="activity-email-btn js-open-email-modal"
                               data-email-to="{{ event.email_log.to_email|escape }}"
                               data-email-subject="{{ event.email_log.subject|escape }}"
-                              data-email-body="{{ event.email_log.body_snapshot|escape }}">
+                              data-email-body="{{ event.email_log.body_snapshot|escape }}"
+                            >
                               {% trans "View email" %}
                             </button>
                           </div>
@@ -282,7 +291,6 @@
                   {% endfor %}
                 </div>
               </div>
-
             </div>
           {% endif %}
 
@@ -290,139 +298,126 @@
       </div>
       <!-- /HERO -->
 
-
       <!-- GLOBAL AI UPDATE -->
-
       {% include "customer/processes/partials/candidate_insights/_global_ai_update.html" %}
 
-
       <!-- CANDIDATE INSIGHTS -->
-
       {% include "customer/processes/partials/candidate_insights/_workspace.html" %}
-
     </div>
-
-    
     <!-- /MAIN CONTENT -->
 
-   {% if has_any_results %}
-  <div
-    class="candidate-ai-widget"
-    data-candidate-ai-widget
-  >
+    {% if has_any_results %}
+      <div
+        class="candidate-ai-widget"
+        data-candidate-ai-widget
+      >
+        <div
+          class="candidate-ai-floating-panel"
+          data-candidate-ai-panel
+          hidden
+        >
+          <div class="candidate-ai-floating-header">
+            <div>
+              <div class="candidate-ai-floating-title">
+                Talena AI
+              </div>
 
-    <div
-      class="candidate-ai-floating-panel"
-      data-candidate-ai-panel
-      hidden
-    >
+              <div class="candidate-ai-floating-subtitle">
+                {% trans "Ask about" %}
+                {% if candidate.first_name %}
+                  {{ candidate.first_name }}
+                {% else %}
+                  {% trans "this candidate" %}
+                {% endif %}
+              </div>
+            </div>
 
-      <div class="candidate-ai-floating-header">
-        <div>
-          <div class="candidate-ai-floating-title">
-            Talena AI
+            <button
+              type="button"
+              class="candidate-ai-floating-close"
+              data-candidate-ai-close
+              aria-label="{% trans 'Close Talena AI' %}"
+            >
+              <i data-feather="x"></i>
+            </button>
           </div>
 
-          <div class="candidate-ai-floating-subtitle">
-            {% trans "Ask about" %}
-            {% if candidate.first_name %}
-              {{ candidate.first_name }}
-            {% else %}
-              {% trans "this candidate" %}
+          <div
+            class="candidate-ai-card"
+            data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
+            data-process-id="{{ process.id }}"
+            data-candidate-id="{{ candidate.id }}"
+            data-is-historical="{% if is_historical %}true{% else %}false{% endif %}"
+          >
+            {% if is_historical %}
+              <div class="alert alert-light border small mb-3">
+                {% trans "The assistant uses imported assessment data and general insight mode." %}
+              </div>
             {% endif %}
+
+            <div class="candidate-ai-messages js-candidate-ai-messages">
+              <div class="candidate-ai-empty">
+                <div class="candidate-ai-empty__icon">
+                  <i data-feather="zap"></i>
+                </div>
+
+                <div class="candidate-ai-empty__title">
+                  {% trans "Ask Talena AI" %}
+                </div>
+
+                <div class="candidate-ai-empty__text">
+                  {% trans "Ask about strengths, areas to explore or interview questions." %}
+                </div>
+              </div>
+            </div>
+
+            <form class="candidate-ai-form js-candidate-ai-form">
+              {% csrf_token %}
+
+              <label
+                class="visually-hidden"
+                for="candidateAiInput-{{ candidate.id }}"
+              >
+                {% trans "Ask Talena AI about the candidate" %}
+              </label>
+
+              <div class="candidate-ai-floating-input-wrap">
+                <textarea
+                  id="candidateAiInput-{{ candidate.id }}"
+                  class="form-control js-candidate-ai-input"
+                  rows="3"
+                  placeholder="{% trans 'Ask a question about this candidate...' %}"
+                ></textarea>
+
+                <button
+                  type="submit"
+                  class="candidate-ai-floating-send js-candidate-ai-submit"
+                  aria-label="{% trans 'Send question' %}"
+                >
+                  <i data-feather="arrow-up"></i>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
         <button
           type="button"
-          class="candidate-ai-floating-close"
-          data-candidate-ai-close
-          aria-label="{% trans 'Close Talena AI' %}"
+          class="candidate-ai-floating-launcher"
+          data-candidate-ai-launcher
+          aria-expanded="false"
+          aria-label="{% trans 'Open Talena AI' %}"
         >
-          <i data-feather="x"></i>
+          <span class="candidate-ai-floating-launcher__icon">
+            <i data-feather="message-circle"></i>
+          </span>
+
+          <span class="candidate-ai-floating-launcher__label">
+            {% trans "Ask Talena AI" %}
+          </span>
         </button>
       </div>
-
-      <div
-        class="candidate-ai-card"
-        data-chat-stream-url="{% url 'ai_chat:chat_stream_api' %}"
-        data-process-id="{{ process.id }}"
-        data-candidate-id="{{ candidate.id }}"
-        data-is-historical="{% if is_historical %}true{% else %}false{% endif %}"
-      >
-        {% if is_historical %}
-          <div class="alert alert-light border small mb-3">
-            {% trans "The assistant uses imported assessment data and general insight mode." %}
-          </div>
-        {% endif %}
-
-        <div
-          class="candidate-ai-messages js-candidate-ai-messages"
-        >
-          <div class="candidate-ai-empty">
-            <div class="candidate-ai-empty__icon">
-              <i data-feather="zap"></i>
-            </div>
-
-            <div class="candidate-ai-empty__title">
-              {% trans "Ask Talena AI" %}
-            </div>
-
-            <div class="candidate-ai-empty__text">
-              {% trans "Ask about strengths, areas to explore or interview questions." %}
-            </div>
-          </div>
-        </div>
-
-        <form class="candidate-ai-form js-candidate-ai-form">
-          {% csrf_token %}
-
-          <label
-            class="visually-hidden"
-            for="candidateAiInput-{{ candidate.id }}"
-          >
-            {% trans "Ask Talena AI about the candidate" %}
-          </label>
-
-          <div class="candidate-ai-floating-input-wrap">
-            <textarea
-              id="candidateAiInput-{{ candidate.id }}"
-              class="form-control js-candidate-ai-input"
-              rows="3"
-              placeholder="{% trans 'Ask a question about this candidate...' %}"
-            ></textarea>
-
-            <button
-              type="submit"
-              class="candidate-ai-floating-send js-candidate-ai-submit"
-              aria-label="{% trans 'Send question' %}"
-            >
-              <i data-feather="arrow-up"></i>
-            </button>
-          </div>
-        </form>
-
-      </div>
-    </div>
-
-    <button
-      type="button"
-      class="candidate-ai-floating-launcher"
-      data-candidate-ai-launcher
-      aria-expanded="false"
-      aria-label="{% trans 'Open Talena AI' %}"
-    >
-      <span class="candidate-ai-floating-launcher__icon">
-        <i data-feather="message-circle"></i>
-      </span>
-
-      <span class="candidate-ai-floating-launcher__label">
-        {% trans "Ask Talena AI" %}
-      </span>
-    </button>
-
-  </div>
-{% endif %}
+    {% endif %}
 
   </div>
 </div>
@@ -467,68 +462,34 @@
   }
 </script>
 
-
-
 <script>
-function initStrengthScores(container = document) {
+  function initStrengthScores(container = document) {
     const scoreElements = container.querySelectorAll(
-        "[data-strength-score]"
+      "[data-strength-score]"
     );
 
     scoreElements.forEach((scoreElement) => {
-        const rawScore = Number(
-            scoreElement.dataset.strengthScore
-        );
+      const rawScore = Number(
+        scoreElement.dataset.strengthScore
+      );
 
-        const score = Math.max(
-            0,
-            Math.min(10, Math.round(rawScore))
-        );
+      const score = Math.max(
+        0,
+        Math.min(10, Math.round(rawScore))
+      );
 
-        const dots = scoreElement.querySelectorAll(
-            ".strength-score__dot"
-        );
+      const dots = scoreElement.querySelectorAll(
+        ".strength-score__dot"
+      );
 
-        dots.forEach((dot, index) => {
-            dot.classList.toggle(
-                "is-active",
-                index < score
-            );
-        });
+      dots.forEach((dot, index) => {
+        dot.classList.toggle(
+          "is-active",
+          index < score
+        );
+      });
     });
-}
+  }
 
-initStrengthScores();
+  initStrengthScores();
 </script>
-
-<style>
-  .candidate-ai-card.is-disabled {
-    opacity: 0.8;
-  }
-
-  .candidate-ai-disabled {
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 0.75rem;
-    text-align: center;
-    padding: 2rem;
-  }
-
-  .candidate-ai-disabled__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .candidate-ai-disabled__icon svg {
-    width: 18px;
-    height: 18px;
-  }
-</style>

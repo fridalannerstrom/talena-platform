@@ -1,0 +1,208 @@
+/* =========================================================
+   TALENA ADMIN SHELL
+   ---------------------------------------------------------
+   Admin-specific polish layered on top of the shared Talena
+   tokens and application shell. Scoped to body.talena-admin.
+   ========================================================= */
+
+body.talena-admin {
+  --talena-admin-content-max: 1480px;
+  background: var(--talena-bg);
+  color: var(--talena-text);
+}
+
+.talena-admin #layoutSidenav_content > main > .container-xl {
+  width: 100%;
+  max-width: var(--talena-admin-content-max);
+  padding-bottom: 3rem;
+}
+
+/* Brand */
+.talena-admin .talena-sidebar .talena-sidebar-brand {
+  min-height: 72px;
+}
+
+.talena-admin .talena-admin-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.talena-admin .talena-admin-brand .talena-sidebar-logo {
+  width: 92px;
+}
+
+.talena-admin .talena-admin-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0.25rem 0.46rem;
+  border: 1px solid rgba(255, 111, 97, 0.17);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.56rem;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* Sidebar navigation */
+.talena-admin .talena-sidebar .sidenav-menu {
+  padding-bottom: 1.25rem;
+}
+
+.talena-admin .talena-sidebar .sidenav-menu-heading {
+  padding-top: 1.2rem;
+}
+
+.talena-admin .talena-sidebar .sidebar-link {
+  position: relative;
+}
+
+.talena-admin .talena-sidebar .sidebar-link.active::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--talena-coral);
+}
+
+/* Header */
+.talena-admin .talena-topnav {
+  z-index: 1038;
+}
+
+.talena-admin .talena-topnav .nav-search {
+  width: min(360px, 30vw);
+}
+
+.talena-admin .talena-topnav #globalSearchDropdown {
+  min-width: 320px;
+  padding: 0.42rem;
+}
+
+.talena-admin .talena-topnav #globalSearchDropdown .dropdown-item {
+  gap: 0.75rem;
+}
+
+.talena-admin .talena-topnav .search-tag {
+  flex: 0 0 auto;
+  padding: 0.26rem 0.48rem;
+  border: 1px solid var(--talena-border);
+  font-size: 0.56rem;
+  font-weight: 650;
+}
+
+/* Generic admin content */
+.talena-admin main .card {
+  border-color: var(--talena-border);
+  border-radius: var(--talena-radius-lg);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-admin main .card-header {
+  border-bottom-color: var(--talena-border);
+  background: transparent;
+}
+
+.talena-admin main .table {
+  color: var(--talena-text);
+}
+
+.talena-admin main .table > :not(caption) > * > * {
+  border-bottom-color: var(--talena-border);
+}
+
+.talena-admin main .table thead th {
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.talena-admin main .table tbody td {
+  color: var(--talena-text);
+}
+
+.talena-admin main .table tbody tr:hover > * {
+  background: rgba(255, 111, 97, 0.024);
+}
+
+.talena-admin main .btn-primary {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+.talena-admin main .btn-primary:hover,
+.talena-admin main .btn-primary:focus {
+  border-color: #000 !important;
+  background: #000 !important;
+}
+
+.talena-admin main .btn-outline-primary,
+.talena-admin main .btn-outline-secondary {
+  border-color: var(--talena-border) !important;
+  background: #fff !important;
+  color: var(--talena-text) !important;
+}
+
+.talena-admin main .btn-outline-primary:hover,
+.talena-admin main .btn-outline-secondary:hover {
+  border-color: rgba(255, 111, 97, 0.28) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+.talena-admin main .form-control,
+.talena-admin main .form-select {
+  border-color: var(--talena-border);
+  border-radius: var(--talena-radius-md);
+  background: #fff;
+  color: var(--talena-text);
+  box-shadow: none;
+}
+
+.talena-admin main .form-control:focus,
+.talena-admin main .form-select:focus {
+  border-color: rgba(255, 111, 97, 0.42);
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.08);
+}
+
+.talena-admin main .badge.bg-primary,
+.talena-admin main .badge.text-bg-primary {
+  border: 1px solid rgba(255, 111, 97, 0.16);
+  background: var(--talena-coral-soft) !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+/* Account hierarchy controls */
+.talena-admin #accountHierarchy .card,
+.talena-admin #accountHierarchy .accordion-item {
+  border-color: var(--talena-border);
+}
+
+.talena-admin #expandAllBtn,
+.talena-admin #collapseAllBtn {
+  border-radius: var(--talena-radius-pill);
+}
+
+/* Footer */
+.talena-admin footer,
+.talena-admin .footer-admin {
+  border-top-color: var(--talena-border) !important;
+  background: transparent !important;
+  color: var(--talena-text-subtle);
+}
+
+@media (max-width: 900px) {
+  .talena-admin #layoutSidenav_content > main > .container-xl {
+    padding-inline: 1rem !important;
+  }
+}

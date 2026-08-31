@@ -28,6 +28,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Synchronise candidate translations
+        run: |
+          python apply_candidate_i18n_batch2.py --apply
+
       - name: Collect static files
         env:
           DJANGO_SETTINGS_MODULE: config.settings

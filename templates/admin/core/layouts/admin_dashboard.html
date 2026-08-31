@@ -1,471 +1,344 @@
 {% extends "admin/core/layouts/admin_base.html" %}
+{% load static i18n dict_extras %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/admin-dashboard.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
-{% load static %}
-{% load dict_extras %}
+<div class="talena-admin-dashboard">
 
-<div class="container-fluid px-2 px-md-3 dashboard admin-dashboard">
-
-  <!-- Header -->
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+  <header class="admin-dashboard-hero">
     <div>
-      <h1 class="mb-1">
-        Hi, {{ request.user.first_name|default:request.user.get_username }}!
+      <p class="admin-dashboard-eyebrow">{% trans "Administration" %}</p>
+      <h1 class="admin-dashboard-title">
+        {% blocktrans trimmed with first_name=request.user.first_name|default:request.user.get_username %}
+          Welcome, {{ first_name }}!
+        {% endblocktrans %}
       </h1>
-      <p class="dashboard-date mb-0">
-        Admin overview for Talena
+      <p class="admin-dashboard-subtitle">
+        {% trans "Manage companies, users, access and assessment activity across Talena." %}
       </p>
     </div>
 
-    <a href="{% url 'accounts:company_create' %}" class="btn btn-primary rounded-pill">
-      <i data-feather="plus" class="me-1"></i>
-      Add company
+    <a href="{% url 'accounts:company_create' %}" class="admin-dashboard-primary">
+      <i data-feather="plus"></i>
+      {% trans "Add company" %}
     </a>
+  </header>
+
+  <section class="admin-quick-grid" aria-label="{% trans 'Quick administration' %}">
+    <a href="{% url 'accounts:company_create' %}" class="admin-quick-action">
+      <span class="admin-quick-icon" aria-hidden="true"><i data-feather="briefcase"></i></span>
+      <span>
+        <span class="admin-quick-title">{% trans "Add company" %}</span>
+        <span class="admin-quick-copy d-block">{% trans "Create a company before adding users and access." %}</span>
+      </span>
+      <span class="admin-quick-arrow" aria-hidden="true"><i data-feather="arrow-up-right"></i></span>
+    </a>
+
+    <a href="{% url 'accounts:company_list' %}" class="admin-quick-action">
+      <span class="admin-quick-icon" aria-hidden="true"><i data-feather="grid"></i></span>
+      <span>
+        <span class="admin-quick-title">{% trans "Companies" %}</span>
+        <span class="admin-quick-copy d-block">{% trans "Manage company structure, accounts and access." %}</span>
+      </span>
+      <span class="admin-quick-arrow" aria-hidden="true"><i data-feather="arrow-up-right"></i></span>
+    </a>
+
+    <a href="{% url 'accounts:admin_customers_list' %}" class="admin-quick-action">
+      <span class="admin-quick-icon" aria-hidden="true"><i data-feather="users"></i></span>
+      <span>
+        <span class="admin-quick-title">{% trans "Users" %}</span>
+        <span class="admin-quick-copy d-block">{% trans "Review active, invited and pending users." %}</span>
+      </span>
+      <span class="admin-quick-arrow" aria-hidden="true"><i data-feather="arrow-up-right"></i></span>
+    </a>
+
+    <a href="{% url 'core:admin_ai_prompts' %}" class="admin-quick-action">
+      <span class="admin-quick-icon" aria-hidden="true"><i data-feather="cpu"></i></span>
+      <span>
+        <span class="admin-quick-title">{% trans "AI prompts" %}</span>
+        <span class="admin-quick-copy d-block">{% trans "Manage the instructions used by Talena AI." %}</span>
+      </span>
+      <span class="admin-quick-arrow" aria-hidden="true"><i data-feather="arrow-up-right"></i></span>
+    </a>
+  </section>
+
+  <div class="admin-flow-note">
+    <div class="admin-flow-note-icon" aria-hidden="true"><i data-feather="info"></i></div>
+    <div>
+      <div class="admin-flow-note-title">{% trans "Recommended admin flow" %}</div>
+      <div class="admin-flow-note-copy">
+        {% trans "Create the company first, then add users, structure accounts and assign access before assessment processes are created." %}
+      </div>
+    </div>
   </div>
 
-  <!-- Quick access -->
-  <section class="quick-access mt-3 py-3">
-    <h3>What would you like to manage?</h3>
-
-    <div class="quick-access-grid">
-
-      <a href="{% url 'accounts:company_create' %}" class="quick-card">
-        <div class="quick-card-icon"><i data-feather="briefcase"></i></div>
-        <div class="quick-card-title">Add company</div>
-        <div class="quick-card-desc">Create a company before adding users</div>
-      </a>
-
-      <a href="{% url 'accounts:company_list' %}" class="quick-card testprocess-card">
-        <div class="quick-card-icon"><i data-feather="grid"></i></div>
-        <div class="quick-card-title">View companies</div>
-        <div class="quick-card-desc">Manage users, accounts and access</div>
-      </a>
-
-      <a href="{% url 'accounts:admin_customers_list' %}" class="quick-card settings-card">
-        <div class="quick-card-icon"><i data-feather="users"></i></div>
-        <div class="quick-card-title">View users</div>
-        <div class="quick-card-desc">See active and pending accounts</div>
-      </a>
-
+  <section class="admin-kpi-strip" aria-label="{% trans 'Admin overview' %}">
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Companies" %}</div>
+      <div class="admin-kpi-value">{{ stats.companies|default:0 }}</div>
+    </div>
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Users" %}</div>
+      <div class="admin-kpi-value">{{ stats.users|default:0 }}</div>
+    </div>
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Pending invites" %}</div>
+      <div class="admin-kpi-value">{{ stats.pending_users|default:0 }}</div>
+    </div>
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Test processes" %}</div>
+      <div class="admin-kpi-value">{{ stats.processes|default:0 }}</div>
+    </div>
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Candidate invitations" %}</div>
+      <div class="admin-kpi-value">{{ stats.sent|default:0 }}</div>
+    </div>
+    <div class="admin-kpi">
+      <div class="admin-kpi-label">{% trans "Completed candidates" %}</div>
+      <div class="admin-kpi-value">{{ stats.completed|default:0 }}</div>
     </div>
   </section>
 
-  <!-- Setup note -->
-  <div class="admin-flow-note mt-3 mb-4">
-    <div class="admin-flow-icon">
-      <i data-feather="info"></i>
-    </div>
-    <div>
-      <div class="admin-flow-title">Recommended admin flow</div>
-      <div class="admin-flow-text">
-        Start by creating a company. Then add users to that company, create accounts/units, and assign access before test processes are created.
-      </div>
-    </div>
-  </div>
+  <div class="admin-dashboard-grid">
+    <div class="admin-dashboard-main">
 
-  <div class="row g-5 mt-1">
-
-    <!-- Left column -->
-    <div class="col-12 col-xl-8">
-
-      <!-- Stats -->
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-        <div>
-          <h3 class="mb-1">Overview</h3>
-          <div class="text-muted small">A quick overview of companies, users and assessment activity</div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Companies</div>
-            <div class="h3 mt-1">{{ stats.companies }}</div>
+      <section class="admin-panel">
+        <div class="admin-panel-header">
+          <div>
+            <h2 class="admin-panel-title">{% trans "Latest companies" %}</h2>
+            <p class="admin-panel-copy">{% trans "Recently added companies and their current setup." %}</p>
           </div>
+          <a href="{% url 'accounts:company_list' %}" class="admin-panel-link">
+            {% trans "View all" %}
+          </a>
         </div>
 
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Users</div>
-            <div class="h3 mt-1">{{ stats.users }}</div>
-          </div>
-        </div>
+        {% if latest_companies %}
+          <div class="admin-record-list">
+            {% for company in latest_companies %}
+              <a href="{% url 'accounts:company_detail' company.pk %}" class="admin-record">
+                <div class="min-w-0">
+                  <div class="admin-record-title">{{ company.name }}</div>
+                  <div class="admin-record-sub">
+                    {% if company.org_number %}
+                      {% trans "Org no" %}: {{ company.org_number }}
+                    {% else %}
+                      {% trans "No organisation number added" %}
+                    {% endif %}
+                  </div>
 
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Pending invites</div>
-            <div class="h3 mt-1">{{ stats.pending_users }}</div>
-          </div>
-        </div>
+                  {% with created_event=company_created_by|get_item:company.id %}
+                    <div class="admin-record-meta-line">
+                      {% trans "Created by" %}
+                      {% if created_event and created_event.actor %}
+                        {{ created_event.actor.get_full_name|default:created_event.actor.email|default:created_event.actor.username }}
+                      {% elif created_event %}
+                        {{ created_event.actor_name|default:"System" }}
+                      {% else %}
+                        {% trans "Unknown user" %}
+                      {% endif %}
+                      {% if created_event %} · {{ created_event.created_at|date:"Y-m-d H:i" }}{% endif %}
+                    </div>
+                  {% endwith %}
+                </div>
 
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Test processes</div>
-            <div class="h3 mt-1">{{ stats.processes }}</div>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Candidate invitations</div>
-            <div class="h3 mt-1">{{ stats.sent }}</div>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <div class="admin-stat-card">
-            <div class="text-muted small">Completed candidates</div>
-            <div class="h3 mt-1">{{ stats.completed }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Latest companies -->
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
-        <div>
-          <h3 class="mb-1">Latest companies</h3>
-          <div class="text-muted small">Companies recently added or available in Talena</div>
-        </div>
-
-        <a href="{% url 'accounts:company_list' %}"
-           class="btn btn-primary btn-sm rounded-pill">
-          View all
-        </a>
-      </div>
-
-      {% if latest_companies %}
-        <div class="admin-company-rows">
-          {% for company in latest_companies %}
-            <a href="{% url 'accounts:company_detail' company.pk %}"
-               class="admin-company-row">
-
-<div class="admin-company-main min-w-0">
-  <div class="admin-company-name text-truncate">
-    {{ company.name }}
-  </div>
-
-  <div class="admin-company-sub text-muted small text-truncate">
-    {% if company.org_number %}
-      Org no: {{ company.org_number }}
-    {% else %}
-      No organisation number added
-    {% endif %}
-  </div>
-
-  {% with created_event=company_created_by|get_item:company.id %}
-    <div class="admin-company-sub admin-company-sub-extra text-muted small text-truncate">
-      Created by
-      {% if created_event and created_event.actor %}
-        {{ created_event.actor.get_full_name|default:created_event.actor.email|default:created_event.actor.username }}
-      {% elif created_event %}
-        {{ created_event.actor_name|default:"System" }}
-      {% else %}
-        Unknown user
-      {% endif %}
-
-      {% if created_event %}
-        · {{ created_event.created_at|date:"Y-m-d H:i" }}
-      {% endif %}
-    </div>
-  {% endwith %}
-</div>
-
-              <div class="admin-company-meta">
-                <span class="admin-info-pill">
-                  <i data-feather="users"></i>
-                  {{ company.member_count|default:"0" }}
-                </span>
-
-                <span class="admin-info-pill">
-                  <i data-feather="layers"></i>
-                  {{ company.orgunit_count|default:"0" }}
-                </span>
-
-                {% if company.pending_members %}
-                  <span class="admin-info-pill admin-info-pill-warning">
-                    {{ company.pending_members }} pending
+                <div class="admin-record-meta">
+                  <span class="admin-meta-pill" title="{% trans 'Users' %}">
+                    <i data-feather="users"></i>{{ company.member_count|default:"0" }}
                   </span>
-                {% endif %}
+                  <span class="admin-meta-pill" title="{% trans 'Accounts' %}">
+                    <i data-feather="layers"></i>{{ company.orgunit_count|default:"0" }}
+                  </span>
+                  {% if company.pending_members %}
+                    <span class="admin-status-pill is-pending">
+                      {{ company.pending_members }} {% trans "pending" %}
+                    </span>
+                  {% endif %}
+                </div>
+
+                <span class="admin-record-arrow" aria-hidden="true"><i data-feather="chevron-right"></i></span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <div class="admin-empty-icon" aria-hidden="true"><i data-feather="briefcase"></i></div>
+            <div class="admin-empty-title">{% trans "No companies yet" %}</div>
+            <div class="admin-empty-copy">{% trans "Create the first company to start setting up users and access." %}</div>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="admin-panel">
+        <div class="admin-panel-header">
+          <div>
+            <h2 class="admin-panel-title">{% trans "Latest test processes" %}</h2>
+            <p class="admin-panel-copy">{% trans "Recent assessment activity across all companies." %}</p>
+          </div>
+        </div>
+
+        {% if latest_processes %}
+          <div class="admin-record-list">
+            {% for p in latest_processes %}
+              <a href="{% url 'accounts:admin_process_detail' p.id %}" class="admin-record">
+                <div class="min-w-0">
+                  <div class="admin-record-title">{{ p.name }}</div>
+                  <div class="admin-record-sub">
+                    {{ p.company.name|default:"No company" }}{% if p.org_unit %} · {{ p.org_unit.name }}{% endif %}
+                  </div>
+                  <div class="admin-record-meta-line">
+                    {% trans "Created by" %}
+                    {% if p.created_by %}
+                      {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
+                    {% else %}
+                      {% trans "Unknown user" %}
+                    {% endif %}
+                    · {{ p.created_at|date:"Y-m-d H:i" }}
+                  </div>
+                </div>
+
+                <div class="admin-record-meta">
+                  <span class="admin-meta-pill"><i data-feather="users"></i>{{ p.candidates_count|default:"0" }}</span>
+                  <span class="admin-meta-pill">{{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}</span>
+                </div>
+
+                <span class="admin-record-arrow" aria-hidden="true"><i data-feather="chevron-right"></i></span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <div class="admin-empty-icon" aria-hidden="true"><i data-feather="clipboard"></i></div>
+            <div class="admin-empty-title">{% trans "No test processes yet" %}</div>
+            <div class="admin-empty-copy">{% trans "Recent test processes will appear here when companies start using assessments." %}</div>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="admin-panel">
+        <div class="admin-panel-header">
+          <div>
+            <h2 class="admin-panel-title">{% trans "Latest user invites" %}</h2>
+            <p class="admin-panel-copy">{% trans "Recently invited users across all companies." %}</p>
+          </div>
+          <a href="{% url 'accounts:admin_customers_list' %}" class="admin-panel-link">
+            {% trans "View users" %}
+          </a>
+        </div>
+
+        {% if latest_user_invites %}
+          <div class="admin-record-list">
+            {% for invite in latest_user_invites %}
+              <a href="{% url 'accounts:admin_user_detail' invite.user.pk %}" class="admin-record">
+                <div class="min-w-0">
+                  <div class="admin-record-title">
+                    {{ invite.user.get_full_name|default:invite.user.email|default:invite.user.username }}
+                  </div>
+                  <div class="admin-record-sub">{{ invite.user.email|default:"No email" }}</div>
+                  <div class="admin-record-meta-line">
+                    {% trans "Invited by" %}
+                    {% if invite.created_by %}
+                      {{ invite.created_by.get_full_name|default:invite.created_by.email|default:invite.created_by.username }}
+                    {% else %}
+                      {% trans "System" %}
+                    {% endif %}
+                    · {{ invite.created_at|date:"Y-m-d H:i" }}
+                  </div>
+                </div>
+
+                <div class="admin-record-meta">
+                  {% if invite.company %}
+                    <span class="admin-meta-pill"><i data-feather="briefcase"></i>{{ invite.company.name }}</span>
+                  {% endif %}
+
+                  {% if invite.revoked_at %}
+                    <span class="admin-status-pill is-revoked">{% trans "Revoked" %}</span>
+                  {% elif invite.accepted_at %}
+                    <span class="admin-status-pill is-accepted">{% trans "Accepted" %}</span>
+                  {% else %}
+                    <span class="admin-status-pill is-pending">{% trans "Pending" %}</span>
+                  {% endif %}
+                </div>
+
+                <span class="admin-record-arrow" aria-hidden="true"><i data-feather="chevron-right"></i></span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="admin-empty-state">
+            <div class="admin-empty-icon" aria-hidden="true"><i data-feather="mail"></i></div>
+            <div class="admin-empty-title">{% trans "No user invites yet" %}</div>
+            <div class="admin-empty-copy">{% trans "Recent invitations will appear here when admins add users to companies." %}</div>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+
+    <aside class="admin-dashboard-side">
+      <section class="admin-panel">
+        <div class="admin-panel-header">
+          <div>
+            <h2 class="admin-panel-title">{% trans "Recent activity" %}</h2>
+            <p class="admin-panel-copy">{% trans "Administrative changes across companies and users." %}</p>
+          </div>
+        </div>
+
+        <div class="admin-activity-list">
+          {% for event in activity_events|slice:":7" %}
+            {% if event.company %}
+              <a href="{% url 'accounts:company_detail' event.company.pk %}" class="admin-activity-item">
+            {% else %}
+              <div class="admin-activity-item">
+            {% endif %}
+
+              <div class="admin-activity-top">
+                <span class="admin-activity-badge
+                  {% if event.verb == 'company_created' or event.verb == 'orgunit_created' %}is-created
+                  {% elif event.verb == 'company_member_invited' %}is-invite
+                  {% elif event.verb == 'company_member_added' or event.verb == 'company_invite_accepted' or event.verb == 'user_logged_in' %}is-added
+                  {% elif event.verb == 'company_updated' or event.verb == 'orgunit_moved' or event.verb == 'user_access_updated' %}is-status
+                  {% else %}is-default{% endif %}">
+                  {% if event.verb == 'company_created' %}{% trans "Company created" %}
+                  {% elif event.verb == 'company_updated' %}{% trans "Company updated" %}
+                  {% elif event.verb == 'company_deleted' %}{% trans "Company deleted" %}
+                  {% elif event.verb == 'company_member_invited' %}{% trans "User invited" %}
+                  {% elif event.verb == 'company_member_added' %}{% trans "User added" %}
+                  {% elif event.verb == 'company_member_removed' %}{% trans "User removed" %}
+                  {% elif event.verb == 'company_member_role_updated' %}{% trans "Role updated" %}
+                  {% elif event.verb == 'company_invite_accepted' %}{% trans "Invite accepted" %}
+                  {% elif event.verb == 'orgunit_created' %}{% trans "Account created" %}
+                  {% elif event.verb == 'orgunit_updated' %}{% trans "Account updated" %}
+                  {% elif event.verb == 'orgunit_moved' %}{% trans "Account moved" %}
+                  {% elif event.verb == 'orgunit_deleted' %}{% trans "Account deleted" %}
+                  {% elif event.verb == 'user_access_updated' %}{% trans "Access updated" %}
+                  {% elif event.verb == 'user_logged_in' %}{% trans "Login" %}
+                  {% else %}{% trans "Admin activity" %}{% endif %}
+                </span>
+                <span class="admin-activity-time">{{ event.created_at|date:"Y-m-d H:i" }}</span>
               </div>
 
-            </a>
+              <div class="admin-activity-title">{{ event.message }}</div>
+              {% if event.company %}
+                <div class="admin-activity-company">{% trans "Company" %}: {{ event.company.name }}</div>
+              {% endif %}
+
+            {% if event.company %}</a>{% else %}</div>{% endif %}
+          {% empty %}
+            <div class="admin-empty-state">
+              <div class="admin-empty-icon" aria-hidden="true"><i data-feather="activity"></i></div>
+              <div class="admin-empty-title">{% trans "No activity yet" %}</div>
+              <div class="admin-empty-copy">{% trans "Administrative activity will appear here as Talena is configured." %}</div>
+            </div>
           {% endfor %}
         </div>
-      {% else %}
-        <div class="p-3 border rounded bg-light">
-          <div class="text-muted">No companies yet.</div>
-          <a class="btn btn-primary btn-sm mt-2" href="{% url 'accounts:company_create' %}">
-            Add first company
-          </a>
-        </div>
-      {% endif %}
-
-      <!-- Latest processes -->
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
-        <div>
-          <h3 class="mb-1">Latest test processes</h3>
-          <div class="text-muted small">Recent test processes across all companies</div>
-        </div>
-      </div>
-
-{% if latest_processes %}
-  <div class="process-rows">
-    {% for p in latest_processes %}
-      <a href="{% url 'accounts:admin_process_detail' p.id %}"
-         class="process-row process-row-link">
-
-        {# COL 1: Main info #}
-        <div class="process-col-main min-w-0">
-  <div class="process-name text-truncate">
-    {{ p.name }}
+      </section>
+    </aside>
   </div>
 
-  <div class="process-sub text-muted small text-truncate">
-    {{ p.company.name|default:"No company" }}
-    {% if p.org_unit %}
-      · {{ p.org_unit.name }}
-    {% endif %}
-  </div>
-
-  <div class="process-sub process-sub-extra text-muted small text-truncate">
-    Created by
-    {% if p.created_by %}
-      {{ p.created_by.get_full_name|default:p.created_by.email|default:p.created_by.username }}
-    {% else %}
-      Unknown user
-    {% endif %}
-    · {{ p.created_at|date:"Y-m-d H:i" }}
-  </div>
 </div>
-
-        {# COL 2: Candidates #}
-        <div class="process-col-meta">
-          <span class="process-info-pill process-info-pill-candidates">
-            <span class="process-info-icon">
-              <i data-feather="users"></i>
-            </span>
-            <span class="process-info-text">
-              {{ p.candidates_count|default:"0" }}
-            </span>
-          </span>
-        </div>
-
-        {# COL 3: Template/project #}
-        <div class="process-col-label">
-          <div class="process-labels">
-            <span class="process-label">
-              {{ p.project_name_snapshot|default:p.project_code|default:"Assessment" }}
-            </span>
-          </div>
-        </div>
-
-      </a>
-    {% endfor %}
-  </div>
-
-{% else %}
-  <div class="latest-process-empty">
-    <div class="latest-process-empty-icon">
-      <i data-feather="clipboard"></i>
-    </div>
-
-    <div class="latest-process-empty-title">
-      No test processes yet
-    </div>
-
-    <div class="latest-process-empty-text">
-      Once companies start creating test processes, the latest ones will appear here.
-    </div>
-  </div>
-{% endif %}
-
-<!-- Latest user invites -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 mt-5">
-  <div>
-    <h3 class="mb-1">Latest user invites</h3>
-    <div class="text-muted small">Recently invited users across all companies</div>
-  </div>
-
-  <a href="{% url 'accounts:admin_customers_list' %}"
-     class="btn btn-primary btn-sm rounded-pill">
-    View users
-  </a>
-</div>
-
-{% if latest_user_invites %}
-  <div class="admin-invite-rows">
-    {% for invite in latest_user_invites %}
-      <a href="{% url 'accounts:admin_user_detail' invite.user.pk %}"
-         class="admin-invite-row">
-
-        <div class="admin-invite-main min-w-0">
-          <div class="admin-invite-name text-truncate">
-            {{ invite.user.get_full_name|default:invite.user.email|default:invite.user.username }}
-          </div>
-
-          <div class="admin-invite-sub text-muted small text-truncate">
-            {{ invite.user.email|default:"No email" }}
-          </div>
-
-          <div class="admin-invite-sub admin-invite-sub-extra text-muted small text-truncate">
-            Invited by
-            {% if invite.created_by %}
-              {{ invite.created_by.get_full_name|default:invite.created_by.email|default:invite.created_by.username }}
-            {% else %}
-              System
-            {% endif %}
-            · {{ invite.created_at|date:"Y-m-d H:i" }}
-          </div>
-        </div>
-
-        <div class="admin-invite-meta">
-          {% if invite.company %}
-            <span class="admin-info-pill">
-              <i data-feather="briefcase"></i>
-              {{ invite.company.name }}
-            </span>
-          {% endif %}
-
-          {% if invite.revoked_at %}
-            <span class="admin-invite-status is-revoked">
-              Revoked
-            </span>
-          {% elif invite.accepted_at %}
-            <span class="admin-invite-status is-accepted">
-              Accepted
-            </span>
-          {% else %}
-            <span class="admin-invite-status is-pending">
-              Pending
-            </span>
-          {% endif %}
-        </div>
-
-      </a>
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="latest-process-empty">
-    <div class="latest-process-empty-icon">
-      <i data-feather="mail"></i>
-    </div>
-
-    <div class="latest-process-empty-title">
-      No user invites yet
-    </div>
-
-    <div class="latest-process-empty-text">
-      When admins invite users to companies, the latest invitations will appear here.
-    </div>
-  </div>
-{% endif %}
-
-    </div>
-
-   <!-- Right: Admin activity feed -->
-<div class="col-12 col-xl-4">
-
-  <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
-    <div>
-      <h3 class="mb-1">Recent activity</h3>
-      <div class="text-muted small">Admin activity across companies and users</div>
-    </div>
-
-    <a href="#"
-       class="btn btn-primary btn-sm rounded-pill">
-      View all
-    </a>
-  </div>
-
-  <div class="recent-activity-list">
-    {% for event in activity_events|slice:":5" %}
-      <div class="recent-activity-item">
-
-        {% if event.company %}
-          <a
-            href="{% url 'accounts:company_detail' event.company.pk %}"
-            class="recent-activity-card"
-          >
-        {% else %}
-          <div class="recent-activity-card">
-        {% endif %}
-
-            <div class="recent-activity-head">
-              <span class="recent-activity-badge
-                {% if event.verb == 'company_created' %}is-created
-                {% elif event.verb == 'company_updated' %}is-status
-                {% elif event.verb == 'company_member_invited' %}is-invite
-                {% elif event.verb == 'company_member_added' %}is-added
-                {% elif event.verb == 'company_member_removed' %}is-default
-                {% elif event.verb == 'company_invite_accepted' %}is-added
-                {% elif event.verb == 'orgunit_created' %}is-created
-                {% elif event.verb == 'orgunit_moved' %}is-status
-                {% elif event.verb == 'user_access_updated' %}is-status
-                {% elif event.verb == 'user_logged_in' %}is-login
-                {% else %}is-default{% endif %}">
-
-                {% if event.verb == 'company_created' %}
-                  Company created
-                {% elif event.verb == 'company_updated' %}
-                  Company updated
-                {% elif event.verb == 'company_deleted' %}
-                  Company deleted
-                {% elif event.verb == 'company_member_invited' %}
-                  User invited
-                {% elif event.verb == 'company_member_added' %}
-                  User added
-                {% elif event.verb == 'company_member_removed' %}
-                  User removed
-                {% elif event.verb == 'company_member_role_updated' %}
-                  Role updated
-                {% elif event.verb == 'company_invite_accepted' %}
-                  Invite accepted
-                {% elif event.verb == 'orgunit_created' %}
-                  Account created
-                {% elif event.verb == 'orgunit_updated' %}
-                  Account updated
-                {% elif event.verb == 'orgunit_moved' %}
-                  Account moved
-                {% elif event.verb == 'orgunit_deleted' %}
-                  Account deleted
-                {% elif event.verb == 'user_access_updated' %}
-                  Access updated
-                {% elif event.verb == 'user_logged_in' %}
-                  Login
-                {% else %}
-                  Admin activity
-                {% endif %}
-              </span>
-
-              <span class="recent-activity-time">
-                {{ event.created_at|date:"Y-m-d H:i" }}
-              </span>
-            </div>
-
-            <div class="recent-activity-title">
-              {{ event.message }}
-            </div>
-
-            {% if event.company %}
-              <div class="recent-activity-process">
-                Company: {{ event.company.name }}
-              </div>
-            {% endif %}
-
-        {% if event.company %}
-          </a>
-        {% else %}
-          </div>
-        {% endif %}
-
-      </div>
-    {% empty %}
-      <div class="recent-activity-empty">
-        No activity yet.
-      </div>
-    {% endfor %}
-  </div>
-</div>
-  </div>
-</div>
-
 {% endblock %}

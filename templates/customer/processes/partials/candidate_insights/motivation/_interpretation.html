@@ -1,167 +1,271 @@
 {% load i18n %}
-{# Talena motivation Results language batch 1 #}
-<!-- OVERALL INTERPRETATION -->
-<section class="mt-4 purpose-fit-section">
+{% trans "Motivation interpretation" as motivation_interpretation_fallback %}
+{% get_current_language as motivation_interpretation_language %}
+{# Talena motivation AI interpretation #}
 
-  <h3 class="motivation-ai-section__title">
-    {% trans "Overall motivation interpretation" %}
-  </h3>
-
-  <div
-    class="motivation-ai-interpretation"
-    data-motivation-ai-interpretation
-  >
-    {{ motivation_interpretation.interpretation }}
-  </div>
-
-</section>
-
-
-<!-- EXPECTATION SETTING -->
 <section
-  class="
-    border
-    rounded-4
-    p-3
-    mt-4
-    {% if not motivation_interpretation.expectation_setting %}
-      d-none
-    {% endif %}
-  "
-  data-motivation-ai-expectation-section
+  class=""
+  data-motivation-ai-root
+  data-stream-url="{{ motivation_interpretation_stream_url }}"
+  data-regenerate-url="{{ motivation_interpretation_regenerate_url }}"
+  data-status="{{ motivation_interpretation_status }}"
+  data-has-result="{% if motivation_interpretation %}true{% else %}false{% endif %}"
 >
 
-  <div class="d-flex align-items-start gap-3">
-
-    <div class="flex-shrink-0">
-      <i data-feather="message-circle"></i>
-    </div>
+  <!-- HEADER -->
+  <div
+    class="
+      d-flex
+      align-items-start
+      justify-content-between
+      gap-3
+      flex-wrap
+    "
+  >
 
     <div>
+      <div class="insight-summary-kicker">
+        {% trans "AI-generated insight" %}
+      </div>
 
+      <h2 class="insight-summary-title mb-1">
+        {{ motivation_interpretation.title|default:motivation_interpretation_fallback }}
+      </h2>
+
+      <p class="text-muted small mb-0">
+        {% blocktrans %}A practical interpretation of the motivation profile in relation to the selected purpose and process context.{% endblocktrans %}
+      </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <span
+        class="
+          badge
+          rounded-pill
+          bg-warning-subtle
+          text-warning-emphasis
+          {% if motivation_interpretation_status != 'outdated' %}
+            d-none
+          {% endif %}
+        "
+        data-motivation-ai-status-badge
+      >
+        {% trans "Needs update" %}
+      </span>
+
+      <button
+        type="button"
+        class="btn btn-icon btn-light"
+        data-motivation-ai-regenerate
+        title="{% trans 'Generate a new motivation interpretation' %}"
+        aria-label="{% trans 'Generate a new motivation interpretation' %}"
+      >
+        <i data-feather="refresh-cw"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Hidden hook retained for existing JavaScript -->
+  <div
+    class="d-none"
+    data-motivation-ai-outdated
+    aria-hidden="true"
+  ></div>
+
+  <!-- THINKING -->
+  <div
+    class="{% if motivation_interpretation %}d-none{% endif %}"
+    data-motivation-ai-thinking
+  >
+    <div class="d-flex align-items-center gap-2 text-muted py-4">
+      <span
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+
+      <span>
+        {% trans "Interpreting the motivation profile…" %}
+      </span>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div
+    class="alert alert-danger d-none mt-4"
+    data-motivation-ai-error
+  >
+    {% trans "The motivation interpretation could not be generated." %}
+  </div>
+
+  <!-- CONTENT -->
+  <div
+    class="{% if not motivation_interpretation %}d-none{% endif %}"
+    data-motivation-ai-content
+  >
+
+    <!-- Hidden streamed context note retained for JavaScript compatibility -->
+    <div
+      class="d-none"
+      data-motivation-ai-context-note
+      aria-hidden="true"
+    >{{ motivation_interpretation.context_note }}</div>
+
+    <!-- AI / EVIDENCE NOTE -->
+    <div class="personality-questions-context-note mt-4">
+      <div class="d-flex align-items-start gap-3">
+        <div class="personality-questions-context-note__icon">
+          <i data-feather="info"></i>
+        </div>
+
+        <div class="flex-grow-1">
+          <div class="personality-questions-context-note__title">
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              Om AI-tolkningen
+            {% else %}
+              About the AI interpretation
+            {% endif %}
+          </div>
+
+          <div>
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              AI-tolkningen bygger på motivationsprofilen, processens syfte och tillgänglig kontext. Resultaten beskriver möjliga drivkrafter och preferenser, inte styrkor eller svagheter i sig.
+            {% else %}
+              The AI interpretation is based on the motivation profile, the process purpose and available context. The results describe possible drivers and preferences, not strengths or weaknesses in themselves.
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERALL INTERPRETATION -->
+    <section class="mt-4 purpose-fit-section">
       <h3 class="mb-2 purpose-fit-section-title">
-        {% trans "Realistic expectation setting" %}
+        {% if motivation_interpretation_language|slice:":2" == "sv" %}
+          Övergripande tolkning
+        {% else %}
+          Overall interpretation
+        {% endif %}
       </h3>
 
       <div
         class="purpose-fit-summary"
-        data-motivation-ai-expectation
-      >{{ motivation_interpretation.expectation_setting }}</div>
+        data-motivation-ai-interpretation
+      >{{ motivation_interpretation.interpretation }}</div>
+    </section>
+
+    <!-- WHAT TO COMMUNICATE -->
+    <section
+      class="
+        border
+        rounded-4
+        p-3
+        mt-4
+        {% if not motivation_interpretation.expectation_setting %}
+          d-none
+        {% endif %}
+      "
+      data-motivation-ai-expectation-section
+    >
+      <div class="d-flex align-items-start gap-3">
+        <div class="flex-shrink-0">
+          <i data-feather="message-circle"></i>
+        </div>
+
+        <div>
+          <h3 class="mb-2 purpose-fit-section-title">
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              Att kommunicera till kandidaten
+            {% else %}
+              What to communicate to the candidate
+            {% endif %}
+          </h3>
+
+          <div
+            class="purpose-fit-summary"
+            data-motivation-ai-expectation
+          >{{ motivation_interpretation.expectation_setting }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIKELY BEHAVIOURS + EXPLORE -->
+    <div class="row g-4 mt-1">
+
+      <!-- LIKELY BEHAVIOURS -->
+      <div class="col-lg-6">
+        <section
+          class="
+            purpose-fit-list-card
+            purpose-fit-list-card--positive
+            h-100
+            {% if not motivation_interpretation.engagement_conditions %}
+              d-none
+            {% endif %}
+          "
+          data-motivation-ai-engagement-section
+        >
+          <div class="purpose-fit-section-title">
+            {% if motivation_interpretation_language|slice:":2" == "sv" %}
+              Sannolika beteenden
+            {% else %}
+              Likely behaviours
+            {% endif %}
+          </div>
+
+          <ul
+            class="purpose-fit-list"
+            data-motivation-ai-engagement
+          >
+            {% for item in motivation_interpretation.engagement_conditions %}
+              <li>
+                <span class="purpose-fit-list-icon">
+                  <i data-feather="check"></i>
+                </span>
+                <span>{{ item }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      </div>
+
+      <!-- AREAS TO EXPLORE -->
+      <div class="col-lg-6">
+        <section
+          class="
+            purpose-fit-list-card
+            purpose-fit-list-card--verify
+            h-100
+            {% if not motivation_interpretation.areas_to_clarify %}
+              d-none
+            {% endif %}
+          "
+          data-motivation-ai-clarify-section
+        >
+          <div class="purpose-fit-section-title">
+            {% trans "What to explore or clarify" %}
+          </div>
+
+          <ul
+            class="purpose-fit-list"
+            data-motivation-ai-clarify
+          >
+            {% for item in motivation_interpretation.areas_to_clarify %}
+              <li>
+                <span class="purpose-fit-list-icon">
+                  <i data-feather="search"></i>
+                </span>
+                <span>{{ item }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      </div>
 
     </div>
+    <!-- /LIKELY BEHAVIOURS + EXPLORE -->
 
   </div>
 
 </section>
-<!-- ENGAGEMENT + CLARIFY -->
-<div class="row g-4 mt-1">
-
-  <!-- ENGAGEMENT CONDITIONS -->
-  <div class="col-lg-6">
-
-    <section
-      class="
-        purpose-fit-list-card
-        purpose-fit-list-card--positive
-        h-100
-        {% if not motivation_interpretation.engagement_conditions %}
-          d-none
-        {% endif %}
-      "
-      data-motivation-ai-engagement-section
-    >
-
-      <div class="purpose-fit-section-title">
-        {% trans "Conditions likely to support engagement" %}
-      </div>
-
-      <ul
-        class="purpose-fit-list"
-        data-motivation-ai-engagement
-      >
-        {% for item in motivation_interpretation.engagement_conditions %}
-
-          <li>
-            <span class="purpose-fit-list-icon">
-              <i data-feather="zap"></i>
-            </span>
-
-            <span>{{ item }}</span>
-          </li>
-
-        {% endfor %}
-      </ul>
-
-    </section>
-
-  </div>
-
-
-  <!-- AREAS TO CLARIFY -->
-  <div class="col-lg-6">
-
-    <section
-      class="
-        purpose-fit-list-card
-        purpose-fit-list-card--verify
-        h-100
-        {% if not motivation_interpretation.areas_to_clarify %}
-          d-none
-        {% endif %}
-      "
-      data-motivation-ai-clarify-section
-    >
-
-      <div class="purpose-fit-section-title">
-        {% trans "What to explore or clarify" %}
-      </div>
-
-      <ul
-        class="purpose-fit-list"
-        data-motivation-ai-clarify
-      >
-        {% for item in motivation_interpretation.areas_to_clarify %}
-
-          <li>
-            <span class="purpose-fit-list-icon">
-              <i data-feather="search"></i>
-            </span>
-
-            <span>{{ item }}</span>
-          </li>
-
-        {% endfor %}
-      </ul>
-
-    </section>
-
-  </div>
-
-</div>
-<!-- /ENGAGEMENT + CLARIFY -->
-
-
-<!-- CONTEXT NOTE -->
-<div class="motivation-ai-context-note mt-4">
-
-  <div class="motivation-ai-context-note__title">
-    {% trans "How Talena created this interpretation" %}
-  </div>
-
-  <div data-motivation-ai-context-note>
-    {{ motivation_interpretation.context_note }}
-  </div>
-
-</div>
-
-
-<!-- DISCLAIMER -->
-<div class="purpose-fit-disclaimer border-top pt-3 mt-4">
-
-  <i data-feather="info"></i>
-
-  <div>
-    {% blocktrans %}Motivation results describe possible sources of energy, engagement and preference. Less central factors are not weaknesses and do not indicate limited capability or poor values.{% endblocktrans %}
-  </div>
-
-</div>

@@ -1,7 +1,23 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {# Talena candidate insights workspace #}
 {% trans "context" as context_fallback %}
 {% trans "Add context" as add_context_fallback %}
+{% trans "Candidate insights" as candidate_insights_eyebrow %}
+{% trans "Personality" as personality_panel_title %}
+{% trans "Explore the candidate’s overall personality traits and the detailed indicators that contribute to each result." as personality_panel_description %}
+{% trans "Motivation" as motivation_panel_title %}
+{% trans "The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale." as motivation_panel_description %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Färdighet" as cognitive_panel_title %}
+{% else %}
+  {% trans "Skills" as cognitive_panel_title %}
+{% endif %}
+{% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and process context." as cognitive_panel_description %}
+{% trans "Team styles" as team_styles_panel_title %}
+{% blocktrans trimmed asvar team_styles_panel_description %}
+  The profile shows how the candidate may approach eight roles commonly observed in teams. Results use Sova's five-point team-style scale.
+{% endblocktrans %}
 
 {% if show_context_prompt %}
 
@@ -108,11 +124,12 @@
 
         <div
           id="candidate-insights-panel-personality"
-          class="candidate-insights-panel"
+          class="candidate-insights-panel candidate-insight-page"
           role="tabpanel"
           data-insights-panel="personality"
           hidden
         >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=personality_panel_title section_description=personality_panel_description %}
           {% include "customer/processes/partials/candidate_insights/tabs/_personality.html" %}
         </div>
 
@@ -121,24 +138,26 @@
 
         <div
           id="candidate-insights-panel-motivation"
-          class="candidate-insights-panel"
+          class="candidate-insights-panel candidate-insight-page"
           role="tabpanel"
           data-insights-panel="motivation"
           hidden
         >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=motivation_panel_title section_description=motivation_panel_description %}
           {% include "customer/processes/partials/candidate_insights/tabs/_motivation.html" %}
         </div>
 
 
-        <!-- COGNITIVE ABILITIES -->
+        <!-- SKILLS -->
 
         <div
           id="candidate-insights-panel-cognitive"
-          class="candidate-insights-panel"
+          class="candidate-insights-panel candidate-insight-page"
           role="tabpanel"
           data-insights-panel="cognitive"
           hidden
         >
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=cognitive_panel_title section_description=cognitive_panel_description %}
           {% include "customer/processes/partials/candidate_insights/tabs/_cognitive.html" %}
         </div>
 
@@ -147,12 +166,15 @@
 
         <div
           id="candidate-insights-panel-team-styles"
-          class="candidate-insights-panel"
+          class="candidate-insights-panel candidate-insight-page"
           role="tabpanel"
           data-insights-panel="team-styles"
           hidden
         >
-          {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=team_styles_panel_title section_description=team_styles_panel_description %}
+          <div class="candidate-insight-page-body">
+            {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
+          </div>
         </div>
 
 

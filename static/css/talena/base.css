@@ -1,0 +1,204 @@
+/* =========================================================
+   TALENA BASE
+   ---------------------------------------------------------
+   Global Talena-specific foundations for the refreshed UI.
+
+   Migration rule:
+   Keep selectors opt-in while legacy style.css remains active.
+   Do not redefine generic Bootstrap/body styles here yet.
+   ========================================================= */
+
+.talena-ui {
+  color: var(--talena-text);
+}
+
+.talena-ui a {
+  text-underline-offset: 0.14em;
+}
+
+.talena-focus-ring:focus-visible {
+  outline: 3px solid rgba(255, 111, 97, 0.22);
+  outline-offset: 2px;
+}
+
+.talena-muted {
+  color: var(--talena-text-muted);
+}
+
+.talena-eyebrow {
+  margin: 0;
+  color: var(--talena-coral-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Personality trait selector: an empty option should look empty. */
+#layoutSidenav_content main .process-page [data-personality-traits-editor]
+.personality-trait-option__check svg {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+#layoutSidenav_content main .process-page [data-personality-traits-editor]
+.personality-trait-option input:checked
++ .personality-trait-option__control
+.personality-trait-option__check svg {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Personality questions: switch between the 18 trait model and the
+   38-competency interview framework without making the dialog feel heavier. */
+#layoutSidenav_content main .process-page .personality-question-basis-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 1.15rem 0 0.8rem;
+  padding: 0.28rem;
+  border: 1px solid var(--talena-border, #e5dfda);
+  border-radius: 0.8rem;
+  background: #f7f5f3;
+}
+
+#layoutSidenav_content main .process-page .personality-question-basis-tab {
+  min-height: 2.55rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 0.62rem;
+  background: transparent;
+  color: var(--talena-text-muted, #746d68);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+#layoutSidenav_content main .process-page .personality-question-basis-tab:hover {
+  color: var(--talena-text, #1d1917);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+#layoutSidenav_content main .process-page .personality-question-basis-tab.is-active {
+  border-color: rgba(255, 111, 97, 0.32);
+  background: #fff;
+  color: var(--talena-coral-strong, #e95f53);
+  box-shadow: 0 1px 4px rgba(36, 28, 24, 0.06);
+}
+
+#layoutSidenav_content main .process-page [data-question-basis-panel][hidden] {
+  display: none !important;
+}
+
+#layoutSidenav_content main .process-page .personality-competency-options {
+  display: block;
+}
+
+#layoutSidenav_content main .process-page .personality-competency-domain +
+.personality-competency-domain {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--talena-border, #e8e2de);
+}
+
+#layoutSidenav_content main .process-page .personality-competency-domain__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.55rem;
+  color: var(--talena-text-muted, #736b66);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+}
+
+#layoutSidenav_content main .process-page .personality-competency-domain__title span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  min-height: 1.35rem;
+  padding: 0 0.4rem;
+  border: 1px solid rgba(255, 111, 97, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 111, 97, 0.06);
+  color: var(--talena-coral-strong, #e95f53);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+}
+
+#layoutSidenav_content main .process-page .personality-question-basis-error {
+  margin: 0.7rem 0 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(255, 111, 97, 0.28);
+  border-radius: 0.65rem;
+  background: rgba(255, 111, 97, 0.06);
+  color: var(--talena-coral-strong, #d9584d);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* Keep the personality-question dialog inside the viewport. The active
+   basis panel owns the remaining height, and only its option list scrolls.
+   Header, tabs, status and footer therefore remain reachable. */
+#layoutSidenav_content main .process-page .personality-traits-dialog {
+  overflow: hidden;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__shell {
+  display: flex;
+  flex-direction: column;
+  height: min(86dvh, 850px);
+  max-height: min(86dvh, 850px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__header,
+#layoutSidenav_content main .process-page .personality-question-basis-tabs,
+#layoutSidenav_content main .process-page .personality-traits-dialog__status,
+#layoutSidenav_content main .process-page .personality-traits-dialog__footer {
+  flex: 0 0 auto;
+}
+
+#layoutSidenav_content main .process-page .personality-question-basis-panel:not([hidden]) {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__body {
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+#layoutSidenav_content main .process-page .personality-traits-dialog__footer {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 0 -8px 20px rgba(36, 28, 24, 0.04);
+}
+
+@media (max-width: 700px) {
+  #layoutSidenav_content main .process-page .personality-question-basis-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  #layoutSidenav_content main .process-page .personality-traits-dialog__shell {
+    height: 92dvh;
+    max-height: 92dvh;
+  }
+}

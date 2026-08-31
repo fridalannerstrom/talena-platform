@@ -1,9 +1,10 @@
 {% load i18n motivation_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
+{% get_current_language as motivation_language %}
 {# Talena motivation Results language batch 1 #}
 <!-- MOTIVATION PROFILE -->
 {% if has_motivation_results and motivation_insights %}
-  <section class="purpose-fit-card motivation-profile-card">
+  <section class="">
     <div class="mt-4">
 
       <!-- HEADER -->
@@ -18,277 +19,248 @@
         </p>
 
       </header>
-<!-- VISUAL MOTIVATION OVERVIEW -->
 
-<section
-  class="motivation-visual-overview mb-4"
-  data-motivation-visual-overview
->
+      <!-- VISUAL MOTIVATION OVERVIEW -->
+      <section
+        class="motivation-visual-overview mb-4"
+        data-motivation-visual-overview
+      >
 
-<!-- MOTIVATION BUBBLE MAP -->
+        <!-- KORN FERRY-INSPIRED MOTIVATION ROSE CHART -->
+        <div
+          class="motivation-rose-chart"
+          data-motivation-rose-chart-root
+        >
 
-<!-- KORN FERRY-INSPIRED MOTIVATION ROSE CHART -->
+          <!-- CHART -->
+          <div class="motivation-rose-chart__canvas-wrap">
+            <canvas
+              data-motivation-rose-chart
+              role="img"
+              aria-label="{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}"
+            ></canvas>
+          </div>
 
-<div
-  class="motivation-rose-chart"
-  data-motivation-rose-chart-root
->
+          <!-- LOADING / EMPTY STATE -->
+          <div
+            class="motivation-rose-chart__empty"
+            data-motivation-rose-chart-empty
+          >
+            {% trans "Preparing motivation overview…" %}
+          </div>
 
-  <!-- CHART -->
+          <!-- CHART DATA -->
+          <div
+            data-motivation-rose-chart-data
+            hidden
+          >
+            {% for domain in motivation_insights.domains %}
+              {% for item in domain.items %}
+                {% if item.score is not None %}
+                  <span
+                    data-motivation-rose-item
+                    data-factor-name="{{ item|motivation_name|escape }}"
+                    data-factor-score="{{ item.score }}"
+                    data-factor-domain="{{ domain|motivation_domain_title|escape }}"
+                    data-domain-index="{{ forloop.parentloop.counter0 }}"
+                  ></span>
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          </div>
 
-  <div class="motivation-rose-chart__canvas-wrap">
-
-    <canvas
-      data-motivation-rose-chart
-      role="img"
-      aria-label="{% blocktrans %}Circular overview of the candidate's motivation profile{% endblocktrans %}"
-    ></canvas>
-
-  </div>
-
-
-  <!-- LOADING / EMPTY STATE -->
-
-  <div
-    class="motivation-rose-chart__empty"
-    data-motivation-rose-chart-empty
-  >
-    {% trans "Preparing motivation overview…" %}
-  </div>
-
-
-  <!-- CHART DATA -->
-
-  <div
-    data-motivation-rose-chart-data
-    hidden
-  >
-
-    {% for domain in motivation_insights.domains %}
-
-      {% for item in domain.items %}
-
-        {% if item.score is not None %}
-
-          <span
-            data-motivation-rose-item
-            data-factor-name="{{ item|motivation_name|escape }}"
-            data-factor-score="{{ item.score }}"
-            data-factor-domain="{{ domain|motivation_domain_title|escape }}"
-            data-domain-index="{{ forloop.parentloop.counter0 }}"
-          ></span>
-
-        {% endif %}
-
-      {% endfor %}
-
-    {% endfor %}
-
-  </div>
-
-</div>
-
-</section>
-
+        </div>
+      </section>
 
       <!-- PROFILE SUMMARY -->
       {% if motivation_insights.has_profile_difference %}
 
+        <!-- MORE PROMINENT DRIVERS -->
+        <article class="mb-4">
+          <div class="response-style-item__header">
+            <div style="flex: 1; text-align: left;">
+              <h4 class="insight-summary-title mb-1">
+                {% if motivation_language|slice:":2" == "sv" %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}s mest framträdande drivkrafter
+                {% else %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}'s most prominent drivers
+                {% endif %}
+              </h4>
 
-          <!-- MORE PROMINENT DRIVERS -->
-          <article class="insight-summary-content motivation-summary-group mb-4">
-
-            <div class="response-style-item__header">
-
-              <div>
-<h4 class="response-style-item__title">
-  {% blocktrans with candidate_name=candidate.first_name|default:motivation_candidate_fallback %}{{ candidate_name }}’s most prominent drivers{% endblocktrans %}
-</h4>
-
-                <div class="response-style-item__subtitle">
-                  {% trans "Factors more likely to provide energy and engagement" %}
-                </div>
+              <div class="response-style-item__subtitle">
+                {% if motivation_language|slice:":2" == "sv" %}
+                  Faktorer som sannolikt ger energi och engagemang
+                {% else %}
+                  Factors more likely to provide energy and engagement
+                {% endif %}
               </div>
-
-              <div class="motivation-summary-group__icon">
-                <i data-feather="zap" aria-hidden="true"></i>
-              </div>
-
             </div>
 
+            <div class="motivation-summary-group__icon">
+              <i data-feather="zap" aria-hidden="true"></i>
+            </div>
+          </div>
 
-            <div class="motivation-summary-list">
+          <div class="motivation-summary-list">
+            {% for item in motivation_insights.motivators|slice:":3" %}
+              <div class="motivation-summary-item">
+                <div class="motivation-summary-item__header">
+                  <div>
+                    <div class="motivation-summary-item__name">
+                      {{ item|motivation_name }}
+                    </div>
 
-              {% for item in motivation_insights.motivators %}
+                    <p class="motivation-summary-item__description mb-0">
+                      {{ item|motivation_top_interpretation }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
 
+        <!-- LESS PROMINENT DRIVERS -->
+        <article class="mb-4 motivation-least-prominent">
+          <div class="response-style-item__header">
+            <div style="flex: 1; text-align: left;">
+              <h4 class="insight-summary-title mb-1">
+                {% if motivation_language|slice:":2" == "sv" %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}s minst framträdande drivkrafter
+                {% else %}
+                  {{ candidate.first_name|default:motivation_candidate_fallback }}'s least prominent drivers
+                {% endif %}
+              </h4>
+
+              <div class="response-style-item__subtitle">
+                {% if motivation_language|slice:":2" == "sv" %}
+                  Faktorer som mindre sannolikt är en central källa till energi och engagemang
+                {% else %}
+                  Factors less likely to be a central source of energy and engagement
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="motivation-summary-group__icon">
+              <i data-feather="arrow-down" aria-hidden="true"></i>
+            </div>
+          </div>
+
+          <div class="motivation-summary-list">
+            {% with least_prominent=motivation_insights|motivation_least_prominent %}
+              {% for item in least_prominent %}
                 <div class="motivation-summary-item">
-
                   <div class="motivation-summary-item__header">
-
                     <div>
                       <div class="motivation-summary-item__name">
                         {{ item|motivation_name }}
                       </div>
 
-                      <p class="motivation-summary-item__description">
-                        {{ item|motivation_top_interpretation }}
+                      <p class="motivation-summary-item__description mb-0">
+                        {{ item|motivation_bottom_interpretation }}
                       </p>
                     </div>
-
                   </div>
-
-
                 </div>
-
               {% endfor %}
-
-            </div>
-
-          </article>
-
+            {% endwith %}
+          </div>
+        </article>
 
       {% endif %}
 
-
       <!-- FULL PROFILE HEADING -->
       <div class="motivation-full-profile-heading border-top mt-4 pt-4">
-
         <div>
-
-          <h3 class="motivation-full-profile-heading__title mt-4">
+          <h3 class="insight-summary-title mb-1 mt-4">
             {% trans "All motivation factors" %}
           </h3>
 
           <p>
-            {% blocktrans %}Results are grouped according to the four areas in the motivation model.{% endblocktrans %}
+            {% if motivation_language|slice:":2" == "sv" %}
+              Alla motivationsfaktorer visas i fallande ordning, från mer framträdande till mindre centrala.
+            {% else %}
+              All motivation factors are shown in descending order, from more prominent to less central.
+            {% endif %}
           </p>
         </div>
-
       </div>
 
-
-      <!-- COMPLETE PROFILE -->
-
-
-        {% for domain in motivation_insights.domains %}
-
-          <article class="insight-summary-content mb-4 motivation-domain-section">
-
-            <!-- DOMAIN HEADER -->
-            <div class="response-style-item__header motivation-domain-section__header">
-
-              <div class="motivation-domain-section__title-wrap">
-
-                <div class="motivation-domain-section__icon">
-                  <i class="{{ domain.icon_class }}"></i>
-                </div>
-
+      <!-- COMPLETE PROFILE, SORTED BY SCORE -->
+      {% with sorted_factors=motivation_insights|motivation_factors_descending %}
+        <div class="motivation-factor-list">
+          {% for item in sorted_factors %}
+            <div class="team-style-result motivation-factor-result">
+              <div class="team-style-result__header motivation-factor-result__header">
                 <div>
-                  <h4 class="response-style-item__title">
-                    {{ domain|motivation_domain_title }}
-                  </h4>
+                  <h5 class="motivation-factor-result__name">
+                    {{ item|motivation_name }}
+                  </h5>
 
-                  <div class="response-style-item__subtitle">
-                    {{ domain|motivation_domain_subtitle }}
-                  </div>
+                  <p class="team-style-result__description">
+                    {% if motivation_language|slice:":2" == "sv" %}
+                      {% if item.key == "attachment" %}Motiveras av socialt samspel samt av att få stöd och arbeta i team.
+                      {% elif item.key == "customer_service" %}Motiveras av kundinriktade miljöer samt av att förstå kunders behov och ge god service.
+                      {% elif item.key == "work_life_balance" %}Motiveras av att kunna bevara en hälsosam balans mellan arbete och fritid.
+                      {% elif item.key == "people_development" %}Motiveras av att hjälpa andra att växa och utvecklas.
+                      {% elif item.key == "stability" %}Motiveras av anställningstrygghet samt stabilitet och enhetlighet i organisationen.
+                      {% elif item.key == "authority" %}Motiveras av bekräftelse gällande yrkesmässig status samt att utöva makt och inflytande över andra.
+                      {% elif item.key == "acquisition" %}Motiveras av ökat välstånd och ekonomisk belöning.
+                      {% elif item.key == "independence" %}Motiveras av att själv kunna styra över sin egen tid och sitt arbetssätt.
+                      {% elif item.key == "recognition" %}Motiveras av synlighet, beröm och av att få sina prestationer erkända inför andra.
+                      {% elif item.key == "making_a_difference" %}Motiveras av att bidra till organisationen, samhället eller någon sorts större syfte.
+                      {% elif item.key == "achievement" %}Motiveras av att uppnå mål, bemästra svårigheter och konkurrera med andra.
+                      {% elif item.key == "quality" %}Motiveras av att leverera arbetsresultat med hög precision och kvalitet i tid.
+                      {% elif item.key == "ethics" %}Motiveras av att upprätthålla höga etiska normer både för egen del och för organisationens del.
+                      {% elif item.key == "commercial_focus" %}Motiveras av att skapa intäkter och vinst för organisationen.
+                      {% elif item.key == "creativity" %}Motiveras av nyskapande och att hitta nya möjligheter till kreativitet.
+                      {% elif item.key == "enjoyment" %}Motiveras av att trivas på arbetet och ha roligt med kollegorna.
+                      {% elif item.key == "risk" %}Motiveras av att få mandat att ta risker i arbetet.
+                      {% elif item.key == "variety" %}Motiveras av variation i arbetet, nya och varierade arbetssätt samt förändring.
+                      {% elif item.key == "learning" %}Motiveras av möjligheter till vidareutveckling, fortbildning och att lära sig nya färdigheter.
+                      {% elif item.key == "curiosity" %}Motiveras av att hitta ny information och lösa nya problem.
+                      {% else %}{{ item|motivation_description }}{% endif %}
+                    {% else %}
+                      {{ item|motivation_description }}
+                    {% endif %}
+                  </p>
                 </div>
-
               </div>
 
-            </div>
-
-
-            <!-- FACTORS -->
-            <div class="motivation-factor-list">
-
-              {% for item in domain.items %}
-
-                <div class="team-style-result motivation-factor-result">
-
-                  <div class="team-style-result__header motivation-factor-result__header">
-
-                    <div>
-
-                      <h5 class="motivation-factor-result__name">
-                        {{ item|motivation_name }}
-                      </h5>
-
-                      <p class="team-style-result__description">
-                        {{ item|motivation_description }}
-                      </p>
-                    </div>
-
-
-                    {% if item.score is not None %}
-                      <div class="team-style-result__value">
-                        {{ item.score }}/5
-                      </div>
-                    {% else %}
-                      <div class="team-style-result__value motivation-factor-result__missing">
-                        {% trans "N/A" %}
-                      </div>
-                    {% endif %}
-
+              {% if item.score is not None %}
+                <div
+                  class="response-style-scale response-style-scale--linear team-style-result__scale motivation-factor-result__scale"
+                  role="meter"
+                  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
+                  aria-valuemin="1"
+                  aria-valuemax="5"
+                  aria-valuenow="{{ item.score }}"
+                >
+                  <div class="response-style-scale__segments">
+                    {% for segment in item.segments %}
+                      <span
+                        class="response-style-scale__segment {% if segment.number == item.score %}response-style-scale__segment--marker{% endif %} {% if segment.filled %}response-style-scale__segment--filled{% endif %}"
+                      ></span>
+                    {% endfor %}
                   </div>
 
-
-                  {% if item.score is not None %}
-
-<div
-  class="
-    response-style-scale
-    response-style-scale--linear
-    team-style-result__scale
-    motivation-factor-result__scale
-  "
-  role="meter"
-  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
-  aria-valuemin="1"
-  aria-valuemax="5"
-  aria-valuenow="{{ item.score }}"
->
-
-                      <div class="response-style-scale__segments">
-
-                        {% for segment in item.segments %}
-                          <span
-                            class="
-                              response-style-scale__segment
-
-                              {% if segment.number == item.score %}
-                                response-style-scale__segment--marker
-                              {% endif %}
-
-                              {% if segment.filled %}
-                                response-style-scale__segment--filled
-                              {% endif %}
-                            "
-                          ></span>
-                        {% endfor %}
-
-                      </div>
-
-                      <div class="response-style-scale__labels">
-                        <span>{% trans "Less central" %}</span>
-                        <span>{% trans "Mid-range" %}</span>
-                        <span>{% trans "More prominent" %}</span>
-                      </div>
-
-                    </div>
-
-                  {% endif %}
-
+                  <div class="response-style-scale__labels">
+                    {% if motivation_language|slice:":2" == "sv" %}
+                      <span>Mindre viktigt</span>
+                      <span>Medel</span>
+                      <span>Mer viktigt</span>
+                    {% else %}
+                      <span>Less important</span>
+                      <span>Average</span>
+                      <span>More important</span>
+                    {% endif %}
+                  </div>
                 </div>
-
-              {% endfor %}
-
+              {% endif %}
             </div>
-
-          </article>
-
-        {% endfor %}
-
-
+          {% endfor %}
+        </div>
+      {% endwith %}
 
       <!-- FOOTER -->
       <footer class="team-styles-footer motivation-profile-footer">

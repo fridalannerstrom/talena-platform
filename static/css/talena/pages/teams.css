@@ -1,0 +1,556 @@
+/* =========================================================
+   TALENA — TEAMS
+   ---------------------------------------------------------
+   Shared styling for team list, detail, forms and member
+   management. Scoped to .talena-team-page.
+   ========================================================= */
+
+.talena-team-page {
+  max-width: 1480px;
+  margin: 0 auto;
+  color: var(--talena-text);
+}
+
+/* Page header */
+.talena-team-page .team-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.35rem;
+}
+
+.talena-team-page .team-page-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.62rem;
+  font-weight: 760;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.talena-team-page .team-page-title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: clamp(1.75rem, 2.7vw, 2.65rem);
+  font-weight: 740;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.talena-team-page .team-page-description {
+  max-width: 720px;
+  margin: 0.5rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.talena-team-page .team-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.talena-team-page .team-page-actions .btn,
+.talena-team-page .team-primary-action,
+.talena-team-page .team-secondary-action {
+  min-height: 40px;
+  padding: 0.62rem 0.9rem;
+  border-radius: var(--talena-radius-pill) !important;
+  font-size: 0.69rem;
+  font-weight: 670;
+  box-shadow: none !important;
+}
+
+.talena-team-page .team-primary-action,
+.talena-team-page .btn-primary {
+  border-color: var(--talena-ink) !important;
+  background: var(--talena-ink) !important;
+  color: #fff !important;
+}
+
+.talena-team-page .team-primary-action:hover,
+.talena-team-page .btn-primary:hover {
+  border-color: #000 !important;
+  background: #000 !important;
+  transform: translateY(-1px);
+}
+
+.talena-team-page .team-secondary-action,
+.talena-team-page .btn-outline-secondary,
+.talena-team-page .btn-outline-primary {
+  border-color: var(--talena-border) !important;
+  background: rgba(255,255,255,0.84) !important;
+  color: var(--talena-text) !important;
+}
+
+.talena-team-page .team-secondary-action:hover,
+.talena-team-page .btn-outline-secondary:hover,
+.talena-team-page .btn-outline-primary:hover {
+  border-color: rgba(255,111,97,0.24) !important;
+  background: #fff !important;
+  color: var(--talena-coral-strong) !important;
+}
+
+/* Shared surfaces */
+.talena-team-page .team-surface,
+.talena-team-page .card {
+  overflow: hidden;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.94) !important;
+  box-shadow: var(--talena-shadow-xs) !important;
+}
+
+.talena-team-page .card-header {
+  padding: 1rem 1.15rem !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: transparent !important;
+}
+
+.talena-team-page .card-body {
+  padding: 1.15rem !important;
+}
+
+.talena-team-page .team-section-title,
+.talena-team-page .card-header .fw-semibold,
+.talena-team-page .card-body .fw-semibold {
+  color: var(--talena-ink);
+  font-weight: 690 !important;
+}
+
+.talena-team-page .team-section-title {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.talena-team-page .team-section-copy {
+  margin: 0.2rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+/* Team list */
+.talena-team-page .team-list-card .card-body {
+  padding: 0 !important;
+}
+
+.talena-team-page .team-table {
+  margin: 0;
+  color: var(--talena-text);
+}
+
+.talena-team-page .team-table thead th {
+  padding: 0.72rem 0.85rem;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text-subtle) !important;
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.talena-team-page .team-table tbody td {
+  padding: 0.86rem 0.85rem;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: transparent !important;
+  color: var(--talena-text);
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.talena-team-page .team-table tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.talena-team-page .team-table tbody tr:hover td {
+  background: rgba(255,111,97,0.024) !important;
+}
+
+.talena-team-page .team-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.talena-team-page .team-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,111,97,0.17);
+  border-radius: 11px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-team-page .team-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.talena-team-page .team-name {
+  color: var(--talena-ink);
+  font-size: 0.75rem;
+  font-weight: 680;
+}
+
+.talena-team-page .team-member-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 25px;
+  padding: 0.28rem 0.52rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text-muted);
+  font-size: 0.61rem;
+  font-weight: 630;
+}
+
+.talena-team-page .team-view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid var(--talena-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--talena-text-muted);
+  transition: all var(--talena-transition-fast);
+}
+
+.talena-team-page .team-view-link:hover {
+  border-color: rgba(255,111,97,0.25);
+  color: var(--talena-coral-strong);
+  transform: translateX(2px);
+}
+
+/* Detail summary */
+.talena-team-page .team-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 17px;
+  background: rgba(255,255,255,0.92);
+  box-shadow: var(--talena-shadow-xs);
+}
+
+.talena-team-page .team-summary-item {
+  min-height: 88px;
+  padding: 0.95rem 1.05rem;
+  border-right: 1px solid var(--talena-border);
+}
+
+.talena-team-page .team-summary-item:last-child {
+  border-right: 0;
+}
+
+.talena-team-page .team-summary-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.58rem;
+  font-weight: 680;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.talena-team-page .team-summary-value {
+  margin-top: 0.25rem;
+  color: var(--talena-ink);
+  font-size: 1.25rem;
+  font-weight: 730;
+  letter-spacing: -0.035em;
+}
+
+.talena-team-page .team-summary-meta {
+  margin-top: 0.1rem;
+  color: var(--talena-text-muted);
+  font-size: 0.63rem;
+}
+
+/* Team style analytics */
+.talena-team-page .team-analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.35fr);
+  gap: 1rem;
+}
+
+.talena-team-page .team-analytics-panel {
+  padding: 1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 15px;
+  background: var(--talena-surface-soft);
+}
+
+.talena-team-page .team-style-chart-box {
+  position: relative;
+  width: 100%;
+  height: 315px;
+  margin-top: 0.75rem;
+}
+
+.talena-team-page .team-style-chart-box canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.talena-team-page .team-style-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.68rem;
+  margin-top: 0.85rem;
+}
+
+.talena-team-page .team-style-rank-row {
+  display: grid;
+  grid-template-columns: 142px minmax(0,1fr) 62px;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.talena-team-page .team-style-rank-label {
+  min-width: 0;
+}
+
+.talena-team-page .team-style-rank-label .fw-semibold {
+  font-size: 0.67rem;
+}
+
+.talena-team-page .team-style-rank-label .text-muted {
+  font-size: 0.57rem !important;
+}
+
+.talena-team-page .team-style-bar {
+  height: 10px;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: #ece9e6;
+}
+
+.talena-team-page .team-style-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff9a88 0%, var(--talena-coral) 100%);
+}
+
+.talena-team-page .team-style-bar-fill-max {
+  background: linear-gradient(90deg, #c7d8cc 0%, #8fb29a 100%);
+}
+
+.talena-team-page .team-style-rank-score {
+  color: var(--talena-text);
+  font-size: 0.65rem;
+  font-weight: 660;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.talena-team-page .team-data-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid rgba(110,159,125,0.2);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-success-soft);
+  color: #567d63;
+  font-size: 0.6rem;
+  font-weight: 650;
+}
+
+/* Initials and score badges */
+.talena-team-page .team-member-initials,
+.talena-team-page .team-person-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,111,97,0.17);
+  border-radius: 50%;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+  font-size: 0.66rem;
+  font-weight: 720;
+}
+
+.talena-team-page .team-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 25px;
+  padding: 0 0.42rem;
+  border: 1px solid var(--talena-border);
+  border-radius: var(--talena-radius-pill);
+  background: var(--talena-surface-soft);
+  color: var(--talena-text);
+  font-size: 0.61rem;
+  font-weight: 650;
+}
+
+/* Forms */
+.talena-team-page .team-form-card {
+  max-width: 760px;
+}
+
+.talena-team-page .team-form-card .card-body {
+  padding: 1.35rem !important;
+}
+
+.talena-team-page .team-form-card .form-label {
+  margin-bottom: 0.42rem;
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  font-weight: 660;
+}
+
+.talena-team-page .team-form-card input,
+.talena-team-page .team-form-card textarea,
+.talena-team-page .team-member-toolbar input[type="search"] {
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 12px !important;
+  background: var(--talena-surface-soft) !important;
+  color: var(--talena-text) !important;
+  box-shadow: none !important;
+}
+
+.talena-team-page .team-form-card input {
+  min-height: 44px;
+}
+
+.talena-team-page .team-form-card textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.talena-team-page .team-form-card input:focus,
+.talena-team-page .team-form-card textarea:focus,
+.talena-team-page .team-member-toolbar input[type="search"]:focus {
+  border-color: rgba(255,111,97,0.45) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(255,111,97,0.08) !important;
+}
+
+.talena-team-page .team-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.35rem;
+}
+
+/* Member management */
+.talena-team-page .team-member-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: var(--talena-surface-soft);
+}
+
+.talena-team-page .team-member-search {
+  width: min(380px, 100%);
+}
+
+.talena-team-page .team-member-search input {
+  min-height: 40px;
+  font-size: 0.7rem;
+}
+
+.talena-team-page input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  border-color: var(--talena-border);
+  accent-color: var(--talena-coral);
+}
+
+.talena-team-page .form-check-input:checked {
+  border-color: var(--talena-coral) !important;
+  background-color: var(--talena-coral) !important;
+}
+
+/* Empty state */
+.talena-team-page .team-empty-state {
+  padding: 3.5rem 1.5rem !important;
+  text-align: center;
+}
+
+.talena-team-page .team-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 0.8rem;
+  border: 1px solid rgba(255,111,97,0.17);
+  border-radius: 15px;
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-team-page .team-empty-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .talena-team-page .team-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .talena-team-page .team-summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .talena-team-page .team-summary-item {
+    border-right: 0;
+    border-bottom: 1px solid var(--talena-border);
+  }
+
+  .talena-team-page .team-summary-item:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .talena-team-page .team-page-header,
+  .talena-team-page .team-member-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .talena-team-page .team-page-actions .btn,
+  .talena-team-page .team-primary-action,
+  .talena-team-page .team-secondary-action {
+    justify-content: center;
+  }
+
+  .talena-team-page .team-style-rank-row {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+
+  .talena-team-page .team-style-rank-score {
+    text-align: left;
+  }
+
+  .talena-team-page .team-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

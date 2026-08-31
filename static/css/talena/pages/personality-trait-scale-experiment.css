@@ -1,0 +1,526 @@
+/* =========================================================
+   TALENA - PERSONALITY SCALE PROTOTYPE
+   ========================================================= */
+
+/* =========================================================
+   TRAIT PROFILE - SEGMENTED QUICK VIEW
+   ========================================================= */
+
+.process-page .personality-quick-scale__segment[data-score="4"],
+.process-page .personality-quick-scale__segment[data-score="5"],
+.process-page .personality-quick-scale__segment[data-score="6"],
+.process-page .personality-quick-scale__segment[data-score="7"] {
+  background: #eeeae7 !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="3"],
+.process-page .personality-quick-scale__segment[data-score="8"] {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="2"],
+.process-page .personality-quick-scale__segment[data-score="9"] {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .personality-quick-scale__segment[data-score="1"],
+.process-page .personality-quick-scale__segment[data-score="10"] {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+
+/* Active path, midpoint -> selected result. */
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="1"]) .personality-quick-scale__segment:is([data-score="1"], [data-score="2"], [data-score="3"], [data-score="4"], [data-score="5"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="2"]) .personality-quick-scale__segment:is([data-score="2"], [data-score="3"], [data-score="4"], [data-score="5"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="3"]) .personality-quick-scale__segment:is([data-score="3"], [data-score="4"], [data-score="5"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="4"]) .personality-quick-scale__segment:is([data-score="4"], [data-score="5"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="5"]) .personality-quick-scale__segment[data-score="5"],
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="6"]) .personality-quick-scale__segment[data-score="6"],
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="7"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="8"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"], [data-score="8"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="9"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"], [data-score="8"], [data-score="9"]),
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected[data-score="10"]) .personality-quick-scale__segment:is([data-score="6"], [data-score="7"], [data-score="8"], [data-score="9"], [data-score="10"]) {
+  background: #ff8a7d !important;
+}
+
+.process-page .personality-quick-scale__segment--selected {
+  position: relative;
+  height: 12px !important;
+  background: #f25549 !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(242, 85, 73, 0.38) !important;
+}
+
+.process-page .personality-quick-scale:has(.personality-quick-scale__segment--selected) .personality-quick-scale__segment {
+  transition:
+    background-color 160ms ease,
+    height 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.process-page .personality-quick-scale__center-line {
+  height: 18px !important;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+.process-page .personality-quick-scale__labels span:first-child,
+.process-page .personality-quick-scale__labels span:last-child {
+  font-size: 0 !important;
+}
+
+.process-page .personality-quick-scale__labels span:first-child::before,
+.process-page .personality-quick-scale__labels span:last-child::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .personality-quick-scale__labels span:first-child::before {
+  content: "←";
+}
+
+.process-page .personality-quick-scale__labels span:last-child::before {
+  content: "→";
+}
+
+.process-page .personality-quick-scale__labels span:nth-child(2) {
+  color: var(--talena-text-muted) !important;
+  font-weight: 650;
+}
+
+html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2) {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page .personality-quick-scale__labels span:nth-child(2)::before {
+  content: "Genomsnitt";
+  font-size: 0.52rem;
+}
+
+/* =========================================================
+   RESPONSE STYLES
+   ========================================================= */
+
+.process-page .response-style-scale__track {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr) !important;
+  gap: 4px !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.process-page .response-style-scale__side {
+  display: flex !important;
+  gap: 4px !important;
+  min-width: 0;
+}
+
+.process-page .response-style-scale__side--left {
+  flex-direction: row-reverse !important;
+}
+
+.process-page .response-style-scale__side--right {
+  flex-direction: row !important;
+}
+
+.process-page .response-style-scale__segment {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 9px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #eeeae7 !important;
+  box-shadow: none !important;
+  transition:
+    background-color 160ms ease,
+    height 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(3) {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(4) {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment:nth-child(5) {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+
+.process-page .response-style-scale__side .response-style-scale__segment.response-style-scale__segment--filled {
+  background: #ff8a7d !important;
+}
+
+.process-page .response-style-scale__segment--filled:not(:has(+ .response-style-scale__segment--filled)) {
+  position: relative;
+  height: 11px !important;
+  margin-top: -0.5px;
+  background: #f25549 !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(242, 85, 73, 0.38) !important;
+}
+
+.process-page .response-style-scale__center-line {
+  width: 1px !important;
+  height: 18px !important;
+  align-self: center;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+.process-page .response-style-scale__label--left,
+.process-page .response-style-scale__label--right {
+  font-size: 0 !important;
+}
+
+.process-page .response-style-scale__label--left::before,
+.process-page .response-style-scale__label--right::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .response-style-scale__label--left::before {
+  content: "←";
+}
+
+.process-page .response-style-scale__label--right::before {
+  content: "→";
+}
+
+.process-page .response-style-scale__label--center {
+  color: var(--talena-text-muted) !important;
+  font-size: 0 !important;
+  font-weight: 650 !important;
+}
+
+.process-page .response-style-scale__label--center::before {
+  content: "Average";
+  font-size: 0.52rem;
+}
+
+html[lang^="sv"] .process-page .response-style-scale__label--center::before {
+  content: "Genomsnitt";
+}
+
+.process-page .response-style-item__header {
+  justify-content: center !important;
+  margin-bottom: 0 !important;
+  text-align: center;
+}
+
+.process-page .response-style-item__header > div:first-child {
+  width: 100%;
+}
+
+.process-page .response-style-item__title {
+  text-align: center;
+}
+
+.process-page .response-style-profile {
+  margin-top: 0 !important;
+}
+
+.process-page .response-style-profile .personality-trait-card__pole-label {
+  display: none !important;
+}
+
+/* =========================================================
+   TRAIT & INDICATOR PROFILE - INDICATOR SCALE
+   ========================================================= */
+
+.process-page .personality-indicator-row__pole-label {
+  display: none !important;
+}
+
+.process-page .personality-indicator-row__pole {
+  color: #656f81 !important;
+  font-size: 0.72rem !important;
+  line-height: 1.45 !important;
+}
+
+.process-page .personality-indicator-row__pole p {
+  margin: 0 !important;
+}
+
+.process-page .personality-indicator-row__pole--right {
+  text-align: right !important;
+}
+
+.process-page .personality-indicator-row__profile {
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+.process-page .personality-indicator-scale {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-top: 0.35rem !important;
+}
+
+.process-page .personality-indicator-scale__side {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+}
+
+.process-page .personality-indicator-scale__segment {
+  display: block;
+  height: 9px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #eeeae7 !important;
+  box-shadow: none !important;
+  transition:
+    background-color 160ms ease,
+    height 160ms ease,
+    box-shadow 160ms ease !important;
+}
+
+/* Exact same contextual STEN shading as the Trait Profile. */
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(1),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(5) {
+  background: rgba(255, 111, 97, 0.25) !important;
+}
+
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(2),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(4) {
+  background: rgba(255, 111, 97, 0.17) !important;
+}
+
+.process-page .personality-indicator-scale__side--left .personality-indicator-scale__segment:nth-child(3),
+.process-page .personality-indicator-scale__side--right .personality-indicator-scale__segment:nth-child(3) {
+  background: rgba(255, 111, 97, 0.10) !important;
+}
+
+.process-page .personality-indicator-scale__side .personality-indicator-scale__segment.personality-indicator-scale__segment--filled {
+  background: #ff8a7d !important;
+}
+
+.process-page .personality-indicator-scale__segment--selected {
+  position: relative;
+  height: 12px !important;
+  background: #f25549 !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(242, 85, 73, 0.38) !important;
+}
+
+.process-page .personality-indicator-scale__center-line {
+  display: block;
+  width: 1px !important;
+  height: 18px !important;
+  align-self: center;
+  border-radius: 999px !important;
+  background: rgba(23, 19, 18, 0.24) !important;
+}
+
+.process-page .personality-indicator-scale__labels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  margin-top: 5px !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.68rem !important;
+  font-weight: 650 !important;
+}
+
+.process-page .personality-indicator-scale__label--left,
+.process-page .personality-indicator-scale__label--right {
+  font-size: 0 !important;
+}
+
+.process-page .personality-indicator-scale__label--left::before,
+.process-page .personality-indicator-scale__label--right::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .personality-indicator-scale__label--left {
+  justify-self: start;
+}
+
+.process-page .personality-indicator-scale__label--left::before {
+  content: "←";
+}
+
+.process-page .personality-indicator-scale__label--right {
+  justify-self: end;
+}
+
+.process-page .personality-indicator-scale__label--right::before {
+  content: "→";
+}
+
+.process-page .personality-indicator-scale__label--center {
+  justify-self: center;
+  color: var(--talena-text-muted) !important;
+  font-size: 0 !important;
+  font-weight: 650 !important;
+}
+
+.process-page .personality-indicator-scale__label--center::before {
+  content: "Average";
+  font-size: 0.52rem;
+}
+
+html[lang^="sv"] .process-page .personality-indicator-scale__label--center::before {
+  content: "Genomsnitt";
+}
+
+/* =========================================================
+   DETAILED TRAIT GRAPH
+   ========================================================= */
+
+/* Pole descriptions already explain the ends; remove duplicate labels. */
+.process-page .personality-trait-card__main .personality-trait-card__pole-label {
+  display: none !important;
+}
+
+/* Tighten the graph without changing the STEN logic. */
+.process-page .personality-trait-card__header {
+  margin-bottom: 0.8rem !important;
+}
+
+.process-page .personality-graph__bars {
+  height: 104px !important;
+  padding-top: 26px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(1),
+.process-page .personality-graph__segment:nth-child(10) {
+  height: 14px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(2),
+.process-page .personality-graph__segment:nth-child(9) {
+  height: 25px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(3),
+.process-page .personality-graph__segment:nth-child(8) {
+  height: 39px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(4),
+.process-page .personality-graph__segment:nth-child(7) {
+  height: 55px !important;
+}
+
+.process-page .personality-graph__segment:nth-child(5),
+.process-page .personality-graph__segment:nth-child(6) {
+  height: 70px !important;
+}
+
+.process-page .personality-graph__marker {
+  width: 30px !important;
+  height: 30px !important;
+  bottom: calc(100% + 8px) !important;
+  font-size: 0.75rem !important;
+}
+
+.process-page .personality-graph__marker::after {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+/* Left / Right -> arrows. */
+.process-page .personality-graph__axis span:first-child,
+.process-page .personality-graph__axis span:last-child {
+  font-size: 0 !important;
+}
+
+.process-page .personality-graph__axis span:first-child::before,
+.process-page .personality-graph__axis span:last-child::before {
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.process-page .personality-graph__axis span:first-child::before {
+  content: "←";
+}
+
+.process-page .personality-graph__axis span:last-child::before {
+  content: "→";
+}
+
+html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2) {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page .personality-graph__axis span:nth-child(2)::before {
+  content: "Genomsnitt";
+  color: var(--talena-text-muted);
+  font-size: 0.55rem;
+  font-weight: 650;
+}
+
+/* =========================================================
+   PERSONALITY SECTION HEADERS - CONSISTENT ACROSS ALL SUBTABS
+   ========================================================= */
+
+.process-page .personality-profile-section__header,
+.process-page .personality-quick-section__header {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 40px !important;
+  padding: 0.72rem 0.9rem !important;
+  margin: 0 !important;
+  border-bottom: 1px solid var(--talena-border) !important;
+  background: var(--talena-surface-soft) !important;
+}
+
+.process-page .personality-profile-section__title,
+.process-page .personality-quick-section__title {
+  margin: 0 !important;
+  color: var(--talena-ink) !important;
+  font-size: 0.69rem !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+/* Swedish section names. Keep canonical English names untouched in data. */
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(1) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(2) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(3) .personality-profile-section__title,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title {
+  font-size: 0 !important;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(1) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(1) .personality-quick-section__title::before {
+  content: "Leda och samarbeta med andra";
+  font-size: 0.69rem;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(2) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(2) .personality-quick-section__title::before {
+  content: "Organisation och tankestil";
+  font-size: 0.69rem;
+}
+
+html[lang^="sv"] .process-page #personality-detailed-view .personality-profile-section:nth-of-type(3) .personality-profile-section__title::before,
+html[lang^="sv"] .process-page #personality-quick-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title::before,
+html[lang^="sv"] .process-page #personality-descriptions-view .personality-quick-section:nth-of-type(3) .personality-quick-section__title::before {
+  content: "Samspel och känslohantering";
+  font-size: 0.69rem;
+}

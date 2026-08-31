@@ -1,154 +1,111 @@
 {% extends "../core/layouts/customer_base.html" %}
-{% load i18n %}
+{% load static i18n %}
+
+{% block extra_css %}
+  <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+{% endblock %}
 
 {% block content %}
+{% get_current_language as LANGUAGE_CODE %}
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 talena-team-page">
 
-  <!-- Header -->
-
-  <div class="d-flex justify-content-between align-items-start mb-4">
-
+  <div class="team-page-header">
     <div>
-
-      <p class="text-uppercase text-muted small fw-semibold mb-1">
-        {% trans "Candidates" %}
-      </p>
-
-      <h1 class="h3 mb-1">
-        {% trans "Teams" %}
-      </h1>
-
-      <p class="text-muted mb-0">
+      <p class="team-page-eyebrow">{% trans "Candidates" %}</p>
+      <h1 class="team-page-title">{% trans "Teams" %}</h1>
+      <p class="team-page-description">
         {% trans "Create and manage candidate teams across processes." %}
       </p>
-
     </div>
 
     {% if can_create_team %}
-      <a
-        href="{% url 'teams:team_create' %}"
-        class="btn btn-primary"
-      >
-        + {% trans "Create team" %}
-      </a>
+      <div class="team-page-actions">
+        <a href="{% url 'teams:team_create' %}" class="btn btn-primary team-primary-action">
+          <i data-feather="plus" class="icon-16"></i>
+          {% trans "Create team" %}
+        </a>
+      </div>
     {% endif %}
-
   </div>
 
-
-  <!-- Teams table -->
-
-  <div class="card border-0 shadow-sm">
-
+  <div class="card team-list-card">
     <div class="card-body">
-
       <div class="table-responsive">
-
-        <table class="table align-middle mb-0">
-
+        <table class="table align-middle mb-0 team-table">
           <thead>
-
             <tr>
               <th>{% trans "Team" %}</th>
               <th>{% trans "Description" %}</th>
               <th>{% trans "Members" %}</th>
-              <th class="text-end">{% trans "Actions" %}</th>
+              <th class="text-end">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Öppna{% else %}{% trans "Open" %}{% endif %}</th>
             </tr>
-
           </thead>
 
-
           <tbody>
-
             {% for team in teams %}
-
               <tr>
-
-                <!-- Team name -->
-
                 <td>
-
-                  <div class="fw-semibold">
-                    {{ team.name }}
+                  <div class="team-name-cell">
+                    <div class="team-icon" aria-hidden="true">
+                      <i data-feather="users"></i>
+                    </div>
+                    <div class="team-name">{{ team.name }}</div>
                   </div>
-
                 </td>
 
-
-                <!-- Description -->
-
                 <td>
-
                   {% if team.description %}
-
-                    <span class="text-muted small">
-                      {{ team.description }}
-                    </span>
-
+                    <span class="text-muted small">{{ team.description }}</span>
                   {% else %}
-
-                    <span class="text-muted small">
-                      {% trans "No description" %}
-                    </span>
-
+                    <span class="text-muted small">{% trans "No description" %}</span>
                   {% endif %}
-
                 </td>
-
-
-                <!-- Members -->
 
                 <td>
-
-                  {% blocktrans count member_count=team.member_count %}
-                    {{ member_count }} member
-                  {% plural %}
-                    {{ member_count }} members
-                  {% endblocktrans %}
-
+                  <span class="team-member-count">
+                    <i data-feather="user" class="icon-14"></i>
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      {{ team.member_count }} {% if team.member_count == 1 %}medlem{% else %}medlemmar{% endif %}
+                    {% else %}
+                      {% blocktrans count member_count=team.member_count %}
+                        {{ member_count }} member
+                      {% plural %}
+                        {{ member_count }} members
+                      {% endblocktrans %}
+                    {% endif %}
+                  </span>
                 </td>
-
-
-                <!-- Actions -->
 
                 <td class="text-end">
-
                   <a
                     href="{% url 'teams:team_detail' team.pk %}"
-                    class="btn btn-sm btn-outline-primary"
+                    class="team-view-link"
+                    aria-label="{% blocktrans with team_name=team.name %}Open {{ team_name }}{% endblocktrans %}"
                   >
-                    {% trans "View" %}
+                    <i data-feather="arrow-up-right" class="icon-14"></i>
                   </a>
-
                 </td>
-
               </tr>
-
 
             {% empty %}
-
               <tr>
-
-                <td
-                  colspan="4"
-                  class="text-center text-muted py-5"
-                >
-                  {% trans "No teams created yet." %}
+                <td colspan="4" class="team-empty-state">
+                  <div class="team-empty-icon" aria-hidden="true">
+                    <i data-feather="users"></i>
+                  </div>
+                  <div class="fw-semibold text-dark mb-1">{% trans "No teams created yet." %}</div>
+                  <div class="text-muted small">
+                    {% trans "Create a team to group candidates and explore shared patterns." %}
+                  </div>
                 </td>
-
               </tr>
-
             {% endfor %}
-
           </tbody>
-
         </table>
-
       </div>
-
     </div>
-
   </div>
 
 </div>
