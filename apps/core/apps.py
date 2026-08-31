@@ -10,6 +10,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_competency_questions_policy import (
             install_personality_competency_questions_policy,
         )
+        from .ai.personality_motivation_interaction_policy import (
+            install_personality_motivation_interaction_policy,
+        )
         from .ai.post_interview_role_context_policy import (
             install_post_interview_role_context_policy,
         )
@@ -22,5 +25,6 @@ class CoreConfig(AppConfig):
         # sync across the application.
         install_question_count_policy()
         install_personality_competency_questions_policy()
+        install_personality_motivation_interaction_policy()
         install_post_interview_role_context_policy()
         install_post_interview_role_context_policy_v2()
