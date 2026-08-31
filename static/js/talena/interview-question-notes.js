@@ -10,6 +10,9 @@
 
   const text = (key) => {
     const sv = {
+      answerNotes: "Svar / anteckningar",
+      hint: "Sparas automatiskt och finns tillgängligt i hela kandidatvyn.",
+      placeholder: "Lägg till kandidatens svar, exempel eller dina intervjuanteckningar…",
       saving: "Sparar…",
       saved: "Sparat",
       error: "Kunde inte spara",
@@ -23,6 +26,9 @@
     };
 
     const en = {
+      answerNotes: "Answer / notes",
+      hint: "Saved automatically and available across the candidate view.",
+      placeholder: "Add the candidate's answer, examples or your interview notes…",
       saving: "Saving…",
       saved: "Saved",
       error: "Could not save",
@@ -52,6 +58,207 @@
   };
 
   const noteIdentity = (source, question) => `${source}\u0000${question}`;
+
+  const selectWithin = (root, selector) => {
+    const matches = [];
+    if (root instanceof Element && root.matches(selector)) matches.push(root);
+    if (root?.querySelectorAll) matches.push(...root.querySelectorAll(selector));
+    return matches;
+  };
+
+  const routeUrlsFromRoot = (root) => {
+    if (!root) return null;
+
+    const rawUrl =
+      root.dataset.streamUrl ||
+      root.dataset.refreshUrl ||
+      root.dataset.regenerateUrl ||
+      "";
+
+    if (!rawUrl) return null;
+
+    let parsed;
+    try {
+      parsed = new URL(rawUrl, window.location.origin);
+    } catch (_error) {
+      return null;
+    }
+
+    const match = parsed.pathname.match(/^(.*\/)(\d+)\/candidates?\/(\d+)\//);
+    if (!match) return null;
+
+    const [, prefix, processId, candidateId] = match;
+    const base = `${prefix}${processId}/candidates/${candidateId}/interview-question-notes/`;
+
+    return {
+      notesUrl: `${parsed.origin}${base}`,
+      updateUrl: `${parsed.origin}${base}update/`,
+    };
+  };
+
+  const questionTextForCard = (card) =>
+    (card.querySelector(".personality-question-card__text")?.textContent || "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const sourceFromIndividualCard = (card) => {
+    if (card.closest("[data-personality-questions-root]")) return "personality";
+    if (card.closest("[data-motivation-questions-root]")) return "motivation";
+    if (card.closest("[data-cognitive-questions-root]")) return "cognitive";
+    return "";
+  };
+
+  const sourceFromKnownQuestion = (question) => {
+    const selectors = [
+      ["[data-personality-questions-root]", "personality"],
+      ["[data-motivation-questions-root]", "motivation"],
+      ["[data-cognitive-questions-root]", "cognitive"],
+    ];
+
+    for (const [selector, source] of selectors) {
+      const cards = document.querySelectorAll(`${selector} .personality-question-card`);
+      for (const card of cards) {
+        if (questionTextForCard(card) === question) return source;
+      }
+    }
+
+    return "";
+  };
+
+  const sourceFromCombinedSection = (card) => {
+    const section = card.closest(".combined-question-sections > section");
+    const heading = (
+      section?.querySelector(".personality-questions-section-title")?.textContent || ""
+    )
+      .toLowerCase()
+      .trim();
+
+    if (heading.includes("person")) return "personality";
+    if (heading.includes("motivat")) return "motivation";
+    if (heading.includes("cogn") || heading.includes("kogn")) return "cognitive";
+    return "";
+  };
+
+  const questionContextForCard = (card) => {
+    const question = questionTextForCard(card);
+    if (!question) return null;
+
+    let source = sourceFromIndividualCard(card);
+
+    const root =
+      card.closest("[data-personality-questions-root]") ||
+      card.closest("[data-motivation-questions-root]") ||
+      card.closest("[data-cognitive-questions-root]") ||
+      card.closest("[data-combined-questions-root]");
+
+    if (!source && card.closest("[data-combined-questions-root]")) {
+      source = sourceFromKnownQuestion(question) || sourceFromCombinedSection(card);
+    }
+
+    const urls = routeUrlsFromRoot(root);
+    if (!source || !urls) return null;
+
+    return { question, source, ...urls };
+  };
+
+  const createQuestionNoteField = (context) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "interview-question-note";
+    wrapper.dataset.interviewQuestionNoteField = "";
+
+    const header = document.createElement("div");
+    header.className = "interview-question-note__header";
+
+    const label = document.createElement("label");
+    label.className = "interview-question-note__label";
+
+    const icon = document.createElement("i");
+    icon.dataset.feather = "message-square";
+    icon.setAttribute("aria-hidden", "true");
+
+    const labelText = document.createElement("span");
+    labelText.textContent = text("answerNotes");
+    label.append(icon, labelText);
+
+    const status = document.createElement("span");
+    status.className = "interview-question-note__status";
+    status.dataset.interviewQuestionNoteStatus = "";
+    status.setAttribute("aria-live", "polite");
+
+    header.append(label, status);
+
+    const field = document.createElement("textarea");
+    field.className = "form-control interview-question-note__input";
+    field.rows = 2;
+    field.maxLength = 5000;
+    field.placeholder = text("placeholder");
+    field.dataset.interviewQuestionNote = "";
+    field.dataset.questionSource = context.source;
+    field.dataset.questionText = context.question;
+    field.dataset.notesUrl = context.notesUrl;
+    field.dataset.updateUrl = context.updateUrl;
+    field.dataset.savedValue = "";
+
+    const hint = document.createElement("div");
+    hint.className = "interview-question-note__hint";
+    hint.textContent = text("hint");
+
+    wrapper.append(header, field, hint);
+    return wrapper;
+  };
+
+  const ensureQuestionFields = (root = document) => {
+    selectWithin(root, ".personality-question-card").forEach((card) => {
+      if (card.querySelector("[data-interview-question-note-field]")) return;
+
+      const context = questionContextForCard(card);
+      if (!context) return;
+
+      card.appendChild(createQuestionNoteField(context));
+    });
+
+    if (window.feather) window.feather.replace();
+  };
+
+  const ensureSummary = (root = document) => {
+    const notesRoot =
+      (root instanceof Element && root.matches("[data-interview-notes-root]")
+        ? root
+        : root.querySelector?.("[data-interview-notes-root]")) || null;
+
+    if (!notesRoot || notesRoot.querySelector("[data-interview-question-notes-summary]")) {
+      return;
+    }
+
+    const finalRoot = notesRoot.closest("[data-final-output-root]");
+    const urls = routeUrlsFromRoot(finalRoot);
+    if (!urls) return;
+
+    const summary = document.createElement("section");
+    summary.className = "interview-question-notes-summary";
+    summary.dataset.interviewQuestionNotesSummary = "";
+    summary.dataset.notesUrl = urls.notesUrl;
+
+    const title = document.createElement("div");
+    title.className = "purpose-fit-section-title mb-1";
+    title.textContent = text("summaryTitle");
+
+    const intro = document.createElement("div");
+    intro.className = "interview-question-notes-summary__intro";
+    intro.textContent = text("summaryIntro");
+
+    const list = document.createElement("div");
+    list.className = "interview-question-notes-summary__list";
+    list.dataset.interviewQuestionNotesSummaryList = "";
+
+    const empty = document.createElement("div");
+    empty.className = "small text-muted";
+    empty.dataset.interviewQuestionNotesSummaryEmpty = "";
+    empty.textContent = text("empty");
+
+    summary.append(title, intro, list, empty);
+    notesRoot.appendChild(summary);
+  };
 
   const setStatus = (field, state) => {
     const root = field.closest("[data-interview-question-note-field]");
@@ -110,8 +317,6 @@
         visibleNotes.forEach((item) => {
           const article = document.createElement("article");
           article.className = "interview-question-notes-summary__item";
-          article.dataset.questionSource = item.source || "";
-          article.dataset.questionText = item.question || "";
 
           const meta = document.createElement("div");
           meta.className = "interview-question-notes-summary__meta";
@@ -160,9 +365,7 @@
         (item) => noteIdentity(item.source || "", item.question || "") === identity,
       );
 
-      if (!matching && !field.dataset.savedValue) {
-        field.dataset.savedValue = field.value || "";
-      }
+      if (!matching) field.dataset.savedValue = field.value || "";
     });
 
     renderSummary(url);
@@ -170,14 +373,15 @@
 
   const loadNotes = async (url) => {
     if (!url) return [];
-    if (notesCache.has(url)) return notesCache.get(url);
+    if (notesCache.has(url)) {
+      applyNotes(url, notesCache.get(url));
+      return notesCache.get(url);
+    }
     if (pendingLoads.has(url)) return pendingLoads.get(url);
 
     const promise = fetch(url, {
       method: "GET",
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-      },
+      headers: { "X-Requested-With": "XMLHttpRequest" },
       credentials: "same-origin",
     })
       .then(async (response) => {
@@ -190,9 +394,7 @@
         notesCache.set(url, []);
         return [];
       })
-      .finally(() => {
-        pendingLoads.delete(url);
-      });
+      .finally(() => pendingLoads.delete(url));
 
     pendingLoads.set(url, promise);
     return promise;
@@ -274,7 +476,7 @@
           detail: { source, question, note, notesUrl },
         }),
       );
-    } catch (error) {
+    } catch (_error) {
       setStatus(field, "error");
     }
   };
@@ -292,23 +494,20 @@
   };
 
   const initialise = (root = document) => {
+    ensureQuestionFields(root);
+    ensureSummary(root);
+
     const urls = new Set();
 
-    root.querySelectorAll?.("[data-interview-question-note]").forEach((field) => {
-      if (!field.dataset.savedValue) field.dataset.savedValue = field.value || "";
+    selectWithin(root, "[data-interview-question-note]").forEach((field) => {
       if (field.dataset.notesUrl) urls.add(field.dataset.notesUrl);
     });
 
-    root
-      .querySelectorAll?.("[data-interview-question-notes-summary]")
-      .forEach((summary) => {
-        if (summary.dataset.notesUrl) urls.add(summary.dataset.notesUrl);
-      });
-
-    urls.forEach((url) => {
-      if (notesCache.has(url)) applyNotes(url, notesCache.get(url));
-      else loadNotes(url);
+    selectWithin(root, "[data-interview-question-notes-summary]").forEach((summary) => {
+      if (summary.dataset.notesUrl) urls.add(summary.dataset.notesUrl);
     });
+
+    urls.forEach((url) => loadNotes(url));
   };
 
   document.addEventListener("input", (event) => {
