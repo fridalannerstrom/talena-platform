@@ -31,8 +31,16 @@ QUESTION_SOURCES = {
 }
 
 
+def normalize_question_text(value) -> str:
+    """Use one stable representation for rendered and saved questions."""
+
+    return " ".join(str(value or "").split())
+
+
 def interview_question_key(source: str, question: str) -> str:
-    value = f"{source}\x00{question.strip()}".encode("utf-8")
+    normalized_source = str(source or "").strip().lower()
+    normalized_question = normalize_question_text(question)
+    value = f"{normalized_source}\x00{normalized_question}".encode("utf-8")
     return hashlib.sha256(value).hexdigest()
 
 
@@ -69,9 +77,9 @@ def _question_texts_from_result(result) -> set[str]:
 
     for item in raw_questions:
         if isinstance(item, str):
-            text = item.strip()
+            text = normalize_question_text(item)
         elif isinstance(item, dict):
-            text = str(item.get("question") or "").strip()
+            text = normalize_question_text(item.get("question"))
         else:
             text = ""
 
@@ -163,7 +171,7 @@ def process_candidate_interview_question_note_update(
         )
 
     source = str(payload.get("source") or "").strip().lower()
-    question = str(payload.get("question") or "").strip()
+    question = normalize_question_text(payload.get("question"))
     raw_note = payload.get("note", "")
 
     if source not in QUESTION_SOURCES:
