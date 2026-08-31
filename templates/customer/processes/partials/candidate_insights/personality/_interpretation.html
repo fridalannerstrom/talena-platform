@@ -216,6 +216,94 @@
         </section>
 
 
+        <!-- PERSONALITY + MOTIVATION INTERACTION -->
+        {% if has_motivation_results %}
+
+          <section
+            class="border rounded-4 p-3 mt-4"
+            data-personality-ai-motivation-section
+          >
+            <div class="d-flex align-items-start gap-3">
+              <div class="flex-shrink-0">
+                <i data-feather="git-merge"></i>
+              </div>
+
+              <div class="flex-grow-1">
+                <h3 class="mb-2 purpose-fit-section-title">
+                  {% if personality_interpretation_language|slice:":2" == "sv" %}
+                    Samspel med motivation
+                  {% else %}
+                    Interaction with motivation
+                  {% endif %}
+                </h3>
+
+                {% if personality_interpretation.motivation_interaction %}
+                  <div
+                    class="purpose-fit-summary"
+                    data-personality-ai-motivation-interaction
+                  >{{ personality_interpretation.motivation_interaction }}</div>
+                {% else %}
+                  <div
+                    class="small text-muted"
+                    data-personality-ai-motivation-interaction-empty
+                  >
+                    {% if personality_interpretation_language|slice:":2" == "sv" %}
+                      Generera eller uppdatera personlighetstolkningen för att skapa den kombinerade insikten från personlighet och motivation.
+                    {% else %}
+                      Generate or refresh the personality interpretation to create the combined insight from personality and motivation.
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </section>
+
+        {% else %}
+
+          <section
+            class="border rounded-4 p-3 mt-4 bg-light text-muted opacity-75"
+            data-personality-ai-motivation-section
+            data-personality-ai-motivation-missing
+            aria-disabled="true"
+          >
+            <div class="d-flex align-items-start gap-3">
+              <div class="flex-shrink-0">
+                <i data-feather="lock"></i>
+              </div>
+
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                  <h3 class="purpose-fit-section-title mb-0">
+                    {% if personality_interpretation_language|slice:":2" == "sv" %}
+                      Samspel med motivation
+                    {% else %}
+                      Interaction with motivation
+                    {% endif %}
+                  </h3>
+
+                  <span class="badge rounded-pill text-bg-light border">
+                    {% if personality_interpretation_language|slice:":2" == "sv" %}
+                      Motivation krävs
+                    {% else %}
+                      Motivation required
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div class="small">
+                  {% if personality_interpretation_language|slice:":2" == "sv" %}
+                    Ytterligare kombinerad insikt är inte tillgänglig eftersom kandidaten saknar resultat från ett motivationstest. Lägg gärna till Motivation i framtida processer för att få det här perspektivet.
+                  {% else %}
+                    Additional combined insight is unavailable because this candidate has no Motivation assessment result. Include Motivation in future processes to unlock this perspective.
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </section>
+
+        {% endif %}
+
+
         <!-- STRENGTHS + DEVELOPMENT AREAS -->
 <div class="row g-4 mt-1">
 
