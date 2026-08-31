@@ -20,6 +20,9 @@
             "Använd intervjun för att bekräfta, nyansera eller utmana dessa indikationer.",
           cautionReason: "Varför det behöver valideras",
           approachTitle: "Så kan du lägga upp samtalet",
+          approachIntro:
+            "Konkreta sätt att anpassa samtalets struktur, tempo och uppföljning utifrån kandidatens samlade testunderlag.",
+          approachSectionTitle: "Praktiskt upplägg",
         }
       : {
           briefingKicker: "Candidate-specific briefing",
@@ -32,6 +35,9 @@
             "Use the interview to confirm, nuance or challenge these indications.",
           cautionReason: "Why this needs validation",
           approachTitle: "How to approach the conversation",
+          approachIntro:
+            "Concrete ways to adapt the structure, pace and follow-up of the conversation based on the candidate's combined assessment evidence.",
+          approachSectionTitle: "Practical approach",
         };
 
   const safeArray = (value) => (Array.isArray(value) ? value : []);
@@ -241,6 +247,55 @@
     return card;
   };
 
+  const renderConversationApproach = (responseSection, items) => {
+    if (!responseSection) return;
+
+    const strings = safeArray(items)
+      .map((item) => String(item || "").trim())
+      .filter(Boolean);
+
+    const content = responseSection.querySelector(
+      "[data-response-style-interview-content]",
+    );
+    const approachSection = responseSection.querySelector(
+      "[data-response-style-interview-approach-section]",
+    );
+    const approach = responseSection.querySelector(
+      "[data-response-style-interview-approach]",
+    );
+
+    if (!strings.length || !approach) {
+      responseSection.hidden = true;
+      return;
+    }
+
+    responseSection.hidden = false;
+    if (content) content.hidden = false;
+    if (approachSection) approachSection.hidden = false;
+
+    approach.replaceChildren();
+
+    const list = document.createElement("ul");
+    list.className = "purpose-fit-list mt-0";
+    list.dataset.preInterviewConversationPlan = "";
+
+    strings.forEach((item) => {
+      const li = document.createElement("li");
+
+      const icon = document.createElement("span");
+      icon.className = "purpose-fit-list-icon";
+      icon.appendChild(makeIcon("arrow-right"));
+
+      const text = document.createElement("span");
+      text.textContent = item;
+
+      li.append(icon, text);
+      list.appendChild(li);
+    });
+
+    approach.appendChild(list);
+  };
+
   const polishExistingContent = (root) => {
     const labels = copy();
     const content = root.querySelector("[data-pre-interview-content]");
@@ -276,13 +331,19 @@
       const title = responseSection.querySelector(".insight-summary-title");
       if (title) title.textContent = labels.approachTitle;
 
-      const approach = responseSection.querySelector(
-        "[data-response-style-interview-approach]",
+      const subtitle = responseSection.querySelector(
+        ":scope > div:first-child .text-muted.small",
       );
+      if (subtitle) subtitle.textContent = labels.approachIntro;
 
-      if (!String(approach?.textContent || "").trim()) {
-        responseSection.hidden = true;
-      }
+      const approachTitle = responseSection.querySelector(
+        "[data-response-style-interview-approach-section] .purpose-fit-section-title",
+      );
+      if (approachTitle) approachTitle.textContent = labels.approachSectionTitle;
+
+      // The old response-style-only paragraph is intentionally hidden until
+      // the candidate-specific pre-interview feedback approach is loaded.
+      responseSection.hidden = true;
     }
 
     return { content, summarySection, responseSection };
@@ -296,23 +357,26 @@
       .querySelectorAll("[data-pre-interview-briefing-grid]")
       .forEach((node) => node.remove());
 
+    const approachItems = safeArray(data.discussion_guidance?.feedback_approach);
     const focusItems = safeArray(data.discussion_guidance?.interview_focus);
     const validationItems = safeArray(data.cautious_interpretations);
+
+    renderConversationApproach(pieces.responseSection, approachItems);
 
     const focusCard = buildFocusCard(focusItems);
     const validationCard = buildValidationCard(validationItems);
 
-    if (!focusCard && !validationCard) return;
+    if (focusCard || validationCard) {
+      const grid = document.createElement("div");
+      grid.className = "pre-interview-briefing-grid";
+      grid.dataset.preInterviewBriefingGrid = "";
 
-    const grid = document.createElement("div");
-    grid.className = "pre-interview-briefing-grid";
-    grid.dataset.preInterviewBriefingGrid = "";
+      if (focusCard) grid.appendChild(focusCard);
+      if (validationCard) grid.appendChild(validationCard);
 
-    if (focusCard) grid.appendChild(focusCard);
-    if (validationCard) grid.appendChild(validationCard);
-
-    const anchor = pieces.responseSection || pieces.summarySection?.nextSibling || null;
-    pieces.content.insertBefore(grid, anchor);
+      const anchor = pieces.responseSection || pieces.summarySection?.nextSibling || null;
+      pieces.content.insertBefore(grid, anchor);
+    }
 
     if (window.feather) window.feather.replace();
   };
