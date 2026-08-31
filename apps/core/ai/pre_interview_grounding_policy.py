@@ -30,21 +30,46 @@ REQUIRED GROUNDING BEHAVIOUR
 - Every item in discussion_guidance.interview_focus must state a concrete focus
   that follows from this candidate's evidence. It must not merely repeat a
   common interview competency or the role title.
-- Every item in discussion_guidance.feedback_approach must translate the
-  candidate's supplied evidence into a concrete interviewer action. Tell the
-  interviewer what to do differently in this conversation, for example through
-  framing, pacing, sequencing, probing, requests for examples or use of
-  counterexamples, and why that adjustment is useful for this candidate.
-- Do not use generic interview best practice such as "create an open and
-  supportive climate" as substantive feedback_approach content unless the item
-  immediately explains the candidate-specific adjustment that follows from the
-  supplied evidence.
-- When response-style evidence is available, it may shape how the interviewer
-  frames or probes the conversation, but keep response styles conceptually
-  separate from personality traits, motivation and ability.
+
+COMMUNICATION APPROACH
+
+- discussion_guidance.feedback_approach is not another list of interview topics.
+  It must explain HOW the interviewer can communicate with this candidate to
+  obtain a fair, nuanced and useful conversation.
+- Ground feedback_approach primarily in relevant personality and response-style
+  evidence. Use other assessment evidence only when it genuinely changes how
+  the conversation should be conducted.
+- Translate the evidence into concrete interviewer behaviour such as tone,
+  directness, pacing, amount of reflection time, how strongly to probe, whether
+  to ask for concrete examples or counterexamples, how to invite nuance, and how
+  to avoid accidentally over- or under-weighting the candidate's self-presentation.
+- Where response-style evidence suggests a more self-critical presentation,
+  guidance may recommend creating space for concrete strength examples and
+  checking whether the candidate understates their own contribution. Do not
+  label the person as humble, insecure or lacking confidence unless independent
+  evidence supports that conclusion.
+- Where response-style evidence suggests a more positive self-presentation,
+  guidance may recommend asking for specific behavioural examples,
+  counterexamples or outcomes to add nuance. Do not imply dishonesty,
+  manipulation or inflated self-worth.
+- Personality preferences may shape the suggested communication style when the
+  evidence supports it, but do not turn a trait score into a fixed rule about
+  how the person must be spoken to.
+- feedback_approach must not repeat discussion_guidance.interview_focus or the
+  3/3/8 assessment-question topics. It should describe the interviewer stance
+  and interaction strategy, not what subject matter to cover.
+- Generic best practice such as "create an open and supportive climate",
+  "listen actively" or "ask follow-up questions" is not sufficient unless the
+  item immediately states the candidate-specific reason and adjustment.
+- If the evidence does not support any meaningful candidate-specific
+  communication adjustment, return an empty feedback_approach array rather than
+  filling the section with generic interview advice.
+
+GENERAL CAUTION
+
 - If the available evidence does not support a candidate-specific conclusion or
-  a special conversation adjustment, state the uncertainty or absence of a
-  special adjustment instead of inventing specificity.
+  a special conversation adjustment, state the uncertainty or evidence gap
+  instead of inventing specificity.
 - Do not turn high results into automatic strengths or low results into
   automatic weaknesses. Preserve the meaning and limitations of the underlying
   assessment evidence.
@@ -60,6 +85,11 @@ Before returning each substantive briefing item, silently ask:
 
 "What supplied evidence about this candidate made me choose this exact focus
 or conversation adjustment?"
+
+For every feedback_approach item, also silently ask:
+
+"Does this tell the interviewer how to communicate differently with this
+candidate, rather than merely what topic to discuss?"
 
 If the answer is only the process purpose, role context, a common interview
 practice or wording that would fit most candidates unchanged, rewrite the item
