@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const saveTimers = new WeakMap();
   const notesCache = new Map();
   const pendingLoads = new Map();
 
@@ -11,8 +10,9 @@
   const text = (key) => {
     const sv = {
       answerNotes: "Svar / anteckningar",
-      hint: "Sparas automatiskt och finns tillgängligt i hela kandidatvyn.",
+      hint: "Skriv din anteckning och klicka på Spara. Sparade svar finns tillgängliga i hela kandidatvyn.",
       placeholder: "Lägg till kandidatens svar, exempel eller dina intervjuanteckningar…",
+      save: "Spara",
       saving: "Sparar…",
       saved: "Sparat",
       error: "Kunde inte spara",
@@ -27,8 +27,9 @@
 
     const en = {
       answerNotes: "Answer / notes",
-      hint: "Saved automatically and available across the candidate view.",
+      hint: "Write your note and click Save. Saved answers are available across the candidate view.",
       placeholder: "Add the candidate's answer, examples or your interview notes…",
+      save: "Save",
       saving: "Saving…",
       saved: "Saved",
       error: "Could not save",
@@ -161,6 +162,49 @@
     return { question, source, ...urls };
   };
 
+  const buttonForField = (field) =>
+    field
+      .closest("[data-interview-question-note-field]")
+      ?.querySelector("[data-interview-question-note-save]") || null;
+
+  const setDirtyState = (field) => {
+    const button = buttonForField(field);
+    if (!button) return;
+
+    const dirty = field.value.trim() !== (field.dataset.savedValue || "");
+    button.disabled = !dirty;
+    button.classList.toggle("is-dirty", dirty);
+  };
+
+  const setStatus = (field, state) => {
+    const root = field.closest("[data-interview-question-note-field]");
+    const status = root?.querySelector("[data-interview-question-note-status]");
+    const button = buttonForField(field);
+
+    if (status) {
+      status.classList.remove("is-saving", "is-saved", "is-error");
+
+      if (!state) {
+        status.textContent = "";
+      } else {
+        status.classList.add(`is-${state}`);
+        status.textContent = text(state);
+      }
+    }
+
+    if (button) {
+      if (state === "saving") {
+        button.disabled = true;
+        button.classList.add("is-saving");
+        button.textContent = text("saving");
+      } else {
+        button.classList.remove("is-saving");
+        button.textContent = text("save");
+        setDirtyState(field);
+      }
+    }
+  };
+
   const createQuestionNoteField = (context) => {
     const wrapper = document.createElement("div");
     wrapper.className = "interview-question-note";
@@ -199,11 +243,22 @@
     field.dataset.updateUrl = context.updateUrl;
     field.dataset.savedValue = "";
 
+    const footer = document.createElement("div");
+    footer.className = "interview-question-note__footer";
+
     const hint = document.createElement("div");
     hint.className = "interview-question-note__hint";
     hint.textContent = text("hint");
 
-    wrapper.append(header, field, hint);
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.className = "interview-question-note__save";
+    saveButton.dataset.interviewQuestionNoteSave = "";
+    saveButton.textContent = text("save");
+    saveButton.disabled = true;
+
+    footer.append(hint, saveButton);
+    wrapper.append(header, field, footer);
     return wrapper;
   };
 
@@ -260,22 +315,6 @@
     notesRoot.appendChild(summary);
   };
 
-  const setStatus = (field, state) => {
-    const root = field.closest("[data-interview-question-note-field]");
-    const status = root?.querySelector("[data-interview-question-note-status]");
-    if (!status) return;
-
-    status.classList.remove("is-saving", "is-saved", "is-error");
-
-    if (!state) {
-      status.textContent = "";
-      return;
-    }
-
-    status.classList.add(`is-${state}`);
-    status.textContent = text(state);
-  };
-
   const sourceLabel = (source, backendLabel = "") => {
     if (source === "personality") return text("personality");
     if (source === "motivation") return text("motivation");
@@ -292,6 +331,7 @@
       ) {
         if (field.value !== note) field.value = note;
         field.dataset.savedValue = note;
+        setDirtyState(field);
         if (markSaved) setStatus(field, "saved");
       }
     });
@@ -365,7 +405,10 @@
         (item) => noteIdentity(item.source || "", item.question || "") === identity,
       );
 
-      if (!matching) field.dataset.savedValue = field.value || "";
+      if (!matching) {
+        field.dataset.savedValue = field.value || "";
+        setDirtyState(field);
+      }
     });
 
     renderSummary(url);
@@ -441,7 +484,10 @@
     const note = field.value.trim();
 
     if (!updateUrl || !notesUrl || !source || !question) return;
-    if ((field.dataset.savedValue || "") === note) return;
+    if ((field.dataset.savedValue || "") === note) {
+      setDirtyState(field);
+      return;
+    }
 
     setStatus(field, "saving");
 
@@ -481,18 +527,6 @@
     }
   };
 
-  const queueSave = (field, delay = 700) => {
-    const existingTimer = saveTimers.get(field);
-    if (existingTimer) window.clearTimeout(existingTimer);
-
-    const timer = window.setTimeout(() => {
-      saveTimers.delete(field);
-      saveField(field);
-    }, delay);
-
-    saveTimers.set(field, timer);
-  };
-
   const initialise = (root = document) => {
     ensureQuestionFields(root);
     ensureSummary(root);
@@ -513,19 +547,21 @@
   document.addEventListener("input", (event) => {
     const field = event.target.closest?.("[data-interview-question-note]");
     if (!field) return;
+
     setStatus(field, "");
-    queueSave(field);
+    setDirtyState(field);
   });
 
-  document.addEventListener(
-    "blur",
-    (event) => {
-      const field = event.target.closest?.("[data-interview-question-note]");
-      if (!field) return;
-      queueSave(field, 0);
-    },
-    true,
-  );
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-interview-question-note-save]");
+    if (!button) return;
+
+    const root = button.closest("[data-interview-question-note-field]");
+    const field = root?.querySelector("[data-interview-question-note]");
+    if (!field || button.disabled) return;
+
+    saveField(field);
+  });
 
   document.addEventListener("DOMContentLoaded", () => initialise(document));
 
