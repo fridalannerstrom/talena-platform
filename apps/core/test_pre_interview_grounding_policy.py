@@ -29,7 +29,7 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             self.policy,
         )
         self.assertIn(
-            "discussion_guidance.feedback_approach is not another list of interview topics",
+            "discussion_guidance.feedback_approach is NOT another list of interview topics",
             self.policy,
         )
 
@@ -39,11 +39,19 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             self.policy,
         )
         self.assertIn(
+            "Do not use feedback_approach to say \"discuss\", \"explore\", \"ask about\"",
+            self.policy,
+        )
+        self.assertIn(
+            "connect a candidate-specific signal or hypothesis to a concrete interviewer adjustment",
+            self.policy,
+        )
+        self.assertIn(
             "tone, directness, pacing, amount of reflection time",
             self.policy,
         )
         self.assertIn(
-            "must not repeat discussion_guidance.interview_focus or the 3/3/8 assessment-question topics",
+            "feedback_approach must not repeat discussion_guidance.interview_focus or the 3/3/8 assessment-question topics",
             self.policy,
         )
         self.assertIn(
