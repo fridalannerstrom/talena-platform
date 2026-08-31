@@ -13,6 +13,9 @@ class CoreConfig(AppConfig):
         from .ai.candidate_question_grounding_policy import (
             install_candidate_question_grounding_policy,
         )
+        from .ai.pre_interview_raw_evidence_policy import (
+            install_pre_interview_raw_evidence_policy,
+        )
         from .ai.pre_interview_grounding_policy import (
             install_pre_interview_grounding_policy,
         )
@@ -37,6 +40,13 @@ class CoreConfig(AppConfig):
         # Install this after the competency policy so both personality modes
         # receive the same candidate-specific grounding requirement.
         install_candidate_question_grounding_policy()
+
+        # Production pre-interview support should see the candidate's actual
+        # normalized assessment results as well as Talena's saved AI
+        # interpretations. This keeps production evidence closer to the prompt
+        # playground and prevents summaries-of-summaries from losing profile
+        # detail.
+        install_pre_interview_raw_evidence_policy()
 
         # Keep Prepare for interview anchored in the individual candidate's
         # evidence even when administrator guidance changes over time.
