@@ -275,11 +275,17 @@
     return card;
   };
 
+  const ensureSentence = (value) => {
+    const text = String(value || "").trim();
+    if (!text) return "";
+    return /[.!?…]$/.test(text) ? text : `${text}.`;
+  };
+
   const renderConversationApproach = (responseSection, items) => {
     if (!responseSection) return;
 
     const strings = safeArray(items)
-      .map((item) => String(item || "").trim())
+      .map(ensureSentence)
       .filter(Boolean);
 
     const content = responseSection.querySelector(
@@ -303,25 +309,12 @@
 
     approach.replaceChildren();
 
-    const list = document.createElement("ul");
-    list.className = "purpose-fit-list mt-0";
-    list.dataset.preInterviewConversationPlan = "";
+    const paragraph = document.createElement("p");
+    paragraph.className = "purpose-fit-summary mb-0";
+    paragraph.dataset.preInterviewConversationPlan = "";
+    paragraph.textContent = strings.join(" ");
 
-    strings.forEach((item) => {
-      const li = document.createElement("li");
-
-      const icon = document.createElement("span");
-      icon.className = "purpose-fit-list-icon";
-      icon.appendChild(makeIcon("message-circle"));
-
-      const text = document.createElement("span");
-      text.textContent = item;
-
-      li.append(icon, text);
-      list.appendChild(li);
-    });
-
-    approach.appendChild(list);
+    approach.appendChild(paragraph);
   };
 
   const polishExistingContent = (root) => {
