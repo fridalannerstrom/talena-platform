@@ -12,9 +12,9 @@
       ? {
           briefingKicker: "Kandidatspecifik briefing",
           summaryTitle: "Kandidatbild inför intervjun",
-          focusTitle: "Prioritera i intervjun",
+          focusTitle: "Viktigaste indikationerna",
           focusIntro:
-            "De här områdena är särskilt värdefulla att förstå bättre utifrån kandidatens samlade testunderlag.",
+            "De här mönstren framträder som mest relevanta i kandidatens testunderlag och den tillgängliga processkontexten.",
           validateTitle: "Hypoteser att validera",
           validateIntro:
             "Använd intervjun för att bekräfta, nyansera eller utmana dessa indikationer.",
@@ -27,9 +27,9 @@
       : {
           briefingKicker: "Candidate-specific briefing",
           summaryTitle: "Candidate briefing before the interview",
-          focusTitle: "Prioritise in the interview",
+          focusTitle: "Key indications",
           focusIntro:
-            "These areas are especially useful to understand better based on the candidate's combined assessment evidence.",
+            "These patterns emerge as most relevant in the candidate's assessment evidence and available process context.",
           validateTitle: "Hypotheses to validate",
           validateIntro:
             "Use the interview to confirm, nuance or challenge these indications.",
@@ -162,26 +162,54 @@
   };
 
   const buildFocusCard = (items) => {
-    const strings = safeArray(items)
-      .map((item) => String(item || "").trim())
-      .filter(Boolean);
+    const indications = safeArray(items)
+      .map((item) => {
+        if (item && typeof item === "object") {
+          return {
+            title: String(item.title || "").trim(),
+            interpretation: String(item.interpretation || "").trim(),
+          };
+        }
 
-    if (!strings.length) return null;
+        return {
+          title: "",
+          interpretation: String(item || "").trim(),
+        };
+      })
+      .filter((item) => item.title || item.interpretation);
+
+    if (!indications.length) return null;
 
     const labels = copy();
     const card = document.createElement("section");
     card.className = "pre-interview-briefing-card pre-interview-briefing-card--focus";
     card.appendChild(makeSectionHeader(labels.focusTitle, labels.focusIntro, "target"));
 
-    const list = document.createElement("ol");
-    list.className = "pre-interview-briefing-focus-list";
+    const list = document.createElement("div");
+    list.className = "pre-interview-validation-list";
 
-    strings.forEach((item) => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      list.appendChild(li);
+    indications.forEach((item) => {
+      const article = document.createElement("article");
+      article.className = "pre-interview-validation-item";
+
+      if (item.title) {
+        const heading = document.createElement("div");
+        heading.className = "pre-interview-validation-item__title";
+        heading.textContent = item.title;
+        article.appendChild(heading);
+      }
+
+      if (item.interpretation) {
+        const body = document.createElement("div");
+        body.className = "pre-interview-validation-item__text";
+        body.textContent = item.interpretation;
+        article.appendChild(body);
+      }
+
+      if (article.childElementCount) list.appendChild(article);
     });
 
+    if (!list.childElementCount) return null;
     card.appendChild(list);
     return card;
   };
@@ -358,7 +386,11 @@
       .forEach((node) => node.remove());
 
     const approachItems = safeArray(data.discussion_guidance?.feedback_approach);
-    const focusItems = safeArray(data.discussion_guidance?.interview_focus);
+    const purposeIndications = safeArray(data.purpose_relevant_indications);
+    const fallbackFocusItems = safeArray(data.discussion_guidance?.interview_focus);
+    const focusItems = purposeIndications.length
+      ? purposeIndications
+      : fallbackFocusItems;
     const validationItems = safeArray(data.cautious_interpretations);
 
     renderConversationApproach(pieces.responseSection, approachItems);
