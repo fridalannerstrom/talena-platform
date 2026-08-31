@@ -10,6 +10,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_competency_questions_policy import (
             install_personality_competency_questions_policy,
         )
+        from .ai.candidate_question_grounding_policy import (
+            install_candidate_question_grounding_policy,
+        )
         from .ai.personality_motivation_interaction_policy import (
             install_personality_motivation_interaction_policy,
         )
@@ -25,6 +28,13 @@ class CoreConfig(AppConfig):
         # sync across the application.
         install_question_count_policy()
         install_personality_competency_questions_policy()
+
+        # Popup selections determine what to explore. Candidate assessment
+        # evidence then determines the angle of every generated question.
+        # Install this after the competency policy so both personality modes
+        # receive the same candidate-specific grounding requirement.
+        install_candidate_question_grounding_policy()
+
         install_personality_motivation_interaction_policy()
         install_post_interview_role_context_policy()
         install_post_interview_role_context_policy_v2()
