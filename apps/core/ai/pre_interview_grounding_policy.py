@@ -30,8 +30,21 @@ REQUIRED GROUNDING BEHAVIOUR
 - Every item in discussion_guidance.interview_focus must state a concrete focus
   that follows from this candidate's evidence. It must not merely repeat a
   common interview competency or the role title.
-- If the available evidence does not support a candidate-specific conclusion,
-  state the uncertainty or evidence gap instead of inventing one.
+- Every item in discussion_guidance.feedback_approach must translate the
+  candidate's supplied evidence into a concrete interviewer action. Tell the
+  interviewer what to do differently in this conversation, for example through
+  framing, pacing, sequencing, probing, requests for examples or use of
+  counterexamples, and why that adjustment is useful for this candidate.
+- Do not use generic interview best practice such as "create an open and
+  supportive climate" as substantive feedback_approach content unless the item
+  immediately explains the candidate-specific adjustment that follows from the
+  supplied evidence.
+- When response-style evidence is available, it may shape how the interviewer
+  frames or probes the conversation, but keep response styles conceptually
+  separate from personality traits, motivation and ability.
+- If the available evidence does not support a candidate-specific conclusion or
+  a special conversation adjustment, state the uncertainty or absence of a
+  special adjustment instead of inventing specificity.
 - Do not turn high results into automatic strengths or low results into
   automatic weaknesses. Preserve the meaning and limitations of the underlying
   assessment evidence.
@@ -45,7 +58,8 @@ CANDIDATE-UNIQUENESS CHECK
 
 Before returning each substantive briefing item, silently ask:
 
-"What supplied evidence about this candidate made me choose this exact focus?"
+"What supplied evidence about this candidate made me choose this exact focus
+or conversation adjustment?"
 
 If the answer is only the process purpose, role context, a common interview
 practice or wording that would fit most candidates unchanged, rewrite the item
