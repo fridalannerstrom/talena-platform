@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+from inspect import signature
 from typing import Any, Callable, Iterable
 
 
@@ -152,7 +153,7 @@ def _personality_fallback(
     events: list[dict[str, Any]],
     kwargs: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """Use the existing safe personality fallback when AI under-produces."""
+    """Use the safe personality fallback when AI under-produces."""
 
     selected_traits = _selected_traits(events)
 
@@ -182,10 +183,19 @@ def _personality_fallback(
         token = language_context.set(language_code)
 
     try:
-        fallback_event = module._build_safe_personality_questions_event(
-            selected_traits=selected_traits,
-            personality_results=personality_results,
-        )
+        fallback_builder = module._build_safe_personality_questions_event
+        fallback_kwargs = {
+            "selected_traits": selected_traits,
+            "personality_results": personality_results,
+        }
+
+        # Candidate-specific fallback policies may need the complete owner to
+        # resolve supporting personality evidence for competency selections.
+        # Preserve compatibility with the original two-argument fallback.
+        if "owner" in signature(fallback_builder).parameters:
+            fallback_kwargs["owner"] = owner
+
+        fallback_event = fallback_builder(**fallback_kwargs)
     finally:
         if language_context is not None and token is not None:
             language_context.reset(token)
