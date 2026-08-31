@@ -64,11 +64,55 @@
   box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.08);
 }
 
+.interview-question-note__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
 .interview-question-note__hint {
-  margin-top: 0.38rem;
   color: var(--talena-text-muted, #756d68);
   font-size: 0.67rem;
   line-height: 1.4;
+}
+
+.interview-question-note__save {
+  flex: 0 0 auto;
+  min-width: 72px;
+  padding: 0.42rem 0.78rem;
+  border: 1px solid var(--talena-ink, #171312);
+  border-radius: 9px;
+  background: var(--talena-ink, #171312);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  transition:
+    transform 140ms ease,
+    opacity 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.interview-question-note__save:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.interview-question-note__save:disabled {
+  border-color: rgba(23, 19, 18, 0.08);
+  background: rgba(23, 19, 18, 0.06);
+  color: rgba(23, 19, 18, 0.35);
+  cursor: default;
+}
+
+.interview-question-note__save.is-dirty {
+  box-shadow: 0 4px 12px rgba(23, 19, 18, 0.08);
+}
+
+.interview-question-note__save.is-saving {
+  opacity: 0.72;
 }
 
 .interview-question-notes-summary {
@@ -135,5 +179,14 @@
 @media (max-width: 620px) {
   .interview-question-note {
     padding: 0.85rem;
+  }
+
+  .interview-question-note__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .interview-question-note__save {
+    align-self: flex-end;
   }
 }
