@@ -278,10 +278,122 @@
     });
   }
 
+  function initPersonalityMotivationInteractionSync() {
+    document.addEventListener(
+      "candidate-ai-content-updated",
+      async function (event) {
+        const eventTarget = event.target;
+
+        if (!(eventTarget instanceof Element)) {
+          return;
+        }
+
+        const root = eventTarget.closest(
+          "[data-personality-ai-root]"
+        );
+
+        if (!root) {
+          return;
+        }
+
+        const interactionElement = root.querySelector(
+          "[data-personality-ai-motivation-interaction]"
+        );
+
+        const emptyElement = root.querySelector(
+          "[data-personality-ai-motivation-interaction-empty]"
+        );
+
+        const streamUrl = root.dataset.streamUrl;
+
+        if (
+          !interactionElement
+          || !streamUrl
+          || root.dataset.personalityMotivationSyncing === "true"
+        ) {
+          return;
+        }
+
+        root.dataset.personalityMotivationSyncing = "true";
+
+        try {
+          const response = await fetch(
+            streamUrl,
+            {
+              method: "GET",
+              headers: {
+                "Accept": "application/x-ndjson",
+                "X-Requested-With": "XMLHttpRequest",
+              },
+              credentials: "same-origin",
+            }
+          );
+
+          if (!response.ok) {
+            return;
+          }
+
+          const responseText = await response.text();
+          let motivationInteraction = "";
+
+          responseText
+            .split("\n")
+            .map(function (line) {
+              return line.trim();
+            })
+            .filter(Boolean)
+            .forEach(function (line) {
+              try {
+                const streamEvent = JSON.parse(line);
+
+                if (
+                  streamEvent.type === "motivation_interaction"
+                ) {
+                  motivationInteraction = String(
+                    streamEvent.text || ""
+                  ).trim();
+                }
+
+                if (
+                  streamEvent.type === "saved_result"
+                  && streamEvent.data
+                ) {
+                  motivationInteraction = String(
+                    streamEvent.data.motivation_interaction || ""
+                  ).trim();
+                }
+              } catch (error) {
+                // Ignore non-JSON lines in the defensive follow-up read.
+              }
+            });
+
+          interactionElement.textContent = motivationInteraction;
+          interactionElement.classList.toggle(
+            "d-none",
+            !motivationInteraction
+          );
+
+          emptyElement?.classList.toggle(
+            "d-none",
+            Boolean(motivationInteraction)
+          );
+        } catch (error) {
+          console.warn(
+            "Could not refresh personality and motivation interaction:",
+            error
+          );
+        } finally {
+          delete root.dataset.personalityMotivationSyncing;
+        }
+      }
+    );
+  }
+
   installSafeFeatherRenderer();
 
   function initialiseCustomerShell() {
     initGlobalSearch();
+    initPersonalityMotivationInteractionSync();
 
     if (window.feather) {
       window.feather.replace();
