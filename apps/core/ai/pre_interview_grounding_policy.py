@@ -33,16 +33,25 @@ REQUIRED GROUNDING BEHAVIOUR
 
 COMMUNICATION APPROACH
 
-- discussion_guidance.feedback_approach is not another list of interview topics.
-  It must explain HOW the interviewer can communicate with this candidate to
-  obtain a fair, nuanced and useful conversation.
+- discussion_guidance.feedback_approach is NOT another list of interview topics.
+  It has a separate job: explain HOW the interviewer can communicate with this
+  candidate to obtain a fair, nuanced and useful conversation.
+- Do not use feedback_approach to say "discuss", "explore", "ask about" or
+  otherwise name subject matter that belongs in interview_focus or the 3/3/8
+  assessment-question plan.
 - Ground feedback_approach primarily in relevant personality and response-style
   evidence. Use other assessment evidence only when it genuinely changes how
   the conversation should be conducted.
-- Translate the evidence into concrete interviewer behaviour such as tone,
-  directness, pacing, amount of reflection time, how strongly to probe, whether
-  to ask for concrete examples or counterexamples, how to invite nuance, and how
-  to avoid accidentally over- or under-weighting the candidate's self-presentation.
+- Each feedback_approach item should connect a candidate-specific signal or
+  hypothesis to a concrete interviewer adjustment. The practical adjustment is
+  the point of the item.
+- Useful adjustments may concern tone, directness, pacing, amount of reflection
+  time, how strongly to probe, whether to request concrete examples or
+  counterexamples, how to invite nuance, and how to avoid over- or
+  under-weighting the candidate's self-presentation.
+- When response-style evidence is available, translate it into practical
+  communication guidance. Do not merely repeat the technical response-style
+  label or raw score.
 - Where response-style evidence suggests a more self-critical presentation,
   guidance may recommend creating space for concrete strength examples and
   checking whether the candidate understates their own contribution. Do not
@@ -56,8 +65,8 @@ COMMUNICATION APPROACH
   evidence supports it, but do not turn a trait score into a fixed rule about
   how the person must be spoken to.
 - feedback_approach must not repeat discussion_guidance.interview_focus or the
-  3/3/8 assessment-question topics. It should describe the interviewer stance
-  and interaction strategy, not what subject matter to cover.
+  3/3/8 assessment-question topics. It describes interviewer stance and
+  interaction strategy, not what subject matter to cover.
 - Generic best practice such as "create an open and supportive climate",
   "listen actively" or "ask follow-up questions" is not sufficient unless the
   item immediately states the candidate-specific reason and adjustment.
