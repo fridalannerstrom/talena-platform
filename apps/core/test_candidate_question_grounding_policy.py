@@ -41,7 +41,8 @@ class CandidateQuestionGroundingPolicyTests(SimpleTestCase):
         self.assertIn("Learning: STIVE 5 of 5 (prominent)", prompt)
         self.assertIn("Recognition: STIVE 1 of 5 (less central)", prompt)
         self.assertIn("Autonomy: STIVE 3 of 5 (mid-range)", prompt)
-        self.assertIn("factor pattern were reversed", prompt)
+        self.assertIn("relative pattern determine the angle", prompt)
+        self.assertIn("pattern were reversed", prompt)
 
     def test_cognitive_grounding_uses_percentile_pattern(self):
         prompt = _cognitive_grounding_instruction(
