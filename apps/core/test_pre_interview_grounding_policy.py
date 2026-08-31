@@ -28,6 +28,14 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             "Every item in cautious_interpretations",
             self.policy,
         )
+        self.assertIn(
+            "Every item in discussion_guidance.feedback_approach",
+            self.policy,
+        )
+        self.assertIn(
+            "concrete interviewer action",
+            self.policy,
+        )
 
     def test_policy_rejects_generic_role_only_advice(self):
         self.assertIn(
@@ -35,7 +43,11 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
             self.policy,
         )
         self.assertIn(
-            "What supplied evidence about this candidate made me choose this exact focus?",
+            "Do not use generic interview best practice",
+            self.policy,
+        )
+        self.assertIn(
+            "What supplied evidence about this candidate made me choose this exact focus or conversation adjustment?",
             self.policy,
         )
         self.assertIn(
@@ -50,5 +62,9 @@ class PreInterviewGroundingPolicyTests(SimpleTestCase):
         )
         self.assertIn(
             "Do not diagnose, predict guaranteed behaviour",
+            self.policy,
+        )
+        self.assertIn(
+            "keep response styles conceptually separate from personality traits, motivation and ability",
             self.policy,
         )
