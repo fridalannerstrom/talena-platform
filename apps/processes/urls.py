@@ -5,6 +5,10 @@ from .access_control import (
     process_edit_access_required,
     process_view_access_required,
 )
+from .interview_question_notes import (
+    process_candidate_interview_question_note_update,
+    process_candidate_interview_question_notes,
+)
 
 app_name = "processes"
 
@@ -204,6 +208,22 @@ urlpatterns = [
     path(
         (
             "<int:process_id>/candidates/"
+            "<int:candidate_id>/interview-question-notes/"
+        ),
+        process_candidate_interview_question_notes,
+        name="process_candidate_interview_question_notes",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/interview-question-notes/update/"
+        ),
+        process_candidate_interview_question_note_update,
+        name="process_candidate_interview_question_note_update",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "post-interview-decision-support/stream/"
         ),
@@ -255,6 +275,7 @@ _PROCESS_VIEW_ROUTE_NAMES = {
     "process_candidate_detail",
     "process_candidate_combined_questions",
     "process_candidate_final_output",
+    "process_candidate_interview_question_notes",
 }
 
 _PROCESS_EDIT_ROUTE_NAMES = {
@@ -292,6 +313,7 @@ _PROCESS_EDIT_ROUTE_NAMES = {
     "process_candidate_pre_interview_decision_support_stream",
     "process_candidate_pre_interview_decision_support_regenerate",
     "process_candidate_interview_notes_update",
+    "process_candidate_interview_question_note_update",
     "process_candidate_post_interview_decision_support_stream",
     "process_candidate_post_interview_decision_support_regenerate",
     "process_candidate_global_ai_update_plan",
