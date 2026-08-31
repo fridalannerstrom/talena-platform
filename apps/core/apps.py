@@ -13,6 +13,9 @@ class CoreConfig(AppConfig):
         from .ai.candidate_question_grounding_policy import (
             install_candidate_question_grounding_policy,
         )
+        from .ai.pre_interview_grounding_policy import (
+            install_pre_interview_grounding_policy,
+        )
         from .ai.personality_motivation_interaction_policy import (
             install_personality_motivation_interaction_policy,
         )
@@ -34,6 +37,10 @@ class CoreConfig(AppConfig):
         # Install this after the competency policy so both personality modes
         # receive the same candidate-specific grounding requirement.
         install_candidate_question_grounding_policy()
+
+        # Keep Prepare for interview anchored in the individual candidate's
+        # evidence even when administrator guidance changes over time.
+        install_pre_interview_grounding_policy()
 
         install_personality_motivation_interaction_policy()
         install_post_interview_role_context_policy()
