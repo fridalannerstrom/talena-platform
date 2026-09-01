@@ -19,6 +19,11 @@ class _RoleContext:
         return {"context_text": self.text}
 
 
+def _compact(text):
+    """Collapse prompt formatting so tests assert semantics, not line wrapping."""
+    return " ".join(str(text or "").split())
+
+
 class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
     def _owner(self, context_text):
         candidate = SimpleNamespace(
@@ -42,14 +47,16 @@ class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
             "and responsibility for schedules and delivery follow-up."
         )
 
-        prompt = _cognitive_fingerprint_instruction(
-            owner,
-            [
-                {
-                    "label": "Numerical reasoning",
-                    "percentile": 2,
-                }
-            ],
+        prompt = _compact(
+            _cognitive_fingerprint_instruction(
+                owner,
+                [
+                    {
+                        "label": "Numerical reasoning",
+                        "percentile": 2,
+                    }
+                ],
+            )
         )
 
         self.assertIn("ONLY ONE COMPLETED COGNITIVE RESULT IS AVAILABLE", prompt)
@@ -65,9 +72,11 @@ class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
             "Key Account Manager role using sales data and forecasts to support decisions."
         )
 
-        prompt = _cognitive_fingerprint_instruction(
-            owner,
-            [{"label": "Numerical reasoning", "percentile": 2}],
+        prompt = _compact(
+            _cognitive_fingerprint_instruction(
+                owner,
+                [{"label": "Numerical reasoning", "percentile": 2}],
+            )
         )
 
         self.assertIn("visible evidence trace", prompt)
@@ -81,7 +90,7 @@ class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
             "adaptation when priorities change."
         )
 
-        prompt = _personality_fingerprint_instruction(owner)
+        prompt = _compact(_personality_fingerprint_instruction(owner))
 
         self.assertIn("candidate-specific personality hypothesis", prompt)
         self.assertIn("actual personality direction", prompt)
@@ -95,7 +104,7 @@ class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
             "supporting other people's development."
         )
 
-        prompt = _motivation_fingerprint_instruction(owner)
+        prompt = _compact(_motivation_fingerprint_instruction(owner))
 
         self.assertIn("actual supplied motivation factor", prompt)
         self.assertIn("Context sets the scene", prompt)
