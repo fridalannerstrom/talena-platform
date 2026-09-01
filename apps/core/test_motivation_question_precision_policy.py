@@ -60,6 +60,19 @@ class MotivationQuestionPrecisionPolicyTests(SimpleTestCase):
         self.assertIn("responds when an unexpected or uncertain situation requires judgement", normalised)
         self.assertIn("rather than asking them to describe taking risks for its own sake", normalised)
 
+    def test_risk_factor_forbids_literal_risk_question_without_context_support(self):
+        prompt = _motivation_precision_instruction(
+            self._owner("Recruitment for a cashier role at ICA."),
+            [{"name": "Risk", "score": 5}],
+        )
+        normalised = " ".join(prompt.split())
+
+        self.assertIn("HARD RULE FOR RISK", normalised)
+        self.assertIn("do NOT ask the candidate to describe", normalised)
+        self.assertIn("kalkylerade risker", normalised)
+        self.assertIn("unexpected events or acting without full certainty", normalised)
+        self.assertIn("does it violate the HARD RULE FOR RISK", normalised)
+
     def test_process_context_must_shape_question_scenario(self):
         prompt = _motivation_precision_instruction(
             self._owner("Recruitment for a cashier role at ICA with customer-facing work."),
@@ -70,6 +83,9 @@ class MotivationQuestionPrecisionPolicyTests(SimpleTestCase):
         self.assertIn("Recruitment for a cashier role at ICA", normalised)
         self.assertIn("Every question must feel plausible for THIS process", normalised)
         self.assertIn("Motivation evidence determines WHAT is explored; context determines WHERE and HOW", normalised)
+        self.assertIn("At least two of three generated questions", normalised)
+        self.assertIn("concrete situation, setting, responsibility or phrase", normalised)
+        self.assertIn("role/context must shape the scenario itself", normalised)
         self.assertIn("Do not invent detailed duties", normalised)
 
     def test_visible_why_requires_both_factor_and_process_trace(self):
