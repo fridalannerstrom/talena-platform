@@ -64,7 +64,12 @@ class AutomaticInvitationTests(TestCase):
 
         wrapped_create = capture_process_automatic_invitation_setting(fake_create)
         wrapped_create(
-            self._post_request({"automatic_invitation_enabled": "on"})
+            self._post_request(
+                {
+                    "automatic_invitation_setting_present": "1",
+                    "automatic_invitation_enabled": "on",
+                }
+            )
         )
 
         created = created_processes[0]
@@ -76,10 +81,27 @@ class AutomaticInvitationTests(TestCase):
             return HttpResponse("ok")
 
         wrapped_update = capture_process_automatic_invitation_setting(fake_update)
-        wrapped_update(self._post_request({}))
+        wrapped_update(
+            self._post_request(
+                {"automatic_invitation_setting_present": "1"}
+            )
+        )
 
         created.refresh_from_db()
         self.assertFalse(automatic_invitation_enabled(created))
+
+    def test_missing_ui_marker_preserves_existing_setting(self):
+        set_automatic_invitation_enabled(self.process, True)
+
+        def fake_update(request):
+            self.process.name = "Still enabled"
+            self.process.save(update_fields=["name"])
+            return HttpResponse("ok")
+
+        wrapped = capture_process_automatic_invitation_setting(fake_update)
+        wrapped(self._post_request({}))
+
+        self.assertTrue(automatic_invitation_enabled(self.process))
 
     @patch("apps.processes.services.send_tests.send_assessments_and_emails")
     def test_enabled_process_sends_new_invitation(self, send_mock):
