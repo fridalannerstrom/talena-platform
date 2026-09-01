@@ -10,8 +10,36 @@ from .shared_context import build_shared_ai_context
 _INSTALLED = False
 
 
+SWEDISH_FACTOR_LABELS = {
+    "affiliation": "Samhörighet",
+    "attachment": "Samhörighet",
+    "customer service": "Kundservice",
+    "work-life balance": "Balans mellan arbete och fritid",
+    "people development": "Utveckla andra",
+    "stability": "Stabilitet",
+    "authority": "Auktoritet",
+    "acquisition": "Ekonomisk belöning",
+    "autonomy": "Självständighet",
+    "independence": "Självständighet",
+    "recognition": "Erkännande",
+    "making a difference": "Göra skillnad",
+    "achievement": "Prestation",
+    "quality": "Kvalitet",
+    "learning": "Lärande",
+    "ethics": "Etik",
+    "commercial value": "Kommersiellt värde",
+    "commercial focus": "Kommersiellt värde",
+    "curiosity": "Nyfikenhet",
+    "creativity": "Kreativitet",
+    "enjoyment": "Arbetsglädje",
+    "variety": "Variation",
+    "risk": "Risktagande",
+}
+
+
 def _normalise_name(value: Any) -> str:
-    return str(value or "").strip().casefold()
+    text = str(value or "").strip().casefold()
+    return " ".join(text.replace("_", " ").replace("-", " ").split())
 
 
 def _factor_importance(score: Any) -> str:
@@ -47,15 +75,73 @@ def _motivation_snapshot(results: list[dict[str, Any]]) -> str:
     return "\n".join(rows) if rows else "No usable motivation evidence supplied."
 
 
+def _swedish_user_facing_instruction(
+    motivation_results: list[dict[str, Any]],
+    language_code: str,
+) -> str:
+    if not str(language_code or "").lower().startswith("sv"):
+        return ""
+
+    label_rows: list[str] = []
+    seen: set[str] = set()
+
+    for item in motivation_results or []:
+        source_name = str(item.get("name") or "").strip()
+        if not source_name:
+            continue
+
+        label = SWEDISH_FACTOR_LABELS.get(_normalise_name(source_name))
+        if not label or label in seen:
+            continue
+
+        seen.add(label)
+        label_rows.append(f"- {source_name} -> {label}")
+
+    mappings = "\n".join(label_rows) or (
+        "- Use the established Swedish Talena motivation terminology."
+    )
+
+    return f"""
+
+SWEDISH USER-FACING MOTIVATION LANGUAGE
+
+The configured output language is Swedish.
+
+- User-facing question, why and listen_for text must use natural Swedish
+  motivation terminology. Do not expose English source labels such as
+  Affiliation, Recognition, Autonomy or Achievement when a Swedish Talena
+  label is available.
+- Use the established Swedish factor name naturally in prose, with lower-case
+  wording where grammatically appropriate. Do not make the sentence sound like
+  a database field or assessment export.
+- Prefer natural descriptions of motivational importance:
+  * prominent -> "är en mer framträdande drivkraft" or equivalent natural prose
+  * mid-range -> "har måttlig betydelse för motivationen" or equivalent
+  * less central -> "är en mindre central källa till motivation" or equivalent
+- Avoid mechanical phrases such as "måttligt viktig faktor", "medelstor
+  motivation", "faktorn Recognition" or repeated score-report language.
+- The visible why should read like useful interview guidance, not like a direct
+  translation of an assessment data row.
+
+SWEDISH FACTOR LABELS FOR THE SUPPLIED PROFILE
+{mappings}
+"""
+
+
 def _motivation_precision_instruction(
     owner,
     motivation_results: list[dict[str, Any]],
+    language_code: str = "en",
 ) -> str:
     shared = build_shared_ai_context(owner)
     purpose = str(shared.get("purpose_label") or "").strip()
     context = str(shared.get("context_text") or "").strip()
     snapshot = _motivation_snapshot(motivation_results)
     has_context = bool(shared.get("has_context"))
+    swedish_language_rule = _swedish_user_facing_instruction(
+        motivation_results,
+        language_code,
+    )
 
     context_anchor_rule = (
         """
@@ -164,6 +250,8 @@ A why that only explains why the topic matters for the role is too generic.
 A why that only restates the motivation score without connecting it to the
 process is also incomplete.
 
+{swedish_language_rule}
+
 FINAL SILENT CHECK FOR EACH QUESTION
 
 Before returning each item, verify:
@@ -178,6 +266,9 @@ Before returning each item, verify:
   process? If no, rewrite it using the factor meaning and supplied context.
 - If this is a Risk question, does it violate the HARD RULE FOR RISK above? If
   yes, rewrite it before returning the response.
+- If the output language is Swedish, does visible text use the Swedish Talena
+  factor terminology and natural prose rather than English source labels or
+  score-report phrasing? If no, rewrite it before returning the response.
 
 If any answer is missing, rewrite the item before returning it.
 """
@@ -209,6 +300,7 @@ def install_motivation_question_precision_policy() -> None:
         return str(prompt).rstrip() + _motivation_precision_instruction(
             owner,
             motivation_results,
+            language_code=language_code,
         )
 
     motivation_questions.build_motivation_questions_prompt = motivation_prompt
