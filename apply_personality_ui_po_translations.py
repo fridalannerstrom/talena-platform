@@ -131,9 +131,9 @@ TRANSLATIONS = {
         "Utforska kandidatens övergripande personlighetsdrag och de "
         "detaljerade indikatorer som bidrar till varje resultat."
     ),
-    "Trait Profile": "Egenskapsprofil",
+    "Trait Profile": "Karaktärsdragsprofil",
     "Trait & Indicator Profile": (
-        "Egenskaps- och indikatorprofil"
+        "Karaktärsdrags- och indikatorprofil"
     ),
     "Trait Descriptions": (
         "Beskrivningar av personlighetsdrag"
