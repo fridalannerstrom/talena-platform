@@ -29,7 +29,7 @@ class PersonalityQuestionPrecisionPolicyTests(SimpleTestCase):
         self.assertIn("Networking: more mid-range indication", snapshot)
         self.assertNotIn("Emotional stability", snapshot)
 
-    def test_why_contract_requires_candidate_specific_direction_not_role_only(self):
+    def test_why_contract_keeps_candidate_fingerprint_without_repeating_score_direction(self):
         prompt = _personality_precision_instruction(
             self._owner(["Adaptability"]),
             [{"name": "Adaptability", "sten": 2}],
@@ -37,10 +37,30 @@ class PersonalityQuestionPrecisionPolicyTests(SimpleTestCase):
         normalised = " ".join(prompt.split())
 
         self.assertIn("Every why field must leave a visible candidate fingerprint", normalised)
-        self.assertIn("State the direction or pattern qualitatively", normalised)
+        self.assertIn("does NOT need to explicitly say", normalised)
+        self.assertIn("vary how the candidate fingerprint is expressed", normalised)
+        self.assertIn("Do not make most why fields begin with or revolve around", normalised)
+        self.assertIn("profile tension", normalised)
+        self.assertIn("balanced or context-dependent pattern", normalised)
         self.assertIn("why is INVALID", normalised)
-        self.assertIn("this is central for a project coordinator", normalised)
-        self.assertIn("without also explaining the candidate-specific personality indication", normalised)
+        self.assertIn("candidate-specific personality evidence or hypothesis", normalised)
+
+    def test_full_set_requires_varied_use_of_personality_evidence(self):
+        prompt = _personality_precision_instruction(
+            self._owner(["Adaptability", "Conceptual", "Networking"]),
+            [
+                {"name": "Adaptability", "sten": 2},
+                {"name": "Conceptual", "sten": 8},
+                {"name": "Networking", "sten": 5},
+            ],
+        )
+        normalised = " ".join(prompt.split())
+
+        self.assertIn("Do not over-focus the full question set on the most extreme results", normalised)
+        self.assertIn("Variation is a quality requirement", normalised)
+        self.assertIn("mid-range or situational patterns", normalised)
+        self.assertIn("meaningful contrasts", normalised)
+        self.assertIn("Does it feel varied rather than dominated by high/low commentary?", normalised)
 
     def test_construct_fidelity_blocks_semantic_drift(self):
         prompt = _personality_precision_instruction(
