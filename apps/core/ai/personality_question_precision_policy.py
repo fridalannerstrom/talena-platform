@@ -101,9 +101,17 @@ QUESTION PRECISION CONTRACT
   definition explicitly establishes that connection.
 - Use the Talena trait definition already supplied earlier in the prompt as the
   source of truth for what each construct means.
-- The candidate's result direction must change the hypothesis. A clearer
-  low-side indication, a mid-range indication and a clearer high-side
-  indication should not produce the same behavioural angle.
+- The candidate's result pattern must materially change the hypothesis. A
+  clearer low-side indication, a mid-range indication and a clearer high-side
+  indication should not produce interchangeable behavioural angles.
+- Do not over-focus the full question set on the most extreme results. When the
+  selected evidence permits, create a varied set that can include clear
+  directional signals, mid-range or situational patterns, meaningful contrasts,
+  profile tensions and context-specific applications.
+- Variation is a quality requirement. Across the full set, avoid repeating the
+  same explanatory pattern such as "low result means explore X" or "high result
+  means explore Y". Candidate specificity should come from the hypothesis and
+  the chosen angle, not from repeatedly announcing score direction.
 - The main question must stay neutral and behavioural. Do not reveal raw STEN
   values and do not tell the candidate that the assessment has established a
   fact about them.
@@ -112,16 +120,30 @@ QUESTION PRECISION CONTRACT
 
 VISIBLE WHY FIELD REQUIREMENT
 
-Every why field must leave a visible candidate fingerprint. It must contain all
-three elements below when the evidence is available:
+Every why field must leave a visible candidate fingerprint, but it does NOT
+need to explicitly say "low result", "high result" or equivalent every time.
+The interviewer should understand why THIS question was chosen for THIS
+candidate without the interface reading like a score report.
 
-1. Name the relevant personality trait, indication or supporting personality
-   signal in plain language.
-2. State the direction or pattern qualitatively, for example that the profile
-   suggests a clearer preference toward one side, a less pronounced preference,
-   or a more balanced/mid-range pattern. Do not show the raw STEN value.
-3. Explain why THAT candidate-specific pattern makes the question worth
-   validating in the supplied process context.
+A valid why must do the following when evidence is available:
+
+1. Identify the relevant personality trait, indication or supporting
+   personality signal in plain language, either explicitly or unmistakably.
+2. Explain the candidate-specific behavioural hypothesis created by the
+   supplied profile evidence. This may use direction, balance, contrast,
+   situational variation or interaction with another relevant profile signal.
+3. Connect that hypothesis to the supplied purpose/context when relevant.
+
+Across a multi-question set, vary how the candidate fingerprint is expressed.
+Some why fields may explicitly mention a clearer preference or a less
+pronounced preference. Others should instead explain a profile tension, a
+balanced or context-dependent pattern, a contrast between signals, or why a
+specific behaviour is useful to validate in this process.
+
+Do not make most why fields begin with or revolve around phrases such as
+"low result", "high result", "higher score", "lower score" or direct
+equivalents. Use explicit direction when it genuinely adds interpretive value,
+not as a mandatory template.
 
 A why is INVALID if it only says things such as:
 - "this is important for the role";
@@ -129,23 +151,33 @@ A why is INVALID if it only says things such as:
 - "this explores structure";
 - "this explores communication";
 - "this is central for a project coordinator";
-without also explaining the candidate-specific personality indication that made
-this angle relevant.
+without also explaining the candidate-specific personality evidence or
+hypothesis that made this angle relevant.
 
 The why field must not overclaim. Use language such as "profile indicates",
 "suggests", "may point to" or "makes it relevant to explore" rather than
 stating that the candidate definitely behaves in a certain way.
 
+Do not include raw assessment scores in user-facing question, why or listen_for
+text unless administrator guidance explicitly requires it.
+
 FINAL SILENT CHECK FOR EACH QUESTION
 
 Before returning each item, verify all four answers are concrete:
-- Which exact personality construct is this question about?
-- What is this candidate's qualitative result direction/pattern on that evidence?
-- How did that direction change the question angle?
+- Which exact personality construct or profile signal is this question about?
+- What candidate-specific pattern or hypothesis made this angle worth asking?
+- How did that evidence change the question compared with a generic interview
+  question?
 - Which supplied process detail made the scenario relevant?
 
-If any answer is missing, or if the trait name/tag and question wording refer to
-different constructs, rewrite the item before returning it.
+Then review the full set once more:
+- Does it feel varied rather than dominated by high/low commentary?
+- Are both clear signals and useful nuances represented when available?
+- Would an interviewer still recognise that the questions belong to this
+  candidate even if explicit score-direction words were removed?
+
+If any answer is missing, if the set feels repetitive, or if the trait name/tag
+and question wording refer to different constructs, rewrite before returning.
 """
 
 
