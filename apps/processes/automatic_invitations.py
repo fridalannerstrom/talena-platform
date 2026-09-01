@@ -66,11 +66,18 @@ def capture_process_automatic_invitation_setting(view_func):
     Capture the checkbox used by process creation/settings without coupling the
     large process views to this feature. The setting is persisted when the
     process itself is successfully saved.
+
+    The UI sends a separate presence marker. If that marker is missing, the
+    existing value is deliberately left untouched so a failed/missing JS asset
+    can never silently turn an enabled setting off.
     """
 
     @wraps(view_func)
     def wrapped(request, *args, **kwargs):
         if request.method != "POST":
+            return view_func(request, *args, **kwargs)
+
+        if "automatic_invitation_setting_present" not in request.POST:
             return view_func(request, *args, **kwargs)
 
         enabled = "automatic_invitation_enabled" in request.POST
