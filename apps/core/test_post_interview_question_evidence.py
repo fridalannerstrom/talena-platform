@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.test import TestCase
+from django.urls import reverse
 
 from apps.accounts.models import Company, OrgUnit, User
 from apps.core.ai import decision_support
@@ -21,6 +22,8 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             email="post-question-evidence@example.com",
             password="test-password",
         )
+        self.client.force_login(self.user)
+
         self.company = Company.objects.create(
             name="Post interview question evidence company",
         )
@@ -86,6 +89,24 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             question_text=self.question,
             note=self.answer,
             updated_by=self.user,
+        )
+
+    def _post_stream_url(self):
+        return reverse(
+            "processes:process_candidate_post_interview_decision_support_stream",
+            kwargs={
+                "process_id": self.process.id,
+                "candidate_id": self.candidate.id,
+            },
+        )
+
+    def _post_regenerate_url(self):
+        return reverse(
+            "processes:process_candidate_post_interview_decision_support_regenerate",
+            kwargs={
+                "process_id": self.process.id,
+                "candidate_id": self.candidate.id,
+            },
         )
 
     def test_structured_evidence_keeps_exact_question_with_saved_answer(self):
@@ -186,3 +207,63 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         self.assertIn("QUESTION-SPECIFIC INTERVIEW EVIDENCE", prompt)
         self.assertIn(self.question, prompt)
         self.assertIn(self.answer, prompt)
+
+    def test_regenerate_endpoint_accepts_question_notes_without_general_notes(self):
+        response = self.client.post(
+            self._post_regenerate_url(),
+            data={},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get("stream_url"))
+
+    def test_stream_endpoint_accepts_question_notes_without_general_notes(self):
+        response = self.client.get(
+            self._post_stream_url(),
+            HTTP_ACCEPT="application/x-ndjson",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+
+    def test_regenerate_endpoint_rejects_when_all_interview_evidence_is_empty(self):
+        InterviewQuestionNote.objects.filter(
+            process=self.process,
+            candidate=self.candidate,
+        ).delete()
+
+        self.owner.interview_notes = ""
+        self.owner.save(update_fields=["interview_notes"])
+
+        response = self.client.post(
+            self._post_regenerate_url(),
+            data={},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(
+            "interview evidence",
+            response.json().get("error", "").lower(),
+        )
+
+    def test_regenerate_endpoint_accepts_general_notes_without_question_notes(self):
+        InterviewQuestionNote.objects.filter(
+            process=self.process,
+            candidate=self.candidate,
+        ).delete()
+
+        self.owner.interview_notes = (
+            "Saved general interview evidence."
+        )
+        self.owner.save(update_fields=["interview_notes"])
+
+        response = self.client.post(
+            self._post_regenerate_url(),
+            data={},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get("stream_url"))
