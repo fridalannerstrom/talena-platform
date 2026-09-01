@@ -126,6 +126,27 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             prompt,
         )
 
+    def test_prompt_prioritises_relevant_concrete_question_evidence(self):
+        prompt = decision_support.build_post_interview_decision_support_prompt(
+            self.owner,
+            language_code="en",
+        )
+
+        normalised = " ".join(prompt.split())
+
+        self.assertIn(
+            "Question-specific evidence must not become background noise",
+            normalised,
+        )
+        self.assertIn(
+            "prefer the concrete behavioural detail over a vague or generic statement",
+            normalised,
+        )
+        self.assertIn(
+            "do not ignore a relevant, concrete saved answer",
+            normalised,
+        )
+
     def test_stream_accepts_question_notes_without_general_interview_notes(self):
         with patch(
             "apps.core.ai.decision_support.get_openai_client"
