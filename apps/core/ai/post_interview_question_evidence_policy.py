@@ -59,7 +59,7 @@ or an observation. Do not automatically present it as a verbatim candidate quote
 
 
 PROTECTED_QUESTION_EVIDENCE_GUIDANCE = """
-QUESTION-SPECIFIC INTERVIEW EVIDENCE RULES
+TALENA PROTECTED INTERVIEW EVIDENCE CONTRACT
 
 The QUESTION-SPECIFIC INTERVIEW EVIDENCE above contains structured records
 with the exact generated interview question and the answer or interviewer
@@ -69,7 +69,12 @@ Question-specific saved answers/notes ARE interview evidence. They are not a
 secondary metadata source and they do not become "missing interview evidence"
 merely because the separate general Interview notes field is empty.
 
-This is a protected evidence relationship:
+This protected contract is applied after administrator guidance. Administrator
+guidance may control interpretation, emphasis, section content and wording, but
+must not change evidence availability or break the exact question/answer
+provenance below.
+
+QUESTION/ANSWER PROVENANCE
 
 - Always interpret a saved answer/note in the context of its exact question.
 - Never detach a saved answer/note from its question and infer that it answered
@@ -146,10 +151,8 @@ Before finalising the post-interview output, silently check:
 
 If the answer to any applicable check is no, revise the output before returning it.
 
-The exact question/answer pairing and the fact that question-specific notes
-count as interview evidence are protected evidence provenance. Administrator
-prompt guidance may control interpretation, emphasis and wording but must not
-change those facts.
+Do not change the required NDJSON event names, JSON field names, streaming order
+or other technical output requirements defined earlier in the prompt.
 """.strip()
 
 
@@ -270,7 +273,7 @@ def _replace_interview_evidence_block(
         question_evidence=question_evidence,
     )
 
-    new_block = f"""
+    evidence_block = f"""
 {evidence_status}
 
 GENERAL INTERVIEW NOTES AND CANDIDATE EXAMPLES
@@ -278,23 +281,30 @@ GENERAL INTERVIEW NOTES AND CANDIDATE EXAMPLES
 
 QUESTION-SPECIFIC INTERVIEW EVIDENCE
 {question_text}
-
-{PROTECTED_QUESTION_EVIDENCE_GUIDANCE}
 """.strip()
 
     if old_block in prompt:
-        return prompt.replace(
+        prompt_with_evidence = prompt.replace(
             old_block,
-            new_block,
+            evidence_block,
             1,
         )
+    else:
+        # Defensive fallback for future prompt refactors. The evidence still reaches
+        # the model even if the surrounding label changes.
+        prompt_with_evidence = (
+            str(prompt).rstrip()
+            + "\n\n"
+            + evidence_block
+        )
 
-    # Defensive fallback for future prompt refactors. The evidence still reaches
-    # the model even if the surrounding label changes.
+    # Put the protected provenance contract last, after administrator guidance
+    # and the normal technical contract, so custom admin guidance cannot
+    # accidentally redefine whether interview evidence exists.
     return (
-        str(prompt).rstrip()
+        str(prompt_with_evidence).rstrip()
         + "\n\n"
-        + new_block
+        + PROTECTED_QUESTION_EVIDENCE_GUIDANCE
     )
 
 
