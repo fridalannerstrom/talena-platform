@@ -5,6 +5,11 @@ from .access_control import (
     process_edit_access_required,
     process_view_access_required,
 )
+from .automatic_invitations import (
+    capture_automatic_candidate_invitations,
+    capture_process_automatic_invitation_setting,
+    process_automatic_invitation_setting,
+)
 from .interview_question_notes import (
     process_candidate_interview_question_note_update,
     process_candidate_interview_question_notes,
@@ -16,11 +21,28 @@ app_name = "processes"
 
 urlpatterns = [
     path("", views.process_list, name="process_list"),
-    path("<int:pk>/edit/", views.process_update, name="process_update"),
+    path(
+        "<int:pk>/edit/",
+        capture_process_automatic_invitation_setting(views.process_update),
+        name="process_update",
+    ),
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
-    path("new/", views.process_create_v2, name="process_create"),
+    path(
+        "new/",
+        capture_process_automatic_invitation_setting(views.process_create_v2),
+        name="process_create",
+    ),
     path("<int:pk>/", views.process_detail, name="process_detail"),
-    path("<int:pk>/add-candidate/", views.process_add_candidate, name="process_add_candidate"),
+    path(
+        "<int:pk>/add-candidate/",
+        capture_automatic_candidate_invitations(views.process_add_candidate),
+        name="process_add_candidate",
+    ),
+    path(
+        "<int:pk>/automatic-invitation-setting/",
+        process_automatic_invitation_setting,
+        name="process_automatic_invitation_setting",
+    ),
     path("<int:process_id>/candidate/<int:candidate_id>/", views.process_candidate_detail, name="process_candidate_detail"),
 
     # Public self-registration route.
