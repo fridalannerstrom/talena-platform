@@ -46,11 +46,11 @@ _STYLE_CONTENT = [
             "title": "Social önskvärdhet",
             "low_pole": (
                 "Tenderar att svara på ett självkritiskt sätt. "
-                "Kan ha tydligare preferenser än vad resultaten antyder."
+                "Kan ha tydligare preferenser än vad resultaten antyder"
             ),
             "high_pole": (
-                "Har presenterat sig själv på ett positivt sätt. "
-                "Vissa preferenser kan vara mindre tydliga än vad resultaten antyder."
+                "Framställde sig själv på ett positivt sätt. "
+                "Kan ha preferenser som inte är lika tydliga som resultaten antyder."
             ),
             "low_text": (
                 "Svarsmönstret tyder på en relativt självkritisk självpresentation. "
@@ -69,12 +69,12 @@ _STYLE_CONTENT = [
         "en": {
             "title": "Social Desirability",
             "low_pole": (
-                "Tends to respond in a self-critical way. "
-                "May have clearer preferences than the results suggest."
+                "Tended to respond self-critically; preferences may be more "
+                "accentuated than the results suggest"
             ),
             "high_pole": (
-                "Presented themselves in a positive way. "
-                "Some preferences may be less distinct than the results suggest."
+                "Presented themselves positively; preferences may be less "
+                "accentuated than the results suggest"
             ),
             "low_text": (
                 "The response pattern suggests a relatively self-critical "
@@ -96,14 +96,14 @@ _STYLE_CONTENT = [
         "key": "profile_spread",
         "source_name": "fillers",
         "sv": {
-            "title": "Profilspridning",
+            "title": "Konsekvensskala",
             "low_pole": (
-                "Svaren visar mindre skillnader mellan personlighetsdragen. "
-                "Det kan spegla lägre konsekvens eller begränsad självinsikt."
+                "Svaren visar mindre differentiering mellan egenskaperna vilket kan "
+                "bero på mindre konsekvens eller brist på självinsikt"
             ),
             "high_pole": (
-                "Svaren visar tydliga styrkor och utvecklingsbehov, med en bred "
-                "spridning av värden mellan personlighetsdragen."
+                "Svaren visar tydliga styrkor och utvecklingsbehov, profilen visar "
+                "ett brett utbud av poäng över egenskaperna"
             ),
             "low_text": (
                 "Svaren visar mindre skillnader mellan personlighetsdragen. "
@@ -124,12 +124,12 @@ _STYLE_CONTENT = [
         "en": {
             "title": "Profile Spread",
             "low_pole": (
-                "The responses show less differentiation between personality "
-                "traits. This may reflect less consistency or limited self-insight."
+                "Responses show less differentiation across the traits which may be "
+                "due to less consistency or lack of self-insight"
             ),
             "high_pole": (
-                "The responses show clear strengths and development needs, "
-                "with a broad spread of scores across personality traits."
+                "Responses show clear strengths and development needs, profile "
+                "demonstrates a wide range of scores across the traits"
             ),
             "low_text": (
                 "The responses show less differentiation across personality "
@@ -152,14 +152,14 @@ _STYLE_CONTENT = [
         "key": "ratings_spread",
         "source_name": "reliability",
         "sv": {
-            "title": "Skattningsspridning",
+            "title": "Värderingsspridning",
             "low_pole": (
-                "Svaren visar mindre användning av ytterlighetsalternativen "
-                "och en tendens att välja inom ett relativt smalt spann."
+                "Svaren på frågeformuläret visar mindre användning av extrema "
+                "alternativ, tendens att välja ett smalt urval av betyg"
             ),
             "high_pole": (
-                "Svaren visar tydliga skillnader, med större användning "
-                "av svarsskalans ytterlighetsalternativ."
+                "Svaren på enkäten visar tydlig differentiering i svaren; mer "
+                "användning av extrema alternativ"
             ),
             "low_text": (
                 "Personen använde färre ytterlighetsalternativ och valde "
@@ -177,12 +177,12 @@ _STYLE_CONTENT = [
         "en": {
             "title": "Ratings Spread",
             "low_pole": (
-                "The questionnaire responses show less use of extreme options "
-                "and a tendency to choose from a relatively narrow range of ratings."
+                "Responses to the questionnaire show less use of extreme options, "
+                "tendency to select narrow range of ratings"
             ),
             "high_pole": (
-                "The questionnaire responses show clear differentiation, "
-                "with greater use of extreme response options."
+                "Responses to the questionnaire show clear differentiation in "
+                "responses; more use of extreme options"
             ),
             "low_text": (
                 "The candidate used fewer extreme response options and tended "
