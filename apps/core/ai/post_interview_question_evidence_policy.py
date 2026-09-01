@@ -34,6 +34,34 @@ This is a protected evidence relationship:
   sources. Do not silently merge them into a single supposed candidate quote.
 - Do not invent an answer for any generated question without a saved note.
 
+EVIDENCE PRIORITY AND TRACEABILITY
+
+Question-specific evidence must not become background noise merely because a
+large general interview-notes field is also present.
+
+When a saved question answer/note contains concrete behavioural evidence that
+is materially relevant to an assessment indication, process-context area or
+post-interview interpretation:
+
+- actively consider that evidence during the synthesis
+- prefer the concrete behavioural detail over a vague or generic statement
+  about the same theme
+- retain enough distinguishing detail about the action, situation, condition
+  or outcome for the user to understand which interview evidence supports the
+  interpretation
+- use that evidence in the most appropriate output section, such as the overall
+  synthesis, Role support, Additional nuance or Areas to explore
+
+Do not force an irrelevant question-specific note into the output merely to
+prove it was read. Relevance still matters. However, do not ignore a relevant,
+concrete saved answer merely because the same broad topic appears elsewhere in
+general interview notes.
+
+Before finalising the post-interview output, silently check: "Did any saved
+question-specific answer contain concrete evidence that materially changes or
+strengthens the interpretation?" If yes, ensure that evidence is represented
+in the relevant synthesis rather than being discarded.
+
 The exact question/answer pairing is evidence provenance and must not be
 changed by administrator prompt guidance.
 """.strip()
