@@ -8,6 +8,7 @@ from apps.core.ai import decision_support
 from apps.core.ai.post_interview_question_evidence_policy import (
     get_post_interview_note_evidence,
 )
+from apps.core.ai.prompt_templates import AI_PROMPT_REGISTRY
 from apps.processes.interview_question_models import InterviewQuestionNote
 from apps.processes.interview_question_evidence import (
     build_interview_question_evidence,
@@ -126,7 +127,9 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         evidence = get_post_interview_note_evidence(self.owner)
 
         self.assertEqual(evidence["general_notes"], "")
+        self.assertFalse(evidence["has_general_notes"])
         self.assertTrue(evidence["question_evidence"]["has_evidence"])
+        self.assertTrue(evidence["has_question_evidence"])
         self.assertTrue(evidence["has_evidence"])
 
     def test_post_interview_prompt_contains_exact_question_and_answer(self):
@@ -147,6 +150,35 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             prompt,
         )
 
+    def test_prompt_marks_question_notes_as_available_interview_evidence(self):
+        prompt = decision_support.build_post_interview_decision_support_prompt(
+            self.owner,
+            language_code="en",
+        )
+
+        normalised = " ".join(prompt.split())
+
+        self.assertIn(
+            "General interview notes: NOT PROVIDED",
+            normalised,
+        )
+        self.assertIn(
+            "Question-specific interview evidence: AVAILABLE (1 saved answer/note record(s))",
+            normalised,
+        )
+        self.assertIn(
+            "Overall interview evidence: AVAILABLE",
+            normalised,
+        )
+        self.assertIn(
+            "never say that interview evidence, interview material, candidate examples or interview input is entirely missing",
+            normalised,
+        )
+        self.assertIn(
+            "context_note must accurately name question-specific interview evidence as a source",
+            normalised,
+        )
+
     def test_prompt_prioritises_relevant_concrete_question_evidence(self):
         prompt = decision_support.build_post_interview_decision_support_prompt(
             self.owner,
@@ -164,8 +196,30 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             normalised,
         )
         self.assertIn(
-            "do not ignore a relevant, concrete saved answer",
+            "MUST surface at least one distinguishing concrete detail",
             normalised,
+        )
+        self.assertIn(
+            "A generic restatement of the assessment profile is not sufficient",
+            normalised,
+        )
+
+    def test_default_admin_prompt_mentions_question_specific_evidence(self):
+        defaults = AI_PROMPT_REGISTRY[
+            "post_interview_decision_support"
+        ]["defaults"]
+
+        self.assertIn(
+            "FRÅGESPECIFIKT INTERVJUUNDERLAG I EFTER INTERVJU",
+            defaults["sv"],
+        )
+        self.assertIn(
+            "QUESTION-SPECIFIC INTERVIEW EVIDENCE IN AFTER INTERVIEW",
+            defaults["en"],
+        )
+        self.assertIn(
+            "skriv inte att intervjuunderlag saknas",
+            defaults["sv"],
         )
 
     def test_stream_accepts_question_notes_without_general_interview_notes(self):
@@ -207,6 +261,14 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         self.assertIn("QUESTION-SPECIFIC INTERVIEW EVIDENCE", prompt)
         self.assertIn(self.question, prompt)
         self.assertIn(self.answer, prompt)
+        self.assertIn(
+            "General interview notes: AVAILABLE",
+            prompt,
+        )
+        self.assertIn(
+            "Question-specific interview evidence: AVAILABLE",
+            prompt,
+        )
 
     def test_regenerate_endpoint_accepts_question_notes_without_general_notes(self):
         response = self.client.post(
