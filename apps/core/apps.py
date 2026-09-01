@@ -28,6 +28,9 @@ class CoreConfig(AppConfig):
         from .ai.post_interview_role_context_policy_v2 import (
             install_post_interview_role_context_policy_v2,
         )
+        from .ai.post_interview_question_evidence_policy import (
+            install_post_interview_question_evidence_policy,
+        )
 
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
@@ -55,3 +58,9 @@ class CoreConfig(AppConfig):
         install_personality_motivation_interaction_policy()
         install_post_interview_role_context_policy()
         install_post_interview_role_context_policy_v2()
+
+        # Question-level interview notes are structured evidence. Install this
+        # after the other post-interview prompt policies so the final runtime
+        # prompt always receives the exact question together with its saved
+        # answer/note, even when no separate free-text interview note exists.
+        install_post_interview_question_evidence_policy()
