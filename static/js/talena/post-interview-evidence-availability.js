@@ -15,6 +15,8 @@
           "Intervjuunderlag har sparats. Generera en syntes för att jämföra " +
           "det med testresultaten och identifiera kvarstående osäkerheter."
         ),
+        generating: "Genererar…",
+        error: "Beslutsstödet efter intervjun kunde inte genereras.",
       };
     }
 
@@ -25,7 +27,22 @@
         "Interview evidence has been saved. Generate a synthesis to compare " +
         "it with the assessment indications and identify remaining uncertainties."
       ),
+      generating: "Generating…",
+      error: "The post-interview decision support could not be generated.",
     };
+  };
+
+  const getCookie = (name) => {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+
+    for (const cookie of cookies) {
+      const trimmed = cookie.trim();
+      if (trimmed.startsWith(`${name}=`)) {
+        return decodeURIComponent(trimmed.slice(name.length + 1));
+      }
+    }
+
+    return "";
   };
 
   const finalRootsWithin = (root = document) => {
@@ -279,12 +296,229 @@
     }
   };
 
+  const refreshFinalOutput = async (root) => {
+    const refreshUrl = root.dataset.refreshUrl || "";
+
+    if (!refreshUrl) {
+      window.location.reload();
+      return;
+    }
+
+    const workspace = root.closest(
+      "[data-candidate-insights-workspace]",
+    );
+
+    const activeInsightsTab =
+      workspace
+        ?.querySelector("[data-insights-tab].is-active")
+        ?.dataset
+        ?.insightsTab || "after-interview";
+
+    // Prefer the existing Talena refresh helper when it is available so all
+    // normal candidate-insights initialisers keep running as before.
+    if (typeof window.refreshCandidateFinalOutput === "function") {
+      await window.refreshCandidateFinalOutput(document);
+    } else {
+      const response = await fetch(
+        refreshUrl,
+        {
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          credentials: "same-origin",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(copy().error);
+      }
+
+      const html = await response.text();
+      const template = document.createElement("template");
+      template.innerHTML = html.trim();
+      const replacement = template.content.firstElementChild;
+
+      if (!replacement) {
+        throw new Error(copy().error);
+      }
+
+      root.replaceWith(replacement);
+    }
+
+    const currentWorkspace =
+      workspace ||
+      document.querySelector("[data-candidate-insights-workspace]");
+
+    const targetTab = currentWorkspace?.querySelector(
+      `[data-insights-tab="${activeInsightsTab}"]`,
+    );
+
+    targetTab?.click();
+
+    if (window.feather) {
+      window.feather.replace();
+    }
+  };
+
+  const drainPostInterviewStream = async (url) => {
+    const response = await fetch(
+      url,
+      {
+        method: "GET",
+        headers: {
+          "Accept": "application/x-ndjson",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      },
+    );
+
+    if (!response.ok) {
+      let message = copy().error;
+
+      try {
+        const payload = await response.json();
+        if (payload.error) message = payload.error;
+      } catch (_error) {
+        // Keep fallback message.
+      }
+
+      throw new Error(message);
+    }
+
+    if (!response.body) {
+      throw new Error(copy().error);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    const handleLine = (rawLine) => {
+      const line = rawLine.trim();
+      if (!line) return;
+
+      const event = JSON.parse(line);
+      if (event.type === "error") {
+        throw new Error(event.message || copy().error);
+      }
+    };
+
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+
+      buffer += decoder.decode(chunk.value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      lines.forEach(handleLine);
+    }
+
+    buffer += decoder.decode();
+    if (buffer.trim()) handleLine(buffer);
+  };
+
+  const generateFromInjectedButton = async (button) => {
+    if (
+      button.disabled ||
+      button.dataset.questionEvidenceBusy === "true"
+    ) {
+      return;
+    }
+
+    const root = button.closest("[data-final-output-root]");
+    if (!root) return;
+
+    const streamUrl = root.dataset.postInterviewStreamUrl || "";
+    const regenerateUrl = root.dataset.postInterviewRegenerateUrl || "";
+    const shouldRegenerate = button.dataset.regenerate === "true";
+    const errorBox = root.querySelector("[data-post-interview-error]");
+    const thinking = root.querySelector("[data-post-interview-thinking]");
+    const emptyState = root.querySelector("[data-post-interview-empty]");
+    const originalHtml = button.innerHTML;
+
+    button.dataset.questionEvidenceBusy = "true";
+    button.disabled = true;
+    button.innerHTML = `
+      <span
+        class="spinner-border spinner-border-sm"
+        role="status"
+        aria-hidden="true"
+      ></span>
+      ${copy().generating}
+    `;
+
+    errorBox?.classList.add("d-none");
+    thinking?.classList.remove("d-none");
+    emptyState?.classList.add("d-none");
+
+    try {
+      let targetStreamUrl = streamUrl;
+
+      if (shouldRegenerate) {
+        const response = await fetch(
+          regenerateUrl,
+          {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "X-Requested-With": "XMLHttpRequest",
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({}),
+          },
+        );
+
+        let payload = {};
+        try {
+          payload = await response.json();
+        } catch (_error) {
+          // Keep empty payload.
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error || copy().error);
+        }
+
+        targetStreamUrl = payload.stream_url || streamUrl;
+      }
+
+      if (!targetStreamUrl) {
+        throw new Error(copy().error);
+      }
+
+      await drainPostInterviewStream(targetStreamUrl);
+      await refreshFinalOutput(root);
+    } catch (error) {
+      console.error(
+        "Post-interview question-evidence generation error:",
+        error,
+      );
+
+      thinking?.classList.add("d-none");
+      errorBox?.classList.remove("d-none");
+      if (errorBox) {
+        errorBox.textContent = error.message || copy().error;
+      }
+
+      button.disabled = false;
+      button.innerHTML = originalHtml;
+      button.dataset.questionEvidenceBusy = "false";
+
+      if (window.feather) {
+        window.feather.replace();
+      }
+    }
+  };
+
   const initialiseRoot = (root) => {
     if (!root) return;
 
-    // This runs before the page-specific decision-support script. Creating
-    // the button synchronously here means the existing generation handler can
-    // attach to it exactly as if Django had rendered it originally.
+    // The process page's large inline Decision Support script executes before
+    // this shared customer-base module. Therefore a button created here cannot
+    // rely on that script having attached a direct click handler. Injected
+    // buttons are handled by the delegated listener below instead.
     createGenerateButton(root);
     loadQuestionEvidence(root);
   };
@@ -295,13 +529,30 @@
     );
   };
 
-  // The customer-base script is loaded after the page markup but before the
-  // process page's inline Decision Support JS, so initialise immediately.
   initialise(document);
 
   document.addEventListener(
     "DOMContentLoaded",
     () => initialise(document),
+  );
+
+  // Capture injected buttons before any older direct handler can run. This is
+  // intentionally limited to buttons created by this module, so normal
+  // server-rendered post-interview buttons keep their existing Talena logic.
+  document.addEventListener(
+    "click",
+    (event) => {
+      const button = event.target.closest?.(
+        "[data-post-interview-generate][data-question-evidence-injected='true']",
+      );
+
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      generateFromInjectedButton(button);
+    },
+    true,
   );
 
   document.addEventListener(
