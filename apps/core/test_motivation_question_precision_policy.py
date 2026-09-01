@@ -99,3 +99,23 @@ class MotivationQuestionPrecisionPolicyTests(SimpleTestCase):
         self.assertIn("why exploring that pattern is useful in the supplied process context", normalised)
         self.assertIn("only explains why the topic matters for the role is too generic", normalised)
         self.assertIn("does not need to repeat that wording mechanically for every question", normalised)
+
+    def test_swedish_output_uses_talena_factor_names_and_natural_importance_wording(self):
+        prompt = _motivation_precision_instruction(
+            self._owner("Ska jobba i kassa på ICA."),
+            [
+                {"name": "Affiliation", "score": 3},
+                {"name": "Recognition", "score": 3},
+                {"name": "Autonomy", "score": 3},
+            ],
+            language_code="sv",
+        )
+        normalised = " ".join(prompt.split())
+
+        self.assertIn("SWEDISH USER-FACING MOTIVATION LANGUAGE", normalised)
+        self.assertIn("Affiliation -> Samhörighet", normalised)
+        self.assertIn("Recognition -> Erkännande", normalised)
+        self.assertIn("Autonomy -> Självständighet", normalised)
+        self.assertIn("har måttlig betydelse för motivationen", normalised)
+        self.assertIn("Avoid mechanical phrases such as \"måttligt viktig faktor\"", normalised)
+        self.assertIn("Do not expose English source labels", normalised)
