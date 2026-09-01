@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from functools import wraps
 from typing import Any
 
@@ -14,7 +15,7 @@ SWEDISH_FACTOR_LABELS = {
     "affiliation": "Samhörighet",
     "attachment": "Samhörighet",
     "customer service": "Kundservice",
-    "work-life balance": "Balans mellan arbete och fritid",
+    "work life balance": "Balans mellan arbete och fritid",
     "people development": "Utveckla andra",
     "stability": "Stabilitet",
     "authority": "Auktoritet",
@@ -126,6 +127,98 @@ The configured output language is Swedish.
 SWEDISH FACTOR LABELS FOR THE SUPPLIED PROFILE
 {mappings}
 """
+
+
+def _normalise_swedish_user_facing_text(value: Any) -> str:
+    """Guarantee Talena's Swedish factor terminology in generated question copy."""
+
+    text = str(value or "").strip()
+    if not text:
+        return text
+
+    source_labels = {
+        "Affiliation": "Samhörighet",
+        "Attachment": "Samhörighet",
+        "Customer Service": "Kundservice",
+        "Work-Life Balance": "Balans mellan arbete och fritid",
+        "People Development": "Utveckla andra",
+        "Stability": "Stabilitet",
+        "Authority": "Auktoritet",
+        "Acquisition": "Ekonomisk belöning",
+        "Autonomy": "Självständighet",
+        "Independence": "Självständighet",
+        "Recognition": "Erkännande",
+        "Making a Difference": "Göra skillnad",
+        "Achievement": "Prestation",
+        "Quality": "Kvalitet",
+        "Learning": "Lärande",
+        "Ethics": "Etik",
+        "Commercial Value": "Kommersiellt värde",
+        "Commercial Focus": "Kommersiellt värde",
+        "Curiosity": "Nyfikenhet",
+        "Creativity": "Kreativitet",
+        "Enjoyment": "Arbetsglädje",
+        "Variety": "Variation",
+        "Risk": "Risktagande",
+    }
+
+    for source, target in sorted(
+        source_labels.items(),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    ):
+        text = re.sub(
+            rf"(?<![\wÅÄÖåäö]){re.escape(source)}(?![\wÅÄÖåäö])",
+            target,
+            text,
+            flags=re.IGNORECASE,
+        )
+
+    text = re.sub(
+        r"\bden\s+måttligt\s+viktiga\s+faktorn\s+"
+        r"([A-ZÅÄÖ][A-Za-zÅÄÖåäö\s-]*?)(?=,|\.|\s+och\b)",
+        r"\1, som har måttlig betydelse för motivationen",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\bfaktorn\s+([A-ZÅÄÖ][A-Za-zÅÄÖåäö\s-]*?),\s+som\s+är\s+av\s+måttlig\s+vikt\b",
+        r"\1, som har måttlig betydelse för motivationen",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\bden\s+medelstora\s+motivationen\s+kopplad\s+till\s+"
+        r"([A-ZÅÄÖ][A-Za-zÅÄÖåäö\s-]*?)(?=,|\.)",
+        r"\1 har måttlig betydelse för motivationen",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    return " ".join(text.split())
+
+
+def _normalise_swedish_questions_event(event: dict[str, Any]) -> dict[str, Any]:
+    if str(event.get("type") or "").strip().lower() != "questions":
+        return event
+
+    normalised = dict(event)
+    items: list[dict[str, Any]] = []
+
+    for item in event.get("items") or []:
+        if not isinstance(item, dict):
+            items.append(item)
+            continue
+
+        updated = dict(item)
+        for field in ("question", "why", "listen_for"):
+            updated[field] = _normalise_swedish_user_facing_text(
+                updated.get(field)
+            )
+        items.append(updated)
+
+    normalised["items"] = items
+    return normalised
 
 
 def _motivation_precision_instruction(
@@ -266,9 +359,6 @@ Before returning each item, verify:
   process? If no, rewrite it using the factor meaning and supplied context.
 - If this is a Risk question, does it violate the HARD RULE FOR RISK above? If
   yes, rewrite it before returning the response.
-- If the output language is Swedish, does visible text use the Swedish Talena
-  factor terminology and natural prose rather than English source labels or
-  score-report phrasing? If no, rewrite it before returning the response.
 
 If any answer is missing, rewrite the item before returning it.
 """
@@ -284,6 +374,7 @@ def install_motivation_question_precision_policy() -> None:
     from apps.core.ai import motivation_questions
 
     original_prompt = motivation_questions.build_motivation_questions_prompt
+    original_stream = motivation_questions.stream_motivation_questions
 
     @wraps(original_prompt)
     def motivation_prompt(
@@ -303,6 +394,24 @@ def install_motivation_question_precision_policy() -> None:
             language_code=language_code,
         )
 
+    @wraps(original_stream)
+    def motivation_stream(
+        *,
+        owner,
+        motivation_results,
+        language_code="en",
+    ):
+        for event in original_stream(
+            owner=owner,
+            motivation_results=motivation_results,
+            language_code=language_code,
+        ):
+            if str(language_code or "").lower().startswith("sv"):
+                yield _normalise_swedish_questions_event(event)
+            else:
+                yield event
+
     motivation_questions.build_motivation_questions_prompt = motivation_prompt
+    motivation_questions.stream_motivation_questions = motivation_stream
 
     _INSTALLED = True
