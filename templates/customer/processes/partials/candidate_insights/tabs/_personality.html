@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {# Talena candidate i18n batch 1 #}
 {% trans "No personality assessment available" as no_personality_title %}
 {% trans "Include a Personality assessment in future processes to unlock a detailed trait profile, response-style guidance, team-style insights, AI-supported interpretation and tailored follow-up questions." as no_personality_description %}
@@ -42,7 +43,7 @@
         data-insights-subtab="interpretation"
       >
         <i data-feather="zap"></i>
-        <span>{% trans "Interpretation" %}</span>
+        <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Tolkning{% else %}Interpretation{% endif %}</span>
       </button>
 
       <button
