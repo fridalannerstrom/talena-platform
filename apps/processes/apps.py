@@ -6,7 +6,11 @@ class ProcessesConfig(AppConfig):
     name = "apps.processes"
 
     def ready(self):
-        # InterviewQuestionNote lives in a focused module to keep the already
-        # large processes/models.py file from growing further. Importing the
-        # module here registers the model with the processes app.
+        # Focused model modules keep the already large processes/models.py file
+        # from growing further. Importing them here registers the models with
+        # the processes app.
         from . import interview_question_models  # noqa: F401
+        from . import process_settings_models  # noqa: F401
+
+        # Register automatic invitation request/model hooks.
+        from . import automatic_invitations  # noqa: F401
