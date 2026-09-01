@@ -13,6 +13,9 @@ class CoreConfig(AppConfig):
         from .ai.candidate_question_grounding_policy import (
             install_candidate_question_grounding_policy,
         )
+        from .ai.candidate_question_fingerprint_policy import (
+            install_candidate_question_fingerprint_policy,
+        )
         from .ai.pre_interview_raw_evidence_policy import (
             install_pre_interview_raw_evidence_policy,
         )
@@ -43,6 +46,12 @@ class CoreConfig(AppConfig):
         # Install this after the competency policy so both personality modes
         # receive the same candidate-specific grounding requirement.
         install_candidate_question_grounding_policy()
+
+        # Apply the final candidate-fingerprint quality bar after the normal
+        # grounding policy. This prevents role/context wording from replacing
+        # the actual assessment evidence as the reason for a question and makes
+        # the visible why field traceable to this candidate's result pattern.
+        install_candidate_question_fingerprint_policy()
 
         # Production pre-interview support should see the candidate's actual
         # normalized assessment results as well as Talena's saved AI
