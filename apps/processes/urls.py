@@ -8,6 +8,8 @@ from .access_control import (
 from .interview_question_notes import (
     process_candidate_interview_question_note_update,
     process_candidate_interview_question_notes,
+    process_candidate_post_interview_decision_support_regenerate_with_evidence,
+    process_candidate_post_interview_decision_support_stream_with_evidence,
 )
 
 app_name = "processes"
@@ -227,7 +229,7 @@ urlpatterns = [
             "<int:candidate_id>/"
             "post-interview-decision-support/stream/"
         ),
-        views.process_candidate_post_interview_decision_support_stream,
+        process_candidate_post_interview_decision_support_stream_with_evidence,
         name="process_candidate_post_interview_decision_support_stream",
     ),
     path(
@@ -236,7 +238,7 @@ urlpatterns = [
             "<int:candidate_id>/"
             "post-interview-decision-support/regenerate/"
         ),
-        views.process_candidate_post_interview_decision_support_regenerate,
+        process_candidate_post_interview_decision_support_regenerate_with_evidence,
         name="process_candidate_post_interview_decision_support_regenerate",
     ),
     path(
