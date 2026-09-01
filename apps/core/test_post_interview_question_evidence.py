@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TestCase
 
 from apps.accounts.models import Company, OrgUnit, User
@@ -123,6 +125,23 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             "No additional general interview notes were added.",
             prompt,
         )
+
+    def test_stream_accepts_question_notes_without_general_interview_notes(self):
+        with patch(
+            "apps.core.ai.decision_support.get_openai_client"
+        ) as get_client:
+            get_client.return_value.chat.completions.create.return_value = []
+
+            events = list(
+                decision_support.stream_post_interview_decision_support(
+                    owner=self.owner,
+                    language_code="en",
+                )
+            )
+
+        self.assertEqual(events, [])
+        self.owner.refresh_from_db()
+        self.assertEqual(self.owner.interview_notes, "")
 
     def test_general_and_question_specific_notes_are_kept_separate(self):
         self.owner.interview_notes = (
