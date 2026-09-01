@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from apps.core.ai.motivation_question_precision_policy import (
     _motivation_precision_instruction,
     _motivation_snapshot,
+    _normalise_swedish_user_facing_text,
 )
 
 
@@ -119,3 +120,20 @@ class MotivationQuestionPrecisionPolicyTests(SimpleTestCase):
         self.assertIn("har måttlig betydelse för motivationen", normalised)
         self.assertIn("Avoid mechanical phrases such as \"måttligt viktig faktor\"", normalised)
         self.assertIn("Do not expose English source labels", normalised)
+
+    def test_swedish_output_normalizer_removes_english_factor_labels(self):
+        affiliation = _normalise_swedish_user_facing_text(
+            "Denna fråga kopplar till den måttligt viktiga faktorn Affiliation "
+            "och hur social interaktion påverkar Fridas engagemang."
+        )
+        recognition = _normalise_swedish_user_facing_text(
+            "Denna fråga handlar om faktorn Recognition, som är av måttlig vikt, "
+            "och hjälper till att förstå hur erkännande påverkar Frida."
+        )
+
+        self.assertNotIn("Affiliation", affiliation)
+        self.assertNotIn("Recognition", recognition)
+        self.assertIn("Samhörighet", affiliation)
+        self.assertIn("Erkännande", recognition)
+        self.assertIn("har måttlig betydelse för motivationen", affiliation)
+        self.assertIn("har måttlig betydelse för motivationen", recognition)
