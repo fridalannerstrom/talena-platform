@@ -29,6 +29,11 @@
     section.className = "automatic-invitation-setting border-top pt-4 mt-4";
     section.dataset.automaticInvitationSetting = "true";
 
+    const marker = document.createElement("input");
+    marker.type = "hidden";
+    marker.name = "automatic_invitation_setting_present";
+    marker.value = "1";
+
     const header = document.createElement("div");
     header.className = "mb-3";
 
@@ -64,7 +69,7 @@
     help.className = "form-text";
     help.textContent = helpText;
 
-    section.append(header, control, help);
+    section.append(marker, header, control, help);
     return section;
   }
 
