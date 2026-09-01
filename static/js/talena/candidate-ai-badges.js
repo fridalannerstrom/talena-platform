@@ -75,6 +75,21 @@
         display: none !important;
       }
 
+      /* Legacy polish.css used a pseudo-element to replace the visible
+         interpretation-tab text with "AI-interpretation" / "AI-tolkning".
+         The tabs now render their real label directly in the template, so
+         expose that text and disable the legacy pseudo-label. */
+      #layoutSidenav_content main .process-page
+      .candidate-insights-view-option[data-insights-subtab="interpretation"] span {
+        font-size: 0.7rem !important;
+      }
+
+      #layoutSidenav_content main .process-page
+      .candidate-insights-view-option[data-insights-subtab="interpretation"] span::after {
+        content: none !important;
+        display: none !important;
+      }
+
       @media (max-width: 575.98px) {
         .process-page .${ROW_CLASS} {
           gap: 0.5rem;
