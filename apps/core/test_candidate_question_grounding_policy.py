@@ -1,8 +1,9 @@
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from apps.core.ai import personality_questions
+from apps.core.ai import cognitive_questions, motivation_questions, personality_questions
 from apps.core.ai.candidate_question_grounding_policy import (
     _cognitive_grounding_instruction,
     _fallback_personality_questions,
@@ -13,6 +14,34 @@ from apps.processes.interview_config import get_interview_section_config
 
 
 class CandidateQuestionGroundingPolicyTests(SimpleTestCase):
+    def _owner_with_context(self):
+        candidate = SimpleNamespace(
+            first_name="Alex",
+            last_name="Andersson",
+            email="alex@example.com",
+        )
+
+        role_context = SimpleNamespace(
+            get_context_for_purpose=lambda purpose: {
+                "context_text": (
+                    "Role: Key Account Manager. The role requires handling complex "
+                    "customer needs and changing priorities."
+                )
+            }
+        )
+
+        process = SimpleNamespace(
+            purpose="recruitment",
+            role_context=role_context,
+            is_historical=False,
+        )
+
+        return SimpleNamespace(
+            candidate=candidate,
+            process=process,
+            selected_personality_traits=["Cooperative"],
+        )
+
     def test_personality_grounding_uses_selected_trait_score_direction(self):
         owner = SimpleNamespace(
             selected_personality_traits=["Cooperative"],
@@ -66,6 +95,87 @@ class CandidateQuestionGroundingPolicyTests(SimpleTestCase):
             prompt,
         )
         self.assertIn("Do not infer personality, motivation or work ethic", prompt)
+
+    def test_personality_prompt_combines_result_purpose_context_and_selection(self):
+        owner = self._owner_with_context()
+
+        with patch.object(
+            personality_questions,
+            "get_ai_prompt_instructions",
+            return_value="Use candidate-specific evidence.",
+        ), patch.object(
+            personality_questions,
+            "get_ai_feature_prompt_instructions",
+            return_value="",
+        ):
+            prompt = personality_questions.build_personality_questions_prompt(
+                owner,
+                [{"name": "Cooperative", "sten": 9}],
+                language_code="en",
+            )
+
+        self.assertIn("Purpose: Recruitment", prompt)
+        self.assertIn("Role: Key Account Manager", prompt)
+        self.assertIn("Cooperative: STEN 9 of 10", prompt)
+        self.assertIn("EXPLICIT USER-SELECTED TRAITS", prompt)
+        self.assertIn("- Cooperative", prompt)
+        self.assertIn("CANDIDATE-SPECIFIC PROFILE SNAPSHOT", prompt)
+
+    def test_motivation_prompt_combines_result_definition_purpose_and_context(self):
+        owner = self._owner_with_context()
+
+        with patch.object(
+            motivation_questions,
+            "get_ai_prompt_instructions",
+            return_value="Use candidate-specific evidence.",
+        ):
+            prompt = motivation_questions.build_motivation_questions_prompt(
+                owner=owner,
+                motivation_results=[
+                    {
+                        "name": "Learning",
+                        "score": 5,
+                        "definition": "Developing knowledge, capability and new skills.",
+                    }
+                ],
+                language_code="en",
+            )
+
+        self.assertIn("Purpose: Recruitment", prompt)
+        self.assertIn("Role: Key Account Manager", prompt)
+        self.assertIn("Learning: STIVE 5 of 5", prompt)
+        self.assertIn("Meaning: Developing knowledge, capability and new skills.", prompt)
+        self.assertIn("More prominent motivational driver", prompt)
+        self.assertIn("CANDIDATE-SPECIFIC MOTIVATION SNAPSHOT", prompt)
+
+    def test_cognitive_prompt_combines_percentile_purpose_and_context(self):
+        owner = self._owner_with_context()
+
+        with patch.object(
+            cognitive_questions,
+            "get_ai_prompt_instructions",
+            return_value="Use candidate-specific evidence.",
+        ):
+            prompt = cognitive_questions.build_cognitive_questions_prompt(
+                owner=owner,
+                cognitive_results=[
+                    {
+                        "key": "numerical",
+                        "label": "Numerical reasoning",
+                        "percentile": 18,
+                    }
+                ],
+                language_code="en",
+            )
+
+        self.assertIn("Purpose: Recruitment", prompt)
+        self.assertIn("Role: Key Account Manager", prompt)
+        self.assertIn("Numerical reasoning: percentile 18", prompt)
+        self.assertIn(
+            "Numerical reasoning: percentile 18 (low relative to the reference group)",
+            prompt,
+        )
+        self.assertIn("CANDIDATE-SPECIFIC COGNITIVE SNAPSHOT", prompt)
 
     def test_same_personality_selection_gets_different_fallback_angle_by_score(self):
         language_token = personality_questions._personality_questions_language.set("en")
