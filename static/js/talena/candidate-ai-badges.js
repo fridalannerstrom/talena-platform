@@ -11,6 +11,10 @@
     "[data-personality-ai-root] h2[data-personality-ai-title]",
     "[data-motivation-ai-root] > div:first-of-type > div:first-child > h2.insight-summary-title",
     "[data-cognitive-interpretation-root] > div:first-of-type > div:first-child > h2.insight-summary-title",
+    "[data-personality-questions-root] .personality-questions-header h2.insight-summary-title",
+    "[data-motivation-questions-root] .personality-questions-header h2.insight-summary-title",
+    "[data-cognitive-questions-root] .personality-questions-header h2.insight-summary-title",
+    "[data-combined-questions-root] > .personality-questions-header h2.insight-summary-title",
     "#candidate-insights-panel-prepare-interview > .final-output-card > .d-flex:first-child > div:first-child > h2.insight-summary-title",
     "[data-post-interview-section] > .d-flex:first-child > div:first-child > h3.insight-summary-title"
   ];
@@ -80,6 +84,47 @@
     document.head.appendChild(style);
   }
 
+  function setText(element, swedish, english) {
+    if (!element) return;
+    const next = isSwedish() ? swedish : english;
+    if (element.textContent.trim() !== next) {
+      element.textContent = next;
+    }
+  }
+
+  function polishAiLabels(scope) {
+    if (!scope?.querySelector) return;
+
+    setText(
+      scope.querySelector('[data-insights-tab="overview"]'),
+      "Sammanfattning",
+      "Summary"
+    );
+
+    const summaryTitle = scope.querySelector("#purposeFitTitle");
+    if (summaryTitle) {
+      const current = summaryTitle.textContent.trim().toLowerCase();
+      const preliminary = current.includes("preliminary") || current.includes("preliminär");
+      setText(
+        summaryTitle,
+        preliminary ? "Preliminär sammanfattning" : "Sammanfattning",
+        preliminary ? "Preliminary summary" : "Summary"
+      );
+    }
+
+    setText(
+      scope.querySelector("#motivation-tab-interpretation span"),
+      "Tolkning",
+      "Interpretation"
+    );
+
+    setText(
+      scope.querySelector("#cognitive-tab-interpretation span"),
+      "Tolkning",
+      "Interpretation"
+    );
+  }
+
   function removeGeneratedEyebrowNearHeading(heading) {
     if (!heading) return;
 
@@ -92,17 +137,7 @@
 
     const previous = heading.previousElementSibling;
     if (previous?.classList.contains("candidate-section-eyebrow")) {
-      const text = previous.textContent.trim().toLowerCase();
-      const aiLabels = new Set([
-        "ai-generated insight",
-        "ai-genererad insikt",
-        "ai-generated",
-        "ai-genererat"
-      ]);
-
-      if (aiLabels.has(text)) {
-        previous.remove();
-      }
+      previous.remove();
     }
   }
 
@@ -169,6 +204,7 @@
     if (!scope?.querySelectorAll) return;
 
     ensureStyles();
+    polishAiLabels(scope);
     removeWrongAiEyebrows(scope);
     removeLegacyNestedAiMarkers(scope);
 
