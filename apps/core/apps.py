@@ -19,6 +19,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_question_precision_policy import (
             install_personality_question_precision_policy,
         )
+        from .ai.motivation_question_precision_policy import (
+            install_motivation_question_precision_policy,
+        )
         from .ai.pre_interview_raw_evidence_policy import (
             install_pre_interview_raw_evidence_policy,
         )
@@ -60,6 +63,11 @@ class CoreConfig(AppConfig):
         # construct and require the visible why text to explain the candidate's
         # qualitative profile direction, not only why a topic matters for the role.
         install_personality_question_precision_policy()
+
+        # Keep motivation questions faithful to factor definitions and make the
+        # supplied role/process context shape each scenario without replacing
+        # the candidate's actual motivation pattern as the basis for the question.
+        install_motivation_question_precision_policy()
 
         # Production pre-interview support should see the candidate's actual
         # normalized assessment results as well as Talena's saved AI
