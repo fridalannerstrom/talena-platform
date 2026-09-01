@@ -57,7 +57,8 @@ class CandidateQuestionFingerprintPolicyTests(SimpleTestCase):
         self.assertIn("EVERY generated cognitive question", prompt)
         self.assertIn("standalone questions about collaboration", prompt)
         self.assertIn("project priority", prompt)
-        self.assertIn("Context sets", prompt if "Context sets" in prompt else "")
+        self.assertIn("Process context may make the situation realistic", prompt)
+        self.assertIn("context must never replace the cognitive result", prompt)
 
     def test_cognitive_why_must_trace_the_candidate_result_not_only_role_relevance(self):
         owner = self._owner(
