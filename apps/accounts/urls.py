@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from apps.processes.automatic_invitations import (
+    capture_automatic_candidate_invitations,
+)
 
 app_name = "accounts"
 
@@ -72,7 +75,10 @@ urlpatterns = [
     path("processes/<int:pk>/statuses/", views.admin_process_invitation_statuses, name="admin_process_invitation_statuses"),
     path(
     "processes/<int:pk>/add-candidate/",
-    views.admin_process_add_candidate,
+    capture_automatic_candidate_invitations(
+        views.admin_process_add_candidate,
+        context="admin_auto",
+    ),
     name="admin_process_add_candidate"
     ),
     path("processes/<int:pk>/delete/", views.admin_process_delete, name="admin_process_delete"),

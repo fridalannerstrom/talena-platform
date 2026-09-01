@@ -216,6 +216,105 @@
         </section>
 
 
+        <!-- PERSONALITY + MOTIVATION INTERACTION -->
+        {% if has_motivation_results %}
+
+          <section
+            class="border rounded-4 p-3 mt-4"
+            data-personality-ai-motivation-section
+          >
+            <div class="d-flex align-items-start gap-3">
+              <div class="flex-shrink-0">
+                <i data-feather="git-merge"></i>
+              </div>
+
+              <div class="flex-grow-1">
+                <h3 class="mb-2 purpose-fit-section-title">
+                  {% if personality_interpretation_language|slice:":2" == "sv" %}
+                    Samspel med motivation
+                  {% else %}
+                    Interaction with motivation
+                  {% endif %}
+                </h3>
+
+                <div
+                  class="purpose-fit-summary {% if not personality_interpretation.motivation_interaction %}d-none{% endif %}"
+                  data-personality-ai-motivation-interaction
+                >{{ personality_interpretation.motivation_interaction }}</div>
+
+                <div
+                  class="small text-muted {% if personality_interpretation.motivation_interaction %}d-none{% endif %}"
+                  data-personality-ai-motivation-interaction-empty
+                >
+                  {% if personality_interpretation_language|slice:":2" == "sv" %}
+                    Generera eller uppdatera personlighetstolkningen för att skapa den kombinerade insikten från personlighet och motivation.
+                  {% else %}
+                    Generate or refresh the personality interpretation to create the combined insight from personality and motivation.
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </section>
+
+        {% else %}
+
+          <section
+            class="rounded-4 p-3 mt-4"
+            style="border: 1px dashed #ded8d3; background: linear-gradient(135deg, #fbfaf9 0%, #fff8f5 100%); color: #625c58;"
+            data-personality-ai-motivation-section
+            data-personality-ai-motivation-missing
+            aria-disabled="true"
+          >
+            <div class="d-flex align-items-start gap-3">
+              <div
+                class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle"
+                style="width: 36px; height: 36px; border: 1px solid rgba(255, 111, 97, 0.18); background: rgba(255, 111, 97, 0.08); color: #b85d52;"
+              >
+                <i data-feather="lock"></i>
+              </div>
+
+              <div class="flex-grow-1 pt-1">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                  <h3
+                    class="purpose-fit-section-title mb-0"
+                    style="color: #514b47;"
+                  >
+                    {% if personality_interpretation_language|slice:":2" == "sv" %}
+                      Samspel med motivation
+                    {% else %}
+                      Interaction with motivation
+                    {% endif %}
+                  </h3>
+
+                  <span
+                    class="badge rounded-pill"
+                    style="border: 1px solid #e6dfda; background: rgba(255, 255, 255, 0.82); color: #766e69; font-size: 0.62rem; font-weight: 650;"
+                  >
+                    {% if personality_interpretation_language|slice:":2" == "sv" %}
+                      Ingen motivationsdata
+                    {% else %}
+                      No motivation data
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div
+                  class="small"
+                  style="max-width: 760px; color: #7b746f; line-height: 1.55;"
+                >
+                  {% if personality_interpretation_language|slice:":2" == "sv" %}
+                    Ingen kombinerad insikt ännu. Kandidaten saknar resultat från Motivation. Lägg till Motivation i framtida processer för att se hur drivkrafter kan samspela med personlighetsprofilen.
+                  {% else %}
+                    No combined insight yet. This candidate has no Motivation result. Include Motivation in future processes to see how motivational drivers may interact with the personality profile.
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </section>
+
+        {% endif %}
+
+
         <!-- STRENGTHS + DEVELOPMENT AREAS -->
 <div class="row g-4 mt-1">
 

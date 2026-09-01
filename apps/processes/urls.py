@@ -5,16 +5,44 @@ from .access_control import (
     process_edit_access_required,
     process_view_access_required,
 )
+from .automatic_invitations import (
+    capture_automatic_candidate_invitations,
+    capture_process_automatic_invitation_setting,
+    process_automatic_invitation_setting,
+)
+from .interview_question_notes import (
+    process_candidate_interview_question_note_update,
+    process_candidate_interview_question_notes,
+    process_candidate_post_interview_decision_support_regenerate_with_evidence,
+    process_candidate_post_interview_decision_support_stream_with_evidence,
+)
 
 app_name = "processes"
 
 urlpatterns = [
     path("", views.process_list, name="process_list"),
-    path("<int:pk>/edit/", views.process_update, name="process_update"),
+    path(
+        "<int:pk>/edit/",
+        capture_process_automatic_invitation_setting(views.process_update),
+        name="process_update",
+    ),
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
-    path("new/", views.process_create_v2, name="process_create"),
+    path(
+        "new/",
+        capture_process_automatic_invitation_setting(views.process_create_v2),
+        name="process_create",
+    ),
     path("<int:pk>/", views.process_detail, name="process_detail"),
-    path("<int:pk>/add-candidate/", views.process_add_candidate, name="process_add_candidate"),
+    path(
+        "<int:pk>/add-candidate/",
+        capture_automatic_candidate_invitations(views.process_add_candidate),
+        name="process_add_candidate",
+    ),
+    path(
+        "<int:pk>/automatic-invitation-setting/",
+        process_automatic_invitation_setting,
+        name="process_automatic_invitation_setting",
+    ),
     path("<int:process_id>/candidate/<int:candidate_id>/", views.process_candidate_detail, name="process_candidate_detail"),
 
     # Public self-registration route.
@@ -204,10 +232,26 @@ urlpatterns = [
     path(
         (
             "<int:process_id>/candidates/"
+            "<int:candidate_id>/interview-question-notes/"
+        ),
+        process_candidate_interview_question_notes,
+        name="process_candidate_interview_question_notes",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/interview-question-notes/update/"
+        ),
+        process_candidate_interview_question_note_update,
+        name="process_candidate_interview_question_note_update",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "post-interview-decision-support/stream/"
         ),
-        views.process_candidate_post_interview_decision_support_stream,
+        process_candidate_post_interview_decision_support_stream_with_evidence,
         name="process_candidate_post_interview_decision_support_stream",
     ),
     path(
@@ -216,7 +260,7 @@ urlpatterns = [
             "<int:candidate_id>/"
             "post-interview-decision-support/regenerate/"
         ),
-        views.process_candidate_post_interview_decision_support_regenerate,
+        process_candidate_post_interview_decision_support_regenerate_with_evidence,
         name="process_candidate_post_interview_decision_support_regenerate",
     ),
     path(
@@ -255,6 +299,7 @@ _PROCESS_VIEW_ROUTE_NAMES = {
     "process_candidate_detail",
     "process_candidate_combined_questions",
     "process_candidate_final_output",
+    "process_candidate_interview_question_notes",
 }
 
 _PROCESS_EDIT_ROUTE_NAMES = {
@@ -292,6 +337,7 @@ _PROCESS_EDIT_ROUTE_NAMES = {
     "process_candidate_pre_interview_decision_support_stream",
     "process_candidate_pre_interview_decision_support_regenerate",
     "process_candidate_interview_notes_update",
+    "process_candidate_interview_question_note_update",
     "process_candidate_post_interview_decision_support_stream",
     "process_candidate_post_interview_decision_support_regenerate",
     "process_candidate_global_ai_update_plan",

@@ -23,12 +23,22 @@ from .shared_context import (
 from .personality_questions import (
     build_personality_evidence_text,
 )
+from .motivation_interpretation import (
+    MOTIVATION_DEFINITIONS,
+    build_motivation_evidence_text,
+    extract_motivation_results,
+)
+from .personality_motivation_interaction_policy import (
+    PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_EN,
+    PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_SV,
+)
 from .language import (
     get_ai_language_instruction,
     get_ai_system_language_instruction,
     normalize_ai_language,
     set_ai_content_language,
 )
+
 
 def _personality_interpretation_examples(
     language_code: str,
@@ -42,6 +52,10 @@ def _personality_interpretation_examples(
             "dynamics": (
                 "En praktisk förklaring av hur viktiga "
                 "personlighetspreferenser kan samverka."
+            ),
+            "motivation_interaction": (
+                "En kort förklaring av hur personlighetspreferenser "
+                "kan samspela med kandidatens motivationsfaktorer."
             ),
             "support": [
                 "Första potentiellt stödjande mönstret",
@@ -68,6 +82,10 @@ def _personality_interpretation_examples(
             "A practical explanation of how important personality "
             "preferences may work together."
         ),
+        "motivation_interaction": (
+            "A concise explanation of how personality preferences may "
+            "interact with the candidate's motivation factors."
+        ),
         "support": [
             "Pattern one",
             "Pattern two",
@@ -84,10 +102,90 @@ def _personality_interpretation_examples(
     }
 
 
+def _normalise_motivation_score(value: Any) -> int | None:
+    if value is None:
+        return None
+
+    try:
+        score = int(round(float(value)))
+    except (TypeError, ValueError):
+        return None
+
+    return max(1, min(5, score))
+
+
+def build_motivation_results_for_personality_owner(
+    owner,
+) -> list[dict[str, Any]]:
+    """
+    Build motivation evidence for the personality interaction insight.
+
+    Active candidates use the existing Sova extraction helper. Historical
+    candidates use their normalized imported profile so the feature behaves
+    consistently in both candidate views.
+    """
+
+    process = owner.process
+
+    if not getattr(process, "is_historical", False):
+        return extract_motivation_results(owner)
+
+    # Keep the processes service import lazy so the core AI module does not
+    # introduce a startup import cycle through process views/models.
+    from apps.processes.services.candidate_profile import (
+        build_historical_candidate_profile,
+    )
+
+    profile = build_historical_candidate_profile(owner)
+    motivation_competencies = (
+        profile.get("motivation_competencies")
+        or []
+    )
+
+    results_by_name: dict[str, dict[str, Any]] = {}
+
+    for item in motivation_competencies:
+        name = str(
+            item.get("competency")
+            or item.get("name")
+            or ""
+        ).strip()
+
+        if not name:
+            continue
+
+        raw_score = item.get("stive_rounded")
+
+        if raw_score is None:
+            raw_score = item.get("stive")
+
+        if raw_score is None:
+            raw_score = item.get("score")
+
+        score = _normalise_motivation_score(raw_score)
+
+        if score is None:
+            continue
+
+        name_key = name.casefold()
+
+        results_by_name[name_key] = {
+            "name": name,
+            "score": score,
+            "definition": MOTIVATION_DEFINITIONS.get(
+                name_key,
+                "",
+            ),
+        }
+
+    return list(results_by_name.values())
+
+
 def build_personality_interpretation_prompt(
     owner,
     personality_results: list[dict[str, Any]],
     *,
+    motivation_results: list[dict[str, Any]] | None = None,
     language_code: str = "en",
 ) -> str:
     """
@@ -95,8 +193,8 @@ def build_personality_interpretation_prompt(
 
     Administrator guidance controls all non-technical AI behaviour.
 
-    Talena protects only the technical input/output contract required
-    by the application.
+    Talena protects the technical input/output contract and the evidence
+    boundary required for the focused personality × motivation insight.
     """
 
     language_code = normalize_ai_language(
@@ -117,6 +215,18 @@ def build_personality_interpretation_prompt(
         language=language_code,
     )
 
+    motivation_interaction_default = (
+        PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_SV
+        if language_code == "sv"
+        else PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_EN
+    )
+
+    motivation_interaction_instructions = get_ai_feature_prompt_instructions(
+        key="personality_motivation_interaction",
+        language=language_code,
+        default=motivation_interaction_default,
+    )
+
     supportive_patterns_instructions = get_ai_feature_prompt_instructions(
         key="personality_supportive_patterns",
         language=language_code,
@@ -126,13 +236,34 @@ def build_personality_interpretation_prompt(
         key="personality_areas_to_explore",
         language=language_code,
     )
-            
+
     shared_context = build_shared_ai_context(
         owner
     )
 
     evidence_text = build_personality_evidence_text(
         personality_results
+    )
+
+    if motivation_results is None:
+        motivation_results = build_motivation_results_for_personality_owner(
+            owner
+        )
+
+    motivation_evidence_text = build_motivation_evidence_text(
+        motivation_results
+    )
+
+    has_motivation_results = bool(motivation_results)
+
+    motivation_availability_instruction = (
+        "Motivation assessment data is available. Return a grounded "
+        "motivation_interaction insight."
+        if has_motivation_results
+        else (
+            "No motivation assessment data is available. Preserve the "
+            "motivation_interaction event but return an empty text value."
+        )
     )
 
     examples = _personality_interpretation_examples(
@@ -154,6 +285,12 @@ PROCESS CONTEXT
 PERSONALITY ASSESSMENT DATA
 {evidence_text}
 
+MOTIVATION ASSESSMENT DATA
+{motivation_evidence_text}
+
+MOTIVATION DATA AVAILABILITY
+{motivation_availability_instruction}
+
 
 ADMINISTRATOR AI GUIDANCE
 
@@ -165,7 +302,8 @@ overall personality interpretation returned through
 interpretation_delta events.
 
 Do not use this guidance to determine the substantive content of
-profile_dynamics, supportive_patterns or areas_to_explore.
+profile_dynamics, motivation_interaction, supportive_patterns or
+areas_to_explore.
 
 If this guidance contains older instructions relating to those
 sections, the dedicated section guidance below takes precedence.
@@ -185,13 +323,37 @@ patterns and how those combinations should be communicated.
 {interplay_instructions}
 
 
+PERSONALITY AND MOTIVATION INTERACTION GUIDANCE
+
+The following administrator guidance applies only to the
+motivation_interaction event.
+
+{motivation_interaction_instructions}
+
+PROTECTED EVIDENCE BOUNDARY FOR THIS SECTION
+
+The substantive content of motivation_interaction must be grounded only in
+the supplied PERSONALITY ASSESSMENT DATA and MOTIVATION ASSESSMENT DATA.
+
+Do not use PROCESS CONTEXT, process purpose, assumed role requirements,
+candidate history or outside knowledge to infer an interaction for this
+section. Do not invent missing assessment results.
+
+Keep personality preference and motivational importance conceptually
+distinct. A low motivation score must not be interpreted as low ability,
+low competence, poor performance or absence of the quality named by a factor.
+
+If no motivation assessment data is available, return an empty
+motivation_interaction text value regardless of administrator guidance.
+
+
 POTENTIALLY SUPPORTIVE PATTERNS GUIDANCE
 
 The following administrator guidance applies only to the
 supportive_patterns event.
 
 Do not use it to change the overall interpretation,
-profile dynamics or areas to explore.
+profile dynamics, motivation interaction or areas to explore.
 
 {supportive_patterns_instructions}
 
@@ -202,7 +364,7 @@ The following administrator guidance applies only to the
 areas_to_explore event.
 
 Do not use it to change the overall interpretation,
-profile dynamics or supportive patterns.
+profile dynamics, motivation interaction or supportive patterns.
 
 {areas_to_explore_instructions}
 
@@ -218,8 +380,7 @@ content, number of items or emphasis of another section.
 Global Talena administrator guidance still applies across all sections.
 
 Do not allow administrator guidance to change Talena's technical
-event structure, required JSON fields or streaming format.
-
+event structure, required JSON fields, evidence boundary or streaming format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT
@@ -286,7 +447,21 @@ If the administrator guidance does not require substantive content
 for this section, preserve the event and return an empty text value.
 
 
-4. SUPPORTIVE PATTERNS
+4. MOTIVATION INTERACTION
+
+Return exactly one motivation_interaction event.
+
+When motivation assessment data is available, return the focused combined
+insight described above:
+
+{{"type":"motivation_interaction","text":"{examples["motivation_interaction"]}"}}
+
+When motivation assessment data is not available, return exactly:
+
+{{"type":"motivation_interaction","text":""}}
+
+
+5. SUPPORTIVE PATTERNS
 
 Return one supportive_patterns event.
 
@@ -296,7 +471,7 @@ administrator guidance:
 {{"type":"supportive_patterns","items":["{examples["support"][0]}","{examples["support"][1]}"]}}
 
 
-5. AREAS TO EXPLORE
+6. AREAS TO EXPLORE
 
 Return one areas_to_explore event.
 
@@ -306,7 +481,7 @@ administrator guidance:
 {{"type":"areas_to_explore","items":["{examples["explore"][0]}","{examples["explore"][1]}"]}}
 
 
-6. CONTEXT NOTE
+7. CONTEXT NOTE
 
 Return one context_note event:
 
@@ -316,7 +491,7 @@ If administrator guidance does not require substantive context-note
 content, preserve the event and return an empty text value.
 
 
-7. DONE
+8. DONE
 
 Finish with:
 
@@ -336,10 +511,12 @@ def create_empty_personality_interpretation(
         "label": examples["label"],
         "interpretation": "",
         "profile_dynamics": "",
+        "motivation_interaction": "",
         "supportive_patterns": [],
         "areas_to_explore": [],
         "context_note": "",
     }
+
 
 def apply_personality_interpretation_event(
     interpretation: dict[str, Any],
@@ -374,6 +551,12 @@ def apply_personality_interpretation_event(
             or ""
         ).strip()
 
+    elif event_type == "motivation_interaction":
+        interpretation["motivation_interaction"] = str(
+            event.get("text")
+            or ""
+        ).strip()
+
     elif event_type == "supportive_patterns":
         items = event.get("items")
 
@@ -401,6 +584,7 @@ def apply_personality_interpretation_event(
         ).strip()
 
     return interpretation
+
 
 def _parse_event_line(
     raw_line: str,
@@ -430,6 +614,7 @@ def _parse_event_line(
 
     return event
 
+
 def stream_personality_interpretation(
     *,
     owner,
@@ -447,11 +632,16 @@ def stream_personality_interpretation(
 
     language_code = normalize_ai_language(language_code)
 
+    motivation_results = build_motivation_results_for_personality_owner(
+        owner
+    )
+
     client = get_openai_client()
 
     prompt = build_personality_interpretation_prompt(
         owner=owner,
         personality_results=personality_results,
+        motivation_results=motivation_results,
         language_code=language_code,
     )
 
@@ -470,11 +660,11 @@ def stream_personality_interpretation(
                 "content": (
                     "You are an AI component inside Talena. "
                     "Follow the administrator-provided AI guidance for "
-                    "all non-technical personality analysis, interpretation "
-                    "and communication decisions. "
+                    "all non-technical personality analysis, personality-"
+                    "motivation interaction and communication decisions. "
                     "Follow Talena's technical output contract exactly, "
                     "including required JSON structure, field names, "
-                    "event types and streaming format. "
+                    "event types, evidence boundaries and streaming format. "
                     f"{system_language_instruction}"
                 ),
             },
@@ -517,6 +707,7 @@ def stream_personality_interpretation(
     if final_event:
         yield final_event
 
+
 def save_personality_interpretation(
     *,
     owner,
@@ -536,6 +727,11 @@ def save_personality_interpretation(
 
     interpretation["profile_dynamics"] = (
         interpretation.get("profile_dynamics")
+        or ""
+    ).strip()
+
+    interpretation["motivation_interaction"] = (
+        interpretation.get("motivation_interaction")
         or ""
     ).strip()
 

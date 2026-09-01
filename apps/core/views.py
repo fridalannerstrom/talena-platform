@@ -964,10 +964,7 @@ def admin_ai_prompt_edit(
         ).strip()
     )
 
-    if override and (
-        override.prompt_text
-        or ""
-    ).strip():
+    if has_active_override:
         editing_text = override.prompt_text.strip()
 
     else:

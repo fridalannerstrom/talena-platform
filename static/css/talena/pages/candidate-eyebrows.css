@@ -1,12 +1,17 @@
 /* =========================================================
-   TALENA — CANDIDATE INSIGHT EYEBROWS
+   TALENA — CANDIDATE INSIGHT EYEBROWS + AI BADGES
    ---------------------------------------------------------
-   Mirrors the dashboard eyebrow component inside the
-   dynamically loaded candidate insights workspace.
+   Category eyebrows keep the shared Talena treatment.
+   Major AI-generated sections use a compact inline badge
+   beside the section heading instead of an eyebrow above it.
    ========================================================= */
 
-.process-page .insight-summary-kicker,
-.process-page .candidate-section-eyebrow {
+/* ---------------------------------------------------------
+   CATEGORY EYEBROWS
+   --------------------------------------------------------- */
+
+.process-page .candidate-section-eyebrow,
+.process-page .insight-summary-kicker {
   display: inline-flex !important;
   align-items: center !important;
   gap: 0.5rem !important;
@@ -19,8 +24,8 @@
   text-transform: uppercase !important;
 }
 
-.process-page .insight-summary-kicker::before,
-.process-page .candidate-section-eyebrow::before {
+.process-page .candidate-section-eyebrow::before,
+.process-page .insight-summary-kicker::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -30,7 +35,7 @@
   box-shadow: 0 0 0 5px rgba(255, 111, 97, 0.08);
 }
 
-/* Keep the eyebrow visually attached to its heading. */
+/* Keep category eyebrows visually attached to their heading. */
 .process-page .candidate-section-eyebrow + .insight-summary-title,
 .process-page .candidate-section-eyebrow + .cognitive-result-card__title,
 .process-page .candidate-section-eyebrow + .personality-questions-section-title {
@@ -40,4 +45,187 @@
 /* The old templates sometimes carry Bootstrap mt-4 on kickers. */
 .process-page .insight-summary-kicker.mt-4 {
   margin-top: 0 !important;
+}
+
+/* ---------------------------------------------------------
+   MAJOR AI-GENERATED SECTION BADGE
+   ---------------------------------------------------------
+   Existing kicker text remains in the DOM for semantics and
+   translation, but is presented as one consistent badge when
+   it sits directly beside a major insight-summary heading.
+   --------------------------------------------------------- */
+
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title) {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto;
+  align-items: center;
+  justify-content: start;
+  column-gap: 0.65rem;
+  row-gap: 0.35rem;
+}
+
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > .insight-summary-title {
+  grid-column: 1;
+  grid-row: 1;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > .insight-summary-kicker {
+  grid-column: 2;
+  grid-row: 1;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.32rem !important;
+  width: fit-content;
+  margin: 0 !important;
+  padding: 0.34rem 0.58rem !important;
+  border: 1px solid #cdddf8;
+  border-radius: 999px;
+  background: #eff5ff;
+  color: #3f67a3 !important;
+  font-size: 0 !important;
+  font-weight: 720 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(61, 103, 165, 0.04);
+}
+
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > .insight-summary-kicker::before {
+  content: "✦";
+  width: auto;
+  height: auto;
+  flex: 0 0 auto;
+  border-radius: 0;
+  background: transparent;
+  color: #5b7fbd;
+  font-size: 0.74rem;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > .insight-summary-kicker::after {
+  content: "AI-generated";
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+html[lang^="sv"] .process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > .insight-summary-kicker::after {
+  content: "AI-genererat";
+}
+
+/* Descriptive copy should remain underneath the title + badge row. */
+.process-page
+  :is(div, header)
+  :has(> .insight-summary-kicker)
+  :has(> .insight-summary-title)
+  > p {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+/* ---------------------------------------------------------
+   AI-GENERATED MAJOR SECTIONS WITHOUT A KICKER IN MARKUP
+   ---------------------------------------------------------
+   Prepare for interview and the post-interview synthesis are
+   AI-generated major sections, but their existing templates do
+   not carry an insight-summary-kicker. Give those headings the
+   same visual badge without changing their data/streaming DOM.
+   --------------------------------------------------------- */
+
+.process-page
+  #candidate-insights-panel-prepare-interview
+  > .final-output-card
+  > .d-flex:first-child
+  > div:first-child
+  > h2.insight-summary-title::after,
+.process-page
+  [data-post-interview-section]
+  > .d-flex:first-child
+  > div:first-child
+  > h3.insight-summary-title::after {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.65rem;
+  padding: 0.34rem 0.58rem;
+  border: 1px solid #cdddf8;
+  border-radius: 999px;
+  background: #eff5ff;
+  color: #3f67a3;
+  content: "✦ AI-generated";
+  font-size: 0.68rem;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(61, 103, 165, 0.04);
+}
+
+html[lang^="sv"] .process-page
+  #candidate-insights-panel-prepare-interview
+  > .final-output-card
+  > .d-flex:first-child
+  > div:first-child
+  > h2.insight-summary-title::after,
+html[lang^="sv"] .process-page
+  [data-post-interview-section]
+  > .d-flex:first-child
+  > div:first-child
+  > h3.insight-summary-title::after {
+  content: "✦ AI-genererat";
+}
+
+@media (max-width: 575.98px) {
+  .process-page
+    :is(div, header)
+    :has(> .insight-summary-kicker)
+    :has(> .insight-summary-title) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 0.5rem;
+  }
+
+  .process-page
+    :is(div, header)
+    :has(> .insight-summary-kicker)
+    :has(> .insight-summary-title)
+    > .insight-summary-kicker,
+  .process-page
+    #candidate-insights-panel-prepare-interview
+    > .final-output-card
+    > .d-flex:first-child
+    > div:first-child
+    > h2.insight-summary-title::after,
+  .process-page
+    [data-post-interview-section]
+    > .d-flex:first-child
+    > div:first-child
+    > h3.insight-summary-title::after {
+    padding: 0.3rem 0.5rem !important;
+  }
 }
