@@ -19,6 +19,12 @@
     "[data-post-interview-section] > .d-flex:first-child > div:first-child > h3.insight-summary-title"
   ];
 
+  const INTERPRETATION_TAB_SELECTORS = [
+    "#candidate-insights-panel-personality [data-insights-subtab=\"interpretation\"] span",
+    "#candidate-insights-panel-motivation [data-insights-subtab=\"interpretation\"] span",
+    "#candidate-insights-panel-cognitive [data-insights-subtab=\"interpretation\"] span"
+  ];
+
   function isSwedish() {
     return (document.documentElement.lang || "").toLowerCase().startsWith("sv");
   }
@@ -111,6 +117,12 @@
         preliminary ? "Preliminary summary" : "Summary"
       );
     }
+
+    INTERPRETATION_TAB_SELECTORS.forEach((selector) => {
+      scope.querySelectorAll(selector).forEach((label) => {
+        setText(label, "Tolkning", "Interpretation");
+      });
+    });
   }
 
   function removeGeneratedEyebrowNearHeading(heading) {
