@@ -55,6 +55,29 @@ def _motivation_precision_instruction(
     purpose = str(shared.get("purpose_label") or "").strip()
     context = str(shared.get("context_text") or "").strip()
     snapshot = _motivation_snapshot(motivation_results)
+    has_context = bool(shared.get("has_context"))
+
+    context_anchor_rule = (
+        """
+MEANINGFUL PROCESS CONTEXT IS AVAILABLE.
+
+This is a non-negotiable product requirement:
+- At least two of three generated questions must explicitly use or clearly
+  paraphrase a concrete situation, setting, responsibility or phrase from the
+  supplied PROCESS CONTEXT.
+- The remaining question must still be unmistakably plausible for the same
+  process. A generic workplace question that could be reused unchanged for a
+  very different job is invalid.
+- Prefer the actual vocabulary supplied in the context over invented duties.
+- The role/context must shape the scenario itself, not merely appear in the why
+  field after a generic question has already been written.
+"""
+        if has_context
+        else """
+No meaningful process context is available. Keep scenarios broad and do not
+invent role-specific details.
+"""
+    )
 
     return f"""
 
@@ -84,6 +107,12 @@ FACTOR MEANING IS THE SOURCE OF TRUTH
   sound unnatural or inappropriate, explore how the person responds when an
   unexpected or uncertain situation requires judgement, rather than asking them
   to describe taking risks for its own sake.
+- HARD RULE FOR RISK: unless the supplied process context itself explicitly
+  describes risk-taking, risk ownership, investment decisions or comparable
+  discretion, do NOT ask the candidate to describe "taking a calculated risk",
+  "taking risks", "kalkylerade risker", "ta risker" or equivalent wording.
+  Translate the factor into a realistic question about uncertainty, incomplete
+  information, judgement, unexpected events or acting without full certainty.
 - Example: Autonomy concerns freedom to organise one's own time and approach.
   In a highly structured role, explore how the person experiences and uses the
   discretion that actually exists within clear routines rather than inventing
@@ -93,6 +122,8 @@ FACTOR MEANING IS THE SOURCE OF TRUTH
   work context rather than generic status-seeking.
 
 ROLE-CONTEXT PRECISION
+
+{context_anchor_rule}
 
 - Every question must feel plausible for THIS process and the supplied role or
   process context. Motivation evidence determines WHAT is explored; context
@@ -145,6 +176,8 @@ Before returning each item, verify:
   motivation pattern? If yes, make the angle more candidate-specific.
 - Would this question sound natural and credible to an interviewer in this
   process? If no, rewrite it using the factor meaning and supplied context.
+- If this is a Risk question, does it violate the HARD RULE FOR RISK above? If
+  yes, rewrite it before returning the response.
 
 If any answer is missing, rewrite the item before returning it.
 """
