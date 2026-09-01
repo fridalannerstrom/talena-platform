@@ -16,6 +16,9 @@ class CoreConfig(AppConfig):
         from .ai.candidate_question_fingerprint_policy import (
             install_candidate_question_fingerprint_policy,
         )
+        from .ai.personality_question_precision_policy import (
+            install_personality_question_precision_policy,
+        )
         from .ai.pre_interview_raw_evidence_policy import (
             install_pre_interview_raw_evidence_policy,
         )
@@ -52,6 +55,11 @@ class CoreConfig(AppConfig):
         # the actual assessment evidence as the reason for a question and makes
         # the visible why field traceable to this candidate's result pattern.
         install_candidate_question_fingerprint_policy()
+
+        # Keep personality questions semantically faithful to the selected
+        # construct and require the visible why text to explain the candidate's
+        # qualitative profile direction, not only why a topic matters for the role.
+        install_personality_question_precision_policy()
 
         # Production pre-interview support should see the candidate's actual
         # normalized assessment results as well as Talena's saved AI
