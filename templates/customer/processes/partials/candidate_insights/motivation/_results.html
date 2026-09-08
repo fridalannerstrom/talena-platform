@@ -15,7 +15,7 @@
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale.{% endblocktrans %}
+          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's precise five-point STIVE values.{% endblocktrans %}
         </p>
 
       </header>
@@ -230,7 +230,7 @@
                   aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
                   aria-valuemin="1"
                   aria-valuemax="5"
-                  aria-valuenow="{{ item.score }}"
+                  aria-valuenow="{{ item.score|unlocalize }}"
                 >
                   <div class="response-style-scale__segments">
                     {% for segment in item.segments %}
