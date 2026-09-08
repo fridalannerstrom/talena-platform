@@ -1,4 +1,4 @@
-{% load i18n motivation_i18n %}
+{% load i18n l10n motivation_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
 {% get_current_language as motivation_language %}
 {# Talena motivation Results language batch 1 #}
@@ -58,7 +58,7 @@
               <span
                 data-motivation-rose-item
                 data-factor-name="{{ item|motivation_name|escape }}"
-                data-factor-score="{{ item.score }}"
+                data-factor-score="{{ item.score|unlocalize }}"
                 data-factor-domain="{{ item.domain_data|motivation_domain_title|escape }}"
                 data-domain-index="{{ item.domain_index }}"
               ></span>
