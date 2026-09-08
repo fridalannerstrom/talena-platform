@@ -1599,6 +1599,7 @@ def build_motivation_insight_section(
                 "name": factor["name"],
                 "description": factor["description"],
                 "domain": domain_config["title"],
+                "domain_data": domain_config,
                 "domain_index": domain_index,
                 "score": score,
                 "available": score is not None,
