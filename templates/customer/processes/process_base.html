@@ -2356,7 +2356,7 @@ emptyState.textContent =
 
       const domainLabelRadius =
         drawingArea
-        + (compact ? 46 : 66);
+        + (compact ? 64 : 94);
 
       ctx.save();
 
@@ -2587,12 +2587,11 @@ emptyState.textContent =
 
         ctx.font =
           compact
-            ? "750 9px Inter, system-ui, sans-serif"
-            : "750 11px Inter, system-ui, sans-serif";
+            ? "800 14px Inter, system-ui, sans-serif"
+            : "800 18px Inter, system-ui, sans-serif";
 
         ctx.fillText(
-          String(group.domain)
-            .toUpperCase(),
+          String(group.domain),
 
           domainX,
           domainY
