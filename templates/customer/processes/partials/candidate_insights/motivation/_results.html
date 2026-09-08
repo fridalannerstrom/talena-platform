@@ -54,18 +54,14 @@
             data-motivation-rose-chart-data
             hidden
           >
-            {% for domain in motivation_insights.domains %}
-              {% for item in domain.items %}
-                {% if item.score is not None %}
-                  <span
-                    data-motivation-rose-item
-                    data-factor-name="{{ item|motivation_name|escape }}"
-                    data-factor-score="{{ item.score }}"
-                    data-factor-domain="{{ domain|motivation_domain_title|escape }}"
-                    data-domain-index="{{ forloop.parentloop.counter0 }}"
-                  ></span>
-                {% endif %}
-              {% endfor %}
+            {% for item in motivation_insights.chart_items %}
+              <span
+                data-motivation-rose-item
+                data-factor-name="{{ item|motivation_name|escape }}"
+                data-factor-score="{{ item.score }}"
+                data-factor-domain="{{ item.domain|escape }}"
+                data-domain-index="{{ item.domain_index }}"
+              ></span>
             {% endfor %}
           </div>
 
