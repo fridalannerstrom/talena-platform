@@ -29,7 +29,7 @@ def _sten_band(value: Any) -> str:
 
 def _motivation_band(value: Any) -> str:
     try:
-        score = int(round(float(value)))
+        score = float(value)
     except (TypeError, ValueError):
         return "unknown"
 
