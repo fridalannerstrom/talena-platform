@@ -41,10 +41,10 @@ def build_chat_assessment_activities(activities):
             }
 
             score_fields = (
-                "sten_rounded",
                 "sten",
-                "stive_rounded",
+                "sten_rounded",
                 "stive",
+                "stive_rounded",
                 "percentile",
                 "score",
             )
