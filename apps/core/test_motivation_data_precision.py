@@ -139,7 +139,7 @@ class MotivationDataPrecisionTests(SimpleTestCase):
         )
 
         self.assertIn("stive 2.37", score_parts)
-        self.assertNotIn("stive 2\\n", "\\n".join(score_parts))
+        self.assertNotIn("stive 2\n", "\n".join(score_parts))
 
     def test_personality_only_does_not_create_motivation_results(self):
         owner = SimpleNamespace(
