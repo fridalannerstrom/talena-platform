@@ -223,7 +223,7 @@
     const centerX = radialScale.xCenter;
     const centerY = radialScale.yCenter;
     const drawingArea = radialScale.drawingArea;
-    const domainLabelRadius = drawingArea + (compact ? 80 : 120);
+    const domainLabelRadius = drawingArea + (compact ? 105 : 165);
     const legacyDomainLabelRadius = drawingArea + (compact ? 46 : 66);
     const ctx = chart.ctx;
 
