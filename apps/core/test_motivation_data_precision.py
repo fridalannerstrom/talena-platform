@@ -14,6 +14,7 @@ from apps.core.ai.personality_interpretation import (
 from apps.reports.services.candidate_insights import (
     build_general_insight_input,
 )
+from apps.processes.views import build_motivation_insight_section
 
 
 class MotivationDataPrecisionTests(SimpleTestCase):
@@ -126,6 +127,51 @@ class MotivationDataPrecisionTests(SimpleTestCase):
         self.assertEqual(
             motivation["lowest_scores"][0]["name"],
             "Creativity",
+        )
+
+    def test_motivation_summary_ranks_precise_top_and_bottom_three(self):
+        insights = build_motivation_insight_section(
+            [
+                {
+                    "competency": "Creativity",
+                    "stive": 2.37,
+                    "stive_rounded": 2,
+                },
+                {
+                    "competency": "Curiosity",
+                    "stive": 2.49,
+                    "stive_rounded": 2,
+                },
+                {
+                    "competency": "Variety",
+                    "stive": 2.51,
+                    "stive_rounded": 3,
+                },
+                {
+                    "competency": "Ethics",
+                    "stive": 3.33,
+                    "stive_rounded": 3,
+                },
+                {
+                    "competency": "Enjoyment",
+                    "stive": 4.11,
+                    "stive_rounded": 4,
+                },
+                {
+                    "competency": "Risk",
+                    "stive": 4.19,
+                    "stive_rounded": 4,
+                },
+            ]
+        )
+
+        self.assertEqual(
+            [item["name"] for item in insights["motivators"]],
+            ["Risk", "Enjoyment", "Ethics"],
+        )
+        self.assertEqual(
+            [item["name"] for item in insights["less_central_drivers"]],
+            ["Creativity", "Curiosity", "Variety"],
         )
 
     def test_ai_overview_score_parts_prefer_precise_stive(self):
