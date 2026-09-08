@@ -366,13 +366,15 @@ def build_motivation_results_for_ai_owner(
         if not name:
             continue
 
+        # Preserve the exact imported STIVE value. Rounded
+        # values are only a compatibility fallback.
         raw_score = item.get(
-            "stive_rounded"
+            "stive"
         )
 
         if raw_score is None:
             raw_score = item.get(
-                "stive"
+                "stive_rounded"
             )
 
         if raw_score is None:
@@ -889,7 +891,7 @@ def build_motivation_insight_section(
     """
     Build the complete motivation profile used in Candidate Insights.
 
-    Motivation results are displayed using rounded STIVE scores from 1 to 5.
+    Motivation results retain precise STIVE scores from 1 to 5 for ranking and display.
 
     The profile:
     - preserves Sova's four motivation areas
@@ -927,9 +929,9 @@ def build_motivation_insight_section(
         """
 
         for key in (
-            "stive_rounded",
-            "score",
             "stive",
+            "score",
+            "stive_rounded",
         ):
             value = item.get(key)
 
@@ -937,11 +939,13 @@ def build_motivation_insight_section(
                 continue
 
             try:
-                score = int(round(float(value)))
+                score = float(value)
             except (TypeError, ValueError):
                 continue
 
-            return max(1, min(5, score))
+            score = max(1.0, min(5.0, score))
+
+            return int(score) if score.is_integer() else score
 
         return None
     
@@ -1574,7 +1578,7 @@ def build_motivation_insight_section(
     all_items = []
     item_order = 0
 
-    for domain_config in motivation_model:
+    for domain_index, domain_config in enumerate(motivation_model):
         domain_items = []
 
         for factor in domain_config["factors"]:
@@ -1594,6 +1598,9 @@ def build_motivation_insight_section(
                 "key": factor["key"],
                 "name": factor["name"],
                 "description": factor["description"],
+                "domain": domain_config["title"],
+                "domain_data": domain_config,
+                "domain_index": domain_index,
                 "score": score,
                 "available": score is not None,
                 "segments": build_segments(score),
@@ -1781,6 +1788,9 @@ def build_motivation_insight_section(
         "title": "Motivation profile",
         "summary": summary,
         "domains": domains,
+        # Flat chart data avoids relying on nested template dictionary lookup.
+        # These items retain the same precise scores used for ranking.
+        "chart_items": available_items,
         "motivators": motivators,
         "less_central_drivers": less_central_drivers,
 
@@ -3197,7 +3207,12 @@ def build_candidate_detail_context(
             for comp in competencies:
                 mq_competencies.append({
                     "competency": comp.get("competency"),
-                    "score": comp.get("stive_rounded"),
+                    # Keep the precise STIVE value as the canonical score.
+                    "score": (
+                        comp.get("stive")
+                        if comp.get("stive") is not None
+                        else comp.get("stive_rounded")
+                    ),
                     "stive_rounded": comp.get("stive_rounded"),
                     "stive": comp.get("stive"),
                     "sten_rounded": comp.get("sten_rounded"),
@@ -8844,26 +8859,22 @@ def process_create_v2(request):
 
 def normalise_five_point_score(
     value,
-) -> int | None:
+) -> int | float | None:
     """
-    Normalise an existing five-point score without
-    treating a ten-point STEN value as STIVE.
+    Normalise an existing STIVE score while preserving decimals.
     """
 
     if value is None:
         return None
 
     try:
-        score = int(
-            round(float(value))
-        )
+        score = float(value)
     except (TypeError, ValueError):
         return None
 
-    return max(
-        1,
-        min(5, score),
-    )
+    score = max(1.0, min(5.0, score))
+
+    return int(score) if score.is_integer() else score
 
 
 def convert_sten_to_five_point(
@@ -9061,7 +9072,19 @@ def build_historical_candidate_detail_context(
             "sten"
         )
 
-        if raw_sten is None:
+        # A native one-to-five motivation result is STIVE, not STEN.
+        # Do not duplicate it into the personality scale fields.
+        if (
+            raw_sten is None
+            and str(item.get("scale") or "").strip().lower()
+            not in {
+                "one_to_five",
+                "one-to-five",
+                "1_to_5",
+                "1-to-5",
+                "1 to 5",
+            }
+        ):
             raw_sten = raw_score
 
         raw_sten_rounded = item.get(
@@ -9089,7 +9112,11 @@ def build_historical_candidate_detail_context(
             # Five-point result used by Motivation UI.
             "score": five_point_score,
             "stive": five_point_score,
-            "stive_rounded": five_point_score,
+            "stive_rounded": (
+                int(round(float(five_point_score)))
+                if five_point_score is not None
+                else None
+            ),
             "scale": item.get("scale"),
 
             # Preserve the original imported STEN evidence.

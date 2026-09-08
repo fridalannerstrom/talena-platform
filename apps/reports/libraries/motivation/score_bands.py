@@ -1,8 +1,13 @@
-def resolve_motivation_score_band(score: int | None) -> str:
+def resolve_motivation_score_band(score: int | float | None) -> str:
     if score is None:
         return ""
 
-    score = int(score)
+    # Report copy still uses the established five bands, but the precise
+    # score must be rounded only for band selection—not for evidence/ranking.
+    try:
+        score = int(round(float(score)))
+    except (TypeError, ValueError):
+        return ""
 
     if score == 1:
         return "1"

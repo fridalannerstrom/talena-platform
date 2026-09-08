@@ -2126,7 +2126,8 @@ async function initMotivationRoseChart(
   const items = itemElements
     .map((element) => {
       const score = Number(
-        element.dataset.factorScore
+        String(element.dataset.factorScore || "")
+          .replace(",", ".")
       );
 
       const domainIndex = Number(
@@ -2355,7 +2356,7 @@ emptyState.textContent =
 
       const domainLabelRadius =
         drawingArea
-        + (compact ? 46 : 66);
+        + (compact ? 105 : 165);
 
       ctx.save();
 
@@ -2586,12 +2587,11 @@ emptyState.textContent =
 
         ctx.font =
           compact
-            ? "750 9px Inter, system-ui, sans-serif"
-            : "750 11px Inter, system-ui, sans-serif";
+            ? "800 14px Inter, system-ui, sans-serif"
+            : "800 18px Inter, system-ui, sans-serif";
 
         ctx.fillText(
-          String(group.domain)
-            .toUpperCase(),
+          String(group.domain),
 
           domainX,
           domainY

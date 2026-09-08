@@ -996,7 +996,12 @@ def build_candidate_detail_context(process, invitation):
             for comp in competencies:
                 mq_competencies.append({
                     "competency": comp.get("competency"),
-                    "score": comp.get("stive_rounded"),
+                    # Use precise STIVE as the canonical motivation score.
+                    "score": (
+                        comp.get("stive")
+                        if comp.get("stive") is not None
+                        else comp.get("stive_rounded")
+                    ),
                     "stive_rounded": comp.get("stive_rounded"),
                     "stive": comp.get("stive"),
                     "sten_rounded": comp.get("sten_rounded"),

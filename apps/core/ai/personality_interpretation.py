@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Any, Iterable
 
 from django.utils import timezone
@@ -102,16 +103,21 @@ def _personality_interpretation_examples(
     }
 
 
-def _normalise_motivation_score(value: Any) -> int | None:
+def _normalise_motivation_score(value: Any) -> int | float | None:
     if value is None:
         return None
 
     try:
-        score = int(round(float(value)))
+        score = float(value)
     except (TypeError, ValueError):
         return None
 
-    return max(1, min(5, score))
+    if not math.isfinite(score):
+        return None
+
+    score = max(1.0, min(5.0, score))
+
+    return int(score) if score.is_integer() else score
 
 
 def build_motivation_results_for_personality_owner(
@@ -154,10 +160,12 @@ def build_motivation_results_for_personality_owner(
         if not name:
             continue
 
-        raw_score = item.get("stive_rounded")
+        # Keep the original STIVE value for the personality ×
+        # motivation interaction. Rounded values are only a fallback.
+        raw_score = item.get("stive")
 
         if raw_score is None:
-            raw_score = item.get("stive")
+            raw_score = item.get("stive_rounded")
 
         if raw_score is None:
             raw_score = item.get("score")

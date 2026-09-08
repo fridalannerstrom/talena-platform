@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from typing import Any, Iterable
 from django.utils import timezone
 
@@ -100,16 +101,34 @@ def _normalise_name(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _normalise_score(value: Any) -> int | None:
+def normalise_motivation_score(value: Any) -> int | float | None:
+    """
+    Return the exact usable STIVE value without rounding away decimals.
+
+    Motivation is a five-point scale, but Sova can provide a more precise
+    value alongside the rounded display value. The precise value must be
+    retained for ranking and AI evidence construction.
+    """
     if value is None:
         return None
 
     try:
-        score = int(round(float(value)))
+        score = float(value)
     except (TypeError, ValueError):
         return None
 
-    return max(1, min(5, score))
+    if not math.isfinite(score):
+        return None
+
+    score = max(1.0, min(5.0, score))
+
+    return int(score) if score.is_integer() else score
+
+
+def _format_motivation_score(value: Any) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
 
 
 def extract_motivation_results(
@@ -118,7 +137,7 @@ def extract_motivation_results(
     """
     Extract available motivation results from Sova activities.
 
-    Motivation scores use the rounded five-point STIVE scale.
+    Motivation scores use Sova's five-point STIVE scale; precise values are retained.
     """
 
     activities = (
@@ -165,24 +184,22 @@ def extract_motivation_results(
                 competency_name.lower()
             )
 
-            known_factor = (
-                competency_key
-                in MOTIVATION_DEFINITIONS
-            )
-
-            if not (
-                looks_like_motivation
-                or known_factor
-            ):
+            # Only a clearly identified motivation activity may
+            # contribute motivation evidence. A personality trait such as
+            # "Creativity" must never be accepted merely because the name
+            # also exists in the motivation factor dictionary.
+            if not looks_like_motivation:
                 continue
 
-            score = _normalise_score(
-                competency.get("stive_rounded")
+            # Prefer the precise STIVE value. The rounded
+            # field is only a compatibility fallback for older payloads.
+            score = normalise_motivation_score(
+                competency.get("stive")
             )
 
             if score is None:
-                score = _normalise_score(
-                    competency.get("stive")
+                score = normalise_motivation_score(
+                    competency.get("stive_rounded")
                 )
 
             if score is None:
@@ -254,7 +271,8 @@ def build_motivation_evidence_text(
 
         lines.append("")
         lines.append(
-            f"- {result['name']}: STIVE {result['score']} of 5"
+            f"- {result['name']}: STIVE "
+            f"{_format_motivation_score(result['score'])} of 5"
         )
 
         if definition:

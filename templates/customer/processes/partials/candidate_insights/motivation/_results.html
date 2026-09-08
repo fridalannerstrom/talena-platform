@@ -1,4 +1,4 @@
-{% load i18n motivation_i18n %}
+{% load i18n l10n motivation_i18n %}
 {% trans "The candidate" as motivation_candidate_fallback %}
 {% get_current_language as motivation_language %}
 {# Talena motivation Results language batch 1 #}
@@ -15,7 +15,7 @@
         </h2>
 
         <p class="text-muted small mb-0">
-          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's rounded five-point STIVE scale.{% endblocktrans %}
+          {% blocktrans %}The profile highlights the candidate's more prominent and less central motivational drivers, followed by the complete motivation profile. Results use Sova's precise five-point STIVE values.{% endblocktrans %}
         </p>
 
       </header>
@@ -54,18 +54,14 @@
             data-motivation-rose-chart-data
             hidden
           >
-            {% for domain in motivation_insights.domains %}
-              {% for item in domain.items %}
-                {% if item.score is not None %}
-                  <span
-                    data-motivation-rose-item
-                    data-factor-name="{{ item|motivation_name|escape }}"
-                    data-factor-score="{{ item.score }}"
-                    data-factor-domain="{{ domain|motivation_domain_title|escape }}"
-                    data-domain-index="{{ forloop.parentloop.counter0 }}"
-                  ></span>
-                {% endif %}
-              {% endfor %}
+            {% for item in motivation_insights.chart_items %}
+              <span
+                data-motivation-rose-item
+                data-factor-name="{{ item|motivation_name|escape }}"
+                data-factor-score="{{ item.score|unlocalize }}"
+                data-factor-domain="{{ item.domain_data|motivation_domain_title|escape }}"
+                data-domain-index="{{ item.domain_index }}"
+              ></span>
             {% endfor %}
           </div>
 
@@ -234,7 +230,7 @@
                   aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
                   aria-valuemin="1"
                   aria-valuemax="5"
-                  aria-valuenow="{{ item.score }}"
+                  aria-valuenow="{{ item.score|unlocalize }}"
                 >
                   <div class="response-style-scale__segments">
                     {% for segment in item.segments %}

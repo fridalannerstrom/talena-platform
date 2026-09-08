@@ -39,9 +39,10 @@ def _get_score_parts(
     if sten is None:
         sten = item.get("sten")
 
-    stive = item.get("stive_rounded")
+    # Keep the precise STIVE value in AI Overview evidence.
+    stive = item.get("stive")
     if stive is None:
-        stive = item.get("stive")
+        stive = item.get("stive_rounded")
 
     percentile = item.get("percentile")
 

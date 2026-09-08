@@ -45,7 +45,7 @@ def _normalise_name(value: Any) -> str:
 
 def _factor_importance(score: Any) -> str:
     try:
-        value = int(round(float(score)))
+        value = float(score)
     except (TypeError, ValueError):
         return "unknown motivational importance"
 
