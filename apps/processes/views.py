@@ -9066,7 +9066,19 @@ def build_historical_candidate_detail_context(
             "sten"
         )
 
-        if raw_sten is None:
+        # A native one-to-five motivation result is STIVE, not STEN.
+        # Do not duplicate it into the personality scale fields.
+        if (
+            raw_sten is None
+            and str(item.get("scale") or "").strip().lower()
+            not in {
+                "one_to_five",
+                "one-to-five",
+                "1_to_5",
+                "1-to-5",
+                "1 to 5",
+            }
+        ):
             raw_sten = raw_score
 
         raw_sten_rounded = item.get(
