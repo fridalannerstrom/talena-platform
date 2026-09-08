@@ -164,9 +164,10 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
                 if sten is None:
                     sten = competency.get("sten")
 
-                stive = competency.get("stive_rounded")
+                # Prefer precise STIVE; rounded values are fallback only.
+                stive = competency.get("stive")
                 if stive is None:
-                    stive = competency.get("stive")
+                    stive = competency.get("stive_rounded")
 
                 percentile = competency.get("percentile")
 
