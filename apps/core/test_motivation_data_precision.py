@@ -139,7 +139,28 @@ class MotivationDataPrecisionTests(SimpleTestCase):
         )
 
         self.assertIn("stive 2.37", score_parts)
-        self.assertNotIn("stive 2", score_parts)
+        self.assertNotIn("stive 2\\n", "\\n".join(score_parts))
+
+    def test_personality_only_does_not_create_motivation_results(self):
+        owner = SimpleNamespace(
+            sova_activities=[
+                {
+                    "activity": "Personality Questionnaire",
+                    "competencies": [
+                        {
+                            "competency": "Creativity",
+                            "sten": 8,
+                            "sten_rounded": 8,
+                        },
+                    ],
+                },
+            ],
+        )
+
+        self.assertEqual(
+            extract_motivation_results(owner),
+            [],
+        )
 
     def test_personality_motivation_interaction_uses_precise_historical_stive(self):
         owner = SimpleNamespace(
