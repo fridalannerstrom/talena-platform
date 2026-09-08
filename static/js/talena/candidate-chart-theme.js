@@ -42,7 +42,10 @@
       root.querySelectorAll("[data-motivation-rose-item]")
     )
       .map((element) => {
-        const score = Number(element.dataset.factorScore);
+        const score = Number(
+          String(element.dataset.factorScore || "")
+            .replace(",", ".")
+        );
         const domainIndex = Number(element.dataset.domainIndex);
 
         return {
