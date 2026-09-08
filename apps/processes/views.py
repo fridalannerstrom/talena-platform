@@ -891,7 +891,7 @@ def build_motivation_insight_section(
     """
     Build the complete motivation profile used in Candidate Insights.
 
-    Motivation results are displayed using rounded STIVE scores from 1 to 5.
+    Motivation results retain precise STIVE scores from 1 to 5 for ranking and display.
 
     The profile:
     - preserves Sova's four motivation areas
@@ -1578,7 +1578,7 @@ def build_motivation_insight_section(
     all_items = []
     item_order = 0
 
-    for domain_config in motivation_model:
+    for domain_index, domain_config in enumerate(motivation_model):
         domain_items = []
 
         for factor in domain_config["factors"]:
@@ -1598,6 +1598,8 @@ def build_motivation_insight_section(
                 "key": factor["key"],
                 "name": factor["name"],
                 "description": factor["description"],
+                "domain": domain_config["title"],
+                "domain_index": domain_index,
                 "score": score,
                 "available": score is not None,
                 "segments": build_segments(score),
@@ -1785,6 +1787,9 @@ def build_motivation_insight_section(
         "title": "Motivation profile",
         "summary": summary,
         "domains": domains,
+        # Flat chart data avoids relying on nested template dictionary lookup.
+        # These items retain the same precise scores used for ranking.
+        "chart_items": available_items,
         "motivators": motivators,
         "less_central_drivers": less_central_drivers,
 
