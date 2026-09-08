@@ -184,11 +184,6 @@ def extract_motivation_results(
                 competency_name.lower()
             )
 
-            known_factor = (
-                competency_key
-                in MOTIVATION_DEFINITIONS
-            )
-
             # Only a clearly identified motivation activity may
             # contribute motivation evidence. A personality trait such as
             # "Creativity" must never be accepted merely because the name
