@@ -59,7 +59,7 @@
                 data-motivation-rose-item
                 data-factor-name="{{ item|motivation_name|escape }}"
                 data-factor-score="{{ item.score }}"
-                data-factor-domain="{{ item.domain|escape }}"
+                data-factor-domain="{{ item.domain_data|motivation_domain_title|escape }}"
                 data-domain-index="{{ item.domain_index }}"
               ></span>
             {% endfor %}
