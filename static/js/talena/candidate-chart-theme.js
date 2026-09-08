@@ -223,7 +223,8 @@
     const centerX = radialScale.xCenter;
     const centerY = radialScale.yCenter;
     const drawingArea = radialScale.drawingArea;
-    const domainLabelRadius = drawingArea + (compact ? 49 : 72);
+    const domainLabelRadius = drawingArea + (compact ? 64 : 94);
+    const legacyDomainLabelRadius = drawingArea + (compact ? 46 : 66);
     const ctx = chart.ctx;
 
     ctx.save();
@@ -257,19 +258,53 @@
       }
 
       const middleAngle = (firstArc.startAngle + lastArc.endAngle) / 2;
-      const domainX = centerX + Math.cos(middleAngle) * domainLabelRadius;
-      const domainY = centerY + Math.sin(middleAngle) * domainLabelRadius;
       const label = String(group.domain || "");
 
+      /*
+       * The legacy local plugin draws a smaller heading at the old radius
+       * before this adapter runs. Clear it so only the new heading remains.
+       */
+      const legacyX =
+        centerX
+        + Math.cos(middleAngle)
+        * legacyDomainLabelRadius;
+      const legacyY =
+        centerY
+        + Math.sin(middleAngle)
+        * legacyDomainLabelRadius;
+
       ctx.font = compact
-        ? "800 12px Inter, system-ui, sans-serif"
-        : "800 16px Inter, system-ui, sans-serif";
+        ? "750 9px Inter, system-ui, sans-serif"
+        : "750 11px Inter, system-ui, sans-serif";
+
+      const legacyLabel = label.toUpperCase();
+      const legacyMeasured = ctx.measureText(legacyLabel);
+
+      ctx.clearRect(
+        legacyX - (legacyMeasured.width + 16) / 2,
+        legacyY - (compact ? 13 : 17),
+        legacyMeasured.width + 16,
+        compact ? 26 : 34
+      );
+
+      const domainX =
+        centerX
+        + Math.cos(middleAngle)
+        * domainLabelRadius;
+      const domainY =
+        centerY
+        + Math.sin(middleAngle)
+        * domainLabelRadius;
+
+      ctx.font = compact
+        ? "800 14px Inter, system-ui, sans-serif"
+        : "800 18px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
       const measured = ctx.measureText(label);
-      const clearWidth = measured.width + (compact ? 12 : 18);
-      const clearHeight = compact ? 22 : 28;
+      const clearWidth = measured.width + (compact ? 16 : 22);
+      const clearHeight = compact ? 26 : 34;
 
       ctx.clearRect(
         domainX - clearWidth / 2,
