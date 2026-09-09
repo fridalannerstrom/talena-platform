@@ -11,15 +11,15 @@ register = template.Library()
 
 DOMAIN_CONTENT = {
     "belonging": {
-        "title": "Samhörighet",
+        "title": "Tillhörighet",
         "subtitle": "Social kontakt, stöd och en känsla av tillhörighet i arbetet",
     },
     "influence": {
-        "title": "Inflytande",
+        "title": "Inverkan",
         "subtitle": "Självständighet, erkännande och möjligheter att påverka resultat",
     },
     "growth": {
-        "title": "Utveckling",
+        "title": "Tillväxt",
         "subtitle": "Prestation, kvalitet, lärande och meningsfulla standarder",
     },
     "interest": {
@@ -31,11 +31,10 @@ DOMAIN_CONTENT = {
 
 FACTOR_CONTENT = {
     "attachment": {
-        "name": "Samhörighet",
-        "description": "Social kontakt, stöd och att arbeta som en del av ett team.",
+        "name": "Anknytning",
+        "description": "Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer.",
         "top_text": (
-            "Värdesätter social interaktion med andra på jobbet, detta är en primär drivkraft för dem. "
-            "Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer."
+            "Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer."
         ),
         "bottom_text": (
             "Social interaktion och känslan av tillhörighet verkar vara en mindre central källa till motivation. "
@@ -45,10 +44,9 @@ FACTOR_CONTENT = {
     },
     "customer_service": {
         "name": "Kundservice",
-        "description": "Att förstå kunders behov och ge hjälpsam service.",
+        "description": "Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar.",
         "top_text": (
-            "Trivs i en kundorienterad roll där de får hjälpa och stödja andra. Lägger värde på att bygga relationer med kunder "
-            "och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kunders behov och förväntningar."
+            "Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar."
         ),
         "bottom_text": (
             "Att hjälpa, stödja och bygga relationer med kunder verkar vara en mindre central källa till motivation. "
@@ -57,11 +55,10 @@ FACTOR_CONTENT = {
         ),
     },
     "work_life_balance": {
-        "name": "Balans mellan arbete och fritid",
-        "description": "Att upprätthålla en hållbar balans mellan arbete och livet utanför arbetet.",
+        "name": "Work life Balance",
+        "description": "Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga.",
         "top_text": (
-            "Balans mellan arbete och privatliv är viktigt, så att de kan uppfylla sina åtaganden både i arbetet och utanför. "
-            "Söker tydliga gränser så att de kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga."
+            "Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga."
         ),
         "bottom_text": (
             "Tydliga gränser mellan arbete och privatliv verkar vara en mindre central källa till motivation. "
@@ -70,11 +67,10 @@ FACTOR_CONTENT = {
         ),
     },
     "people_development": {
-        "name": "Utveckla andra",
-        "description": "Att hjälpa andra människor att lära, växa och utvecklas.",
+        "name": "Människors utveckling",
+        "description": "Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa.",
         "top_text": (
-            "Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra tider "
-            "och hjälper andra att övervinna motgångar eller utmaningar. Erbjuder proaktivt stöd så att andra kan växa."
+            "Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa."
         ),
         "bottom_text": (
             "Att utveckla och vägleda andra verkar vara en mindre central källa till motivation. "
@@ -84,10 +80,9 @@ FACTOR_CONTENT = {
     },
     "stability": {
         "name": "Stabilitet",
-        "description": "Förutsägbarhet, kontinuitet och trygghet i arbetsmiljön.",
+        "description": "Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll.",
         "top_text": (
-            "Känner trygghet på jobbet och föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. "
-            "Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll."
+            "Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll."
         ),
         "bottom_text": (
             "Trygghet, förutsägbarhet och stabilitet verkar vara en mindre central källa till motivation. "
@@ -97,10 +92,9 @@ FACTOR_CONTENT = {
     },
     "authority": {
         "name": "Auktoritet",
-        "description": "Status, senioritet och möjligheten att påverka eller leda andra.",
+        "description": "Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska.",
         "top_text": (
-            "Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. "
-            "Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska."
+            "Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska."
         ),
         "bottom_text": (
             "Formell auktoritet, status och ledande ansvar verkar vara en mindre central källa till motivation. "
@@ -109,11 +103,10 @@ FACTOR_CONTENT = {
         ),
     },
     "acquisition": {
-        "name": "Ekonomisk belöning",
-        "description": "Ekonomisk belöning, resurser och materiella fördelar.",
+        "name": "Anskaffning",
+        "description": "Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande.",
         "top_text": (
-            "Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så att de har råd med de saker de vill ha utan att behöva oroa sig för kostnader. "
-            "Fokus på lön och förmåner är starkt, och attraktiv ersättning är motiverande."
+            "Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande."
         ),
         "bottom_text": (
             "Lön, förmåner och materiell belöning verkar vara en mindre central källa till motivation. "
@@ -123,10 +116,9 @@ FACTOR_CONTENT = {
     },
     "independence": {
         "name": "Självständighet",
-        "description": "Frihet att fatta beslut och påverka hur arbetet genomförs.",
+        "description": "Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt.",
         "top_text": (
-            "Friheten att fatta egna beslut om hur de ska planera tid och organisera sitt arbete är viktig. "
-            "Presterar som bäst när de får förtroende för att sätta sin egen arbetsriktning och slutföra sitt arbete på det sätt de tycker är lämpligt."
+            "Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt."
         ),
         "bottom_text": (
             "Hög grad av självständighet och frihet att styra arbetssättet verkar vara en mindre central källa till motivation. "
@@ -136,10 +128,9 @@ FACTOR_CONTENT = {
     },
     "recognition": {
         "name": "Erkännande",
-        "description": "Synlighet, beröm och uppskattning för den egna insatsen.",
+        "description": "Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande.",
         "top_text": (
-            "Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen "
-            "så att andra kan se arbetet de gör och värdet de tillför. Positiv feedback och beröm är motiverande för dem."
+            "Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande."
         ),
         "bottom_text": (
             "Erkännande, beröm och synlighet verkar vara en mindre central källa till motivation. "
@@ -149,10 +140,9 @@ FACTOR_CONTENT = {
     },
     "making_a_difference": {
         "name": "Göra skillnad",
-        "description": "Att bidra till ett större syfte eller skapa positiv påverkan.",
+        "description": "Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort.",
         "top_text": (
-            "Känner motivation av att göra en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte upplevs som värdiga "
-            "och att kunna se hur det egna arbetet har en gynnsam inverkan på samhället i stort."
+            "Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort."
         ),
         "bottom_text": (
             "Att göra en tydlig positiv skillnad eller bidra till ett större samhällssyfte verkar vara en mindre central källa till motivation. "
@@ -162,10 +152,9 @@ FACTOR_CONTENT = {
     },
     "achievement": {
         "name": "Prestation",
-        "description": "Tydliga mål, utmaningar och en synlig känsla av framsteg.",
+        "description": "Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras.",
         "top_text": (
-            "Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, "
-            "och de trivs med konkurrens och en miljö där de har möjlighet att jämföra sin prestation med andras."
+            "Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras."
         ),
         "bottom_text": (
             "Utmanande mål, konkurrens och tydliga prestationsjämförelser verkar vara en mindre central källa till motivation. "
@@ -174,11 +163,10 @@ FACTOR_CONTENT = {
         ),
     },
     "quality": {
-        "name": "Kvalitet",
-        "description": "Att leverera noggrant och tillförlitligt arbete med hög kvalitet.",
+        "name": "Kvalité",
+        "description": "Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt.",
         "top_text": (
-            "Motiveras av att leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad de har lovat och vad som förväntas av dem. "
-            "Säkerställer att arbetet slutförs så perfekt som möjligt."
+            "Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt."
         ),
         "bottom_text": (
             "Att sträva efter perfektion och göra kvalitet till en central drivkraft verkar vara mindre motiverande. "
@@ -188,10 +176,9 @@ FACTOR_CONTENT = {
     },
     "learning": {
         "name": "Lärande",
-        "description": "Att utveckla kunskap, förmåga och nya färdigheter.",
+        "description": "Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter.",
         "top_text": (
-            "Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling "
-            "och att bemästra nya färdigheter."
+            "Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter."
         ),
         "bottom_text": (
             "Kontinuerligt lärande och utveckling av ny expertis verkar vara en mindre central källa till motivation. "
@@ -201,10 +188,9 @@ FACTOR_CONTENT = {
     },
     "ethics": {
         "name": "Etik",
-        "description": "Att agera i linje med tydliga principer och etiska standarder.",
+        "description": "Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna.",
         "top_text": (
-            "Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. "
-            "Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna."
+            "Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna."
         ),
         "bottom_text": (
             "Etiska riktlinjer och värderingsmässig överensstämmelse verkar vara en mindre central källa till motivation i sig. "
@@ -213,11 +199,10 @@ FACTOR_CONTENT = {
         ),
     },
     "commercial_focus": {
-        "name": "Kommersiellt värde",
-        "description": "Att skapa mätbart kommersiellt värde och affärsresultat.",
+        "name": "Kommersiellt fokus",
+        "description": "Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst.",
         "top_text": (
-            "Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. "
-            "Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst."
+            "Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst."
         ),
         "bottom_text": (
             "Kommersiella resultat och direkt koppling till ekonomisk framgång verkar vara en mindre central källa till motivation. "
@@ -227,10 +212,9 @@ FACTOR_CONTENT = {
     },
     "curiosity": {
         "name": "Nyfikenhet",
-        "description": "Att utforska ny information, frågor och obekanta problem.",
+        "description": "Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset.",
         "top_text": (
-            "Motiveras av att utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter till nya upplevelser och ny information "
-            "och utforskar de saker som fångar deras intresse."
+            "Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset."
         ),
         "bottom_text": (
             "Att utforska nya områden och söka ny information verkar vara en mindre central källa till motivation. "
@@ -240,10 +224,9 @@ FACTOR_CONTENT = {
     },
     "creativity": {
         "name": "Kreativitet",
-        "description": "Att skapa nya idéer och hitta originella tillvägagångssätt.",
+        "description": "Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika.",
         "top_text": (
-            "Motiveras av att utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. "
-            "Deras idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika."
+            "Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika."
         ),
         "bottom_text": (
             "Att generera nya idéer och hitta originella lösningar verkar vara en mindre central källa till motivation. "
@@ -252,11 +235,10 @@ FACTOR_CONTENT = {
         ),
     },
     "enjoyment": {
-        "name": "Arbetsglädje",
-        "description": "Positiv energi och glädje i det dagliga arbetet.",
+        "name": "Glädje",
+        "description": "Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är.",
         "top_text": (
-            "Värdesätter en miljö där man trivs med sitt arbete men även kan ha roligt med sina kollegor. "
-            "Trivs i en lättsam miljö där man kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är."
+            "Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är."
         ),
         "bottom_text": (
             "En lättsam och socialt lekfull arbetsmiljö verkar vara en mindre central källa till motivation. "
@@ -266,10 +248,9 @@ FACTOR_CONTENT = {
     },
     "variety": {
         "name": "Variation",
-        "description": "Förändring, olika uppgifter och varierade arbetssätt.",
+        "description": "Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter.",
         "top_text": (
-            "Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt "
-            "där de får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter."
+            "Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter."
         ),
         "bottom_text": (
             "Variation och ständig växling mellan olika uppgifter verkar vara en mindre central källa till motivation. "
@@ -278,11 +259,10 @@ FACTOR_CONTENT = {
         ),
     },
     "risk": {
-        "name": "Risktagande",
-        "description": "Att ta kalkylerade risker och agera trots osäkerhet.",
+        "name": "Risk",
+        "description": "Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig.",
         "top_text": (
-            "Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut "
-            "och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig."
+            "Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig."
         ),
         "bottom_text": (
             "Risk och osäkerhet verkar vara en mindre central källa till motivation. "
