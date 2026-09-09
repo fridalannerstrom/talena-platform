@@ -1252,14 +1252,13 @@ def build_motivation_insight_section(
             "factors": [
                 {
                     "key": "attachment",
-                    "name": "Attachment",
+                    "name": "Affiliation",
                     "aliases": [
                         "attachment",
                         "affiliation",
                     ],
                     "description": (
-                        "Social interaction, support and working as part "
-                        "of a team."
+                        "Value social interaction with others at work. This is a primary driver for them. Enjoys the feeling of belonging to a team and is driven by developing strong bonds and good working relationships."
                     ),
                 },
                 {
@@ -1270,8 +1269,7 @@ def build_motivation_insight_section(
                         "customer focus",
                     ],
                     "description": (
-                        "Understanding customer needs and providing "
-                        "helpful service."
+                        "Thrives in a customer-oriented role where they get to help and support others. Values building relationships with customers and understanding customer needs. Places great emphasis on meeting and exceeding customer needs and expectations."
                     ),
                 },
                 {
@@ -1282,8 +1280,7 @@ def build_motivation_insight_section(
                         "work-life balance",
                     ],
                     "description": (
-                        "Maintaining a sustainable balance between work "
-                        "and life outside work."
+                        "Values work-life balance so they can fulfil their commitments both at work and outside. Looks for clear boundaries so they can switch off at the end of the workday and devote that time to other activities that are important."
                     ),
                 },
                 {
@@ -1294,7 +1291,7 @@ def build_motivation_insight_section(
                         "developing people",
                     ],
                     "description": (
-                        "Helping other people learn, grow and develop."
+                        "Helps and supports others and actively contributes to their development. Enjoys guiding others through difficult times and helping others overcome adversity or challenges. Offers proactive support so others can grow."
                     ),
                 },
                 {
@@ -1305,17 +1302,16 @@ def build_motivation_insight_section(
                         "security",
                     ],
                     "description": (
-                        "Predictability, continuity and security in the "
-                        "working environment."
+                        "Wants to feel secure at work and will probably prefer to work in an industry or organisation they see as stable. Places importance on feeling that their position at work is secure and is likely to be more concerned with having stability in their role."
                     ),
                 },
             ],
         },
         {
             "key": "influence",
-            "title": "Influence",
+            "title": "Impact",
             "subtitle": (
-                "Independence, recognition and opportunities to shape outcomes"
+                "Autonomy, recognition and opportunities to shape outcomes"
             ),
             "icon_class": "fa-solid fa-hand-pointer",
             "factors": [
@@ -1326,13 +1322,12 @@ def build_motivation_insight_section(
                         "authority",
                     ],
                     "description": (
-                        "Status, seniority and the opportunity to influence "
-                        "or lead others."
+                        "Values the opportunity to take on leadership positions and the opportunity for promotion. Appreciates roles where there is room to set direction, organise others and ensure work is done properly."
                     ),
                 },
                 {
                     "key": "independence",
-                    "name": "Independence",
+                    "name": "Autonomy",
                     "aliases": [
                         "independence",
                         "autonomy",
@@ -1340,8 +1335,7 @@ def build_motivation_insight_section(
                         "self direction",
                     ],
                     "description": (
-                        "Freedom to make decisions and shape how work "
-                        "is carried out."
+                        "Values the freedom to make their own decisions about how to plan their time and organise their work. Performs at their best when trusted to set their own work direction and complete their work in the way they see fit."
                     ),
                 },
                 {
@@ -1351,21 +1345,19 @@ def build_motivation_insight_section(
                         "recognition",
                     ],
                     "description": (
-                        "Visibility, praise and acknowledgement for "
-                        "personal contribution."
+                        "Is motivated by recognition, praise and appreciation. Prioritises activities or projects that are visible in the organisation so others can see the work they do and the value they add. Positive feedback and praise are motivating for them."
                     ),
                 },
                 {
                     "key": "making_a_difference",
-                    "name": "Making a Difference",
+                    "name": "Making a difference",
                     "aliases": [
                         "making a difference",
                         "make a difference",
                         "purpose",
                     ],
                     "description": (
-                        "Contributing to a wider purpose or creating "
-                        "positive impact."
+                        "Wants to feel that they make a positive difference to others. Considers it important to be part of an organisation whose goals and purpose seem worthwhile to them, and to be able to see how their work has a beneficial impact on society at large."
                     ),
                 },
                 {
@@ -1377,7 +1369,7 @@ def build_motivation_insight_section(
                         "financial reward",
                     ],
                     "description": (
-                        "Financial reward, resources and tangible gain."
+                        "Is motivated by financial reward and by working in a well-paid role so they can afford the things they want without having to worry about costs. The focus on salary and benefits is strong; attractive remuneration is motivating."
                     ),
                 },
             ],
@@ -1398,7 +1390,7 @@ def build_motivation_insight_section(
                         "performance",
                     ],
                     "description": (
-                        "Clear goals, challenge and a visible sense of progress."
+                        "Is energised by defined and challenging goals to work towards. Professionally challenging opportunities are important; thrives on competition and an environment where they have the opportunity to compare their performance to others."
                     ),
                 },
                 {
@@ -1408,7 +1400,7 @@ def build_motivation_insight_section(
                         "quality",
                     ],
                     "description": (
-                        "Producing accurate and reliable work to a high standard."
+                        "Is motivated by delivering high-quality results on a consistent basis. Takes pride in producing work that is in line with both what they have promised and what is expected of them. Ensures their work is completed as perfectly as possible."
                     ),
                 },
                 {
@@ -1419,7 +1411,7 @@ def build_motivation_insight_section(
                         "development",
                     ],
                     "description": (
-                        "Developing knowledge, capability and new skills."
+                        "Is driven by the opportunity to learn and develop their expertise. Feels comfortable in an environment where there are plenty of opportunities for ongoing training and development to master new skills."
                     ),
                 },
                 {
@@ -1430,21 +1422,19 @@ def build_motivation_insight_section(
                         "ethical standards",
                     ],
                     "description": (
-                        "Acting in line with clear principles and "
-                        "ethical standards."
+                        "Maintains high ethical standards for themselves and the organisation they work for. Adheres to industry guidelines and best-practice requirements. Takes pride in their professional integrity and enjoys working in an organisation whose ethical values are in line with their own."
                     ),
                 },
                 {
                     "key": "commercial_focus",
-                    "name": "Commercial Focus",
+                    "name": "Commercial Value",
                     "aliases": [
                         "commercial focus",
                         "commercial value",
                         "commercially focused",
                     ],
                     "description": (
-                        "Creating measurable commercial value and "
-                        "business results."
+                        "Thrives in a commercially focused role and contributes to the organisation's financial success. Values seeing the connection between their role and the organisation's results. Gains energy from seeing how their work leads to commercial profit."
                     ),
                 },
             ],
@@ -1464,8 +1454,7 @@ def build_motivation_insight_section(
                         "curiosity",
                     ],
                     "description": (
-                        "Exploring new information, questions and "
-                        "unfamiliar problems."
+                        "Explores and discovers new things. Pursues knowledge and experience, takes advantage of opportunities for new experiences and new information, and explores the things that capture their interest."
                     ),
                 },
                 {
@@ -1475,7 +1464,7 @@ def build_motivation_insight_section(
                         "creativity",
                     ],
                     "description": (
-                        "Generating new ideas and finding original approaches."
+                        "Enjoys exercising creativity, thinking outside the box, generating new ideas and identifying new solutions. Ideas and suggestions are likely to be useful, not just original for the sake of being different or unique."
                     ),
                 },
                 {
@@ -1487,7 +1476,7 @@ def build_motivation_insight_section(
                         "fun",
                     ],
                     "description": (
-                        "Positive energy and enjoyment in day-to-day work."
+                        "Values an environment where they enjoy their work but can also have fun with their colleagues. Thrives in an easy-going environment where they can express their playful side, share humour with colleagues and be accepted for who they are."
                     ),
                 },
                 {
@@ -1498,7 +1487,7 @@ def build_motivation_insight_section(
                         "variation",
                     ],
                     "description": (
-                        "Change, different tasks and varied ways of working."
+                        "Is motivated by a role that offers a lot of variety and the opportunity to work with many different things. Thrives in a diverse role with a mix of tasks and projects where they can focus their attention on different work demands and take advantage of their different skills."
                     ),
                 },
                 {
@@ -1509,7 +1498,7 @@ def build_motivation_insight_section(
                         "risk taking",
                     ],
                     "description": (
-                        "Taking calculated risks and acting despite uncertainty."
+                        "Is motivated by risk at work and by having to face situations where the outcome is unclear. Is comfortable making risky decisions and thrives in roles that allow room to experience the thrill of taking a risk and then seeing if it pays off."
                     ),
                 },
             ],
