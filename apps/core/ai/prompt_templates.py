@@ -2194,6 +2194,33 @@ Percentiler kan användas när det är relevant för frågan.
 
 Beskriv dem som relativ prestation jämfört med en referensgrupp.
 
+Använd alltid följande percentil-/resultatintervall och betydelser:
+
+1–17:e percentilen/resultat:
+Det innebär troligen att det tar längre tid för kandidaten att lösa denna uppgift. Om uppgiften är mer komplex kan det innebära en potentiell utmaning, där övning i denna färdighet kan vara hjälpsam.
+
+18–36:e percentilen/resultat:
+Det är ofta tillräckligt för mindre komplexa arbetsuppgifter, vilket kan innebära:
+- följa etablerade rutiner eller instruktioner
+- utföra återkommande och förutsägbara aktiviteter
+- arbeta med konkret och tydlig information
+- ett begränsat behov av problemlösning eller beslutsfattande
+
+37–59:e percentilen/resultat:
+Det är ofta tillräckligt för relativt komplexa arbetsuppgifter, vilket kan innebära:
+- viss grad av problemlösning eller felsökning
+- anpassa sig till förändrade situationer eller ny information
+- fatta beslut med måttliga konsekvenser
+- bearbeta och koppla samman flera informationsdelar
+
+60–99:e percentilen/resultat:
+Det är ofta tillräckligt för mer komplexa arbetsuppgifter, vilket kan innebära:
+- analysera abstrakt eller tvetydig information
+- strategiskt tänkande och planering
+- lösa nya eller oförutsägbara problem
+- fatta beslut med stora och betydande konsekvenser
+- snabbt lära sig och tillämpa nya koncept
+
 Ett högre kognitivt resultat garanterar inte hög arbetsprestation.
 
 Ett lägre resultat innebär inte automatiskt att personen saknar förmåga
@@ -2383,6 +2410,33 @@ COGNITIVE RESULTS
 Percentiles may be used where relevant to the question.
 
 Describe them as relative performance compared with a reference group.
+
+Always use the following percentile/result ranges and meanings:
+
+1st–17th percentile/result:
+This likely means that it takes the candidate longer to solve this task. If the task is more complex, it may represent a potential challenge, where practice in this skill may be helpful.
+
+18th–36th percentile/result:
+This is often sufficient for less complex work tasks, which may involve:
+- following established routines or instructions
+- carrying out recurring and predictable activities
+- working with concrete and clear information
+- limited need for problem-solving or decision-making
+
+37th–59th percentile/result:
+This is often sufficient for relatively complex work tasks, which may involve:
+- some degree of problem-solving or troubleshooting
+- adapting to changing situations or new information
+- making decisions with moderate consequences
+- processing and connecting multiple pieces of information
+
+60th–99th percentile/result:
+This is often sufficient for more complex work tasks, which may involve:
+- analysing abstract or ambiguous information
+- strategic thinking and planning
+- solving new or unpredictable problems
+- making decisions with major and significant consequences
+- learning and applying new concepts quickly
 
 A higher cognitive result does not guarantee strong workplace performance.
 
@@ -3263,68 +3317,67 @@ Motivation kan förändras över tid och mellan olika situationer.
 
 MOTIVATIONSFAKTORERNAS BETYDELSE
 
-När följande faktorer förekommer i underlaget, använd dessa betydelser
-som utgångspunkt:
+När följande motivationsfaktorer förekommer i underlaget, använd dessa definitioner som utgångspunkt:
 
-Attachment
-Social interaktion, stöd och att arbeta tillsammans med andra.
+Anknytning
+Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer.
 
-Work-life balance
-En hållbar balans mellan arbete och livet utanför arbetet.
+Kundservice
+Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar.
 
-Stability
-Förutsägbarhet, kontinuitet och trygghet i arbetsmiljön.
+Work life Balance
+Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga.
 
-Customer service
-Att förstå kunders behov och ge hjälpsam service.
+Människors utveckling
+Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa.
 
-People development
-Att hjälpa andra människor att lära, växa och utvecklas.
+Stabilitet
+Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll.
 
-Independence
-Frihet att fatta beslut och påverka hur arbetet genomförs.
+Auktoritet
+Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska.
 
-Recognition
-Synlighet, uppskattning och erkännande för den egna insatsen.
+Anskaffning
+Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande.
 
-Authority
-Status, senioritet och möjlighet att påverka eller leda andra.
+Självständighet
+Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt.
 
-Making a difference
-Att bidra till ett större syfte eller skapa positiv påverkan.
+Erkännande
+Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande.
 
-Acquisition
-Ekonomisk belöning, resurser och materiell vinning.
+Göra skillnad
+Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort.
 
-Commercial focus
-Att skapa mätbart kommersiellt värde och affärsresultat.
+Prestation
+Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras.
 
-Quality
-Att producera korrekt och tillförlitligt arbete med hög standard.
+Kvalité
+Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt.
 
-Learning
-Att utveckla kunskap, förmåga och nya färdigheter.
+Lärande
+Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter.
 
-Achievement
-Tydliga mål, utmaning och en synlig känsla av framsteg.
+Etik
+Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna.
 
-Ethics
-Att agera i linje med tydliga principer och etiska normer.
+Kommersiellt fokus
+Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst.
+
+Nyfikenhet
+Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset.
+
+Kreativitet
+Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika.
+
+Glädje
+Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är.
+
+Variation
+Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter.
 
 Risk
-Att ta kalkylerade risker och agera trots osäkerhet.
-
-Enjoyment
-Positiv energi och trivsel i det dagliga arbetet.
-
-Variety
-Förändring, olika arbetsuppgifter och varierade sätt att arbeta.
-
-Curiosity
-Att utforska ny information, frågor och obekanta problem.
-
-Creativity
-Att skapa nya idéer och hitta originella angreppssätt.
+Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig.
 
 
 TOLKNING AV PROFILEN
@@ -3558,68 +3611,67 @@ Motivation may change over time and across situations.
 
 MOTIVATION FACTOR MEANINGS
 
-When the following factors occur in the evidence, use these
-meanings as a starting point:
+When the following motivation factors occur in the evidence, use these definitions as a starting point:
 
-Attachment
-Social interaction, support and working as part of a team.
+Affiliation
+Value social interaction with others at work. This is a primary driver for them. Enjoys the feeling of belonging to a team and is driven by developing strong bonds and good working relationships.
 
-Work-life balance
-Maintaining a sustainable balance between work and life outside work.
+Customer Service
+Thrives in a customer-oriented role where they get to help and support others. Values building relationships with customers and understanding customer needs. Places great emphasis on meeting and exceeding customer needs and expectations.
+
+Work-life Balance
+Values work-life balance so they can fulfil their commitments both at work and outside. Looks for clear boundaries so they can switch off at the end of the workday and devote that time to other activities that are important.
+
+People Development
+Helps and supports others and actively contributes to their development. Enjoys guiding others through difficult times and helping others overcome adversity or challenges. Offers proactive support so others can grow.
 
 Stability
-Predictability, continuity and security in the working environment.
-
-Customer service
-Understanding customer needs and providing helpful service.
-
-People development
-Helping other people learn, grow and develop.
-
-Independence
-Freedom to make decisions and shape how work is carried out.
-
-Recognition
-Visibility, praise and acknowledgement for personal contribution.
+Wants to feel secure at work and will probably prefer to work in an industry or organisation they see as stable. Places importance on feeling that their position at work is secure and is likely to be more concerned with having stability in their role.
 
 Authority
-Status, seniority and the opportunity to influence or lead others.
-
-Making a difference
-Contributing to a wider purpose or creating positive impact.
+Values the opportunity to take on leadership positions and the opportunity for promotion. Appreciates roles where there is room to set direction, organise others and ensure work is done properly.
 
 Acquisition
-Financial reward, resources and tangible gain.
+Is motivated by financial reward and by working in a well-paid role so they can afford the things they want without having to worry about costs. The focus on salary and benefits is strong; attractive remuneration is motivating.
 
-Commercial focus
-Creating measurable commercial value and business results.
+Autonomy
+Values the freedom to make their own decisions about how to plan their time and organise their work. Performs at their best when trusted to set their own work direction and complete their work in the way they see fit.
 
-Quality
-Producing accurate and reliable work to a high standard.
+Recognition
+Is motivated by recognition, praise and appreciation. Prioritises activities or projects that are visible in the organisation so others can see the work they do and the value they add. Positive feedback and praise are motivating for them.
 
-Learning
-Developing knowledge, capability and new skills.
+Making a difference
+Wants to feel that they make a positive difference to others. Considers it important to be part of an organisation whose goals and purpose seem worthwhile to them, and to be able to see how their work has a beneficial impact on society at large.
 
 Achievement
-Clear goals, challenge and a visible sense of progress.
+Is energised by defined and challenging goals to work towards. Professionally challenging opportunities are important; thrives on competition and an environment where they have the opportunity to compare their performance to others.
+
+Quality
+Is motivated by delivering high-quality results on a consistent basis. Takes pride in producing work that is in line with both what they have promised and what is expected of them. Ensures their work is completed as perfectly as possible.
+
+Learning
+Is driven by the opportunity to learn and develop their expertise. Feels comfortable in an environment where there are plenty of opportunities for ongoing training and development to master new skills.
 
 Ethics
-Acting in line with clear principles and ethical standards.
+Maintains high ethical standards for themselves and the organisation they work for. Adheres to industry guidelines and best-practice requirements. Takes pride in their professional integrity and enjoys working in an organisation whose ethical values are in line with their own.
 
-Risk
-Taking calculated risks and acting despite uncertainty.
-
-Enjoyment
-Positive energy and enjoyment in day-to-day work.
-
-Variety
-Change, different tasks and varied ways of working.
+Commercial Value
+Thrives in a commercially focused role and contributes to the organisation's financial success. Values seeing the connection between their role and the organisation's results. Gains energy from seeing how their work leads to commercial profit.
 
 Curiosity
-Exploring new information, questions and unfamiliar problems.
+Explores and discovers new things. Pursues knowledge and experience, takes advantage of opportunities for new experiences and new information, and explores the things that capture their interest.
 
 Creativity
-Generating new ideas and finding original approaches.
+Enjoys exercising creativity, thinking outside the box, generating new ideas and identifying new solutions. Ideas and suggestions are likely to be useful, not just original for the sake of being different or unique.
+
+Enjoyment
+Values an environment where they enjoy their work but can also have fun with their colleagues. Thrives in an easy-going environment where they can express their playful side, share humour with colleagues and be accepted for who they are.
+
+Variety
+Is motivated by a role that offers a lot of variety and the opportunity to work with many different things. Thrives in a diverse role with a mix of tasks and projects where they can focus their attention on different work demands and take advantage of their different skills.
+
+Risk
+Is motivated by risk at work and by having to face situations where the outcome is unclear. Is comfortable making risky decisions and thrives in roles that allow room to experience the thrill of taking a risk and then seeing if it pays off.
 
 
 INTERPRETING THE PROFILE
@@ -4058,68 +4110,67 @@ Motivation kan förändras över tid och mellan olika situationer.
 
 MOTIVATIONSFAKTORERNAS BETYDELSE
 
-När följande faktorer förekommer i underlaget, använd dessa
-betydelser som utgångspunkt:
+När följande motivationsfaktorer förekommer i underlaget, använd dessa definitioner som utgångspunkt:
 
-Attachment
-Social interaktion, stöd och att arbeta tillsammans med andra.
+Anknytning
+Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer.
 
-Work-life balance
-En hållbar balans mellan arbete och livet utanför arbetet.
+Kundservice
+Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar.
 
-Stability
-Förutsägbarhet, kontinuitet och trygghet i arbetsmiljön.
+Work life Balance
+Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga.
 
-Customer service
-Att förstå kunders behov och ge hjälpsam service.
+Människors utveckling
+Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa.
 
-People development
-Att hjälpa andra människor att lära, växa och utvecklas.
+Stabilitet
+Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll.
 
-Independence
-Frihet att fatta beslut och påverka hur arbetet genomförs.
+Auktoritet
+Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska.
 
-Recognition
-Synlighet, uppskattning och erkännande för den egna insatsen.
+Anskaffning
+Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande.
 
-Authority
-Status, senioritet och möjlighet att påverka eller leda andra.
+Självständighet
+Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt.
 
-Making a difference
-Att bidra till ett större syfte eller skapa positiv påverkan.
+Erkännande
+Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande.
 
-Acquisition
-Ekonomisk belöning, resurser och materiell vinning.
+Göra skillnad
+Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort.
 
-Commercial focus
-Att skapa mätbart kommersiellt värde och affärsresultat.
+Prestation
+Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras.
 
-Quality
-Att producera korrekt och tillförlitligt arbete med hög standard.
+Kvalité
+Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt.
 
-Learning
-Att utveckla kunskap, förmåga och nya färdigheter.
+Lärande
+Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter.
 
-Achievement
-Tydliga mål, utmaning och en synlig känsla av framsteg.
+Etik
+Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna.
 
-Ethics
-Att agera i linje med tydliga principer och etiska normer.
+Kommersiellt fokus
+Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst.
+
+Nyfikenhet
+Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset.
+
+Kreativitet
+Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika.
+
+Glädje
+Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är.
+
+Variation
+Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter.
 
 Risk
-Att ta kalkylerade risker och agera trots osäkerhet.
-
-Enjoyment
-Positiv energi och trivsel i det dagliga arbetet.
-
-Variety
-Förändring, olika arbetsuppgifter och varierade sätt att arbeta.
-
-Curiosity
-Att utforska ny information, frågor och obekanta problem.
-
-Creativity
-Att skapa nya idéer och hitta originella angreppssätt.
+Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig.
 
 
 FRÅGOR
@@ -4314,68 +4365,67 @@ Motivation may change over time and across situations.
 
 MOTIVATION FACTOR MEANINGS
 
-When the following factors occur in the evidence, use these
-meanings as a starting point:
+When the following motivation factors occur in the evidence, use these definitions as a starting point:
 
-Attachment
-Social interaction, support and working as part of a team.
+Affiliation
+Value social interaction with others at work. This is a primary driver for them. Enjoys the feeling of belonging to a team and is driven by developing strong bonds and good working relationships.
 
-Work-life balance
-Maintaining a sustainable balance between work and life outside work.
+Customer Service
+Thrives in a customer-oriented role where they get to help and support others. Values building relationships with customers and understanding customer needs. Places great emphasis on meeting and exceeding customer needs and expectations.
+
+Work-life Balance
+Values work-life balance so they can fulfil their commitments both at work and outside. Looks for clear boundaries so they can switch off at the end of the workday and devote that time to other activities that are important.
+
+People Development
+Helps and supports others and actively contributes to their development. Enjoys guiding others through difficult times and helping others overcome adversity or challenges. Offers proactive support so others can grow.
 
 Stability
-Predictability, continuity and security in the working environment.
-
-Customer service
-Understanding customer needs and providing helpful service.
-
-People development
-Helping other people learn, grow and develop.
-
-Independence
-Freedom to make decisions and shape how work is carried out.
-
-Recognition
-Visibility, praise and acknowledgement for personal contribution.
+Wants to feel secure at work and will probably prefer to work in an industry or organisation they see as stable. Places importance on feeling that their position at work is secure and is likely to be more concerned with having stability in their role.
 
 Authority
-Status, seniority and the opportunity to influence or lead others.
-
-Making a difference
-Contributing to a wider purpose or creating positive impact.
+Values the opportunity to take on leadership positions and the opportunity for promotion. Appreciates roles where there is room to set direction, organise others and ensure work is done properly.
 
 Acquisition
-Financial reward, resources and tangible gain.
+Is motivated by financial reward and by working in a well-paid role so they can afford the things they want without having to worry about costs. The focus on salary and benefits is strong; attractive remuneration is motivating.
 
-Commercial focus
-Creating measurable commercial value and business results.
+Autonomy
+Values the freedom to make their own decisions about how to plan their time and organise their work. Performs at their best when trusted to set their own work direction and complete their work in the way they see fit.
 
-Quality
-Producing accurate and reliable work to a high standard.
+Recognition
+Is motivated by recognition, praise and appreciation. Prioritises activities or projects that are visible in the organisation so others can see the work they do and the value they add. Positive feedback and praise are motivating for them.
 
-Learning
-Developing knowledge, capability and new skills.
+Making a difference
+Wants to feel that they make a positive difference to others. Considers it important to be part of an organisation whose goals and purpose seem worthwhile to them, and to be able to see how their work has a beneficial impact on society at large.
 
 Achievement
-Clear goals, challenge and a visible sense of progress.
+Is energised by defined and challenging goals to work towards. Professionally challenging opportunities are important; thrives on competition and an environment where they have the opportunity to compare their performance to others.
+
+Quality
+Is motivated by delivering high-quality results on a consistent basis. Takes pride in producing work that is in line with both what they have promised and what is expected of them. Ensures their work is completed as perfectly as possible.
+
+Learning
+Is driven by the opportunity to learn and develop their expertise. Feels comfortable in an environment where there are plenty of opportunities for ongoing training and development to master new skills.
 
 Ethics
-Acting in line with clear principles and ethical standards.
+Maintains high ethical standards for themselves and the organisation they work for. Adheres to industry guidelines and best-practice requirements. Takes pride in their professional integrity and enjoys working in an organisation whose ethical values are in line with their own.
 
-Risk
-Taking calculated risks and acting despite uncertainty.
-
-Enjoyment
-Positive energy and enjoyment in day-to-day work.
-
-Variety
-Change, different tasks and varied ways of working.
+Commercial Value
+Thrives in a commercially focused role and contributes to the organisation's financial success. Values seeing the connection between their role and the organisation's results. Gains energy from seeing how their work leads to commercial profit.
 
 Curiosity
-Exploring new information, questions and unfamiliar problems.
+Explores and discovers new things. Pursues knowledge and experience, takes advantage of opportunities for new experiences and new information, and explores the things that capture their interest.
 
 Creativity
-Generating new ideas and finding original approaches.
+Enjoys exercising creativity, thinking outside the box, generating new ideas and identifying new solutions. Ideas and suggestions are likely to be useful, not just original for the sake of being different or unique.
+
+Enjoyment
+Values an environment where they enjoy their work but can also have fun with their colleagues. Thrives in an easy-going environment where they can express their playful side, share humour with colleagues and be accepted for who they are.
+
+Variety
+Is motivated by a role that offers a lot of variety and the opportunity to work with many different things. Thrives in a diverse role with a mix of tasks and projects where they can focus their attention on different work demands and take advantage of their different skills.
+
+Risk
+Is motivated by risk at work and by having to face situations where the outcome is unclear. Is comfortable making risky decisions and thrives in roles that allow room to experience the thrill of taking a risk and then seeing if it pays off.
 
 
 QUESTIONS
