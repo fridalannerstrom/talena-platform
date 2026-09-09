@@ -269,6 +269,14 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             "Question-specific interview evidence: AVAILABLE",
             prompt,
         )
+        self.assertIn(
+            "must be actively considered before describing",
+            prompt,
+        )
+        self.assertIn(
+            "Remaining uncertainties may only describe what is still unanswered",
+            prompt,
+        )
 
     def test_regenerate_endpoint_accepts_question_notes_without_general_notes(self):
         response = self.client.post(
