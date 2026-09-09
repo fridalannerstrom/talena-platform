@@ -30,72 +30,143 @@ from .prompt_templates import (
 )
 
 MOTIVATION_DEFINITIONS = {
-    "affiliation": (
-        "Social interaction, support and a sense of belonging at work."
+    "attachment": (
+        "Value social interaction with others at work. This is a primary driver for them. Enjoys the feeling of belonging to a team and is driven by developing strong bonds and good working relationships."
     ),
-    "customer service": (
-        "Understanding customer needs and providing helpful service."
+    "customer_service": (
+        "Thrives in a customer-oriented role where they get to help and support others. Values building relationships with customers and understanding customer needs. Places great emphasis on meeting and exceeding customer needs and expectations."
     ),
-    "work-life balance": (
-        "Being able to maintain a sustainable balance between work "
-        "and life outside work."
+    "work_life_balance": (
+        "Values work-life balance so they can fulfil their commitments both at work and outside. Looks for clear boundaries so they can switch off at the end of the workday and devote that time to other activities that are important."
     ),
-    "people development": (
-        "Helping other people learn, grow and develop."
+    "people_development": (
+        "Helps and supports others and actively contributes to their development. Enjoys guiding others through difficult times and helping others overcome adversity or challenges. Offers proactive support so others can grow."
     ),
     "stability": (
-        "Predictability, continuity and security in the working environment."
+        "Wants to feel secure at work and will probably prefer to work in an industry or organisation they see as stable. Places importance on feeling that their position at work is secure and is likely to be more concerned with having stability in their role."
     ),
     "authority": (
-        "Status, seniority and the opportunity to exercise authority "
-        "or influence over others."
+        "Values the opportunity to take on leadership positions and the opportunity for promotion. Appreciates roles where there is room to set direction, organise others and ensure work is done properly."
     ),
     "acquisition": (
-        "Financial reward, wealth, resources and tangible gain."
+        "Is motivated by financial reward and by working in a well-paid role so they can afford the things they want without having to worry about costs. The focus on salary and benefits is strong; attractive remuneration is motivating."
     ),
-    "autonomy": (
-        "Freedom to organise one's own time and approach to work."
+    "independence": (
+        "Values the freedom to make their own decisions about how to plan their time and organise their work. Performs at their best when trusted to set their own work direction and complete their work in the way they see fit."
     ),
     "recognition": (
-        "Visibility, praise and public acknowledgement for achievements."
+        "Is motivated by recognition, praise and appreciation. Prioritises activities or projects that are visible in the organisation so others can see the work they do and the value they add. Positive feedback and praise are motivating for them."
     ),
-    "making a difference": (
-        "Making a wider contribution to the organisation, society or a cause."
+    "making_a_difference": (
+        "Wants to feel that they make a positive difference to others. Considers it important to be part of an organisation whose goals and purpose seem worthwhile to them, and to be able to see how their work has a beneficial impact on society at large."
     ),
     "achievement": (
-        "Achieving goals, overcoming challenges and competing with others."
+        "Is energised by defined and challenging goals to work towards. Professionally challenging opportunities are important; thrives on competition and an environment where they have the opportunity to compare their performance to others."
     ),
     "quality": (
-        "Producing accurate, reliable and timely work to a high standard."
+        "Is motivated by delivering high-quality results on a consistent basis. Takes pride in producing work that is in line with both what they have promised and what is expected of them. Ensures their work is completed as perfectly as possible."
     ),
     "learning": (
-        "Developing knowledge, capability and new skills."
+        "Is driven by the opportunity to learn and develop their expertise. Feels comfortable in an environment where there are plenty of opportunities for ongoing training and development to master new skills."
     ),
     "ethics": (
-        "Acting in line with clear principles and ethical standards."
+        "Maintains high ethical standards for themselves and the organisation they work for. Adheres to industry guidelines and best-practice requirements. Takes pride in their professional integrity and enjoys working in an organisation whose ethical values are in line with their own."
     ),
-    "commercial value": (
-        "Generating revenue, profit and measurable commercial value."
+    "commercial_focus": (
+        "Thrives in a commercially focused role and contributes to the organisation's financial success. Values seeing the connection between their role and the organisation's results. Gains energy from seeing how their work leads to commercial profit."
     ),
     "curiosity": (
-        "Finding new information and solving unfamiliar or novel problems."
+        "Explores and discovers new things. Pursues knowledge and experience, takes advantage of opportunities for new experiences and new information, and explores the things that capture their interest."
     ),
     "creativity": (
-        "Generating new ideas and finding original approaches."
+        "Enjoys exercising creativity, thinking outside the box, generating new ideas and identifying new solutions. Ideas and suggestions are likely to be useful, not just original for the sake of being different or unique."
     ),
     "enjoyment": (
-        "Enjoying work and experiencing positive energy in day-to-day work."
+        "Values an environment where they enjoy their work but can also have fun with their colleagues. Thrives in an easy-going environment where they can express their playful side, share humour with colleagues and be accepted for who they are."
     ),
     "variety": (
-        "Change, different tasks and varied approaches to work."
+        "Is motivated by a role that offers a lot of variety and the opportunity to work with many different things. Thrives in a diverse role with a mix of tasks and projects where they can focus their attention on different work demands and take advantage of their different skills."
     ),
     "risk": (
-        "Having scope to take calculated risks and act despite uncertainty."
+        "Is motivated by risk at work and by having to face situations where the outcome is unclear. Is comfortable making risky decisions and thrives in roles that allow room to experience the thrill of taking a risk and then seeing if it pays off."
     ),
 }
 
+# Canonicalise Sova and legacy aliases before looking up the source definition.
+MOTIVATION_FACTOR_ALIASES = {
+    "attachment": "attachment",
+    "affiliation": "attachment",
+    "customer service": "customer_service",
+    "customer focus": "customer_service",
+    "work life balance": "work_life_balance",
+    "work-life balance": "work_life_balance",
+    "people development": "people_development",
+    "developing people": "people_development",
+    "stability": "stability",
+    "security": "stability",
+    "authority": "authority",
+    "acquisition": "acquisition",
+    "reward": "acquisition",
+    "financial reward": "acquisition",
+    "independence": "independence",
+    "autonomy": "independence",
+    "self determination": "independence",
+    "self direction": "independence",
+    "recognition": "recognition",
+    "making a difference": "making_a_difference",
+    "make a difference": "making_a_difference",
+    "purpose": "making_a_difference",
+    "achievement": "achievement",
+    "performance": "achievement",
+    "quality": "quality",
+    "learning": "learning",
+    "development": "learning",
+    "ethics": "ethics",
+    "ethical standards": "ethics",
+    "commercial focus": "commercial_focus",
+    "commercial value": "commercial_focus",
+    "commercially focused": "commercial_focus",
+    "curiosity": "curiosity",
+    "creativity": "creativity",
+    "enjoyment": "enjoyment",
+    "joy": "enjoyment",
+    "fun": "enjoyment",
+    "variety": "variety",
+    "variation": "variety",
+    "risk": "risk",
+    "risk taking": "risk",
+    "anknytning": "attachment",
+    "kundservice": "customer_service",
+    "balans mellan arbete och privatliv": "work_life_balance",
+    "människors utveckling": "people_development",
+    "självständighet": "independence",
+    "erkännande": "recognition",
+    "göra skillnad": "making_a_difference",
+    "prestation": "achievement",
+    "kvalité": "quality",
+    "kvalitet": "quality",
+    "lärande": "learning",
+    "etik": "ethics",
+    "kommersiellt fokus": "commercial focus",
+    "nyfikenhet": "curiosity",
+    "kreativitet": "creativity",
+    "glädje": "enjoyment",
+    "stabilitet": "stability",
+    "auktoritet": "authority",
+    "anskaffning": "acquisition",
+}
 
 
+def _motivation_definition_key(value: Any) -> str:
+    key = _normalise_name(value).casefold().replace("_", " ").replace("-", " ")
+    canonical_key = MOTIVATION_FACTOR_ALIASES.get(key, key)
+    return canonical_key.replace(" ", "_") if canonical_key in {
+        "customer service",
+        "work life balance",
+        "people development",
+        "making a difference",
+        "commercial focus",
+    } else canonical_key
 
 def _normalise_name(value: Any) -> str:
     return str(value or "").strip()
@@ -180,8 +251,8 @@ def extract_motivation_results(
             if not competency_name:
                 continue
 
-            competency_key = (
-                competency_name.lower()
+            competency_key = _motivation_definition_key(
+                competency_name
             )
 
             # Only a clearly identified motivation activity may
