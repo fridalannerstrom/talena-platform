@@ -2490,42 +2490,10 @@ emptyState.textContent =
 
 
           /*
-           * Draw the numeric score near
-           * the outer end of each rose segment.
+           * Numeric motivation scores are intentionally omitted from
+           * the flower. The precise score remains available to the chart
+           * geometry and the underlying AI/report data.
            */
-          const scoreRadius =
-            Math.max(
-              arc.innerRadius + 16,
-              arc.outerRadius
-                - (compact ? 13 : 17)
-            );
-
-          const scoreX =
-            centerX
-            + cosine
-            * scoreRadius;
-
-          const scoreY =
-            centerY
-            + sine
-            * scoreRadius;
-
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-
-          ctx.fillStyle =
-            "#ffffff";
-
-          ctx.font =
-            compact
-              ? "700 9px Inter, system-ui, sans-serif"
-              : "700 11px Inter, system-ui, sans-serif";
-
-          ctx.fillText(
-            String(item.score),
-            scoreX,
-            scoreY
-          );
         }
       );
 
