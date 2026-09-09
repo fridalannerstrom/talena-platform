@@ -11236,6 +11236,68 @@ function initialiseDecisionSupportRoot(
       root.dataset
         .interviewNotesUpdateUrl;
 
+    // Always persist the current Interview notes textarea before
+    // generating After interview decision support. Otherwise a user can
+    // paste new notes and accidentally generate from the previous saved
+    // version.
+    window.saveCandidateInterviewNotes = async function(
+      candidateRoot
+    ) {
+      const updateUrl =
+        candidateRoot?.dataset
+          ?.interviewNotesUpdateUrl || "";
+
+      const input =
+        candidateRoot?.querySelector?.(
+          "[data-interview-notes-input]"
+        );
+
+      if (!updateUrl || !input) {
+        return null;
+      }
+
+      const response = await fetch(
+        updateUrl,
+        {
+          method: "POST",
+          headers: {
+            "X-CSRFToken":
+              getCookie("csrftoken"),
+            "X-Requested-With":
+              "XMLHttpRequest",
+            "Content-Type":
+              "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            interview_notes: input.value,
+          }),
+        }
+      );
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch (_error) {
+        // Keep the translated fallback below.
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          window.TALENA_PROCESS_I18N.interviewNotesCouldNotBeSaved
+        );
+      }
+
+      input.value = data.interview_notes || "";
+
+      candidateRoot.dataset.savedGeneralInterviewEvidence =
+        String(Boolean(input.value.trim()));
+
+      return data;
+    };
+
     const notesInput =
       root.querySelector(
         "[data-interview-notes-input]"
@@ -11587,6 +11649,13 @@ async function consumePostInterviewStream(
   );
 
   try {
+    if (
+      typeof window.saveCandidateInterviewNotes ===
+      "function"
+    ) {
+      await window.saveCandidateInterviewNotes(root);
+    }
+
     const response =
       await fetch(
         url,

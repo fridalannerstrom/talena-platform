@@ -205,7 +205,7 @@
 
   const updateAvailability = (
     root,
-    questionNotes = [],
+    questionNotes,
   ) => {
     const hasQuestionNotes = Array.isArray(questionNotes)
       ? questionNotes.some(
@@ -213,7 +213,8 @@
             String(item?.note || "").trim(),
           ),
         )
-      : false;
+      : root.dataset.hasQuestionInterviewEvidence ===
+        "true";
 
     const hasGeneralNotes =
       hasSavedGeneralNotes(root);
@@ -453,6 +454,13 @@
     emptyState?.classList.add("d-none");
 
     try {
+      if (
+        typeof window.saveCandidateInterviewNotes ===
+        "function"
+      ) {
+        await window.saveCandidateInterviewNotes(root);
+      }
+
       let targetStreamUrl = streamUrl;
 
       if (shouldRegenerate) {
@@ -514,6 +522,28 @@
 
   const initialiseRoot = (root) => {
     if (!root) return;
+
+    const input = root.querySelector(
+      "[data-interview-notes-input]",
+    );
+
+    if (
+      input &&
+      input.dataset.interviewEvidenceAvailabilityBound !==
+        "true"
+    ) {
+      input.dataset.interviewEvidenceAvailabilityBound =
+        "true";
+
+      input.addEventListener("input", () => {
+        // Treat the current textarea value as available evidence. The
+        // generation handler persists it before opening the AI stream.
+        root.dataset.savedGeneralInterviewEvidence =
+          String(Boolean(input.value.trim()));
+
+        updateAvailability(root);
+      });
+    }
 
     // The process page's large inline Decision Support script executes before
     // this shared customer-base module. Therefore a button created here cannot
