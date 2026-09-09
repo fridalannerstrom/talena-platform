@@ -61,6 +61,22 @@ or an observation. Do not automatically present it as a verbatim candidate quote
 PROTECTED_QUESTION_EVIDENCE_GUIDANCE = """
 TALENA PROTECTED INTERVIEW EVIDENCE CONTRACT
 
+GENERAL INTERVIEW NOTE GROUNDING
+
+When the INTERVIEW EVIDENCE STATUS says that General interview notes are
+AVAILABLE, the text under GENERAL INTERVIEW NOTES AND CANDIDATE EXAMPLES is
+supplied interview evidence and must be actively considered before describing
+any topic as missing.
+
+Do not say that interview evidence, candidate examples or interview input is
+missing or unavailable when the supplied general notes contain relevant
+information. Remaining uncertainties may only describe what is still
+unanswered after considering the supplied notes. It is valid to explain that
+a note does not establish a stable pattern or does not answer a specific
+question, but do not erase or ignore information that is present.
+
+QUESTION-SPECIFIC INTERVIEW EVIDENCE
+
 The QUESTION-SPECIFIC INTERVIEW EVIDENCE above contains structured records
 with the exact generated interview question and the answer or interviewer
 note saved against that question.
