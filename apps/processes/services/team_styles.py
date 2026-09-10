@@ -662,22 +662,25 @@ def build_team_style_profile(personality_competencies):
         chart_backgrounds = []
         chart_border_colors = []
 
+        # Talena brand palette, also used by the client-side chart theme.
+        # Keep the server-rendered fallback branded so the chart is correct
+        # even before the enhancement script has run.
         quadrant_colors = {
             "explore": {
-                "bg": "rgba(184, 17, 120, 0.30)",
-                "border": "rgba(184, 17, 120, 0.85)",
+                "bg": "rgba(239, 94, 82, 0.30)",
+                "border": "rgba(239, 94, 82, 0.85)",
             },
             "lead": {
-                "bg": "rgba(62, 142, 230, 0.30)",
-                "border": "rgba(62, 142, 230, 0.85)",
+                "bg": "rgba(207, 137, 127, 0.30)",
+                "border": "rgba(207, 137, 127, 0.85)",
             },
             "deliver": {
-                "bg": "rgba(35, 43, 180, 0.30)",
-                "border": "rgba(35, 43, 180, 0.85)",
+                "bg": "rgba(126, 162, 143, 0.30)",
+                "border": "rgba(126, 162, 143, 0.85)",
             },
             "review": {
-                "bg": "rgba(111, 60, 183, 0.30)",
-                "border": "rgba(111, 60, 183, 0.85)",
+                "bg": "rgba(197, 151, 79, 0.30)",
+                "border": "rgba(197, 151, 79, 0.85)",
             },
         }
 
@@ -686,8 +689,8 @@ def build_team_style_profile(personality_competencies):
                 continue
 
             colors = quadrant_colors.get(style["quadrant_key"], {
-                "bg": "rgba(104, 82, 214, 0.30)",
-                "border": "rgba(104, 82, 214, 0.85)",
+                "bg": "rgba(239, 94, 82, 0.30)",
+                "border": "rgba(239, 94, 82, 0.85)",
             })
 
             chart_backgrounds.append(colors["bg"])
