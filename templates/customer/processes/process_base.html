@@ -1788,61 +1788,264 @@ sheetEl.addEventListener("hidden.bs.offcanvas", () => {
   id: "teamStyleThemeLabels",
 
   afterDraw(chart) {
-    const { ctx, chartArea } = chart;
+    const canvas = chart?.canvas;
+    const radialScale = chart?.scales?.r;
+    const arcs = chart.getDatasetMeta(0)?.data || [];
 
-    if (!chartArea) {
+    if (!canvas || !radialScale || !arcs.length) {
       return;
     }
 
-    const centerX = (chartArea.left + chartArea.right) / 2;
-    const centerY = (chartArea.top + chartArea.bottom) / 2;
+    const chartRoot = canvas.closest(
+      "[data-team-style-chart-root]"
+    );
 
-    const offsetX = (chartArea.right - chartArea.left) / 2 + 42;
-    const offsetY = (chartArea.bottom - chartArea.top) / 2 + 34;
+    const itemElements = Array.from(
+      chartRoot?.querySelectorAll(
+        "[data-team-style-chart-item]"
+      ) || []
+    );
+
+    const quadrantLabels = {
+      explore: PROCESS_I18N.explore,
+      lead: PROCESS_I18N.lead,
+      deliver: PROCESS_I18N.deliver,
+      review: PROCESS_I18N.criticallyReview,
+    };
+
+    const fallbackQuadrants = [
+      "explore",
+      "lead",
+      "lead",
+      "deliver",
+      "deliver",
+      "review",
+      "review",
+      "explore",
+    ];
+
+    const items = (Array.isArray(chart.data?.labels)
+      ? chart.data.labels
+      : []
+    ).map((label, index) => {
+      const element = itemElements[index];
+      const score = Number(
+        String(
+          element?.dataset.styleScore
+          ?? chart.data?.datasets?.[0]?.data?.[index]
+          ?? ""
+        ).replace(",", ".")
+      );
+      const quadrantKey =
+        element?.dataset.quadrantKey
+        || fallbackQuadrants[index]
+        || "explore";
+
+      return {
+        name:
+          element?.dataset.styleName
+          || label
+          || PROCESS_I18N.teamStyle,
+        score,
+        quadrantKey,
+        quadrantLabel:
+          element?.dataset.quadrantLabel
+          || quadrantLabels[quadrantKey]
+          || PROCESS_I18N.teamStyle,
+      };
+    }).filter((item) => Number.isFinite(item.score));
+
+    if (!items.length) {
+      return;
+    }
+
+    const compact = canvas.clientWidth < 620;
+    const centerX = radialScale.xCenter;
+    const centerY = radialScale.yCenter;
+    const drawingArea = radialScale.drawingArea;
+    const styleLabelRadius =
+      drawingArea + (compact ? 18 : 28);
+    const quadrantLabelRadius =
+      drawingArea + (compact ? 48 : 68);
+    const ctx = chart.ctx;
+
+    function wrapLabel(value, maxLength) {
+      const words = String(value)
+        .trim()
+        .split(/\s+/);
+      const lines = [];
+      let currentLine = "";
+
+      words.forEach((word) => {
+        const nextLine = currentLine
+          ? currentLine + " " + word
+          : word;
+
+        if (
+          nextLine.length > maxLength
+          && currentLine
+        ) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = nextLine;
+        }
+      });
+
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+
+      return lines.slice(0, 2);
+    }
 
     ctx.save();
 
-    ctx.textBaseline = "middle";
-    ctx.font = "700 16px Inter, system-ui, sans-serif";
+    /*
+     * Separate the four team-style quadrants, matching the
+     * visual grouping used by the motivation profile.
+     */
+    items.forEach((item, index) => {
+      const previous =
+        items[(index - 1 + items.length) % items.length];
+      const arc = arcs[index];
 
-    // Explore
-    ctx.fillStyle = "#ef5e52";
-    ctx.textAlign = "left";
-    ctx.fillText(
-      PROCESS_I18N.explore,
-      centerX - offsetX,
-      centerY - offsetY
-    );
+      if (
+        !arc
+        || index === 0
+        || previous?.quadrantKey === item.quadrantKey
+      ) {
+        return;
+      }
 
-    // Lead
-    ctx.fillStyle = "#cf897f";
-    ctx.textAlign = "right";
-    ctx.fillText(
-      PROCESS_I18N.lead,
-      centerX + offsetX,
-      centerY - offsetY
-    );
+      const angle = arc.startAngle;
 
-    // Deliver
-    ctx.fillStyle = "#7ea28f";
-    ctx.textAlign = "right";
-    ctx.fillText(
-      PROCESS_I18N.deliver,
-      centerX + offsetX,
-      centerY + offsetY
-    );
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.cos(angle) * drawingArea,
+        centerY + Math.sin(angle) * drawingArea
+      );
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.lineWidth = compact ? 3 : 4;
+      ctx.stroke();
+    });
 
-    // Critically review
-    ctx.fillStyle = "#c5974f";
-    ctx.textAlign = "left";
-    ctx.fillText(
-      PROCESS_I18N.criticallyReview,
-      centerX - offsetX,
-      centerY + offsetY
-    );
+    /*
+     * Show each of the eight team styles around its segment,
+     * with the score placed inside the corresponding bar.
+     */
+    items.forEach((item, index) => {
+      const arc = arcs[index];
+
+      if (!arc) {
+        return;
+      }
+
+      const angle =
+        (arc.startAngle + arc.endAngle) / 2;
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const labelX =
+        centerX + cosine * styleLabelRadius;
+      const labelY =
+        centerY + sine * styleLabelRadius;
+      const labelLines =
+        wrapLabel(item.name, compact ? 10 : 15);
+
+      if (cosine > 0.25) {
+        ctx.textAlign = "left";
+      } else if (cosine < -0.25) {
+        ctx.textAlign = "right";
+      } else {
+        ctx.textAlign = "center";
+      }
+
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#475467";
+      ctx.font = compact
+        ? "600 9px Inter, system-ui, sans-serif"
+        : "600 11px Inter, system-ui, sans-serif";
+
+      const lineHeight = compact ? 11 : 14;
+      const firstLineY =
+        labelY
+        - ((labelLines.length - 1) * lineHeight) / 2;
+
+      labelLines.forEach((line, lineIndex) => {
+        ctx.fillText(
+          line,
+          labelX,
+          firstLineY + lineIndex * lineHeight
+        );
+      });
+
+      const scoreRadius = Math.max(
+        arc.innerRadius + 16,
+        arc.outerRadius - (compact ? 13 : 17)
+      );
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = compact
+        ? "700 9px Inter, system-ui, sans-serif"
+        : "700 11px Inter, system-ui, sans-serif";
+      ctx.fillText(
+        String(item.score),
+        centerX + cosine * scoreRadius,
+        centerY + sine * scoreRadius
+      );
+    });
+
+    /*
+     * Draw one heading for each quadrant outside the style names.
+     */
+    const quadrants = new Map();
+
+    items.forEach((item, index) => {
+      const arc = arcs[index];
+
+      if (!arc) {
+        return;
+      }
+
+      const angle =
+        (arc.startAngle + arc.endAngle) / 2;
+      const current = quadrants.get(item.quadrantKey)
+        || {
+          label: item.quadrantLabel,
+          cosine: 0,
+          sine: 0,
+        };
+
+      current.cosine += Math.cos(angle);
+      current.sine += Math.sin(angle);
+      quadrants.set(item.quadrantKey, current);
+    });
+
+    quadrants.forEach((quadrant) => {
+      const angle =
+        Math.atan2(quadrant.sine, quadrant.cosine);
+      const labelX =
+        centerX + Math.cos(angle) * quadrantLabelRadius;
+      const labelY =
+        centerY + Math.sin(angle) * quadrantLabelRadius;
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#171312";
+      ctx.font = compact
+        ? "800 12px Inter, system-ui, sans-serif"
+        : "800 16px Inter, system-ui, sans-serif";
+      ctx.fillText(
+        quadrant.label,
+        labelX,
+        labelY
+      );
+    });
 
     ctx.restore();
-  }
+  },
 };
 
 async function initTeamStyleChart(container) {
@@ -1953,6 +2156,7 @@ const numericValues = values.map((value) => {
     ? parsedValue
     : 0;
 });
+const compact = canvas.clientWidth < 620;
 const chartInstance = new window.TeamStyleChartJS(
   canvas.getContext("2d"),
   {
@@ -1964,9 +2168,12 @@ const chartInstance = new window.TeamStyleChartJS(
         {
           data: numericValues,
           backgroundColor: backgrounds,
-          borderColor: borderColors,
-          borderWidth: 2,
-          hoverBorderWidth: 3,
+          borderColor: "#ffffff",
+          borderWidth: compact ? 2 : 3,
+          hoverBorderColor: "#ffffff",
+          hoverBorderWidth: compact ? 3 : 4,
+          borderRadius: compact ? 7 : 12,
+          spacing: compact ? 1 : 2,
         },
       ],
     },
@@ -1976,12 +2183,19 @@ const chartInstance = new window.TeamStyleChartJS(
       maintainAspectRatio: false,
 
       layout: {
-        padding: {
-          top: 70,
-          right: 70,
-          bottom: 70,
-          left: 70,
-        },
+        padding: compact
+          ? {
+              top: 64,
+              right: 64,
+              bottom: 64,
+              left: 64,
+            }
+          : {
+              top: 98,
+              right: 105,
+              bottom: 98,
+              left: 105,
+            },
       },
 
       scales: {
@@ -1994,8 +2208,9 @@ const chartInstance = new window.TeamStyleChartJS(
           ticks: {
             display: true,
             stepSize: 1,
-            color: "#8b92a3",
-            backdropColor: "transparent",
+            color: "#98a2b3",
+            backdropColor: "rgba(255, 255, 255, 0.86)",
+            backdropPadding: 2,
 
             font: {
               size: 11,
@@ -2008,12 +2223,11 @@ const chartInstance = new window.TeamStyleChartJS(
 
           grid: {
             circular: true,
-            color: "rgba(80, 87, 102, 0.14)",
+            color: "rgba(80, 87, 102, 0.13)",
           },
 
           angleLines: {
-            display: true,
-            color: "rgba(80, 87, 102, 0.14)",
+            display: false,
           },
 
           pointLabels: {
