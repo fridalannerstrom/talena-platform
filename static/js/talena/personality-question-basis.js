@@ -3,7 +3,8 @@
 
   const ROOT_SELECTOR = "[data-personality-questions-root]";
   const COMPETENCY_PREFIX = "competency::";
-  const MAX_SELECTION = 6;
+  const MAX_TRAIT_SELECTION = 8;
+  const MAX_COMPETENCY_SELECTION = 6;
 
   function roots(container) {
     const result = [];
@@ -21,6 +22,12 @@
       (String(checkbox.value || "").startsWith(COMPETENCY_PREFIX)
         ? "competencies"
         : "traits");
+  }
+
+  function selectionLimit(mode) {
+    return mode === "competencies"
+      ? MAX_COMPETENCY_SELECTION
+      : MAX_TRAIT_SELECTION;
   }
 
   function optionCheckboxes(root) {
@@ -122,6 +129,23 @@
     );
   }
 
+  function updateTraitLimitCopy(root) {
+    const traitButton = modeButton(root, "traits");
+    if (!traitButton) {
+      return;
+    }
+
+    if (isSwedish()) {
+      traitButton.dataset.dialogDescription =
+        "Välj upp till åtta personlighetsdrag, eller lämna alla omarkerade för att låta Talena välja utifrån processens syfte och kontext.";
+      traitButton.dataset.statusLabel = "Välj upp till 8 personlighetsdrag";
+    } else {
+      traitButton.dataset.dialogDescription =
+        "Choose up to eight traits, or leave all traits unselected to let Talena choose based on the process purpose and context.";
+      traitButton.dataset.statusLabel = "Select up to 8 traits";
+    }
+  }
+
   function updateSelectionLimitState(root) {
     if (!root) {
       return;
@@ -130,7 +154,7 @@
     // The legacy personality-question JS disables every remaining option as
     // soon as six are selected. Native disabled controls can disturb the
     // dialog's scroll/focus behaviour, so keep all options interactive and
-    // enforce the limit before a seventh option can be checked instead.
+    // enforce the product limit in this basis-specific controller instead.
     unlockOptionInputs(root);
 
     const mode = activeMode(root);
@@ -147,7 +171,7 @@
 
     root.classList.toggle(
       "personality-question-basis-at-limit",
-      count >= MAX_SELECTION
+      count >= selectionLimit(mode)
     );
   }
 
@@ -230,6 +254,7 @@
     }
 
     root.dataset.questionBasisUiInitialised = "true";
+    updateTraitLimitCopy(root);
     setMode(root, activeMode(root));
     updateQuestionsIntro(root);
     updateSelectionLimitState(root);
@@ -250,9 +275,8 @@
     roots(container).forEach(initialiseRoot);
   }
 
-  // Enforce the six-item product limit without disabling/hiding all remaining
-  // choices. A seventh click is simply ignored, while the existing six stay
-  // editable and the scrollable dialog keeps its geometry.
+  // Keep all choices usable while enforcing a basis-specific selection cap:
+  // eight personality traits or six competencies.
   document.addEventListener("click", function (event) {
     const option = event.target.closest(".personality-trait-option");
     const checkbox = option
@@ -273,7 +297,7 @@
       return;
     }
 
-    if (checkedOptions(root, mode).length < MAX_SELECTION) {
+    if (checkedOptions(root, mode).length < selectionLimit(mode)) {
       return;
     }
 
