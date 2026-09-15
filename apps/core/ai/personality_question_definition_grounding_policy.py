@@ -400,6 +400,27 @@ PERSONALITY QUESTION QUALITY REQUIREMENTS
 """.rstrip()
 
 
+def _inject_grounding(
+    prompt: str,
+    grounding: str,
+) -> str:
+    """Place evidence before admin/output rules instead of after the DONE event."""
+
+    if not grounding:
+        return prompt
+
+    marker = "\nADMINISTRATOR AI GUIDANCE\n"
+
+    if marker in prompt:
+        return prompt.replace(
+            marker,
+            f"\n{grounding}\n\nADMINISTRATOR AI GUIDANCE\n",
+            1,
+        )
+
+    return f"{str(prompt).rstrip()}\n{grounding}"
+
+
 def install_personality_question_definition_grounding_policy() -> None:
     """Ground personality questions in approved trait and indicator meanings."""
 
@@ -439,10 +460,10 @@ def install_personality_question_definition_grounding_policy() -> None:
             language_code=resolved_language,
         )
 
-        if not grounding:
-            return prompt
-
-        return f"{str(prompt).rstrip()}\n{grounding}"
+        return _inject_grounding(
+            str(prompt),
+            grounding,
+        )
 
     @wraps(original_repair_prompt)
     def build_personality_questions_repair_prompt(
@@ -465,10 +486,10 @@ def install_personality_question_definition_grounding_policy() -> None:
             language_code=resolved_language,
         )
 
-        if not grounding:
-            return prompt
-
-        return f"{str(prompt).rstrip()}\n{grounding}"
+        return _inject_grounding(
+            str(prompt),
+            grounding,
+        )
 
     pq.build_personality_questions_prompt = (
         build_personality_questions_prompt
