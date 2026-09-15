@@ -6,7 +6,6 @@ from apps.core.ai.shared_personality_grounding_policy import (
     augment_assessment_text_with_personality_grounding,
     augment_general_insights_prompt_with_personality_grounding,
     augment_owner_prompt_with_personality_grounding,
-    augment_result_prompt_with_personality_grounding,
 )
 
 
@@ -18,50 +17,56 @@ class SharedPersonalityGroundingPolicyTests(SimpleTestCase):
                 {
                     "activity": "Personality Profile",
                     "competencies": [
-                        {"competency": "Analytical", "sten": 3},
-                        {"competency": "Creativity", "sten": 8},
+                        {"competency": "Cooperative", "sten": 6},
+                        {"competency": "Sensitivity", "sten": 5},
+                        {"competency": "Teamwork", "sten": 8},
+                        {"competency": "Agreeableness", "sten": 3},
                     ],
                 }
             ],
         )
 
-    def test_ai_overview_and_pre_interview_raw_evidence_can_share_grounding(self):
+    def test_ai_overview_and_pre_interview_raw_evidence_share_result_summary(self):
         result = augment_assessment_text_with_personality_grounding(
-            "Personality:\n- Analytical: sten 3",
+            "Personality:\n- Cooperative: sten 6",
             self._owner(),
             language_code="sv",
         )
 
-        self.assertIn("Personality:\n- Analytical: sten 3", result)
+        self.assertIn("Personality:\n- Cooperative: sten 6", result)
         self.assertIn(
-            "TALENA APPROVED PERSONALITY DEFINITION EVIDENCE",
+            "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE",
             result,
         )
-        self.assertIn("Analytical / Analytisk", result)
-        self.assertIn("GODKÄND LÅG-POL", result)
+        self.assertIn("Cooperative / Samverkande", result)
+        self.assertIn("KANDIDATENS RESULTATSAMMANFATTNING", result)
+        self.assertNotIn("GODKÄND LÅG-POL", result)
 
-    def test_personality_interpretation_grounding_is_inserted_before_admin_guidance(self):
+    def test_personality_interpretation_can_receive_indicator_details(self):
         prompt = (
-            "PERSONALITY ASSESSMENT DATA\n- Analytical: STEN 3 of 10"
+            "PERSONALITY ASSESSMENT DATA\n- Cooperative: STEN 6 of 10"
             "\n\nADMINISTRATOR AI GUIDANCE\nAdmin text"
         )
 
-        result = augment_result_prompt_with_personality_grounding(
+        result = augment_owner_prompt_with_personality_grounding(
             prompt,
-            [{"name": "Analytical", "sten": 3}],
+            self._owner(),
             language_code="en",
             marker="\n\nADMINISTRATOR AI GUIDANCE",
+            include_indicator_details=True,
         )
 
         evidence_index = result.index(
-            "TALENA APPROVED PERSONALITY DEFINITION EVIDENCE"
+            "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE"
         )
         admin_index = result.index("ADMINISTRATOR AI GUIDANCE")
 
         self.assertLess(evidence_index, admin_index)
-        self.assertIn("CANDIDATE RESULT: STEN 3 of 10", result)
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", result)
+        self.assertIn("UNDERLYING INDICATOR NUANCE", result)
+        self.assertIn("Sensitivity", result)
 
-    def test_candidate_summary_uses_same_owner_grounding(self):
+    def test_candidate_summary_uses_same_owner_result_summary(self):
         prompt = (
             "ASSESSMENT RESULTS\nPersonality results"
             "\n\nINTERPRETATION INSTRUCTION\nInterpret carefully"
@@ -75,15 +80,16 @@ class SharedPersonalityGroundingPolicyTests(SimpleTestCase):
         )
 
         self.assertIn(
-            "TALENA APPROVED PERSONALITY DEFINITION EVIDENCE",
+            "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE",
             result,
         )
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", result)
         self.assertLess(
-            result.index("APPROVED LOW POLE"),
+            result.index("CANDIDATE-SPECIFIC RESULT SUMMARY"),
             result.index("INTERPRETATION INSTRUCTION"),
         )
 
-    def test_general_insights_uses_localized_shared_grounding(self):
+    def test_general_insights_uses_localized_result_summary(self):
         prompt = (
             "Assessment evidence:\n{}"
             "\n\nReturn valid JSON only.\n{}"
@@ -91,8 +97,10 @@ class SharedPersonalityGroundingPolicyTests(SimpleTestCase):
         insight_input = {
             "personality": {
                 "all_scores": [
-                    {"name": "Structured", "score": 8},
-                    {"name": "Sensitivity", "score": 9},
+                    {"name": "Cooperative", "score": 6},
+                    {"name": "Sensitivity", "score": 5},
+                    {"name": "Teamwork", "score": 8},
+                    {"name": "Agreeableness", "score": 3},
                 ]
             }
         }
@@ -103,22 +111,35 @@ class SharedPersonalityGroundingPolicyTests(SimpleTestCase):
             language_code="sv",
         )
 
-        self.assertIn("Structured / Strukturerad & disciplinerad", result)
-        self.assertIn("GODKÄND HÖG-POL", result)
+        self.assertIn("Cooperative / Samverkande", result)
+        self.assertIn("KANDIDATENS RESULTATSAMMANFATTNING", result)
         self.assertNotIn("TRAIT: Sensitivity", result)
         self.assertLess(
-            result.index("TALENA APPROVED PERSONALITY DEFINITION EVIDENCE"),
+            result.index(
+                "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE"
+            ),
             result.index("Return valid JSON only."),
         )
 
     def test_no_parent_results_leaves_prompt_unchanged(self):
-        prompt = "Input\n\nADMINISTRATOR AI GUIDANCE\nAdmin"
+        prompt = "Input\n\nINTERPRETATION INSTRUCTION\nAdmin"
+        owner = SimpleNamespace(
+            process=SimpleNamespace(is_historical=False),
+            sova_activities=[
+                {
+                    "activity": "Personality Profile",
+                    "competencies": [
+                        {"competency": "Sensitivity", "sten": 9},
+                    ],
+                }
+            ],
+        )
 
-        result = augment_result_prompt_with_personality_grounding(
+        result = augment_owner_prompt_with_personality_grounding(
             prompt,
-            [{"name": "Sensitivity", "sten": 9}],
+            owner,
             language_code="en",
-            marker="\n\nADMINISTRATOR AI GUIDANCE",
+            marker="\n\nINTERPRETATION INSTRUCTION",
         )
 
         self.assertEqual(result, prompt)
