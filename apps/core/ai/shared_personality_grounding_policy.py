@@ -44,6 +44,85 @@ def _language(value: str | None) -> str:
     return normalize_ai_language(value or "en")
 
 
+def augment_assessment_text_with_personality_grounding(
+    assessment_text: str,
+    owner,
+    *,
+    language_code: str = "en",
+) -> str:
+    """Append shared parent-trait meaning to normalized raw assessment evidence."""
+
+    grounding = build_owner_personality_ai_evidence_text(
+        owner,
+        language_code=_language(language_code),
+    )
+
+    if not grounding:
+        return str(assessment_text or "").strip()
+
+    existing = str(assessment_text or "").rstrip()
+    return f"{existing}\n\n{grounding}" if existing else grounding
+
+
+def augment_owner_prompt_with_personality_grounding(
+    prompt: str,
+    owner,
+    *,
+    language_code: str,
+    marker: str,
+) -> str:
+    grounding = build_owner_personality_ai_evidence_text(
+        owner,
+        language_code=_language(language_code),
+    )
+    return _insert_before_marker(prompt, grounding, marker)
+
+
+def augment_result_prompt_with_personality_grounding(
+    prompt: str,
+    personality_results: list[dict[str, Any]],
+    *,
+    language_code: str,
+    marker: str,
+) -> str:
+    grounding = build_personality_ai_evidence_text(
+        personality_results,
+        language_code=_language(language_code),
+    )
+    return _insert_before_marker(prompt, grounding, marker)
+
+
+def _general_insight_personality_rows(
+    insight_input: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    if not isinstance(insight_input, dict):
+        return []
+
+    personality = insight_input.get("personality")
+    if not isinstance(personality, dict):
+        return []
+
+    rows = personality.get("all_scores")
+    return rows if isinstance(rows, list) else []
+
+
+def augment_general_insights_prompt_with_personality_grounding(
+    prompt: str,
+    insight_input: dict[str, Any],
+    *,
+    language_code: str,
+) -> str:
+    grounding = build_personality_ai_evidence_text(
+        _general_insight_personality_rows(insight_input),
+        language_code=_language(language_code),
+    )
+    return _insert_before_marker(
+        prompt,
+        grounding,
+        "\n\nReturn valid JSON only.",
+    )
+
+
 def _install_assessment_evidence_grounding(purpose_fit) -> None:
     original_builder = purpose_fit.build_assessment_evidence
 
@@ -54,17 +133,11 @@ def _install_assessment_evidence_grounding(purpose_fit) -> None:
     def grounded_assessment_evidence(invitation):
         assessment_text, assessment_type_count = original_builder(invitation)
 
-        grounding = build_owner_personality_ai_evidence_text(
+        assessment_text = augment_assessment_text_with_personality_grounding(
+            assessment_text,
             invitation,
             language_code=_PERSONALITY_GROUNDING_LANGUAGE.get(),
         )
-
-        if grounding:
-            assessment_text = (
-                f"{str(assessment_text or '').rstrip()}\n\n{grounding}"
-                if str(assessment_text or "").strip()
-                else grounding
-            )
 
         return assessment_text, assessment_type_count
 
@@ -116,15 +189,12 @@ def _install_personality_interpretation_grounding(personality_interpretation) ->
             motivation_results=motivation_results,
             language_code=language_code,
         )
-        grounding = build_personality_ai_evidence_text(
+
+        return augment_result_prompt_with_personality_grounding(
+            prompt,
             personality_results,
             language_code=language_code,
-        )
-
-        return _insert_before_marker(
-            prompt,
-            grounding,
-            "\n\nADMINISTRATOR AI GUIDANCE",
+            marker="\n\nADMINISTRATOR AI GUIDANCE",
         )
 
     grounded_prompt._talena_shared_personality_grounding = True
@@ -144,33 +214,16 @@ def _install_candidate_summary_grounding(candidate_summary) -> None:
             owner,
             language_code=language_code,
         )
-        grounding = build_owner_personality_ai_evidence_text(
+
+        return augment_owner_prompt_with_personality_grounding(
+            prompt,
             owner,
             language_code=language_code,
-        )
-
-        return _insert_before_marker(
-            prompt,
-            grounding,
-            "\n\nINTERPRETATION INSTRUCTION",
+            marker="\n\nINTERPRETATION INSTRUCTION",
         )
 
     grounded_prompt._talena_shared_personality_grounding = True
     candidate_summary.build_candidate_prompt = grounded_prompt
-
-
-def _general_insight_personality_rows(
-    insight_input: dict[str, Any] | None,
-) -> list[dict[str, Any]]:
-    if not isinstance(insight_input, dict):
-        return []
-
-    personality = insight_input.get("personality")
-    if not isinstance(personality, dict):
-        return []
-
-    rows = personality.get("all_scores")
-    return rows if isinstance(rows, list) else []
 
 
 def _install_general_insights_grounding(candidate_insights) -> None:
@@ -192,15 +245,11 @@ def _install_general_insights_grounding(candidate_insights) -> None:
             insight_input=insight_input,
             language_code=language_code,
         )
-        grounding = build_personality_ai_evidence_text(
-            _general_insight_personality_rows(insight_input),
-            language_code=language_code,
-        )
 
-        return _insert_before_marker(
+        return augment_general_insights_prompt_with_personality_grounding(
             prompt,
-            grounding,
-            "\n\nReturn valid JSON only.",
+            insight_input,
+            language_code=language_code,
         )
 
     grounded_prompt._talena_shared_personality_grounding = True
