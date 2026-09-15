@@ -95,6 +95,35 @@ def _normalise_saved_question_labels(saved_result, owner):
     }
 
 
+def _stream_event_from_result(event, result):
+    """Send the frontend the same normalized metadata that Talena saves."""
+
+    if not isinstance(event, dict):
+        return event
+
+    event_type = str(event.get("type") or "").strip().lower()
+
+    if event_type == "questions":
+        return {
+            **event,
+            "items": result.get("questions") or [],
+        }
+
+    if event_type == "selected_traits":
+        return {
+            **event,
+            "items": result.get("selected_traits") or [],
+        }
+
+    if event_type == "suggested_traits":
+        return {
+            **event,
+            "items": result.get("suggested_traits") or [],
+        }
+
+    return event
+
+
 @login_required
 def process_candidate_personality_questions_stream(
     request,
@@ -258,8 +287,13 @@ def process_candidate_personality_questions_stream(
                 if event.get("type") == "done":
                     received_done_event = True
 
-                yield json.dumps(
+                public_event = _stream_event_from_result(
                     event,
+                    result,
+                )
+
+                yield json.dumps(
+                    public_event,
                     ensure_ascii=False,
                 ) + "\n"
 
