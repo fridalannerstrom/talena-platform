@@ -50,11 +50,12 @@ def augment_assessment_text_with_personality_grounding(
     *,
     language_code: str = "en",
 ) -> str:
-    """Append shared parent-trait meaning to normalized raw assessment evidence."""
+    """Append compact candidate-specific personality summaries to raw evidence."""
 
     grounding = build_owner_personality_ai_evidence_text(
         owner,
         language_code=_language(language_code),
+        include_indicator_details=False,
     )
 
     if not grounding:
@@ -70,24 +71,12 @@ def augment_owner_prompt_with_personality_grounding(
     *,
     language_code: str,
     marker: str,
+    include_indicator_details: bool = False,
 ) -> str:
     grounding = build_owner_personality_ai_evidence_text(
         owner,
         language_code=_language(language_code),
-    )
-    return _insert_before_marker(prompt, grounding, marker)
-
-
-def augment_result_prompt_with_personality_grounding(
-    prompt: str,
-    personality_results: list[dict[str, Any]],
-    *,
-    language_code: str,
-    marker: str,
-) -> str:
-    grounding = build_personality_ai_evidence_text(
-        personality_results,
-        language_code=_language(language_code),
+        include_indicator_details=include_indicator_details,
     )
     return _insert_before_marker(prompt, grounding, marker)
 
@@ -115,6 +104,7 @@ def augment_general_insights_prompt_with_personality_grounding(
     grounding = build_personality_ai_evidence_text(
         _general_insight_personality_rows(insight_input),
         language_code=_language(language_code),
+        include_indicator_details=False,
     )
     return _insert_before_marker(
         prompt,
@@ -190,11 +180,14 @@ def _install_personality_interpretation_grounding(personality_interpretation) ->
             language_code=language_code,
         )
 
-        return augment_result_prompt_with_personality_grounding(
+        # Personality Interpretation is the most detailed whole-profile consumer.
+        # Give it indicator-level nuance as well as the parent-trait summaries.
+        return augment_owner_prompt_with_personality_grounding(
             prompt,
-            personality_results,
+            owner,
             language_code=language_code,
             marker="\n\nADMINISTRATOR AI GUIDANCE",
+            include_indicator_details=True,
         )
 
     grounded_prompt._talena_shared_personality_grounding = True
@@ -220,6 +213,7 @@ def _install_candidate_summary_grounding(candidate_summary) -> None:
             owner,
             language_code=language_code,
             marker="\n\nINTERPRETATION INSTRUCTION",
+            include_indicator_details=False,
         )
 
     grounded_prompt._talena_shared_personality_grounding = True
@@ -258,12 +252,12 @@ def _install_general_insights_grounding(candidate_insights) -> None:
 
 def install_shared_personality_grounding_policy() -> None:
     """
-    Use one approved personality-definition evidence layer across active AI flows.
+    Reuse Talena's candidate-specific Result Summary semantics across AI flows.
 
     AI Overview and pre-interview decision support share purpose_fit's normalized
-    raw assessment evidence. The other consumers have independent prompt inputs,
-    so the same shared builder is inserted at their prompt boundary without
-    changing any saved-result/output schema.
+    raw assessment evidence. Personality Interpretation, Candidate Summary and
+    Flexible / General Insights receive the same shared evidence at their prompt
+    boundary. No saved-result/output schema changes are required.
     """
 
     global _INSTALLED
@@ -277,9 +271,6 @@ def install_shared_personality_grounding_policy() -> None:
     from apps.core.ai import purpose_fit
     from apps.reports.services import candidate_insights
 
-    # Shared raw evidence path used by AI Overview and by the pre-interview raw
-    # assessment policy. A language context keeps the definitions localized for
-    # the actual AI call without changing the legacy builder signature.
     _install_assessment_evidence_grounding(purpose_fit)
     _install_language_context_wrapper(
         purpose_fit,
