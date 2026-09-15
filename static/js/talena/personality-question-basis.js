@@ -65,6 +65,16 @@
       .startsWith("sv");
   }
 
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${name}=`));
+
+    return cookieValue
+      ? decodeURIComponent(cookieValue.split("=")[1])
+      : null;
+  }
+
   function updateQuestionsIntro(root) {
     const intro = root.querySelector(
       ".personality-questions-header p.text-muted.small"
@@ -151,15 +161,15 @@
       return;
     }
 
-    // The legacy personality-question JS disables every remaining option as
-    // soon as six are selected. Native disabled controls can disturb the
-    // dialog's scroll/focus behaviour, so keep all options interactive and
-    // enforce the product limit in this basis-specific controller instead.
+    // The legacy inline controller still knows about the old six-item cap.
+    // Undo that disabled state here and apply the current basis-specific cap.
     unlockOptionInputs(root);
 
     const mode = activeMode(root);
     const count = checkedOptions(root, mode).length;
+    const limit = selectionLimit(mode);
     const countElement = root.querySelector("[data-personality-traits-count]");
+    const saveButton = root.querySelector("[data-personality-traits-save]");
 
     if (countElement) {
       if (isSwedish()) {
@@ -169,9 +179,13 @@
       }
     }
 
+    if (saveButton) {
+      saveButton.disabled = count > limit;
+    }
+
     root.classList.toggle(
       "personality-question-basis-at-limit",
-      count >= selectionLimit(mode)
+      count >= limit
     );
   }
 
@@ -230,10 +244,6 @@
       panel.hidden = panel.dataset.questionBasisPanel !== mode;
     });
 
-    // Switching tabs alone must never change the current draft selection.
-    // As soon as the user actively checks an option in the other basis, the
-    // change handler clears the previous basis so traits and competencies can
-    // never be mixed in one selection.
     updateModeCopy(root, mode);
     updateSelectionLimitState(root);
     localiseRenderedFocusLabels(root);
@@ -246,6 +256,90 @@
 
     setMode(root, selectedMode(root));
     updateSelectionLimitState(root);
+  }
+
+  async function saveExpandedTraitSelection(root, selectedOptions) {
+    const updateUrl = root.dataset.updateTraitsUrl;
+    const editor = root.querySelector("[data-personality-traits-editor]");
+    const saveButton = root.querySelector("[data-personality-traits-save]");
+    const cancelButtons = root.querySelectorAll("[data-personality-traits-cancel]");
+    const regenerateButton = root.querySelector("[data-personality-questions-regenerate]");
+    const errorBox = root.querySelector("[data-personality-questions-error]");
+
+    if (!updateUrl) {
+      return;
+    }
+
+    const selectedTraits = selectedOptions.map((checkbox) => checkbox.value);
+
+    if (saveButton) {
+      saveButton.disabled = true;
+    }
+    cancelButtons.forEach((button) => {
+      button.disabled = true;
+    });
+
+    try {
+      const response = await fetch(updateUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ traits: selectedTraits }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          (window.TALENA_PROCESS_I18N &&
+            window.TALENA_PROCESS_I18N.traitSelectionCouldNotBeSaved) ||
+          "The trait selection could not be saved."
+        );
+      }
+
+      const savedTraits = Array.isArray(data.selected_traits)
+        ? data.selected_traits
+        : selectedTraits;
+      const savedKeys = new Set(savedTraits.map((item) => String(item).trim()));
+
+      optionCheckboxes(root).forEach((checkbox) => {
+        checkbox.checked = savedKeys.has(String(checkbox.value || "").trim());
+      });
+
+      if (editor) {
+        if (typeof editor.close === "function") {
+          editor.close();
+        } else {
+          editor.removeAttribute("open");
+        }
+      }
+
+      // Reuse the existing regeneration flow after the expanded selection has
+      // been saved. The stream will refresh selected pills, questions and labels.
+      if (regenerateButton) {
+        regenerateButton.click();
+      }
+    } catch (error) {
+      console.error("Expanded personality trait selection error:", error);
+
+      if (errorBox) {
+        errorBox.classList.remove("d-none");
+        errorBox.textContent = error.message || "The trait selection could not be saved.";
+      }
+    } finally {
+      if (saveButton) {
+        saveButton.disabled = false;
+      }
+      cancelButtons.forEach((button) => {
+        button.disabled = false;
+      });
+      updateSelectionLimitState(root);
+    }
   }
 
   function initialiseRoot(root) {
@@ -321,9 +415,6 @@
 
     if (editorAction) {
       const root = editorAction.closest(ROOT_SELECTOR);
-      // Existing Talena JS restores the saved checkbox selection in the
-      // target click handler. Run after that handler so the visible mode,
-      // option availability and copy follow the saved selection as well.
       window.setTimeout(() => {
         syncModeToSavedSelection(root);
         updateSelectionLimitState(root);
@@ -331,12 +422,9 @@
     }
   });
 
-  // Capture the click before the existing personality-question save handler.
-  // Switching tabs may leave an earlier selection visible in the inactive
-  // basis until the user makes a new choice, so keep this final guard as well:
-  // only the active basis may ever be submitted. Competency mode still
-  // requires at least one explicit competency; trait mode keeps the existing
-  // "Talena may choose" behaviour when no traits are checked.
+  // Capture before the legacy six-item save handler. Selections 0-6 can use
+  // the existing flow unchanged; trait selections 7-8 use the expanded save
+  // flow here so the old guard cannot silently discard the click.
   document.addEventListener("click", function (event) {
     const saveButton = event.target.closest("[data-personality-traits-save]");
     if (!saveButton) {
@@ -368,6 +456,16 @@
         checkbox.checked = false;
       }
     });
+
+    if (
+      mode === "traits" &&
+      selectedActiveOptions.length > MAX_COMPETENCY_SELECTION &&
+      selectedActiveOptions.length <= MAX_TRAIT_SELECTION
+    ) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      void saveExpandedTraitSelection(root, selectedActiveOptions);
+    }
   }, true);
 
   document.addEventListener("change", function (event) {
@@ -388,9 +486,6 @@
         setMode(root, mode);
       }
 
-      // The first active choice in one basis replaces any selection from the
-      // other basis. Merely switching tabs does not trigger this, so users can
-      // inspect both lists without losing their current selection.
       clearOtherModeSelections(root, mode);
     }
 
@@ -399,8 +494,8 @@
       emptyError.hidden = true;
     }
 
-    // Runs after the existing checkbox change listener, undoing its blanket
-    // disabled state while keeping the selected count scoped to the active tab.
+    // Runs after the existing checkbox change listener, undoing its legacy
+    // six-item disabled state and restoring the current limit/save state.
     updateSelectionLimitState(root);
   });
 
