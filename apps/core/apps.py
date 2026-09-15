@@ -52,6 +52,12 @@ class CoreConfig(AppConfig):
         from .ai.post_interview_question_evidence_policy import (
             install_post_interview_question_evidence_policy,
         )
+        from .ai.shared_personality_grounding_policy import (
+            install_shared_personality_grounding_policy,
+        )
+        from .ai.personality_ai_input_contract_policy import (
+            install_personality_ai_input_contract_policy,
+        )
 
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
@@ -61,65 +67,56 @@ class CoreConfig(AppConfig):
 
         # Popup selections determine what to explore. Candidate assessment
         # evidence then determines the angle of every generated question.
-        # Install this after the competency policy so both personality modes
-        # receive the same candidate-specific grounding requirement.
         install_candidate_question_grounding_policy()
 
-        # Apply the final candidate-fingerprint quality bar after the normal
-        # grounding policy. This prevents role/context wording from replacing
-        # the actual assessment evidence as the reason for a question and makes
-        # the visible why field traceable to this candidate's result pattern.
+        # Require a candidate-specific fingerprint and construct fidelity.
         install_candidate_question_fingerprint_policy()
-
-        # Keep personality questions semantically faithful to the selected
-        # construct and require the visible why text to explain the candidate's
-        # qualitative profile direction, not only why a topic matters for the role.
         install_personality_question_precision_policy()
 
-        # Ground parent-trait personality questions in Talena's approved pole
-        # definitions and score-specific indicator interpretations. Install this
-        # after the other personality prompt policies so the final runtime prompt
-        # always receives the same authoritative definition layer.
-        install_personality_question_definition_grounding_policy()
-
-        # STEN 4-7 is a situational behavioural pattern in personality questions,
-        # never a middle/average level. Install this after the other personality
-        # question policies so their final runtime prompt and visible why text are
-        # normalised consistently in Swedish and English.
+        # STEN 4-7 is situationsbaserat / situational, never a middle or average
+        # level. Keep this terminology guard before the final result-summary
+        # grounding so fallback and visible why wording stay consistent.
         install_personality_question_situational_language_policy()
 
-        # Every personality question must keep a visible focus label. This final
-        # personality-question contract also raises manual/AI trait selection to
-        # eight, matching Talena's fixed set of eight personality questions.
+        # Every personality question must keep a visible focus label. This also
+        # raises manual/AI parent-trait selection to eight.
         install_personality_question_label_policy()
 
+        # #230/#231 refinement: apply the candidate's Result Summary LAST in the
+        # Personality Questions prompt chain. The wrapper removes the older raw
+        # STEN/direction payloads for parent-trait questions and exposes only the
+        # finished candidate summary, process context and admin-controlled
+        # question behaviour. Competency mode keeps its separate evidence path.
+        install_personality_question_definition_grounding_policy()
+
         # Combined trait dynamics are generated as exactly two separate items,
-        # then normalised back to Talena's existing saved string field so old
-        # results and downstream consumers stay backwards compatible.
+        # then normalised back to Talena's existing saved string field.
         install_personality_dynamics_structure_policy()
 
-        # Keep motivation questions faithful to factor definitions and make the
-        # supplied role/process context shape each scenario without replacing
-        # the candidate's actual motivation pattern as the basis for the question.
+        # Keep motivation questions faithful to factor definitions and process
+        # context without replacing the candidate's motivation pattern.
         install_motivation_question_precision_policy()
 
-        # Production pre-interview support should see the candidate's actual
-        # normalized assessment results as well as Talena's saved AI
-        # interpretations. This keeps production evidence closer to the prompt
-        # playground and prevents summaries-of-summaries from losing profile
-        # detail.
+        # Production pre-interview support sees raw normalized assessment results
+        # as well as Talena's saved AI interpretations.
         install_pre_interview_raw_evidence_policy()
-
-        # Keep Prepare for interview anchored in the individual candidate's
-        # evidence even when administrator guidance changes over time.
         install_pre_interview_grounding_policy()
 
         install_personality_motivation_interaction_policy()
         install_post_interview_role_context_policy()
         install_post_interview_role_context_policy_v2()
 
-        # Question-level interview notes are structured evidence. Install this
-        # after the other post-interview prompt policies so the final runtime
-        # prompt always receives the exact question together with its saved
-        # answer/note, even when no separate free-text interview note exists.
+        # Question-level interview notes are structured evidence.
         install_post_interview_question_evidence_policy()
+
+        # #231: other active AI consumers that interpret parent personality traits
+        # reuse one candidate-specific evidence layer backed by the same approved
+        # score-band texts used in Talena's Result Summary. These broader flows
+        # may still receive structured score metadata where it adds value.
+        install_shared_personality_grounding_policy()
+
+        # Final personality-only contract: every personality AI box receives the
+        # translated Result Summary meaning, process context, global admin prompt
+        # and the feature-specific prompt for that exact box. Install last so it
+        # can simplify older prompt layers without changing output schemas.
+        install_personality_ai_input_contract_policy()
