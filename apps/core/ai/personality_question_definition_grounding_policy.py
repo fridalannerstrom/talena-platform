@@ -11,7 +11,7 @@ from .shared_context import build_shared_ai_context
 _INSTALLED = False
 
 
-def _selected_parent_traits(owner) -> list[str]:
+def _selected_parent_traits(owner) -> list[str] | None:
     selected = [
         str(item or "").strip()
         for item in getattr(
@@ -22,12 +22,14 @@ def _selected_parent_traits(owner) -> list[str]:
         if str(item or "").strip()
     ]
 
-    # Competency mode has its own evidence contract. Do not mix the two modes.
+    # Competency mode has its own evidence contract. None is deliberately
+    # different from [] here: [] means AI may choose parent traits, while None
+    # means do not inject parent-trait grounding into competency questions.
     if any(
         item.casefold().startswith("competency::")
         for item in selected
     ):
-        return []
+        return None
 
     return selected
 
@@ -38,6 +40,9 @@ def _build_personality_result_grounding(
     language_code: str,
 ) -> str:
     selected_traits = _selected_parent_traits(owner)
+
+    if selected_traits is None:
+        return ""
 
     # With an explicit trait selection, give the model the full indicator-level
     # nuance only for the chosen traits. In AI-selection mode, provide compact
