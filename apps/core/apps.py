@@ -72,19 +72,18 @@ class CoreConfig(AppConfig):
 
         # STEN 4-7 is situationsbaserat / situational, never a middle or average
         # level. Keep this terminology guard before the final result-summary
-        # grounding so the richer candidate description remains the last and
-        # most concrete personality evidence the model sees.
+        # grounding so fallback and visible why wording stay consistent.
         install_personality_question_situational_language_policy()
 
         # Every personality question must keep a visible focus label. This also
         # raises manual/AI parent-trait selection to eight.
         install_personality_question_label_policy()
 
-        # #230/#231 refinement: apply the candidate's Result Summary semantics
-        # LAST in the Personality Questions prompt chain. Earlier quality layers
-        # still protect grounding, labels and terminology, but the final evidence
-        # is the person's exact score-band summary plus relevant indicator nuance
-        # and process context rather than generic low/high pole definitions.
+        # #230/#231 refinement: apply the candidate's Result Summary LAST in the
+        # Personality Questions prompt chain. The wrapper removes the older raw
+        # STEN/direction payloads for parent-trait questions and exposes only the
+        # finished candidate summary, process context and admin-controlled
+        # question behaviour. Competency mode keeps its separate evidence path.
         install_personality_question_definition_grounding_policy()
 
         # Combined trait dynamics are generated as exactly two separate items,
@@ -107,7 +106,8 @@ class CoreConfig(AppConfig):
         # Question-level interview notes are structured evidence.
         install_post_interview_question_evidence_policy()
 
-        # #231: all active AI consumers that interpret parent personality traits
+        # #231: other active AI consumers that interpret parent personality traits
         # reuse one candidate-specific evidence layer backed by the same approved
-        # score-band texts used in Talena's Result Summary.
+        # score-band texts used in Talena's Result Summary. These broader flows
+        # may still receive structured score metadata where it adds value.
         install_shared_personality_grounding_policy()
