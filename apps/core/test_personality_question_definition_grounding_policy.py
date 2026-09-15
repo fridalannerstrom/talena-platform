@@ -1,11 +1,10 @@
 from types import SimpleNamespace
-from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from apps.core.ai import personality_questions
 from apps.core.ai.personality_question_definition_grounding_policy import (
-    _build_personality_result_grounding,
+    _finalise_parent_trait_prompt,
+    _render_question_result_summaries,
 )
 from apps.reports.libraries.personality.content import (
     INDICATOR_PROFILE_CONTENT,
@@ -37,38 +36,14 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
                 {
                     "activity": "Personality Assessment",
                     "competencies": [
-                        {
-                            "competency": "Cooperative",
-                            "sten_rounded": 7,
-                        },
-                        {
-                            "competency": "Sensitivity",
-                            "sten_rounded": 9,
-                        },
-                        {
-                            "competency": "Teamwork",
-                            "sten_rounded": 4,
-                        },
-                        {
-                            "competency": "Agreeableness",
-                            "sten_rounded": 8,
-                        },
-                        {
-                            "competency": "Analytical",
-                            "sten_rounded": 2,
-                        },
-                        {
-                            "competency": "Data Focus",
-                            "sten_rounded": 2,
-                        },
-                        {
-                            "competency": "Evaluating",
-                            "sten_rounded": 3,
-                        },
-                        {
-                            "competency": "Analysing Problems",
-                            "sten_rounded": 4,
-                        },
+                        {"competency": "Cooperative", "sten_rounded": 7},
+                        {"competency": "Sensitivity", "sten_rounded": 9},
+                        {"competency": "Teamwork", "sten_rounded": 4},
+                        {"competency": "Agreeableness", "sten_rounded": 8},
+                        {"competency": "Analytical", "sten_rounded": 2},
+                        {"competency": "Data Focus", "sten_rounded": 2},
+                        {"competency": "Evaluating", "sten_rounded": 3},
+                        {"competency": "Analysing Problems", "sten_rounded": 4},
                     ],
                 }
             ],
@@ -86,117 +61,159 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
 
         return owner
 
-    def test_selected_trait_uses_result_summary_and_indicator_nuance(self):
-        prompt = _build_personality_result_grounding(
+    def test_selected_trait_receives_only_finished_result_summary(self):
+        text = _render_question_result_summaries(
             owner=self._owner(),
             language_code="en",
         )
 
-        self.assertIn(
-            "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE",
-            prompt,
-        )
-        self.assertIn("TRAIT: Cooperative", prompt)
-        self.assertNotIn("TRAIT: Analytical", prompt)
-        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
-        self.assertIn("UNDERLYING INDICATOR NUANCE", prompt)
+        self.assertIn("PERSONALITY TRAIT: Cooperative", text)
+        self.assertNotIn("PERSONALITY TRAIT: Analytical", text)
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", text)
 
-        self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Sensitivity"
-            ]["score_texts"]["9_10"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Teamwork"
-            ]["score_texts"]["4_7"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Agreeableness"
-            ]["score_texts"]["8"]["en"],
-            prompt,
-        )
+        for indicator_name, band in (
+            ("Sensitivity", "9_10"),
+            ("Teamwork", "4_7"),
+            ("Agreeableness", "8"),
+        ):
+            self.assertIn(
+                INDICATOR_PROFILE_CONTENT[indicator_name]["score_texts"][band]["en"],
+                text,
+            )
 
-        self.assertNotIn("APPROVED LOW POLE", prompt)
-        self.assertNotIn("APPROVED HIGH POLE", prompt)
+        # The indicator meanings are already folded into the summary. Do not
+        # expose the machinery that produced it to the question model.
+        self.assertNotIn("UNDERLYING INDICATOR", text)
+        self.assertNotIn("Sensitivity:", text)
+        self.assertNotIn("Teamwork:", text)
+        self.assertNotIn("Agreeableness:", text)
+        self.assertNotIn("STEN", text)
+        self.assertNotIn("LOW POLE", text)
+        self.assertNotIn("HIGH POLE", text)
 
-    def test_ai_selection_receives_compact_summaries_for_available_traits(self):
-        prompt = _build_personality_result_grounding(
+    def test_ai_selection_receives_summaries_for_all_available_parent_traits(self):
+        text = _render_question_result_summaries(
             owner=self._owner(selected_traits=[]),
             language_code="en",
         )
 
-        self.assertIn("TRAIT: Cooperative", prompt)
-        self.assertIn("TRAIT: Analytical", prompt)
-        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
-        self.assertNotIn("UNDERLYING INDICATOR NUANCE", prompt)
+        self.assertIn("PERSONALITY TRAIT: Cooperative", text)
+        self.assertIn("PERSONALITY TRAIT: Analytical", text)
+        self.assertNotIn("STEN", text)
+        self.assertNotIn("UNDERLYING INDICATOR", text)
 
-    def test_swedish_grounding_uses_swedish_score_band_content(self):
-        prompt = _build_personality_result_grounding(
+    def test_swedish_summary_uses_same_score_band_text_as_result_summary_ui(self):
+        text = _render_question_result_summaries(
             owner=self._owner(),
             language_code="sv",
         )
 
-        self.assertIn("Cooperative / Samverkande", prompt)
-        self.assertIn("KANDIDATENS RESULTATSAMMANFATTNING", prompt)
+        self.assertIn("Cooperative / Samverkande", text)
+        self.assertIn("KANDIDATENS RESULTATSAMMANFATTNING", text)
         self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Sensitivity"
-            ]["score_texts"]["9_10"]["sv"],
-            prompt,
+            INDICATOR_PROFILE_CONTENT["Sensitivity"]["score_texts"]["9_10"]["sv"],
+            text,
         )
         self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Teamwork"
-            ]["score_texts"]["4_7"]["sv"],
-            prompt,
+            INDICATOR_PROFILE_CONTENT["Teamwork"]["score_texts"]["4_7"]["sv"],
+            text,
         )
+        self.assertNotIn("STEN", text)
 
-    def test_process_context_is_explicitly_required_when_available(self):
-        prompt = _build_personality_result_grounding(
+    def test_final_parent_trait_prompt_removes_old_score_direction_layers(self):
+        prompt = """
+TALENA INPUT DATA
+
+PROCESS CONTEXT
+Role context from the base prompt.
+
+PERSONALITY ASSESSMENT DATA
+- Cooperative: STEN 7 of 10
+
+AVAILABLE TECHNICAL TRAIT NAMES
+- Cooperative
+
+ADMINISTRATOR AI GUIDANCE
+Admin controls how the interview question should be written.
+
+TALENA CANDIDATE-SPECIFIC QUESTION GROUNDING
+CANDIDATE-SPECIFIC PROFILE SNAPSHOT
+- Cooperative: STEN 7 of 10 (situational)
+Old score-direction rules.
+
+TALENA CANDIDATE FINGERPRINT STANDARD
+Keep the question specific to this candidate and process.
+
+TALENA PERSONALITY QUESTION PRECISION STANDARD
+SELECTED CANDIDATE EVIDENCE
+- Cooperative: situational behavioural pattern
+Old precision rules.
+
+TALENA PERSONALITY QUESTION LABEL CONTRACT
+Every question needs a valid trait label.
+""".strip()
+
+        result = _finalise_parent_trait_prompt(
+            prompt,
             owner=self._owner(),
             language_code="en",
         )
 
-        self.assertIn("PROCESS-CONTEXT REQUIREMENT", prompt)
-        self.assertIn(
-            "Every question should use a concrete situation",
-            prompt,
-        )
-        self.assertIn(
-            "The process context determines WHERE or WHEN to explore it",
-            prompt,
-        )
+        self.assertNotIn("- Cooperative: STEN 7 of 10", result)
+        self.assertNotIn("CANDIDATE-SPECIFIC PROFILE SNAPSHOT", result)
+        self.assertNotIn("TALENA PERSONALITY QUESTION PRECISION STANDARD", result)
+        self.assertNotIn("situational behavioural pattern", result)
 
-    def test_situational_is_a_language_rule_not_the_whole_interpretation(self):
-        prompt = _build_personality_result_grounding(
+        self.assertIn("ADMINISTRATOR AI GUIDANCE", result)
+        self.assertIn("Admin controls how the interview question", result)
+        self.assertIn("TALENA CANDIDATE FINGERPRINT STANDARD", result)
+        self.assertIn("TALENA PERSONALITY QUESTION LABEL CONTRACT", result)
+        self.assertIn("TALENA FINAL PERSONALITY QUESTION EVIDENCE", result)
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", result)
+
+    def test_final_grounding_keeps_process_context_explicit_and_actionable(self):
+        result = _finalise_parent_trait_prompt(
+            "ADMINISTRATOR AI GUIDANCE\nAdmin text",
             owner=self._owner(),
             language_code="en",
         )
 
         self.assertIn(
-            '"situational" is only a level-language rule',
-            prompt,
+            "Role: Key Account Manager. The role involves changing customer needs",
+            result,
         )
         self.assertIn(
-            "must never replace the richer candidate-specific result summary",
-            prompt,
+            "The Result Summary determines the candidate-specific behavioural hypothesis",
+            result,
+        )
+        self.assertIn(
+            "Process context determines the concrete situation",
+            result,
+        )
+        self.assertIn(
+            "Administrator guidance remains authoritative",
+            result,
         )
 
-    def test_competency_selection_does_not_mix_parent_trait_grounding(self):
-        prompt = _build_personality_result_grounding(
-            owner=self._owner(
-                selected_traits=["competency::Teamwork"]
-            ),
+    def test_competency_mode_keeps_existing_evidence_path_untouched(self):
+        owner = self._owner(
+            selected_traits=["competency::Teamwork"]
+        )
+        original = (
+            "COMPETENCY PROMPT\n"
+            "SUPPORTING PERSONALITY EVIDENCE\n"
+            "Existing competency-specific evidence."
+        )
+
+        result = _finalise_parent_trait_prompt(
+            original,
+            owner=owner,
             language_code="en",
         )
 
-        self.assertEqual(prompt, "")
+        self.assertEqual(result, original)
 
-    def test_goal_focused_alias_uses_result_summary_indicator_text(self):
+    def test_goal_focused_alias_uses_finished_summary_without_indicator_rows(self):
         owner = self._owner(
             selected_traits=["Achievement Striving"]
         )
@@ -204,71 +221,23 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
             {
                 "activity": "Personality Assessment",
                 "competencies": [
-                    {
-                        "competency": "Achievement Striving",
-                        "sten_rounded": 8,
-                    },
-                    {
-                        "competency": "Competitive",
-                        "sten_rounded": 3,
-                    },
-                    {
-                        "competency": "Challenge",
-                        "sten_rounded": 8,
-                    },
-                    {
-                        "competency": "Self-Discipline",
-                        "sten_rounded": 9,
-                    },
+                    {"competency": "Achievement Striving", "sten_rounded": 8},
+                    {"competency": "Competitive", "sten_rounded": 3},
+                    {"competency": "Challenge", "sten_rounded": 8},
+                    {"competency": "Self-Discipline", "sten_rounded": 9},
                 ],
             }
         ]
 
-        prompt = _build_personality_result_grounding(
+        text = _render_question_result_summaries(
             owner=owner,
             language_code="en",
         )
 
-        self.assertIn("Goal-focused", prompt)
+        self.assertIn("Achievement Striving", text)
         self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Competitive"
-            ]["score_texts"]["3"]["en"],
-            prompt,
+            INDICATOR_PROFILE_CONTENT["Competitive"]["score_texts"]["3"]["en"],
+            text,
         )
-
-    def test_runtime_prompt_places_result_summary_grounding_last(self):
-        owner = self._owner()
-
-        with patch.object(
-            personality_questions,
-            "get_ai_prompt_instructions",
-            return_value="Use nuanced candidate-specific questions.",
-        ), patch.object(
-            personality_questions,
-            "get_ai_feature_prompt_instructions",
-            return_value="",
-        ):
-            prompt = (
-                personality_questions.build_personality_questions_prompt(
-                    owner,
-                    [{"name": "Cooperative", "sten": 7}],
-                    language_code="en",
-                )
-            )
-
-        final_index = prompt.rfind(
-            "TALENA FINAL CANDIDATE-SPECIFIC PERSONALITY QUESTION GROUNDING"
-        )
-        precision_index = prompt.rfind(
-            "TALENA PERSONALITY QUESTION PRECISION STANDARD"
-        )
-
-        self.assertGreater(final_index, precision_index)
-        self.assertIn(
-            INDICATOR_PROFILE_CONTENT[
-                "Sensitivity"
-            ]["score_texts"]["9_10"]["en"],
-            prompt,
-        )
-        self.assertIn("PROCESS-CONTEXT REQUIREMENT", prompt)
+        self.assertNotIn("Competitive:", text)
+        self.assertNotIn("STEN", text)
