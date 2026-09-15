@@ -194,11 +194,7 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
             language_code="en",
         )
 
-        # Competency mode is handled by the separate competency evidence policy.
-        # The parent-trait helper sees no explicit parent selection and therefore
-        # supplies the compact whole-profile summary, not indicator-detail blocks.
-        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
-        self.assertNotIn("UNDERLYING INDICATOR NUANCE", prompt)
+        self.assertEqual(prompt, "")
 
     def test_goal_focused_alias_uses_result_summary_indicator_text(self):
         owner = self._owner(
