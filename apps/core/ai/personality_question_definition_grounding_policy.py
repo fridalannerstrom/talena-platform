@@ -71,9 +71,14 @@ def _build_trait_indicator_map() -> dict[str, list[str]]:
 
     for section in TRAIT_AND_INDICATOR_PROFILE.get("sections", []):
         for trait in section.get("traits", []):
-            trait_name = str(trait.get("trait_name") or "").strip()
+            trait_name = str(
+                trait.get("trait_name")
+                or ""
+            ).strip()
+
             if not trait_name:
                 continue
+
             mapping[trait_name] = [
                 str(indicator).strip()
                 for indicator in trait.get("indicators", [])
@@ -96,10 +101,14 @@ _INDICATOR_CANONICAL_BY_KEY = {
 
 
 def _canonical_trait_name(value: Any) -> str | None:
-    return _TRAIT_CANONICAL_BY_KEY.get(_normalise_key(value))
+    return _TRAIT_CANONICAL_BY_KEY.get(
+        _normalise_key(value)
+    )
 
 
-def _result_lookup(results: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def _result_lookup(
+    results: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
     return {
         _normalise_key(item.get("name")): item
         for item in results or []
@@ -119,20 +128,35 @@ def _raw_personality_results(owner) -> list[dict[str, Any]]:
 def _direct_selected_trait_keys(owner) -> set[str]:
     selected = [
         str(item or "").strip()
-        for item in getattr(owner, "selected_personality_traits", None) or []
+        for item in getattr(
+            owner,
+            "selected_personality_traits",
+            None,
+        ) or []
         if str(item or "").strip()
     ]
 
     # Competency-based personality questions have their own evidence contract.
     # This policy only augments the 18 parent-trait mode from ticket #230.
-    if any(item.casefold().startswith("competency::") for item in selected):
+    if any(
+        item.casefold().startswith("competency::")
+        for item in selected
+    ):
         return set()
 
-    return {
-        _normalise_key(item)
-        for item in selected
-        if _canonical_trait_name(item)
-    }
+    keys: set[str] = set()
+
+    for item in selected:
+        canonical_name = _canonical_trait_name(item)
+        if not canonical_name:
+            continue
+
+        # Keep both the supplied technical name and the canonical report name.
+        # This covers Sova's Achievement Striving / Goal-focused alias.
+        keys.add(_normalise_key(item))
+        keys.add(_normalise_key(canonical_name))
+
+    return keys
 
 
 def _build_personality_definition_grounding(
@@ -141,30 +165,46 @@ def _build_personality_definition_grounding(
     personality_results: list[dict[str, Any]],
     language_code: str,
 ) -> str:
-    """Build approved parent-trait and indicator evidence for question generation."""
+    """Build approved trait and indicator evidence for question generation."""
 
-    language_code = "sv" if str(language_code).casefold().startswith("sv") else "en"
+    language_code = (
+        "sv"
+        if str(language_code).casefold().startswith("sv")
+        else "en"
+    )
 
     raw_results = _raw_personality_results(owner)
     raw_lookup = _result_lookup(raw_results)
-    parent_lookup = _result_lookup(personality_results)
     selected_keys = _direct_selected_trait_keys(owner)
+
+    raw_selection = [
+        str(item or "").strip()
+        for item in getattr(
+            owner,
+            "selected_personality_traits",
+            None,
+        ) or []
+        if str(item or "").strip()
+    ]
 
     # If competency mode is active, leave the competency policy as the only
     # source of personality evidence so the two selection modes never mix.
-    raw_selection = [
-        str(item or "").strip()
-        for item in getattr(owner, "selected_personality_traits", None) or []
-        if str(item or "").strip()
-    ]
-    if any(item.casefold().startswith("competency::") for item in raw_selection):
+    if any(
+        item.casefold().startswith("competency::")
+        for item in raw_selection
+    ):
         return ""
 
     trait_blocks = []
 
     for supplied_trait in personality_results or []:
-        supplied_name = str(supplied_trait.get("name") or "").strip()
-        canonical_name = _canonical_trait_name(supplied_name)
+        supplied_name = str(
+            supplied_trait.get("name")
+            or ""
+        ).strip()
+        canonical_name = _canonical_trait_name(
+            supplied_name
+        )
 
         if not canonical_name:
             continue
@@ -172,13 +212,25 @@ def _build_personality_definition_grounding(
         supplied_key = _normalise_key(supplied_name)
         canonical_key = _normalise_key(canonical_name)
 
-        if selected_keys and supplied_key not in selected_keys and canonical_key not in selected_keys:
+        if (
+            selected_keys
+            and supplied_key not in selected_keys
+            and canonical_key not in selected_keys
+        ):
             continue
 
-        trait_content = TRAIT_PROFILE_CONTENT.get(canonical_name) or {}
+        trait_content = (
+            TRAIT_PROFILE_CONTENT.get(canonical_name)
+            or {}
+        )
         sten = supplied_trait.get("sten")
+
         if sten is None:
-            raw_parent = raw_lookup.get(supplied_key) or raw_lookup.get(canonical_key) or {}
+            raw_parent = (
+                raw_lookup.get(supplied_key)
+                or raw_lookup.get(canonical_key)
+                or {}
+            )
             sten = raw_parent.get("sten")
 
         display_label = str(
@@ -186,8 +238,14 @@ def _build_personality_definition_grounding(
             or trait_content.get("label_en")
             or canonical_name
         ).strip()
-        low_pole = _localised(trait_content.get("low_pole"), language_code)
-        high_pole = _localised(trait_content.get("high_pole"), language_code)
+        low_pole = _localised(
+            trait_content.get("low_pole"),
+            language_code,
+        )
+        high_pole = _localised(
+            trait_content.get("high_pole"),
+            language_code,
+        )
 
         block_lines = [
             f"TECHNICAL TRAIT NAME: {supplied_name}",
@@ -196,36 +254,66 @@ def _build_personality_definition_grounding(
         ]
 
         if sten is not None:
-            block_lines.append(f"CANDIDATE RESULT: STEN {sten} of 10")
+            block_lines.append(
+                f"CANDIDATE RESULT: STEN {sten} of 10"
+            )
 
         if low_pole:
-            block_lines.append(f"APPROVED LOW-POLE MEANING: {low_pole}")
+            block_lines.append(
+                f"APPROVED LOW-POLE MEANING: {low_pole}"
+            )
+
         if high_pole:
-            block_lines.append(f"APPROVED HIGH-POLE MEANING: {high_pole}")
+            block_lines.append(
+                f"APPROVED HIGH-POLE MEANING: {high_pole}"
+            )
 
         indicator_lines = []
 
-        for indicator_name in _TRAIT_INDICATORS.get(canonical_name, []):
-            indicator_canonical = _INDICATOR_CANONICAL_BY_KEY.get(
-                _normalise_key(indicator_name)
+        for indicator_name in _TRAIT_INDICATORS.get(
+            canonical_name,
+            [],
+        ):
+            indicator_canonical = (
+                _INDICATOR_CANONICAL_BY_KEY.get(
+                    _normalise_key(indicator_name)
+                )
             )
+
             if not indicator_canonical:
                 continue
 
-            indicator_result = raw_lookup.get(_normalise_key(indicator_canonical))
+            indicator_result = raw_lookup.get(
+                _normalise_key(indicator_canonical)
+            )
+
             if not indicator_result:
                 continue
 
             indicator_sten = indicator_result.get("sten")
             band_key = _score_band_key(indicator_sten)
+
             if indicator_sten is None or not band_key:
                 continue
 
-            indicator_content = INDICATOR_PROFILE_CONTENT.get(indicator_canonical) or {}
-            score_texts = indicator_content.get("score_texts") or {}
-            interpretation = _localised(score_texts.get(band_key), language_code)
+            indicator_content = (
+                INDICATOR_PROFILE_CONTENT.get(
+                    indicator_canonical
+                )
+                or {}
+            )
+            score_texts = (
+                indicator_content.get("score_texts")
+                or {}
+            )
+            interpretation = _localised(
+                score_texts.get(band_key),
+                language_code,
+            )
             indicator_label = str(
-                indicator_content.get(f"label_{language_code}")
+                indicator_content.get(
+                    f"label_{language_code}"
+                )
                 or indicator_content.get("label_en")
                 or indicator_canonical
             ).strip()
@@ -235,23 +323,33 @@ def _build_personality_definition_grounding(
 
             indicator_lines.extend(
                 [
-                    f"- {indicator_canonical} / {indicator_label}: STEN {indicator_sten} of 10",
+                    (
+                        f"- {indicator_canonical} / {indicator_label}: "
+                        f"STEN {indicator_sten} of 10"
+                    ),
                     (
                         "  APPROVED SCORE-BAND INTERPRETATION "
-                        f"({_score_band_label(indicator_sten)}): {interpretation}"
+                        f"({_score_band_label(indicator_sten)}): "
+                        f"{interpretation}"
                     ),
                 ]
             )
 
-        block_lines.append("UNDERLYING INDICATOR EVIDENCE:")
+        block_lines.append(
+            "UNDERLYING INDICATOR EVIDENCE:"
+        )
+
         if indicator_lines:
             block_lines.extend(indicator_lines)
         else:
             block_lines.append(
-                "- No indicator-level scores are available for this trait. Do not invent them."
+                "- No indicator-level scores are available for this trait. "
+                "Do not invent them."
             )
 
-        trait_blocks.append("\n".join(block_lines))
+        trait_blocks.append(
+            "\n".join(block_lines)
+        )
 
     if not trait_blocks:
         return ""
@@ -306,13 +404,18 @@ def install_personality_question_definition_grounding_policy() -> None:
     """Ground personality questions in approved trait and indicator meanings."""
 
     global _INSTALLED
+
     if _INSTALLED:
         return
 
     from apps.core.ai import personality_questions as pq
 
-    original_prompt = pq.build_personality_questions_prompt
-    original_repair_prompt = pq._build_personality_questions_repair_prompt
+    original_prompt = (
+        pq.build_personality_questions_prompt
+    )
+    original_repair_prompt = (
+        pq._build_personality_questions_repair_prompt
+    )
 
     @wraps(original_prompt)
     def build_personality_questions_prompt(
@@ -322,7 +425,8 @@ def install_personality_question_definition_grounding_policy() -> None:
         language_code=None,
     ):
         resolved_language = pq.normalize_ai_language(
-            language_code or pq._personality_questions_language.get()
+            language_code
+            or pq._personality_questions_language.get()
         )
         prompt = original_prompt(
             invitation,
@@ -334,8 +438,10 @@ def install_personality_question_definition_grounding_policy() -> None:
             personality_results=personality_results,
             language_code=resolved_language,
         )
+
         if not grounding:
             return prompt
+
         return f"{str(prompt).rstrip()}\n{grounding}"
 
     @wraps(original_repair_prompt)
@@ -358,11 +464,15 @@ def install_personality_question_definition_grounding_policy() -> None:
             personality_results=personality_results,
             language_code=resolved_language,
         )
+
         if not grounding:
             return prompt
+
         return f"{str(prompt).rstrip()}\n{grounding}"
 
-    pq.build_personality_questions_prompt = build_personality_questions_prompt
+    pq.build_personality_questions_prompt = (
+        build_personality_questions_prompt
+    )
     pq._build_personality_questions_repair_prompt = (
         build_personality_questions_repair_prompt
     )
