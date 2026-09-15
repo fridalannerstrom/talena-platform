@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any, Iterable
 
 from apps.reports.libraries.personality.content import TRAIT_PROFILE_CONTENT
@@ -66,7 +67,7 @@ def _normalise_sten(value: Any) -> int | float | None:
     except (TypeError, ValueError):
         return None
 
-    if score < 1 or score > 10:
+    if not math.isfinite(score) or score < 1 or score > 10:
         return None
 
     return int(score) if score.is_integer() else score
@@ -222,11 +223,13 @@ def render_personality_ai_evidence(
         intro = (
             "Definitionerna nedan är Talenas godkända betydelser av skalans "
             "riktningar. Tolka kandidatens STEN-resultat i relation till dessa "
-            "poler. Definitionerna är inte bevis för att ett beteende alltid "
-            "förekommer, och ingen pol är i sig bättre än den andra. Ett "
-            "personlighetsresultat är inte i sig bevis på kompetens, prestation "
-            "eller rollpassning. Processkontext får styra vad som är relevant att "
-            "utforska, men får inte ändra betydelsen av traitet eller skalans poler."
+            "poler. STEN 4–7 ska beskrivas som situationsbaserat, inte som "
+            "medelnivå, genomsnitt eller att kandidaten ligger i mitten. "
+            "Definitionerna är inte bevis för att ett beteende alltid förekommer, "
+            "och ingen pol är i sig bättre än den andra. Ett personlighetsresultat "
+            "är inte i sig bevis på kompetens, prestation eller rollpassning. "
+            "Processkontext får styra vad som är relevant att utforska, men får "
+            "inte ändra betydelsen av traitet eller skalans poler."
         )
         low_label = "GODKÄND LÅG-POL"
         high_label = "GODKÄND HÖG-POL"
@@ -234,11 +237,13 @@ def render_personality_ai_evidence(
         intro = (
             "The definitions below are Talena's approved meanings for the scale "
             "directions. Interpret the candidate's STEN result in relation to "
-            "these poles. The definitions are not proof that a behaviour always "
-            "occurs, and neither pole is inherently better than the other. A "
-            "personality result is not, by itself, evidence of competence, "
-            "performance or role fit. Process context may shape what is relevant "
-            "to explore, but it must not rewrite the meaning of the trait or poles."
+            "these poles. STEN 4–7 must be described as situational, not as "
+            "mid-range, average or sitting in the middle. The definitions are not "
+            "proof that a behaviour always occurs, and neither pole is inherently "
+            "better than the other. A personality result is not, by itself, "
+            "evidence of competence, performance or role fit. Process context may "
+            "shape what is relevant to explore, but it must not rewrite the "
+            "meaning of the trait or poles."
         )
         low_label = "APPROVED LOW POLE"
         high_label = "APPROVED HIGH POLE"
