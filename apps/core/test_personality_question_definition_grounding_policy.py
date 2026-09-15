@@ -5,12 +5,10 @@ from django.test import SimpleTestCase
 
 from apps.core.ai import personality_questions
 from apps.core.ai.personality_question_definition_grounding_policy import (
-    _build_personality_definition_grounding,
-    _score_band_key,
+    _build_personality_result_grounding,
 )
 from apps.reports.libraries.personality.content import (
     INDICATOR_PROFILE_CONTENT,
-    TRAIT_PROFILE_CONTENT,
 )
 
 
@@ -19,12 +17,21 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
         self,
         *,
         selected_traits=None,
+        context_text=(
+            "Role: Key Account Manager. The role involves changing customer "
+            "needs, long-term customer relationships and commercial priorities."
+        ),
     ):
-        return SimpleNamespace(
+        owner = SimpleNamespace(
             selected_personality_traits=(
                 selected_traits
                 if selected_traits is not None
                 else ["Cooperative"]
+            ),
+            candidate=SimpleNamespace(
+                first_name="Alex",
+                last_name="Andersson",
+                email="alex@example.com",
             ),
             sova_activities=[
                 {
@@ -50,173 +57,91 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
                             "competency": "Analytical",
                             "sten_rounded": 2,
                         },
+                        {
+                            "competency": "Data Focus",
+                            "sten_rounded": 2,
+                        },
+                        {
+                            "competency": "Evaluating",
+                            "sten_rounded": 3,
+                        },
+                        {
+                            "competency": "Analysing Problems",
+                            "sten_rounded": 4,
+                        },
                     ],
                 }
             ],
         )
 
-    def _prompt_owner(self):
-        owner = self._owner()
-        owner.candidate = SimpleNamespace(
-            first_name="Alex",
-            last_name="Andersson",
-            email="alex@example.com",
-        )
         owner.process = SimpleNamespace(
             purpose="recruitment",
+            is_historical=False,
             role_context=SimpleNamespace(
                 get_context_for_purpose=lambda purpose: {
-                    "context_text": (
-                        "Role: Key Account Manager. "
-                        "The role involves changing customer needs."
-                    )
+                    "context_text": context_text,
                 }
             ),
-            is_historical=False,
         )
+
         return owner
 
-    def test_indicator_sten_values_map_to_approved_score_bands(self):
-        expected = {
-            1: "1_2",
-            2: "1_2",
-            3: "3",
-            4: "4_7",
-            7: "4_7",
-            8: "8",
-            9: "9_10",
-            10: "9_10",
-        }
-
-        for sten, band in expected.items():
-            with self.subTest(sten=sten):
-                self.assertEqual(
-                    _score_band_key(sten),
-                    band,
-                )
-
-    def test_english_grounding_contains_parent_definitions_and_indicator_bands(self):
-        prompt = _build_personality_definition_grounding(
+    def test_selected_trait_uses_result_summary_and_indicator_nuance(self):
+        prompt = _build_personality_result_grounding(
             owner=self._owner(),
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-                {"name": "Analytical", "sten": 2},
-            ],
-            language_code="en",
-        )
-
-        cooperative = TRAIT_PROFILE_CONTENT[
-            "Cooperative"
-        ]
-        sensitivity = INDICATOR_PROFILE_CONTENT[
-            "Sensitivity"
-        ]
-        teamwork = INDICATOR_PROFILE_CONTENT[
-            "Teamwork"
-        ]
-        agreeableness = INDICATOR_PROFILE_CONTENT[
-            "Agreeableness"
-        ]
-
-        self.assertIn(
-            cooperative["low_pole"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            cooperative["high_pole"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            sensitivity["score_texts"]["9_10"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            teamwork["score_texts"]["4_7"]["en"],
-            prompt,
-        )
-        self.assertIn(
-            agreeableness["score_texts"]["8"]["en"],
-            prompt,
-        )
-
-        self.assertIn(
-            "Sensitivity / Sensitivity: STEN 9 of 10",
-            prompt,
-        )
-        self.assertIn(
-            "APPROVED SCORE-BAND INTERPRETATION (9–10)",
-            prompt,
-        )
-        self.assertIn(
-            "APPROVED SCORE-BAND INTERPRETATION (4–7)",
-            prompt,
-        )
-        self.assertIn(
-            "APPROVED SCORE-BAND INTERPRETATION (8)",
-            prompt,
-        )
-
-    def test_selected_trait_limits_grounding_to_that_parent_trait(self):
-        prompt = _build_personality_definition_grounding(
-            owner=self._owner(
-                selected_traits=["Cooperative"]
-            ),
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-                {"name": "Analytical", "sten": 2},
-            ],
             language_code="en",
         )
 
         self.assertIn(
-            "TECHNICAL TRAIT NAME: Cooperative",
+            "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE",
             prompt,
         )
-        self.assertNotIn(
-            "TECHNICAL TRAIT NAME: Analytical",
+        self.assertIn("TRAIT: Cooperative", prompt)
+        self.assertNotIn("TRAIT: Analytical", prompt)
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
+        self.assertIn("UNDERLYING INDICATOR NUANCE", prompt)
+
+        self.assertIn(
+            INDICATOR_PROFILE_CONTENT[
+                "Sensitivity"
+            ]["score_texts"]["9_10"]["en"],
+            prompt,
+        )
+        self.assertIn(
+            INDICATOR_PROFILE_CONTENT[
+                "Teamwork"
+            ]["score_texts"]["4_7"]["en"],
+            prompt,
+        )
+        self.assertIn(
+            INDICATOR_PROFILE_CONTENT[
+                "Agreeableness"
+            ]["score_texts"]["8"]["en"],
             prompt,
         )
 
-    def test_ai_selection_receives_all_available_parent_trait_definitions(self):
-        prompt = _build_personality_definition_grounding(
+        self.assertNotIn("APPROVED LOW POLE", prompt)
+        self.assertNotIn("APPROVED HIGH POLE", prompt)
+
+    def test_ai_selection_receives_compact_summaries_for_available_traits(self):
+        prompt = _build_personality_result_grounding(
             owner=self._owner(selected_traits=[]),
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-                {"name": "Analytical", "sten": 2},
-            ],
             language_code="en",
         )
 
-        self.assertIn(
-            "TECHNICAL TRAIT NAME: Cooperative",
-            prompt,
-        )
-        self.assertIn(
-            "TECHNICAL TRAIT NAME: Analytical",
-            prompt,
-        )
+        self.assertIn("TRAIT: Cooperative", prompt)
+        self.assertIn("TRAIT: Analytical", prompt)
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
+        self.assertNotIn("UNDERLYING INDICATOR NUANCE", prompt)
 
-    def test_swedish_grounding_uses_swedish_approved_content(self):
-        prompt = _build_personality_definition_grounding(
+    def test_swedish_grounding_uses_swedish_score_band_content(self):
+        prompt = _build_personality_result_grounding(
             owner=self._owner(),
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-            ],
             language_code="sv",
         )
 
-        self.assertIn(
-            TRAIT_PROFILE_CONTENT[
-                "Cooperative"
-            ]["low_pole"]["sv"],
-            prompt,
-        )
-        self.assertIn(
-            TRAIT_PROFILE_CONTENT[
-                "Cooperative"
-            ]["high_pole"]["sv"],
-            prompt,
-        )
+        self.assertIn("Cooperative / Samverkande", prompt)
+        self.assertIn("KANDIDATENS RESULTATSAMMANFATTNING", prompt)
         self.assertIn(
             INDICATOR_PROFILE_CONTENT[
                 "Sensitivity"
@@ -224,79 +149,91 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
             prompt,
         )
         self.assertIn(
-            "Sensitivity / Känslighet: STEN 9 of 10",
+            INDICATOR_PROFILE_CONTENT[
+                "Teamwork"
+            ]["score_texts"]["4_7"]["sv"],
             prompt,
         )
 
-    def test_indicator_evidence_stays_supporting_and_not_selectable(self):
-        prompt = _build_personality_definition_grounding(
+    def test_process_context_is_explicitly_required_when_available(self):
+        prompt = _build_personality_result_grounding(
             owner=self._owner(),
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-            ],
+            language_code="en",
+        )
+
+        self.assertIn("PROCESS-CONTEXT REQUIREMENT", prompt)
+        self.assertIn(
+            "Every question should use a concrete situation",
+            prompt,
+        )
+        self.assertIn(
+            "The process context determines WHERE or WHEN to explore it",
+            prompt,
+        )
+
+    def test_situational_is_a_language_rule_not_the_whole_interpretation(self):
+        prompt = _build_personality_result_grounding(
+            owner=self._owner(),
             language_code="en",
         )
 
         self.assertIn(
-            "NOT additional user-selected traits",
+            '"situational" is only a level-language rule',
             prompt,
         )
         self.assertIn(
-            "must not appear as new technical trait names",
-            prompt,
-        )
-        self.assertIn(
-            "Normally cover each selected trait before reusing a trait",
-            prompt,
-        )
-        self.assertIn(
-            "Avoid near-duplicate wording",
+            "must never replace the richer candidate-specific result summary",
             prompt,
         )
 
-    def test_goal_focused_alias_uses_approved_goal_focused_definition(self):
-        owner = SimpleNamespace(
-            selected_personality_traits=[
-                "Achievement Striving"
-            ],
-            sova_activities=[
-                {
-                    "activity": "Personality Assessment",
-                    "competencies": [
-                        {
-                            "competency": "Achievement Striving",
-                            "sten_rounded": 8,
-                        },
-                        {
-                            "competency": "Competitive",
-                            "sten_rounded": 3,
-                        },
-                    ],
-                }
-            ],
+    def test_competency_selection_does_not_mix_parent_trait_grounding(self):
+        prompt = _build_personality_result_grounding(
+            owner=self._owner(
+                selected_traits=["competency::Teamwork"]
+            ),
+            language_code="en",
         )
 
-        prompt = _build_personality_definition_grounding(
+        # Competency mode is handled by the separate competency evidence policy.
+        # The parent-trait helper sees no explicit parent selection and therefore
+        # supplies the compact whole-profile summary, not indicator-detail blocks.
+        self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
+        self.assertNotIn("UNDERLYING INDICATOR NUANCE", prompt)
+
+    def test_goal_focused_alias_uses_result_summary_indicator_text(self):
+        owner = self._owner(
+            selected_traits=["Achievement Striving"]
+        )
+        owner.sova_activities = [
+            {
+                "activity": "Personality Assessment",
+                "competencies": [
+                    {
+                        "competency": "Achievement Striving",
+                        "sten_rounded": 8,
+                    },
+                    {
+                        "competency": "Competitive",
+                        "sten_rounded": 3,
+                    },
+                    {
+                        "competency": "Challenge",
+                        "sten_rounded": 8,
+                    },
+                    {
+                        "competency": "Self-Discipline",
+                        "sten_rounded": 9,
+                    },
+                ],
+            }
+        ]
+
+        prompt = _build_personality_result_grounding(
             owner=owner,
-            personality_results=[
-                {
-                    "name": "Achievement Striving",
-                    "sten": 8,
-                },
-            ],
             language_code="en",
         )
 
-        self.assertIn(
-            "APPROVED TRAIT: Goal-focused",
-            prompt,
-        )
-        self.assertIn(
-            TRAIT_PROFILE_CONTENT[
-                "Goal-focused"
-            ]["high_pole"]["en"],
-            prompt,
-        )
+        self.assertIn("Goal-focused", prompt)
         self.assertIn(
             INDICATOR_PROFILE_CONTENT[
                 "Competitive"
@@ -304,23 +241,8 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
             prompt,
         )
 
-    def test_competency_selection_does_not_mix_in_parent_trait_grounding(self):
-        owner = self._owner(
-            selected_traits=["competency::Teamwork"]
-        )
-
-        prompt = _build_personality_definition_grounding(
-            owner=owner,
-            personality_results=[
-                {"name": "Cooperative", "sten": 7},
-            ],
-            language_code="en",
-        )
-
-        self.assertEqual(prompt, "")
-
-    def test_runtime_personality_prompt_receives_definition_grounding(self):
-        owner = self._prompt_owner()
+    def test_runtime_prompt_places_result_summary_grounding_last(self):
+        owner = self._owner()
 
         with patch.object(
             personality_questions,
@@ -339,17 +261,18 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
                 )
             )
 
-        self.assertIn(
-            "TALENA APPROVED PERSONALITY MEANING AND INDICATOR EVIDENCE",
-            prompt,
+        final_index = prompt.rfind(
+            "TALENA FINAL CANDIDATE-SPECIFIC PERSONALITY QUESTION GROUNDING"
         )
+        precision_index = prompt.rfind(
+            "TALENA PERSONALITY QUESTION PRECISION STANDARD"
+        )
+
+        self.assertGreater(final_index, precision_index)
         self.assertIn(
             INDICATOR_PROFILE_CONTENT[
                 "Sensitivity"
             ]["score_texts"]["9_10"]["en"],
             prompt,
         )
-        self.assertIn(
-            "Normally cover each selected trait before reusing a trait",
-            prompt,
-        )
+        self.assertIn("PROCESS-CONTEXT REQUIREMENT", prompt)
