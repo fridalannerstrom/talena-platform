@@ -45,6 +45,26 @@ def _remove_between(
     )
 
 
+def _insert_before_marker(
+    text: str,
+    marker: str,
+    section: str,
+) -> str:
+    text = str(text or "")
+    section = str(section or "").strip()
+
+    if not section:
+        return text
+
+    index = text.find(marker)
+    if index < 0:
+        return f"{text.rstrip()}\n\n{section}".strip()
+
+    before = text[:index].rstrip()
+    after = text[index:].lstrip("\n")
+    return f"{before}\n\n{section}\n\n{after}".strip()
+
+
 def _render_personality_result_summaries(
     owner,
     *,
@@ -198,7 +218,8 @@ ADMINISTRATOR AI GUIDANCE
 
 GLOBAL ADMINISTRATOR AI GUIDANCE
 
-The following global guidance applies to EVERY personality AI box in this call.
+The following effective global administrator guidance applies to EVERY
+personality AI box in this call.
 
 {global_guidance}
 
@@ -223,6 +244,11 @@ with the global guidance above.
 
 {motivation}
 
+For this box, the personality Result Summary and motivation assessment results
+determine which interaction is supported. Process context may explain where,
+when or why that supported interaction matters, but it must not create an
+interaction that is unsupported by the assessment evidence.
+
 POTENTIAL STRENGTHS · BOX-SPECIFIC GUIDANCE
 
 Applies only to supportive_patterns / Potential strengths, together with the
@@ -235,6 +261,8 @@ POTENTIAL DEVELOPMENT AREAS · BOX-SPECIFIC GUIDANCE
 Applies only to areas_to_explore / Potential development areas, together with
 the global guidance above.
 
+{explore}
+
 ADMIN GUIDANCE APPLICATION RULE
 
 Every box uses exactly two administrator layers:
@@ -244,8 +272,6 @@ Every box uses exactly two administrator layers:
 Do not let one box's feature-specific prompt control another box. The overall
 personality prompt is not a substitute for a dedicated box prompt. Global
 guidance remains active everywhere.
-
-{explore}
 """.strip()
 
 
@@ -298,25 +324,6 @@ silently replace the interview-approach prompt.
 """.strip()
 
 
-def _replace_personality_motivation_context_boundary(prompt: str) -> str:
-    old = """The substantive content of motivation_interaction must be grounded only in
-the supplied PERSONALITY ASSESSMENT DATA and MOTIVATION ASSESSMENT DATA.
-
-Do not use PROCESS CONTEXT, process purpose, assumed role requirements,
-candidate history or outside knowledge to infer an interaction for this
-section. Do not invent missing assessment results."""
-
-    new = """The substantive personality × motivation interaction must be grounded in the
-supplied personality Result Summary evidence and MOTIVATION ASSESSMENT DATA.
-
-PROCESS CONTEXT is available to this box and may be used to explain where,
-when or why a supported interaction may matter in this process. Context must
-not create an interaction that is unsupported by the assessment evidence.
-Do not invent missing assessment results, role requirements or candidate facts."""
-
-    return str(prompt or "").replace(old, new)
-
-
 def _install_personality_interpretation_contract(module) -> None:
     original = module.build_personality_interpretation_prompt
 
@@ -339,8 +346,8 @@ def _install_personality_interpretation_contract(module) -> None:
             language_code=language_code,
         )
 
-        # Remove the old raw personality score block. The final shared input
-        # below supplies the same Result Summary semantics shown in the UI.
+        # Remove the old raw parent-trait score payload. Talena has already
+        # translated those scores into the Result Summary supplied below.
         prompt = _replace_between(
             prompt,
             "\nPERSONALITY ASSESSMENT DATA\n",
@@ -352,16 +359,26 @@ def _install_personality_interpretation_contract(module) -> None:
             ),
         )
 
-        # #231's earlier wrapper may already have inserted a detailed evidence
-        # block. Remove it so the prompt has one authoritative personality source.
+        # #231's earlier wrapper may have inserted a detailed STEN/indicator
+        # evidence block. Remove it so there is one personality source of truth.
         prompt = _remove_between(
             prompt,
             "\nTALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE\n",
             "\n\nADMINISTRATOR AI GUIDANCE\n",
         )
 
-        # Rebuild administrator guidance cleanly: one global prompt plus one
-        # dedicated feature prompt per visible personality box.
+        shared_input = _shared_personality_input(
+            owner,
+            language_code=language_code,
+        )
+        prompt = _insert_before_marker(
+            prompt,
+            "\nADMINISTRATOR AI GUIDANCE\n",
+            shared_input,
+        )
+
+        # Rebuild admin guidance cleanly from the effective global prompt plus
+        # the effective prompt for each exact UI box.
         prompt = _replace_between(
             prompt,
             "\nADMINISTRATOR AI GUIDANCE\n",
@@ -375,14 +392,7 @@ def _install_personality_interpretation_contract(module) -> None:
             ),
         )
 
-        prompt = _replace_personality_motivation_context_boundary(prompt)
-
-        final_input = _shared_personality_input(
-            owner,
-            language_code=language_code,
-        )
-
-        return f"{str(prompt).rstrip()}\n\n{final_input}".strip()
+        return str(prompt).strip()
 
     wrapped._talena_personality_ai_input_contract = True
     module.build_personality_interpretation_prompt = wrapped
@@ -408,6 +418,26 @@ def _install_response_style_contract(module) -> None:
             language_code=language_code,
         )
 
+        shared_input = _shared_personality_input(
+            guidance_owner,
+            language_code=language_code,
+        )
+        response_style_rule = """
+RESPONSE-STYLE EVIDENCE BOUNDARY
+
+Response-style results remain the primary evidence for claims about how the
+questionnaire was answered. The personality Result Summary is supporting
+context for understanding the profile that those response styles qualify.
+Do not infer a response-style result from the trait summaries, and do not use a
+response-style result to rewrite the candidate's personality Result Summary.
+""".strip()
+
+        prompt = _insert_before_marker(
+            prompt,
+            "\nADMINISTRATOR AI GUIDANCE\n",
+            f"{shared_input}\n\n{response_style_rule}",
+        )
+
         prompt = _replace_between(
             prompt,
             "\nADMINISTRATOR AI GUIDANCE\n",
@@ -421,93 +451,20 @@ def _install_response_style_contract(module) -> None:
             ),
         )
 
-        shared_input = _shared_personality_input(
-            guidance_owner,
-            language_code=language_code,
-        )
-
-        response_style_rule = """
-RESPONSE-STYLE EVIDENCE BOUNDARY
-
-Response-style results remain the primary evidence for claims about how the
-questionnaire was answered. The personality Result Summary is supporting
-context for understanding the profile that those response styles qualify.
-Do not infer a response-style result from the trait summaries, and do not use a
-response-style result to rewrite the candidate's personality Result Summary.
-""".strip()
-
-        return (
-            f"{str(prompt).rstrip()}\n\n"
-            f"{shared_input}\n\n{response_style_rule}"
-        ).strip()
+        return str(prompt).strip()
 
     wrapped._talena_personality_ai_input_contract = True
     module.build_response_style_guidance_prompt = wrapped
-
-
-def _install_personality_questions_contract(module) -> None:
-    original = module.build_personality_questions_prompt
-
-    if getattr(original, "_talena_personality_ai_input_contract", False):
-        return
-
-    @wraps(original)
-    def wrapped(
-        invitation,
-        personality_results,
-        *,
-        language_code=None,
-    ):
-        language_code = _language(language_code)
-        prompt = original(
-            invitation,
-            personality_results,
-            language_code=language_code,
-        )
-
-        admin_rule = """
-PERSONALITY QUESTIONS · ADMIN GUIDANCE APPLICATION
-
-The ADMINISTRATOR AI GUIDANCE already supplied above is the complete guidance
-for this box: GLOBAL ADMINISTRATOR AI GUIDANCE plus the Personality Questions
-feature-specific guidance. Both apply to question content.
-
-When AI trait selection is active, the dedicated Personality Trait Selection
-guidance controls only which traits are selected. It does not replace the
-global guidance or the Personality Questions guidance used to write the actual
-questions.
-""".strip()
-
-        return f"{str(prompt).rstrip()}\n\n{admin_rule}".strip()
-
-    wrapped._talena_personality_ai_input_contract = True
-    module.build_personality_questions_prompt = wrapped
-
-    if hasattr(module, "_build_personality_questions_repair_prompt"):
-        original_repair = module._build_personality_questions_repair_prompt
-
-        @wraps(original_repair)
-        def repair(*args, **kwargs):
-            prompt = original_repair(*args, **kwargs)
-            return (
-                f"{str(prompt).rstrip()}\n\n"
-                "PERSONALITY QUESTIONS ADMIN GUIDANCE RULE\n\n"
-                "Preserve the previously supplied global administrator guidance "
-                "and Personality Questions feature-specific guidance while "
-                "repairing only the technical output."
-            )
-
-        module._build_personality_questions_repair_prompt = repair
 
 
 def install_personality_ai_input_contract_policy() -> None:
     """
     Give all personality AI features one consistent input architecture.
 
-    Personality-specific AI receives candidate Result Summary meaning, process
-    context, global administrator guidance and the feature prompt for the exact
-    box being generated. Raw personality STEN values remain internal to Talena's
-    Result Summary translation rather than becoming the model's primary meaning.
+    Parent-trait Personality Questions already receive Result Summary + context
+    + complete admin guidance through the dedicated #230/#231 question policy.
+    This final policy applies the same architecture to Personality
+    Interpretation (all visible boxes in that call) and Response Styles.
     """
 
     global _INSTALLED
@@ -515,11 +472,9 @@ def install_personality_ai_input_contract_policy() -> None:
         return
 
     from apps.core.ai import personality_interpretation
-    from apps.core.ai import personality_questions
     from apps.core.ai import response_style_guidance
 
     _install_personality_interpretation_contract(personality_interpretation)
     _install_response_style_contract(response_style_guidance)
-    _install_personality_questions_contract(personality_questions)
 
     _INSTALLED = True
