@@ -221,9 +221,12 @@ def render_personality_ai_evidence(
     if language_code == "sv":
         intro = (
             "Definitionerna nedan är Talenas godkända betydelser av skalans "
-            "riktningar. Använd kandidatens STEN-resultat i relation till dessa "
+            "riktningar. Tolka kandidatens STEN-resultat i relation till dessa "
             "poler. Definitionerna är inte bevis för att ett beteende alltid "
-            "förekommer, och ingen pol är i sig bättre än den andra."
+            "förekommer, och ingen pol är i sig bättre än den andra. Ett "
+            "personlighetsresultat är inte i sig bevis på kompetens, prestation "
+            "eller rollpassning. Processkontext får styra vad som är relevant att "
+            "utforska, men får inte ändra betydelsen av traitet eller skalans poler."
         )
         low_label = "GODKÄND LÅG-POL"
         high_label = "GODKÄND HÖG-POL"
@@ -232,7 +235,10 @@ def render_personality_ai_evidence(
             "The definitions below are Talena's approved meanings for the scale "
             "directions. Interpret the candidate's STEN result in relation to "
             "these poles. The definitions are not proof that a behaviour always "
-            "occurs, and neither pole is inherently better than the other."
+            "occurs, and neither pole is inherently better than the other. A "
+            "personality result is not, by itself, evidence of competence, "
+            "performance or role fit. Process context may shape what is relevant "
+            "to explore, but it must not rewrite the meaning of the trait or poles."
         )
         low_label = "APPROVED LOW POLE"
         high_label = "APPROVED HIGH POLE"
