@@ -1,7 +1,9 @@
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
+from apps.core.ai import personality_questions
 from apps.core.ai.personality_question_definition_grounding_policy import (
     _build_personality_definition_grounding,
     _score_band_key,
@@ -52,6 +54,27 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
                 }
             ],
         )
+
+    def _prompt_owner(self):
+        owner = self._owner()
+        owner.candidate = SimpleNamespace(
+            first_name="Alex",
+            last_name="Andersson",
+            email="alex@example.com",
+        )
+        owner.process = SimpleNamespace(
+            purpose="recruitment",
+            role_context=SimpleNamespace(
+                get_context_for_purpose=lambda purpose: {
+                    "context_text": (
+                        "Role: Key Account Manager. "
+                        "The role involves changing customer needs."
+                    )
+                }
+            ),
+            is_historical=False,
+        )
+        return owner
 
     def test_indicator_sten_values_map_to_approved_score_bands(self):
         expected = {
@@ -295,3 +318,38 @@ class PersonalityQuestionDefinitionGroundingPolicyTests(SimpleTestCase):
         )
 
         self.assertEqual(prompt, "")
+
+    def test_runtime_personality_prompt_receives_definition_grounding(self):
+        owner = self._prompt_owner()
+
+        with patch.object(
+            personality_questions,
+            "get_ai_prompt_instructions",
+            return_value="Use nuanced candidate-specific questions.",
+        ), patch.object(
+            personality_questions,
+            "get_ai_feature_prompt_instructions",
+            return_value="",
+        ):
+            prompt = (
+                personality_questions.build_personality_questions_prompt(
+                    owner,
+                    [{"name": "Cooperative", "sten": 7}],
+                    language_code="en",
+                )
+            )
+
+        self.assertIn(
+            "TALENA APPROVED PERSONALITY MEANING AND INDICATOR EVIDENCE",
+            prompt,
+        )
+        self.assertIn(
+            INDICATOR_PROFILE_CONTENT[
+                "Sensitivity"
+            ]["score_texts"]["9_10"]["en"],
+            prompt,
+        )
+        self.assertIn(
+            "Normally cover each selected trait before reusing a trait",
+            prompt,
+        )
