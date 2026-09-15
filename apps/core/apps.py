@@ -52,6 +52,9 @@ class CoreConfig(AppConfig):
         from .ai.post_interview_question_evidence_policy import (
             install_post_interview_question_evidence_policy,
         )
+        from .ai.shared_personality_grounding_policy import (
+            install_shared_personality_grounding_policy,
+        )
 
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
@@ -123,3 +126,9 @@ class CoreConfig(AppConfig):
         # prompt always receives the exact question together with its saved
         # answer/note, even when no separate free-text interview note exists.
         install_post_interview_question_evidence_policy()
+
+        # Ticket #231: all active AI consumers that interpret parent personality
+        # traits reuse one definition-grounded evidence layer backed directly by
+        # TRAIT_PROFILE_CONTENT. Install last so it wraps the final prompt/evidence
+        # builders after their existing feature-specific policies.
+        install_shared_personality_grounding_policy()
