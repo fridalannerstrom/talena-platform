@@ -22,6 +22,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_question_definition_grounding_policy import (
             install_personality_question_definition_grounding_policy,
         )
+        from .ai.personality_question_situational_language_policy import (
+            install_personality_question_situational_language_policy,
+        )
         from .ai.personality_dynamics_structure_policy import (
             install_personality_dynamics_structure_policy,
         )
@@ -75,6 +78,12 @@ class CoreConfig(AppConfig):
         # after the other personality prompt policies so the final runtime prompt
         # always receives the same authoritative definition layer.
         install_personality_question_definition_grounding_policy()
+
+        # STEN 4-7 is a situational behavioural pattern in personality questions,
+        # never a middle/average level. Install this after the other personality
+        # question policies so their final runtime prompt and visible why text are
+        # normalised consistently in Swedish and English.
+        install_personality_question_situational_language_policy()
 
         # Combined trait dynamics are generated as exactly two separate items,
         # then normalised back to Talena's existing saved string field so old
