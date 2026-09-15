@@ -55,6 +55,9 @@ class CoreConfig(AppConfig):
         from .ai.shared_personality_grounding_policy import (
             install_shared_personality_grounding_policy,
         )
+        from .ai.personality_ai_input_contract_policy import (
+            install_personality_ai_input_contract_policy,
+        )
 
         # Install product-level prompt and question policies at startup so
         # admin metadata, protected defaults and runtime behaviour stay in
@@ -111,3 +114,9 @@ class CoreConfig(AppConfig):
         # score-band texts used in Talena's Result Summary. These broader flows
         # may still receive structured score metadata where it adds value.
         install_shared_personality_grounding_policy()
+
+        # Final personality-only contract: every personality AI box receives the
+        # translated Result Summary meaning, process context, global admin prompt
+        # and the feature-specific prompt for that exact box. Install last so it
+        # can simplify older prompt layers without changing output schemas.
+        install_personality_ai_input_contract_policy()
