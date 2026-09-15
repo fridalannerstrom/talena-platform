@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any
+from typing import Any, Iterable
 
 
 _INSTALLED = False
@@ -72,53 +72,188 @@ def _ensure_question_labels(
     questions: list[dict[str, Any]],
     selected_traits: list[str],
 ) -> list[dict[str, Any]]:
+    """Only fill a missing label when there is exactly one unambiguous focus."""
+
     canonical_traits = [
         str(trait).strip()
         for trait in selected_traits or []
         if str(trait).strip()
     ]
 
-    if not canonical_traits:
+    if len(canonical_traits) != 1:
         return questions
 
-    fallback_index = 0
+    only_trait = canonical_traits[0]
 
     for question in questions:
         if not isinstance(question, dict):
             continue
 
         traits = question.get("traits")
-        valid_traits = (
-            [str(item).strip() for item in traits if str(item).strip()]
-            if isinstance(traits, list)
-            else []
-        )
-
-        if valid_traits:
-            question["traits"] = valid_traits
-            continue
-
-        # Last-resort display integrity. The prompt contract should make this
-        # rare, but a substantive question must never lose its visible focus
-        # label merely because the model omitted metadata. Distribute missing
-        # labels over the saved selection instead of silently using one trait
-        # for every question.
-        question["traits"] = [
-            canonical_traits[fallback_index % len(canonical_traits)]
-        ]
-        fallback_index += 1
+        if not isinstance(traits, list) or not any(
+            str(item or "").strip()
+            for item in traits
+        ):
+            question["traits"] = [only_trait]
 
     return questions
 
 
+def _selected_traits_from_events(events: list[dict[str, Any]]) -> list[str]:
+    for event in reversed(events):
+        if str(event.get("type") or "").strip().casefold() != "selected_traits":
+            continue
+        items = event.get("items")
+        if not isinstance(items, list):
+            return []
+        return [
+            str(item).strip()
+            for item in items[:MAX_PERSONALITY_TRAITS]
+            if str(item).strip()
+        ]
+    return []
+
+
+def _questions_from_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    for event in reversed(events):
+        if str(event.get("type") or "").strip().casefold() != "questions":
+            continue
+        items = event.get("items")
+        if not isinstance(items, list):
+            return []
+        return [
+            item
+            for item in items
+            if isinstance(item, dict)
+            and str(item.get("question") or "").strip()
+        ]
+    return []
+
+
+def _questions_have_valid_labels(events: list[dict[str, Any]]) -> bool:
+    selected_traits = _selected_traits_from_events(events)
+    questions = _questions_from_events(events)
+
+    if not selected_traits or not questions:
+        return False
+
+    selected_keys = {
+        str(item).strip().casefold()
+        for item in selected_traits
+        if str(item).strip()
+    }
+
+    for question in questions:
+        traits = question.get("traits")
+        if not isinstance(traits, list) or not traits:
+            return False
+
+        valid = [
+            str(item).strip().casefold()
+            for item in traits
+            if str(item).strip().casefold() in selected_keys
+        ]
+        if not valid:
+            return False
+
+    return True
+
+
+def _replace_selected_traits_and_questions(
+    events: list[dict[str, Any]],
+    questions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Use the fallback questions' own traits as the authoritative selection."""
+
+    selected_traits: list[str] = []
+    seen = set()
+
+    for question in questions:
+        for trait in question.get("traits") or []:
+            text = str(trait or "").strip()
+            key = text.casefold()
+            if text and key not in seen:
+                seen.add(key)
+                selected_traits.append(text)
+
+    selected_traits = selected_traits[:MAX_PERSONALITY_TRAITS]
+
+    output: list[dict[str, Any]] = []
+    selected_inserted = False
+    questions_inserted = False
+
+    for event in events:
+        event_type = str(event.get("type") or "").strip().casefold()
+
+        if event_type == "selected_traits":
+            if not selected_inserted:
+                output.append(
+                    {
+                        "type": "selected_traits",
+                        "items": selected_traits,
+                    }
+                )
+                selected_inserted = True
+            continue
+
+        if event_type == "questions":
+            if not questions_inserted:
+                output.append(
+                    {
+                        "type": "questions",
+                        "items": questions,
+                    }
+                )
+                questions_inserted = True
+            continue
+
+        if event_type == "done":
+            if not selected_inserted:
+                output.append(
+                    {
+                        "type": "selected_traits",
+                        "items": selected_traits,
+                    }
+                )
+                selected_inserted = True
+            if not questions_inserted:
+                output.append(
+                    {
+                        "type": "questions",
+                        "items": questions,
+                    }
+                )
+                questions_inserted = True
+
+        output.append(event)
+
+    if not selected_inserted:
+        output.append(
+            {
+                "type": "selected_traits",
+                "items": selected_traits,
+            }
+        )
+    if not questions_inserted:
+        output.append(
+            {
+                "type": "questions",
+                "items": questions,
+            }
+        )
+
+    return output
+
+
 def install_personality_question_label_policy() -> None:
-    """Require visible focus labels and raise the trait ceiling to eight."""
+    """Require accurate visible focus labels and allow up to eight traits."""
 
     global _INSTALLED
     if _INSTALLED:
         return
 
     from apps.core.ai import personality_questions
+    from apps.core.ai.question_count_policy import _personality_fallback
 
     original_prompt = personality_questions.build_personality_questions_prompt
 
@@ -209,6 +344,50 @@ def install_personality_question_label_policy() -> None:
 
     personality_questions.apply_personality_questions_event = (
         apply_personality_questions_event
+    )
+
+    original_stream = personality_questions.stream_personality_questions
+
+    @wraps(original_stream)
+    def stream_personality_questions(*args, **kwargs) -> Iterable[dict[str, Any]]:
+        events = [
+            event
+            for event in original_stream(*args, **kwargs)
+            if isinstance(event, dict)
+        ]
+
+        if _questions_have_valid_labels(events):
+            yield from events
+            return
+
+        # Do not guess which trait a model meant. Fall back to Talena's
+        # evidence-aware deterministic question builder, where question text
+        # and trait metadata are created from the same focus.
+        fallback_questions = _personality_fallback(
+            personality_questions,
+            events,
+            kwargs,
+        )
+
+        if not fallback_questions:
+            raise ValueError(
+                "Talena could not create personality questions with valid focus labels."
+            )
+
+        replacement_events = _replace_selected_traits_and_questions(
+            events,
+            fallback_questions,
+        )
+
+        if not _questions_have_valid_labels(replacement_events):
+            raise ValueError(
+                "Talena could not create personality questions with valid focus labels."
+            )
+
+        yield from replacement_events
+
+    personality_questions.stream_personality_questions = (
+        stream_personality_questions
     )
 
     _INSTALLED = True
