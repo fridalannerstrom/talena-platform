@@ -1,16 +1,27 @@
 from __future__ import annotations
 
-import math
 from typing import Any, Iterable
 
-from apps.reports.libraries.personality.content import TRAIT_PROFILE_CONTENT
+from apps.reports.libraries.personality.builder import (
+    build_trait_summary,
+    get_localized_text,
+    get_score_band,
+    normalize_sten,
+)
+from apps.reports.libraries.personality.content import (
+    INDICATOR_PROFILE_CONTENT,
+    TRAIT_PROFILE_CONTENT,
+)
+from apps.reports.libraries.personality.definitions import (
+    TRAIT_AND_INDICATOR_PROFILE,
+)
 
 from .language import normalize_ai_language
 
 
-# Technical aliases that may occur in imported/Sova data. The report library
-# remains the source of truth for the actual trait definitions.
-_TRAIT_CANONICAL_BY_KEY: dict[str, str] = {}
+# ---------------------------------------------------------------------------
+# Canonical names
+# ---------------------------------------------------------------------------
 
 
 def normalise_personality_trait_key(value: Any) -> str:
@@ -21,6 +32,9 @@ def normalise_personality_trait_key(value: Any) -> str:
 
     return " ".join(text.split())
 
+
+_TRAIT_CANONICAL_BY_KEY: dict[str, str] = {}
+_INDICATOR_CANONICAL_BY_KEY: dict[str, str] = {}
 
 for _canonical_name, _content in TRAIT_PROFILE_CONTENT.items():
     _TRAIT_CANONICAL_BY_KEY[
@@ -37,6 +51,18 @@ for _canonical_name, _content in TRAIT_PROFILE_CONTENT.items():
 # Sova/report wording has historically used both names for this trait.
 _TRAIT_CANONICAL_BY_KEY["achievement striving"] = "Goal-focused"
 
+for _canonical_name, _content in INDICATOR_PROFILE_CONTENT.items():
+    _INDICATOR_CANONICAL_BY_KEY[
+        normalise_personality_trait_key(_canonical_name)
+    ] = _canonical_name
+
+    for _label_key in ("label_sv", "label_en"):
+        _label = str(_content.get(_label_key) or "").strip()
+        if _label:
+            _INDICATOR_CANONICAL_BY_KEY[
+                normalise_personality_trait_key(_label)
+            ] = _canonical_name
+
 
 def canonical_parent_trait_name(value: Any) -> str | None:
     """Return the approved parent-trait name, or None for non-parent rows."""
@@ -46,31 +72,47 @@ def canonical_parent_trait_name(value: Any) -> str | None:
     )
 
 
-def _localised(value: Any, language_code: str) -> str:
-    if isinstance(value, dict):
-        return str(
-            value.get(language_code)
-            or value.get("en")
-            or value.get("sv")
-            or ""
-        ).strip()
-
-    return str(value or "").strip()
+def canonical_indicator_name(value: Any) -> str | None:
+    return _INDICATOR_CANONICAL_BY_KEY.get(
+        normalise_personality_trait_key(value)
+    )
 
 
-def _normalise_sten(value: Any) -> int | float | None:
-    if value is None:
-        return None
+# ---------------------------------------------------------------------------
+# Trait -> indicator hierarchy
+# ---------------------------------------------------------------------------
 
-    try:
-        score = float(value)
-    except (TypeError, ValueError):
-        return None
 
-    if not math.isfinite(score) or score < 1 or score > 10:
-        return None
+def _build_trait_indicator_map() -> dict[str, list[str]]:
+    mapping: dict[str, list[str]] = {}
 
-    return int(score) if score.is_integer() else score
+    for section in TRAIT_AND_INDICATOR_PROFILE.get("sections", []):
+        for trait in section.get("traits", []):
+            trait_name = str(trait.get("trait_name") or "").strip()
+            canonical_trait = canonical_parent_trait_name(trait_name)
+
+            if not canonical_trait:
+                continue
+
+            mapping[canonical_trait] = [
+                canonical_indicator
+                for raw_indicator in trait.get("indicators", [])
+                if (
+                    canonical_indicator := canonical_indicator_name(
+                        raw_indicator
+                    )
+                )
+            ]
+
+    return mapping
+
+
+_TRAIT_INDICATORS = _build_trait_indicator_map()
+
+
+# ---------------------------------------------------------------------------
+# Raw row normalisation
+# ---------------------------------------------------------------------------
 
 
 def _row_name(item: dict[str, Any]) -> str:
@@ -82,13 +124,44 @@ def _row_name(item: dict[str, Any]) -> str:
     ).strip()
 
 
-def _row_sten(item: dict[str, Any]) -> int | float | None:
+def _row_sten(item: dict[str, Any]) -> int | None:
     for field_name in ("sten_rounded", "sten", "score"):
-        score = _normalise_sten(item.get(field_name))
+        score = normalize_sten(item.get(field_name))
         if score is not None:
             return score
 
     return None
+
+
+def _localised_label(
+    content: dict[str, Any],
+    canonical_name: str,
+    language_code: str,
+) -> str:
+    return str(
+        content.get(f"label_{language_code}")
+        or content.get("label_en")
+        or content.get("label_sv")
+        or canonical_name
+    ).strip()
+
+
+def _included_traits(
+    include_traits: Iterable[str] | None,
+) -> set[str] | None:
+    if include_traits is None:
+        return None
+
+    return {
+        canonical
+        for value in include_traits
+        if (canonical := canonical_parent_trait_name(value))
+    }
+
+
+# ---------------------------------------------------------------------------
+# Shared candidate-specific evidence
+# ---------------------------------------------------------------------------
 
 
 def build_personality_ai_evidence(
@@ -98,83 +171,122 @@ def build_personality_ai_evidence(
     include_traits: Iterable[str] | None = None,
 ) -> list[dict[str, Any]]:
     """
-    Normalize parent personality scores into Talena's shared AI evidence shape.
+    Build Talena's shared candidate-specific personality evidence.
 
-    The approved low/high-pole wording always comes directly from
-    TRAIT_PROFILE_CONTENT. Unknown competencies, indicators and response-style
-    rows are intentionally ignored rather than assigned invented definitions.
+    This intentionally mirrors the logic behind the Result Summary UI:
+    each indicator contributes the exact approved text for the candidate's
+    rounded STEN band, and the parent-trait summary is the joined indicator
+    interpretation text.
+
+    Low/high-pole definitions are not used as the primary AI evidence here.
+    The candidate's actual result description is more informative and less
+    likely to flatten a nuanced profile into generic scale-direction language.
     """
 
     language_code = normalize_ai_language(language_code)
+    included_canonical_names = _included_traits(include_traits)
 
-    included_canonical_names: set[str] | None = None
-    if include_traits is not None:
-        included_canonical_names = {
-            canonical
-            for value in include_traits
-            if (canonical := canonical_parent_trait_name(value))
-        }
-
-    evidence_by_trait: dict[str, dict[str, Any]] = {}
+    parent_rows: dict[str, dict[str, Any]] = {}
+    indicator_rows: dict[str, dict[str, Any]] = {}
 
     for item in items or []:
         if not isinstance(item, dict):
             continue
 
         source_name = _row_name(item)
-        canonical_name = canonical_parent_trait_name(source_name)
-
-        if not canonical_name:
+        if not source_name:
             continue
 
+        parent_name = canonical_parent_trait_name(source_name)
+        if parent_name:
+            parent_rows[parent_name] = item
+            continue
+
+        indicator_name = canonical_indicator_name(source_name)
+        if indicator_name:
+            indicator_rows[indicator_name] = item
+
+    evidence = []
+
+    for canonical_name, trait_content in TRAIT_PROFILE_CONTENT.items():
         if (
             included_canonical_names is not None
             and canonical_name not in included_canonical_names
         ):
             continue
 
-        sten = _row_sten(item)
+        parent_row = parent_rows.get(canonical_name)
+        if not parent_row:
+            continue
+
+        sten = _row_sten(parent_row)
         if sten is None:
             continue
 
-        content = TRAIT_PROFILE_CONTENT.get(canonical_name) or {}
-        label = str(
-            content.get(f"label_{language_code}")
-            or content.get("label_en")
-            or canonical_name
-        ).strip()
+        indicators = []
 
-        evidence_by_trait[canonical_name] = {
-            "name": canonical_name,
-            "source_name": source_name or canonical_name,
-            "label": label,
-            "sten": sten,
-            "low_pole": _localised(
-                content.get("low_pole"),
+        for indicator_name in _TRAIT_INDICATORS.get(canonical_name, []):
+            indicator_row = indicator_rows.get(indicator_name)
+            if not indicator_row:
+                continue
+
+            indicator_sten = _row_sten(indicator_row)
+            if indicator_sten is None:
+                continue
+
+            indicator_content = (
+                INDICATOR_PROFILE_CONTENT.get(indicator_name)
+                or {}
+            )
+            score_band = get_score_band(indicator_sten)
+            score_text = get_localized_text(
+                (indicator_content.get("score_texts") or {}).get(
+                    score_band
+                ),
                 language_code,
-            ),
-            "high_pole": _localised(
-                content.get("high_pole"),
-                language_code,
-            ),
-        }
+            ).strip()
 
-    # Keep report-library order stable across all downstream prompts.
-    return [
-        evidence_by_trait[name]
-        for name in TRAIT_PROFILE_CONTENT
-        if name in evidence_by_trait
-    ]
+            if not score_text:
+                continue
+
+            indicators.append(
+                {
+                    "name": indicator_name,
+                    "label": _localised_label(
+                        indicator_content,
+                        indicator_name,
+                        language_code,
+                    ),
+                    "sten": indicator_sten,
+                    "score_band": score_band,
+                    "text": score_text,
+                }
+            )
+
+        evidence.append(
+            {
+                "name": canonical_name,
+                "source_name": _row_name(parent_row) or canonical_name,
+                "label": _localised_label(
+                    trait_content,
+                    canonical_name,
+                    language_code,
+                ),
+                "sten": sten,
+                "summary": build_trait_summary(indicators),
+                "indicators": indicators,
+            }
+        )
+
+    return evidence
 
 
-def extract_owner_parent_personality_results(owner) -> list[dict[str, Any]]:
-    """Return raw parent-trait score rows for active or historical candidates."""
+def extract_owner_personality_results(owner) -> list[dict[str, Any]]:
+    """Return raw personality rows for active or historical candidates."""
 
     process = getattr(owner, "process", None)
 
     if getattr(process, "is_historical", False):
-        # Lazy import keeps core AI startup independent of the processes service
-        # import graph.
         from apps.processes.services.candidate_profile import (
             build_historical_candidate_profile,
         )
@@ -182,15 +294,17 @@ def extract_owner_parent_personality_results(owner) -> list[dict[str, Any]]:
         profile = build_historical_candidate_profile(owner)
         return list(profile.get("personality_competencies") or [])
 
-    # Reuse the established active-candidate Sova extraction. This returns all
-    # scored personality rows; build_personality_ai_evidence then keeps only the
-    # 18 approved parent traits.
     try:
         from .personality_questions import extract_personality_results
 
         return list(extract_personality_results(owner) or [])
     except (AttributeError, TypeError, ValueError):
         return []
+
+
+# Backwards-compatible name used by the first #231 implementation/tests.
+def extract_owner_parent_personality_results(owner) -> list[dict[str, Any]]:
+    return extract_owner_personality_results(owner)
 
 
 def build_owner_personality_ai_evidence(
@@ -200,7 +314,7 @@ def build_owner_personality_ai_evidence(
     include_traits: Iterable[str] | None = None,
 ) -> list[dict[str, Any]]:
     return build_personality_ai_evidence(
-        extract_owner_parent_personality_results(owner),
+        extract_owner_personality_results(owner),
         language_code=language_code,
         include_traits=include_traits,
     )
@@ -210,8 +324,9 @@ def render_personality_ai_evidence(
     evidence: Iterable[dict[str, Any]] | None,
     *,
     language_code: str = "en",
+    include_indicator_details: bool = False,
 ) -> str:
-    """Render shared structured evidence for inclusion in AI prompts."""
+    """Render the same candidate-specific meaning used by Result Summary."""
 
     language_code = normalize_ai_language(language_code)
     rows = list(evidence or [])
@@ -221,32 +336,37 @@ def render_personality_ai_evidence(
 
     if language_code == "sv":
         intro = (
-            "Definitionerna nedan är Talenas godkända betydelser av skalans "
-            "riktningar. Tolka kandidatens STEN-resultat i relation till dessa "
-            "poler. STEN 4–7 ska beskrivas som situationsbaserat, inte som "
-            "medelnivå, genomsnitt eller att kandidaten ligger i mitten. "
-            "Definitionerna är inte bevis för att ett beteende alltid förekommer, "
-            "och ingen pol är i sig bättre än den andra. Ett personlighetsresultat "
-            "är inte i sig bevis på kompetens, prestation eller rollpassning. "
-            "Processkontext får styra vad som är relevant att utforska, men får "
-            "inte ändra betydelsen av traitet eller skalans poler."
+            "Detta är kandidatens resultatspecifika personlighetsevidens. "
+            "Sammanfattningarna byggs av samma godkända indikatortexter och "
+            "STEN-band som används i Talenas Resultatsammanfattning. Använd "
+            "därför kandidatens faktiska sammanfattning som primär betydelse, "
+            "inte en generell vänster/höger-definition av skalan. Om STEN 4–7 "
+            "beskrivs som nivå ska termen situationsbaserat användas, men reducera "
+            "inte hela resultatet till ordet situationsbaserat när den konkreta "
+            "sammanfattningen innehåller mer nyans. Personlighetsevidens är "
+            "hypoteser att utforska, inte bevis på fast beteende, kompetens, "
+            "prestation eller rollpassning. Processkontext får styra relevansen "
+            "och situationen som utforskas, men inte skriva om själva resultatet."
         )
-        low_label = "GODKÄND LÅG-POL"
-        high_label = "GODKÄND HÖG-POL"
+        summary_label = "KANDIDATENS RESULTATSAMMANFATTNING"
+        indicator_label = "UNDERLIGGANDE INDIKATORNYANSER"
+        no_summary = "Ingen resultatsammanfattning kunde byggas från indikatorerna."
     else:
         intro = (
-            "The definitions below are Talena's approved meanings for the scale "
-            "directions. Interpret the candidate's STEN result in relation to "
-            "these poles. STEN 4–7 must be described as situational, not as "
-            "mid-range, average or sitting in the middle. The definitions are not "
-            "proof that a behaviour always occurs, and neither pole is inherently "
-            "better than the other. A personality result is not, by itself, "
-            "evidence of competence, performance or role fit. Process context may "
-            "shape what is relevant to explore, but it must not rewrite the "
-            "meaning of the trait or poles."
+            "This is candidate-specific personality evidence. The summaries are "
+            "built from the same approved indicator texts and STEN bands used in "
+            "Talena's Result Summary. Use the candidate's actual result summary as "
+            "the primary meaning rather than a generic left/right scale definition. "
+            "If STEN 4–7 is described as a level, use the term situational, but do "
+            "not reduce the full result to the word situational when the concrete "
+            "summary contains more nuance. Personality evidence is a hypothesis to "
+            "explore, not proof of fixed behaviour, competence, performance or role "
+            "fit. Process context may shape relevance and the situation explored, "
+            "but it must not rewrite the assessment result itself."
         )
-        low_label = "APPROVED LOW POLE"
-        high_label = "APPROVED HIGH POLE"
+        summary_label = "CANDIDATE-SPECIFIC RESULT SUMMARY"
+        indicator_label = "UNDERLYING INDICATOR NUANCE"
+        no_summary = "No result summary could be built from the indicators."
 
     blocks = []
 
@@ -264,14 +384,36 @@ def render_personality_ai_evidence(
             f"TRAIT: {heading}",
             f"SOURCE NAME: {source_name}",
             f"CANDIDATE RESULT: STEN {sten} of 10",
-            f"{low_label}: {row.get('low_pole') or ''}",
-            f"{high_label}: {row.get('high_pole') or ''}",
+            f"{summary_label}: {row.get('summary') or no_summary}",
         ]
+
+        if include_indicator_details and row.get("indicators"):
+            lines.append(f"{indicator_label}:")
+
+            for indicator in row["indicators"]:
+                indicator_name = str(indicator.get("name") or "").strip()
+                indicator_display = str(
+                    indicator.get("label") or indicator_name
+                ).strip()
+                indicator_heading = indicator_name
+
+                if (
+                    indicator_display
+                    and indicator_display != indicator_name
+                ):
+                    indicator_heading = (
+                        f"{indicator_name} / {indicator_display}"
+                    )
+
+                lines.append(
+                    f"- {indicator_heading}: STEN {indicator.get('sten')} of 10. "
+                    f"{indicator.get('text') or ''}"
+                )
 
         blocks.append("\n".join(lines))
 
     return (
-        "TALENA APPROVED PERSONALITY DEFINITION EVIDENCE\n\n"
+        "TALENA CANDIDATE-SPECIFIC PERSONALITY RESULT EVIDENCE\n\n"
         + intro
         + "\n\n"
         + "\n\n".join(blocks)
@@ -283,6 +425,7 @@ def build_personality_ai_evidence_text(
     *,
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
+    include_indicator_details: bool = False,
 ) -> str:
     return render_personality_ai_evidence(
         build_personality_ai_evidence(
@@ -291,6 +434,7 @@ def build_personality_ai_evidence_text(
             include_traits=include_traits,
         ),
         language_code=language_code,
+        include_indicator_details=include_indicator_details,
     )
 
 
@@ -299,6 +443,7 @@ def build_owner_personality_ai_evidence_text(
     *,
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
+    include_indicator_details: bool = False,
 ) -> str:
     return render_personality_ai_evidence(
         build_owner_personality_ai_evidence(
@@ -307,4 +452,5 @@ def build_owner_personality_ai_evidence_text(
             include_traits=include_traits,
         ),
         language_code=language_code,
+        include_indicator_details=include_indicator_details,
     )
