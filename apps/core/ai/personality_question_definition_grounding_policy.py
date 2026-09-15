@@ -73,8 +73,7 @@ def _build_personality_result_grounding(
     )
 
     return f"""
-
-TALENA CANDIDATE-SPECIFIC PERSONALITY QUESTION EVIDENCE
+TALENA FINAL CANDIDATE-SPECIFIC PERSONALITY QUESTION GROUNDING
 
 {evidence}
 
@@ -102,6 +101,8 @@ HOW TO USE THIS EVIDENCE
   It must not reduce the explanation to only "situational", "high" or "low".
 - Administrator guidance remains authoritative for question style, wording,
   interview approach, number of questions and other non-technical behaviour.
+- Preserve Talena's already supplied NDJSON event structure and technical field
+  names exactly. This final grounding changes content quality, not the schema.
 
 PROCESS-CONTEXT REQUIREMENT
 
@@ -121,23 +122,21 @@ context that is clearly relevant, rewrite the question before returning it.
 """.rstrip()
 
 
-def _inject_grounding(
+def _append_final_grounding(
     prompt: str,
     grounding: str,
 ) -> str:
-    """Place candidate evidence before administrator/output rules."""
+    """
+    Make the concrete candidate evidence the final substantive instruction.
+
+    Earlier protected policies still enforce construct fidelity, situational
+    terminology and labels. Appending this block last prevents those generic
+    guardrails from becoming more salient than the person's actual Result
+    Summary and supplied process context.
+    """
 
     if not grounding:
         return prompt
-
-    marker = "\nADMINISTRATOR AI GUIDANCE\n"
-
-    if marker in prompt:
-        return prompt.replace(
-            marker,
-            f"\n{grounding}\n\nADMINISTRATOR AI GUIDANCE\n",
-            1,
-        )
 
     return f"{str(prompt).rstrip()}\n\n{grounding}"
 
@@ -183,7 +182,7 @@ def install_personality_question_definition_grounding_policy() -> None:
             language_code=resolved_language,
         )
 
-        return _inject_grounding(
+        return _append_final_grounding(
             str(prompt),
             grounding,
         )
@@ -208,7 +207,7 @@ def install_personality_question_definition_grounding_policy() -> None:
             language_code=resolved_language,
         )
 
-        return _inject_grounding(
+        return _append_final_grounding(
             str(prompt),
             grounding,
         )
