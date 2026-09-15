@@ -22,6 +22,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_question_definition_grounding_policy import (
             install_personality_question_definition_grounding_policy,
         )
+        from .ai.personality_dynamics_structure_policy import (
+            install_personality_dynamics_structure_policy,
+        )
         from .ai.motivation_question_precision_policy import (
             install_motivation_question_precision_policy,
         )
@@ -72,6 +75,11 @@ class CoreConfig(AppConfig):
         # after the other personality prompt policies so the final runtime prompt
         # always receives the same authoritative definition layer.
         install_personality_question_definition_grounding_policy()
+
+        # Combined trait dynamics are generated as exactly two separate items,
+        # then normalised back to Talena's existing saved string field so old
+        # results and downstream consumers stay backwards compatible.
+        install_personality_dynamics_structure_policy()
 
         # Keep motivation questions faithful to factor definitions and make the
         # supplied role/process context shape each scenario without replacing
