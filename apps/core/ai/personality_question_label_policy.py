@@ -8,13 +8,6 @@ _INSTALLED = False
 MAX_PERSONALITY_TRAITS = 8
 
 
-def _normalise_key(value: Any) -> str:
-    text = str(value or "").strip().casefold()
-    for character in ("_", "-", "–", "—", "/"):
-        text = text.replace(character, " ")
-    return " ".join(text.split())
-
-
 def _question_label_contract() -> str:
     return f"""
 
@@ -75,70 +68,45 @@ def _normalise_prompt_limits(prompt: str) -> str:
     return text.rstrip() + "\n\n" + _question_label_contract()
 
 
-def _normalise_questions_with_labels(
-    items: Any,
+def _ensure_question_labels(
+    questions: list[dict[str, Any]],
     selected_traits: list[str],
 ) -> list[dict[str, Any]]:
-    if not isinstance(items, list):
-        return []
-
     canonical_traits = [
         str(trait).strip()
         for trait in selected_traits or []
         if str(trait).strip()
     ]
 
-    lookup = {
-        _normalise_key(trait): trait
-        for trait in canonical_traits
-    }
+    if not canonical_traits:
+        return questions
 
-    # Common Sova/report alias. Keep technical output canonical to the
-    # selection value Talena already stores.
-    if "goal focused" in lookup:
-        lookup.setdefault("achievement striving", lookup["goal focused"])
-    if "achievement striving" in lookup:
-        lookup.setdefault("goal focused", lookup["achievement striving"])
-
-    questions: list[dict[str, Any]] = []
     fallback_index = 0
 
-    for item in items:
-        if not isinstance(item, dict):
+    for question in questions:
+        if not isinstance(question, dict):
             continue
 
-        question = str(item.get("question") or "").strip()
-        if not question:
-            continue
-
-        traits: list[str] = []
-        raw_traits = item.get("traits")
-
-        if isinstance(raw_traits, list):
-            for raw_trait in raw_traits:
-                canonical = lookup.get(_normalise_key(raw_trait))
-                if canonical and canonical not in traits:
-                    traits.append(canonical)
-
-        # Last-resort display integrity. The prompt contract above should make
-        # this rare, but a substantive question must never lose its visible
-        # focus label merely because the model omitted metadata. Distribute the
-        # fallback across the saved selection instead of silently using one
-        # trait for every question.
-        if not traits and canonical_traits:
-            traits = [
-                canonical_traits[fallback_index % len(canonical_traits)]
-            ]
-            fallback_index += 1
-
-        questions.append(
-            {
-                "question": question,
-                "traits": traits,
-                "why": str(item.get("why") or "").strip(),
-                "listen_for": str(item.get("listen_for") or "").strip(),
-            }
+        traits = question.get("traits")
+        valid_traits = (
+            [str(item).strip() for item in traits if str(item).strip()]
+            if isinstance(traits, list)
+            else []
         )
+
+        if valid_traits:
+            question["traits"] = valid_traits
+            continue
+
+        # Last-resort display integrity. The prompt contract should make this
+        # rare, but a substantive question must never lose its visible focus
+        # label merely because the model omitted metadata. Distribute missing
+        # labels over the saved selection instead of silently using one trait
+        # for every question.
+        question["traits"] = [
+            canonical_traits[fallback_index % len(canonical_traits)]
+        ]
+        fallback_index += 1
 
     return questions
 
@@ -184,8 +152,23 @@ def install_personality_question_label_policy() -> None:
             personality_repair
         )
 
+    original_normalise_questions = (
+        personality_questions._normalise_personality_questions
+    )
+
+    @wraps(original_normalise_questions)
+    def normalise_personality_questions(items, selected_traits):
+        questions = original_normalise_questions(
+            items,
+            selected_traits,
+        )
+        return _ensure_question_labels(
+            questions,
+            selected_traits,
+        )
+
     personality_questions._normalise_personality_questions = (
-        _normalise_questions_with_labels
+        normalise_personality_questions
     )
 
     original_apply_event = personality_questions.apply_personality_questions_event
