@@ -19,6 +19,9 @@ class CoreConfig(AppConfig):
         from .ai.personality_question_precision_policy import (
             install_personality_question_precision_policy,
         )
+        from .ai.personality_question_definition_grounding_policy import (
+            install_personality_question_definition_grounding_policy,
+        )
         from .ai.motivation_question_precision_policy import (
             install_motivation_question_precision_policy,
         )
@@ -63,6 +66,12 @@ class CoreConfig(AppConfig):
         # construct and require the visible why text to explain the candidate's
         # qualitative profile direction, not only why a topic matters for the role.
         install_personality_question_precision_policy()
+
+        # Ground parent-trait personality questions in Talena's approved pole
+        # definitions and score-specific indicator interpretations. Install this
+        # after the other personality prompt policies so the final runtime prompt
+        # always receives the same authoritative definition layer.
+        install_personality_question_definition_grounding_policy()
 
         # Keep motivation questions faithful to factor definitions and make the
         # supplied role/process context shape each scenario without replacing
