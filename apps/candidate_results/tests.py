@@ -103,3 +103,19 @@ class CandidateResultFoundationTests(TestCase):
 
         with self.assertRaises(ValidationError):
             snapshot.save()
+
+    def test_snapshot_links_must_match_invitation(self):
+        other_candidate = Candidate.objects.create(
+            first_name="Other",
+            last_name="Candidate",
+            email="other@example.com",
+        )
+
+        with self.assertRaises(ValidationError):
+            CandidateResultSnapshot.objects.create(
+                invitation=self.invitation,
+                candidate=other_candidate,
+                process=self.process,
+                content={},
+                prompt_versions={},
+            )
