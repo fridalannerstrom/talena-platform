@@ -363,8 +363,24 @@
               </div>
 
               <!-- RIGHT -->
-              <div class="candidate-profile-actions">
-                <!-- Empty for now -->
+              <div class="candidate-profile-actions d-flex flex-wrap align-items-center gap-2">
+                {% if not is_historical %}
+                  {% if candidate_result_snapshot %}
+                    <a
+                      class="btn btn-outline-primary btn-sm"
+                      href="{% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id %}"
+                      target="_blank"
+                      rel="noopener">
+                      View candidate result
+                    </a>
+                  {% else %}
+                    <span
+                      class="text-muted small"
+                      title="The candidate result becomes available after the result snapshot is created.">
+                      Candidate result not available yet
+                    </span>
+                  {% endif %}
+                {% endif %}
               </div>
 
             </div>
