@@ -150,17 +150,17 @@ def _candidate_result_areas(
 
     return {
         "personality": {
-            "available": bool(personality_evidence or customer_personality),
+            "available": bool(personality_evidence),
             "evidence": personality_evidence,
         },
         "skills": {
-            "available": has_skills_evidence or bool(customer_cognitive),
+            "available": has_skills_evidence,
             "evidence": {
                 "cognitive_results": _json_safe(cognitive_results),
             },
         },
         "motivation": {
-            "available": bool(motivation_results or customer_motivation),
+            "available": bool(motivation_results),
             "evidence": {
                 "motivation_results": _json_safe(motivation_results),
             },
