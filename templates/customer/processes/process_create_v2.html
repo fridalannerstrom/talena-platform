@@ -456,6 +456,25 @@
   {% endif %}
 </div>
 
+            <div class="candidate-results-setting mt-4 p-3 border rounded-3">
+              <div class="form-check">
+                {{ form.candidate_results_enabled }}
+                <label class="form-check-label" for="{{ form.candidate_results_enabled.id_for_label }}">
+                  {{ form.candidate_results_enabled.label }}
+                </label>
+              </div>
+              {% if form.candidate_results_enabled.help_text %}
+                <div class="form-text mt-1">
+                  {{ form.candidate_results_enabled.help_text }}
+                </div>
+              {% endif %}
+              {% if form.candidate_results_enabled.errors %}
+                <div class="text-danger small mt-2">
+                  {{ form.candidate_results_enabled.errors|striptags }}
+                </div>
+              {% endif %}
+            </div>
+
             <div class="wizard-actions mt-4">
 <button
   type="button"
