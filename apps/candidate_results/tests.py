@@ -5,6 +5,7 @@ import json
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Company
@@ -466,6 +467,29 @@ class CandidateResultAccessViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_customer_candidate_view_contains_result_link(self):
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse(
+                "accounts:company_process_candidate_detail",
+                kwargs={
+                    "company_pk": self.company.pk,
+                    "process_pk": self.process.pk,
+                    "candidate_pk": self.candidate.pk,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f"/candidate-results/preview/{self.snapshot.pk}/",
+        )
+        self.assertContains(response, "View candidate result")
 
 
 class CandidateResultEmailTests(TestCase):
