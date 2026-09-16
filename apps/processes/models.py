@@ -42,6 +42,15 @@ class TestProcess(models.Model):
         default="sv",
     )
 
+    candidate_results_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Candidate results enabled",
+        help_text=(
+            "Allow candidates to access a simplified result after all "
+            "required assessments are completed."
+        ),
+    )
+
     self_registration_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
