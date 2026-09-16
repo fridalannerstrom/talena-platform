@@ -204,6 +204,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.projects",
     "apps.processes",
+    "apps.candidate_results",
     "apps.emails",
     "apps.portal",
     "apps.activity",
