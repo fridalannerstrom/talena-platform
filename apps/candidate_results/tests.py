@@ -1,4 +1,6 @@
 from datetime import timedelta
+from unittest.mock import patch
+import json
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -119,3 +121,125 @@ class CandidateResultFoundationTests(TestCase):
                 content={},
                 prompt_versions={},
             )
+
+
+class CandidateResultInterpretationTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="interpretation@example.com",
+            email="interpretation@example.com",
+            password="test-password",
+        )
+        self.company = Company.objects.create(name="Interpretation Company")
+        self.process = TestProcess.objects.create(
+            name="Interpretation project",
+            company=self.company,
+            project_code="interpretation-project",
+            account_code="interpretation-account",
+            created_by=self.user,
+            purpose="flexible",
+        )
+        self.candidate = Candidate.objects.create(
+            first_name="Test",
+            last_name="Candidate",
+            email="interpretation-candidate@example.com",
+        )
+        self.invitation = TestInvitation.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            ai_summary="The customer-facing summary.",
+            ai_personality_interpretation={
+                "interpretation": "The customer personality meaning.",
+            },
+            ai_motivation_interpretation={
+                "interpretation": "The customer motivation meaning.",
+            },
+            ai_cognitive_interpretation={
+                "interpretation": "The customer cognitive meaning.",
+            },
+            sova_activities=[
+                {
+                    "activity": "Personality",
+                    "competencies": [
+                        {"competency": "Structure", "sten": 7},
+                    ],
+                },
+                {
+                    "activity": "Skills",
+                    "competencies": [
+                        {"competency": "Numerical reasoning", "percentile": 62},
+                    ],
+                },
+            ],
+        )
+
+    def test_prompt_uses_customer_evidence_and_candidate_rules(self):
+        from apps.candidate_results.interpretation import (
+            build_candidate_result_prompt,
+        )
+
+        prompt, metadata = build_candidate_result_prompt(
+            self.invitation,
+            language_code="en",
+        )
+
+        self.assertIn("The customer-facing summary.", prompt)
+        self.assertIn("The customer personality meaning.", prompt)
+        self.assertIn("Do not expose raw scores", prompt)
+        self.assertEqual(
+            set(metadata),
+            {"introduction", "personality", "skills", "motivation"},
+        )
+        self.assertEqual(metadata["personality"]["language"], "en")
+
+    @patch("apps.candidate_results.interpretation.get_openai_client")
+    def test_generation_normalises_exact_candidate_sections(self, get_client):
+        from types import SimpleNamespace
+
+        from apps.candidate_results.interpretation import (
+            generate_candidate_result_content,
+        )
+
+        get_client.return_value.chat.completions.create.return_value = (
+            SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(
+                            content=json.dumps({
+                                "introduction": {
+                                    "title": "Välkommen",
+                                    "body": "Ett reflektionsunderlag.",
+                                },
+                                "personality": {
+                                    "title": "Personlighet",
+                                    "body": "Möjliga preferenser.",
+                                    "points": ["Punkt 1"],
+                                },
+                                "skills": "Beskrivande färdighetstext.",
+                                "motivation": {
+                                    "title": "Motivation",
+                                    "body": "Möjliga drivkrafter.",
+                                },
+                            })
+                        )
+                    )
+                ]
+            )
+        )
+
+        content, metadata, fingerprint = generate_candidate_result_content(
+            self.invitation,
+            language_code="sv",
+        )
+
+        self.assertEqual(
+            set(content),
+            {"introduction", "personality", "skills", "motivation"},
+        )
+        self.assertEqual(
+            content["skills"]["body"],
+            "Beskrivande färdighetstext.",
+        )
+        self.assertTrue(fingerprint)
+        self.assertEqual(metadata["introduction"]["language"], "sv")
