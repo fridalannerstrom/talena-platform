@@ -491,6 +491,27 @@ class CandidateResultAccessViewTests(TestCase):
         )
         self.assertContains(response, "View candidate result")
 
+    def test_customer_portal_sheet_contains_result_link(self):
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse(
+                "processes:process_candidate_detail",
+                kwargs={
+                    "process_id": self.process.pk,
+                    "candidate_id": self.candidate.pk,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f"/candidate-results/preview/{self.snapshot.pk}/",
+        )
+
 
 class CandidateResultEmailTests(TestCase):
     def setUp(self):
