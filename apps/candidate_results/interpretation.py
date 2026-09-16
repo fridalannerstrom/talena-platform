@@ -493,6 +493,10 @@ def generate_candidate_result_content(
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], str]:
     """Generate candidate-facing content without mutating the invitation."""
     language_code = normalize_ai_language(language_code)
+    source = build_candidate_result_source(
+        invitation,
+        language_code=language_code,
+    )
     prompt, prompt_metadata = build_candidate_result_prompt(
         invitation,
         language_code=language_code,
@@ -521,7 +525,7 @@ def generate_candidate_result_content(
         language_code=language_code,
     )
     fingerprint_payload = {
-        "source": build_candidate_result_source(invitation),
+        "source": source,
         "prompt_versions": prompt_metadata,
         "locale": language_code,
     }
