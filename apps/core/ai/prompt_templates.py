@@ -7111,6 +7111,93 @@ Do not make hiring, rejection, placement or promotion decisions.""".strip(),
     },
 
 
+    "candidate_result_introduction": {
+        "name": "Candidate result · Introduction",
+        "category": "Candidate results",
+        "description": (
+            "Controls the welcoming introduction shown in the candidate result."
+        ),
+        "defaults": {
+            "sv": """
+Skriv en kort, varm och tydlig introduktion till kandidatens resultat.
+Förklara att resultatet är ett reflektionsunderlag baserat på assessmenten.
+Använd ett positivt och respektfullt språk. Använd inte godkänt/underkänt,
+bra/dåligt eller formuleringar som värderar kandidatens person.""".strip(),
+            "en": """
+Write a short, warm and clear introduction to the candidate's result.
+Explain that it is a reflection aid based on the assessment.
+Use positive and respectful language. Do not use pass/fail, good/bad or
+wording that judges the candidate's value.""".strip(),
+        },
+    },
+
+    "candidate_result_personality": {
+        "name": "Candidate result · Personality",
+        "category": "Candidate results",
+        "description": (
+            "Controls the personality interpretation shown to the candidate."
+        ),
+        "defaults": {
+            "sv": """
+Tolka personlighet som möjliga preferenser och tendenser, inte fasta
+egenskaper. Skriv kortare och mjukare än kundvyn men behåll samma
+grundläggande innebörd. Lyft nyanser, möjligheter och sådant kandidaten
+kan känna igen eller utforska vidare. Använd inte råvärden, percentiler,
+diagnoser, definitiva påståenden eller interna rekommendationer.""".strip(),
+            "en": """
+Interpret personality as possible preferences and tendencies, not fixed
+traits. Write shorter and warmer than the customer view while preserving
+the same underlying meaning. Highlight nuance, possibilities and areas the
+candidate may recognise or explore. Do not include raw values, percentiles,
+diagnoses, definitive claims or internal recommendations.""".strip(),
+        },
+    },
+
+    "candidate_result_skills": {
+        "name": "Candidate result · Skills",
+        "category": "Candidate results",
+        "description": (
+            "Controls the descriptive skills interpretation shown to the candidate."
+        ),
+        "defaults": {
+            "sv": """
+Beskriv endast vad de tillgängliga färdighetsresultaten kan indikera.
+Översätt inte färdighet till personlighet, motivation eller garanterad
+arbetsprestation. Använd ett neutralt och uppmuntrande språk utan
+värderande godkänt/underkänt- eller stark/svag-formuleringar. Visa inte
+råvärden eller percentiler.""".strip(),
+            "en": """
+Describe only what the available skills results may indicate.
+Do not translate skills into personality, motivation or guaranteed job
+performance. Use neutral and encouraging language without good/bad,
+pass/fail or strong/weak framing. Do not show raw values or percentiles.""".strip(),
+        },
+    },
+
+    "candidate_result_motivation": {
+        "name": "Candidate result · Motivation",
+        "category": "Candidate results",
+        "description": (
+            "Controls the motivation interpretation shown to the candidate."
+        ),
+        "defaults": {
+            "sv": """
+Beskriv kandidatens möjliga drivkrafter och förutsättningar på ett
+nyanserat och icke-dömande sätt. Fokusera på vad personen kan trivas med,
+vad som kan ge energi och vad som kan vara relevant att prata vidare om.
+Skriv mjukare än kundvyn utan att ändra den grundläggande innebörden.
+Använd inte råvärden, percentiler, diagnoser eller definitiva påståenden.""".strip(),
+            "en": """
+Describe possible drivers and conditions that may support the candidate
+in a nuanced and non-judgemental way. Focus on what the person may enjoy,
+what may provide energy and what may be useful to discuss further.
+Write more warmly than the customer view without changing its underlying
+meaning. Do not include raw values, percentiles, diagnoses or definitive
+claims.""".strip(),
+        },
+    },
+
+
 }
 
 
