@@ -37,7 +37,8 @@
       </div>
     </header>
     <section class="intro">
-      <h2>{{ copy.discussion_title }}</h2>
+      {% if introduction.title %}<h2>{{ introduction.title }}</h2>{% else %}<h2>{{ copy.discussion_title }}</h2>{% endif %}
+      {% if introduction.body %}<p>{{ introduction.body }}</p>{% endif %}
       <p>{{ copy.discussion_body }}</p>
     </section>
     <div class="section-grid">
