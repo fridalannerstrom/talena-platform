@@ -11,6 +11,18 @@ from .models import Candidate, ProcessRoleContext, TestProcess
 class TestProcessCreateForm(forms.ModelForm):
     name = forms.CharField(required=True)
 
+    candidate_results_enabled = forms.BooleanField(
+        required=False,
+        label=_("Candidate can view results"),
+        help_text=_(
+            "Allow the candidate to view a simplified result after all "
+            "required assessments have been completed."
+        ),
+        widget=forms.CheckboxInput(
+            attrs={"class": "form-check-input"},
+        ),
+    )
+
     sova_template = forms.ChoiceField(
         widget=forms.RadioSelect,
         required=True,
@@ -32,7 +44,12 @@ class TestProcessCreateForm(forms.ModelForm):
 
     class Meta:
         model = TestProcess
-        fields = ["name", "sova_template", "labels_text"]
+        fields = [
+            "name",
+            "sova_template",
+            "labels_text",
+            "candidate_results_enabled",
+        ]
 
     def clean_labels_text(self):
         raw = (self.cleaned_data.get("labels_text") or "").strip()
@@ -177,6 +194,19 @@ class TestProcessWizardCreateForm(forms.Form):
         initial="sv",
         label=_("Candidate language"),
         widget=forms.RadioSelect,
+    )
+
+    candidate_results_enabled = forms.BooleanField(
+        required=False,
+        initial=False,
+        label=_("Candidate can view results"),
+        help_text=_(
+            "Allow the candidate to view a simplified result after all "
+            "required assessments have been completed."
+        ),
+        widget=forms.CheckboxInput(
+            attrs={"class": "form-check-input"},
+        ),
     )
 
     name = forms.CharField(
