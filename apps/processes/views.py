@@ -3786,12 +3786,21 @@ def build_candidate_detail_context(
         ).strip()
     )
 
+    from apps.candidate_results.models import CandidateResultSnapshot
+
+    candidate_result_snapshot = (
+        CandidateResultSnapshot.objects
+        .filter(invitation=invitation)
+        .first()
+    )
+
     return {
         "company": process.company,
         "process": process,
         "invitation": invitation,
         "inv": invitation,
         "candidate": candidate,
+        "candidate_result_snapshot": candidate_result_snapshot,
         "activity_events": activity_events,
 
         "activities": activities,
