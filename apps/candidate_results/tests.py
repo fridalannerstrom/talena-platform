@@ -4,7 +4,7 @@ import json
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.accounts.models import Company
@@ -487,3 +487,76 @@ class CandidateResultEmailTests(TestCase):
         self.assertNotEqual(first_digest, same_access.token_digest)
         self.assertNotEqual(first_code, second_code)
         self.assertEqual(CandidateResultAccess.objects.count(), 1)
+
+
+class CandidateResultWebhookTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="webhook@example.com",
+            email="webhook@example.com",
+            password="test-password",
+        )
+        self.company = Company.objects.create(name="Webhook Company")
+        self.process = TestProcess.objects.create(
+            name="Webhook project",
+            company=self.company,
+            project_code="webhook-project",
+            account_code="webhook-account",
+            created_by=self.user,
+            candidate_results_enabled=True,
+        )
+        self.candidate = Candidate.objects.create(
+            first_name="Webhook",
+            last_name="Candidate",
+            email="webhook-candidate@example.com",
+        )
+        self.invitation = TestInvitation.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            request_id="webhook-request",
+            status="sent",
+        )
+
+    def _post(self, overall_status):
+        return self.client.post(
+            "/integrations/sova/ingest/",
+            data=json.dumps({
+                "request_id": "webhook-request",
+                "overall_status": overall_status,
+                "activities": [],
+            }),
+            content_type="application/json",
+            HTTP_X_TALENA_WEBHOOK_SECRET="webhook-secret",
+        )
+
+    @override_settings(SOVA_WEBHOOK_TEST_SECRET="webhook-secret")
+    @patch("apps.candidate_results.email.send_candidate_result_email")
+    def test_completed_webhook_delivers_enabled_result(self, send):
+        response = self._post("completed")
+
+        self.assertEqual(response.status_code, 200)
+        send.assert_called_once()
+        self.assertEqual(
+            send.call_args.kwargs["base_url"],
+            "http://testserver/",
+        )
+
+    @override_settings(SOVA_WEBHOOK_TEST_SECRET="webhook-secret")
+    @patch("apps.candidate_results.email.send_candidate_result_email")
+    def test_in_progress_webhook_does_not_deliver_result(self, send):
+        response = self._post("in progress")
+
+        self.assertEqual(response.status_code, 200)
+        send.assert_not_called()
+
+    @override_settings(SOVA_WEBHOOK_TEST_SECRET="webhook-secret")
+    @patch("apps.candidate_results.email.send_candidate_result_email")
+    def test_completed_webhook_respects_disabled_sharing(self, send):
+        self.process.candidate_results_enabled = False
+        self.process.save(update_fields=["candidate_results_enabled"])
+
+        response = self._post("completed")
+
+        self.assertEqual(response.status_code, 200)
+        send.assert_not_called()
