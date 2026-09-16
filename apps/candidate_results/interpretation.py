@@ -15,7 +15,6 @@ from apps.core.ai.openai_client import (
 )
 from apps.core.ai.prompt_templates import (
     get_ai_feature_prompt_instructions,
-    get_ai_prompt_instructions,
     get_default_ai_prompt,
     get_global_ai_guidance,
 )
@@ -344,6 +343,11 @@ def create_candidate_result_snapshot(
     language_code: str = "sv",
 ) -> tuple[CandidateResultSnapshot, bool]:
     """Generate and persist one immutable candidate result snapshot."""
+    if not invitation.process.candidate_results_enabled:
+        raise ValueError("Candidate results are not enabled for this process.")
+    if invitation.status != "completed":
+        raise ValueError("Candidate result snapshots require a completed invitation.")
+
     existing = CandidateResultSnapshot.objects.filter(invitation=invitation).first()
     if existing:
         return existing, False
