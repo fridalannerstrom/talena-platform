@@ -49,3 +49,34 @@ def create_candidate_result_access(
     )
 
     return access, raw_token, raw_code
+
+
+def rotate_candidate_result_access(
+    access: CandidateResultAccess,
+):
+    """
+    Replace credentials on the existing access row for a safe resend.
+
+    The old token and code immediately stop working. No second access row is
+    created, and neither raw secret is persisted.
+    """
+    raw_token = secrets.token_urlsafe(32)
+    raw_code = generate_verification_code()
+
+    access.token_digest = CandidateResultAccess.digest_token(raw_token)
+    access.verification_code_hash = make_password(raw_code)
+    access.expires_at = timezone.now() + DEFAULT_ACCESS_LIFETIME
+    access.revoked_at = None
+    access.verification_failed_attempts = 0
+    access.last_verification_failed_at = None
+    access.locked_until = None
+    access.save(update_fields=[
+        "token_digest",
+        "verification_code_hash",
+        "expires_at",
+        "revoked_at",
+        "verification_failed_attempts",
+        "last_verification_failed_at",
+        "locked_until",
+    ])
+    return raw_token, raw_code
