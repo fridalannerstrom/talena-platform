@@ -62,7 +62,21 @@
                 </div>
               </div>
 
-              <div class="candidate-profile-actions">
+              <div class="candidate-profile-actions d-flex flex-wrap align-items-center gap-2">
+                {% if not is_historical and candidate_result_snapshot %}
+                  <a
+                    class="btn btn-outline-primary btn-sm"
+                    href="{% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id %}"
+                    target="_blank"
+                    rel="noopener">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      Visa kandidatvy
+                    {% else %}
+                      View candidate result
+                    {% endif %}
+                  </a>
+                {% endif %}
+
                 {% if is_historical %}
                   <span class="candidate-status-badge is-muted">{% trans "Imported SOVA data" %}</span>
                 {% endif %}
