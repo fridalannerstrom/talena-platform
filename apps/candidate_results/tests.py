@@ -119,7 +119,7 @@ class CandidateResultFoundationTests(TestCase):
                 candidate=other_candidate,
                 process=self.process,
                 content={},
-                prompt_versions={},
+                prompt_versions={"candidate_result": {"version": "test"}},
             )
 
 
@@ -343,7 +343,7 @@ class CandidateResultAccessViewTests(TestCase):
                     "points": [],
                 },
             },
-            prompt_versions={},
+            prompt_versions={"candidate_result": {"version": "test"}},
         )
         self.access, self.raw_token, self.raw_code = (
             create_candidate_result_access(self.snapshot)
@@ -412,8 +412,14 @@ class CandidateResultEmailTests(TestCase):
             candidate=self.candidate,
             process=self.process,
             locale="en",
-            content={},
-            prompt_versions={},
+            content={
+                "introduction": {
+                    "title": "Test",
+                    "body": "Test result.",
+                    "points": [],
+                },
+            },
+            prompt_versions={"candidate_result": {"version": "test"}},
         )
 
     @patch("apps.candidate_results.email.EmailMultiAlternatives")
