@@ -54,7 +54,10 @@ class CandidateResultSnapshot(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["process", "candidate"]),
+            models.Index(
+                fields=["process", "candidate"],
+                name="candidate_r_process_5c0b8b_idx",
+            ),
         ]
 
     def __str__(self):
@@ -126,8 +129,14 @@ class CandidateResultAccess(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["expires_at"]),
-            models.Index(fields=["revoked_at"]),
+            models.Index(
+                fields=["expires_at"],
+                name="candidate_r_expires_4d17a0_idx",
+            ),
+            models.Index(
+                fields=["revoked_at"],
+                name="candidate_r_revoked_5f25ea_idx",
+            ),
         ]
 
     def __str__(self):
