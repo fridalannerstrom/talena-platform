@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="{{ locale }}">
 <head>
@@ -5,59 +6,362 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ copy.result_label }} · Talena</title>
   <style>
-    :root { color-scheme: dark; --bg: #07111d; --card: #101d2a; --text: #f4f7fb; --muted: #a9b7c7; --green: #63d69b; --coral: #ff9b83; --line: #2b3d50; }
+    :root {
+      color-scheme: light;
+      --ink: #171312;
+      --text: #5f5955;
+      --muted: #8f8781;
+      --border: #e8e1dc;
+      --bg: #fbfaf8;
+      --surface: #ffffff;
+      --soft: #f7f4f1;
+      --coral: #ff6f61;
+      --coral-strong: #e95e52;
+      --coral-soft: #fff0ed;
+      --green: #34704d;
+      --green-soft: #edf8f1;
+      --shadow: 0 18px 48px rgba(55, 43, 37, .07);
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; background: radial-gradient(circle at top left, #17324a, var(--bg) 48%); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-    .wrap { width: min(100% - 32px, 980px); margin: 0 auto; padding: 42px 0 70px; }
-    .brand { color: var(--green); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
-    header { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: end; padding: 28px 0 34px; border-bottom: 1px solid var(--line); }
-    h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 4rem); line-height: 1.03; }
-    .meta { color: var(--muted); line-height: 1.7; text-align: right; }
-    .meta strong { display: block; color: var(--text); }
-    .preview-banner { margin: 0 0 22px; padding: 12px 16px; border: 1px solid rgba(255, 155, 131, .45); border-radius: 12px; background: rgba(255, 155, 131, .1); color: var(--coral); line-height: 1.5; }
-    .preview-banner strong { display: block; margin-bottom: 4px; color: var(--text); }
-    .intro { margin: 32px 0 26px; padding: 24px; border: 1px solid rgba(99, 214, 155, .35); border-radius: 18px; background: rgba(99, 214, 155, .08); }
-    .intro h2 { margin-top: 0; color: var(--green); }
-    p { color: var(--muted); line-height: 1.7; }
-    .section-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .section { padding: 24px; background: rgba(16, 29, 42, .94); border: 1px solid var(--line); border-radius: 18px; }
-    .section h2 { margin: 0 0 12px; color: var(--coral); font-size: 1.25rem; }
-    ul { padding-left: 20px; color: var(--muted); line-height: 1.65; }
-    .empty { color: var(--muted); }
-    @media (max-width: 760px) { header { grid-template-columns: 1fr; } .meta { text-align: left; } .section-grid { grid-template-columns: 1fr; } }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 98% 0%, rgba(255, 207, 185, .28), transparent 28rem),
+        radial-gradient(circle at 0% 55%, rgba(255, 111, 97, .08), transparent 23rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-shell {
+      width: min(100% - 40px, 1100px);
+      margin: 0 auto;
+      padding: 30px 0 72px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .brand-logo {
+      display: block;
+      width: 126px;
+      height: auto;
+    }
+
+    .language-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 15px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(55, 43, 37, .05);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .language-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 4px var(--coral-soft);
+    }
+
+    .preview-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 16px 18px;
+      color: var(--text);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .24);
+      border-radius: 16px;
+      line-height: 1.55;
+    }
+
+    .preview-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      color: var(--coral-strong);
+      background: #fff;
+      border: 1px solid rgba(255, 111, 97, .25);
+      border-radius: 9px;
+      font-size: .85rem;
+      font-weight: 900;
+    }
+
+    .preview-banner strong {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--ink);
+      font-size: .86rem;
+    }
+
+    .preview-banner span { font-size: .86rem; }
+
+    .hero-card,
+    .intro-card,
+    .section-card {
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: clamp(28px, 5vw, 48px);
+      border-radius: 26px;
+    }
+
+    .hero-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 15px;
+    }
+
+    .eyebrow {
+      color: var(--coral-strong);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      color: var(--green);
+      background: var(--green-soft);
+      border: 1px solid rgba(52, 112, 77, .16);
+      border-radius: 999px;
+      font-size: .76rem;
+      font-weight: 800;
+    }
+
+    .status-pill::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #55a871;
+      content: "";
+    }
+
+    h1 {
+      max-width: 16ch;
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(2.35rem, 7vw, 5.1rem);
+      line-height: .98;
+      letter-spacing: -.07em;
+    }
+
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 34px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .meta-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .hero-meta strong {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--ink);
+      font-size: .92rem;
+      line-height: 1.45;
+    }
+
+    .intro-card {
+      position: relative;
+      margin-top: 18px;
+      padding: clamp(24px, 4vw, 36px);
+      overflow: hidden;
+      border-radius: 22px;
+    }
+
+    .intro-card::before {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 5px;
+      background: var(--coral);
+      content: "";
+    }
+
+    .intro-heading {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 15px;
+      color: var(--ink);
+      font-size: clamp(1.25rem, 3vw, 1.55rem);
+      letter-spacing: -.035em;
+    }
+
+    .intro-heading::before {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      background: var(--coral);
+      border-radius: 50%;
+      content: "";
+    }
+
+    p {
+      margin: 0;
+      color: var(--text);
+      font-size: .98rem;
+      line-height: 1.75;
+    }
+
+    .intro-card p + p { margin-top: 12px; }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .section-card {
+      min-height: 230px;
+      padding: 26px;
+      border-radius: 20px;
+    }
+
+    .section-card:nth-child(3n + 2) { background: #fffaf9; }
+    .section-card:nth-child(3n + 3) { background: #fbfdfb; }
+
+    .section-card h2 {
+      margin: 0 0 14px;
+      color: var(--coral-strong);
+      font-size: 1.22rem;
+      line-height: 1.2;
+      letter-spacing: -.035em;
+    }
+
+    ul {
+      margin: 16px 0 0;
+      padding-left: 19px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    li + li { margin-top: 8px; }
+
+    .empty {
+      grid-column: 1 / -1;
+      padding: 28px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .page-shell { width: min(100% - 28px, 680px); padding-top: 20px; }
+      .hero-card { padding: 28px 24px; border-radius: 22px; }
+      .hero-topline { align-items: flex-start; flex-direction: column; }
+      .hero-meta { grid-template-columns: 1fr; gap: 16px; }
+      .section-grid { grid-template-columns: 1fr; }
+      .section-card { min-height: 0; }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="brand">Talena</div>
-    {% if preview %}
-      <div class="preview-banner" role="status">
-        <strong>{{ copy.preview_label }}</strong>
-        <span>{{ copy.preview_body }}</span>
-      </div>
-    {% endif %}
-    <header>
-      <div><div>{{ copy.result_label }}</div><h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1></div>
-      <div class="meta">
-        <strong>{{ process.name }}</strong>
-        <span>{{ copy.completed_label }}: {{ completed_at|date:"Y-m-d" }}</span>
-        <span>{{ candidate.email }}</span>
+  <main class="page-shell">
+    <header class="site-header">
+      <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
+      <div class="language-chip" aria-label="{% if locale|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
+        <span class="language-dot" aria-hidden="true"></span>
+        {% if locale|slice:":2" == "sv" %}Svenska{% else %}English{% endif %}
       </div>
     </header>
-    <section class="intro">
-      {% if introduction.title %}<h2>{{ introduction.title }}</h2>{% else %}<h2>{{ copy.discussion_title }}</h2>{% endif %}
+
+    {% if preview %}
+      <div class="preview-banner" role="status">
+        <div class="preview-mark" aria-hidden="true">↗</div>
+        <div>
+          <strong>{{ copy.preview_label }}</strong>
+          <span>{{ copy.preview_body }}</span>
+        </div>
+      </div>
+    {% endif %}
+
+    <header class="hero-card">
+      <div class="hero-topline">
+        <div class="eyebrow">{{ copy.result_label }}</div>
+        <div class="status-pill">{% if locale|slice:":2" == "sv" %}Klar{% else %}Complete{% endif %}</div>
+      </div>
+      <h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1>
+
+      <div class="hero-meta">
+        <div>
+          <span class="meta-label">{{ copy.project_label }}</span>
+          <strong>{{ process.name }}</strong>
+        </div>
+        <div>
+          <span class="meta-label">{{ copy.completed_label }}</span>
+          <strong>{{ completed_at|date:"Y-m-d" }}</strong>
+        </div>
+        <div>
+          <span class="meta-label">{{ copy.candidate_label }}</span>
+          <strong>{{ candidate.email }}</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro-card">
+      <h2 class="intro-heading">
+        {% if introduction.title %}{{ introduction.title }}{% else %}{{ copy.discussion_title }}{% endif %}
+      </h2>
       {% if introduction.body %}<p>{{ introduction.body }}</p>{% endif %}
       <p>{{ copy.discussion_body }}</p>
     </section>
+
     <div class="section-grid">
       {% for section in sections %}
-        <section class="section">
+        <section class="section-card">
           <h2>{{ section.title }}</h2>
           {% if section.body %}<p>{{ section.body }}</p>{% endif %}
-          {% if section.points %}<ul>{% for point in section.points %}<li>{{ point }}</li>{% endfor %}</ul>{% endif %}
+          {% if section.points %}
+            <ul>
+              {% for point in section.points %}<li>{{ point }}</li>{% endfor %}
+            </ul>
+          {% endif %}
         </section>
       {% empty %}
-        <p class="empty">No candidate-facing result text is available yet.</p>
+        <p class="empty">{% if locale|slice:":2" == "sv" %}Resultattexten är inte tillgänglig ännu.{% else %}No candidate-facing result text is available yet.{% endif %}</p>
       {% endfor %}
     </div>
   </main>

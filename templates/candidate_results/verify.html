@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 <!doctype html>
 <html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
 <head>
@@ -6,31 +6,267 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ copy.verify_title }} · Talena</title>
   <style>
-    :root { color-scheme: dark; --bg: #07111d; --card: #101d2a; --text: #f4f7fb; --muted: #a9b7c7; --green: #63d69b; --line: #2b3d50; }
+    :root {
+      color-scheme: light;
+      --ink: #171312;
+      --text: #5f5955;
+      --muted: #8f8781;
+      --border: #e8e1dc;
+      --bg: #fbfaf8;
+      --surface: #ffffff;
+      --soft: #f7f4f1;
+      --coral: #ff6f61;
+      --coral-strong: #e95e52;
+      --coral-soft: #fff0ed;
+      --green: #34704d;
+      --green-soft: #edf8f1;
+      --shadow: 0 22px 60px rgba(55, 43, 37, .08);
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at top, #17324a, var(--bg) 58%); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-    .card { width: min(100%, 500px); padding: clamp(28px, 6vw, 52px); background: rgba(16, 29, 42, .96); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 24px 70px rgba(0, 0, 0, .28); }
-    .brand { color: var(--green); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
-    h1 { margin: 18px 0 12px; font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.1; }
-    p { color: var(--muted); line-height: 1.65; }
-    label { display: block; margin: 28px 0 8px; font-weight: 700; }
-    input { width: 100%; padding: 15px 16px; border: 1px solid var(--line); border-radius: 12px; background: #0a1623; color: var(--text); font-size: 1.15rem; letter-spacing: .18em; }
-    button { width: 100%; margin-top: 18px; padding: 15px 18px; border: 0; border-radius: 12px; background: var(--green); color: #082016; font-weight: 800; cursor: pointer; font-size: 1rem; }
-    .error { margin-top: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(226, 112, 112, .13); color: #ffb6b6; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 6% 94%, rgba(255, 111, 97, .12), transparent 23rem),
+        radial-gradient(circle at 96% 0%, rgba(255, 207, 185, .22), transparent 27rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-shell {
+      width: min(100% - 40px, 1120px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 30px 0 56px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-logo {
+      display: block;
+      width: 126px;
+      height: auto;
+    }
+
+    .language-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 15px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(55, 43, 37, .05);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .language-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 4px var(--coral-soft);
+    }
+
+    .content {
+      display: grid;
+      place-items: center;
+      min-height: calc(100vh - 128px);
+      padding: 54px 0 20px;
+    }
+
+    .auth-card {
+      width: min(100%, 540px);
+      padding: clamp(30px, 6vw, 56px);
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-mark {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 22px;
+      color: var(--coral-strong);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .24);
+      border-radius: 15px;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--coral-strong);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 12ch;
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(2rem, 5vw, 2.7rem);
+      line-height: 1.06;
+      letter-spacing: -.055em;
+    }
+
+    .intro {
+      margin: 16px 0 0;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    form { margin-top: 32px; }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    input {
+      display: block;
+      width: 100%;
+      min-height: 58px;
+      padding: 14px 17px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #ded6d0;
+      border-radius: 13px;
+      outline: none;
+      font: inherit;
+      font-size: 1.2rem;
+      letter-spacing: .24em;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    input::placeholder {
+      color: #b3aaa4;
+      letter-spacing: .03em;
+    }
+
+    input:focus {
+      background: #fffaf9;
+      border-color: var(--coral);
+      box-shadow: 0 0 0 4px rgba(255, 111, 97, .14);
+    }
+
+    button {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 14px;
+      padding: 14px 20px;
+      color: #fff;
+      background: var(--ink);
+      border: 0;
+      border-radius: 999px;
+      box-shadow: 0 12px 24px rgba(23, 19, 18, .12);
+      cursor: pointer;
+      font: inherit;
+      font-size: .95rem;
+      font-weight: 800;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    button:hover {
+      background: #2a2422;
+      box-shadow: 0 15px 28px rgba(23, 19, 18, .16);
+      transform: translateY(-1px);
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(255, 111, 97, .45);
+      outline-offset: 3px;
+    }
+
+    .error {
+      margin-top: 20px;
+      padding: 13px 15px;
+      color: #a23c31;
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .25);
+      border-radius: 12px;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+
+    .footer-dot {
+      flex: 0 0 auto;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+
+    @media (max-width: 640px) {
+      .page-shell { width: min(100% - 28px, 540px); padding-top: 20px; }
+      .content { min-height: calc(100vh - 92px); padding-top: 36px; }
+      .auth-card { padding: 30px 24px; border-radius: 22px; }
+    }
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="brand">Talena</div>
-    <h1>{{ copy.verify_title }}</h1>
-    <p>{{ copy.verify_intro }}</p>
-    {% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
-    <form method="post" autocomplete="off">
-      {% csrf_token %}
-      <label for="verification_code">{{ copy.code_label }}</label>
-      <input id="verification_code" name="verification_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="{{ copy.code_placeholder }}" required autofocus>
-      <button type="submit">{{ copy.verify_button }}</button>
-    </form>
+  <main class="page-shell">
+    <header class="site-header">
+      <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
+      <div class="language-chip" aria-label="{% if request.LANGUAGE_CODE|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
+        <span class="language-dot" aria-hidden="true"></span>
+        {% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Svenska{% else %}English{% endif %}
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="auth-card">
+        <div class="card-mark" aria-hidden="true">↗</div>
+        <div class="eyebrow">{% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Talena resultat{% else %}Talena results{% endif %}</div>
+        <h1>{{ copy.verify_title }}</h1>
+        <p class="intro">{{ copy.verify_intro }}</p>
+
+        {% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+
+        <form method="post" autocomplete="off">
+          {% csrf_token %}
+          <label for="verification_code">{{ copy.code_label }}</label>
+          <input id="verification_code" name="verification_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="{{ copy.code_placeholder }}" required autofocus>
+          <button type="submit">{{ copy.verify_button }}</button>
+        </form>
+
+        <div class="card-footer">
+          <span class="footer-dot" aria-hidden="true"></span>
+          {% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Din kod används bara för att visa rätt resultat.{% else %}Your code is only used to show the correct result.{% endif %}
+        </div>
+      </section>
+    </div>
   </main>
 </body>
 </html>
