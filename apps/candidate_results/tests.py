@@ -296,3 +296,188 @@ class CandidateResultInterpretationTests(TestCase):
         self.assertFalse(created_again)
         self.assertEqual(first.pk, second.pk)
         generate.assert_called_once()
+
+
+class CandidateResultAccessViewTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="view@example.com",
+            email="view@example.com",
+            password="test-password",
+        )
+        self.company = Company.objects.create(name="View Company")
+        self.process = TestProcess.objects.create(
+            name="View project",
+            company=self.company,
+            project_code="view-project",
+            account_code="view-account",
+            created_by=self.user,
+            candidate_results_enabled=True,
+        )
+        self.candidate = Candidate.objects.create(
+            first_name="View",
+            last_name="Candidate",
+            email="view-candidate@example.com",
+        )
+        self.invitation = TestInvitation.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            status="completed",
+            completed_at=timezone.now(),
+        )
+        self.snapshot = CandidateResultSnapshot.objects.create(
+            invitation=self.invitation,
+            candidate=self.candidate,
+            process=self.process,
+            locale="sv",
+            content={
+                "introduction": {
+                    "title": "Välkommen",
+                    "body": "Detta är ditt resultat.",
+                    "points": [],
+                },
+                "personality": {
+                    "title": "Personlighet",
+                    "body": "Möjliga preferenser.",
+                    "points": [],
+                },
+            },
+            prompt_versions={},
+        )
+        self.access, self.raw_token, self.raw_code = (
+            create_candidate_result_access(self.snapshot)
+        )
+
+    def test_candidate_must_verify_before_result_is_visible(self):
+        response = self.client.get(
+            f"/candidate-results/{self.raw_token}/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visa ditt resultat")
+        self.assertNotContains(response, "Detta är ditt resultat.")
+
+        response = self.client.post(
+            f"/candidate-results/{self.raw_token}/",
+            {"verification_code": self.raw_code},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "view-candidate@example.com")
+
+    def test_revoked_access_returns_gone(self):
+        self.access.revoked_at = timezone.now()
+        self.access.save(update_fields=["revoked_at"])
+
+        response = self.client.get(
+            f"/candidate-results/{self.raw_token}/"
+        )
+
+        self.assertEqual(response.status_code, 410)
+
+
+class CandidateResultEmailTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username="email-result@example.com",
+            email="email-result@example.com",
+            password="test-password",
+        )
+        self.company = Company.objects.create(name="Email Company")
+        self.process = TestProcess.objects.create(
+            name="Email project",
+            company=self.company,
+            project_code="email-project",
+            account_code="email-account",
+            created_by=self.user,
+            candidate_results_enabled=True,
+            candidate_language="en",
+        )
+        self.candidate = Candidate.objects.create(
+            first_name="Email",
+            last_name="Candidate",
+            email="email-candidate@example.com",
+        )
+        self.invitation = TestInvitation.objects.create(
+            process=self.process,
+            candidate=self.candidate,
+            status="completed",
+            completed_at=timezone.now(),
+        )
+        self.snapshot = CandidateResultSnapshot.objects.create(
+            invitation=self.invitation,
+            candidate=self.candidate,
+            process=self.process,
+            locale="en",
+            content={},
+            prompt_versions={},
+        )
+
+    @patch("apps.candidate_results.email.EmailMultiAlternatives")
+    @patch("apps.candidate_results.email.create_candidate_result_snapshot")
+    def test_email_contains_link_and_separate_code(
+        self,
+        create_snapshot,
+        email_class,
+    ):
+        from apps.emails.models import EmailLog
+
+        create_snapshot.return_value = (self.snapshot, False)
+        email_class.return_value.send.return_value = 1
+
+        from apps.candidate_results.email import send_candidate_result_email
+
+        email_log, access, raw_code = send_candidate_result_email(
+            self.invitation,
+            base_url="https://talena.io",
+        )
+
+        self.assertEqual(email_log.status, "sent")
+        self.assertEqual(email_log.template_type, "candidate_result")
+        self.assertIn("https://talena.io/candidate-results/", email_log.body_snapshot)
+        self.assertIn(raw_code, email_log.body_snapshot)
+        self.assertNotIn(
+            raw_code,
+            email_log.body_snapshot.split(raw_code)[0].splitlines()[-1],
+        )
+        self.assertEqual(CandidateResultAccess.objects.count(), 1)
+        self.assertTrue(access.matches_token(
+            email_log.body_snapshot.split(
+                "https://talena.io/candidate-results/",
+                1,
+            )[1].split("/", 1)[0]
+        ))
+
+    @patch("apps.candidate_results.email.EmailMultiAlternatives")
+    @patch("apps.candidate_results.email.create_candidate_result_snapshot")
+    def test_resend_rotates_same_access_record(
+        self,
+        create_snapshot,
+        email_class,
+    ):
+        create_snapshot.return_value = (self.snapshot, False)
+        email_class.return_value.send.return_value = 1
+
+        from apps.candidate_results.email import send_candidate_result_email
+
+        first_log, access, first_code = send_candidate_result_email(
+            self.invitation,
+            base_url="https://talena.io",
+        )
+        first_digest = access.token_digest
+
+        second_log, same_access, second_code = send_candidate_result_email(
+            self.invitation,
+            base_url="https://talena.io",
+            replace_code=True,
+        )
+
+        self.assertEqual(first_log.status, "sent")
+        self.assertEqual(second_log.status, "sent")
+        self.assertEqual(access.pk, same_access.pk)
+        self.assertNotEqual(first_digest, same_access.token_digest)
+        self.assertNotEqual(first_code, second_code)
+        self.assertEqual(CandidateResultAccess.objects.count(), 1)
