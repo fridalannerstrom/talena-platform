@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import hashlib
 import secrets
 
@@ -170,7 +172,7 @@ class CandidateResultAccess(models.Model):
         ]
 
         if self.verification_failed_attempts >= 5:
-            self.locked_until = now + timezone.timedelta(minutes=15)
+            self.locked_until = now + timedelta(minutes=15)
             update_fields.append("locked_until")
 
         self.save(update_fields=update_fields)
