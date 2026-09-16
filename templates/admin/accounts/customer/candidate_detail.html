@@ -29,13 +29,23 @@
         ← Back to process
       </a>
 
-      <button
-        class="btn btn-outline-secondary btn-sm"
-        type="button"
-        disabled
-        title="Coming soon">
-        Download results
-      </button>
+      {% if candidate_result_snapshot %}
+        <a
+          class="btn btn-outline-primary btn-sm"
+          href="{% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id %}"
+          target="_blank"
+          rel="noopener">
+          Preview candidate result
+        </a>
+      {% else %}
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          type="button"
+          disabled
+          title="The preview becomes available after the result snapshot is created.">
+          Preview candidate result
+        </button>
+      {% endif %}
     </div>
 
   </div>
