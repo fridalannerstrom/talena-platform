@@ -1,9 +1,13 @@
+from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from .models import CandidateResultAccess
+from apps.core.utils.auth import is_admin
+from apps.processes.services.access import get_accessible_processes_for_user
+
+from .models import CandidateResultAccess, CandidateResultSnapshot
 
 
 def _session_key(access: CandidateResultAccess) -> str:
@@ -32,6 +36,8 @@ def _copy(locale: str) -> dict[str, str]:
             "project_label": "Process",
             "completed_label": "Slutförd",
             "included_label": "Detta ingår",
+            "preview_label": "Förhandsvisning för behörig användare",
+            "preview_body": "Detta är en intern förhandsvisning. Kandidaten behöver verifiera sin åtkomst i den publika vyn.",
             "discussion_title": "Ett underlag för reflektion",
             "discussion_body": (
                 "Resultatet beskriver möjliga preferenser och tendenser "
@@ -59,12 +65,64 @@ def _copy(locale: str) -> dict[str, str]:
         "project_label": "Process",
         "completed_label": "Completed",
         "included_label": "Included",
+        "preview_label": "Authorised preview",
+        "preview_body": "This is an internal preview. Candidates must verify access in the public view.",
         "discussion_title": "A basis for reflection",
         "discussion_body": (
             "The result describes possible preferences and tendencies "
             "based on your responses. It is not an absolute truth or a "
             "grade, but a basis for further conversation."
         ),
+    }
+
+
+def _result_context(
+    snapshot: CandidateResultSnapshot,
+    *,
+    preview: bool = False,
+) -> dict:
+    content = snapshot.content if isinstance(snapshot.content, dict) else {}
+    introduction = content.get("introduction")
+    if not isinstance(introduction, dict):
+        introduction = {}
+
+    sections = []
+    for key in ("personality", "skills", "motivation"):
+        section = content.get(key)
+        if not isinstance(section, dict):
+            continue
+
+        body = (section.get("body") or "").strip()
+        points = section.get("points") or []
+        points = [
+            str(point).strip()
+            for point in points
+            if str(point).strip()
+        ]
+        if body or points:
+            sections.append(
+                {
+                    "key": key,
+                    "title": section.get("title") or key.title(),
+                    "body": body,
+                    "points": points,
+                }
+            )
+
+    invitation = snapshot.invitation
+    completed_at = invitation.completed_at or snapshot.created_at
+    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
+
+    return {
+        "copy": _copy(locale),
+        "snapshot": snapshot,
+        "introduction": introduction,
+        "candidate": snapshot.candidate,
+        "process": snapshot.process,
+        "completed_at": completed_at,
+        "sections": sections,
+        "locale": locale,
+        "preview": preview,
     }
 
 
@@ -120,43 +178,33 @@ def candidate_result(request, token: str):
             },
         )
 
-    snapshot = access.snapshot
-    content = snapshot.content if isinstance(snapshot.content, dict) else {}
-    introduction = content.get("introduction")
-    if not isinstance(introduction, dict):
-        introduction = {}
-    sections = []
-    for key in ("personality", "skills", "motivation"):
-        section = content.get(key)
-        if not isinstance(section, dict):
-            continue
-        body = (section.get("body") or "").strip()
-        points = section.get("points") or []
-        points = [str(point).strip() for point in points if str(point).strip()]
-        if body or points:
-            sections.append(
-                {
-                    "key": key,
-                    "title": section.get("title") or key.title(),
-                    "body": body,
-                    "points": points,
-                }
-            )
-
-    invitation = snapshot.invitation
-    completed_at = invitation.completed_at or snapshot.created_at
-    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
     return render(
         request,
         "candidate_results/result.html",
-        {
-            "copy": _copy(locale),
-            "snapshot": snapshot,
-            "introduction": introduction,
-            "candidate": snapshot.candidate,
-            "process": snapshot.process,
-            "completed_at": completed_at,
-            "sections": sections,
-            "locale": locale,
-        },
+        _result_context(access.snapshot),
+    )
+
+
+@login_required
+def candidate_result_preview(request, snapshot_id: int):
+    snapshot = get_object_or_404(
+        CandidateResultSnapshot.objects.select_related(
+            "candidate",
+            "process",
+            "invitation",
+        ),
+        pk=snapshot_id,
+    )
+
+    if not is_admin(request.user):
+        accessible_processes, _company = (
+            get_accessible_processes_for_user(request.user)
+        )
+        if not accessible_processes.filter(pk=snapshot.process_id).exists():
+            raise Http404
+
+    return render(
+        request,
+        "candidate_results/result.html",
+        _result_context(snapshot, preview=True),
     )
