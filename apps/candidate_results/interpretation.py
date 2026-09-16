@@ -112,6 +112,28 @@ def _candidate_result_areas(
     motivation_results = extract_motivation_results(invitation)
     cognitive_results = extract_cognitive_results(invitation)
 
+    has_personality_evidence = bool(personality_evidence)
+    if not has_personality_evidence:
+        for activity in invitation.sova_activities or []:
+            activity_name = str(activity.get("activity") or "").lower()
+            if not any(
+                keyword in activity_name
+                for keyword in (
+                    "personality",
+                    "personlighet",
+                    "trait",
+                    "karaktär",
+                )
+            ):
+                continue
+            if any(
+                _has_result_value(competency)
+                for competency in activity.get("competencies") or []
+                if isinstance(competency, dict)
+            ):
+                has_personality_evidence = True
+                break
+
     has_skills_evidence = bool(cognitive_results)
     if not has_skills_evidence:
         for activity in invitation.sova_activities or []:
@@ -150,7 +172,7 @@ def _candidate_result_areas(
 
     return {
         "personality": {
-            "available": bool(personality_evidence),
+            "available": has_personality_evidence,
             "evidence": personality_evidence,
         },
         "skills": {
