@@ -438,6 +438,36 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertEqual(response.status_code, 410)
 
 
+    def test_authorised_preview_shows_snapshot_without_code(self):
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            f"/candidate-results/preview/{self.snapshot.pk}/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detta är ditt resultat.")
+        self.assertContains(response, "Förhandsvisning för behörig användare")
+        self.assertNotContains(response, "Visa ditt resultat")
+
+    def test_preview_is_not_public(self):
+        User = get_user_model()
+        other_user = User.objects.create_user(
+            username="unauthorised-preview@example.com",
+            email="unauthorised-preview@example.com",
+            password="test-password",
+        )
+        self.client.force_login(other_user)
+
+        response = self.client.get(
+            f"/candidate-results/preview/{self.snapshot.pk}/"
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
 class CandidateResultEmailTests(TestCase):
     def setUp(self):
         User = get_user_model()
