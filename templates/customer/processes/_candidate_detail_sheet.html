@@ -62,21 +62,7 @@
                 </div>
               </div>
 
-              <div class="candidate-profile-actions d-flex flex-wrap align-items-center gap-2">
-                {% if not is_historical and candidate_result_snapshot %}
-                  <a
-                    class="btn btn-outline-primary btn-sm"
-                    href="{% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id %}"
-                    target="_blank"
-                    rel="noopener">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Visa kandidatvy
-                    {% else %}
-                      View candidate result
-                    {% endif %}
-                  </a>
-                {% endif %}
-
+              <div class="candidate-profile-actions">
                 {% if is_historical %}
                   <span class="candidate-status-badge is-muted">{% trans "Imported SOVA data" %}</span>
                 {% endif %}
@@ -123,6 +109,22 @@
                   onclick="switchTabs(this)"
                 >
                   {% trans "Assessment link" %}
+                </button>
+
+                <button
+                  class="candidate-tab"
+                  type="button"
+                  data-tab-group="candidate-main-tabs"
+                  data-tab-target="result"
+                  role="tab"
+                  aria-selected="false"
+                  onclick="switchTabs(this)"
+                >
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                    Resultatlänk
+                  {% else %}
+                    Result link
+                  {% endif %}
                 </button>
 
                 <button
@@ -251,6 +253,65 @@
                   </div>
                 {% else %}
                   <div class="text-muted small">{% trans "No assessment link available yet." %}</div>
+                {% endif %}
+              </div>
+
+              <div
+                class="candidate-tab-panel"
+                data-tab-group="candidate-main-tabs"
+                data-tab-panel="result"
+                role="tabpanel"
+              >
+                {% if candidate_result_snapshot %}
+                  {% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id as candidate_result_preview_url %}
+                  <div class="candidate-link-panel">
+                    <div class="candidate-link-panel-text">
+                      <div class="candidate-inline-title">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                          Länk till kandidatens resultatvy
+                        {% else %}
+                          Candidate result view link
+                        {% endif %}
+                      </div>
+                      <div class="candidate-inline-meta">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                          Här hittar du länken till kandidatens resultatvy. Det här är en intern förhandsvisning och kräver att du är inloggad.
+                        {% else %}
+                          This is the link to the candidate-facing result view. This internal preview requires you to be logged in.
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="candidate-link-field">
+                      <a
+                        class="form-control text-decoration-none"
+                        href="{{ candidate_result_preview_url }}"
+                        target="_blank"
+                        rel="noopener">
+                        {{ candidate_result_preview_url }}
+                      </a>
+
+                      <a
+                        class="btn btn-primary"
+                        href="{{ candidate_result_preview_url }}"
+                        target="_blank"
+                        rel="noopener">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                          Öppna resultatvy
+                        {% else %}
+                          Open result view
+                        {% endif %}
+                      </a>
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="text-muted small">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                      Resultatvyn är inte tillgänglig ännu.
+                    {% else %}
+                      The result view is not available yet.
+                    {% endif %}
+                  </div>
                 {% endif %}
               </div>
 
