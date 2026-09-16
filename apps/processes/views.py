@@ -6460,6 +6460,10 @@ def process_update(request, pk):
             # --------------------------------------------------
             obj.purpose = purpose
             obj.candidate_language = candidate_language
+            obj.candidate_results_enabled = (
+                form.cleaned_data.get("candidate_results_enabled")
+                or False
+            )
 
             if locked:
                 # Behåll befintliga tester och befintlig Sova-koppling.
@@ -6542,6 +6546,9 @@ def process_update(request, pk):
             "candidate_language": (
                 obj.candidate_language
                 or "sv"
+            ),
+            "candidate_results_enabled": (
+                obj.candidate_results_enabled
             ),
         })
 
@@ -8758,6 +8765,10 @@ def process_create_v2(request):
                 purpose=purpose,
                 selected_tests=selected_tests,
                 candidate_language=candidate_language,
+                candidate_results_enabled=(
+                    form.cleaned_data.get("candidate_results_enabled")
+                    or False
+                ),
             )
 
             # --------------------------------------------------
