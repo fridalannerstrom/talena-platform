@@ -122,6 +122,9 @@ def candidate_result(request, token: str):
 
     snapshot = access.snapshot
     content = snapshot.content if isinstance(snapshot.content, dict) else {}
+    introduction = content.get("introduction")
+    if not isinstance(introduction, dict):
+        introduction = {}
     sections = []
     for key in ("personality", "skills", "motivation"):
         section = content.get(key)
@@ -149,6 +152,7 @@ def candidate_result(request, token: str):
         {
             "copy": _copy(locale),
             "snapshot": snapshot,
+            "introduction": introduction,
             "candidate": snapshot.candidate,
             "process": snapshot.process,
             "completed_at": completed_at,
