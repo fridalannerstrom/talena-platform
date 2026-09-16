@@ -60,11 +60,33 @@ class CandidateResultSnapshot(models.Model):
     def __str__(self):
         return f"Candidate result snapshot #{self.pk}"
 
+    def clean(self):
+        if not self.invitation_id:
+            return
+
+        if (
+            self.candidate_id
+            and self.invitation.candidate_id != self.candidate_id
+        ):
+            raise ValidationError(
+                "Snapshot candidate must match the invitation candidate."
+            )
+
+        if (
+            self.process_id
+            and self.invitation.process_id != self.process_id
+        ):
+            raise ValidationError(
+                "Snapshot process must match the invitation process."
+            )
+
     def save(self, *args, **kwargs):
         if self.pk:
             raise ValidationError(
                 "Candidate result snapshots are immutable."
             )
+
+        self.full_clean()
         return super().save(*args, **kwargs)
 
 
