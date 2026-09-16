@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="{{ locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ copy.result_label }} · Talena</title>
+  <style>
+    :root { color-scheme: dark; --bg: #07111d; --card: #101d2a; --text: #f4f7fb; --muted: #a9b7c7; --green: #63d69b; --coral: #ff9b83; --line: #2b3d50; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(circle at top left, #17324a, var(--bg) 48%); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .wrap { width: min(100% - 32px, 980px); margin: 0 auto; padding: 42px 0 70px; }
+    .brand { color: var(--green); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
+    header { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: end; padding: 28px 0 34px; border-bottom: 1px solid var(--line); }
+    h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 4rem); line-height: 1.03; }
+    .meta { color: var(--muted); line-height: 1.7; text-align: right; }
+    .meta strong { display: block; color: var(--text); }
+    .intro { margin: 32px 0 26px; padding: 24px; border: 1px solid rgba(99, 214, 155, .35); border-radius: 18px; background: rgba(99, 214, 155, .08); }
+    .intro h2 { margin-top: 0; color: var(--green); }
+    p { color: var(--muted); line-height: 1.7; }
+    .section-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .section { padding: 24px; background: rgba(16, 29, 42, .94); border: 1px solid var(--line); border-radius: 18px; }
+    .section h2 { margin: 0 0 12px; color: var(--coral); font-size: 1.25rem; }
+    ul { padding-left: 20px; color: var(--muted); line-height: 1.65; }
+    .empty { color: var(--muted); }
+    @media (max-width: 760px) { header { grid-template-columns: 1fr; } .meta { text-align: left; } .section-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand">Talena</div>
+    <header>
+      <div><div>{{ copy.result_label }}</div><h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1></div>
+      <div class="meta">
+        <strong>{{ process.name }}</strong>
+        <span>{{ copy.completed_label }}: {{ completed_at|date:"Y-m-d" }}</span>
+        <span>{{ candidate.email }}</span>
+      </div>
+    </header>
+    <section class="intro">
+      <h2>{{ copy.discussion_title }}</h2>
+      <p>{{ copy.discussion_body }}</p>
+    </section>
+    <div class="section-grid">
+      {% for section in sections %}
+        <section class="section">
+          <h2>{{ section.title }}</h2>
+          {% if section.body %}<p>{{ section.body }}</p>{% endif %}
+          {% if section.points %}<ul>{% for point in section.points %}<li>{{ point }}</li>{% endfor %}</ul>{% endif %}
+        </section>
+      {% empty %}
+        <p class="empty">No candidate-facing result text is available yet.</p>
+      {% endfor %}
+    </div>
+  </main>
+</body>
+</html>
