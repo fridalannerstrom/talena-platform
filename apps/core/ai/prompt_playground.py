@@ -720,6 +720,59 @@ Do not generate the other After interview sections.
         "evidence": ALL_ASSESSMENT_EVIDENCE + "\n\n" + INTERVIEW_EVIDENCE,
         "task": "Generate only Suggested follow-up.",
     },
+
+    # --------------------------------------------------------
+    # Candidate results
+    # --------------------------------------------------------
+
+    "candidate_result_introduction": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": FLEXIBLE_CONTEXT,
+        "evidence": ALL_ASSESSMENT_EVIDENCE,
+        "task": """
+Generate a short welcoming introduction for Alex's candidate-facing
+assessment result. Make clear that it is a reflection aid, not a
+pass/fail judgement.
+""".strip(),
+    },
+
+    "candidate_result_personality": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": FLEXIBLE_CONTEXT,
+        "evidence": PERSONALITY_EVIDENCE,
+        "task": """
+Generate a short, warm personality section for Alex's candidate result.
+Use possible preferences and tendencies, not fixed traits. Do not show
+raw values or make a hiring judgement.
+""".strip(),
+    },
+
+    "candidate_result_skills": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": FLEXIBLE_CONTEXT,
+        "evidence": COGNITIVE_EVIDENCE,
+        "task": """
+Generate a strictly descriptive skills section for Alex's candidate
+result. Keep measured ability separate from personality, motivation and
+guaranteed future performance. Do not show percentiles.
+""".strip(),
+    },
+
+    "candidate_result_motivation": {
+        "purpose": "hiring",
+        "purpose_label": "Recruitment",
+        "context": FLEXIBLE_CONTEXT,
+        "evidence": MOTIVATION_EVIDENCE,
+        "task": """
+Generate a short, supportive motivation section for Alex's candidate
+result. Describe possible drivers and conditions to explore without
+calling any factor good or bad.
+""".strip(),
+    },
+
 }
 
 
