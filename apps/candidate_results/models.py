@@ -208,3 +208,48 @@ class CandidateResultAccess(models.Model):
 
         self.save(update_fields=update_fields)
         return False
+
+
+class CandidateResultFeedback(models.Model):
+    """
+    A candidate's reflection on one area of a frozen result snapshot.
+    """
+
+    RECOGNISES = "recognises"
+    PARTLY_RECOGNISES = "partly_recognises"
+    DOES_NOT_RECOGNISE = "does_not_recognise"
+
+    RESULT_AREA_CHOICES = (
+        ("personality", "Personality"),
+        ("skills", "Skills"),
+        ("motivation", "Motivation"),
+    )
+    RESPONSE_CHOICES = (
+        (RECOGNISES, "I recognise myself"),
+        (PARTLY_RECOGNISES, "I partly recognise myself"),
+        (DOES_NOT_RECOGNISE, "I do not recognise myself"),
+    )
+
+    snapshot = models.ForeignKey(
+        CandidateResultSnapshot,
+        on_delete=models.CASCADE,
+        related_name="feedback",
+    )
+    result_area = models.CharField(max_length=32, choices=RESULT_AREA_CHOICES)
+    response = models.CharField(max_length=32, choices=RESPONSE_CHOICES)
+    comment = models.TextField(blank=True, max_length=2000)
+    locale = models.CharField(max_length=10, default="sv")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["result_area"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["snapshot", "result_area"],
+                name="cand_feedback_snap_area_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Candidate feedback #{self.pk} ({self.result_area})"

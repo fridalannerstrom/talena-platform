@@ -1,13 +1,17 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from apps.core.utils.auth import is_admin
 from apps.processes.services.access import get_accessible_processes_for_user
 
-from .models import CandidateResultAccess, CandidateResultSnapshot
+from .models import (
+    CandidateResultAccess,
+    CandidateResultFeedback,
+    CandidateResultSnapshot,
+)
 
 
 def _session_key(access: CandidateResultAccess) -> str:
@@ -39,6 +43,19 @@ def _copy(locale: str) -> dict[str, str]:
             "preview_label": "Förhandsvisning för behörig användare",
             "preview_body": "Detta är en intern förhandsvisning. Kandidaten behöver verifiera sin åtkomst i den publika vyn.",
             "discussion_title": "Ett underlag för reflektion",
+            "feedback_question": "Känner du igen dig i den här beskrivningen?",
+            "feedback_recognise": "Jag känner igen mig",
+            "feedback_partial": "Delvis",
+            "feedback_not_recognise": "Jag känner inte igen mig",
+            "feedback_comment_button": "Lämna en kommentar",
+            "feedback_edit_comment": "Redigera kommentar",
+            "feedback_modal_title": "Din reflektion",
+            "feedback_comment_label": "Kommentar (valfritt)",
+            "feedback_comment_placeholder": "Är det något du vill bekräfta, nyansera eller kommentera?",
+            "feedback_save": "Spara reflektion",
+            "feedback_cancel": "Avbryt",
+            "feedback_saved": "Din reflektion har sparats.",
+            "feedback_saved_short": "Sparad",
             "discussion_body": (
                 "Resultatet beskriver möjliga preferenser och tendenser "
                 "utifrån dina svar. Det är inte en absolut sanning eller "
@@ -68,6 +85,19 @@ def _copy(locale: str) -> dict[str, str]:
         "preview_label": "Authorised preview",
         "preview_body": "This is an internal preview. Candidates must verify access in the public view.",
         "discussion_title": "A basis for reflection",
+        "feedback_question": "Do you recognise yourself in this description?",
+        "feedback_recognise": "I recognise myself",
+        "feedback_partial": "Partly",
+        "feedback_not_recognise": "I do not recognise myself",
+        "feedback_comment_button": "Add a comment",
+        "feedback_edit_comment": "Edit comment",
+        "feedback_modal_title": "Your reflection",
+        "feedback_comment_label": "Comment (optional)",
+        "feedback_comment_placeholder": "Is there anything you would like to confirm, nuance or comment on?",
+        "feedback_save": "Save reflection",
+        "feedback_cancel": "Cancel",
+        "feedback_saved": "Your reflection has been saved.",
+        "feedback_saved_short": "Saved",
         "discussion_body": (
             "The result describes possible preferences and tendencies "
             "based on your responses. It is not an absolute truth or a "
@@ -85,6 +115,11 @@ def _result_context(
     introduction = content.get("introduction")
     if not isinstance(introduction, dict):
         introduction = {}
+
+    feedback_by_area = {
+        feedback.result_area: feedback
+        for feedback in CandidateResultFeedback.objects.filter(snapshot=snapshot)
+    }
 
     sections = []
     for key in ("personality", "skills", "motivation"):
@@ -106,6 +141,7 @@ def _result_context(
                     "title": section.get("title") or key.title(),
                     "body": body,
                     "points": points,
+                    "feedback": feedback_by_area.get(key),
                 }
             )
 
@@ -123,7 +159,43 @@ def _result_context(
         "sections": sections,
         "locale": locale,
         "preview": preview,
+        "feedback_saved": False,
     }
+
+
+
+def _save_candidate_feedback(request, snapshot: CandidateResultSnapshot):
+    result_area = (request.POST.get("result_area") or "").strip()
+    response_value = (request.POST.get("response") or "").strip()
+    comment = (request.POST.get("comment") or "").strip()
+
+    available_areas = {
+        section["key"]
+        for section in _result_context(snapshot)["sections"]
+    }
+    valid_responses = {
+        choice[0]
+        for choice in CandidateResultFeedback.RESPONSE_CHOICES
+    }
+
+    if result_area not in available_areas:
+        return HttpResponseBadRequest("This result area is not available.")
+    if response_value not in valid_responses:
+        return HttpResponseBadRequest("This feedback response is not valid.")
+    if len(comment) > 2000:
+        return HttpResponseBadRequest("The feedback comment is too long.")
+
+    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
+    CandidateResultFeedback.objects.update_or_create(
+        snapshot=snapshot,
+        result_area=result_area,
+        defaults={
+            "response": response_value,
+            "comment": comment,
+            "locale": locale,
+        },
+    )
+    return None
 
 
 def _get_access(token: str) -> CandidateResultAccess:
@@ -178,10 +250,18 @@ def candidate_result(request, token: str):
             },
         )
 
+    if request.method == "POST" and request.POST.get("action") == "save_feedback":
+        error_response = _save_candidate_feedback(request, access.snapshot)
+        if error_response is not None:
+            return error_response
+        return redirect(f"{request.path}?feedback_saved=1")
+
+    context = _result_context(access.snapshot)
+    context["feedback_saved"] = request.GET.get("feedback_saved") == "1"
     return render(
         request,
         "candidate_results/result.html",
-        _result_context(access.snapshot),
+        context,
     )
 
 

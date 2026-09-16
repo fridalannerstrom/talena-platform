@@ -13,6 +13,7 @@ from apps.processes.models import Candidate, TestInvitation, TestProcess
 
 from .models import (
     CandidateResultAccess,
+    CandidateResultFeedback,
     CandidateResultSnapshot,
 )
 from .services import create_candidate_result_access
@@ -427,6 +428,85 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Detta är ditt resultat.")
         self.assertContains(response, "view-candidate@example.com")
+
+    def test_candidate_can_save_feedback_for_an_available_area(self):
+        result_url = f"/candidate-results/{self.raw_token}/"
+        self.client.post(result_url, {"verification_code": self.raw_code})
+
+        response = self.client.post(
+            result_url,
+            {
+                "action": "save_feedback",
+                "result_area": "personality",
+                "response": CandidateResultFeedback.RECOGNISES,
+                "comment": "Det här stämmer bra med min upplevelse.",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        feedback = CandidateResultFeedback.objects.get(
+            snapshot=self.snapshot,
+            result_area="personality",
+        )
+        self.assertEqual(feedback.response, CandidateResultFeedback.RECOGNISES)
+        self.assertEqual(feedback.comment, "Det här stämmer bra med min upplevelse.")
+
+        response = self.client.get(result_url)
+        self.assertContains(response, "Redigera kommentar")
+        self.assertContains(response, "Jag känner igen mig")
+
+    def test_candidate_feedback_replaces_the_existing_area_response(self):
+        result_url = f"/candidate-results/{self.raw_token}/"
+        self.client.post(result_url, {"verification_code": self.raw_code})
+
+        for response_value in (
+            CandidateResultFeedback.RECOGNISES,
+            CandidateResultFeedback.DOES_NOT_RECOGNISE,
+        ):
+            self.client.post(
+                result_url,
+                {
+                    "action": "save_feedback",
+                    "result_area": "personality",
+                    "response": response_value,
+                    "comment": "",
+                },
+            )
+
+        feedback = CandidateResultFeedback.objects.get(
+            snapshot=self.snapshot,
+            result_area="personality",
+        )
+        self.assertEqual(
+            feedback.response,
+            CandidateResultFeedback.DOES_NOT_RECOGNISE,
+        )
+        self.assertEqual(
+            CandidateResultFeedback.objects.filter(
+                snapshot=self.snapshot,
+                result_area="personality",
+            ).count(),
+            1,
+        )
+
+    def test_candidate_cannot_submit_feedback_for_an_unavailable_area(self):
+        result_url = f"/candidate-results/{self.raw_token}/"
+        self.client.post(result_url, {"verification_code": self.raw_code})
+
+        response = self.client.post(
+            result_url,
+            {
+                "action": "save_feedback",
+                "result_area": "motivation",
+                "response": CandidateResultFeedback.RECOGNISES,
+                "comment": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(
+            CandidateResultFeedback.objects.filter(snapshot=self.snapshot).exists()
+        )
 
     def test_revoked_access_returns_gone(self):
         self.access.revoked_at = timezone.now()

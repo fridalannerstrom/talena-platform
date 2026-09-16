@@ -1,6 +1,10 @@
 from django.contrib import admin
 
-from .models import CandidateResultAccess, CandidateResultSnapshot
+from .models import (
+    CandidateResultAccess,
+    CandidateResultFeedback,
+    CandidateResultSnapshot,
+)
 
 
 @admin.register(CandidateResultSnapshot)
@@ -62,4 +66,31 @@ class CandidateResultAccessAdmin(admin.ModelAdmin):
         "verification_failed_attempts",
         "last_verification_failed_at",
         "locked_until",
+    )
+
+
+@admin.register(CandidateResultFeedback)
+class CandidateResultFeedbackAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "snapshot",
+        "result_area",
+        "response",
+        "locale",
+        "updated_at",
+    )
+    list_filter = ("result_area", "response", "locale")
+    search_fields = (
+        "snapshot__candidate__email",
+        "snapshot__candidate__first_name",
+        "snapshot__candidate__last_name",
+    )
+    readonly_fields = (
+        "snapshot",
+        "result_area",
+        "response",
+        "comment",
+        "locale",
+        "created_at",
+        "updated_at",
     )
