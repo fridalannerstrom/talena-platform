@@ -1465,6 +1465,14 @@ def build_candidate_detail_context(process, invitation):
 
     print("AFTER FLEXIBLE AI BLOCK")
 
+    from apps.candidate_results.models import CandidateResultSnapshot
+
+    candidate_result_snapshot = (
+        CandidateResultSnapshot.objects
+        .filter(invitation=invitation)
+        .first()
+    )
+
     return {
 
         "company": process.company,
@@ -1472,6 +1480,7 @@ def build_candidate_detail_context(process, invitation):
         "invitation": invitation,
         "inv": invitation,
         "candidate": candidate,
+        "candidate_result_snapshot": candidate_result_snapshot,
         "activity_events": activity_events,
 
         "activities": activities,
