@@ -4,6 +4,12 @@ import hashlib
 import json
 from typing import Any
 
+from apps.core.ai.cognitive_interpretation import extract_cognitive_results
+from apps.core.ai.motivation_interpretation import extract_motivation_results
+from apps.core.ai.personality_ai_evidence import (
+    build_owner_personality_ai_evidence_text,
+)
+
 from apps.core.ai.language import (
     get_ai_language_instruction,
     get_ai_system_language_instruction,
@@ -68,8 +74,130 @@ def _assessment_evidence(invitation) -> dict[str, Any]:
     }
 
 
-def build_candidate_result_source(invitation) -> dict[str, Any]:
-    """Build the canonical source for candidate-facing result generation."""
+def _has_result_value(competency: dict[str, Any]) -> bool:
+    return any(
+        competency.get(field_name) is not None
+        for field_name in (
+            "score",
+            "stive",
+            "stive_rounded",
+            "sten",
+            "sten_rounded",
+            "percentile",
+        )
+    )
+
+
+def _personality_evidence(invitation, *, language_code: str) -> str:
+    try:
+        return build_owner_personality_ai_evidence_text(
+            invitation,
+            language_code=language_code,
+            include_indicator_details=True,
+        )
+    except (AttributeError, TypeError, ValueError, KeyError):
+        return ""
+
+
+def _candidate_result_areas(
+    invitation,
+    *,
+    language_code: str,
+) -> dict[str, dict[str, Any]]:
+    """Identify only the assessment areas supported by real evidence."""
+    personality_evidence = _personality_evidence(
+        invitation,
+        language_code=language_code,
+    )
+    motivation_results = extract_motivation_results(invitation)
+    cognitive_results = extract_cognitive_results(invitation)
+
+    has_skills_evidence = bool(cognitive_results)
+    if not has_skills_evidence:
+        for activity in invitation.sova_activities or []:
+            activity_name = str(activity.get("activity") or "").lower()
+            if not any(
+                keyword in activity_name
+                for keyword in (
+                    "skill",
+                    "färdighet",
+                    "numer",
+                    "logical",
+                    "logisk",
+                    "verbal",
+                    "reasoning",
+                    "förmåga",
+                )
+            ):
+                continue
+            if any(
+                _has_result_value(competency)
+                for competency in activity.get("competencies") or []
+                if isinstance(competency, dict)
+            ):
+                has_skills_evidence = True
+                break
+
+    customer_personality = (
+        invitation.ai_personality_interpretation or {}
+    )
+    customer_motivation = (
+        invitation.ai_motivation_interpretation or {}
+    )
+    customer_cognitive = (
+        invitation.ai_cognitive_interpretation or {}
+    )
+
+    return {
+        "personality": {
+            "available": bool(personality_evidence or customer_personality),
+            "evidence": personality_evidence,
+        },
+        "skills": {
+            "available": has_skills_evidence or bool(customer_cognitive),
+            "evidence": {
+                "cognitive_results": _json_safe(cognitive_results),
+            },
+        },
+        "motivation": {
+            "available": bool(motivation_results or customer_motivation),
+            "evidence": {
+                "motivation_results": _json_safe(motivation_results),
+            },
+        },
+    }
+
+
+def build_candidate_result_source(
+    invitation,
+    *,
+    language_code: str = "sv",
+) -> dict[str, Any]:
+    """Build one canonical source and mark unavailable areas explicitly."""
+    areas = _candidate_result_areas(
+        invitation,
+        language_code=language_code,
+    )
+
+    customer_evidence = {
+        "summary": invitation.ai_summary or "",
+        "personality": (
+            _json_safe(invitation.ai_personality_interpretation or {})
+            if areas["personality"]["available"]
+            else {}
+        ),
+        "motivation": (
+            _json_safe(invitation.ai_motivation_interpretation or {})
+            if areas["motivation"]["available"]
+            else {}
+        ),
+        "cognitive": (
+            _json_safe(invitation.ai_cognitive_interpretation or {})
+            if areas["skills"]["available"]
+            else {}
+        ),
+    }
+
     return {
         "candidate": {
             "first_name": invitation.candidate.first_name,
@@ -80,19 +208,16 @@ def build_candidate_result_source(invitation) -> dict[str, Any]:
             "job_title": invitation.process.job_title or "",
             "context": _process_context(invitation),
         },
-        "assessment_evidence": _assessment_evidence(invitation),
-        "customer_result_evidence": {
-            "summary": invitation.ai_summary or "",
-            "personality": _json_safe(
-                invitation.ai_personality_interpretation or {}
-            ),
-            "motivation": _json_safe(
-                invitation.ai_motivation_interpretation or {}
-            ),
-            "cognitive": _json_safe(
-                invitation.ai_cognitive_interpretation or {}
-            ),
+        "available_result_areas": {
+            area: {
+                "available": details["available"],
+                "evidence": details["evidence"],
+            }
+            for area, details in areas.items()
         },
+        "personality_result_evidence": areas["personality"]["evidence"],
+        "assessment_evidence": _assessment_evidence(invitation),
+        "customer_result_evidence": customer_evidence,
     }
 
 
@@ -150,7 +275,15 @@ def build_candidate_result_prompt(
 ) -> tuple[str, dict[str, dict[str, Any]]]:
     """Build one candidate-result prompt from one canonical source."""
     language_code = normalize_ai_language(language_code)
-    source = build_candidate_result_source(invitation)
+    source = build_candidate_result_source(
+        invitation,
+        language_code=language_code,
+    )
+    available_areas = source["available_result_areas"]
+    available_area_lines = "\n".join(
+        f"- {section}: {'AVAILABLE' if details['available'] else 'NOT AVAILABLE'}"
+        for section, details in available_areas.items()
+    )
     prompt_metadata = get_candidate_result_prompt_metadata(
         language_code=language_code
     )
@@ -197,6 +330,15 @@ OUTPUT LANGUAGE
 GLOBAL ADMINISTRATOR GUIDANCE
 
 {get_global_ai_guidance(language=language_code)}
+
+AVAILABLE RESULT AREAS
+
+{available_area_lines}
+
+Only write substantive content for areas marked AVAILABLE. For every area
+marked NOT AVAILABLE, return an empty body and an empty points array. Never
+infer that a test was taken from the process name, job title or another
+assessment area.
 
 SECTION PROMPTS
 
@@ -260,7 +402,12 @@ def _parse_json_content(raw_content: str) -> dict[str, Any]:
     return payload
 
 
-def _normalise_section(value: Any, fallback_title: str) -> dict[str, Any]:
+def _normalise_section(
+    value: Any,
+    fallback_title: str,
+    *,
+    available: bool = True,
+) -> dict[str, Any]:
     if isinstance(value, dict):
         title = str(value.get("title") or fallback_title).strip()
         body = str(value.get("body") or "").strip()
@@ -268,6 +415,10 @@ def _normalise_section(value: Any, fallback_title: str) -> dict[str, Any]:
     else:
         title = fallback_title
         body = str(value or "").strip()
+        points = []
+
+    if not available:
+        body = ""
         points = []
     if not isinstance(points, list):
         points = [points]
@@ -280,12 +431,58 @@ def _normalise_section(value: Any, fallback_title: str) -> dict[str, Any]:
 
 def normalise_candidate_result_content(
     payload: dict[str, Any],
+    *,
+    available_areas: dict[str, dict[str, Any]] | None = None,
+    language_code: str = "sv",
 ) -> dict[str, dict[str, Any]]:
+    available_areas = available_areas or {
+        "personality": {"available": True},
+        "skills": {"available": True},
+        "motivation": {"available": True},
+    }
+    titles = {
+        "sv": {
+            "introduction": "Ditt resultat",
+            "personality": "Personlighet",
+            "skills": "Färdigheter",
+            "motivation": "Motivation",
+        },
+        "en": {
+            "introduction": "Your result",
+            "personality": "Personality",
+            "skills": "Skills",
+            "motivation": "Motivation",
+        },
+    }.get(language_code, {})
     return {
-        "introduction": _normalise_section(payload.get("introduction"), "Your result"),
-        "personality": _normalise_section(payload.get("personality"), "Personality"),
-        "skills": _normalise_section(payload.get("skills"), "Skills"),
-        "motivation": _normalise_section(payload.get("motivation"), "Motivation"),
+        "introduction": _normalise_section(
+            payload.get("introduction"),
+            titles.get("introduction", "Your result"),
+        ),
+        "personality": _normalise_section(
+            payload.get("personality"),
+            titles.get("personality", "Personality"),
+            available=available_areas.get("personality", {}).get(
+                "available",
+                False,
+            ),
+        ),
+        "skills": _normalise_section(
+            payload.get("skills"),
+            titles.get("skills", "Skills"),
+            available=available_areas.get("skills", {}).get(
+                "available",
+                False,
+            ),
+        ),
+        "motivation": _normalise_section(
+            payload.get("motivation"),
+            titles.get("motivation", "Motivation"),
+            available=available_areas.get("motivation", {}).get(
+                "available",
+                False,
+            ),
+        ),
     }
 
 
@@ -319,7 +516,9 @@ def generate_candidate_result_content(
         response_format={"type": "json_object"},
     )
     content = normalise_candidate_result_content(
-        _parse_json_content(response.choices[0].message.content)
+        _parse_json_content(response.choices[0].message.content),
+        available_areas=source["available_result_areas"],
+        language_code=language_code,
     )
     fingerprint_payload = {
         "source": build_candidate_result_source(invitation),
