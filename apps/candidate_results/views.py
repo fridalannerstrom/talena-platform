@@ -232,7 +232,9 @@ def candidate_result(request, token: str):
     verified = bool(request.session.get(session_key))
     error = ""
 
-    if request.method == "POST":
+    # Feedback is submitted after the candidate has already verified the
+    # result link. Do not try to verify an empty code again on that POST.
+    if request.method == "POST" and request.POST.get("action") != "save_feedback":
         code = (request.POST.get("verification_code") or "").strip()
         verified = access.verify_code(code, now=now)
         if verified:
