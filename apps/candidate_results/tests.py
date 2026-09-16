@@ -298,6 +298,66 @@ class CandidateResultInterpretationTests(TestCase):
         generate.assert_called_once()
 
 
+    @patch("apps.candidate_results.interpretation.get_openai_client")
+    def test_generation_omits_unavailable_result_areas(self, get_client):
+        from types import SimpleNamespace
+
+        from apps.candidate_results.interpretation import (
+            generate_candidate_result_content,
+        )
+
+        self.invitation.sova_activities = [
+            {
+                "activity": "Numerical reasoning",
+                "competencies": [
+                    {"competency": "Numerical reasoning", "percentile": 62},
+                ],
+            },
+        ]
+        get_client.return_value.chat.completions.create.return_value = (
+            SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(
+                            content=json.dumps({
+                                "introduction": {
+                                    "title": "Välkommen",
+                                    "body": "Ett reflektionsunderlag.",
+                                },
+                                "personality": {
+                                    "title": "Personlighet",
+                                    "body": "Ska inte visas.",
+                                    "points": ["Inte heller denna punkt."],
+                                },
+                                "skills": {
+                                    "title": "Färdigheter",
+                                    "body": "Numerisk information kan vara en del av ditt sätt att ta dig an uppgifter.",
+                                    "points": [],
+                                },
+                                "motivation": {
+                                    "title": "Motivation",
+                                    "body": "Ska inte visas.",
+                                    "points": [],
+                                },
+                            })
+                        )
+                    )
+                ]
+            )
+        )
+
+        content, _, _ = generate_candidate_result_content(
+            self.invitation,
+            language_code="sv",
+        )
+
+        self.assertTrue(content["skills"]["body"])
+        self.assertEqual(content["personality"]["body"], "")
+        self.assertEqual(content["personality"]["points"], [])
+        self.assertEqual(content["motivation"]["body"], "")
+        self.assertEqual(content["motivation"]["points"], [])
+
+
 class CandidateResultAccessViewTests(TestCase):
     def setUp(self):
         User = get_user_model()
