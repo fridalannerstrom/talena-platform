@@ -11,8 +11,8 @@ from apps.processes.models import Candidate, TestInvitation, TestProcess
 from .models import (
     CandidateResultAccess,
     CandidateResultSnapshot,
-    create_candidate_result_access,
 )
+from .services import create_candidate_result_access
 
 
 class CandidateResultFoundationTests(TestCase):
