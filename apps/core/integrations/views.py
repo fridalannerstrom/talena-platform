@@ -500,4 +500,28 @@ def sova_ingest(request):
         except Exception as e:
             print(f"❌ Error fetching project candidates: {str(e)}")
 
+    # A project-level completed callback means all required SOVA
+    # assessments for this invitation are complete. Create/send once; a
+    # repeated callback is handled idempotently by the email service.
+    if (
+        normalized == "completed"
+        and invitation.process.candidate_results_enabled
+    ):
+        try:
+            from apps.candidate_results.email import (
+                send_candidate_result_email,
+            )
+
+            send_candidate_result_email(
+                invitation,
+                base_url=request.build_absolute_uri("/"),
+            )
+        except Exception:
+            # Do not make SOVA retry the whole callback because an AI/email
+            # provider failed. The EmailLog/activity event records the error.
+            logger.exception(
+                "Candidate result delivery failed for invitation %s",
+                invitation.id,
+            )
+
     return JsonResponse({"status": "ok"})
