@@ -243,3 +243,56 @@ class CandidateResultInterpretationTests(TestCase):
         )
         self.assertTrue(fingerprint)
         self.assertEqual(metadata["introduction"]["language"], "sv")
+
+
+    @patch("apps.candidate_results.interpretation.generate_candidate_result_content")
+    def test_snapshot_creation_is_idempotent(self, generate):
+        from apps.candidate_results.interpretation import (
+            create_candidate_result_snapshot,
+        )
+
+        self.process.candidate_results_enabled = True
+        self.process.save(update_fields=["candidate_results_enabled"])
+        self.invitation.status = "completed"
+        self.invitation.save(update_fields=["status"])
+
+        generate.return_value = (
+            {
+                "introduction": {
+                    "title": "Välkommen",
+                    "body": "Resultat.",
+                    "points": [],
+                },
+                "personality": {
+                    "title": "Personlighet",
+                    "body": "Preferenser.",
+                    "points": [],
+                },
+                "skills": {
+                    "title": "Färdigheter",
+                    "body": "Färdigheter.",
+                    "points": [],
+                },
+                "motivation": {
+                    "title": "Motivation",
+                    "body": "Drivkrafter.",
+                    "points": [],
+                },
+            },
+            {"personality": {"version_id": 1}},
+            "fingerprint",
+        )
+
+        first, created = create_candidate_result_snapshot(
+            self.invitation,
+            language_code="sv",
+        )
+        second, created_again = create_candidate_result_snapshot(
+            self.invitation,
+            language_code="sv",
+        )
+
+        self.assertTrue(created)
+        self.assertFalse(created_again)
+        self.assertEqual(first.pk, second.pk)
+        generate.assert_called_once()
