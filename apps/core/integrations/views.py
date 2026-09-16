@@ -517,8 +517,8 @@ def sova_ingest(request):
                 base_url=request.build_absolute_uri("/"),
             )
         except Exception:
-            # Do not make SOVA retry the whole callback because an AI/email
-            # provider failed. The EmailLog/activity event records the error.
+            # Do not make SOVA retry the whole callback because candidate
+            # result generation or delivery failed. The failure is logged.
             logger.exception(
                 "Candidate result delivery failed for invitation %s",
                 invitation.id,
