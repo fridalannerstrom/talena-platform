@@ -20,6 +20,8 @@ class ActivityEvent(models.Model):
         TEST_STARTED = "test_started", "Test påbörjat"
         TEST_COMPLETED = "test_completed", "Test slutfört"
         ALL_TESTS_COMPLETED = "all_tests_completed", "Alla tester slutförda"
+        CANDIDATE_RESULT_EMAIL_SENT = "candidate_result_email_sent", "Kandidatresultat skickat"
+        CANDIDATE_RESULT_EMAIL_FAILED = "candidate_result_email_failed", "Kandidatresultat kunde inte skickas"
 
         STATUS_CHANGED = "status_changed", "Status ändrad"
 
@@ -338,6 +340,16 @@ class ActivityEvent(models.Model):
             ) % {
                 "candidate": candidate,
             }
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_EMAIL_SENT:
+            return _(
+                "Candidate result email sent to %(candidate)s"
+            ) % {"candidate": candidate}
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_EMAIL_FAILED:
+            return _(
+                "Candidate result email failed for %(candidate)s"
+            ) % {"candidate": candidate}
 
         if self.verb == self.Verb.ALL_TESTS_COMPLETED:
             return _(
