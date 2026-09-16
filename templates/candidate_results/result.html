@@ -14,6 +14,8 @@
     h1 { margin: 10px 0 0; font-size: clamp(2rem, 6vw, 4rem); line-height: 1.03; }
     .meta { color: var(--muted); line-height: 1.7; text-align: right; }
     .meta strong { display: block; color: var(--text); }
+    .preview-banner { margin: 0 0 22px; padding: 12px 16px; border: 1px solid rgba(255, 155, 131, .45); border-radius: 12px; background: rgba(255, 155, 131, .1); color: var(--coral); line-height: 1.5; }
+    .preview-banner strong { display: block; margin-bottom: 4px; color: var(--text); }
     .intro { margin: 32px 0 26px; padding: 24px; border: 1px solid rgba(99, 214, 155, .35); border-radius: 18px; background: rgba(99, 214, 155, .08); }
     .intro h2 { margin-top: 0; color: var(--green); }
     p { color: var(--muted); line-height: 1.7; }
@@ -28,6 +30,12 @@
 <body>
   <main class="wrap">
     <div class="brand">Talena</div>
+    {% if preview %}
+      <div class="preview-banner" role="status">
+        <strong>{{ copy.preview_label }}</strong>
+        <span>{{ copy.preview_body }}</span>
+      </div>
+    {% endif %}
     <header>
       <div><div>{{ copy.result_label }}</div><h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1></div>
       <div class="meta">
