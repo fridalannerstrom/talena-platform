@@ -117,13 +117,24 @@ def send_candidate_result_email(
         .first()
     )
 
+    from apps.emails.models import EmailLog
+
     if access and replace_code:
         raw_token, raw_code = rotate_candidate_result_access(access)
     elif access:
-        raise ValueError(
-            "An active candidate result access record already exists; "
-            "use replace_code=True to resend safely."
+        previous_log = (
+            EmailLog.objects
+            .filter(
+                invitation=invitation,
+                template_type="candidate_result",
+                status="sent",
+            )
+            .order_by("-created_at", "-id")
+            .first()
         )
+        if previous_log:
+            return previous_log, access, None
+        raw_token, raw_code = rotate_candidate_result_access(access)
     else:
         access, raw_token, raw_code = create_candidate_result_access(snapshot)
 
@@ -135,8 +146,6 @@ def send_candidate_result_email(
         result_url=_result_url(raw_token, base_url),
         verification_code=raw_code,
     )
-
-    from apps.emails.models import EmailLog
 
     email_log = EmailLog.objects.create(
         invitation=invitation,
