@@ -2911,6 +2911,10 @@ def create_empty_post_interview_decision_support(
         "contradictions": [],
         "remaining_uncertainties": [],
         "suggested_follow_up": [],
+        "content_blocks": {
+            key: ""
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        },
         "context_note": "",
     }
 
