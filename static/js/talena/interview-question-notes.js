@@ -491,40 +491,18 @@
           const actions = document.createElement("div");
           actions.className = "interview-question-notes-summary__actions";
 
-          const edit = createSummaryActionButton(
-            "edit",
-            "interviewQuestionNotesSummaryEdit",
-            "interview-question-notes-summary__action interview-question-notes-summary__action--edit",
-          );
           const remove = createSummaryActionButton(
             "delete",
             "interviewQuestionNotesSummaryDelete",
             "interview-question-notes-summary__action interview-question-notes-summary__action--delete",
           );
 
-          const openEditorFromAction = (event) => {
-            event.preventDefault();
-            try {
-              enterSummaryEdit(article);
-            } catch (error) {
-              console.error("Opening interview answer editor failed:", error);
-              showSummaryError(article, error?.message || text("error"));
-            }
-          };
-
-          // Pointerdown also handles dynamically injected offcanvas buttons
-          // when another Bootstrap handler prevents the subsequent click.
-          edit.addEventListener("pointerdown", (event) => {
-            if (event.button !== undefined && event.button !== 0) return;
-            openEditorFromAction(event);
-          });
-          edit.addEventListener("click", openEditorFromAction);
           remove.addEventListener("click", (event) => {
             event.preventDefault();
             deleteSummaryItem(article);
           });
 
-          actions.append(edit, remove);
+          actions.append(remove);
           article.append(meta, question, note, actions);
           list.appendChild(article);
         });
