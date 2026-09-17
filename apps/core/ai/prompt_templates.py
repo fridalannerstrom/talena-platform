@@ -6619,21 +6619,6 @@ Describe concrete conditions that may help the candidate thrive, perform and con
 """.strip(),
         },
     },
-        "post_interview_compiled_evidence": {
-        "name": "After interview · Compiled evidence",
-        "category": "After interview",
-        "description": (
-            "Controls the generated Underlag summary."
-        ),
-        "defaults": {
-            "sv": """
-Sammanställ det intervjuunderlag som AI faktiskt har använt: intervjuanteckningar, sparade svar och relevanta observationer. Var tydlig med källor, skilj fakta från tolkning och markera luckor. Lägg inte till information som inte finns i underlaget.
-""".strip(),
-            "en": """
-Compile the interview evidence that the AI actually used: interview notes, saved answers and relevant observations. Be clear about sources, distinguish facts from interpretations and mark gaps. Do not add information that is not present in the evidence.
-""".strip(),
-        },
-    },
         "post_interview_decision_support": {
         "name": "After interview · Overall synthesis",
         "category": "Final output",
