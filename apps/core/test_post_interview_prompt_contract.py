@@ -1,11 +1,14 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.core.ai.decision_support import (
+    _post_get_content_block_prompt_instructions,
     build_post_interview_decision_support_prompt,
 )
+
+from apps.processes.models import AIPromptTemplate
 
 
 class PostInterviewPromptContractTests(SimpleTestCase):
@@ -71,3 +74,44 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             "Never substitute the",
             prompt,
         )
+
+
+class PostInterviewPromptOverrideCompatibilityTests(TestCase):
+    def test_legacy_overall_picture_override_is_used_when_canonical_is_missing(self):
+        AIPromptTemplate.objects.create(
+            key="overall_picture",
+            name="Legacy overall picture",
+            language="sv",
+            prompt_text="LEGACY HELHETSBILD PROMPT",
+            is_active=True,
+        )
+
+        prompt = _post_get_content_block_prompt_instructions(
+            key="overall_picture",
+            language="sv",
+        )
+
+        self.assertEqual(prompt, "LEGACY HELHETSBILD PROMPT")
+
+    def test_canonical_override_has_priority_over_legacy_override(self):
+        AIPromptTemplate.objects.create(
+            key="overall_picture",
+            name="Legacy overall picture",
+            language="sv",
+            prompt_text="LEGACY HELHETSBILD PROMPT",
+            is_active=True,
+        )
+        AIPromptTemplate.objects.create(
+            key="post_interview_overall_picture",
+            name="Overall picture",
+            language="sv",
+            prompt_text="CANONICAL HELHETSBILD PROMPT",
+            is_active=True,
+        )
+
+        prompt = _post_get_content_block_prompt_instructions(
+            key="overall_picture",
+            language="sv",
+        )
+
+        self.assertEqual(prompt, "CANONICAL HELHETSBILD PROMPT")
