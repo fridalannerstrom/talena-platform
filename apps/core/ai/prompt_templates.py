@@ -6514,6 +6514,126 @@ By default, do not include raw assessment scores.
 
         },
     },
+        "post_interview_overall_picture": {
+        "name": "After interview · Overall picture",
+        "category": "After interview",
+        "description": (
+            "Controls the AI-generated Helhetsbild section after the interview."
+        ),
+        "defaults": {
+            "sv": """
+Skriv en tydlig helhetsbild av kandidaten efter intervjun. Väg samman relevant testdata, tidigare tolkningar, processkontext och intervjuunderlag. Beskriv mönster, styrkor och osäkerheter med nyanserat språk. Dra inte slutsatser som underlaget inte stödjer och hitta inte på saknade uppgifter.
+""".strip(),
+            "en": """
+Write a clear overall picture of the candidate after the interview. Weigh relevant test data, previous interpretations, process context and interview evidence. Describe patterns, strengths and uncertainties with nuanced language. Do not draw conclusions unsupported by the evidence or invent missing information.
+""".strip(),
+        },
+    },
+        "post_interview_test_results_intro": {
+        "name": "After interview · Test results introduction",
+        "category": "After interview",
+        "description": (
+            "Controls the introductory text for the Testresultat section."
+        ),
+        "defaults": {
+            "sv": """
+Förklara kort hur testresultaten ska förstås i relation till intervjun och övrigt underlag. Betona att resultaten är beslutsstöd och ska vägas mot konkreta exempel och processkontext.
+""".strip(),
+            "en": """
+Briefly explain how the test results should be understood in relation to the interview and the wider evidence. Emphasise that the results support judgement and should be weighed against concrete examples and process context.
+""".strip(),
+        },
+    },
+        "post_interview_test_results_manager": {
+        "name": "After interview · Test results · To manager",
+        "category": "After interview",
+        "description": (
+            "Controls the manager-facing Testresultat sub-tab."
+        ),
+        "defaults": {
+            "sv": """
+Skriv ett praktiskt underlag till chef om hur testresultaten kan förstås efter intervjun. Knyt relevanta testindikationer till intervjuunderlag och rollens kontext. Lyft vad som kan följas upp, men formulera inte ett automatiskt urvalsbeslut. Undvik råpoäng och percentiler om de inte uttryckligen efterfrågas.
+""".strip(),
+            "en": """
+Write a practical manager-facing interpretation of the test results after the interview. Connect relevant assessment indications to interview evidence and role context. Highlight what may need follow-up, but do not make an automatic selection decision. Avoid raw scores and percentiles unless explicitly requested.
+""".strip(),
+        },
+    },
+        "post_interview_test_results_candidate": {
+        "name": "After interview · Test results · To candidate",
+        "category": "After interview",
+        "description": (
+            "Controls the candidate-facing Testresultat sub-tab."
+        ),
+        "defaults": {
+            "sv": """
+Skriv en respektfull och konstruktiv återkoppling till kandidaten om testresultaten i ljuset av intervjun. Fokusera på utvecklingsbara styrkor, arbetssätt och reflektioner. Använd ett mjukare språk än i chefsversionen och undvik interna rekommendationer, råpoäng och percentiler.
+""".strip(),
+            "en": """
+Write respectful and constructive candidate-facing feedback about the test results in light of the interview. Focus on developable strengths, working styles and reflections. Use softer language than the manager version and avoid internal recommendations, raw scores and percentiles.
+""".strip(),
+        },
+    },
+        "post_interview_interview_summary": {
+        "name": "After interview · Interview summary",
+        "category": "After interview",
+        "description": (
+            "Controls the Intervjusammanfattning section."
+        ),
+        "defaults": {
+            "sv": """
+Sammanfatta det viktigaste som intervjun tillförde. Separera tydliga kandidatuttalanden och konkreta exempel från intervjuarens observationer och tolkningar. Ta med både bekräftelser och nya nyanser. Markera när information saknas eller är osäker.
+""".strip(),
+            "en": """
+Summarise what the interview added. Distinguish clear candidate statements and concrete examples from interviewer observations and interpretations. Include both confirmations and new nuances. Mark information that is missing or uncertain.
+""".strip(),
+        },
+    },
+        "post_interview_explore_further": {
+        "name": "After interview · Explore further",
+        "category": "After interview",
+        "description": (
+            "Controls the Undersök vidare section."
+        ),
+        "defaults": {
+            "sv": """
+Identifiera de viktigaste osäkerheterna, spänningarna eller obesvarade frågorna som är relevanta att undersöka vidare. Föreslå konkreta och proportionerliga uppföljningar som förbättrar beslutsunderlaget.
+""".strip(),
+            "en": """
+Identify the most important uncertainties, tensions or unanswered questions that are relevant to explore further. Suggest concrete and proportionate follow-ups that would improve the evidence base.
+""".strip(),
+        },
+    },
+        "post_interview_wellbeing_tips": {
+        "name": "After interview · Wellbeing tips",
+        "category": "After interview",
+        "description": (
+            "Controls the Tips för trivsel section."
+        ),
+        "defaults": {
+            "sv": """
+Beskriv konkreta förutsättningar som kan hjälpa kandidaten att trivas, prestera och komma till sin rätt i rollen. Utgå från tillgänglig evidens och formulera tips som hypoteser att pröva, inte som säkra personliga sanningar.
+""".strip(),
+            "en": """
+Describe concrete conditions that may help the candidate thrive, perform and contribute in the role. Base the suggestions on available evidence and frame them as hypotheses to test, not as certain personal truths.
+""".strip(),
+        },
+    },
+        "post_interview_compiled_evidence": {
+        "name": "After interview · Compiled evidence",
+        "category": "After interview",
+        "description": (
+            "Controls the generated Underlag summary."
+        ),
+        "defaults": {
+            "sv": """
+Sammanställ det intervjuunderlag som AI faktiskt har använt: intervjuanteckningar, sparade svar och relevanta observationer. Var tydlig med källor, skilj fakta från tolkning och markera luckor. Lägg inte till information som inte finns i underlaget.
+""".strip(),
+            "en": """
+Compile the interview evidence that the AI actually used: interview notes, saved answers and relevant observations. Be clear about sources, distinguish facts from interpretations and mark gaps. Do not add information that is not present in the evidence.
+""".strip(),
+        },
+    },
         "post_interview_decision_support": {
         "name": "After interview · Overall synthesis",
         "category": "Final output",
