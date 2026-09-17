@@ -413,9 +413,11 @@
     });
 
     const requested = new URL(window.location.href).searchParams.get(URL_PARAM);
+    const hasPostInterviewResult =
+      panel.closest("[data-final-output-root]")?.dataset.hasPostInterviewResult === "true";
     const initial = keys.includes(requested)
       ? requested
-      : panel.dataset.hasPostInterviewResult === "true" ? "overview" : "evidence";
+      : hasPostInterviewResult ? "overview" : "evidence";
     activate(initial, false);
     if (window.feather) window.feather.replace();
   };
