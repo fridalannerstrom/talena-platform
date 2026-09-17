@@ -1510,6 +1510,15 @@ const candidateHtml = await response.text();
 
 sheetBody.innerHTML = candidateHtml;
 
+/*
+ * The candidate sheet is injected dynamically after the main page has
+ * loaded. Explicitly initialize interview notes here so Underlag actions
+ * are ready inside the offcanvas before the other candidate initializers run.
+ */
+if (window.TalenaInterviewQuestionNotes?.initialise) {
+  window.TalenaInterviewQuestionNotes.initialise(sheetBody);
+}
+
 
 /*
  * One broken result/AI initializer should never make
