@@ -1082,7 +1082,11 @@ def apply_pre_interview_decision_support_event(
 # NDJSON parsing
 # ============================================================
 
-_JSON_DECODER = json.JSONDecoder()
+# AI content blocks may contain literal line breaks inside JSON strings
+# when an administrator prompt requests headings or multiple paragraphs.
+# Keep the protected JSON/event contract, but parse those text values
+# tolerantly so valid user-facing content is not discarded.
+_JSON_DECODER = json.JSONDecoder(strict=False)
 
 
 def _normalise_event_type(
