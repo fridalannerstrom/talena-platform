@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, TestCase
 
 from apps.core.ai.decision_support import (
+    _extract_json_events_from_buffer,
     _post_get_content_block_prompt_instructions,
     build_post_interview_decision_support_prompt,
 )
@@ -82,6 +83,20 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             "never replace it with a generic short summary",
             prompt,
         )
+
+
+    def test_stream_parser_accepts_literal_multiline_content_block_text(self):
+        events, remainder = _extract_json_events_from_buffer(
+            '{"type":"content_blocks","blocks":{"overall_picture":"Första stycket.\n\nAndra stycket."}}'
+        )
+
+        self.assertEqual(remainder, "")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(
+            events[0]["blocks"]["overall_picture"],
+            "Första stycket.\n\nAndra stycket.",
+        )
+
 
 
 class PostInterviewPromptOverrideCompatibilityTests(TestCase):
