@@ -2313,6 +2313,18 @@ def save_post_interview_decision_support(
         for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
     }
 
+    missing_content_blocks = [
+        key
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        if not result["content_blocks"].get(key)
+    ]
+
+    if missing_content_blocks:
+        raise ValueError(
+            "The AI response did not contain all required "
+            "After interview content blocks."
+        )
+
     generated_at = timezone.now()
 
     owner.ai_post_interview_decision_support = (

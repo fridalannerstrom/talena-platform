@@ -485,8 +485,13 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             ]
         )
 
+    force_regeneration = (
+        request.GET.get("force") == "1"
+    )
+
     if (
-        ai_content_language_matches(
+        not force_regeneration
+        and ai_content_language_matches(
             owner,
             "post_interview_decision_support",
             language_code,
@@ -678,6 +683,6 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
                     "process_id": process.id,
                     "candidate_id": candidate_id,
                 },
-            ),
+            ) + "?force=1",
         }
     )
