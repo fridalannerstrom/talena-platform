@@ -374,6 +374,9 @@
       field.dataset.savedValue = item.note || "";
     }
 
+    const saveButton = editor.querySelector("[data-interview-question-note-save]");
+    if (saveButton) saveButton.textContent = text("saveChanges");
+
     return editor;
   };
 
