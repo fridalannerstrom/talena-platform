@@ -400,6 +400,15 @@
       if (!line) return;
 
       const event = JSON.parse(line);
+
+      if (event.type === "prompt_debug") {
+        console.info(
+          "[Talena] After interview prompt diagnostics:",
+          event.data,
+        );
+        return;
+      }
+
       if (event.type === "error") {
         throw new Error(event.message || copy().error);
       }
