@@ -2538,6 +2538,56 @@ def _replace_post_prompt_once(
         1,
     )
 
+def _post_get_content_block_prompt_instructions(
+    *,
+    key: str,
+    language: str,
+) -> str:
+    """
+    Resolve a new After interview content-block prompt.
+
+    The prefixed key is canonical. The unprefixed key and the old combined
+    prompt are read only as compatibility fallbacks for overrides saved before
+    the content-block prompt keys were introduced.
+    """
+
+    prompt_key = f"post_interview_{key}"
+    compatibility_keys = [prompt_key, key]
+
+    if key == "overall_picture":
+        compatibility_keys.append("post_interview_decision_support")
+
+    try:
+        from apps.processes.models import AIPromptTemplate
+
+        for candidate_key in compatibility_keys:
+            override = (
+                AIPromptTemplate.objects
+                .filter(
+                    key=candidate_key,
+                    language=language,
+                    is_active=True,
+                )
+                .order_by("-updated_at", "-id")
+                .first()
+            )
+            prompt_text = str(
+                getattr(override, "prompt_text", "")
+                or ""
+            ).strip()
+
+            if prompt_text:
+                return prompt_text
+    except Exception:
+        # Preserve the protected default if prompt lookup is unavailable.
+        pass
+
+    return get_ai_feature_prompt_instructions(
+        key=prompt_key,
+        language=language,
+    )
+
+
 def build_post_interview_decision_support_prompt(
     owner,
     *,
@@ -2600,8 +2650,8 @@ def build_post_interview_decision_support_prompt(
     )
 
     content_block_instructions = {
-        key: get_ai_feature_prompt_instructions(
-            key=f"post_interview_{key}",
+        key: _post_get_content_block_prompt_instructions(
+            key=key,
             language=language_code,
         )
         for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
@@ -2704,8 +2754,14 @@ Each content block is independent and must follow only its own administrator gui
 CONTENT BLOCK PRIORITY
 The content_blocks values are the user-facing texts for the new After interview tabs.
 For each key, use the matching CONTENT BLOCK GUIDANCE above as the authoritative
-substantive instruction, together with the global guidance. Never substitute the
-legacy decision-support synthesis or a shorter fallback summary for a content block.
+substantive instruction, together with the global guidance.
+The matching administrator prompt controls that block's scope, length, detail,
+structure, headings, paragraph/list count and tone. If it requests multiple
+subsections or thematic headings, include them inside that block's plain-text
+value using escaped line breaks where needed.
+Never substitute the legacy decision-support synthesis or a shorter fallback
+summary for a content block. Do not collapse detailed administrator guidance
+into a generic three-sentence summary.
 The examples in the technical contract are placeholders only and must not be copied.
 
 SECTION ISOLATION
