@@ -26,6 +26,7 @@ from .shared_context import (
 from .prompt_templates import (
     get_ai_prompt_instructions,
     get_ai_feature_prompt_instructions,
+    get_global_ai_guidance,
 )
 
 POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
@@ -2568,9 +2569,14 @@ def build_post_interview_decision_support_prompt(
         )
     )
 
-    overall_instructions = get_ai_prompt_instructions(
-        key="post_interview_decision_support",
+    global_instructions = get_global_ai_guidance(
         language=language_code,
+    )
+    legacy_decision_support_instructions = (
+        get_ai_feature_prompt_instructions(
+            key="post_interview_decision_support",
+            language=language_code,
+        )
     )
     supported_instructions = get_ai_feature_prompt_instructions(
         key="post_interview_supported_indications",
@@ -2660,9 +2666,16 @@ INTERVIEW NOTES AND CANDIDATE EXAMPLES
 
 ADMINISTRATOR AI GUIDANCE
 
-OVERALL SYNTHESIS GUIDANCE
-Applies only to overall_synthesis_delta and context_note.
-{overall_instructions}
+GLOBAL ADMINISTRATOR AI GUIDANCE
+Applies to every After interview output in this call.
+{global_instructions}
+
+LEGACY DECISION-SUPPORT GUIDANCE
+Applies only to the legacy decision-support fields:
+overall_synthesis_delta, supported_indications, added_nuance, contradictions,
+remaining_uncertainties, suggested_follow_up and context_note.
+It does not control any content_blocks value.
+{legacy_decision_support_instructions}
 
 SUPPORTED INDICATIONS GUIDANCE
 Applies only to supported_indications.
@@ -2687,6 +2700,13 @@ Applies only to suggested_follow_up.
 CONTENT BLOCK GUIDANCE
 Each content block is independent and must follow only its own administrator guidance.
 {content_blocks_guidance}
+
+CONTENT BLOCK PRIORITY
+The content_blocks values are the user-facing texts for the new After interview tabs.
+For each key, use the matching CONTENT BLOCK GUIDANCE above as the authoritative
+substantive instruction, together with the global guidance. Never substitute the
+legacy decision-support synthesis or a shorter fallback summary for a content block.
+The examples in the technical contract are placeholders only and must not be copied.
 
 SECTION ISOLATION
 Treat each guidance block as authoritative only for its corresponding event.

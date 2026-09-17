@@ -216,8 +216,9 @@ class PostInterviewRoleContextPolicyTests(SimpleTestCase):
 class PostInterviewContentBlockTests(SimpleTestCase):
     def test_all_after_interview_blocks_have_admin_prompts(self):
         for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
-            self.assertIn(key, AI_PROMPT_REGISTRY)
-            definition = AI_PROMPT_REGISTRY[key]
+            prompt_key = f"post_interview_{key}"
+            self.assertIn(prompt_key, AI_PROMPT_REGISTRY)
+            definition = AI_PROMPT_REGISTRY[prompt_key]
             self.assertEqual(definition["category"], "After interview")
             self.assertIn("sv", definition["defaults"])
             self.assertIn("en", definition["defaults"])
