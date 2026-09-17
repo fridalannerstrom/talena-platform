@@ -160,6 +160,13 @@ class InterviewQuestionNoteEndpointTests(TestCase):
                 "candidate_id": self.candidate.id,
             },
         )
+        self.regenerate_url = reverse(
+            "processes:process_candidate_post_interview_decision_support_regenerate",
+            kwargs={
+                "process_id": self.process.id,
+                "candidate_id": self.candidate.id,
+            },
+        )
 
     def post_note(self, **overrides):
         payload = {
@@ -239,6 +246,16 @@ class InterviewQuestionNoteEndpointTests(TestCase):
             "outdated",
         )
         self.assertEqual(response.json()["post_interview_status"], "outdated")
+
+    def test_regeneration_stream_is_forced_past_saved_result(self):
+        self.post_note()
+
+        response = self.client.post(self.regenerate_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.json()["stream_url"].endswith("?force=1")
+        )
 
     def test_existing_note_can_be_edited_or_removed_after_question_regeneration(self):
         self.post_note(note="Original answer")
