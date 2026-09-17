@@ -2817,32 +2817,11 @@ GLOBAL ADMINISTRATOR AI GUIDANCE
 Applies to every After interview output in this call.
 {global_instructions}
 
-LEGACY DECISION-SUPPORT GUIDANCE
-Applies only to the legacy decision-support fields:
-overall_synthesis_delta, supported_indications, added_nuance, contradictions,
-remaining_uncertainties, suggested_follow_up and context_note.
-It does not control any content_blocks value.
-{legacy_decision_support_instructions}
-
-SUPPORTED INDICATIONS GUIDANCE
-Applies only to supported_indications.
-{supported_instructions}
-
-ADDED NUANCE GUIDANCE
-Applies only to added_nuance.
-{nuance_instructions}
-
-CONTRADICTIONS GUIDANCE
-Applies only to contradictions.
-{contradictions_instructions}
-
-REMAINING UNCERTAINTIES GUIDANCE
-Applies only to remaining_uncertainties.
-{uncertainties_instructions}
-
-SUGGESTED FOLLOW-UP GUIDANCE
-Applies only to suggested_follow_up.
-{follow_up_instructions}
+LEGACY COMPATIBILITY FIELDS
+The legacy decision-support fields and events are optional compatibility data.
+They are not the primary After interview output and have no authority over
+the content, length or structure of any content_blocks value. Do not apply a
+legacy short-summary instruction to the new content blocks.
 
 CONTENT BLOCK GUIDANCE
 Each content block is independent and must follow only its own administrator guidance.
@@ -2945,118 +2924,26 @@ overall_synthesis_delta events:
 {{"type":"overall_synthesis_delta","text":"{examples["synthesis"]}"}}
 
 
-3. SUPPORTED INDICATIONS
+3. OPTIONAL LEGACY COMPATIBILITY EVENTS
 
-Return one supported_indications event.
+The following event types are retained for compatibility with older
+After interview consumers: supported_indications, added_nuance,
+contradictions, remaining_uncertainties and suggested_follow_up.
 
-Every item must preserve these fields:
-
-- title
-- assessment_indication
-- interview_evidence
-- interpretation
-
-The administrator guidance determines the number of items.
-
-Example:
-
-{json.dumps(
-    {
-        "type": "supported_indications",
-        "items": [examples["supported"]],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
+They may be omitted when the content_blocks event is complete. If returned,
+preserve their existing event names, JSON field names and item structures.
+These optional legacy events must never shorten, replace or control any
+content_blocks value. The per-block administrator guidance remains the
+authoritative instruction for all user-facing After interview text.
 
 
-4. ADDED NUANCE
+CONTENT BLOCK EXECUTION PRIORITY
 
-Return one added_nuance event.
-
-Every item must preserve:
-
-- title
-- assessment_indication
-- interview_evidence
-- interpretation
-
-The administrator guidance determines the number of items.
-
-Example:
-
-{json.dumps(
-    {
-        "type": "added_nuance",
-        "items": [examples["nuance"]],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
-
-
-5. CONTRADICTIONS
-
-Return one contradictions event.
-
-Every item must preserve:
-
-- title
-- assessment_evidence
-- interview_evidence
-- interpretation
-
-The administrator guidance determines the number of items.
-
-An empty items array is technically valid.
-
-Example:
-
-{json.dumps(
-    {
-        "type": "contradictions",
-        "items": [examples["contradiction"]],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
-
-
-6. REMAINING UNCERTAINTIES
-
-Return one remaining_uncertainties event.
-
-The administrator guidance determines the number of items.
-
-An empty items array is technically valid.
-
-{json.dumps(
-    {
-        "type": "remaining_uncertainties",
-        "items": examples["uncertainties"],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
-
-
-7. SUGGESTED FOLLOW-UP
-
-Return one suggested_follow_up event.
-
-The administrator guidance determines the number of items.
-
-An empty items array is technically valid.
-
-{json.dumps(
-    {
-        "type": "suggested_follow_up",
-        "items": examples["follow_up"],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
-
+Before producing the content_blocks event, re-read the matching administrator
+guidance under CONTENT BLOCK GUIDANCE above and execute it in full. Treat it as
+an instruction, not as background information to summarize. Follow requested
+length, headings, sections, paragraph count, list structure and tone. Do not
+fall back to a generic short summary or to any default word count.
 
 8. CONTENT BLOCKS
 
@@ -3187,8 +3074,14 @@ def stream_post_interview_decision_support(
                     "consultant. Compare assessment indications "
                     "with interview evidence without making a "
                     "matching, suitability, selection, promotion "
-                    "or hiring decision. Follow the requested "
-                    "NDJSON format exactly."
+                    "or hiring decision. The content_blocks event is "
+                    "the primary user-facing result. Execute each "
+                    "matching administrator content-block instruction "
+                    "in full, including its requested length and "
+                    "structure; never replace it with a generic short "
+                    "summary or a default word count. Optional legacy "
+                    "events must never shorten or control content_blocks. "
+                    "Follow the requested NDJSON format exactly."
                 ),
             },
             {

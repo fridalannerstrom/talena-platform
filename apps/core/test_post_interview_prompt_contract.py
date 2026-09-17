@@ -63,15 +63,23 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             prompt,
         )
         self.assertIn(
-            "LEGACY DECISION-SUPPORT GUIDANCE",
+            "OPTIONAL LEGACY COMPATIBILITY EVENTS",
             prompt,
         )
         self.assertIn(
+            "CONTENT BLOCK EXECUTION PRIORITY",
+            prompt,
+        )
+        self.assertIn(
+            "PROMPT::post_interview_overall_picture",
+            prompt,
+        )
+        self.assertNotIn(
             "PROMPT::post_interview_decision_support",
             prompt,
         )
         self.assertIn(
-            "Never substitute the",
+            "never replace it with a generic short summary",
             prompt,
         )
 
