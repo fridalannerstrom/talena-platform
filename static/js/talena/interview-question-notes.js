@@ -754,6 +754,10 @@
     urls.forEach((url) => loadNotes(url));
   };
 
+  // Expose explicit initialization for the dynamically loaded candidate sheet.
+  window.TalenaInterviewQuestionNotes = window.TalenaInterviewQuestionNotes || {};
+  window.TalenaInterviewQuestionNotes.initialise = initialise;
+
   document.addEventListener("input", (event) => {
     const field = event.target.closest?.("[data-interview-question-note]");
     if (!field) return;
