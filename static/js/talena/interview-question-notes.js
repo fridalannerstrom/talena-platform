@@ -502,7 +502,7 @@
             "interview-question-notes-summary__action interview-question-notes-summary__action--delete",
           );
 
-          edit.addEventListener("click", (event) => {
+          const openEditorFromAction = (event) => {
             event.preventDefault();
             try {
               enterSummaryEdit(article);
@@ -510,7 +510,15 @@
               console.error("Opening interview answer editor failed:", error);
               showSummaryError(article, error?.message || text("error"));
             }
+          };
+
+          // Pointerdown also handles dynamically injected offcanvas buttons
+          // when another Bootstrap handler prevents the subsequent click.
+          edit.addEventListener("pointerdown", (event) => {
+            if (event.button !== undefined && event.button !== 0) return;
+            openEditorFromAction(event);
           });
+          edit.addEventListener("click", openEditorFromAction);
           remove.addEventListener("click", (event) => {
             event.preventDefault();
             deleteSummaryItem(article);
