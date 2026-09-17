@@ -762,11 +762,11 @@
     setDirtyState(field);
   });
 
-  // Keep this delegated capture handler because the Underlag card can be
-  // moved into the tab workspace after the summary buttons are rendered.
+  // Handle the edit action from both its data attribute and stable action class.
+  // The Underlag card can be moved into the tab workspace after rendering.
   document.addEventListener("click", (event) => {
     const edit = event.target.closest?.(
-      "[data-interview-question-notes-summary-edit]",
+      "[data-interview-question-notes-summary-edit], .interview-question-notes-summary__action--edit",
     );
     if (!edit) return;
 
