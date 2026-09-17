@@ -6,6 +6,11 @@ from apps.core.ai.motivation_interpretation import (
     build_motivation_evidence_text,
     extract_motivation_results,
 )
+from apps.core.ai.decision_support import (
+    POST_INTERVIEW_CONTENT_BLOCK_KEYS,
+    apply_post_interview_decision_support_event,
+    create_empty_post_interview_decision_support,
+)
 from apps.core.ai.post_interview_role_context_policy import (
     install_post_interview_role_context_policy,
 )
@@ -207,3 +212,43 @@ class PostInterviewRoleContextPolicyTests(SimpleTestCase):
             "hiring",
             definition["defaults"]["en"].lower(),
         )
+
+class PostInterviewContentBlockTests(SimpleTestCase):
+    def test_all_after_interview_blocks_have_admin_prompts(self):
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+            self.assertIn(key, AI_PROMPT_REGISTRY)
+            definition = AI_PROMPT_REGISTRY[key]
+            self.assertEqual(definition["category"], "After interview")
+            self.assertIn("sv", definition["defaults"])
+            self.assertIn("en", definition["defaults"])
+
+    def test_content_blocks_are_part_of_saved_result_contract(self):
+        result = create_empty_post_interview_decision_support(
+            SimpleNamespace()
+        )
+
+        self.assertEqual(
+            set(result["content_blocks"]),
+            set(POST_INTERVIEW_CONTENT_BLOCK_KEYS),
+        )
+
+        apply_post_interview_decision_support_event(
+            result,
+            {
+                "type": "content_blocks",
+                "blocks": {
+                    key: f"Generated {key}"
+                    for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+                },
+            },
+        )
+
+        self.assertEqual(
+            result["content_blocks"]["overall_picture"],
+            "Generated overall_picture",
+        )
+        self.assertEqual(
+            result["content_blocks"]["test_results_candidate"],
+            "Generated test_results_candidate",
+        )
+
