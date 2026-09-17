@@ -63,6 +63,30 @@
         "[Talena] After interview generated-content diagnostics:",
         event.data,
       );
+      return;
+    }
+
+    if (event?.type === "content_blocks") {
+      console.info(
+        "[Talena] After interview AI content-block event:",
+        Object.fromEntries(
+          Object.entries(event.blocks || {}).map(
+            ([key, value]) => [key, String(value || "").trim().length],
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (event?.type === "saved_result") {
+      console.info(
+        "[Talena] After interview saved-result event:",
+        Object.fromEntries(
+          Object.entries(event.data?.content_blocks || {}).map(
+            ([key, value]) => [key, String(value || "").trim().length],
+          ),
+        ),
+      );
     }
   };
 
@@ -100,6 +124,8 @@
       }
       return;
     }
+
+    console.info("[Talena] After interview stream started:", url);
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
