@@ -604,6 +604,35 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                 ).strip()
                 result["overall_synthesis"] = overall_synthesis
 
+            yield json.dumps(
+                {
+                    "type": "result_debug",
+                    "data": {
+                        "overall_synthesis_characters": len(
+                            overall_synthesis
+                        ),
+                        "content_block_characters": {
+                            key: len(
+                                str(
+                                    content_blocks.get(key)
+                                    or ""
+                                ).strip()
+                            )
+                            for key in required_content_block_keys
+                        },
+                        "missing_content_blocks": missing_content_blocks,
+                        "supported_indications": len(
+                            supported_indications
+                        ),
+                        "added_nuance": len(
+                            added_nuance
+                        ),
+                    },
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
+
             if not overall_synthesis:
                 raise ValueError(
                     "The AI response did not contain an overall synthesis "
@@ -633,34 +662,6 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                     "The AI response did not contain valid assessment and "
                     "interview comparisons or complete content blocks."
                 )
-
-            yield json.dumps(
-                {
-                    "type": "result_debug",
-                    "data": {
-                        "overall_synthesis_characters": len(
-                            overall_synthesis
-                        ),
-                        "content_block_characters": {
-                            key: len(
-                                str(
-                                    content_blocks.get(key)
-                                    or ""
-                                ).strip()
-                            )
-                            for key in required_content_block_keys
-                        },
-                        "missing_content_blocks": missing_content_blocks,
-                        "supported_indications": len(
-                            supported_indications
-                        ),
-                        "added_nuance": len(
-                            added_nuance
-                        ),
-                    },
-                },
-                ensure_ascii=False,
-            ) + "\n"
 
             if not received_done_event:
                 yield json.dumps(
