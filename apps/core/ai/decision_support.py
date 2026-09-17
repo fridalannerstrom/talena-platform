@@ -2817,32 +2817,11 @@ GLOBAL ADMINISTRATOR AI GUIDANCE
 Applies to every After interview output in this call.
 {global_instructions}
 
-LEGACY DECISION-SUPPORT GUIDANCE
-Applies only to the legacy decision-support fields:
-overall_synthesis_delta, supported_indications, added_nuance, contradictions,
-remaining_uncertainties, suggested_follow_up and context_note.
-It does not control any content_blocks value.
-{legacy_decision_support_instructions}
-
-SUPPORTED INDICATIONS GUIDANCE
-Applies only to supported_indications.
-{supported_instructions}
-
-ADDED NUANCE GUIDANCE
-Applies only to added_nuance.
-{nuance_instructions}
-
-CONTRADICTIONS GUIDANCE
-Applies only to contradictions.
-{contradictions_instructions}
-
-REMAINING UNCERTAINTIES GUIDANCE
-Applies only to remaining_uncertainties.
-{uncertainties_instructions}
-
-SUGGESTED FOLLOW-UP GUIDANCE
-Applies only to suggested_follow_up.
-{follow_up_instructions}
+LEGACY COMPATIBILITY FIELDS
+The legacy decision-support fields and events are optional compatibility data.
+They are not the primary After interview output and have no authority over
+the content, length or structure of any content_blocks value. Do not apply a
+legacy short-summary instruction to the new content blocks.
 
 CONTENT BLOCK GUIDANCE
 Each content block is independent and must follow only its own administrator guidance.
