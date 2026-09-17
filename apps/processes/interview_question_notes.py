@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
@@ -20,6 +21,9 @@ from .models import (
     TestInvitation,
     TestProcess,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 QUESTION_SOURCES = {
@@ -587,6 +591,12 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             )
 
         except Exception as error:
+            logger.exception(
+                "After interview generation failed "
+                "(process_id=%s, candidate_id=%s)",
+                process.id,
+                candidate_id,
+            )
             owner.ai_post_interview_decision_support_status = "failed"
             owner.save(
                 update_fields=[
