@@ -110,7 +110,7 @@
   const makeTab = (key, label, panelId) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "after-interview-tab";
+    button.className = "candidate-insights-view-option";
     button.dataset.afterInterviewTab = key;
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", panelId);
@@ -121,7 +121,7 @@
 
   const makePanel = (key, panelId) => {
     const panel = document.createElement("div");
-    panel.className = "after-interview-tab-panel";
+    panel.className = "candidate-insights-subpanel after-interview-tab-panel";
     panel.dataset.afterInterviewTabPanel = key;
     panel.id = panelId;
     panel.setAttribute("role", "tabpanel");
@@ -132,7 +132,7 @@
   const makeInnerTab = (key, label, panelId) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "after-interview-inner-tab";
+    button.className = "candidate-insights-view-option";
     button.dataset.afterInterviewInnerTab = key;
     button.setAttribute("role", "tab");
     button.setAttribute("aria-controls", panelId);
@@ -157,7 +157,7 @@
     if (suppliedIntro) suppliedIntro.classList.add("after-interview-tab-card__body");
 
     const nav = document.createElement("div");
-    nav.className = "after-interview-inner-tabs";
+    nav.className = "candidate-insights-view-switcher after-interview-inner-tabs";
     nav.setAttribute("role", "tablist");
     nav.setAttribute("aria-label", copy().tabs.tests);
 
@@ -231,22 +231,38 @@
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
     style.id = STYLE_ID;
-    style.textContent = String.raw`
-      __PANEL__ .after-interview-tabs { display: grid; gap: 1rem; }
-      __PANEL__ .after-interview-tabs__nav {
-        display: flex; flex-wrap: wrap; gap: .35rem; padding: .3rem;
-        border: 1px solid var(--talena-border, #e5dfd8); border-radius: 14px; background: #faf9f7;
+    style.textContent = String.raw\`
+      __PANEL__ .candidate-insights-subnavigation {
+        margin: 0 !important; padding: 0 1.5rem;
+        border-bottom: 1px solid var(--talena-border, #e5dfd8);
       }
-      __PANEL__ .after-interview-tab {
-        appearance: none; border: 0; border-radius: 10px; background: transparent;
-        color: var(--talena-text-muted, #766e68); cursor: pointer; font: inherit;
-        font-size: .76rem; font-weight: 650; line-height: 1.25; padding: .7rem .9rem;
+      __PANEL__ .candidate-insights-subnavigation__layout { margin: 0 !important; }
+      __PANEL__ .candidate-insights-view-switcher {
+        display: flex; align-items: center; gap: 1.05rem; width: 100%;
+        padding: 0; border: 0; border-radius: 0; background: transparent;
+        overflow-x: auto; scrollbar-width: none;
       }
-      __PANEL__ .after-interview-tab.is-active,
-      __PANEL__ .after-interview-inner-tab.is-active {
-        background: #fff; color: var(--talena-coral, #ed7468);
-        box-shadow: 0 1px 3px rgba(25,24,23,.08);
+      __PANEL__ .candidate-insights-view-switcher::-webkit-scrollbar { display: none; }
+      __PANEL__ .candidate-insights-view-option {
+        position: relative; min-height: 45px; padding: 0 !important;
+        border: 0 !important; border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important; background: transparent !important;
+        color: var(--talena-text-muted, #766e68) !important;
+        cursor: pointer; font: inherit; font-size: .7rem; font-weight: 550;
+        line-height: 1.25; white-space: nowrap; box-shadow: none !important;
       }
+      __PANEL__ .candidate-insights-view-option:hover {
+        border-bottom-color: rgba(255, 111, 97, .28) !important;
+        background: transparent !important; color: var(--talena-ink, #191817) !important;
+      }
+      __PANEL__ .candidate-insights-view-option.is-active,
+      __PANEL__ .candidate-insights-view-option[aria-selected="true"] {
+        border-bottom-color: var(--talena-coral, #ff6f61) !important;
+        background: transparent !important;
+        color: var(--talena-coral-strong, #ed7468) !important;
+        font-weight: 550;
+      }
+      __PANEL__ .candidate-insights-subworkspace__panels { padding: 1.25rem 1.5rem 1.5rem; }
       __PANEL__ .after-interview-tab-panels { min-width: 0; }
       __PANEL__ .after-interview-tab-panel { display: grid; gap: 1rem; min-width: 0; }
       __PANEL__ .after-interview-tab-card {
@@ -272,26 +288,18 @@
         border-radius: 11px; color: var(--talena-text-muted, #766e68);
         font-size: .78rem; line-height: 1.55;
       }
-      __PANEL__ .after-interview-inner-tabs {
-        display: inline-flex; flex-wrap: wrap; gap: .3rem; margin: .2rem 0 1rem;
-        padding: .25rem; border: 1px solid var(--talena-border, #e5dfd8);
-        border-radius: 11px; background: #faf9f7;
-      }
-      __PANEL__ .after-interview-inner-tab {
-        appearance: none; border: 0; border-radius: 8px; background: transparent;
-        color: var(--talena-text-muted, #766e68); cursor: pointer; font: inherit;
-        font-size: .72rem; font-weight: 650; padding: .55rem .75rem;
-      }
       __PANEL__ [data-after-interview-blocks-source],
       __PANEL__ [data-post-interview-content].after-interview-content-source {
         display: none !important;
       }
       @media (max-width: 767px) {
-        __PANEL__ .after-interview-tabs__nav { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
-        __PANEL__ .after-interview-tab { min-height: 2.7rem; padding: .6rem .55rem; }
+        __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
+        __PANEL__ .candidate-insights-view-switcher { gap: .9rem; }
+        __PANEL__ .candidate-insights-view-option { min-height: 2.7rem; }
+        __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
         __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
       }
-    `.replaceAll("__PANEL__", PANEL_SELECTOR);
+    \`.replaceAll("__PANEL__", PANEL_SELECTOR);
     document.head.appendChild(style);
   };
 
@@ -310,13 +318,24 @@
     panel.dataset.afterInterviewTabsReady = "true";
 
     const tabs = document.createElement("div");
-    tabs.className = "after-interview-tabs";
+    tabs.className = "candidate-insights-subworkspace after-interview-tabs";
+
+    const navSection = document.createElement("section");
+    navSection.className = "candidate-insights-subnavigation";
+
+    const navLayout = document.createElement("div");
+    navLayout.className = "candidate-insights-subnavigation__layout mb-4";
+
     const nav = document.createElement("div");
-    nav.className = "after-interview-tabs__nav";
+    nav.className = "candidate-insights-view-switcher";
     nav.setAttribute("role", "tablist");
     nav.setAttribute("aria-label", copy().tabs.evidence);
+
+    navLayout.appendChild(nav);
+    navSection.appendChild(navLayout);
+
     const tabPanels = document.createElement("div");
-    tabPanels.className = "after-interview-tab-panels";
+    tabPanels.className = "candidate-insights-subworkspace__panels";
 
     const keys = ["overview", "tests", "interview", "explore", "wellbeing", "evidence"];
     const buttons = new Map();
