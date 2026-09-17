@@ -231,7 +231,7 @@
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
     style.id = STYLE_ID;
-    style.textContent = String.raw\`
+    style.textContent = String.raw`
       __PANEL__ .after-interview-tabs { display: grid; gap: 1rem; }
       __PANEL__ .after-interview-tabs__nav {
         display: flex; flex-wrap: wrap; gap: .35rem; padding: .3rem;
@@ -291,7 +291,7 @@
         __PANEL__ .after-interview-tab { min-height: 2.7rem; padding: .6rem .55rem; }
         __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
       }
-    \`.replaceAll("__PANEL__", PANEL_SELECTOR);
+    `.replaceAll("__PANEL__", PANEL_SELECTOR);
     document.head.appendChild(style);
   };
 
