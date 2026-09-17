@@ -762,9 +762,9 @@
     setDirtyState(field);
   });
 
-  // Handle the edit action from both its data attribute and stable action class.
-  // The Underlag card can be moved into the tab workspace after rendering.
-  document.addEventListener("click", (event) => {
+  // Handle the edit action at window level because the candidate sheet is
+  // a dynamically populated Bootstrap offcanvas.
+  window.addEventListener("click", (event) => {
     const edit = event.target.closest?.(
       "[data-interview-question-notes-summary-edit], .interview-question-notes-summary__action--edit",
     );
