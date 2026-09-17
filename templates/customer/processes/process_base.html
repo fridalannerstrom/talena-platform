@@ -11961,6 +11961,10 @@ async function consumePostInterviewStream(
     }
 
 
+    const afterInterviewUrl = new URL(window.location.href);
+    afterInterviewUrl.searchParams.set("afterTab", "overview");
+    window.history.replaceState({}, "", afterInterviewUrl);
+
     await replaceDecisionSupportRoot();
 
   } catch (error) {
