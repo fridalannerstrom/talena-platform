@@ -24,6 +24,8 @@
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
       generated: "AI-genererat",
+      generatedComplete: "Sammanställning genererad",
+      generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
       candidateUnavailable: "Kandidatversionen är inte genererad ännu.",
       manager: "Till chef",
@@ -47,6 +49,8 @@
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
       generated: "AI-generated",
+      generatedComplete: "Compilation generated",
+      generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
       candidateUnavailable: "The candidate version has not been generated yet.",
       manager: "For manager",
@@ -311,10 +315,20 @@
     const notesRoot = card?.querySelector("[data-interview-notes-root]");
     const postSection = card?.querySelector("[data-post-interview-section]");
     const postContent = postSection?.querySelector("[data-post-interview-content]");
+    const hasPostInterviewResult =
+      panel.closest("[data-final-output-root]")?.dataset.hasPostInterviewResult === "true";
 
     if (!card || !header || !notesRoot || !postSection) return;
 
     ensureStyles();
+    if (hasPostInterviewResult) {
+      const generatedTitle = postSection.querySelector(".insight-summary-title");
+      const generatedDescription = postSection.querySelector("p.text-muted.small.mb-0");
+      if (generatedTitle) generatedTitle.textContent = copy().generatedComplete;
+      if (generatedDescription) {
+        generatedDescription.textContent = copy().generatedCompleteDescription;
+      }
+    }
     panel.dataset.afterInterviewTabsReady = "true";
 
     const tabs = document.createElement("div");
@@ -391,18 +405,6 @@
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
     evidenceCard.append(notesRoot, postSection);
-    const compiledEvidence = sourceContent(panel, "compiled_evidence");
-    if (compiledEvidence) {
-      evidenceCard.appendChild(
-        makeCard(
-          panel,
-          "compiled_evidence",
-          copy().tabs.evidence,
-          copy().descriptions.evidence,
-          compiledEvidence,
-        ),
-      );
-    }
     panels.get("evidence").appendChild(evidenceCard);
 
     if (contextNote?.isConnected) panels.get("overview").appendChild(contextNote);
@@ -432,8 +434,6 @@
     });
 
     const requested = new URL(window.location.href).searchParams.get(URL_PARAM);
-    const hasPostInterviewResult =
-      panel.closest("[data-final-output-root]")?.dataset.hasPostInterviewResult === "true";
     const initial = keys.includes(requested)
       ? requested
       : hasPostInterviewResult ? "overview" : "evidence";
