@@ -2931,9 +2931,15 @@ REQUIRED EVENT STRUCTURE
 {{"type":"meta","title":"{examples["title"]}","label":"{examples["label"]}"}}
 
 
-2. OVERALL SYNTHESIS
+2. LEGACY OVERALL SYNTHESIS (OPTIONAL COMPATIBILITY FIELD)
 
-Return the synthesis using one or more
+The new After interview tab content is returned in the required
+content_blocks event below. If an overall_synthesis_delta event is
+returned, it is a legacy compatibility field and must not replace,
+shorten or control any content_blocks value. It may be omitted when
+all required content blocks are present.
+
+When included, return the synthesis using one or more
 overall_synthesis_delta events:
 
 {{"type":"overall_synthesis_delta","text":"{examples["synthesis"]}"}}

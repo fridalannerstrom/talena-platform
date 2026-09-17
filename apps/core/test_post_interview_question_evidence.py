@@ -297,6 +297,58 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.streaming)
 
+    def test_stream_saves_complete_content_blocks_without_legacy_fields(self):
+        content_blocks = {
+            key: f"Generated {key} content."
+            for key in (
+                "overall_picture",
+                "test_results_intro",
+                "test_results_manager",
+                "test_results_candidate",
+                "interview_summary",
+                "explore_further",
+                "wellbeing_tips",
+            )
+        }
+        events = [
+            {
+                "type": "content_blocks",
+                "blocks": content_blocks,
+            },
+            {
+                "type": "done",
+            },
+        ]
+
+        with patch(
+            "apps.core.ai.decision_support.stream_post_interview_decision_support",
+            return_value=events,
+        ):
+            response = self.client.get(
+                self._post_stream_url() + "?force=1",
+                HTTP_ACCEPT="application/x-ndjson",
+            )
+            body = b"".join(response.streaming_content).decode("utf-8")
+
+        self.assertNotIn('"type": "error"', body)
+        self.owner.refresh_from_db()
+        self.assertEqual(
+            self.owner.ai_post_interview_decision_support_status,
+            "completed",
+        )
+        self.assertEqual(
+            self.owner.ai_post_interview_decision_support[
+                "overall_synthesis"
+            ],
+            content_blocks["overall_picture"],
+        )
+        self.assertEqual(
+            self.owner.ai_post_interview_decision_support[
+                "content_blocks"
+            ],
+            content_blocks,
+        )
+
     def test_regenerate_endpoint_rejects_when_all_interview_evidence_is_empty(self):
         InterviewQuestionNote.objects.filter(
             process=self.process,

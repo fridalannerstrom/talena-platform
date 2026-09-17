@@ -563,14 +563,51 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                     ensure_ascii=False,
                 ) + "\n"
 
+            content_blocks = (
+                result.get("content_blocks")
+                or {}
+            )
+            required_content_block_keys = (
+                "overall_picture",
+                "test_results_intro",
+                "test_results_manager",
+                "test_results_candidate",
+                "interview_summary",
+                "explore_further",
+                "wellbeing_tips",
+            )
+            missing_content_blocks = [
+                key
+                for key in required_content_block_keys
+                if not str(
+                    content_blocks.get(key)
+                    or ""
+                ).strip()
+            ]
+            has_complete_content_blocks = not missing_content_blocks
+
             overall_synthesis = str(
                 result.get("overall_synthesis")
                 or ""
             ).strip()
 
+            # The new After interview UI is driven by content_blocks.
+            # Keep the legacy field populated for compatibility with older
+            # saved records, but do not reject a valid new-format result just
+            # because the model omitted the legacy synthesis event.
+            if (
+                not overall_synthesis
+                and has_complete_content_blocks
+            ):
+                overall_synthesis = str(
+                    content_blocks["overall_picture"]
+                ).strip()
+                result["overall_synthesis"] = overall_synthesis
+
             if not overall_synthesis:
                 raise ValueError(
-                    "The AI response did not contain an overall synthesis."
+                    "The AI response did not contain an overall synthesis "
+                    "or a complete After interview content-block result."
                 )
 
             supported_indications = (
@@ -582,14 +619,48 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                 or []
             )
 
-            if not (
-                supported_indications
-                or added_nuance
+            # New-format generations may intentionally contain only the
+            # user-facing content blocks. The legacy comparison arrays remain
+            # supported when present, but are not required for persistence.
+            if (
+                not (
+                    supported_indications
+                    or added_nuance
+                )
+                and not has_complete_content_blocks
             ):
                 raise ValueError(
                     "The AI response did not contain valid assessment and "
-                    "interview comparisons."
+                    "interview comparisons or complete content blocks."
                 )
+
+            yield json.dumps(
+                {
+                    "type": "result_debug",
+                    "data": {
+                        "overall_synthesis_characters": len(
+                            overall_synthesis
+                        ),
+                        "content_block_characters": {
+                            key: len(
+                                str(
+                                    content_blocks.get(key)
+                                    or ""
+                                ).strip()
+                            )
+                            for key in required_content_block_keys
+                        },
+                        "missing_content_blocks": missing_content_blocks,
+                        "supported_indications": len(
+                            supported_indications
+                        ),
+                        "added_nuance": len(
+                            added_nuance
+                        ),
+                    },
+                },
+                ensure_ascii=False,
+            ) + "\n"
 
             if not received_done_event:
                 yield json.dumps(
