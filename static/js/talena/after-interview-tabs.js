@@ -67,7 +67,9 @@
 
   const sourceContent = (panel, key) => {
     const source = sourceBlock(panel, key);
-    return source?.querySelector("[data-after-interview-block-content]") || null;
+    const content = source?.querySelector("[data-after-interview-block-content]") || null;
+    if (!content || !content.textContent.trim()) return null;
+    return content;
   };
 
   const makeCard = (panel, key, title, description, fallback) => {
@@ -151,6 +153,8 @@
     const intro = document.createElement("p");
     intro.className = "after-interview-tab-card__description";
     intro.textContent = copy().descriptions.tests;
+    const suppliedIntro = sourceContent(panel, "test_results_intro");
+    if (suppliedIntro) suppliedIntro.classList.add("after-interview-tab-card__body");
 
     const nav = document.createElement("div");
     nav.className = "after-interview-inner-tabs";
@@ -211,7 +215,9 @@
       if (button) activate(button.dataset.afterInterviewInnerTab);
     });
 
-    card.append(heading, intro, nav, manager, candidate);
+    card.append(heading, intro);
+    if (suppliedIntro) card.appendChild(suppliedIntro);
+    card.append(nav, manager, candidate);
     activate(
       new URL(window.location.href).searchParams.get("afterTestTab") === "candidate"
         ? "candidate"
