@@ -50,12 +50,20 @@
   };
 
   const logPromptDebug = (event) => {
-    if (event?.type !== "prompt_debug") return;
+    if (event?.type === "prompt_debug") {
+      console.info(
+        "[Talena] After interview prompt diagnostics:",
+        event.data,
+      );
+      return;
+    }
 
-    console.info(
-      "[Talena] After interview prompt diagnostics:",
-      event.data,
-    );
+    if (event?.type === "result_debug") {
+      console.info(
+        "[Talena] After interview generated-content diagnostics:",
+        event.data,
+      );
+    }
   };
 
   const consumeStream = async (url) => {

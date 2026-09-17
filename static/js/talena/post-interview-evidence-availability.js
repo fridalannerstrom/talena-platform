@@ -409,6 +409,14 @@
         return;
       }
 
+      if (event.type === "result_debug") {
+        console.info(
+          "[Talena] After interview generated-content diagnostics:",
+          event.data,
+        );
+        return;
+      }
+
       if (event.type === "error") {
         throw new Error(event.message || copy().error);
       }

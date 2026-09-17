@@ -5126,6 +5126,45 @@ def process_candidate_post_interview_decision_support_stream(
                     ensure_ascii=False,
                 ) + "\n"
 
+            yield json.dumps(
+                {
+                    "type": "result_debug",
+                    "data": {
+                        "overall_synthesis_characters": len(
+                            str(
+                                result.get(
+                                    "overall_synthesis"
+                                )
+                                or ""
+                            ).strip()
+                        ),
+                        "content_block_characters": {
+                            key: len(
+                                str(
+                                    (
+                                        result.get(
+                                            "content_blocks"
+                                        )
+                                        or {}
+                                    ).get(key)
+                                    or ""
+                                ).strip()
+                            )
+                            for key in (
+                                "overall_picture",
+                                "test_results_intro",
+                                "test_results_manager",
+                                "test_results_candidate",
+                                "interview_summary",
+                                "explore_further",
+                                "wellbeing_tips",
+                            )
+                        },
+                    },
+                },
+                ensure_ascii=False,
+            ) + "\n"
+
             overall_synthesis = (
                 result.get(
                     "overall_synthesis"
