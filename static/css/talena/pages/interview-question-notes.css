@@ -243,6 +243,13 @@
   background: transparent;
 }
 
+.interview-question-notes-summary__error {
+  margin-top: 0.55rem;
+  color: #a23a34;
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
 @media (max-width: 620px) {
   .interview-question-note {
     padding: 0.85rem;
