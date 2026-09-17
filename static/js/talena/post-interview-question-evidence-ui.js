@@ -49,6 +49,15 @@
     }
   };
 
+  const logPromptDebug = (event) => {
+    if (event?.type !== "prompt_debug") return;
+
+    console.info(
+      "[Talena] After interview prompt diagnostics:",
+      event.data,
+    );
+  };
+
   const consumeStream = async (url) => {
     const response = await fetch(url, {
       method: "GET",
@@ -76,6 +85,7 @@
       const body = await response.text();
       for (const line of body.split(/\r?\n/)) {
         const event = parseStreamLine(line);
+        logPromptDebug(event);
         if (event?.type === "error") {
           throw new Error(event.message || copy().error);
         }
@@ -97,6 +107,7 @@
 
       for (const line of lines) {
         const event = parseStreamLine(line);
+        logPromptDebug(event);
         if (event?.type === "error") {
           throw new Error(event.message || copy().error);
         }
@@ -105,6 +116,7 @@
 
     buffer += decoder.decode();
     const finalEvent = parseStreamLine(buffer);
+    logPromptDebug(finalEvent);
     if (finalEvent?.type === "error") {
       throw new Error(finalEvent.message || copy().error);
     }

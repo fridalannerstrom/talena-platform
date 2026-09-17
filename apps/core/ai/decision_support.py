@@ -2588,6 +2588,103 @@ def _post_get_content_block_prompt_instructions(
     )
 
 
+def _post_get_prompt_debug_info(
+    *,
+    language: str,
+) -> dict[str, Any]:
+    """
+    Return safe diagnostics about which saved prompt sources were selected.
+
+    Never include prompt text itself: this is emitted to the browser console
+    only to diagnose prompt routing in a customer session.
+    """
+
+    debug: dict[str, Any] = {
+        "language": language,
+        "global": {},
+        "content_blocks": {},
+    }
+
+    try:
+        from apps.processes.models import AIPromptTemplate
+
+        def describe_prompt(
+            *,
+            key: str,
+            source: str,
+        ) -> dict[str, Any]:
+            override = (
+                AIPromptTemplate.objects
+                .filter(
+                    key=key,
+                    language=language,
+                    is_active=True,
+                )
+                .order_by("-updated_at", "-id")
+                .first()
+            )
+            prompt_text = str(
+                getattr(override, "prompt_text", "")
+                or ""
+            ).strip()
+
+            return {
+                "source": source if prompt_text else "missing",
+                "key": key,
+                "characters": len(prompt_text),
+            }
+
+        debug["global"] = describe_prompt(
+            key="global_ai_guidance",
+            source="global_override",
+        )
+
+        for block_key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+            prompt_key = f"post_interview_{block_key}"
+            candidates = [
+                (prompt_key, "canonical_override"),
+                (block_key, "legacy_key_override"),
+            ]
+
+            if block_key == "overall_picture":
+                candidates.append(
+                    (
+                        "post_interview_decision_support",
+                        "legacy_combined_override",
+                    )
+                )
+
+            selected = None
+            for candidate_key, source in candidates:
+                candidate = describe_prompt(
+                    key=candidate_key,
+                    source=source,
+                )
+                if candidate["source"] != "missing":
+                    selected = candidate
+                    break
+
+            if selected is None:
+                default_text = get_ai_feature_prompt_instructions(
+                    key=prompt_key,
+                    language=language,
+                )
+                selected = {
+                    "source": "protected_default",
+                    "key": prompt_key,
+                    "characters": len(
+                        str(default_text or "").strip()
+                    ),
+                }
+
+            debug["content_blocks"][block_key] = selected
+
+    except Exception as error:
+        debug["error"] = type(error).__name__
+
+    return debug
+
+
 def build_post_interview_decision_support_prompt(
     owner,
     *,
@@ -3039,6 +3136,13 @@ def stream_post_interview_decision_support(
         owner,
         language_code=language_code,
     )
+
+    yield {
+        "type": "prompt_debug",
+        "data": _post_get_prompt_debug_info(
+            language=language_code,
+        ),
+    }
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
