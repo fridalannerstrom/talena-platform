@@ -2901,6 +2901,28 @@ Do not use code fences.
 Do not add text outside the JSON objects.
 
 
+FINAL CONTENT-BLOCK EXECUTION INSTRUCTIONS
+
+Immediately before creating the content_blocks event, apply the matching
+administrator guidance below. These instructions are repeated here on purpose
+so they remain the most recent substantive instructions for the user-facing
+After interview tabs.
+
+Do not replace a detailed administrator prompt with a short generic summary.
+Do not use the placeholder examples as content.
+If the matching guidance requests multiple paragraphs, headings, subsections,
+labels, lists or a specific length, include all of those requirements inside
+the corresponding plain-text block value. JSON requires the value to be a
+string, but the string may contain escaped line breaks.
+
+For each block, the administrator prompt controls scope, length, detail,
+structure, paragraph/list count and tone. Global guidance still applies for
+safety, provenance and decision-support boundaries, but it must not shorten or
+restructure a block when the block-specific administrator prompt says otherwise.
+
+{content_blocks_guidance}
+
+
 REQUIRED EVENT STRUCTURE
 
 
