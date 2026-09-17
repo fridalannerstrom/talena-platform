@@ -239,3 +239,24 @@ class InterviewQuestionNoteEndpointTests(TestCase):
             "outdated",
         )
         self.assertEqual(response.json()["post_interview_status"], "outdated")
+
+    def test_existing_note_can_be_edited_or_removed_after_question_regeneration(self):
+        self.post_note(note="Original answer")
+
+        self.invitation.ai_personality_questions = {
+            "questions": [
+                {"question": "A newly generated question?"},
+            ]
+        }
+        self.invitation.save(update_fields=["ai_personality_questions"])
+
+        edit_response = self.post_note(note="Edited answer")
+        self.assertEqual(edit_response.status_code, 200)
+        self.assertEqual(
+            InterviewQuestionNote.objects.get().note,
+            "Edited answer",
+        )
+
+        delete_response = self.post_note(note="   ")
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(InterviewQuestionNote.objects.exists())
