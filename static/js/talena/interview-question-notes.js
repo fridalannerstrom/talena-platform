@@ -177,7 +177,9 @@
   const buttonForField = (field) =>
     field
       .closest("[data-interview-question-note-field]")
-      ?.querySelector("[data-interview-question-note-save]") || null;
+      ?.querySelector(
+        "[data-interview-question-note-save], [data-interview-question-notes-summary-save]",
+      ) || null;
 
   const setDirtyState = (field) => {
     const button = buttonForField(field);
@@ -211,7 +213,11 @@
         button.textContent = text("saving");
       } else {
         button.classList.remove("is-saving");
-        button.textContent = text("save");
+        button.textContent = button.hasAttribute(
+          "data-interview-question-notes-summary-save",
+        )
+          ? text("saveChanges")
+          : text("save");
         setDirtyState(field);
       }
     }
@@ -359,7 +365,7 @@
     return button;
   };
 
-  const createSummaryEditor = (url, item) => {
+  const createSummaryEditor = (url, item, article) => {
     const editor = createQuestionNoteField({
       source: item.source || "",
       question: item.question || "",
@@ -375,7 +381,34 @@
     }
 
     const saveButton = editor.querySelector("[data-interview-question-note-save]");
-    if (saveButton) saveButton.textContent = text("saveChanges");
+    if (saveButton) {
+      saveButton.removeAttribute("data-interview-question-note-save");
+      saveButton.dataset.interviewQuestionNotesSummarySave = "";
+      saveButton.textContent = text("saveChanges");
+    }
+
+    const footer = editor.querySelector(".interview-question-note__footer");
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className =
+      "interview-question-notes-summary__action interview-question-notes-summary__action--cancel";
+    cancelButton.textContent = text("cancel");
+    cancelButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      const currentUrl = article?.dataset.notesUrl || url;
+      if (currentUrl) renderSummary(currentUrl);
+    });
+    footer?.insertBefore(cancelButton, saveButton || null);
+
+    saveButton?.addEventListener("click", async (event) => {
+      event.preventDefault();
+      if (!field || saveButton.disabled) return;
+
+      const result = await saveField(field);
+      if (!result.ok && article?.isConnected) {
+        showSummaryError(article, result.error || text("error"));
+      }
+    });
 
     return editor;
   };
@@ -491,14 +524,7 @@
   };
 
   const enterSummaryEdit = (article) => {
-    if (!article) return;
-    if (
-      article.dataset.editing === "true" &&
-      article.querySelector("[data-interview-question-note]")
-    ) {
-      return;
-    }
-    article.dataset.editing = "false";
+    if (!article || article.dataset.editing === "true") return;
 
     const url = article.dataset.notesUrl || "";
     const note = article.querySelector(".interview-question-notes-summary__note");
@@ -509,12 +535,16 @@
       throw new Error("The saved answer editor could not find the answer text.");
     }
 
-    const editor = createSummaryEditor(url, {
-      source: article.dataset.questionSource || "",
-      question: article.dataset.questionText || "",
-      note: article.dataset.noteValue || note.textContent || "",
-      updateUrl: article.dataset.updateUrl || `${url}update/`,
-    });
+    const editor = createSummaryEditor(
+      url,
+      {
+        source: article.dataset.questionSource || "",
+        question: article.dataset.questionText || "",
+        note: article.dataset.noteValue || note.textContent || "",
+        updateUrl: article.dataset.updateUrl || `${url}update/`,
+      },
+      article,
+    );
     const field = editor.querySelector("[data-interview-question-note]");
     if (!field) {
       throw new Error("The saved answer editor could not create an input field.");
@@ -522,17 +552,7 @@
 
     note.replaceWith(editor);
     article.dataset.editing = "true";
-
-    const edit = article.querySelector("[data-interview-question-notes-summary-edit]");
-    if (edit) {
-      edit.removeAttribute("data-interview-question-notes-summary-edit");
-      edit.textContent = text("cancel");
-      edit.addEventListener("click", (event) => {
-        event.preventDefault();
-        const currentUrl = article.dataset.notesUrl || "";
-        if (currentUrl) renderSummary(currentUrl);
-      }, { once: true });
-    }
+    article.classList.add("interview-question-notes-summary__item--editing");
 
     field.focus();
     field.setSelectionRange(field.value.length, field.value.length);
