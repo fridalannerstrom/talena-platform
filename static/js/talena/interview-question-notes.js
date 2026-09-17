@@ -397,6 +397,21 @@
     return field;
   };
 
+  const showSummaryError = (article, message = text("error")) => {
+    if (!article) return;
+
+    let error = article.querySelector(
+      "[data-interview-question-notes-summary-error]",
+    );
+    if (!error) {
+      error = document.createElement("div");
+      error.className = "interview-question-notes-summary__error";
+      error.dataset.interviewQuestionNotesSummaryError = "";
+      article.appendChild(error);
+    }
+    error.textContent = message;
+  };
+
   const renderSummary = (url) => {
     const notes = notesCache.get(url) || [];
 
@@ -454,6 +469,9 @@
             "interview-question-notes-summary__action interview-question-notes-summary__action--delete",
           );
 
+          edit.addEventListener("click", () => enterSummaryEdit(article));
+          remove.addEventListener("click", () => deleteSummaryItem(article));
+
           actions.append(edit, remove);
           article.append(meta, question, note, actions);
           list.appendChild(article);
@@ -480,8 +498,11 @@
     const edit = article.querySelector("[data-interview-question-notes-summary-edit]");
     if (edit) {
       edit.removeAttribute("data-interview-question-notes-summary-edit");
-      edit.dataset.interviewQuestionNotesSummaryCancel = "";
       edit.textContent = text("cancel");
+      edit.addEventListener("click", () => {
+        const currentUrl = article.dataset.notesUrl || "";
+        if (currentUrl) renderSummary(currentUrl);
+      }, { once: true });
     }
 
     const field = editor.querySelector("[data-interview-question-note]");
@@ -508,6 +529,7 @@
       article.dataset.deleting = "false";
       button.disabled = false;
       button.textContent = text("delete");
+      showSummaryError(article);
     }
   };
 
@@ -654,7 +676,8 @@
         }),
       );
       return true;
-    } catch (_error) {
+    } catch (error) {
+      console.error("Interview question note update failed:", error);
       setStatus(field, "error");
       return false;
     }
@@ -686,36 +709,6 @@
   });
 
   document.addEventListener("click", (event) => {
-    const cancel = event.target.closest?.(
-      "[data-interview-question-notes-summary-cancel]",
-    );
-    if (cancel) {
-      const article = cancel.closest("[data-interview-question-notes-summary-item]");
-      const url = article?.dataset.notesUrl || "";
-      if (url) renderSummary(url);
-      return;
-    }
-
-    const edit = event.target.closest?.(
-      "[data-interview-question-notes-summary-edit]",
-    );
-    if (edit) {
-      enterSummaryEdit(
-        edit.closest("[data-interview-question-notes-summary-item]"),
-      );
-      return;
-    }
-
-    const remove = event.target.closest?.(
-      "[data-interview-question-notes-summary-delete]",
-    );
-    if (remove) {
-      deleteSummaryItem(
-        remove.closest("[data-interview-question-notes-summary-item]"),
-      );
-      return;
-    }
-
     const button = event.target.closest?.("[data-interview-question-note-save]");
     if (!button) return;
 
