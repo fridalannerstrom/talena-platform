@@ -2586,7 +2586,7 @@ def build_post_interview_decision_support_prompt(
 
     content_block_instructions = {
         key: get_ai_feature_prompt_instructions(
-            key=key,
+            key=f"post_interview_{key}",
             language=language_code,
         )
         for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
