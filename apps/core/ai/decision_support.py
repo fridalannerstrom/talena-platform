@@ -28,6 +28,16 @@ from .prompt_templates import (
     get_ai_feature_prompt_instructions,
 )
 
+POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
+    "overall_picture",
+    "test_results_intro",
+    "test_results_manager",
+    "test_results_candidate",
+    "interview_summary",
+    "explore_further",
+    "wellbeing_tips",
+)
+
 # ============================================================
 # Shared normalisation helpers
 # ============================================================
@@ -1514,6 +1524,10 @@ def create_empty_post_interview_decision_support(
         "contradictions": [],
         "remaining_uncertainties": [],
         "suggested_follow_up": [],
+        "content_blocks": {
+            key: ""
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        },
         "context_note": "",
     }
 
@@ -2056,6 +2070,14 @@ def apply_post_interview_decision_support_event(
             or ""
         )
 
+    elif event_type == "content_blocks":
+        blocks = event.get("blocks")
+        if isinstance(blocks, dict):
+            result["content_blocks"] = {
+                key: _clean_text(blocks.get(key))
+                for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+            }
+
     elif event_type == "supported_indications":
         result["supported_indications"] = (
             _normalise_supported_evidence_items(
@@ -2284,6 +2306,13 @@ def save_post_interview_decision_support(
         )
     )
 
+    result["content_blocks"] = {
+        key: _clean_text(
+            (result.get("content_blocks") or {}).get(key)
+        )
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    }
+
     generated_at = timezone.now()
 
     owner.ai_post_interview_decision_support = (
@@ -2355,6 +2384,31 @@ _original_save_post_interview_decision_support = (
 )
 
 
+def _post_interview_content_block_examples(
+    language_code: str,
+) -> dict[str, str]:
+    if language_code == "sv":
+        return {
+            "overall_picture": "Exempel på en tydlig helhetsbild.",
+            "test_results_intro": "Exempel på hur testresultaten kan förstås i sammanhanget.",
+            "test_results_manager": "Exempel på chefsversionens sammanvägda återkoppling.",
+            "test_results_candidate": "Exempel på kandidatversionens respektfulla återkoppling.",
+            "interview_summary": "Exempel på vad intervjun tillförde.",
+            "explore_further": "Exempel på osäkerheter och möjliga uppföljningar.",
+            "wellbeing_tips": "Exempel på förutsättningar som kan hjälpa kandidaten att trivas.",
+        }
+
+    return {
+        "overall_picture": "Example of a clear overall picture.",
+        "test_results_intro": "Example of how the test results can be understood in context.",
+        "test_results_manager": "Example of the manager-facing synthesis.",
+        "test_results_candidate": "Example of respectful candidate-facing feedback.",
+        "interview_summary": "Example of what the interview added.",
+        "explore_further": "Example of uncertainties and possible follow-ups.",
+        "wellbeing_tips": "Example of conditions that may help the candidate thrive.",
+    }
+
+
 def _get_post_interview_language_examples(
     language_code: str | None,
 ) -> dict[str, Any]:
@@ -2405,6 +2459,7 @@ def _get_post_interview_language_examples(
                 "Första föreslagna uppföljningen",
                 "Andra föreslagna uppföljningen",
             ],
+            "content_blocks": _post_interview_content_block_examples(language_code),
             "context_note": (
                 "Transparent förklaring av vilket underlag som användes, "
                 "dess begränsningar och människans ansvar för det slutliga beslutet."
@@ -2441,6 +2496,7 @@ def _get_post_interview_language_examples(
             "Follow-up action one",
             "Follow-up action two",
         ],
+        "content_blocks": _post_interview_content_block_examples(language_code),
         "context_note": (
             "Transparent explanation of the evidence used, limitations "
             "and human responsibility for the final decision."
@@ -2525,6 +2581,18 @@ def build_post_interview_decision_support_prompt(
         language=language_code,
     )
 
+    content_block_instructions = {
+        key: get_ai_feature_prompt_instructions(
+            key=f"post_interview_{key}",
+            language=language_code,
+        )
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    }
+    content_blocks_guidance = "\n\n".join(
+        f"{key.upper()} GUIDANCE\n{content_block_instructions[key]}"
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+    )
+
     shared_context = build_shared_ai_context(
         owner
     )
@@ -2603,6 +2671,10 @@ Applies only to remaining_uncertainties.
 SUGGESTED FOLLOW-UP GUIDANCE
 Applies only to suggested_follow_up.
 {follow_up_instructions}
+
+CONTENT BLOCK GUIDANCE
+Each content block is independent and must follow only its own administrator guidance.
+{content_blocks_guidance}
 
 SECTION ISOLATION
 Treat each guidance block as authoritative only for its corresponding event.
@@ -2773,7 +2845,24 @@ An empty items array is technically valid.
 )}
 
 
-8. CONTEXT NOTE
+8. CONTENT BLOCKS
+
+Return one content_blocks event with a blocks object.
+Include every required key exactly once. Each value is plain text
+for the corresponding UI block. The administrator guidance controls
+the substantive content of each block.
+
+{json.dumps(
+    {
+        "type": "content_blocks",
+        "blocks": examples["content_blocks"],
+    },
+    ensure_ascii=False,
+    separators=(",", ":"),
+)}
+
+
+9. CONTEXT NOTE
 
 Return one context_note event:
 
@@ -2819,6 +2908,10 @@ def create_empty_post_interview_decision_support(
         "contradictions": [],
         "remaining_uncertainties": [],
         "suggested_follow_up": [],
+        "content_blocks": {
+            key: ""
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        },
         "context_note": "",
     }
 

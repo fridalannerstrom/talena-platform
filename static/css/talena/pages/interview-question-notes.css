@@ -201,6 +201,55 @@
   white-space: pre-wrap;
 }
 
+.interview-question-notes-summary__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.interview-question-notes-summary__action {
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(23, 19, 18, 0.13);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--talena-text-muted, #756d68);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.interview-question-notes-summary__action:hover {
+  border-color: rgba(255, 111, 97, 0.42);
+  color: var(--talena-coral-strong, #e85f52);
+}
+
+.interview-question-notes-summary__action--delete:hover {
+  border-color: rgba(162, 58, 52, 0.35);
+  color: #a23a34;
+}
+
+.interview-question-notes-summary__action:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
+.interview-question-note--summary {
+  grid-column: auto;
+  margin-top: 0.65rem;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+.interview-question-notes-summary__error {
+  margin-top: 0.55rem;
+  color: #a23a34;
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
 @media (max-width: 620px) {
   .interview-question-note {
     padding: 0.85rem;
@@ -214,4 +263,25 @@
   .interview-question-note__save {
     align-self: flex-end;
   }
+}
+
+
+/* Inline editing for saved interview answers. */
+.interview-question-notes-summary__item--editing {
+  border-color: #f2b8b5;
+}
+
+.interview-question-note--summary {
+  display: block;
+  width: 100%;
+}
+
+.interview-question-note--summary .interview-question-note__footer {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.interview-question-note--summary .interview-question-note__hint {
+  margin-right: auto;
 }

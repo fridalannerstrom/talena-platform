@@ -23,6 +23,12 @@
       personality: "Personlighet",
       motivation: "Motivation",
       cognitive: "Kognitivt",
+      edit: "Redigera",
+      saveChanges: "Spara ändringar",
+      cancel: "Avbryt",
+      delete: "Ta bort",
+      deleting: "Tar bort…",
+      deleteConfirm: "Vill du ta bort det här sparade svaret?",
     };
 
     const en = {
@@ -40,6 +46,12 @@
       personality: "Personality",
       motivation: "Motivation",
       cognitive: "Cognitive",
+      edit: "Edit",
+      saveChanges: "Save changes",
+      cancel: "Cancel",
+      delete: "Delete",
+      deleting: "Deleting…",
+      deleteConfirm: "Do you want to remove this saved answer?",
     };
 
     return (isSwedish() ? sv : en)[key] || key;
@@ -165,7 +177,9 @@
   const buttonForField = (field) =>
     field
       .closest("[data-interview-question-note-field]")
-      ?.querySelector("[data-interview-question-note-save]") || null;
+      ?.querySelector(
+        "[data-interview-question-note-save], [data-interview-question-notes-summary-save]",
+      ) || null;
 
   const setDirtyState = (field) => {
     const button = buttonForField(field);
@@ -199,7 +213,11 @@
         button.textContent = text("saving");
       } else {
         button.classList.remove("is-saving");
-        button.textContent = text("save");
+        button.textContent = button.hasAttribute(
+          "data-interview-question-notes-summary-save",
+        )
+          ? text("saveChanges")
+          : text("save");
         setDirtyState(field);
       }
     }
@@ -293,6 +311,7 @@
     summary.className = "interview-question-notes-summary";
     summary.dataset.interviewQuestionNotesSummary = "";
     summary.dataset.notesUrl = urls.notesUrl;
+    summary.dataset.updateUrl = urls.updateUrl;
 
     const title = document.createElement("div");
     title.className = "purpose-fit-section-title mb-1";
@@ -337,6 +356,95 @@
     });
   };
 
+  const createSummaryActionButton = (labelKey, dataKey, className) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = className;
+    button.dataset[dataKey] = "";
+    button.textContent = text(labelKey);
+    return button;
+  };
+
+  const createSummaryEditor = (url, item, article) => {
+    const editor = createQuestionNoteField({
+      source: item.source || "",
+      question: item.question || "",
+      notesUrl: url,
+      updateUrl: item.updateUrl || "",
+    });
+    editor.classList.add("interview-question-note--summary");
+
+    const field = editor.querySelector("[data-interview-question-note]");
+    if (field) {
+      field.value = item.note || "";
+      field.dataset.savedValue = item.note || "";
+    }
+
+    const saveButton = editor.querySelector("[data-interview-question-note-save]");
+    if (saveButton) {
+      saveButton.removeAttribute("data-interview-question-note-save");
+      saveButton.dataset.interviewQuestionNotesSummarySave = "";
+      saveButton.textContent = text("saveChanges");
+    }
+
+    const footer = editor.querySelector(".interview-question-note__footer");
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className =
+      "interview-question-notes-summary__action interview-question-notes-summary__action--cancel";
+    cancelButton.textContent = text("cancel");
+    cancelButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      const currentUrl = article?.dataset.notesUrl || url;
+      if (currentUrl) renderSummary(currentUrl);
+    });
+    footer?.insertBefore(cancelButton, saveButton || null);
+
+    saveButton?.addEventListener("click", async (event) => {
+      event.preventDefault();
+      if (!field || saveButton.disabled) return;
+
+      const result = await saveField(field);
+      if (!result.ok && article?.isConnected) {
+        showSummaryError(article, result.error || text("error"));
+      }
+    });
+
+    return editor;
+  };
+
+  const createSummaryMutationField = (url, article, note) => {
+    const wrapper = document.createElement("div");
+    wrapper.dataset.interviewQuestionNoteField = "";
+
+    const field = document.createElement("textarea");
+    field.dataset.interviewQuestionNote = "";
+    field.dataset.questionSource = article.dataset.questionSource || "";
+    field.dataset.questionText = article.dataset.questionText || "";
+    field.dataset.notesUrl = url;
+    field.dataset.updateUrl = article.dataset.updateUrl || `${url}update/`;
+    field.dataset.savedValue = article.dataset.noteValue || "";
+    field.value = note;
+
+    wrapper.appendChild(field);
+    return field;
+  };
+
+  const showSummaryError = (article, message = text("error")) => {
+    if (!article) return;
+
+    let error = article.querySelector(
+      "[data-interview-question-notes-summary-error]",
+    );
+    if (!error) {
+      error = document.createElement("div");
+      error.className = "interview-question-notes-summary__error";
+      error.dataset.interviewQuestionNotesSummaryError = "";
+      article.appendChild(error);
+    }
+    error.textContent = message;
+  };
+
   const renderSummary = (url) => {
     const notes = notesCache.get(url) || [];
 
@@ -357,6 +465,12 @@
         visibleNotes.forEach((item) => {
           const article = document.createElement("article");
           article.className = "interview-question-notes-summary__item";
+          article.dataset.interviewQuestionNotesSummaryItem = "";
+          article.dataset.notesUrl = url;
+          article.dataset.updateUrl = root.dataset.updateUrl || `${url}update/`;
+          article.dataset.questionSource = item.source || "";
+          article.dataset.questionText = item.question || "";
+          article.dataset.noteValue = item.note || "";
 
           const meta = document.createElement("div");
           meta.className = "interview-question-notes-summary__meta";
@@ -374,10 +488,83 @@
           note.className = "interview-question-notes-summary__note";
           note.textContent = item.note || "";
 
-          article.append(meta, question, note);
+          const actions = document.createElement("div");
+          actions.className = "interview-question-notes-summary__actions";
+
+          const remove = createSummaryActionButton(
+            "delete",
+            "interviewQuestionNotesSummaryDelete",
+            "interview-question-notes-summary__action interview-question-notes-summary__action--delete",
+          );
+
+          remove.addEventListener("click", (event) => {
+            event.preventDefault();
+            deleteSummaryItem(article);
+          });
+
+          actions.append(remove);
+          article.append(meta, question, note, actions);
           list.appendChild(article);
         });
       });
+  };
+
+  const enterSummaryEdit = (article) => {
+    if (!article || article.dataset.editing === "true") return;
+
+    const url = article.dataset.notesUrl || "";
+    const note = article.querySelector(".interview-question-notes-summary__note");
+    if (!url) {
+      throw new Error("The saved answer is missing its update URL.");
+    }
+    if (!note) {
+      throw new Error("The saved answer editor could not find the answer text.");
+    }
+
+    const editor = createSummaryEditor(
+      url,
+      {
+        source: article.dataset.questionSource || "",
+        question: article.dataset.questionText || "",
+        note: article.dataset.noteValue || note.textContent || "",
+        updateUrl: article.dataset.updateUrl || `${url}update/`,
+      },
+      article,
+    );
+    const field = editor.querySelector("[data-interview-question-note]");
+    if (!field) {
+      throw new Error("The saved answer editor could not create an input field.");
+    }
+
+    note.replaceWith(editor);
+    article.dataset.editing = "true";
+    article.classList.add("interview-question-notes-summary__item--editing");
+
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+  };
+
+  const deleteSummaryItem = async (article) => {
+    if (!article || article.dataset.deleting === "true") return;
+    if (!window.confirm(text("deleteConfirm"))) return;
+
+    const url = article.dataset.notesUrl || "";
+    const button = article.querySelector("[data-interview-question-notes-summary-delete]");
+    if (!url || !button) return;
+
+    article.dataset.deleting = "true";
+    button.disabled = true;
+    button.textContent = text("deleting");
+
+    const field = createSummaryMutationField(url, article, "");
+    const result = await saveField(field);
+
+    if (!result.ok && article.isConnected) {
+      article.dataset.deleting = "false";
+      button.disabled = false;
+      button.textContent = text("delete");
+      showSummaryError(article, result.error || text("error"));
+    }
   };
 
   const applyNotes = (url, notes) => {
@@ -483,10 +670,13 @@
     const question = field.dataset.questionText || "";
     const note = field.value.trim();
 
-    if (!updateUrl || !notesUrl || !source || !question) return;
+    if (!updateUrl || !notesUrl || !source || !question) {
+      return { ok: false, error: text("error") };
+    }
+
     if ((field.dataset.savedValue || "") === note) {
       setDirtyState(field);
-      return;
+      return { ok: false, error: text("error") };
     }
 
     setStatus(field, "saving");
@@ -522,8 +712,14 @@
           detail: { source, question, note, notesUrl },
         }),
       );
-    } catch (_error) {
+      return { ok: true, error: "" };
+    } catch (error) {
+      console.error("Interview question note update failed:", error);
       setStatus(field, "error");
+      return {
+        ok: false,
+        error: error?.message || text("error"),
+      };
     }
   };
 
@@ -544,6 +740,10 @@
     urls.forEach((url) => loadNotes(url));
   };
 
+  // Expose explicit initialization for the dynamically loaded candidate sheet.
+  window.TalenaInterviewQuestionNotes = window.TalenaInterviewQuestionNotes || {};
+  window.TalenaInterviewQuestionNotes.initialise = initialise;
+
   document.addEventListener("input", (event) => {
     const field = event.target.closest?.("[data-interview-question-note]");
     if (!field) return;
@@ -551,6 +751,30 @@
     setStatus(field, "");
     setDirtyState(field);
   });
+
+  // Handle the edit action at window level because the candidate sheet is
+  // a dynamically populated Bootstrap offcanvas.
+  window.addEventListener("click", (event) => {
+    const edit = event.target.closest?.(
+      "[data-interview-question-notes-summary-edit], .interview-question-notes-summary__action--edit",
+    );
+    if (!edit) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      enterSummaryEdit(
+        edit.closest("[data-interview-question-notes-summary-item]"),
+      );
+    } catch (error) {
+      console.error("Opening interview answer editor failed:", error);
+      showSummaryError(
+        edit.closest("[data-interview-question-notes-summary-item]"),
+        error?.message || text("error"),
+      );
+    }
+  }, true);
 
   document.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-interview-question-note-save]");

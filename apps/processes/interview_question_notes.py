@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
@@ -20,6 +21,9 @@ from .models import (
     TestInvitation,
     TestProcess,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 QUESTION_SOURCES = {
@@ -215,8 +219,18 @@ def process_candidate_interview_question_note_update(
         )
 
     current_questions = get_current_question_texts(owner, source)
+    question_key = interview_question_key(source, question)
+    existing_note = InterviewQuestionNote.objects.filter(
+        process=process,
+        candidate=owner.candidate,
+        source=source,
+        question_key=question_key,
+    ).first()
 
-    if question not in current_questions:
+    # A saved note remains editable/removable even when the interview
+    # questions were regenerated afterwards. New notes still require a
+    # question from the candidate's current generated question set.
+    if question not in current_questions and existing_note is None:
         return JsonResponse(
             {
                 "error": (
@@ -227,8 +241,6 @@ def process_candidate_interview_question_note_update(
             },
             status=409,
         )
-
-    question_key = interview_question_key(source, question)
 
     if note_text:
         note, _created = InterviewQuestionNote.objects.update_or_create(
@@ -587,6 +599,12 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             )
 
         except Exception as error:
+            logger.exception(
+                "After interview generation failed "
+                "(process_id=%s, candidate_id=%s)",
+                process.id,
+                candidate_id,
+            )
             owner.ai_post_interview_decision_support_status = "failed"
             owner.save(
                 update_fields=[
