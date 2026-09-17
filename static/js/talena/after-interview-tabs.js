@@ -231,7 +231,7 @@
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
     style.id = STYLE_ID;
-    style.textContent = String.raw\`
+    style.textContent = String.raw`
       __PANEL__ .candidate-insights-subnavigation {
         margin: 0 !important; padding: 0 1.5rem;
         border-bottom: 1px solid var(--talena-border, #e5dfd8);
@@ -299,7 +299,7 @@
         __PANEL__ .candidate-insights-subworkspace__panels { padding: 1rem; }
         __PANEL__ .after-interview-tab-card { padding: 1rem; border-radius: 12px; }
       }
-    \`.replaceAll("__PANEL__", PANEL_SELECTOR);
+    `.replaceAll("__PANEL__", PANEL_SELECTOR);
     document.head.appendChild(style);
   };
 
