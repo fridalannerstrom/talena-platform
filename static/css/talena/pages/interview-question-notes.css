@@ -264,3 +264,24 @@
     align-self: flex-end;
   }
 }
+
+
+/* Inline editing for saved interview answers. */
+.interview-question-notes-summary__item--editing {
+  border-color: #f2b8b5;
+}
+
+.interview-question-note--summary {
+  display: block;
+  width: 100%;
+}
+
+.interview-question-note--summary .interview-question-note__footer {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.interview-question-note--summary .interview-question-note__hint {
+  margin-right: auto;
+}
