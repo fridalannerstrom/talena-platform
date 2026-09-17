@@ -523,13 +523,13 @@
     button.textContent = text("deleting");
 
     const field = createSummaryMutationField(url, article, "");
-    const deleted = await saveField(field);
+    const result = await saveField(field);
 
-    if (!deleted && article.isConnected) {
+    if (!result.ok && article.isConnected) {
       article.dataset.deleting = "false";
       button.disabled = false;
       button.textContent = text("delete");
-      showSummaryError(article);
+      showSummaryError(article, result.error || text("error"));
     }
   };
 
@@ -636,10 +636,13 @@
     const question = field.dataset.questionText || "";
     const note = field.value.trim();
 
-    if (!updateUrl || !notesUrl || !source || !question) return false;
+    if (!updateUrl || !notesUrl || !source || !question) {
+      return { ok: false, error: text("error") };
+    }
+
     if ((field.dataset.savedValue || "") === note) {
       setDirtyState(field);
-      return false;
+      return { ok: false, error: text("error") };
     }
 
     setStatus(field, "saving");
@@ -675,11 +678,14 @@
           detail: { source, question, note, notesUrl },
         }),
       );
-      return true;
+      return { ok: true, error: "" };
     } catch (error) {
       console.error("Interview question note update failed:", error);
       setStatus(field, "error");
-      return false;
+      return {
+        ok: false,
+        error: error?.message || text("error"),
+      };
     }
   };
 
