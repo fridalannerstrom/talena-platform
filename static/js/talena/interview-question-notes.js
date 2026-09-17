@@ -469,8 +469,19 @@
             "interview-question-notes-summary__action interview-question-notes-summary__action--delete",
           );
 
-          edit.addEventListener("click", () => enterSummaryEdit(article));
-          remove.addEventListener("click", () => deleteSummaryItem(article));
+          edit.addEventListener("click", (event) => {
+            event.preventDefault();
+            try {
+              enterSummaryEdit(article);
+            } catch (error) {
+              console.error("Opening interview answer editor failed:", error);
+              showSummaryError(article, error?.message || text("error"));
+            }
+          });
+          remove.addEventListener("click", (event) => {
+            event.preventDefault();
+            deleteSummaryItem(article);
+          });
 
           actions.append(edit, remove);
           article.append(meta, question, note, actions);
@@ -484,7 +495,12 @@
 
     const url = article.dataset.notesUrl || "";
     const note = article.querySelector(".interview-question-notes-summary__note");
-    if (!url || !note) return;
+    if (!url) {
+      throw new Error("The saved answer is missing its update URL.");
+    }
+    if (!note) {
+      throw new Error("The saved answer editor could not find the answer text.");
+    }
 
     const editor = createSummaryEditor(url, {
       source: article.dataset.questionSource || "",
@@ -492,6 +508,11 @@
       note: article.dataset.noteValue || note.textContent || "",
       updateUrl: article.dataset.updateUrl || `${url}update/`,
     });
+    const field = editor.querySelector("[data-interview-question-note]");
+    if (!field) {
+      throw new Error("The saved answer editor could not create an input field.");
+    }
+
     note.replaceWith(editor);
     article.dataset.editing = "true";
 
@@ -499,15 +520,15 @@
     if (edit) {
       edit.removeAttribute("data-interview-question-notes-summary-edit");
       edit.textContent = text("cancel");
-      edit.addEventListener("click", () => {
+      edit.addEventListener("click", (event) => {
+        event.preventDefault();
         const currentUrl = article.dataset.notesUrl || "";
         if (currentUrl) renderSummary(currentUrl);
       }, { once: true });
     }
 
-    const field = editor.querySelector("[data-interview-question-note]");
-    field?.focus();
-    field?.setSelectionRange(field.value.length, field.value.length);
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
   };
 
   const deleteSummaryItem = async (article) => {
