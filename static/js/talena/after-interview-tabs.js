@@ -372,6 +372,18 @@
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
     evidenceCard.append(notesRoot, postSection);
+    const compiledEvidence = sourceContent(panel, "compiled_evidence");
+    if (compiledEvidence) {
+      evidenceCard.appendChild(
+        makeCard(
+          panel,
+          "compiled_evidence",
+          copy().tabs.evidence,
+          copy().descriptions.evidence,
+          compiledEvidence,
+        ),
+      );
+    }
     panels.get("evidence").appendChild(evidenceCard);
 
     if (contextNote?.isConnected) panels.get("overview").appendChild(contextNote);
