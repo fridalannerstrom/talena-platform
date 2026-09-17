@@ -491,7 +491,14 @@
   };
 
   const enterSummaryEdit = (article) => {
-    if (!article || article.dataset.editing === "true") return;
+    if (!article) return;
+    if (
+      article.dataset.editing === "true" &&
+      article.querySelector("[data-interview-question-note]")
+    ) {
+      return;
+    }
+    article.dataset.editing = "false";
 
     const url = article.dataset.notesUrl || "";
     const note = article.querySelector(".interview-question-notes-summary__note");
@@ -734,6 +741,30 @@
     setStatus(field, "");
     setDirtyState(field);
   });
+
+  // Keep this delegated capture handler because the Underlag card can be
+  // moved into the tab workspace after the summary buttons are rendered.
+  document.addEventListener("click", (event) => {
+    const edit = event.target.closest?.(
+      "[data-interview-question-notes-summary-edit]",
+    );
+    if (!edit) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      enterSummaryEdit(
+        edit.closest("[data-interview-question-notes-summary-item]"),
+      );
+    } catch (error) {
+      console.error("Opening interview answer editor failed:", error);
+      showSummaryError(
+        edit.closest("[data-interview-question-notes-summary-item]"),
+        error?.message || text("error"),
+      );
+    }
+  }, true);
 
   document.addEventListener("click", (event) => {
     const button = event.target.closest?.("[data-interview-question-note-save]");
