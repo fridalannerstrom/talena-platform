@@ -349,7 +349,7 @@
       nav.appendChild(button);
       tabPanels.appendChild(tabPanel);
     });
-    tabs.append(nav, tabPanels);
+    tabs.append(navSection, tabPanels);
     header.insertAdjacentElement("afterend", tabs);
 
     const summary = postContent?.querySelector(":scope > .purpose-fit-section:first-child");
