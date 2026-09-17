@@ -36,7 +36,6 @@ POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
     "interview_summary",
     "explore_further",
     "wellbeing_tips",
-    "compiled_evidence",
 )
 
 # ============================================================
@@ -2397,7 +2396,6 @@ def _post_interview_content_block_examples(
             "interview_summary": "Exempel på vad intervjun tillförde.",
             "explore_further": "Exempel på osäkerheter och möjliga uppföljningar.",
             "wellbeing_tips": "Exempel på förutsättningar som kan hjälpa kandidaten att trivas.",
-            "compiled_evidence": "Exempel på en transparent sammanställning av intervjuunderlaget.",
         }
 
     return {
@@ -2408,7 +2406,6 @@ def _post_interview_content_block_examples(
         "interview_summary": "Example of what the interview added.",
         "explore_further": "Example of uncertainties and possible follow-ups.",
         "wellbeing_tips": "Example of conditions that may help the candidate thrive.",
-        "compiled_evidence": "Example of a transparent compilation of interview evidence.",
     }
 
 
