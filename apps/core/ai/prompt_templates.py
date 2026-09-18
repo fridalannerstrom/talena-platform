@@ -7269,13 +7269,20 @@ diagnoses, definitive claims or internal recommendations.""".strip(),
 Beskriv endast vad de tillgängliga färdighetsresultaten kan indikera.
 Översätt inte färdighet till personlighet, motivation eller garanterad
 arbetsprestation. Använd ett neutralt och uppmuntrande språk utan
-värderande godkänt/underkänt- eller stark/svag-formuleringar. Visa inte
-råvärden eller percentiler.""".strip(),
+värderande godkänt/underkänt- eller stark/svag-formuleringar. Formulera
+inte lägre resultat som en brist eller som något kandidaten "behöver
+utveckla", "måste förbättra" eller bör träna upp. Beskriv i stället
+sakligt att vissa typer av uppgifter kan kräva mer tid, fokus eller stöd,
+om detta stöds av underlaget. Visa inte råvärden eller percentiler.""".strip(),
             "en": """
 Describe only what the available skills results may indicate.
 Do not translate skills into personality, motivation or guaranteed job
 performance. Use neutral and encouraging language without good/bad,
-pass/fail or strong/weak framing. Do not show raw values or percentiles.""".strip(),
+pass/fail or strong/weak framing. Do not frame a lower result as a deficit
+or as something the candidate "needs to develop", "must improve" or should
+train away. Instead, where supported by the evidence, describe that some
+types of tasks may require more time, focus or support. Do not show raw
+values or percentiles.""".strip(),
         },
     },
 
