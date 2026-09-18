@@ -4,6 +4,13 @@
 
 name: Build and deploy Python app to Azure Web App - talena-prod
 
+# Keep production deployments serialized. Rapid pushes can otherwise start
+# overlapping OneDeploy operations in Azure App Service and return HTTP 409.
+# GitHub keeps the running deployment and only the newest pending run.
+concurrency:
+  group: talena-prod-deploy
+  cancel-in-progress: false
+
 on:
   push:
     branches:
