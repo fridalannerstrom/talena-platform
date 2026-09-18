@@ -189,6 +189,8 @@ class CandidateResultInterpretationTests(TestCase):
         self.assertIn("The customer-facing summary.", prompt)
         self.assertIn("The customer personality meaning.", prompt)
         self.assertIn("Do not expose raw scores", prompt)
+        self.assertIn("Do not frame lower skills results as deficits", prompt)
+        self.assertIn('candidate "needs to develop"', prompt)
         self.assertEqual(
             set(metadata),
             {"introduction", "personality", "skills", "motivation"},
@@ -660,6 +662,7 @@ class CandidateResultEmailTests(TestCase):
         self.assertEqual(email_log.template_type, "candidate_result")
         self.assertIn("https://talena.io/candidate-results/", email_log.body_snapshot)
         self.assertIn(raw_code, email_log.body_snapshot)
+        self.assertNotIn(self.process.name, email_log.body_snapshot)
         self.assertNotIn(
             raw_code,
             email_log.body_snapshot.split(raw_code)[0].splitlines()[-1],
