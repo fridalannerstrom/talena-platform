@@ -58,6 +58,21 @@
         <span>{% trans "Questions" %}</span>
       </button>
 
+
+      {% if candidate_result_reflections_enabled and candidate_result_reflections.personality %}
+      <button
+        type="button"
+        class="candidate-insights-view-option"
+        role="tab"
+        aria-selected="false"
+        aria-controls="personality-subpanel-candidate-reflection"
+        data-insights-subtab="candidate-reflection"
+      >
+        <i data-feather="message-circle"></i>
+        <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektioner{% else %}Candidate reflection{% endif %}</span>
+      </button>
+      {% endif %}
+
     </div>
 
 
@@ -98,6 +113,19 @@
       >
         {% include "customer/processes/partials/candidate_insights/personality/_questions.html" %}
       </div>
+
+
+      {% if candidate_result_reflections_enabled and candidate_result_reflections.personality %}
+      <div
+        id="personality-subpanel-candidate-reflection"
+        class="candidate-insights-subpanel"
+        role="tabpanel"
+        data-insights-subpanel="candidate-reflection"
+        hidden
+      >
+        {% include "customer/processes/partials/candidate_insights/_candidate_reflection.html" with candidate_reflection=candidate_result_reflections.personality %}
+      </div>
+      {% endif %}
 
     </div>
 
