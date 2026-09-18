@@ -58,7 +58,7 @@ class PostInterviewPromptContractTests(SimpleTestCase):
                 language_code="sv",
             )
 
-        self.assertIn("GLOBAL ADMINISTRATOR AI GUIDANCE", prompt)
+        self.assertIn("GLOBAL AI GUIDANCE — PROTECTED BOUNDARIES ONLY", prompt)
         self.assertIn(
             "OVERALL_PICTURE GUIDANCE\nPROMPT::post_interview_overall_picture",
             prompt,
@@ -68,7 +68,7 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             prompt,
         )
         self.assertIn(
-            "CONTENT BLOCK EXECUTION PRIORITY",
+            "FINAL ADMINISTRATOR CONTENT AUTHORITY",
             prompt,
         )
         self.assertIn(
@@ -80,7 +80,15 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             prompt,
         )
         self.assertIn(
-            "never replace it with a generic short summary",
+            "sole authority for that value",
+            prompt,
+        )
+        self.assertNotIn(
+            "default word count",
+            prompt,
+        )
+        self.assertNotIn(
+            '"blocks": {"overall_picture"',
             prompt,
         )
 
