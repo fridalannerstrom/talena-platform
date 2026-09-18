@@ -22,8 +22,7 @@ def _copy(locale: str) -> dict[str, str]:
             "subject": "Ditt assessmentresultat från Talena",
             "body": (
                 "Hej {first_name}!\n\n"
-                "Tack för att du har genomfört assessmenten i "
-                "{process_name}.\n\n"
+                "Tack för att du har genomfört assessmenten.\n\n"
                 "Ditt resultat är ett reflektionsunderlag inför den "
                 "fortsatta dialogen. Det beskriver möjliga preferenser "
                 "och tendenser, inte ett betyg eller en absolut sanning.\n\n"
@@ -36,8 +35,7 @@ def _copy(locale: str) -> dict[str, str]:
         "subject": "Your Talena assessment result",
         "body": (
             "Hi {first_name}!\n\n"
-            "Thank you for completing the assessment in "
-            "{process_name}.\n\n"
+            "Thank you for completing the assessment.\n\n"
             "Your result is a basis for reflection and further "
             "conversation. It describes possible preferences and "
             "tendencies, not a grade or an absolute truth.\n\n"
@@ -142,7 +140,6 @@ def send_candidate_result_email(
     subject = copy["subject"]
     body = copy["body"].format(
         first_name=invitation.candidate.first_name or "",
-        process_name=invitation.process.name or "Talena",
         result_url=_result_url(raw_token, base_url),
         verification_code=raw_code,
     )
