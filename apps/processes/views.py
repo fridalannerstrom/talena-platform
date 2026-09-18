@@ -2906,6 +2906,74 @@ def build_candidate_ai_update_state(
     }
 
 
+
+def _build_candidate_result_reflections(snapshot) -> dict:
+    """
+    Build recruiter-facing reflection data from the exact frozen text shown
+    to the candidate. Candidate-facing "skills" maps to the recruiter's
+    cognitive/Färdighet area.
+    """
+
+    if snapshot is None:
+        return {}
+
+    content = snapshot.content if isinstance(snapshot.content, dict) else {}
+    feedback_by_area = {
+        feedback.result_area: feedback
+        for feedback in snapshot.feedback.all()
+    }
+
+    area_map = {
+        "personality": "personality",
+        "motivation": "motivation",
+        "cognitive": "skills",
+    }
+
+    reflections = {}
+
+    for recruiter_area, candidate_area in area_map.items():
+        section = content.get(candidate_area)
+
+        if not isinstance(section, dict):
+            continue
+
+        body = str(section.get("body") or "").strip()
+        raw_points = section.get("points") or []
+        points = [
+            str(point).strip()
+            for point in raw_points
+            if str(point).strip()
+        ]
+
+        if not body and not points:
+            continue
+
+        feedback = feedback_by_area.get(candidate_area)
+
+        reflections[recruiter_area] = {
+            "title": str(
+                section.get("title")
+                or candidate_area.title()
+            ).strip(),
+            "body": body,
+            "points": points,
+            "has_feedback": feedback is not None,
+            "response": (
+                feedback.response
+                if feedback is not None
+                else ""
+            ),
+            "comment": (
+                (feedback.comment or "").strip()
+                if feedback is not None
+                else ""
+            ),
+            "locale": snapshot.locale,
+        }
+
+    return reflections
+
+
 def build_candidate_detail_context(
     process,
     invitation,
@@ -3791,7 +3859,21 @@ def build_candidate_detail_context(
     candidate_result_snapshot = (
         CandidateResultSnapshot.objects
         .filter(invitation=invitation)
+        .prefetch_related("feedback")
         .first()
+    )
+
+    candidate_result_reflections = (
+        _build_candidate_result_reflections(
+            candidate_result_snapshot
+        )
+        if process.candidate_results_enabled
+        else {}
+    )
+    candidate_result_reflections_enabled = bool(
+        process.candidate_results_enabled
+        and candidate_result_snapshot
+        and candidate_result_reflections
     )
 
     return {
@@ -3801,6 +3883,10 @@ def build_candidate_detail_context(
         "inv": invitation,
         "candidate": candidate,
         "candidate_result_snapshot": candidate_result_snapshot,
+        "candidate_result_reflections": candidate_result_reflections,
+        "candidate_result_reflections_enabled": (
+            candidate_result_reflections_enabled
+        ),
         "activity_events": activity_events,
 
         "activities": activities,
