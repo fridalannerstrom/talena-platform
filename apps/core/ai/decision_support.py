@@ -3053,12 +3053,7 @@ def stream_post_interview_decision_support(
             {
                 "role": "system",
                 "content": (
-                    _post_get_ai_system_language_instruction(
-                        language_code,
-                        owner=owner,
-                    )
-                    + " "
-                    + "Return only newline-delimited JSON objects. "
+                    "Return only newline-delimited JSON objects. "
                     "Use the protected event and field names exactly. "
                     "Do not add prose outside the JSON objects."
                 ),
