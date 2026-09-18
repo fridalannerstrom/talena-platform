@@ -1,0 +1,85 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+<section class="candidate-reflection">
+  <div class="candidate-reflection__intro">
+    <div class="candidate-reflection__eyebrow">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens perspektiv{% else %}Candidate perspective{% endif %}
+    </div>
+    <h2 class="candidate-reflection__title">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektion{% else %}Candidate reflection{% endif %}
+    </h2>
+    <p>
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+        Här ser du hur kandidaten reagerade på den sammanfattning som visades i kandidatens egen resultatvy.
+      {% else %}
+        This shows how the candidate responded to the summary shown in their own result view.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="candidate-reflection__status">
+    <div>
+      <div class="candidate-reflection__label">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Känner kandidaten igen sig?{% else %}Does the candidate recognise themselves?{% endif %}
+      </div>
+    </div>
+
+    {% if candidate_reflection.has_feedback %}
+      {% if candidate_reflection.response == "recognises" %}
+        <span class="candidate-reflection__response is-positive">
+          <span aria-hidden="true">✓</span>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jag känner igen mig{% else %}I recognise myself{% endif %}
+        </span>
+      {% elif candidate_reflection.response == "partly_recognises" %}
+        <span class="candidate-reflection__response is-partial">
+          <span aria-hidden="true">◐</span>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Delvis{% else %}Partly{% endif %}
+        </span>
+      {% elif candidate_reflection.response == "does_not_recognise" %}
+        <span class="candidate-reflection__response is-negative">
+          <span aria-hidden="true">×</span>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jag känner inte igen mig{% else %}I do not recognise myself{% endif %}
+        </span>
+      {% endif %}
+    {% else %}
+      <span class="candidate-reflection__response">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen reflektion lämnad ännu{% else %}No reflection submitted yet{% endif %}
+      </span>
+    {% endif %}
+  </div>
+
+  {% if candidate_reflection.has_feedback %}
+    <div class="candidate-reflection__comment">
+      <div class="candidate-reflection__label">
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens kommentar{% else %}Candidate comment{% endif %}
+      </div>
+      {% if candidate_reflection.comment %}
+        <p class="candidate-reflection__comment-text">{{ candidate_reflection.comment }}</p>
+      {% else %}
+        <p class="candidate-reflection__comment-text text-muted">
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidaten lämnade ingen kommentar.{% else %}The candidate did not leave a comment.{% endif %}
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="candidate-reflection__source">
+    <div class="candidate-reflection__label">
+      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Texten kandidaten fick läsa{% else %}Text shown to the candidate{% endif %}
+    </div>
+    {% if candidate_reflection.title %}
+      <div class="candidate-reflection__source-title">{{ candidate_reflection.title }}</div>
+    {% endif %}
+    {% if candidate_reflection.body %}
+      <p class="candidate-reflection__source-body">{{ candidate_reflection.body }}</p>
+    {% endif %}
+    {% if candidate_reflection.points %}
+      <ul>
+        {% for point in candidate_reflection.points %}
+          <li>{{ point }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</section>
