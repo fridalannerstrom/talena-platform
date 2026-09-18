@@ -2817,38 +2817,43 @@ INTERVIEW NOTES AND CANDIDATE EXAMPLES
 
 ADMINISTRATOR AI GUIDANCE
 
-GLOBAL ADMINISTRATOR AI GUIDANCE
-Applies to every After interview output in this call.
+GLOBAL AI GUIDANCE — PROTECTED BOUNDARIES ONLY
+The global guidance is included only for shared safety, evidence provenance,
+uncertainty, language and decision-support boundaries.
+It is not a content template for content_blocks.
+
+For content_blocks, the matching administrator prompt below is the sole
+authority for the text. That prompt alone decides content, length, detail,
+headings, sections, paragraph/list counts, ordering and tone. If the global
+guidance contains a preference about any of those choices, disregard that
+preference for content_blocks.
+
 {global_instructions}
 
 LEGACY COMPATIBILITY FIELDS
-The legacy decision-support fields and events are optional compatibility data.
-They are not the primary After interview output and have no authority over
-the content, length or structure of any content_blocks value. Do not apply a
-legacy short-summary instruction to the new content blocks.
+Legacy decision-support fields and events are optional compatibility data.
+They must never control, shorten, summarize or restructure a content_blocks
+value.
 
 CONTENT BLOCK GUIDANCE
 Each content block is independent and must follow only its own administrator guidance.
 {content_blocks_guidance}
 
 CONTENT BLOCK PRIORITY
-The content_blocks values are the user-facing texts for the new After interview tabs.
-For each key, use the matching CONTENT BLOCK GUIDANCE above as the authoritative
-substantive instruction, together with the global guidance.
-The matching administrator prompt controls that block's scope, length, detail,
-structure, headings, paragraph/list count and tone. If it requests multiple
-subsections or thematic headings, include them inside that block's plain-text
-value using escaped line breaks where needed.
-Never substitute the legacy decision-support synthesis or a shorter fallback
-summary for a content block. Do not collapse detailed administrator guidance
-into a generic three-sentence summary.
-The examples in the technical contract are placeholders only and must not be copied.
+Each content_blocks value is user-facing text for one After interview tab.
+The matching administrator prompt is the sole authority for that value.
+Follow it as written, including any requested content, length, detail,
+headings, sections, ordering, paragraph/list counts and tone.
+
+Do not apply a code-defined, legacy, global or model-default content template.
+Do not shorten, summarize, collapse, replace or restructure a block.
+Do not let an optional legacy event influence any content_blocks value.
 
 SECTION ISOLATION
-Treat each guidance block as authoritative only for its corresponding event.
-Instructions for one section must not change another section's substantive content or item count.
-Global Talena guidance still applies across all sections.
-Do not change required event names, JSON fields, NDJSON structure or streaming order.
+Each block follows only the administrator prompt for its own key.
+The prompts for other blocks do not change its content.
+Only the protected safety, evidence-provenance and decision-support boundaries
+apply across blocks.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT
@@ -2884,24 +2889,12 @@ Do not use code fences.
 Do not add text outside the JSON objects.
 
 
-FINAL CONTENT-BLOCK EXECUTION INSTRUCTIONS
+FINAL ADMINISTRATOR CONTENT AUTHORITY
 
-Immediately before creating the content_blocks event, apply the matching
-administrator guidance below. These instructions are repeated here on purpose
-so they remain the most recent substantive instructions for the user-facing
-After interview tabs.
-
-Do not replace a detailed administrator prompt with a short generic summary.
-Do not use the placeholder examples as content.
-If the matching guidance requests multiple paragraphs, headings, subsections,
-labels, lists or a specific length, include all of those requirements inside
-the corresponding plain-text block value. JSON requires the value to be a
-string, but the string may contain escaped line breaks.
-
-For each block, the administrator prompt controls scope, length, detail,
-structure, paragraph/list count and tone. Global guidance still applies for
-safety, provenance and decision-support boundaries, but it must not shorten or
-restructure a block when the block-specific administrator prompt says otherwise.
+Before creating the content_blocks event, use the administrator prompt that
+matches each key below. It is the only source of instructions for that block's
+content and presentation. Do not apply any additional default about length,
+headings, sections, paragraph/list counts, detail or tone.
 
 {content_blocks_guidance}
 
@@ -2941,29 +2934,20 @@ content_blocks value. The per-block administrator guidance remains the
 authoritative instruction for all user-facing After interview text.
 
 
-CONTENT BLOCK EXECUTION PRIORITY
+CONTENT BLOCK EXECUTION
 
-Before producing the content_blocks event, re-read the matching administrator
-guidance under CONTENT BLOCK GUIDANCE above and execute it in full. Treat it as
-an instruction, not as background information to summarize. Follow requested
-length, headings, sections, paragraph count, list structure and tone. Do not
-fall back to a generic short summary or to any default word count.
+Use the administrator prompt matching each content-block key as the sole
+instruction for that block's user-facing text.
 
 8. CONTENT BLOCKS
 
-Return one content_blocks event with a blocks object.
-Include every required key exactly once. Each value is plain text
-for the corresponding UI block. The administrator guidance controls
-the substantive content of each block.
-
-{json.dumps(
-    {
-        "type": "content_blocks",
-        "blocks": examples["content_blocks"],
-    },
-    ensure_ascii=False,
-    separators=(",", ":"),
-)}
+Return one JSON object with type "content_blocks" and a blocks object.
+The blocks object must contain every required key exactly once:
+overall_picture, test_results_intro, test_results_manager,
+test_results_candidate, interview_summary, explore_further and wellbeing_tips.
+Each value must be a string generated according to the administrator prompt
+for that key. Do not add, remove, shorten or reshape the generated text
+because of any code-defined content preference.
 
 
 9. CONTEXT NOTE
@@ -3074,18 +3058,9 @@ def stream_post_interview_decision_support(
                         owner=owner,
                     )
                     + " "
-                    + "You are a careful assessment synthesis "
-                    "consultant. Compare assessment indications "
-                    "with interview evidence without making a "
-                    "matching, suitability, selection, promotion "
-                    "or hiring decision. The content_blocks event is "
-                    "the primary user-facing result. Execute each "
-                    "matching administrator content-block instruction "
-                    "in full, including its requested length and "
-                    "structure; never replace it with a generic short "
-                    "summary or a default word count. Optional legacy "
-                    "events must never shorten or control content_blocks. "
-                    "Follow the requested NDJSON format exactly."
+                    + "Return only newline-delimited JSON objects. "
+                    "Use the protected event and field names exactly. "
+                    "Do not add prose outside the JSON objects."
                 ),
             },
             {
