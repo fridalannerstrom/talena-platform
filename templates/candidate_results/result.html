@@ -36,9 +36,9 @@
     }
 
     .page-shell {
-      width: min(100% - 40px, 1100px);
+      width: min(100% - 40px, 1200px);
       margin: 0 auto;
-      padding: 30px 0 72px;
+      padding: 28px 0 72px;
     }
 
     .site-header {
@@ -122,24 +122,59 @@
     }
 
     .hero-card {
-      padding: clamp(28px, 5vw, 48px);
-      border-radius: 26px;
+      overflow: hidden;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
     }
 
-    .hero-topline {
+    .hero-main {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 15px;
+      gap: 16px;
+      padding: 24px 26px 20px;
+    }
+
+    .hero-avatar {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      color: var(--coral-strong);
+      background: var(--coral-soft);
+      border: 1px solid rgba(255, 111, 97, .22);
+      border-radius: 50%;
+      font-size: .95rem;
+      font-weight: 800;
+    }
+
+    .hero-identity {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .eyebrow {
+      margin-bottom: 5px;
       color: var(--coral-strong);
-      font-size: .76rem;
+      font-size: .65rem;
       font-weight: 800;
-      letter-spacing: .08em;
+      letter-spacing: .07em;
       text-transform: uppercase;
+    }
+
+    .hero-email {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: .82rem;
+      overflow-wrap: anywhere;
     }
 
     .status-pill {
@@ -164,21 +199,29 @@
     }
 
     h1 {
-      max-width: 16ch;
       margin: 0;
       color: var(--ink);
-      font-size: clamp(2.35rem, 7vw, 5.1rem);
-      line-height: .98;
-      letter-spacing: -.07em;
+      font-size: clamp(1.55rem, 3vw, 2rem);
+      line-height: 1.08;
+      letter-spacing: -.045em;
     }
 
     .hero-meta {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-      margin-top: 34px;
-      padding-top: 24px;
+      gap: 0;
       border-top: 1px solid var(--border);
+      background: rgba(250, 249, 247, .52);
+    }
+
+    .hero-meta > div {
+      min-width: 0;
+      padding: 15px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .hero-meta > div:last-child {
+      border-right: 0;
     }
 
     .meta-label {
@@ -199,12 +242,53 @@
       line-height: 1.45;
     }
 
+    .result-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 14px;
+      padding: 7px;
+      overflow-x: auto;
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      box-shadow: 0 8px 24px rgba(23, 19, 18, .035);
+      scrollbar-width: none;
+    }
+
+    .result-nav::-webkit-scrollbar { display: none; }
+
+    .result-nav a {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 9px;
+      font-size: .76rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .result-nav a:hover {
+      color: var(--ink);
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .result-nav a.is-active {
+      color: var(--coral-strong);
+      background: var(--coral-soft);
+      border-color: rgba(255, 111, 97, .22);
+    }
+
     .intro-card {
       position: relative;
-      margin-top: 18px;
-      padding: clamp(24px, 4vw, 36px);
+      margin-top: 14px;
+      padding: clamp(24px, 4vw, 34px);
       overflow: hidden;
-      border-radius: 22px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
     }
 
     .intro-card::before {
@@ -247,26 +331,43 @@
 
     .section-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-      margin-top: 18px;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 14px;
     }
 
     .section-card {
-      min-height: 230px;
-      padding: 26px;
-      border-radius: 20px;
+      min-height: 0;
+      padding: clamp(24px, 4vw, 34px);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
+      scroll-margin-top: 18px;
     }
 
-    .section-card:nth-child(3n + 2) { background: #fffaf9; }
-    .section-card:nth-child(3n + 3) { background: #fbfdfb; }
-
     .section-card h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin: 0 0 14px;
-      color: var(--coral-strong);
-      font-size: 1.22rem;
+      color: var(--ink);
+      font-size: 1.14rem;
       line-height: 1.2;
-      letter-spacing: -.035em;
+      letter-spacing: -.03em;
+    }
+
+    .section-card h2::before {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      background: var(--coral);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .section-card > p {
+      max-width: 920px;
+      font-size: 1rem;
+      line-height: 1.78;
     }
 
     ul {
@@ -509,10 +610,16 @@
 
     @media (max-width: 760px) {
       .page-shell { width: min(100% - 28px, 680px); padding-top: 20px; }
-      .hero-card { padding: 28px 24px; border-radius: 22px; }
-      .hero-topline { align-items: flex-start; flex-direction: column; }
-      .hero-meta { grid-template-columns: 1fr; gap: 16px; }
-      .section-grid { grid-template-columns: 1fr; }
+      .hero-main { align-items: flex-start; padding: 22px 20px 18px; }
+      .hero-title-row { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .hero-meta { grid-template-columns: 1fr; }
+      .hero-meta > div {
+        padding: 13px 20px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero-meta > div:last-child { border-bottom: 0; }
+      .result-nav { padding: 6px; }
       .section-card { min-height: 0; }
     }
   </style>
@@ -541,12 +648,24 @@
       <div class="feedback-notice" role="status">{{ copy.feedback_saved }}</div>
     {% endif %}
 
-    <header class="hero-card">
-      <div class="hero-topline">
-        <div class="eyebrow">{{ copy.result_label }}</div>
-        <div class="status-pill">{% if locale|slice:":2" == "sv" %}Klar{% else %}Complete{% endif %}</div>
+    <header class="hero-card" id="summary">
+      <div class="hero-main">
+        <div class="hero-avatar" aria-hidden="true">
+          {% if candidate.first_name or candidate.last_name %}
+            {{ candidate.first_name|slice:":1"|upper }}{{ candidate.last_name|slice:":1"|upper }}
+          {% else %}
+            ?
+          {% endif %}
+        </div>
+        <div class="hero-identity">
+          <div class="eyebrow">{{ copy.result_label }}</div>
+          <div class="hero-title-row">
+            <h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1>
+            <div class="status-pill">{% if locale|slice:":2" == "sv" %}Genomfört{% else %}Completed{% endif %}</div>
+          </div>
+          <div class="hero-email">{{ candidate.email }}</div>
+        </div>
       </div>
-      <h1>{{ candidate.first_name }} {{ candidate.last_name }}</h1>
 
       <div class="hero-meta">
         <div>
@@ -558,11 +677,24 @@
           <strong>{{ completed_at|date:"Y-m-d" }}</strong>
         </div>
         <div>
-          <span class="meta-label">{{ copy.candidate_label }}</span>
-          <strong>{{ candidate.email }}</strong>
+          <span class="meta-label">{{ copy.included_label }}</span>
+          <strong>
+            {% for section in sections %}
+              {{ section.title }}{% if not forloop.last %} · {% endif %}
+            {% empty %}
+              —
+            {% endfor %}
+          </strong>
         </div>
       </div>
     </header>
+
+    <nav class="result-nav" aria-label="{% if locale|slice:':2' == 'sv' %}Resultatnavigation{% else %}Result navigation{% endif %}">
+      <a class="is-active" href="#summary">{% if locale|slice:":2" == "sv" %}Sammanfattning{% else %}Summary{% endif %}</a>
+      {% for section in sections %}
+        <a href="#section-{{ section.key }}">{{ section.title }}</a>
+      {% endfor %}
+    </nav>
 
     <section class="intro-card">
       <h2 class="intro-heading">
@@ -574,7 +706,7 @@
 
     <div class="section-grid">
       {% for section in sections %}
-        <section class="section-card">
+        <section class="section-card" id="section-{{ section.key }}">
           <h2>{{ section.title }}</h2>
           {% if section.body %}<p>{{ section.body }}</p>{% endif %}
           {% if section.points %}
