@@ -1063,3 +1063,114 @@
     flex-direction: column;
   }
 }
+
+
+/* =========================================================
+   CANDIDATE RESULT ACCESS STATUS
+   ========================================================= */
+
+.process-page .candidate-result-status {
+  margin-bottom: 0.9rem;
+}
+
+.process-page .candidate-result-status__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.process-page .candidate-result-status__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: rgba(250, 249, 247, 0.52);
+}
+
+.process-page .candidate-result-status__item {
+  min-width: 0;
+  min-height: 76px;
+  padding: 0.8rem 0.9rem;
+  border-right: 1px solid var(--talena-border);
+  border-bottom: 1px solid var(--talena-border);
+}
+
+.process-page .candidate-result-status__item:nth-child(3n) {
+  border-right: 0;
+}
+
+.process-page .candidate-result-status__item:nth-last-child(-n + 3) {
+  border-bottom: 0;
+}
+
+.process-page .candidate-result-status__label {
+  margin-bottom: 0.4rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.54rem;
+  font-weight: 680;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-status__value {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  color: var(--talena-ink);
+  font-size: 0.72rem;
+}
+
+.process-page .candidate-result-status__value strong {
+  font-weight: 680;
+}
+
+.process-page .candidate-result-status__meta,
+.process-page .candidate-result-status__empty {
+  color: var(--talena-text-muted);
+  font-size: 0.64rem;
+}
+
+.process-page .candidate-result-preview-panel {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 800px) {
+  .process-page .candidate-result-status__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-page .candidate-result-status__item,
+  .process-page .candidate-result-status__item:nth-child(3n) {
+    border-right: 1px solid var(--talena-border);
+    border-bottom: 1px solid var(--talena-border);
+  }
+
+  .process-page .candidate-result-status__item:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .process-page .candidate-result-status__item:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .process-page .candidate-result-status__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .process-page .candidate-result-status__item,
+  .process-page .candidate-result-status__item:nth-child(2n),
+  .process-page .candidate-result-status__item:nth-child(3n) {
+    border-right: 0;
+    border-bottom: 1px solid var(--talena-border);
+  }
+
+  .process-page .candidate-result-status__item:last-child {
+    border-bottom: 0;
+  }
+}
