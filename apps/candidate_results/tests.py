@@ -593,6 +593,35 @@ class CandidateResultAccessViewTests(TestCase):
             response,
             f"/candidate-results/preview/{self.snapshot.pk}/",
         )
+        self.assertContains(response, "data-candidate-result-status")
+        self.assertContains(response, "0 / 1")
+
+
+    def test_customer_portal_sheet_updates_reflection_status(self):
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+
+        CandidateResultFeedback.objects.create(
+            snapshot=self.snapshot,
+            result_area="personality",
+            response=CandidateResultFeedback.RECOGNISES,
+            comment="Stämmer.",
+            locale="sv",
+        )
+
+        response = self.client.get(
+            reverse(
+                "processes:process_candidate_detail",
+                kwargs={
+                    "process_id": self.process.pk,
+                    "candidate_id": self.candidate.pk,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "1 / 1")
 
 
 class CandidateResultEmailTests(TestCase):
