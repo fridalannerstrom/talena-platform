@@ -341,6 +341,10 @@ PROTECTED RULES
 - Do not diagnose the candidate or introduce unsupported psychological claims.
 - Skills/färdighet must remain descriptive. Do not turn skills into personality,
   motivation or guaranteed job performance.
+- Do not frame lower skills results as deficits, weaknesses or personal
+  shortcomings. Avoid telling the candidate that they need to develop,
+  improve or train a skill. Where supported by the evidence, describe instead
+  that certain task types may require more time, focus or support.
 - If evidence is missing, say less rather than inventing content.
 - Use the candidate's first name naturally where appropriate.
 - Return valid JSON only, with exactly the four top-level keys shown below.
