@@ -70,6 +70,21 @@
 
       {% endif %}
 
+      {% if candidate_result_reflections_enabled and candidate_result_reflections.cognitive %}
+      <button
+        type="button"
+        id="cognitive-tab-candidate-reflection"
+        class="candidate-insights-view-option"
+        role="tab"
+        aria-selected="false"
+        aria-controls="cognitive-subpanel-candidate-reflection"
+        data-insights-subtab="candidate-reflection"
+      >
+        <i data-feather="message-circle"></i>
+        <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektioner{% else %}Candidate reflection{% endif %}</span>
+      </button>
+      {% endif %}
+
     </div>
 
   </div>
@@ -344,6 +359,19 @@
   </div>
 
 {% endif %}
+
+      {% if candidate_result_reflections_enabled and candidate_result_reflections.cognitive %}
+      <div
+        id="cognitive-subpanel-candidate-reflection"
+        class="candidate-insights-subpanel"
+        role="tabpanel"
+        aria-labelledby="cognitive-tab-candidate-reflection"
+        data-insights-subpanel="candidate-reflection"
+        hidden
+      >
+        {% include "customer/processes/partials/candidate_insights/_candidate_reflection.html" with candidate_reflection=candidate_result_reflections.cognitive %}
+      </div>
+      {% endif %}
 
     </div>
 
