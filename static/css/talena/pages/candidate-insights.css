@@ -915,3 +915,151 @@
     padding: 1rem !important;
   }
 }
+
+
+/* =========================================================
+   CANDIDATE RESULT REFLECTIONS
+   ========================================================= */
+
+.process-page .candidate-reflection {
+  padding: 1.4rem 1.5rem 1.6rem;
+}
+
+.process-page .candidate-reflection__intro {
+  max-width: 760px;
+  margin-bottom: 1.15rem;
+}
+
+.process-page .candidate-reflection__eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.58rem;
+  font-weight: 730;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-reflection__title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 1.22rem;
+  font-weight: 725;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.process-page .candidate-reflection__intro p {
+  margin: 0.45rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.process-page .candidate-reflection__status,
+.process-page .candidate-reflection__comment,
+.process-page .candidate-reflection__source {
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.process-page .candidate-reflection__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.05rem;
+  background: rgba(250, 249, 247, 0.52);
+}
+
+.process-page .candidate-reflection__label {
+  color: var(--talena-text-subtle);
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-reflection__response {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  padding: 0.42rem 0.68rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 999px;
+  background: var(--talena-surface-soft);
+  color: var(--talena-text);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.process-page .candidate-reflection__response.is-positive {
+  border-color: rgba(110, 159, 125, 0.22);
+  background: var(--talena-success-soft);
+  color: #567d63;
+}
+
+.process-page .candidate-reflection__response.is-partial {
+  border-color: rgba(201, 149, 78, 0.22);
+  background: var(--talena-warning-soft);
+  color: #946b31;
+}
+
+.process-page .candidate-reflection__response.is-negative {
+  border-color: rgba(255, 111, 97, 0.22);
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.process-page .candidate-reflection__comment {
+  margin-top: 0.8rem;
+  padding: 1rem 1.05rem;
+}
+
+.process-page .candidate-reflection__comment-text {
+  margin: 0.45rem 0 0;
+  color: var(--talena-ink);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.process-page .candidate-reflection__source {
+  margin-top: 0.8rem;
+  padding: 1.05rem 1.1rem;
+}
+
+.process-page .candidate-reflection__source-title {
+  margin: 0.35rem 0 0;
+  color: var(--talena-ink);
+  font-size: 0.86rem;
+  font-weight: 680;
+}
+
+.process-page .candidate-reflection__source-body {
+  margin: 0.55rem 0 0;
+  max-width: 900px;
+  color: var(--talena-text);
+  font-size: 0.78rem;
+  line-height: 1.68;
+}
+
+.process-page .candidate-reflection__source ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--talena-text);
+  font-size: 0.76rem;
+  line-height: 1.62;
+}
+
+@media (max-width: 620px) {
+  .process-page .candidate-reflection {
+    padding: 1.1rem 1rem 1.25rem;
+  }
+
+  .process-page .candidate-reflection__status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
