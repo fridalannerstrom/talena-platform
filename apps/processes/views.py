@@ -3879,6 +3879,79 @@ def build_candidate_detail_context(
         and candidate_result_reflections
     )
 
+    candidate_result_access = None
+    latest_candidate_result_email = None
+
+    if candidate_result_snapshot:
+        from apps.candidate_results.models import CandidateResultAccess
+
+        candidate_result_access = (
+            CandidateResultAccess.objects
+            .filter(snapshot=candidate_result_snapshot)
+            .first()
+        )
+
+        latest_candidate_result_email = (
+            EmailLog.objects
+            .filter(
+                invitation=invitation,
+                template_type="candidate_result",
+            )
+            .order_by("-created_at", "-id")
+            .first()
+        )
+
+    candidate_result_feedback_total = len(
+        candidate_result_reflections
+    )
+    candidate_result_feedback_count = sum(
+        1
+        for reflection in candidate_result_reflections.values()
+        if reflection.get("has_feedback")
+    )
+
+    if candidate_result_access is None:
+        candidate_result_access_state = "not_created"
+    elif candidate_result_access.revoked_at:
+        candidate_result_access_state = "revoked"
+    elif candidate_result_access.is_expired():
+        candidate_result_access_state = "expired"
+    else:
+        candidate_result_access_state = "active"
+
+    candidate_result_status = {
+        "sharing_enabled": candidate_results_enabled,
+        "snapshot_ready": candidate_result_snapshot is not None,
+        "email_status": (
+            latest_candidate_result_email.status
+            if latest_candidate_result_email
+            else "not_sent"
+        ),
+        "email_sent_at": (
+            latest_candidate_result_email.sent_at
+            if latest_candidate_result_email
+            else None
+        ),
+        "opened_at": (
+            candidate_result_access.last_accessed_at
+            if candidate_result_access
+            else None
+        ),
+        "expires_at": (
+            candidate_result_access.expires_at
+            if candidate_result_access
+            else None
+        ),
+        "revoked_at": (
+            candidate_result_access.revoked_at
+            if candidate_result_access
+            else None
+        ),
+        "access_state": candidate_result_access_state,
+        "feedback_count": candidate_result_feedback_count,
+        "feedback_total": candidate_result_feedback_total,
+    }
+
     return {
         "company": process.company,
         "process": process,
@@ -3890,6 +3963,7 @@ def build_candidate_detail_context(
         "candidate_result_reflections_enabled": (
             candidate_result_reflections_enabled
         ),
+        "candidate_result_status": candidate_result_status,
         "activity_events": activity_events,
 
         "activities": activities,
