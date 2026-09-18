@@ -208,7 +208,7 @@
 
     .hero-meta {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0;
       border-top: 1px solid var(--border);
       background: rgba(250, 249, 247, .52);
@@ -242,46 +242,6 @@
       line-height: 1.45;
     }
 
-    .result-nav {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 14px;
-      padding: 7px;
-      overflow-x: auto;
-      background: rgba(255, 255, 255, .94);
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      box-shadow: 0 8px 24px rgba(23, 19, 18, .035);
-      scrollbar-width: none;
-    }
-
-    .result-nav::-webkit-scrollbar { display: none; }
-
-    .result-nav a {
-      flex: 0 0 auto;
-      padding: 9px 13px;
-      color: var(--muted);
-      border: 1px solid transparent;
-      border-radius: 9px;
-      font-size: .76rem;
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .result-nav a:hover {
-      color: var(--ink);
-      background: #fff;
-      border-color: var(--border);
-    }
-
-    .result-nav a.is-active {
-      color: var(--coral-strong);
-      background: var(--coral-soft);
-      border-color: rgba(255, 111, 97, .22);
-    }
-
     .intro-card {
       position: relative;
       margin-top: 14px;
@@ -289,16 +249,6 @@
       overflow: hidden;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(23, 19, 18, .04);
-    }
-
-    .intro-card::before {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 5px;
-      background: var(--coral);
-      content: "";
     }
 
     .intro-heading {
@@ -619,7 +569,6 @@
         border-bottom: 1px solid var(--border);
       }
       .hero-meta > div:last-child { border-bottom: 0; }
-      .result-nav { padding: 6px; }
       .section-card { min-height: 0; }
     }
   </style>
@@ -669,10 +618,6 @@
 
       <div class="hero-meta">
         <div>
-          <span class="meta-label">{{ copy.project_label }}</span>
-          <strong>{{ process.name }}</strong>
-        </div>
-        <div>
           <span class="meta-label">{{ copy.completed_label }}</span>
           <strong>{{ completed_at|date:"Y-m-d" }}</strong>
         </div>
@@ -688,13 +633,6 @@
         </div>
       </div>
     </header>
-
-    <nav class="result-nav" aria-label="{% if locale|slice:':2' == 'sv' %}Resultatnavigation{% else %}Result navigation{% endif %}">
-      <a class="is-active" href="#summary">{% if locale|slice:":2" == "sv" %}Sammanfattning{% else %}Summary{% endif %}</a>
-      {% for section in sections %}
-        <a href="#section-{{ section.key }}">{{ section.title }}</a>
-      {% endfor %}
-    </nav>
 
     <section class="intro-card">
       <h2 class="intro-heading">
