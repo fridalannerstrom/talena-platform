@@ -622,10 +622,12 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                         },
                         "missing_content_blocks": missing_content_blocks,
                         "supported_indications": len(
-                            supported_indications
+                            result.get("supported_indications")
+                            or []
                         ),
                         "added_nuance": len(
-                            added_nuance
+                            result.get("added_nuance")
+                            or []
                         ),
                     },
                 },
