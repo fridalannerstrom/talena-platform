@@ -3863,15 +3863,18 @@ def build_candidate_detail_context(
         .first()
     )
 
+    candidate_results_enabled = bool(
+        getattr(process, "candidate_results_enabled", False)
+    )
     candidate_result_reflections = (
         _build_candidate_result_reflections(
             candidate_result_snapshot
         )
-        if process.candidate_results_enabled
+        if candidate_results_enabled
         else {}
     )
     candidate_result_reflections_enabled = bool(
-        process.candidate_results_enabled
+        candidate_results_enabled
         and candidate_result_snapshot
         and candidate_result_reflections
     )
