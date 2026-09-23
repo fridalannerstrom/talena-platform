@@ -470,7 +470,8 @@ def build_purpose_fit_prompt(
     candidate = shared_context["candidate"]
 
     assessment_text, _ = build_assessment_evidence(
-        invitation
+        invitation,
+        language_code=language_code,
     )
 
     return f"""
