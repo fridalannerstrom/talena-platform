@@ -71,8 +71,11 @@ def install_pre_interview_raw_evidence_policy() -> None:
     original_builder = decision_support.build_pre_interview_evidence
 
     @wraps(original_builder)
-    def evidence_with_raw_results(owner):
-        evidence = original_builder(owner)
+    def evidence_with_raw_results(owner, *, language_code=None):
+        evidence = original_builder(
+            owner,
+            language_code=language_code,
+        )
 
         # Import lazily to avoid widening the AI module import graph at startup.
         from apps.core.ai.purpose_fit import build_assessment_evidence
