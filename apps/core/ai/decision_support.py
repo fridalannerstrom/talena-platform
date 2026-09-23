@@ -758,13 +758,9 @@ Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
 
-Do not use Markdown outside the JSON objects and do not use code fences.
+Do not use Markdown.
+Do not use code fences.
 Do not add text outside the JSON objects.
-Inside each user-facing content_blocks string, use simple Markdown for readable
-structure: headings, paragraphs, bold labels and bullet or numbered lists.
-Use # / ## / ### heading syntax and blank lines between paragraphs and lists.
-Never include HTML. Keep each complete content_blocks value inside its JSON
-string; escape line breaks as required by JSON.
 
 
 REQUIRED EVENT STRUCTURE
@@ -2006,9 +2002,13 @@ STREAMING OUTPUT FORMAT
 Return newline-delimited JSON, also called NDJSON.
 
 Every JSON object must appear on one single line.
-Do not use Markdown.
-Do not use code fences.
+Do not use Markdown outside the JSON objects and do not use code fences.
 Do not add text outside the JSON objects.
+Inside each user-facing content_blocks string, use simple Markdown for readable
+structure: headings, paragraphs, bold labels and bullet or numbered lists.
+Use # / ## / ### heading syntax and blank lines between paragraphs and lists.
+Never include HTML. Keep each complete content_blocks value inside its JSON
+string; escape line breaks as required by JSON.
 
 Return events in this exact order:
 
