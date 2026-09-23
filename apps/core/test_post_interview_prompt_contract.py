@@ -44,7 +44,11 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             ai_cognitive_questions={},
         )
 
-        evidence = build_pre_interview_evidence(owner)["evidence_text"]
+        with patch(
+            "apps.core.ai.purpose_fit.build_assessment_evidence",
+            return_value=("", 0),
+        ):
+            evidence = build_pre_interview_evidence(owner)["evidence_text"]
 
         self.assertIn(
             "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
