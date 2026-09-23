@@ -93,10 +93,14 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             ],
         )
 
-        evidence, count = build_assessment_evidence(
-            owner,
-            language_code="sv",
-        )
+        with patch(
+            "apps.core.ai.shared_personality_grounding_policy.augment_assessment_text_with_personality_grounding",
+            side_effect=lambda text, *args, **kwargs: text,
+        ):
+            evidence, count = build_assessment_evidence(
+                owner,
+                language_code="sv",
+            )
 
         self.assertEqual(count, 1)
         self.assertIn("Motivation:", evidence)
