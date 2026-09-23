@@ -70,7 +70,7 @@
     panel.querySelector('[data-after-interview-block="' + key + '"]');
 
   const appendInlineMarkdown = (parent, text) => {
-    const pattern = /(**[^*]+?**|__[^_]+?__|`[^\`]+?`|*[^*]+?*)/g;
+    const pattern = /(\*\*[^*]+?\*\*|__[^_]+?__|\*[^*]+?\*)/g;
     let cursor = 0;
     let match;
     while ((match = pattern.exec(text))) {
@@ -78,18 +78,9 @@
         parent.appendChild(document.createTextNode(text.slice(cursor, match.index)));
       }
       const token = match[0];
-      let element;
-      let value;
-      if (token.startsWith("`\"") && token.endsWith("`\"")) {
-        element = document.createElement("code");
-        value = token.slice(1, -1);
-      } else if (token.startsWith("**") || token.startsWith("__")) {
-        element = document.createElement("strong");
-        value = token.slice(2, -2);
-      } else {
-        element = document.createElement("em");
-        value = token.slice(1, -1);
-      }
+      const isBold = token.startsWith("**") || token.startsWith("__");
+      const element = document.createElement(isBold ? "strong" : "em");
+      const value = token.slice(isBold ? 2 : 1, isBold ? -2 : -1);
       element.textContent = value;
       parent.appendChild(element);
       cursor = pattern.lastIndex;
