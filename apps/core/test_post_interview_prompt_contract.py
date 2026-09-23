@@ -93,10 +93,15 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             ],
         )
 
-        evidence, count = build_assessment_evidence(owner)
+        evidence, count = build_assessment_evidence(
+            owner,
+            language_code="sv",
+        )
 
         self.assertEqual(count, 1)
         self.assertIn("Motivation:", evidence)
+        self.assertIn("Variation: stive 4.8", evidence)
+        self.assertNotIn("Variety", evidence)
         self.assertNotIn("0085_MQ_Sova_Motivation_Research", evidence)
 
 
