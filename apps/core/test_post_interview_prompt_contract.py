@@ -7,6 +7,7 @@ from apps.core.ai.decision_support import (
     _extract_json_events_from_buffer,
     _post_get_content_block_prompt_instructions,
     build_post_interview_decision_support_prompt,
+    build_pre_interview_evidence,
     stream_post_interview_decision_support,
 )
 
@@ -14,6 +15,57 @@ from apps.processes.models import AIPromptTemplate
 
 
 class PostInterviewPromptContractTests(SimpleTestCase):
+    def test_evidence_uses_authoritative_sova_top_three_motivators(self):
+        owner = SimpleNamespace(
+            sova_activities=[
+                {
+                    "activity": "Motivation Questionnaire",
+                    "competencies": [
+                        {"competency": "Variation", "stive": 4.8},
+                        {"competency": "Kundservice", "stive": 4.5},
+                        {"competency": "Människors utveckling", "stive": 4.2},
+                        {"competency": "Kreativitet", "stive": 3.9},
+                        {"competency": "Göra skillnad", "stive": 3.7},
+                    ],
+                },
+            ],
+            ai_purpose_fit={},
+            ai_purpose_fit_status="not_started",
+            ai_personality_interpretation={},
+            ai_personality_interpretation_status="not_started",
+            ai_motivation_interpretation={},
+            ai_motivation_interpretation_status="not_started",
+            ai_cognitive_interpretation={},
+            ai_cognitive_interpretation_status="not_started",
+            ai_response_style_guidance={},
+            ai_response_style_guidance_status="not_started",
+            ai_personality_questions={},
+            ai_motivation_questions={},
+            ai_cognitive_questions={},
+        )
+
+        evidence = build_pre_interview_evidence(owner)["evidence_text"]
+
+        self.assertIn(
+            "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
+            evidence,
+        )
+        self.assertLess(
+            evidence.index("1. Variation — STIVE 4.8 of 5"),
+            evidence.index("2. Kundservice — STIVE 4.5 of 5"),
+        )
+        self.assertLess(
+            evidence.index("2. Kundservice — STIVE 4.5 of 5"),
+            evidence.index(
+                "3. Människors utveckling — STIVE 4.2 of 5"
+            ),
+        )
+        self.assertIn(
+            "Kreativitet: STIVE 3.9 of 5",
+            evidence,
+        )
+
+
     def test_content_block_prompts_are_isolated_from_legacy_guidance(self):
         owner = SimpleNamespace(
             interview_notes="Interview notes",
