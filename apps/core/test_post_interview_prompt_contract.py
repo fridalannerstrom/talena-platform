@@ -92,6 +92,9 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             prompt,
         )
 
+        self.assertIn("Inside each user-facing content_blocks string, use simple Markdown", prompt)
+        self.assertIn("Never include HTML", prompt)
+
 
     def test_stream_parser_accepts_literal_multiline_content_block_text(self):
         events, remainder = _extract_json_events_from_buffer(
