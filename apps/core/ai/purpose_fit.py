@@ -23,6 +23,10 @@ from .prompt_templates import (
     get_ai_feature_prompt_instructions,
 )
 
+from .motivation_interpretation import (
+    get_motivation_factor_display_name,
+)
+
 # Talena AI Overview language batch 1
 
 
@@ -134,7 +138,11 @@ def _assessment_activity_evidence_label(value: Any) -> str:
     return activity or "Assessment results"
 
 
-def build_assessment_evidence(invitation) -> tuple[str, int]:
+def build_assessment_evidence(
+    invitation,
+    *,
+    language_code: str = "en",
+) -> tuple[str, int]:
     """
     Build compact assessment evidence for the AI prompt.
 
@@ -182,6 +190,11 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
                     or competency.get("name")
                     or "Unnamed competency"
                 )
+                if "motivation" in title.casefold():
+                    name = get_motivation_factor_display_name(
+                        name,
+                        language_code=language_code,
+                    )
 
                 score_parts = []
 
@@ -329,6 +342,11 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
                 or competency.get("name")
                 or "Unnamed competency"
             )
+            if activity_name == "Motivation":
+                competency_name = get_motivation_factor_display_name(
+                    competency_name,
+                    language_code=language_code,
+                )
 
             score_parts = []
 
