@@ -18,6 +18,10 @@ from .openai_client import (
     get_chat_model,
     get_openai_client,
 )
+from .motivation_interpretation import (
+    build_motivation_evidence_text,
+    extract_motivation_results,
+)
 from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
@@ -174,6 +178,42 @@ def _format_list_field(
 # ============================================================
 
 
+
+def _build_motivation_assessment_evidence(owner) -> str:
+    """Return authoritative Sova motivation scores for synthesis prompts."""
+    results = extract_motivation_results(owner)
+    if not results:
+        return ""
+
+    ranked_results = sorted(
+        results,
+        key=lambda item: (
+            -item["score"],
+            item["name"].lower(),
+        ),
+    )
+    top_three = ranked_results[:3]
+    lines = [
+        "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
+        "These factor names and their rank come directly from the Sova "
+        "Motivation Questionnaire STIVE scores.",
+        "Use these exact factors in this exact order when describing the "
+        "candidate's three leading motivators. Do not substitute factors "
+        "based on personality results, interview notes or role context.",
+    ]
+    lines.extend(
+        f"{rank}. {item['name']} — STIVE {item['score']} of 5"
+        for rank, item in enumerate(top_three, start=1)
+    )
+    lines.extend([
+        "",
+        "FULL MOTIVATION SCORE EVIDENCE",
+        build_motivation_evidence_text(results),
+    ])
+    return "\n".join(lines)
+
+
+
 def build_pre_interview_evidence(
     owner,
 ) -> dict[str, Any]:
@@ -301,6 +341,22 @@ def build_pre_interview_evidence(
                     "context_note"
                 ),
             ),
+        ],
+    )
+
+    # --------------------------------------------------------
+    # Authoritative Sova motivation results
+    # --------------------------------------------------------
+
+    motivation_assessment_evidence = (
+        _build_motivation_assessment_evidence(owner)
+    )
+
+    add_section(
+        title="Motivation assessment results",
+        status="available",
+        content_parts=[
+            motivation_assessment_evidence,
         ],
     )
 
