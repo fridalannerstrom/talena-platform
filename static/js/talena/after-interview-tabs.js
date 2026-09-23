@@ -69,10 +69,98 @@
   const sourceBlock = (panel, key) =>
     panel.querySelector('[data-after-interview-block="' + key + '"]');
 
+  const appendInlineMarkdown = (parent, text) => {
+    const pattern = /(\*\*[^*]+?\*\*|__[^_]+?__|\*[^*]+?\*)/g;
+    let cursor = 0;
+    let match;
+    while ((match = pattern.exec(text))) {
+      if (match.index > cursor) {
+        parent.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+      }
+      const token = match[0];
+      const isBold = token.startsWith("**") || token.startsWith("__");
+      const element = document.createElement(isBold ? "strong" : "em");
+      const value = token.slice(isBold ? 2 : 1, isBold ? -2 : -1);
+      element.textContent = value;
+      parent.appendChild(element);
+      cursor = pattern.lastIndex;
+    }
+    if (cursor < text.length) {
+      parent.appendChild(document.createTextNode(text.slice(cursor)));
+    }
+  };
+
+  const renderGeneratedMarkdown = (container) => {
+    if (container.dataset.markdownRendered === "true") return;
+    const source = (container.textContent || "").replace(/\r\n?/g, "\n").trim();
+    if (!source) return;
+
+    const fragment = document.createDocumentFragment();
+    const lines = source.split("\n");
+    let index = 0;
+
+    while (index < lines.length) {
+      const line = lines[index].trim();
+      if (!line) {
+        index += 1;
+        continue;
+      }
+
+      const heading = line.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        const level = Math.min(5, heading[1].length + 1);
+        const element = document.createElement("h" + level);
+        element.className = "after-interview-rich-text__heading";
+        appendInlineMarkdown(element, heading[2].trim());
+        fragment.appendChild(element);
+        index += 1;
+        continue;
+      }
+
+      const isUnordered = /^[-*•]\s+/.test(line);
+      const isOrdered = /^\d+[.)]\s+/.test(line);
+      if (isUnordered || isOrdered) {
+        const list = document.createElement(isOrdered ? "ol" : "ul");
+        list.className = "after-interview-rich-text__list";
+        while (index < lines.length) {
+          const item = lines[index].trim();
+          const matches = isOrdered
+            ? item.match(/^\d+[.)]\s+(.+)$/)
+            : item.match(/^[-*•]\s+(.+)$/);
+          if (!matches) break;
+          const li = document.createElement("li");
+          appendInlineMarkdown(li, matches[1]);
+          list.appendChild(li);
+          index += 1;
+        }
+        fragment.appendChild(list);
+        continue;
+      }
+
+      const paragraphLines = [line];
+      index += 1;
+      while (index < lines.length && lines[index].trim()) {
+        const next = lines[index].trim();
+        if (/^(#{1,6})\s+/.test(next) || /^[-*•]\s+/.test(next) || /^\d+[.)]\s+/.test(next)) break;
+        paragraphLines.push(next);
+        index += 1;
+      }
+      const paragraph = document.createElement("p");
+      paragraph.className = "after-interview-rich-text__paragraph";
+      appendInlineMarkdown(paragraph, paragraphLines.join(" "));
+      fragment.appendChild(paragraph);
+    }
+
+    container.replaceChildren(fragment);
+    container.classList.add("after-interview-rich-text");
+    container.dataset.markdownRendered = "true";
+  };
+
   const sourceContent = (panel, key) => {
     const source = sourceBlock(panel, key);
     const content = source?.querySelector("[data-after-interview-block-content]") || null;
     if (!content || !content.textContent.trim()) return null;
+    renderGeneratedMarkdown(content);
     return content;
   };
 
@@ -287,6 +375,13 @@
         font-size: .78rem; line-height: 1.55;
       }
       __PANEL__ .after-interview-tab-card__body { margin: 0 !important; }
+      __PANEL__ .after-interview-rich-text { color: var(--talena-ink, #191817); font-size: .9rem; line-height: 1.75; }
+      __PANEL__ .after-interview-rich-text__heading { margin: 1.4rem 0 .55rem; color: var(--talena-ink, #191817); font-size: 1.05rem; font-weight: 700; letter-spacing: -.015em; line-height: 1.3; }
+      __PANEL__ .after-interview-rich-text__heading:first-child { margin-top: 0; }
+      __PANEL__ .after-interview-rich-text__paragraph { margin: 0 0 .85rem; }
+      __PANEL__ .after-interview-rich-text__paragraph:last-child { margin-bottom: 0; }
+      __PANEL__ .after-interview-rich-text__list { margin: 0 0 1rem; padding-left: 1.35rem; }
+      __PANEL__ .after-interview-rich-text__list li { margin: .25rem 0; padding-left: .2rem; }
       __PANEL__ .after-interview-tab-empty {
         padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68);

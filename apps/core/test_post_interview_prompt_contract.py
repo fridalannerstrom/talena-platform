@@ -37,6 +37,20 @@ class PostInterviewPromptContractTests(SimpleTestCase):
 
         with (
             patch(
+                "apps.core.ai.post_interview_question_evidence_policy.get_post_interview_note_evidence",
+                return_value={
+                    "general_notes": "Interview notes",
+                    "has_general_notes": True,
+                    "question_evidence": {
+                        "text": "",
+                        "count": 0,
+                        "has_evidence": False,
+                    },
+                    "has_question_evidence": False,
+                    "has_evidence": True,
+                },
+            ),
+            patch(
                 "apps.core.ai.decision_support.get_global_ai_guidance",
                 return_value="GLOBAL GUIDANCE",
             ),
@@ -91,6 +105,9 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             '"blocks": {"overall_picture"',
             prompt,
         )
+
+        self.assertIn("Inside each user-facing content_blocks string, use simple Markdown", prompt)
+        self.assertIn("Never include HTML", prompt)
 
 
     def test_stream_parser_accepts_literal_multiline_content_block_text(self):
