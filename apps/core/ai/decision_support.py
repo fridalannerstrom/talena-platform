@@ -3051,8 +3051,9 @@ def stream_post_interview_decision_support(
         ),
     }
 
+    model = get_chat_model()
     stream = client.chat.completions.create(
-        model=get_chat_model(),
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -3069,12 +3070,23 @@ def stream_post_interview_decision_support(
         ],
         temperature=0.2,
         stream=True,
+        max_completion_tokens=12000,
     )
 
     buffer = ""
+    finish_reason = None
 
     for response_event in stream:
-        delta = response_event.choices[0].delta
+        choices = getattr(response_event, "choices", None) or []
+        if not choices:
+            continue
+
+        choice = choices[0]
+        finish_reason = (
+            getattr(choice, "finish_reason", None)
+            or finish_reason
+        )
+        delta = getattr(choice, "delta", None)
 
         if not delta or not delta.content:
             continue
@@ -3089,6 +3101,13 @@ def stream_post_interview_decision_support(
 
         for parsed_event in parsed_events:
             yield parsed_event
+
+    if finish_reason == "length":
+        raise ValueError(
+            "The AI response reached the 12,000-token output limit "
+            "before all After interview sections were generated. "
+            "Reduce the input or try again."
+        )
 
     parsed_events, buffer = (
         _extract_json_events_from_buffer(

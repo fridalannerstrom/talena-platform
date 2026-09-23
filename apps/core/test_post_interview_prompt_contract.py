@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase, TestCase
 
@@ -7,6 +7,7 @@ from apps.core.ai.decision_support import (
     _extract_json_events_from_buffer,
     _post_get_content_block_prompt_instructions,
     build_post_interview_decision_support_prompt,
+    stream_post_interview_decision_support,
 )
 
 from apps.processes.models import AIPromptTemplate
@@ -163,3 +164,79 @@ class PostInterviewPromptOverrideCompatibilityTests(TestCase):
         )
 
         self.assertEqual(prompt, "CANONICAL HELHETSBILD PROMPT")
+
+
+
+class PostInterviewStreamLimitTests(SimpleTestCase):
+    def test_output_limit_is_configured_and_truncation_is_reported(self):
+        owner = SimpleNamespace(
+            interview_notes="Interview notes",
+        )
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="length",
+                    delta=SimpleNamespace(content=None),
+                )
+            ]
+        )
+        create = Mock(return_value=[response])
+        client = SimpleNamespace(
+            chat=SimpleNamespace(
+                completions=SimpleNamespace(create=create),
+            )
+        )
+        note_evidence = {
+            "general_notes": "Interview notes",
+            "has_general_notes": True,
+            "question_evidence": {
+                "text": "",
+                "count": 0,
+                "has_evidence": False,
+            },
+            "has_question_evidence": False,
+            "has_evidence": True,
+        }
+
+        with (
+            patch(
+                "apps.core.ai.post_interview_question_evidence_policy.get_post_interview_note_evidence",
+                return_value=note_evidence,
+            ),
+            patch(
+                "apps.core.ai.decision_support.build_pre_interview_evidence",
+                return_value={"has_evidence": True},
+            ),
+            patch(
+                "apps.core.ai.decision_support.build_post_interview_decision_support_prompt",
+                return_value="Prompt",
+            ),
+            patch(
+                "apps.core.ai.decision_support._post_get_prompt_debug_info",
+                return_value={},
+            ),
+            patch(
+                "apps.core.ai.decision_support.get_openai_client",
+                return_value=client,
+            ),
+            patch(
+                "apps.core.ai.decision_support.get_chat_model",
+                return_value="gpt-4o-mini",
+            ),
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "12,000-token output limit",
+            ):
+                list(
+                    stream_post_interview_decision_support(
+                        owner=owner,
+                        language_code="sv",
+                    )
+                )
+
+        create.assert_called_once()
+        self.assertEqual(
+            create.call_args.kwargs["max_completion_tokens"],
+            12000,
+        )

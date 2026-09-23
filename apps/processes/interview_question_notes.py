@@ -638,7 +638,9 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             if not overall_synthesis:
                 raise ValueError(
                     "The AI response did not contain an overall synthesis "
-                    "or a complete After interview content-block result."
+                    "or a complete After interview content-block result. "
+                    "Missing content blocks: "
+                    + ", ".join(missing_content_blocks)
                 )
 
             supported_indications = (
