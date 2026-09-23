@@ -80,7 +80,10 @@ def install_pre_interview_raw_evidence_policy() -> None:
         # Import lazily to avoid widening the AI module import graph at startup.
         from apps.core.ai.purpose_fit import build_assessment_evidence
 
-        raw_text, assessment_type_count = build_assessment_evidence(owner)
+        raw_text, assessment_type_count = build_assessment_evidence(
+            owner,
+            language_code=language_code or "en",
+        )
 
         return augment_pre_interview_evidence(
             evidence,
