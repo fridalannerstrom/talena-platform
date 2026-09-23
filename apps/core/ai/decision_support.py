@@ -2839,7 +2839,8 @@ def build_post_interview_decision_support_prompt(
     candidate = shared_context["candidate"]
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     interview_notes = _clean_text(
@@ -3098,7 +3099,8 @@ def stream_post_interview_decision_support(
         )
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     if not evidence["has_evidence"]:
