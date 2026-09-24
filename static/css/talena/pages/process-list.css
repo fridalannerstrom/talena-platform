@@ -805,10 +805,19 @@
   height: 13px;
 }
 
+.process-card-actions.has-pinned {
+  opacity: 1;
+}
+
 .process-card .process-pin.is-pinned {
+  border-color: rgba(207, 89, 80, 0.22) !important;
+  background: var(--talena-coral-soft) !important;
   color: var(--talena-coral-strong) !important;
 }
 
 .process-card .process-pin.is-pinned svg {
-  fill: rgba(255, 111, 97, 0.25);
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  stroke: currentColor;
 }
