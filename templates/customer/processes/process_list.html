@@ -108,7 +108,22 @@
             </div>
 
             {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-              <div class="process-card-actions {% if not can_edit or p.is_historical %}is-placeholder{% endif %}">
+              <div class="process-card-actions">
+                {% if not show_archived %}
+                  <form method="post" action="{% url 'processes:toggle_pinned_project' p.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if p.id in pinned_project_ids %}
+                      <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
+                        <i data-feather="star"></i>
+                      </button>
+                    {% else %}
+                      <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
+                        <i data-feather="star"></i>
+                      </button>
+                    {% endif %}
+                  </form>
+                {% endif %}
                 {% if can_edit and not p.is_historical %}
                   {% if not show_archived %}
                     <a
