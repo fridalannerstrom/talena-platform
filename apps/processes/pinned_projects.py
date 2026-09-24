@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
@@ -41,7 +42,7 @@ def toggle_pinned_project(request, pk):
 
     # Lock per user so simultaneous tabs cannot exceed the shortcut limit.
     with transaction.atomic():
-        type(request.user).objects.select_for_update().get(pk=request.user.pk)
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
         existing = PinnedProject.objects.filter(user=request.user, process=process)
         if existing.exists():
             existing.delete()
