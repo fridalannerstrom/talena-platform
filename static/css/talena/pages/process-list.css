@@ -812,12 +812,12 @@
 .process-card .process-pin.is-pinned {
   border-color: rgba(207, 89, 80, 0.22) !important;
   background: var(--talena-coral-soft) !important;
-  color: var(--talena-coral-strong) !important;
+  color: #cf5950 !important;
 }
 
 .process-card .process-pin.is-pinned svg {
   width: 16px;
   height: 16px;
-  fill: currentColor;
-  stroke: currentColor;
+  fill: #cf5950;
+  stroke: #cf5950;
 }
