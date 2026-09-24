@@ -136,7 +136,7 @@ class PersonalityMotivationInteractionTests(SimpleTestCase):
         "apps.core.ai.personality_interpretation.get_ai_prompt_instructions",
         return_value="LEGACY OVERALL GUIDANCE",
     )
-    def test_prompt_uses_result_summary_context_and_box_specific_guidance(
+    def test_prompt_uses_result_summary_without_process_context_and_box_specific_guidance(
         self,
         _legacy_overall,
         _legacy_feature,
@@ -156,12 +156,14 @@ class PersonalityMotivationInteractionTests(SimpleTestCase):
         self.assertIn("TALENA SHARED PERSONALITY AI INPUT", prompt)
         self.assertIn("PERSONALITY TRAIT: Empathy", prompt)
         self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
-        self.assertIn("Role context for customer conversations.", prompt)
+        self.assertNotIn("Role context for customer conversations.", prompt)
+        self.assertNotIn("\nPROCESS CONTEXT\n", prompt)
+        self.assertNotIn("\nPROCESS PURPOSE\n", prompt)
         self.assertIn("MOTIVATION EVIDENCE", prompt)
         self.assertIn("GLOBAL GUIDANCE", prompt)
         self.assertIn("BOX GUIDANCE", prompt)
         self.assertIn(
-            "Process context may explain where,\nwhen or why a supported interaction matters",
+            "assessment results\nalone determine which interaction is supported",
             prompt,
         )
         self.assertNotIn(
