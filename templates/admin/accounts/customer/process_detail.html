@@ -162,9 +162,8 @@
               <th style="width:44px;" class="ps-3">
                 <input type="checkbox" id="select-all">
               </th>
-              <th style="width: 34%;">Namn</th>
+              <th style="width: 42%;">Namn</th>
               <th>Status</th>
-              <th>Källa</th>
               <th style="width: 170px;">Inbjuden</th>
               <th style="width: 170px;">Slutförd</th>
               <th class="text-end pe-3" style="width:70px;"></th>
@@ -212,13 +211,6 @@
                 </span>
               </td>
 
-              <td class="text-muted">
-  {% if inv.source == "invited" and inv.invited_by %}
-    Invited by {{ inv.invited_by.get_full_name|default:inv.invited_by.email }}
-  {% else %}
-    {{ inv.get_source_display|default:"—" }}
-  {% endif %}
-</td>
               <td class="text-muted">{{ inv.invited_at|date:"Y-m-d H:i"|default:"—" }}</td>
               <td class="text-muted">{{ inv.completed_at|date:"Y-m-d H:i"|default:"—" }}</td>
 
@@ -235,7 +227,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="7" class="text-muted p-3">Inga kandidater ännu.</td>
+              <td colspan="6" class="text-muted p-3">Inga kandidater ännu.</td>
             </tr>
             {% endfor %}
           </tbody>
