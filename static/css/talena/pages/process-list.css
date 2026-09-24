@@ -546,8 +546,8 @@
   color: #845314;
 }
 
-.process-progress-status.is-completed {
-  background: #e7f5e9;
+.process-meta-item.is-completed strong,
+.process-meta-item.is-completed svg {
   color: #236b3b;
 }
 
