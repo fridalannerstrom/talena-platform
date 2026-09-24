@@ -593,7 +593,7 @@ class CandidateResultAccessViewTests(TestCase):
         response = self.client.get(reverse("processes:process_candidate_detail", kwargs={
             "process_id": self.process.pk, "candidate_id": self.candidate.pk,
         }))
-        self.assertContains(response, "Feedback om testupplevelsen")
+        self.assertContains(response, "Test-experience feedback")
         self.assertContains(response, "Bra testupplevelse.")
         self.assertContains(response, "0 / 1")
 
