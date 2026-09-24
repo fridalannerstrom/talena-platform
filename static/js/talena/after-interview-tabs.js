@@ -9,7 +9,6 @@
     sv: {
       tabs: {
         overview: "Helhetsbild",
-        tests: "Testresultat",
         interview: "Intervjusammanfattning",
         explore: "Undersök vidare",
         wellbeing: "Tips för trivsel",
@@ -17,7 +16,6 @@
       },
       descriptions: {
         overview: "En samlad bild av testresultat, intervjuunderlag och processkontext.",
-        tests: "Testresultat presenterade för samtalet med chef eller kandidat.",
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
         explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
         wellbeing: "Förutsättningar och samtalspunkter som kan bidra till trivsel i rollen.",
@@ -27,14 +25,10 @@
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
-      candidateUnavailable: "Kandidatversionen är inte genererad ännu.",
-      manager: "Till chef",
-      candidate: "Till kandidat",
     },
     en: {
       tabs: {
         overview: "Overall picture",
-        tests: "Assessment results",
         interview: "Interview summary",
         explore: "Explore further",
         wellbeing: "Wellbeing tips",
@@ -42,7 +36,6 @@
       },
       descriptions: {
         overview: "A combined view of assessment results, interview evidence and process context.",
-        tests: "Assessment content prepared for a conversation with a manager or candidate.",
         interview: "What the interview confirms, nuances or adds to the assessment results.",
         explore: "Questions and areas where additional evidence may create a more complete view.",
         wellbeing: "Conditions and conversation points that may support wellbeing in the role.",
@@ -52,9 +45,6 @@
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
-      candidateUnavailable: "The candidate version has not been generated yet.",
-      manager: "For manager",
-      candidate: "For candidate",
     },
   };
 
@@ -221,104 +211,6 @@
     return panel;
   };
 
-  const makeInnerTab = (key, label, panelId) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "candidate-insights-view-option";
-    button.dataset.afterInterviewInnerTab = key;
-    button.setAttribute("role", "tab");
-    button.setAttribute("aria-controls", panelId);
-    button.setAttribute("aria-selected", "false");
-    button.textContent = label;
-    return button;
-  };
-
-  const makeTestCard = (panel, summary, evidenceGrid) => {
-    const card = document.createElement("section");
-    card.className = "after-interview-tab-card";
-    card.dataset.afterInterviewGeneratedCard = "test-results";
-
-    const heading = document.createElement("h3");
-    heading.className = "after-interview-tab-card__title";
-    heading.textContent = copy().tabs.tests;
-
-    const intro = document.createElement("p");
-    intro.className = "after-interview-tab-card__description";
-    intro.textContent = copy().descriptions.tests;
-    const suppliedIntro = sourceContent(panel, "test_results_intro");
-    if (suppliedIntro) suppliedIntro.classList.add("after-interview-tab-card__body");
-
-    const nav = document.createElement("div");
-    nav.className = "candidate-insights-view-switcher after-interview-inner-tabs";
-    nav.setAttribute("role", "tablist");
-    nav.setAttribute("aria-label", copy().tabs.tests);
-
-    const manager = document.createElement("div");
-    manager.className = "after-interview-inner-panel";
-    manager.dataset.afterInterviewInnerPanel = "manager";
-    manager.id = "after-interview-test-manager";
-    manager.setAttribute("role", "tabpanel");
-
-    const candidate = document.createElement("div");
-    candidate.className = "after-interview-inner-panel";
-    candidate.dataset.afterInterviewInnerPanel = "candidate";
-    candidate.id = "after-interview-test-candidate";
-    candidate.setAttribute("role", "tabpanel");
-
-    nav.append(
-      makeInnerTab("manager", copy().manager, manager.id),
-      makeInnerTab("candidate", copy().candidate, candidate.id),
-    );
-
-    const managerContent = sourceContent(panel, "test_results_manager");
-    const candidateContent = sourceContent(panel, "test_results_candidate");
-
-    if (managerContent) manager.appendChild(managerContent);
-    else if (evidenceGrid) manager.appendChild(evidenceGrid.cloneNode(true));
-    else if (summary) manager.appendChild(summary.cloneNode(true));
-    else manager.textContent = copy().unavailable;
-
-    if (candidateContent) candidate.appendChild(candidateContent);
-    else {
-      const empty = document.createElement("div");
-      empty.className = "after-interview-tab-empty";
-      empty.textContent = copy().candidateUnavailable;
-      candidate.appendChild(empty);
-    }
-
-    const activate = (key, updateUrl = true) => {
-      card.querySelectorAll("[data-after-interview-inner-tab]").forEach((button) => {
-        const active = button.dataset.afterInterviewInnerTab === key;
-        button.classList.toggle("is-active", active);
-        button.setAttribute("aria-selected", String(active));
-      });
-      card.querySelectorAll("[data-after-interview-inner-panel]").forEach((item) => {
-        item.hidden = item.dataset.afterInterviewInnerPanel !== key;
-      });
-      if (updateUrl) {
-        const url = new URL(window.location.href);
-        url.searchParams.set("afterTestTab", key);
-        window.history.replaceState({}, "", url);
-      }
-    };
-
-    nav.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-after-interview-inner-tab]");
-      if (button) activate(button.dataset.afterInterviewInnerTab);
-    });
-
-    card.append(heading, intro);
-    if (suppliedIntro) card.appendChild(suppliedIntro);
-    card.append(nav, manager, candidate);
-    activate(
-      new URL(window.location.href).searchParams.get("afterTestTab") === "candidate"
-        ? "candidate"
-        : "manager",
-      false,
-    );
-    return card;
-  };
-
   const ensureStyles = () => {
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
@@ -446,7 +338,7 @@
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    const keys = ["overview", "tests", "interview", "explore", "wellbeing", "evidence"];
+    const keys = ["overview", "interview", "explore", "wellbeing", "evidence"];
     const buttons = new Map();
     const panels = new Map();
     keys.forEach((key) => {
@@ -486,7 +378,6 @@
     panels.get("overview").appendChild(
       makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary),
     );
-    panels.get("tests").appendChild(makeTestCard(panel, summary, evidenceGrid));
     panels.get("interview").appendChild(
       makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid),
     );
@@ -528,11 +419,17 @@
       if (button) activate(button.dataset.afterInterviewTab);
     });
 
-    const requested = new URL(window.location.href).searchParams.get(URL_PARAM);
+    const url = new URL(window.location.href);
+    const requested = url.searchParams.get(URL_PARAM);
     const initial = keys.includes(requested)
       ? requested
       : hasPostInterviewResult ? "overview" : "evidence";
     activate(initial, false);
+    if (requested === "tests" || url.searchParams.has("afterTestTab")) {
+      url.searchParams.delete("afterTestTab");
+      url.searchParams.set(URL_PARAM, initial);
+      window.history.replaceState({}, "", url);
+    }
     if (window.feather) window.feather.replace();
   };
 
