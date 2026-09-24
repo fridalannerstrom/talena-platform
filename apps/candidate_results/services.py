@@ -11,6 +11,15 @@ from .models import CandidateResultAccess, CandidateResultSnapshot
 DEFAULT_ACCESS_LIFETIME = timedelta(days=30)
 
 
+def revoke_candidate_result_access_for_process(process) -> int:
+    """Invalidate every issued candidate result link for this process."""
+    return (
+        CandidateResultAccess.objects
+        .filter(snapshot__process=process, revoked_at__isnull=True)
+        .update(revoked_at=timezone.now())
+    )
+
+
 def generate_verification_code() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"
 
