@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.utils.translation import override
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.processes.models import PinnedProject, TestProcess
@@ -60,11 +59,13 @@ class PinnedProjectTests(TestCase):
 
         page = self.client.get(reverse("processes:process_list"))
         self.assertContains(page, "Pinned projects")
-        with override("sv"):
-            self.assertContains(
-                self.client.get(reverse("processes:process_list")),
-                "Fästa projekt",
-            )
+        self.assertContains(
+            self.client.get(
+                reverse("processes:process_list"),
+                HTTP_ACCEPT_LANGUAGE="sv",
+            ),
+            "Fästa projekt",
+        )
         self.assertContains(page, "talena-pinned-link")
         self.assertContains(page, 'aria-pressed="true"')
         self.assertContains(
@@ -85,6 +86,9 @@ class PinnedProjectTests(TestCase):
 
         own_process = self._project("Own project", self.own_only)
         self.assertEqual(self._toggle(own_process).status_code, 302)
+        self.assertFalse(
+            PinnedProject.objects.filter(user=self.own_only, process=self.process).exists()
+        )
         self.assertContains(
             self.client.get(reverse("processes:process_list")),
             "talena-pinned-link",
