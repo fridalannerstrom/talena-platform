@@ -748,3 +748,67 @@
   background: var(--talena-coral);
   vertical-align: middle;
 }
+
+/* Project shortcuts: compact links inside the customer sidebar. */
+.talena-sidebar .talena-pinned-heading {
+  padding-top: 0.8rem;
+}
+
+.talena-sidebar .talena-pinned-project {
+  position: relative;
+  min-width: 0;
+}
+
+.talena-sidebar .talena-pinned-link {
+  display: flex;
+  align-items: center;
+  padding-right: 2.1rem;
+}
+
+.talena-sidebar .talena-pinned-link span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.talena-sidebar .talena-pinned-link .nav-link-icon {
+  flex: none;
+}
+
+.talena-sidebar .talena-pinned-project form {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  transform: translateY(-50%);
+}
+
+.talena-sidebar .talena-unpin-project {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--talena-text-subtle);
+}
+
+.talena-sidebar .talena-unpin-project:hover,
+.talena-sidebar .talena-unpin-project:focus-visible {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-sidebar .talena-unpin-project svg {
+  width: 13px;
+  height: 13px;
+}
+
+.process-card .process-pin.is-pinned {
+  color: var(--talena-coral-strong) !important;
+}
+
+.process-card .process-pin.is-pinned svg {
+  fill: rgba(255, 111, 97, 0.25);
+}
