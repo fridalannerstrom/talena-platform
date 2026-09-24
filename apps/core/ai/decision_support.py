@@ -35,9 +35,6 @@ from .prompt_templates import (
 
 POST_INTERVIEW_CONTENT_BLOCK_KEYS = (
     "overall_picture",
-    "test_results_intro",
-    "test_results_manager",
-    "test_results_candidate",
     "interview_summary",
     "explore_further",
     "wellbeing_tips",
@@ -2477,9 +2474,6 @@ def _post_interview_content_block_examples(
     if language_code == "sv":
         return {
             "overall_picture": "Exempel på en tydlig helhetsbild.",
-            "test_results_intro": "Exempel på hur testresultaten kan förstås i sammanhanget.",
-            "test_results_manager": "Exempel på chefsversionens sammanvägda återkoppling.",
-            "test_results_candidate": "Exempel på kandidatversionens respektfulla återkoppling.",
             "interview_summary": "Exempel på vad intervjun tillförde.",
             "explore_further": "Exempel på osäkerheter och möjliga uppföljningar.",
             "wellbeing_tips": "Exempel på förutsättningar som kan hjälpa kandidaten att trivas.",
@@ -2487,9 +2481,6 @@ def _post_interview_content_block_examples(
 
     return {
         "overall_picture": "Example of a clear overall picture.",
-        "test_results_intro": "Example of how the test results can be understood in context.",
-        "test_results_manager": "Example of the manager-facing synthesis.",
-        "test_results_candidate": "Example of respectful candidate-facing feedback.",
         "interview_summary": "Example of what the interview added.",
         "explore_further": "Example of uncertainties and possible follow-ups.",
         "wellbeing_tips": "Example of conditions that may help the candidate thrive.",
@@ -3018,8 +3009,7 @@ instruction for that block's user-facing text.
 
 Return one JSON object with type "content_blocks" and a blocks object.
 The blocks object must contain every required key exactly once:
-overall_picture, test_results_intro, test_results_manager,
-test_results_candidate, interview_summary, explore_further and wellbeing_tips.
+overall_picture, interview_summary, explore_further and wellbeing_tips.
 Each value must be a string generated according to the administrator prompt
 for that key. Do not add, remove, shorten or reshape the generated text
 because of any code-defined content preference.
