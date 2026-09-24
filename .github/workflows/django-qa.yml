@@ -1,0 +1,32 @@
+name: Django QA
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  migrate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Apply migrations to a fresh SQLite database
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: |
+          rm -f db.sqlite3
+          python manage.py migrate --noinput
+      - name: Run focused candidate result and interview note tests
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes --noinput
