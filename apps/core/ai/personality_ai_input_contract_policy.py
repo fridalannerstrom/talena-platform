@@ -125,14 +125,29 @@ def _shared_personality_input(
     owner,
     *,
     language_code: str,
+    include_process_context: bool = True,
 ) -> str:
     language_code = _language(language_code)
     summaries = _render_personality_result_summaries(
         owner,
         language_code=language_code,
     )
-    shared = build_shared_ai_context(owner)
-    context = str(shared.get("context_text") or "").strip()
+    shared = build_shared_ai_context(owner) if include_process_context else None
+    context_section = (
+        "PROCESS PURPOSE\n"
+        f"{shared.get('purpose_label') or 'General insights'}\n\n"
+        "PROCESS CONTEXT\n"
+        f"{shared.get('context_text') or 'No additional process context supplied.'}"
+        if shared else ""
+    )
+    context_rule = (
+        "- Process context may make an interpretation concrete and relevant, "
+        "but it must not change the meaning of the assessment result or create "
+        "unsupported facts.\n"
+        "- Use the supplied process context to understand WHERE, WHEN or WHY "
+        "that indication may be useful to discuss for this process.\n"
+        if shared else ""
+    )
 
     if not summaries:
         summaries = (
@@ -151,22 +166,14 @@ poles or outside definitions.
 
 {summaries}
 
-PROCESS PURPOSE
-{shared.get("purpose_label") or "General insights"}
-
-PROCESS CONTEXT
-{context or "No additional process context supplied."}
+{context_section}
 
 SHARED EVIDENCE RULES
 
 - Personality Result Summary text describes assessment indications, not proven
   behaviour, competence, performance or role fit.
-- Process context may make an interpretation concrete and relevant, but it must
-  not change the meaning of the assessment result or create unsupported facts.
 - Use the Result Summary to understand WHAT is indicated for this candidate.
-- Use the supplied process context to understand WHERE, WHEN or WHY that
-  indication may be useful to discuss for this process.
-- Do not mechanically repeat the Result Summary in user-facing text. Use it as
+{context_rule}- Do not mechanically repeat the Result Summary in user-facing text. Use it as
   evidence for a nuanced, candidate-specific interpretation.
 """.strip()
 
@@ -245,9 +252,8 @@ with the global guidance above.
 {motivation}
 
 For this box, the personality Result Summary and motivation assessment results
-determine which interaction is supported. Process context may explain where,
-when or why that supported interaction matters, but it must not create an
-interaction that is unsupported by the assessment evidence.
+alone determine which interaction is supported. Do not infer an interaction
+that is unsupported by the assessment evidence.
 
 POTENTIAL STRENGTHS · BOX-SPECIFIC GUIDANCE
 
@@ -370,6 +376,7 @@ def _install_personality_interpretation_contract(module) -> None:
         shared_input = _shared_personality_input(
             owner,
             language_code=language_code,
+            include_process_context=False,
         )
         prompt = _insert_before_marker(
             prompt,
@@ -459,12 +466,11 @@ response-style result to rewrite the candidate's personality Result Summary.
 
 def install_personality_ai_input_contract_policy() -> None:
     """
-    Give all personality AI features one consistent input architecture.
+    Give personality AI features a shared Result Summary evidence layer.
 
-    Parent-trait Personality Questions already receive Result Summary + context
-    + complete admin guidance through the dedicated #230/#231 question policy.
-    This final policy applies the same architecture to Personality
-    Interpretation (all visible boxes in that call) and Response Styles.
+    Personality Questions retain their dedicated purpose and process context
+    for interview preparation. Personality Interpretation uses only assessment
+    evidence, while Response Styles keeps its existing contextual input.
     """
 
     global _INSTALLED
