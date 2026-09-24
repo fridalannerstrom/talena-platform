@@ -213,18 +213,18 @@
 
           <footer class="process-card-footer">
             <div class="process-card-meta">
-              <div class="process-meta-item">
+              <div class="process-meta-item {% if p.is_complete %}is-completed{% endif %}">
                 <i data-feather="users"></i>
                 <strong>{{ p.completed_candidates_count }} / {{ p.candidates_count }}</strong>
                 <span>{% trans "Completed" %}</span>
               </div>
 
-              {% if p.candidates_count and p.completed_candidates_count == p.candidates_count %}
-                <span class="process-progress-status is-completed">{% trans "Completed" %}</span>
-              {% elif p.started_candidates_count %}
-                <span class="process-progress-status is-started">{% trans "Started" %}</span>
-              {% else %}
-                <span class="process-progress-status">{% trans "Not started" %}</span>
+              {% if not p.is_complete %}
+                {% if p.started_candidates_count %}
+                  <span class="process-progress-status is-started">{% trans "Started" %}</span>
+                {% else %}
+                  <span class="process-progress-status">{% trans "Not started" %}</span>
+                {% endif %}
               {% endif %}
 
               <div class="process-meta-item">
