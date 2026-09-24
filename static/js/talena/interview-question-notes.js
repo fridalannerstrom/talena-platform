@@ -491,6 +491,12 @@
           const actions = document.createElement("div");
           actions.className = "interview-question-notes-summary__actions";
 
+          const edit = createSummaryActionButton(
+            "edit",
+            "interviewQuestionNotesSummaryEdit",
+            "interview-question-notes-summary__action interview-question-notes-summary__action--edit",
+          );
+
           const remove = createSummaryActionButton(
             "delete",
             "interviewQuestionNotesSummaryDelete",
@@ -502,7 +508,7 @@
             deleteSummaryItem(article);
           });
 
-          actions.append(remove);
+          actions.append(edit, remove);
           article.append(meta, question, note, actions);
           list.appendChild(article);
         });
