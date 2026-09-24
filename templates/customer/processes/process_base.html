@@ -2346,6 +2346,9 @@ async function initMotivationRoseChart(
     ) || []
   );
 
+  const swedishLabels =
+    document.documentElement.lang.toLowerCase().startsWith("sv");
+
   const items = itemElements
     .map((element) => {
       const score = Number(
@@ -2359,11 +2362,17 @@ async function initMotivationRoseChart(
 
       return {
 name:
-  element.dataset.factorName
+  (swedishLabels
+    ? element.dataset.factorNameSv
+    : element.dataset.factorNameEn)
+  || element.dataset.factorName
   || PROCESS_I18N.motivationFactor,
 
 domain:
-  element.dataset.factorDomain
+  (swedishLabels
+    ? element.dataset.factorDomainSv
+    : element.dataset.factorDomainEn)
+  || element.dataset.factorDomain
   || PROCESS_I18N.motivation,
 
         domainIndex:
@@ -2581,11 +2590,7 @@ emptyState.textContent =
         drawingArea
         + (narrow ? 20 : compact ? 30 : 38);
 
-      const domainLabelRadius =
-        drawingArea
-        + (narrow ? 78 : compact ? 115 : 145);
-
-      ctx.save();
+       ctx.save();
 
       /*
        * Domain separator lines.
@@ -2738,75 +2743,7 @@ emptyState.textContent =
       );
 
 
-      /*
-       * Domain labels outside the factor labels.
-       */
-      domainGroups.forEach((group) => {
-        const firstArc =
-          arcs[group.startIndex];
-
-        const lastArc =
-          arcs[group.endIndex];
-
-        if (
-          !firstArc
-          || !lastArc
-        ) {
-          return;
-        }
-
-        const startAngle =
-          firstArc.startAngle;
-
-        const endAngle =
-          lastArc.endAngle;
-
-        const middleAngle =
-          (
-            startAngle
-            + endAngle
-          ) / 2;
-
-        const domainX =
-          centerX
-          + Math.cos(middleAngle)
-          * domainLabelRadius;
-
-        const domainY =
-          centerY
-          + Math.sin(middleAngle)
-          * domainLabelRadius;
-
-        const colour =
-          domainColours[
-            group.domainIndex
-            % domainColours.length
-          ];
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.fillStyle =
-          `rgb(` +
-          `${colour[0]}, ` +
-          `${colour[1]}, ` +
-          `${colour[2]}` +
-          `)`;
-
-        ctx.font =
-          narrow
-            ? "800 11px Inter, system-ui, sans-serif"
-            : compact
-              ? "800 14px Inter, system-ui, sans-serif"
-              : "800 18px Inter, system-ui, sans-serif";
-
-        ctx.fillText(
-          String(group.domain),
-
-          domainX,
-          domainY
-        );
-      });
+      // Domain headings are drawn once by candidate-chart-theme.js.
 
       ctx.restore();
     },
