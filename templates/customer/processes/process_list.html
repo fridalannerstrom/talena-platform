@@ -2,7 +2,7 @@
 {% load dict_extras static i18n %}
 
 {% block extra_css %}
-  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20260924-star-cf5950" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20260924-pin-limit" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -117,6 +117,15 @@
                       <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
                         <i data-feather="star"></i>
                       </button>
+                    {% elif pinned_project_ids|length >= 5 %}
+                      <span class="process-pin-limit" tabindex="0" role="note" aria-describedby="pin-limit-{{ p.id }}">
+                        <button type="button" class="icon-btn process-pin is-disabled" disabled aria-label="{% trans 'Pin project' %}" aria-pressed="false">
+                          <i data-feather="star"></i>
+                        </button>
+                        <span class="process-pin-tooltip" id="pin-limit-{{ p.id }}" role="tooltip">
+                          {% trans "You can pin up to five projects. Unpin one first." %}
+                        </span>
+                      </span>
                     {% else %}
                       <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
                         <i data-feather="star"></i>
