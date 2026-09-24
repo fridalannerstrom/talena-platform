@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .pinned_projects import toggle_pinned_project
 from .access_control import (
     process_edit_access_required,
     process_view_access_required,
@@ -27,6 +28,7 @@ urlpatterns = [
         name="process_update",
     ),
     path("<int:pk>/delete/", views.process_delete, name="process_delete"),
+    path("<int:pk>/pin/", toggle_pinned_project, name="toggle_pinned_project"),
     path(
         "new/",
         capture_process_automatic_invitation_setting(views.process_create_v2),
