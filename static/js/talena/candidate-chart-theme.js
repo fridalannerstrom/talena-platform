@@ -33,6 +33,8 @@
 
   function getRoseItems(canvas) {
     const root = canvas.closest("[data-motivation-rose-chart-root]");
+    const swedishLabels =
+      document.documentElement.lang.toLowerCase().startsWith("sv");
 
     if (!root) {
       return [];
@@ -49,8 +51,12 @@
         const domainIndex = Number(element.dataset.domainIndex);
 
         return {
-          name: element.dataset.factorName || "",
-          domain: element.dataset.factorDomain || "",
+          name: (swedishLabels
+            ? element.dataset.factorNameSv
+            : element.dataset.factorNameEn) || element.dataset.factorName || "",
+          domain: (swedishLabels
+            ? element.dataset.factorDomainSv
+            : element.dataset.factorDomainEn) || element.dataset.factorDomain || "",
           score,
           domainIndex: Number.isFinite(domainIndex) ? domainIndex : 0,
         };
@@ -219,12 +225,13 @@
       return;
     }
 
-    const compact = canvas.clientWidth < 620;
+    const compact = canvas.clientWidth < 700;
+    const narrow = canvas.clientWidth < 450;
     const centerX = radialScale.xCenter;
     const centerY = radialScale.yCenter;
     const drawingArea = radialScale.drawingArea;
-    const domainLabelRadius = drawingArea + (compact ? 105 : 165);
-    const legacyDomainLabelRadius = drawingArea + (compact ? 46 : 66);
+    const domainLabelRadius =
+      drawingArea + (narrow ? 78 : compact ? 115 : 145);
     const ctx = chart.ctx;
 
     ctx.save();
@@ -260,33 +267,6 @@
       const middleAngle = (firstArc.startAngle + lastArc.endAngle) / 2;
       const label = String(group.domain || "");
 
-      /*
-       * The legacy local plugin draws a smaller heading at the old radius
-       * before this adapter runs. Clear it so only the new heading remains.
-       */
-      const legacyX =
-        centerX
-        + Math.cos(middleAngle)
-        * legacyDomainLabelRadius;
-      const legacyY =
-        centerY
-        + Math.sin(middleAngle)
-        * legacyDomainLabelRadius;
-
-      ctx.font = compact
-        ? "750 9px Inter, system-ui, sans-serif"
-        : "750 11px Inter, system-ui, sans-serif";
-
-      const legacyLabel = label.toUpperCase();
-      const legacyMeasured = ctx.measureText(legacyLabel);
-
-      ctx.clearRect(
-        legacyX - (legacyMeasured.width + 16) / 2,
-        legacyY - (compact ? 13 : 17),
-        legacyMeasured.width + 16,
-        compact ? 26 : 34
-      );
-
       const domainX =
         centerX
         + Math.cos(middleAngle)
@@ -296,25 +276,26 @@
         + Math.sin(middleAngle)
         * domainLabelRadius;
 
-      ctx.font = compact
-        ? "800 14px Inter, system-ui, sans-serif"
-        : "800 18px Inter, system-ui, sans-serif";
+      ctx.font = narrow
+        ? "800 11px Inter, system-ui, sans-serif"
+        : compact
+          ? "800 14px Inter, system-ui, sans-serif"
+          : "800 18px Inter, system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-
-      const measured = ctx.measureText(label);
-      const clearWidth = measured.width + (compact ? 16 : 22);
-      const clearHeight = compact ? 26 : 34;
-
-      ctx.clearRect(
-        domainX - clearWidth / 2,
-        domainY - clearHeight / 2,
-        clearWidth,
-        clearHeight
-      );
-
       ctx.fillStyle = "#171312";
-      ctx.fillText(label, domainX, domainY);
+
+      // Keep the single heading inside the canvas at every chart width.
+      const halfWidth = ctx.measureText(label).width / 2;
+      const x = Math.min(
+        chart.width - halfWidth - 8,
+        Math.max(halfWidth + 8, domainX)
+      );
+      const y = Math.min(
+        chart.height - 16,
+        Math.max(16, domainY)
+      );
+      ctx.fillText(label, x, y);
     });
 
     ctx.restore();
