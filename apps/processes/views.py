@@ -6065,17 +6065,50 @@ def process_list(request):
         .values("count")
     )
 
+    historical_completed_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status="completed")
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+    historical_started_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status__in=["started", "completed"])
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
     processes = (
         TestProcess.objects
         .filter(process_q)
         .filter(is_archived=show_archived)
         .annotate(
             live_candidates_count=Count("invitations", distinct=True),
+            live_completed_count=Count(
+                "invitations",
+                filter=Q(invitations__status="completed"),
+                distinct=True,
+            ),
+            live_started_count=Count(
+                "invitations",
+                filter=Q(invitations__status__in=["started", "completed"]),
+                distinct=True,
+            ),
             historical_candidates_count=Coalesce(
                 Subquery(
                     historical_candidate_count_subquery,
                     output_field=IntegerField(),
                 ),
+                0,
+            ),
+            historical_completed_count=Coalesce(
+                Subquery(historical_completed_count_subquery, output_field=IntegerField()),
+                0,
+            ),
+            historical_started_count=Coalesce(
+                Subquery(historical_started_count_subquery, output_field=IntegerField()),
                 0,
             ),
         )
@@ -6086,6 +6119,15 @@ def process_list(request):
     # Build edit permissions after processes exists
     can_edit_by_process_id = {}
     for p in processes:
+        p.candidates_count = (
+            p.historical_candidates_count if p.is_historical else p.live_candidates_count
+        )
+        p.completed_candidates_count = (
+            p.historical_completed_count if p.is_historical else p.live_completed_count
+        )
+        p.started_candidates_count = (
+            p.historical_started_count if p.is_historical else p.live_started_count
+        )
         perm = perms.get(p.org_unit_id)
         can_edit = (
             perm == "editor"
