@@ -88,7 +88,7 @@
           data-purpose-lower="{{ p.purpose|purpose_label|lower }}"
           data-tests-lower="{% for test in p.selected_tests %}{{ test|lower }} {% endfor %}"
           data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
-          data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
+          data-candidates="{{ p.candidates_count }}"
           data-created="{{ p.created_at|date:'Y-m-d' }}"
         >
           <div class="process-card-topline">
@@ -215,15 +215,17 @@
             <div class="process-card-meta">
               <div class="process-meta-item">
                 <i data-feather="users"></i>
-                <span>{% trans "Candidates" %}</span>
-                <strong>
-                  {% if p.is_historical %}
-                    {{ p.historical_candidates_count|default:0 }}
-                  {% else %}
-                    {{ p.live_candidates_count|default:0 }}
-                  {% endif %}
-                </strong>
+                <strong>{{ p.completed_candidates_count }} / {{ p.candidates_count }}</strong>
+                <span>{% trans "Completed" %}</span>
               </div>
+
+              {% if p.candidates_count and p.completed_candidates_count == p.candidates_count %}
+                <span class="process-progress-status is-completed">{% trans "Completed" %}</span>
+              {% elif p.started_candidates_count %}
+                <span class="process-progress-status is-started">{% trans "Started" %}</span>
+              {% else %}
+                <span class="process-progress-status">{% trans "Not started" %}</span>
+              {% endif %}
 
               <div class="process-meta-item">
                 <i data-feather="calendar"></i>
