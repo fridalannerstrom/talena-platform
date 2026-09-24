@@ -644,6 +644,44 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertContains(response, "0 / 1")
 
 
+    def test_customer_portal_result_tab_follows_selected_language(self):
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+        url = reverse(
+            "processes:process_candidate_detail",
+            kwargs={
+                "process_id": self.process.pk,
+                "candidate_id": self.candidate.pk,
+            },
+        )
+
+        for language, tab, heading, description in (
+            (
+                "sv",
+                "Resultatlänk",
+                "Kandidatresultat",
+                "Status för kandidatens resultatdelning och reflektioner.",
+            ),
+            (
+                "en",
+                "Result link",
+                "Candidate result",
+                "Status for the candidate result sharing and reflections.",
+            ),
+        ):
+            with self.subTest(language=language):
+                response = self.client.get(
+                    url,
+                    HTTP_ACCEPT_LANGUAGE=language,
+                    HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, tab)
+                self.assertContains(response, heading)
+                self.assertContains(response, description)
+
+
     def test_customer_portal_sheet_updates_reflection_status(self):
         self.user.role = "admin"
         self.user.save(update_fields=["role"])
