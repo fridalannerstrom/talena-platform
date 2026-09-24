@@ -569,9 +569,6 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
             )
             required_content_block_keys = (
                 "overall_picture",
-                "test_results_intro",
-                "test_results_manager",
-                "test_results_candidate",
                 "interview_summary",
                 "explore_further",
                 "wellbeing_tips",
