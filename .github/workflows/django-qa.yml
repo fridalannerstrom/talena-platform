@@ -29,4 +29,4 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests --noinput
+        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests.test_stream_saves_complete_content_blocks_without_legacy_fields --noinput
