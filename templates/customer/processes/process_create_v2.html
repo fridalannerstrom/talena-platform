@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block content %}
+{% get_current_language as wizard_language %}
 
 {% trans "Recommended" as js_recommended %}
 {% trans "Optional" as js_optional %}
@@ -174,6 +175,22 @@
 </label>
               {% endfor %}
             </div>
+
+            <aside class="team-followup" data-team-followup>
+              <span class="team-followup__icon" aria-hidden="true"><i class="fa-solid fa-people-group"></i></span>
+              <div class="team-followup__content">
+                <strong>{% if wizard_language|slice:":2" == "sv" %}Har ni tänkt på teamet?{% else %}Have you considered the team?{% endif %}</strong>
+                <div class="team-followup__messages" aria-live="polite">
+                  <p data-team-followup-default>{% if wizard_language|slice:":2" == "sv" %}Teamets sammanhang kan ge fler perspektiv på personens arbete och utveckling.{% else %}The team context can add perspective on how someone works and develops.{% endif %}</p>
+                  <p data-team-followup-copy data-team-followup-purposes="hiring" hidden>{% if wizard_language|slice:":2" == "sv" %}Finns det ett team som personen ska ingå i? Vilka kompetenser, beteenden och perspektiv finns redan där?{% else %}Is there a team this person will join? Which skills, behaviours and perspectives are already represented?{% endif %}</p>
+                  <p data-team-followup-copy data-team-followup-purposes="leader_development leadership_potential" hidden>{% if wizard_language|slice:":2" == "sv" %}Hur kompletterar ledarna varandra? Finns det beteenden som är mer eller mindre representerade?{% else %}How do the leaders complement one another? Which behaviours are more or less represented?{% endif %}</p>
+                  <p data-team-followup-copy data-team-followup-purposes="employee_development career_path onboarding internal_role_match" hidden>{% if wizard_language|slice:":2" == "sv" %}Vad i teamets miljö hjälper eller försvårar personens utveckling?{% else %}What in the team environment helps or makes the person's development harder?{% endif %}</p>
+                  <p data-team-followup-copy data-team-followup-purposes="team_development" hidden>{% if wizard_language|slice:":2" == "sv" %}Behöver teamet stöd för att ta nästa steg? Individuell coaching kan komplettera teamarbetet.{% else %}Does the team need support to take its next step? Individual coaching can complement team development.{% endif %}</p>
+                </div>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'teams:team_list' %}" target="_blank" rel="noopener noreferrer">{% if wizard_language|slice:":2" == "sv" %}Visa team{% else %}View teams{% endif %}</a>
+                <span class="team-followup__hint">{% if wizard_language|slice:":2" == "sv" %}Öppnas i en ny flik så att du kan fortsätta skapa projektet här.{% else %}Opens in a new tab so you can continue creating this project here.{% endif %}</span>
+              </div>
+            </aside>
 
             <div class="wizard-actions mt-4">
               <div></div>
@@ -621,6 +638,49 @@
   .wizard-progress-label {
     font-size: 0.75rem;
   }
+}
+
+.team-followup {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid #f2d8d1;
+  border-radius: 0.85rem;
+  background: #fff9f7;
+}
+
+.team-followup__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #ffeae4;
+  color: #b45242;
+}
+
+.team-followup__content {
+  min-width: 0;
+}
+
+.team-followup__messages p {
+  margin: 0.35rem 0 0.8rem;
+  color: #5d5552;
+  font-size: 0.875rem;
+}
+
+.team-followup__messages [hidden] {
+  display: none;
+}
+
+.team-followup__hint {
+  display: block;
+  margin-top: 0.45rem;
+  color: #736b67;
+  font-size: 0.75rem;
 }
 
 .purpose-grid {
@@ -1317,6 +1377,21 @@ function showStep(step) {
       return checked ? checked.value : "";
     }
 
+    function updateTeamFollowup() {
+      const purpose = getSelectedPurpose();
+      let matched = false;
+
+      document.querySelectorAll("[data-team-followup-copy]").forEach((copy) => {
+        const purposes = (copy.dataset.teamFollowupPurposes || "").split(" ");
+        const visible = !!purpose && purposes.includes(purpose);
+        copy.hidden = !visible;
+        matched = matched || visible;
+      });
+
+      const fallback = document.querySelector("[data-team-followup-default]");
+      if (fallback) fallback.hidden = matched;
+    }
+
     function getSelectedTests() {
       return Array.from(document.querySelectorAll('input[name="selected_tests"]:checked'))
         .map((input) => input.value);
@@ -1444,6 +1519,7 @@ showStep(nextStep);
     purposeInputs.forEach((input) => {
       input.addEventListener("change", function () {
         applyRecommendedTests();
+        updateTeamFollowup();
       });
     });
 
@@ -1476,6 +1552,7 @@ testInputs.forEach((input) => {
 updateTestGuidance();
 updateSummary();
 updateSuggestedName();
+updateTeamFollowup();
 showStep(currentStep);
   });
 </script>
