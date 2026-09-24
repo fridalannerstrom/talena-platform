@@ -24,9 +24,9 @@ jobs:
         run: |
           rm -f db.sqlite3
           python manage.py migrate --noinput
-      - name: Run focused candidate result and interview note tests
+      - name: Run focused candidate result and post-interview tests
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes --noinput
+        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests --noinput
