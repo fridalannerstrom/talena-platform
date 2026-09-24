@@ -78,19 +78,17 @@ class PersonalityAIInputContractPolicyTests(SimpleTestCase):
         self.assertNotIn("Evaluating:", text)
         self.assertNotIn("Analysing Problems:", text)
 
-    def test_interpretation_input_contains_result_summary_without_process_context(self):
+    def test_shared_input_contains_result_summary_and_process_context(self):
         text = _shared_personality_input(
             self._owner(),
             language_code="en",
-            include_process_context=False,
         )
 
         self.assertIn("TALENA SHARED PERSONALITY AI INPUT", text)
         self.assertIn("PERSONALITY TRAIT: Analytical", text)
         self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", text)
-        self.assertNotIn("PROCESS CONTEXT", text)
-        self.assertNotIn("PROCESS PURPOSE", text)
-        self.assertNotIn("Role: Project Controller", text)
+        self.assertIn("PROCESS CONTEXT", text)
+        self.assertIn("Role: Project Controller", text)
         self.assertNotIn("APPROVED LOW POLE", text)
         self.assertNotIn("APPROVED HIGH POLE", text)
 
@@ -185,8 +183,7 @@ OUTPUT RULES
         self.assertNotIn("- Analytical: STEN 5 of 10", prompt)
         self.assertIn("TALENA SHARED PERSONALITY AI INPUT", prompt)
         self.assertIn("CANDIDATE-SPECIFIC RESULT SUMMARY", prompt)
-        self.assertNotIn("Role: Project Controller", prompt)
-        self.assertNotIn("PROCESS CONTEXT", prompt)
+        self.assertIn("Role: Project Controller", prompt)
         self.assertIn("CLEAN ADMIN GUIDANCE", prompt)
         self.assertNotIn("OLD ADMIN BLOCK", prompt)
         self.assertLess(
