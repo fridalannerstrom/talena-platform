@@ -6128,6 +6128,10 @@ def process_list(request):
         p.started_candidates_count = (
             p.historical_started_count if p.is_historical else p.live_started_count
         )
+        p.is_complete = (
+            p.candidates_count > 0
+            and p.completed_candidates_count == p.candidates_count
+        )
         perm = perms.get(p.org_unit_id)
         can_edit = (
             perm == "editor"
