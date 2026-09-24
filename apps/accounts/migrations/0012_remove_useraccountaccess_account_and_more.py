@@ -12,6 +12,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Django 6 recreates this SQLite table when the field is removed.
+        # Drop the constraint while its referenced fields still exist.
+        migrations.RemoveConstraint(
+            model_name='useraccountaccess',
+            name='uniq_user_account',
+        ),
         migrations.RemoveField(
             model_name='useraccountaccess',
             name='account',
