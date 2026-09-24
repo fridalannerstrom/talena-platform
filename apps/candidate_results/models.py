@@ -253,3 +253,23 @@ class CandidateResultFeedback(models.Model):
 
     def __str__(self):
         return f"Candidate feedback #{self.pk} ({self.result_area})"
+
+
+class CandidateTestExperienceFeedback(models.Model):
+    """Overall test-experience feedback tied to the result the candidate saw."""
+
+    snapshot = models.OneToOneField(
+        CandidateResultSnapshot,
+        on_delete=models.CASCADE,
+        related_name="test_experience_feedback",
+    )
+    rating = models.PositiveSmallIntegerField(
+        choices=[(value, str(value)) for value in range(1, 6)],
+    )
+    comment = models.TextField(blank=True, max_length=2000)
+    locale = models.CharField(max_length=10, default="sv")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Test experience feedback #{self.pk}"

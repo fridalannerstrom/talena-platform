@@ -29,7 +29,7 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py makemigrations processes --check --dry-run
+        run: python manage.py makemigrations processes candidate_results --check --dry-run
       - name: Run focused candidate result, interview, and project pin tests
         env:
           DJANGO_DEBUG: 'True'

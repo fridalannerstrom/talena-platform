@@ -15,6 +15,7 @@ from .models import (
     CandidateResultAccess,
     CandidateResultFeedback,
     CandidateResultSnapshot,
+    CandidateTestExperienceFeedback,
 )
 from .services import (
     create_candidate_result_access,
@@ -547,6 +548,54 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertFalse(
             CandidateResultFeedback.objects.filter(snapshot=self.snapshot).exists()
         )
+
+    def test_test_experience_requires_verified_access_and_valid_rating(self):
+        url = f"/candidate-results/{self.raw_token}/"
+        data = {"action": "save_experience", "rating": "5", "comment": "Smidigt."}
+        self.client.post(url, data)
+        self.assertFalse(CandidateTestExperienceFeedback.objects.exists())
+
+        self.client.post(url, {"verification_code": self.raw_code})
+        for invalid in ("0", "6", "hello", "3.5"):
+            response = self.client.post(url, {**data, "rating": invalid})
+            self.assertEqual(response.status_code, 400)
+        response = self.client.post(url, {**data, "comment": "x" * 2001})
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(CandidateTestExperienceFeedback.objects.exists())
+
+    def test_candidate_can_submit_and_update_general_feedback(self):
+        url = f"/candidate-results/{self.raw_token}/"
+        self.client.post(url, {"verification_code": self.raw_code})
+
+        response = self.client.post(url, {
+            "action": "save_experience", "rating": "4", "comment": "Tydliga instruktioner.",
+        })
+        self.assertRedirects(response, f"{url}?experience_saved=1#test-experience")
+        feedback = CandidateTestExperienceFeedback.objects.get(snapshot=self.snapshot)
+        self.assertEqual((feedback.rating, feedback.locale), (4, "sv"))
+        self.assertEqual(feedback.comment, "Tydliga instruktioner.")
+        self.assertIsNotNone(feedback.created_at)
+        self.assertContains(self.client.get(response.url), "Din feedback om testupplevelsen har sparats")
+
+        self.client.post(url, {"action": "save_experience", "rating": "2", "comment": ""})
+        feedback.refresh_from_db()
+        self.assertEqual(feedback.rating, 2)
+        self.assertEqual(feedback.comment, "")
+        self.assertEqual(CandidateTestExperienceFeedback.objects.filter(snapshot=self.snapshot).count(), 1)
+
+    def test_customer_sees_general_feedback_separate_from_area_reflections(self):
+        CandidateTestExperienceFeedback.objects.create(
+            snapshot=self.snapshot, rating=5, comment="Bra testupplevelse.", locale="sv",
+        )
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("processes:process_candidate_detail", kwargs={
+            "process_id": self.process.pk, "candidate_id": self.candidate.pk,
+        }))
+        self.assertContains(response, "Feedback om testupplevelsen")
+        self.assertContains(response, "Bra testupplevelse.")
+        self.assertContains(response, "0 / 1")
 
     def test_revoked_access_returns_gone(self):
         self.access.revoked_at = timezone.now()
