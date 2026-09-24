@@ -65,19 +65,6 @@
             {% endfor %}
           </div>
 
-          {% regroup motivation_insights.chart_items by domain_index as chart_domains %}
-          <div class="motivation-rose-chart__factor-list">
-            {% for group in chart_domains %}
-              <div class="motivation-rose-chart__factor-group">
-                <h3>{{ group.list.0.domain_data|motivation_domain_title }}</h3>
-                <ul>
-                  {% for item in group.list %}
-                    <li>{{ item|motivation_name }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% endfor %}
-          </div>
 
         </div>
       </section>
