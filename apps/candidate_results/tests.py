@@ -592,7 +592,7 @@ class CandidateResultAccessViewTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("processes:process_candidate_detail", kwargs={
             "process_id": self.process.pk, "candidate_id": self.candidate.pk,
-        }))
+        }), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertContains(response, "Test-experience feedback")
         self.assertContains(response, "Bra testupplevelse.")
         self.assertContains(response, "0 / 1")
