@@ -2420,8 +2420,8 @@ emptyState.textContent =
   const compact =
     canvas.clientWidth < 700;
 
-  canvas.closest("[data-motivation-rose-chart-root]")
-    ?.setAttribute("data-compact", String(compact));
+  const narrow =
+    canvas.clientWidth < 450;
 
   const labels = items.map(
     (item) => item.name
@@ -2579,11 +2579,11 @@ emptyState.textContent =
 
       const factorLabelRadius =
         drawingArea
-        + 38;
+        + (narrow ? 20 : compact ? 30 : 38);
 
       const domainLabelRadius =
         drawingArea
-        + 145;
+        + (narrow ? 78 : compact ? 115 : 145);
 
       ctx.save();
 
@@ -2634,11 +2634,6 @@ emptyState.textContent =
       );
 
 
-      if (compact) {
-        ctx.restore();
-        return;
-      }
-
       /*
        * Factor labels and score values.
        */
@@ -2673,18 +2668,31 @@ emptyState.textContent =
             * factorLabelRadius;
 
           ctx.font =
-            "600 12px Inter, system-ui, sans-serif";
+            narrow
+              ? "600 9px Inter, system-ui, sans-serif"
+              : compact
+                ? "600 11px Inter, system-ui, sans-serif"
+                : "600 12px Inter, system-ui, sans-serif";
+
+          const labelMaxWidth =
+            Math.max(
+              42,
+              Math.min(
+                narrow ? 62 : compact ? 85 : 90,
+                centerX - factorLabelRadius - 8
+              )
+            );
 
           const labelLines =
             wrapLabel(
               item.name,
-              Math.max(64, Math.min(90, centerX - factorLabelRadius - 12)),
+              labelMaxWidth,
               ctx
             );
 
-          if (cosine > 0.25) {
+          if (cosine > 0.12) {
             ctx.textAlign = "left";
-          } else if (cosine < -0.25) {
+          } else if (cosine < -0.12) {
             ctx.textAlign = "right";
           } else {
             ctx.textAlign = "center";
@@ -2695,7 +2703,8 @@ emptyState.textContent =
           ctx.fillStyle =
             "#475467";
 
-          const lineHeight = 16;
+          const lineHeight =
+            narrow ? 12 : compact ? 14 : 16;
 
           const firstLineY =
             labelY
@@ -2714,7 +2723,7 @@ emptyState.textContent =
                 firstLineY
                   + lineIndex
                   * lineHeight,
-                90
+                labelMaxWidth
               );
             }
           );
@@ -2785,9 +2794,11 @@ emptyState.textContent =
           `)`;
 
         ctx.font =
-          compact
-            ? "800 14px Inter, system-ui, sans-serif"
-            : "800 18px Inter, system-ui, sans-serif";
+          narrow
+            ? "800 11px Inter, system-ui, sans-serif"
+            : compact
+              ? "800 14px Inter, system-ui, sans-serif"
+              : "800 18px Inter, system-ui, sans-serif";
 
         ctx.fillText(
           String(group.domain),
@@ -2847,10 +2858,10 @@ emptyState.textContent =
         layout: {
           padding: compact
             ? {
-                top: 24,
-                right: 24,
-                bottom: 24,
-                left: 24,
+                top: narrow ? 78 : 105,
+                right: narrow ? 76 : 110,
+                bottom: narrow ? 78 : 105,
+                left: narrow ? 76 : 110,
               }
             : {
                 top: 105,
