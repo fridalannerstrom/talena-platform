@@ -58,12 +58,17 @@
               <span
                 data-motivation-rose-item
                 data-factor-name="{{ item|motivation_name|escape }}"
+                data-factor-name-sv="{{ item|motivation_name_sv|escape }}"
+                data-factor-name-en="{{ item.name|escape }}"
                 data-factor-score="{{ item.score|unlocalize }}"
                 data-factor-domain="{{ item.domain_data|motivation_domain_title|escape }}"
+                data-factor-domain-sv="{{ item.domain_data|motivation_domain_title_sv|escape }}"
+                data-factor-domain-en="{{ item.domain_data.title|escape }}"
                 data-domain-index="{{ item.domain_index }}"
               ></span>
             {% endfor %}
           </div>
+
 
         </div>
       </section>

@@ -25,6 +25,33 @@
         id="accordionSidenav"
       >
 
+        {% if pinned_projects %}
+          <div class="sidenav-menu-heading talena-pinned-heading">
+            {% trans "Pinned projects" %}
+          </div>
+          <div class="talena-pinned-projects">
+            {% for project in pinned_projects %}
+              <div class="talena-pinned-project">
+                <a
+                  class="nav-link sidebar-link talena-pinned-link {% if request.resolver_match.url_name == 'process_detail' and request.resolver_match.kwargs.pk == project.pk %}active{% endif %}"
+                  href="{% url 'processes:process_detail' project.pk %}"
+                  title="{{ project.name }}"
+                >
+                  <div class="nav-link-icon"><i data-feather="star"></i></div>
+                  <span>{{ project.name }}</span>
+                </a>
+                <form method="post" action="{% url 'processes:toggle_pinned_project' project.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="talena-unpin-project" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}">
+                    <i data-feather="x"></i>
+                  </button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
         <div class="sidenav-menu-heading">
           {% trans "General" %}
         </div>

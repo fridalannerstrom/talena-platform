@@ -146,6 +146,7 @@ class TestProcess(models.Model):
         self.is_archived = True
         self.archived_at = timezone.now()
         self.save(update_fields=["is_archived", "archived_at"])
+        PinnedProject.objects.filter(process=self).delete()
 
     def unarchive(self):
         self.is_archived = False
@@ -1881,3 +1882,28 @@ class AIPromptTemplateVersion(models.Model):
             f"({self.prompt.language.upper()}) · "
             f"{self.saved_at:%Y-%m-%d %H:%M}"
         )
+
+
+class PinnedProject(models.Model):
+    """A user's shortcuts to accessible, active test processes."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="pinned_projects",
+    )
+    process = models.ForeignKey(
+        TestProcess,
+        on_delete=models.CASCADE,
+        related_name="pins",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "process"],
+                name="unique_pinned_project_per_user",
+            ),
+        ]
+        ordering = ["-created_at", "-pk"]

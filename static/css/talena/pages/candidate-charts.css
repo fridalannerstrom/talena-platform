@@ -225,9 +225,9 @@
 }
 
 .process-page .motivation-rose-chart__canvas-wrap {
-  max-width: 590px !important;
+  max-width: 780px !important;
+  height: clamp(480px, 120vw, 800px);
 }
-
 
 /* =========================================================
    COGNITIVE VISUALISATIONS

@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block content %}
+{% get_current_language as wizard_language %}
 
 {% trans "Recommended" as js_recommended %}
 {% trans "Optional" as js_optional %}
@@ -174,6 +175,20 @@
 </label>
               {% endfor %}
             </div>
+
+            <aside class="team-followup" data-team-followup hidden>
+              <div class="team-followup__content">
+                <strong>{% if wizard_language|slice:":2" == "sv" %}Visste du att?{% else %}Did you know?{% endif %}</strong>
+                <span class="team-followup__messages" aria-live="polite">
+                  <span data-team-followup-default>{% if wizard_language|slice:":2" == "sv" %}Talena har också en teamvy. Där kan ni få en överblick över gruppens arbetssätt som extra sammanhang till resultaten.{% else %}Talena also has a team view. It offers an overview of the group's working styles as extra context for the results.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="hiring" hidden>{% if wizard_language|slice:":2" == "sv" %}Talena har också en teamvy. Där kan ni se gruppens arbetssätt som ett extra perspektiv när ni rekryterar.{% else %}Talena also has a team view. Explore the group's working styles for an extra perspective when recruiting.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="leader_development leadership_potential" hidden>{% if wizard_language|slice:":2" == "sv" %}Talena har också en teamvy där ni kan se hur ledarnas arbetssätt kompletterar varandra.{% else %}Talena also has a team view where you can see how the leaders' working styles complement one another.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="employee_development career_path onboarding internal_role_match" hidden>{% if wizard_language|slice:":2" == "sv" %}Talena har också en teamvy. Gruppens arbetssätt kan ge mer sammanhang när ni utforskar personens utveckling.{% else %}Talena also has a team view. The group's working styles can add context when exploring the person's development.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="team_development" hidden>{% if wizard_language|slice:":2" == "sv" %}Talena har också en teamvy. En överblick över medlemmarnas arbetssätt kan ge idéer till teamets nästa steg.{% else %}Talena also has a team view. An overview of members' working styles can suggest questions for the team's next step.{% endif %}</span>
+                </span>
+              </div>
+              <a class="team-followup__link" href="{% url 'teams:team_list' %}" target="_blank" rel="noopener noreferrer" aria-label="{% if wizard_language|slice:":2" == "sv" %}Visa team (öppnas i ny flik){% else %}View teams (opens in a new tab){% endif %}">{% if wizard_language|slice:":2" == "sv" %}Visa team{% else %}View teams{% endif %}</a>
+            </aside>
 
             <div class="wizard-actions mt-4">
               <div></div>
@@ -620,6 +635,73 @@
 
   .wizard-progress-label {
     font-size: 0.75rem;
+  }
+}
+
+.team-followup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  min-height: 4.4rem;
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid #f2d8d1;
+  border-radius: 0.8rem;
+  background: #fff9f7;
+}
+
+.team-followup[hidden],
+.team-followup__messages [hidden] {
+  display: none;
+}
+
+.team-followup__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+  min-width: 0;
+  color: #5d5552;
+  font-size: 0.69rem;
+  line-height: 1.45;
+}
+
+.team-followup__content strong {
+  color: #2a2523;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.team-followup__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #e8dcd8;
+  border-radius: 999px;
+  background: #fff;
+  color: #9d4b3e;
+  font-size: 0.73rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(35, 26, 22, 0.06);
+}
+
+.team-followup__link:hover,
+.team-followup__link:focus-visible {
+  border-color: #d4aaa1;
+  background: #fff;
+  color: #873e34;
+  text-decoration: none;
+}
+
+@media (max-width: 575.98px) {
+  .team-followup {
+    flex-wrap: wrap;
   }
 }
 
@@ -1317,6 +1399,23 @@ function showStep(step) {
       return checked ? checked.value : "";
     }
 
+    function updateTeamFollowup() {
+      const purpose = getSelectedPurpose();
+      const followup = document.querySelector("[data-team-followup]");
+      if (followup) followup.hidden = !purpose;
+      let matched = false;
+
+      document.querySelectorAll("[data-team-followup-copy]").forEach((copy) => {
+        const purposes = (copy.dataset.teamFollowupPurposes || "").split(" ");
+        const visible = !!purpose && purposes.includes(purpose);
+        copy.hidden = !visible;
+        matched = matched || visible;
+      });
+
+      const fallback = document.querySelector("[data-team-followup-default]");
+      if (fallback) fallback.hidden = matched;
+    }
+
     function getSelectedTests() {
       return Array.from(document.querySelectorAll('input[name="selected_tests"]:checked'))
         .map((input) => input.value);
@@ -1444,6 +1543,7 @@ showStep(nextStep);
     purposeInputs.forEach((input) => {
       input.addEventListener("change", function () {
         applyRecommendedTests();
+        updateTeamFollowup();
       });
     });
 
@@ -1476,6 +1576,7 @@ testInputs.forEach((input) => {
 updateTestGuidance();
 updateSummary();
 updateSuggestedName();
+updateTeamFollowup();
 showStep(currentStep);
   });
 </script>

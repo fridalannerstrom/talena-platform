@@ -11,6 +11,7 @@ from .models import (
     CandidateResultAccess,
     CandidateResultFeedback,
     CandidateResultSnapshot,
+    CandidateTestExperienceFeedback,
 )
 
 
@@ -56,6 +57,14 @@ def _copy(locale: str) -> dict[str, str]:
             "feedback_cancel": "Avbryt",
             "feedback_saved": "Din reflektion har sparats.",
             "feedback_saved_short": "Sparad",
+            "experience_title": "Hur upplevde du testerna?",
+            "experience_intro": "Berätta gärna hur du upplevde att göra testerna. Ditt svar och din kommentar blir synliga för kunden som bjöd in dig.",
+            "experience_rating": "Din upplevelse",
+            "experience_labels": [(1, "Inte alls bra"), (2, "Inte särskilt bra"), (3, "Helt okej"), (4, "Bra"), (5, "Mycket bra")],
+            "experience_comment": "Vill du berätta mer? (valfritt)",
+            "experience_save": "Skicka feedback",
+            "experience_update": "Uppdatera feedback",
+            "experience_saved": "Tack! Din feedback om testupplevelsen har sparats.",
             "discussion_body": (
                 "Resultatet beskriver möjliga preferenser och tendenser "
                 "utifrån dina svar. Det är inte en absolut sanning eller "
@@ -98,6 +107,14 @@ def _copy(locale: str) -> dict[str, str]:
         "feedback_cancel": "Cancel",
         "feedback_saved": "Your reflection has been saved.",
         "feedback_saved_short": "Saved",
+        "experience_title": "How was your test experience?",
+        "experience_intro": "Tell us what it was like to take the tests. Your rating and comment will be visible to the customer who invited you.",
+        "experience_rating": "Your experience",
+        "experience_labels": [(1, "Not good at all"), (2, "Not very good"), (3, "Okay"), (4, "Good"), (5, "Very good")],
+        "experience_comment": "Would you like to tell us more? (optional)",
+        "experience_save": "Send feedback",
+        "experience_update": "Update feedback",
+        "experience_saved": "Thank you! Your test-experience feedback has been saved.",
         "discussion_body": (
             "The result describes possible preferences and tendencies "
             "based on your responses. It is not an absolute truth or a "
@@ -160,6 +177,8 @@ def _result_context(
         "locale": locale,
         "preview": preview,
         "feedback_saved": False,
+        "experience_feedback": CandidateTestExperienceFeedback.objects.filter(snapshot=snapshot).first(),
+        "experience_saved": False,
     }
 
 
@@ -198,6 +217,22 @@ def _save_candidate_feedback(request, snapshot: CandidateResultSnapshot):
     return None
 
 
+def _save_test_experience(request, snapshot: CandidateResultSnapshot):
+    rating = (request.POST.get("rating") or "").strip()
+    comment = (request.POST.get("comment") or "").strip()
+    if rating not in {"1", "2", "3", "4", "5"}:
+        return HttpResponseBadRequest("This rating is not valid.")
+    if len(comment) > 2000:
+        return HttpResponseBadRequest("The feedback comment is too long.")
+
+    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
+    CandidateTestExperienceFeedback.objects.update_or_create(
+        snapshot=snapshot,
+        defaults={"rating": int(rating), "comment": comment, "locale": locale},
+    )
+    return None
+
+
 def _get_access(token: str) -> CandidateResultAccess:
     digest = CandidateResultAccess.digest_token(token)
     return get_object_or_404(
@@ -225,7 +260,7 @@ def candidate_result(request, token: str):
     access = _get_access(token)
     now = timezone.now()
 
-    if not access.is_active(now):
+    if not access.snapshot.process.candidate_results_enabled or not access.is_active(now):
         return _render_unavailable(request, access)
 
     session_key = _session_key(access)
@@ -234,7 +269,7 @@ def candidate_result(request, token: str):
 
     # Feedback is submitted after the candidate has already verified the
     # result link. Do not try to verify an empty code again on that POST.
-    if request.method == "POST" and request.POST.get("action") != "save_feedback":
+    if request.method == "POST" and request.POST.get("action") not in {"save_feedback", "save_experience"}:
         code = (request.POST.get("verification_code") or "").strip()
         verified = access.verify_code(code, now=now)
         if verified:
@@ -258,8 +293,15 @@ def candidate_result(request, token: str):
             return error_response
         return redirect(f"{request.path}?feedback_saved=1")
 
+    if request.method == "POST" and request.POST.get("action") == "save_experience":
+        error_response = _save_test_experience(request, access.snapshot)
+        if error_response is not None:
+            return error_response
+        return redirect(f"{request.path}?experience_saved=1#test-experience")
+
     context = _result_context(access.snapshot)
     context["feedback_saved"] = request.GET.get("feedback_saved") == "1"
+    context["experience_saved"] = request.GET.get("experience_saved") == "1"
     return render(
         request,
         "candidate_results/result.html",

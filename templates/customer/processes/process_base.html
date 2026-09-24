@@ -2346,6 +2346,9 @@ async function initMotivationRoseChart(
     ) || []
   );
 
+  const swedishLabels =
+    document.documentElement.lang.toLowerCase().startsWith("sv");
+
   const items = itemElements
     .map((element) => {
       const score = Number(
@@ -2359,11 +2362,17 @@ async function initMotivationRoseChart(
 
       return {
 name:
-  element.dataset.factorName
+  (swedishLabels
+    ? element.dataset.factorNameSv
+    : element.dataset.factorNameEn)
+  || element.dataset.factorName
   || PROCESS_I18N.motivationFactor,
 
 domain:
-  element.dataset.factorDomain
+  (swedishLabels
+    ? element.dataset.factorDomainSv
+    : element.dataset.factorDomainEn)
+  || element.dataset.factorDomain
   || PROCESS_I18N.motivation,
 
         domainIndex:
@@ -2418,7 +2427,10 @@ emptyState.textContent =
   canvas._motivationRoseChartInstance = null;
 
   const compact =
-    canvas.clientWidth < 620;
+    canvas.clientWidth < 700;
+
+  const narrow =
+    canvas.clientWidth < 450;
 
   const labels = items.map(
     (item) => item.name
@@ -2501,40 +2513,41 @@ emptyState.textContent =
   });
 
 
-  function wrapLabel(
-    value,
-    maxLength
-  ) {
-    const words = String(value)
-      .trim()
-      .split(/\s+/);
-
+  function wrapLabel(value, maxWidth, ctx) {
     const lines = [];
-    let currentLine = "";
+    let line = "";
 
-    words.forEach((word) => {
-      const nextLine = currentLine
-        ? `${currentLine} ${word}`
-        : word;
+    String(value).trim().split(/\s+/).forEach((word) => {
+      const candidate = line ? `${line} ${word}` : word;
 
-      if (
-        nextLine.length > maxLength
-        && currentLine
-      ) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = nextLine;
+      if (ctx.measureText(candidate).width <= maxWidth) {
+        line = candidate;
+        return;
+      }
+
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+
+      // Keep even an unusually long single word fully visible.
+      for (const character of Array.from(word)) {
+        const next = line + character;
+        if (line && ctx.measureText(next).width > maxWidth) {
+          lines.push(line);
+          line = character;
+        } else {
+          line = next;
+        }
       }
     });
 
-    if (currentLine) {
-      lines.push(currentLine);
+    if (line) {
+      lines.push(line);
     }
 
-    return lines.slice(0, 2);
+    return lines;
   }
-
 
   /*
    * Draw factor names, score values,
@@ -2575,13 +2588,9 @@ emptyState.textContent =
 
       const factorLabelRadius =
         drawingArea
-        + (compact ? 18 : 28);
+        + (narrow ? 20 : compact ? 30 : 38);
 
-      const domainLabelRadius =
-        drawingArea
-        + (compact ? 105 : 165);
-
-      ctx.save();
+       ctx.save();
 
       /*
        * Domain separator lines.
@@ -2663,15 +2672,32 @@ emptyState.textContent =
             + sine
             * factorLabelRadius;
 
+          ctx.font =
+            narrow
+              ? "600 9px Inter, system-ui, sans-serif"
+              : compact
+                ? "600 11px Inter, system-ui, sans-serif"
+                : "600 12px Inter, system-ui, sans-serif";
+
+          const labelMaxWidth =
+            Math.max(
+              42,
+              Math.min(
+                narrow ? 62 : compact ? 85 : 90,
+                centerX - factorLabelRadius - 8
+              )
+            );
+
           const labelLines =
             wrapLabel(
               item.name,
-              compact ? 10 : 15
+              labelMaxWidth,
+              ctx
             );
 
-          if (cosine > 0.25) {
+          if (cosine > 0.12) {
             ctx.textAlign = "left";
-          } else if (cosine < -0.25) {
+          } else if (cosine < -0.12) {
             ctx.textAlign = "right";
           } else {
             ctx.textAlign = "center";
@@ -2682,13 +2708,8 @@ emptyState.textContent =
           ctx.fillStyle =
             "#475467";
 
-          ctx.font =
-            compact
-              ? "600 9px Inter, system-ui, sans-serif"
-              : "600 11px Inter, system-ui, sans-serif";
-
           const lineHeight =
-            compact ? 11 : 14;
+            narrow ? 12 : compact ? 14 : 16;
 
           const firstLineY =
             labelY
@@ -2706,7 +2727,8 @@ emptyState.textContent =
                 labelX,
                 firstLineY
                   + lineIndex
-                  * lineHeight
+                  * lineHeight,
+                labelMaxWidth
               );
             }
           );
@@ -2721,73 +2743,7 @@ emptyState.textContent =
       );
 
 
-      /*
-       * Domain labels outside the factor labels.
-       */
-      domainGroups.forEach((group) => {
-        const firstArc =
-          arcs[group.startIndex];
-
-        const lastArc =
-          arcs[group.endIndex];
-
-        if (
-          !firstArc
-          || !lastArc
-        ) {
-          return;
-        }
-
-        const startAngle =
-          firstArc.startAngle;
-
-        const endAngle =
-          lastArc.endAngle;
-
-        const middleAngle =
-          (
-            startAngle
-            + endAngle
-          ) / 2;
-
-        const domainX =
-          centerX
-          + Math.cos(middleAngle)
-          * domainLabelRadius;
-
-        const domainY =
-          centerY
-          + Math.sin(middleAngle)
-          * domainLabelRadius;
-
-        const colour =
-          domainColours[
-            group.domainIndex
-            % domainColours.length
-          ];
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.fillStyle =
-          `rgb(` +
-          `${colour[0]}, ` +
-          `${colour[1]}, ` +
-          `${colour[2]}` +
-          `)`;
-
-        ctx.font =
-          compact
-            ? "800 14px Inter, system-ui, sans-serif"
-            : "800 18px Inter, system-ui, sans-serif";
-
-        ctx.fillText(
-          String(group.domain),
-
-          domainX,
-          domainY
-        );
-      });
+      // Domain headings are drawn once by candidate-chart-theme.js.
 
       ctx.restore();
     },
@@ -2839,16 +2795,16 @@ emptyState.textContent =
         layout: {
           padding: compact
             ? {
-                top: 64,
-                right: 64,
-                bottom: 64,
-                left: 64,
+                top: narrow ? 78 : 105,
+                right: narrow ? 76 : 110,
+                bottom: narrow ? 78 : 105,
+                left: narrow ? 76 : 110,
               }
             : {
-                top: 98,
-                right: 105,
-                bottom: 98,
-                left: 105,
+                top: 105,
+                right: 145,
+                bottom: 105,
+                left: 145,
               },
         },
 

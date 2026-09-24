@@ -307,6 +307,23 @@ def motivation_domain_subtitle(value):
 
 
 @register.filter
+def motivation_name_sv(value):
+    """Swedish chart label independent of the request's current locale."""
+    if not isinstance(value, dict):
+        return value
+    content = FACTOR_CONTENT.get(_item_key(value))
+    return content["name"] if content else value.get("name", "")
+
+
+@register.filter
+def motivation_domain_title_sv(value):
+    if not isinstance(value, dict):
+        return value
+    content = DOMAIN_CONTENT.get(str(value.get("key") or ""))
+    return content["title"] if content else value.get("title", "")
+
+
+@register.filter
 def motivation_name(value):
     if not isinstance(value, dict):
         return value

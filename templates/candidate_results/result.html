@@ -422,6 +422,34 @@
       font-weight: 800;
     }
 
+    .experience-intro { margin-bottom: 17px; }
+    .experience-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 20px;
+    }
+    .experience-option { cursor: pointer; }
+    .experience-option input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .experience-option span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .experience-option input:checked + span {
+      border-color: var(--coral);
+      color: var(--ink);
+      background: var(--coral-soft);
+    }
+    .experience-option input:focus-visible + span { outline: 2px solid var(--coral); outline-offset: 2px; }
+    .experience-submit { margin-top: 17px; }
+
     .feedback-dialog {
       width: min(calc(100% - 32px), 520px);
       padding: 0;
@@ -699,6 +727,32 @@
         <p class="empty">{% if locale|slice:":2" == "sv" %}Resultattexten är inte tillgänglig ännu.{% else %}No candidate-facing result text is available yet.{% endif %}</p>
       {% endfor %}
     </div>
+
+    {% if not preview %}
+      <section class="section-card" id="test-experience" style="margin-top: 14px;">
+        <h2>{{ copy.experience_title }}</h2>
+        <p class="experience-intro">{{ copy.experience_intro }}</p>
+        {% if experience_saved %}
+          <div class="feedback-notice" role="status">{{ copy.experience_saved }}</div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save_experience">
+          <div class="dialog-label" id="experience-rating-label">{{ copy.experience_rating }}</div>
+          <div class="experience-options" role="group" aria-labelledby="experience-rating-label">
+            {% for value, label in copy.experience_labels %}
+              <label class="experience-option">
+                <input type="radio" name="rating" value="{{ value }}" {% if experience_feedback.rating == value %}checked{% endif %} required>
+                <span>{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          <label class="dialog-label" for="experience-comment">{{ copy.experience_comment }}</label>
+          <textarea id="experience-comment" class="feedback-textarea" name="comment" maxlength="2000">{% if experience_feedback %}{{ experience_feedback.comment }}{% endif %}</textarea>
+          <button type="submit" class="dialog-save experience-submit">{% if experience_feedback %}{{ copy.experience_update }}{% else %}{{ copy.experience_save }}{% endif %}</button>
+        </form>
+      </section>
+    {% endif %}
 
     {% if not preview %}
       {% for section in sections %}

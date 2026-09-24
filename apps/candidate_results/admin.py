@@ -4,6 +4,7 @@ from .models import (
     CandidateResultAccess,
     CandidateResultFeedback,
     CandidateResultSnapshot,
+    CandidateTestExperienceFeedback,
 )
 
 
@@ -94,3 +95,11 @@ class CandidateResultFeedbackAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+
+@admin.register(CandidateTestExperienceFeedback)
+class CandidateTestExperienceFeedbackAdmin(admin.ModelAdmin):
+    list_display = ("id", "snapshot", "rating", "locale", "updated_at")
+    list_filter = ("rating", "locale")
+    search_fields = ("snapshot__candidate__email",)
+    readonly_fields = ("snapshot", "rating", "comment", "locale", "created_at", "updated_at")

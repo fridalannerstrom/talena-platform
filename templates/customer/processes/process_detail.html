@@ -98,7 +98,6 @@
                 <th style="width: 160px;">{% trans "Status" %}</th>
                 <th style="width: 170px;">{% trans "Imported" %}</th>
               {% else %}
-                <th style="width: 190px;">{% trans "Invitation" %}</th>
                 <th style="width: 160px;">{% trans "Status" %}</th>
                 <th style="width: 170px;">{% trans "Registered" %}</th>
               {% endif %}
@@ -232,18 +231,6 @@
                   </td>
 
                   <td>
-                    {% if inv.source == "self_registered" %}
-                      <span class="badge bg-info text-dark">
-                        {% trans "Self-registered" %}
-                      </span>
-                    {% else %}
-                      <span class="badge bg-primary">
-                        {% trans "Invited" %}
-                      </span>
-                    {% endif %}
-                  </td>
-
-                  <td>
                     <span
                       class="badge"
                       data-invitation-id="{{ inv.id }}"
@@ -279,7 +266,7 @@
 
               {% empty %}
                 <tr>
-                  <td colspan="{% if can_edit %}6{% else %}4{% endif %}" class="p-5 text-center text-muted empty-state">
+                  <td colspan="{% if can_edit %}5{% else %}3{% endif %}" class="p-5 text-center text-muted empty-state">
                     {% if can_edit %}
                       <div class="fw-semibold text-dark mb-1">
                         {% trans "No candidates yet" %}

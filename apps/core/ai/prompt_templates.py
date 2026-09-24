@@ -2064,6 +2064,7 @@ Beskriv dem inte automatiskt som:
 - bevis på olämplighet
 
 Hitta inte på problem bara för att fylla sektionen.
+Lägg till en kort, konkret följdfråga när det hjälper användaren att utforska punkten.
 """.strip(),
 
         "en": """
@@ -2098,6 +2099,7 @@ Do not automatically describe them as:
 - proof of poor suitability
 
 Do not invent concerns merely to populate the section.
+Include a short, practical follow-up question when it helps explore the point.
 """.strip(),
     },
 },
@@ -5925,6 +5927,7 @@ Beskriv dem inte automatiskt som:
 - skäl att välja bort personen
 
 Hitta inte på problem bara för att fylla sektionen.
+Lägg till en kort, konkret följdfråga när det hjälper användaren att utforska punkten.
 """.strip(),
 
         "en": """
@@ -5958,6 +5961,7 @@ Do not automatically describe them as:
 - reasons to reject the person
 
 Do not invent concerns merely to populate the section.
+Include a short, practical follow-up question when it helps explore the point.
 """.strip(),
     },
 },

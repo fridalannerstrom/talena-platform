@@ -5315,9 +5315,6 @@ def process_candidate_post_interview_decision_support_stream(
                             )
                             for key in (
                                 "overall_picture",
-                                "test_results_intro",
-                                "test_results_manager",
-                                "test_results_candidate",
                                 "interview_summary",
                                 "explore_further",
                                 "wellbeing_tips",
@@ -6065,17 +6062,50 @@ def process_list(request):
         .values("count")
     )
 
+    historical_completed_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status="completed")
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+    historical_started_count_subquery = (
+        HistoricalProcessCandidate.objects
+        .filter(process=OuterRef("pk"), status__in=["started", "completed"])
+        .values("process")
+        .annotate(count=Count("id"))
+        .values("count")
+    )
+
     processes = (
         TestProcess.objects
         .filter(process_q)
         .filter(is_archived=show_archived)
         .annotate(
             live_candidates_count=Count("invitations", distinct=True),
+            live_completed_count=Count(
+                "invitations",
+                filter=Q(invitations__status="completed"),
+                distinct=True,
+            ),
+            live_started_count=Count(
+                "invitations",
+                filter=Q(invitations__status__in=["started", "completed"]),
+                distinct=True,
+            ),
             historical_candidates_count=Coalesce(
                 Subquery(
                     historical_candidate_count_subquery,
                     output_field=IntegerField(),
                 ),
+                0,
+            ),
+            historical_completed_count=Coalesce(
+                Subquery(historical_completed_count_subquery, output_field=IntegerField()),
+                0,
+            ),
+            historical_started_count=Coalesce(
+                Subquery(historical_started_count_subquery, output_field=IntegerField()),
                 0,
             ),
         )
@@ -6086,6 +6116,19 @@ def process_list(request):
     # Build edit permissions after processes exists
     can_edit_by_process_id = {}
     for p in processes:
+        p.candidates_count = (
+            p.historical_candidates_count if p.is_historical else p.live_candidates_count
+        )
+        p.completed_candidates_count = (
+            p.historical_completed_count if p.is_historical else p.live_completed_count
+        )
+        p.started_candidates_count = (
+            p.historical_started_count if p.is_historical else p.live_started_count
+        )
+        p.is_complete = (
+            p.candidates_count > 0
+            and p.completed_candidates_count == p.candidates_count
+        )
         perm = perms.get(p.org_unit_id)
         can_edit = (
             perm == "editor"
@@ -6510,6 +6553,7 @@ def process_update(request, pk):
     old_proj = (obj.project_code or "").strip()
     locked = obj.is_template_locked()
     old_purpose = obj.purpose
+    old_candidate_results_enabled = obj.candidate_results_enabled
 
     client = SovaClient()
     error = None
@@ -6722,8 +6766,16 @@ def process_update(request, pk):
             # --------------------------------------------------
             # Spara ändringarna
             # --------------------------------------------------
-            obj.save()
-            obj.labels.set(label_objs)
+            with transaction.atomic():
+                obj.save()
+                obj.labels.set(label_objs)
+
+                if old_candidate_results_enabled and not obj.candidate_results_enabled:
+                    from apps.candidate_results.services import (
+                        revoke_candidate_result_access_for_process,
+                    )
+
+                    revoke_candidate_result_access_for_process(obj)
 
             if old_purpose != obj.purpose:
                 result = mark_candidate_ai_content_outdated(obj)

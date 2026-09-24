@@ -256,9 +256,9 @@ global guidance above.
 
 {supportive}
 
-POTENTIAL DEVELOPMENT AREAS · BOX-SPECIFIC GUIDANCE
+WHAT TO EXPLORE OR VALIDATE · BOX-SPECIFIC GUIDANCE
 
-Applies only to areas_to_explore / Potential development areas, together with
+Applies only to areas_to_explore / What to explore or validate, together with
 the global guidance above.
 
 {explore}

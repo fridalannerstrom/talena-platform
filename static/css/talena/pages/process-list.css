@@ -257,7 +257,7 @@
 
 .process-card-topline {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -531,6 +531,31 @@
   font-weight: 720;
 }
 
+.process-progress-status {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #f2f0ed;
+  color: var(--talena-text-muted);
+  font-size: 0.6rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.process-progress-status.is-started {
+  background: #fff2dc;
+  color: #845314;
+}
+
+.process-progress-status.is-completed {
+  background: #e9f6ec;
+  color: #236b3b;
+}
+
+.process-meta-item.is-completed strong,
+.process-meta-item.is-completed svg {
+  color: #236b3b;
+}
+
 .process-card-open {
   display: inline-flex;
   align-items: center;
@@ -722,4 +747,119 @@
   border-radius: 50%;
   background: var(--talena-coral);
   vertical-align: middle;
+}
+
+/* Project shortcuts: compact links inside the customer sidebar. */
+.talena-sidebar .talena-pinned-heading {
+  padding-top: 0.8rem;
+}
+
+.talena-sidebar .talena-pinned-project {
+  position: relative;
+  min-width: 0;
+}
+
+.talena-sidebar .talena-pinned-link {
+  display: flex;
+  align-items: center;
+  padding-right: 2.1rem;
+}
+
+.talena-sidebar .talena-pinned-link span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.talena-sidebar .talena-pinned-link .nav-link-icon {
+  flex: none;
+}
+
+.talena-sidebar .talena-pinned-project form {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  transform: translateY(-50%);
+}
+
+.talena-sidebar .talena-unpin-project {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--talena-text-subtle);
+}
+
+.talena-sidebar .talena-unpin-project:hover,
+.talena-sidebar .talena-unpin-project:focus-visible {
+  background: var(--talena-coral-soft);
+  color: var(--talena-coral-strong);
+}
+
+.talena-sidebar .talena-unpin-project svg {
+  width: 13px;
+  height: 13px;
+}
+
+.process-card-actions.has-pinned {
+  opacity: 1;
+}
+
+.process-card .process-pin.is-pinned {
+  border-color: rgba(207, 89, 80, 0.22) !important;
+  background: var(--talena-coral-soft) !important;
+  color: #cf5950 !important;
+}
+
+.process-card .process-pin.is-pinned svg {
+  width: 16px;
+  height: 16px;
+  fill: #cf5950;
+  stroke: #cf5950;
+}
+
+/* Explain the five-project limit without letting the sixth star submit. */
+.process-pin-limit {
+  position: relative;
+  display: inline-flex;
+  border-radius: 50%;
+  outline-offset: 2px;
+}
+
+.process-card .process-pin.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.process-pin-tooltip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 10;
+  width: 180px;
+  padding: 0.48rem 0.6rem;
+  border-radius: 8px;
+  background: var(--talena-ink);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 6px 18px rgba(23, 19, 18, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--talena-transition-fast);
+}
+
+.process-pin-limit:hover .process-pin-tooltip,
+.process-pin-limit:focus-visible .process-pin-tooltip {
+  opacity: 1;
+  visibility: visible;
 }

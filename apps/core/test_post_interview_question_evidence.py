@@ -302,9 +302,6 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             key: f"Generated {key} content."
             for key in (
                 "overall_picture",
-                "test_results_intro",
-                "test_results_manager",
-                "test_results_candidate",
                 "interview_summary",
                 "explore_further",
                 "wellbeing_tips",
@@ -313,7 +310,10 @@ class PostInterviewQuestionEvidenceTests(TestCase):
         events = [
             {
                 "type": "content_blocks",
-                "blocks": content_blocks,
+                "blocks": {
+                    **content_blocks,
+                    "test_results_candidate": "Legacy block should be ignored.",
+                },
             },
             {
                 "type": "done",

@@ -223,6 +223,9 @@ class PostInterviewContentBlockTests(SimpleTestCase):
             self.assertIn("sv", definition["defaults"])
             self.assertIn("en", definition["defaults"])
 
+        for key in ("test_results_intro", "test_results_manager", "test_results_candidate"):
+            self.assertIn(f"post_interview_{key}", AI_PROMPT_REGISTRY)
+
     def test_content_blocks_are_part_of_saved_result_contract(self):
         result = create_empty_post_interview_decision_support(
             SimpleNamespace()
@@ -248,8 +251,7 @@ class PostInterviewContentBlockTests(SimpleTestCase):
             result["content_blocks"]["overall_picture"],
             "Generated overall_picture",
         )
-        self.assertEqual(
-            result["content_blocks"]["test_results_candidate"],
-            "Generated test_results_candidate",
-        )
+        self.assertNotIn("test_results_intro", result["content_blocks"])
+        self.assertNotIn("test_results_manager", result["content_blocks"])
+        self.assertNotIn("test_results_candidate", result["content_blocks"])
 

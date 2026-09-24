@@ -2,7 +2,7 @@
 {% load dict_extras static i18n %}
 
 {% block extra_css %}
-  <link href="{% static 'css/talena/pages/process-list.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/process-list.css' %}?v=20260924-pin-tooltip-layer" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -88,7 +88,7 @@
           data-purpose-lower="{{ p.purpose|purpose_label|lower }}"
           data-tests-lower="{% for test in p.selected_tests %}{{ test|lower }} {% endfor %}"
           data-labels-lower="{% if p.is_historical %}historical{% else %}{% for lab in p.labels.all %}{{ lab.name|lower }} {% endfor %}{% endif %}"
-          data-candidates="{% if p.is_historical %}{{ p.historical_candidates_count|default:0 }}{% else %}{{ p.live_candidates_count|default:0 }}{% endif %}"
+          data-candidates="{{ p.candidates_count }}"
           data-created="{{ p.created_at|date:'Y-m-d' }}"
         >
           <div class="process-card-topline">
@@ -108,7 +108,31 @@
             </div>
 
             {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-              <div class="process-card-actions {% if not can_edit or p.is_historical %}is-placeholder{% endif %}">
+              <div class="process-card-actions {% if p.id in pinned_project_ids %}has-pinned{% endif %}">
+                {% if not show_archived %}
+                  <form method="post" action="{% url 'processes:toggle_pinned_project' p.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if p.id in pinned_project_ids %}
+                      <button type="submit" class="icon-btn process-pin is-pinned" aria-label="{% trans 'Unpin project' %}" title="{% trans 'Unpin project' %}" aria-pressed="true">
+                        <i data-feather="star"></i>
+                      </button>
+                    {% elif pinned_project_ids|length >= 5 %}
+                      <span class="process-pin-limit" tabindex="0" role="note" aria-describedby="pin-limit-{{ p.id }}">
+                        <button type="button" class="icon-btn process-pin is-disabled" disabled aria-label="{% trans 'Pin project' %}" aria-pressed="false">
+                          <i data-feather="star"></i>
+                        </button>
+                        <span class="process-pin-tooltip" id="pin-limit-{{ p.id }}" role="tooltip">
+                          {% trans "You can pin up to five projects. Unpin one first." %}
+                        </span>
+                      </span>
+                    {% else %}
+                      <button type="submit" class="icon-btn process-pin" aria-label="{% trans 'Pin project' %}" title="{% trans 'Pin project' %}" aria-pressed="false">
+                        <i data-feather="star"></i>
+                      </button>
+                    {% endif %}
+                  </form>
+                {% endif %}
                 {% if can_edit and not p.is_historical %}
                   {% if not show_archived %}
                     <a
@@ -213,17 +237,19 @@
 
           <footer class="process-card-footer">
             <div class="process-card-meta">
-              <div class="process-meta-item">
+              <div class="process-meta-item {% if p.is_complete %}is-completed{% endif %}">
                 <i data-feather="users"></i>
-                <span>{% trans "Candidates" %}</span>
-                <strong>
-                  {% if p.is_historical %}
-                    {{ p.historical_candidates_count|default:0 }}
-                  {% else %}
-                    {{ p.live_candidates_count|default:0 }}
-                  {% endif %}
-                </strong>
+                <strong>{{ p.completed_candidates_count }} / {{ p.candidates_count }}</strong>
+                <span>{% trans "Completed" %}</span>
               </div>
+
+              {% if p.is_complete %}
+                <span class="process-progress-status is-completed">{% trans "Completed" %}</span>
+              {% elif p.started_candidates_count %}
+                <span class="process-progress-status is-started">{% trans "Started" %}</span>
+              {% else %}
+                <span class="process-progress-status">{% trans "Not started" %}</span>
+              {% endif %}
 
               <div class="process-meta-item">
                 <i data-feather="calendar"></i>

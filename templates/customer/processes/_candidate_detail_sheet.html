@@ -1,4 +1,5 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {# Talena candidate i18n batch 1 #}
 {% trans "Candidate" as candidate_fallback %}
 {% trans "Copied!" as candidate_js_copied %}
@@ -371,6 +372,29 @@
                     </div>
                   </div>
                 </div>
+
+                {% if candidate_result_status.sharing_enabled and candidate_result_snapshot %}
+                  <div class="candidate-link-panel" style="margin-top: 16px; display: block;">
+                    <div class="candidate-inline-title">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Feedback om testupplevelsen{% else %}Test-experience feedback{% endif %}
+                    </div>
+                    <div class="candidate-inline-meta">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens allmänna upplevelse av testerna, separat från reflektionerna om resultaten.{% else %}The candidate's overall experience of the tests, separate from their reflections on the results.{% endif %}
+                    </div>
+                    {% with experience=candidate_result_snapshot.test_experience_feedback %}
+                      {% if experience %}
+                        <p style="margin: 12px 0 4px;"><strong>{{ experience.rating }} / 5</strong> · {{ experience.updated_at|date:"Y-m-d H:i" }}</p>
+                        {% if experience.comment %}
+                          <p style="margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;">{{ experience.comment }}</p>
+                        {% endif %}
+                      {% else %}
+                        <p class="candidate-inline-meta" style="margin: 10px 0 0;">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen feedback om testupplevelsen ännu.{% else %}No test-experience feedback yet.{% endif %}
+                        </p>
+                      {% endif %}
+                    {% endwith %}
+                  </div>
+                {% endif %}
 
                 {% if candidate_result_snapshot %}
                   {% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id as candidate_result_preview_url %}
