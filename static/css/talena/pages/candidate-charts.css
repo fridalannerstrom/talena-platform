@@ -226,63 +226,8 @@
 
 .process-page .motivation-rose-chart__canvas-wrap {
   max-width: 780px !important;
-  height: 800px;
+  height: clamp(480px, 120vw, 800px);
 }
-
-.process-page .motivation-rose-chart[data-compact="true"] .motivation-rose-chart__canvas-wrap {
-  height: clamp(290px, 72vw, 430px);
-}
-
-.process-page .motivation-rose-chart__factor-list {
-  display: none;
-}
-
-.process-page .motivation-rose-chart[data-compact="true"] .motivation-rose-chart__factor-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  max-width: 580px;
-  margin: 0 auto;
-}
-
-.process-page .motivation-rose-chart__factor-group {
-  min-width: 0;
-}
-
-.process-page .motivation-rose-chart__factor-group h3 {
-  margin: 0 0 0.35rem;
-  color: #b11778;
-  font-size: 0.82rem;
-  font-weight: 750;
-}
-
-.process-page .motivation-rose-chart__factor-group:nth-child(4n + 2) h3 {
-  color: #6f3cb7;
-}
-
-.process-page .motivation-rose-chart__factor-group:nth-child(4n + 3) h3 {
-  color: #3e8ee6;
-}
-
-.process-page .motivation-rose-chart__factor-group:nth-child(4n + 4) h3 {
-  color: #2337b4;
-}
-
-.process-page .motivation-rose-chart__factor-group ul {
-  margin: 0;
-  padding-left: 1.15rem;
-  color: var(--talena-text-muted, #475467);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 390px) {
-  .process-page .motivation-rose-chart[data-compact="true"] .motivation-rose-chart__factor-list {
-    grid-template-columns: 1fr;
-  }
-}
-
 
 /* =========================================================
    COGNITIVE VISUALISATIONS
