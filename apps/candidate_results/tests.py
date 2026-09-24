@@ -114,6 +114,9 @@ class CandidateResultFoundationTests(TestCase):
             invitation=other_invitation,
             candidate=self.candidate,
             process=other_process,
+            locale="sv",
+            content={"introduction": "Test"},
+            prompt_versions={"candidate_personality": {"id": 1}},
         )
         other_access, _, _ = create_candidate_result_access(other_snapshot)
 
@@ -628,7 +631,8 @@ class CandidateResultAccessViewTests(TestCase):
                     "process_id": self.process.pk,
                     "candidate_id": self.candidate.pk,
                 },
-            )
+            ),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -660,7 +664,8 @@ class CandidateResultAccessViewTests(TestCase):
                     "process_id": self.process.pk,
                     "candidate_id": self.candidate.pk,
                 },
-            )
+            ),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
         self.assertEqual(response.status_code, 200)
