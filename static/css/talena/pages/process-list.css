@@ -531,6 +531,26 @@
   font-weight: 720;
 }
 
+.process-progress-status {
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: #f2f0ed;
+  color: var(--talena-text-muted);
+  font-size: 0.6rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.process-progress-status.is-started {
+  background: #fff2dc;
+  color: #845314;
+}
+
+.process-progress-status.is-completed {
+  background: #e7f5e9;
+  color: #236b3b;
+}
+
 .process-card-open {
   display: inline-flex;
   align-items: center;
