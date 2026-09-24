@@ -120,13 +120,16 @@ def _install_assessment_evidence_grounding(purpose_fit) -> None:
         return
 
     @wraps(original_builder)
-    def grounded_assessment_evidence(invitation):
-        assessment_text, assessment_type_count = original_builder(invitation)
+    def grounded_assessment_evidence(invitation, *, language_code="en"):
+        assessment_text, assessment_type_count = original_builder(
+            invitation,
+            language_code=language_code,
+        )
 
         assessment_text = augment_assessment_text_with_personality_grounding(
             assessment_text,
             invitation,
-            language_code=_PERSONALITY_GROUNDING_LANGUAGE.get(),
+            language_code=language_code or _PERSONALITY_GROUNDING_LANGUAGE.get(),
         )
 
         return assessment_text, assessment_type_count

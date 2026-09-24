@@ -23,6 +23,10 @@ from .prompt_templates import (
     get_ai_feature_prompt_instructions,
 )
 
+from .motivation_interpretation import (
+    get_motivation_factor_display_name,
+)
+
 # Talena AI Overview language batch 1
 
 
@@ -109,7 +113,36 @@ def _has_score(competency: dict[str, Any]) -> bool:
     )
 
 
-def build_assessment_evidence(invitation) -> tuple[str, int]:
+def _assessment_activity_evidence_label(value: Any) -> str:
+    """Replace Sova's internal activity codes with readable assessment labels."""
+    activity = str(value or "").strip()
+    normalized = activity.casefold().replace("_", " ").replace("-", " ")
+    padded = f" {normalized} "
+
+    if "motivation" in normalized or " mq " in padded:
+        return "Motivation"
+    if "personality" in normalized or " pq " in padded:
+        return "Personality"
+    if "verbal" in normalized:
+        return "Verbal reasoning"
+    if "numerical" in normalized or "numeric" in normalized:
+        return "Numerical reasoning"
+    if "logical" in normalized:
+        return "Logical reasoning"
+    if "team" in normalized:
+        return "Team styles"
+
+    # Opaque Sova keys should never be exposed as assessment evidence labels.
+    if "_" in activity or any(character.isdigit() for character in activity):
+        return "Assessment results"
+    return activity or "Assessment results"
+
+
+def build_assessment_evidence(
+    invitation,
+    *,
+    language_code: str = "en",
+) -> tuple[str, int]:
     """
     Build compact assessment evidence for the AI prompt.
 
@@ -157,6 +190,11 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
                     or competency.get("name")
                     or "Unnamed competency"
                 )
+                if "motivation" in title.casefold():
+                    name = get_motivation_factor_display_name(
+                        name,
+                        language_code=language_code,
+                    )
 
                 score_parts = []
 
@@ -280,9 +318,8 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
     completed_result_types = 0
 
     for activity in activities:
-        activity_name = (
+        activity_name = _assessment_activity_evidence_label(
             activity.get("activity")
-            or "Assessment"
         )
 
         competencies = activity.get("competencies") or []
@@ -305,6 +342,11 @@ def build_assessment_evidence(invitation) -> tuple[str, int]:
                 or competency.get("name")
                 or "Unnamed competency"
             )
+            if activity_name == "Motivation":
+                competency_name = get_motivation_factor_display_name(
+                    competency_name,
+                    language_code=language_code,
+                )
 
             score_parts = []
 
@@ -428,7 +470,8 @@ def build_purpose_fit_prompt(
     candidate = shared_context["candidate"]
 
     assessment_text, _ = build_assessment_evidence(
-        invitation
+        invitation,
+        language_code=language_code,
     )
 
     return f"""

@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase, TestCase
 
+from apps.core.ai.purpose_fit import build_assessment_evidence
 from apps.core.ai.decision_support import (
     _extract_json_events_from_buffer,
     _post_get_content_block_prompt_instructions,
@@ -21,11 +22,11 @@ class PostInterviewPromptContractTests(SimpleTestCase):
                 {
                     "activity": "Motivation Questionnaire",
                     "competencies": [
-                        {"competency": "Variation", "stive": 4.8},
-                        {"competency": "Kundservice", "stive": 4.5},
-                        {"competency": "Människors utveckling", "stive": 4.2},
-                        {"competency": "Kreativitet", "stive": 3.9},
-                        {"competency": "Göra skillnad", "stive": 3.7},
+                        {"competency": "Variety", "stive": 4.8},
+                        {"competency": "Customer Service", "stive": 4.5},
+                        {"competency": "People Development", "stive": 4.2},
+                        {"competency": "Creativity", "stive": 3.9},
+                        {"competency": "Making a Difference", "stive": 3.7},
                     ],
                 },
             ],
@@ -48,7 +49,10 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             "apps.core.ai.purpose_fit.build_assessment_evidence",
             return_value=("", 0),
         ):
-            evidence = build_pre_interview_evidence(owner)["evidence_text"]
+            evidence = build_pre_interview_evidence(
+                owner,
+                language_code="sv",
+            )["evidence_text"]
 
         self.assertIn(
             "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
@@ -65,9 +69,44 @@ class PostInterviewPromptContractTests(SimpleTestCase):
             ),
         )
         self.assertIn(
-            "Kreativitet: STIVE 3.9 of 5",
+            "1. Variation — STIVE 4.8 of 5",
             evidence,
         )
+        self.assertNotIn("Customer Service", evidence)
+        self.assertNotIn("People Development", evidence)
+        self.assertNotIn("Making a Difference", evidence)
+        self.assertNotIn("Creativity", evidence)
+        self.assertNotIn("3. Kreativitet", evidence)
+
+
+
+    def test_opaque_sova_activity_name_is_not_exposed_as_evidence(self):
+        owner = SimpleNamespace(
+            process=SimpleNamespace(is_historical=False),
+            sova_activities=[
+                {
+                    "activity": "0085_MQ_Sova_Motivation_Research",
+                    "competencies": [
+                        {"competency": "Variety", "stive": 4.8},
+                    ],
+                },
+            ],
+        )
+
+        with patch(
+            "apps.core.ai.shared_personality_grounding_policy.augment_assessment_text_with_personality_grounding",
+            side_effect=lambda text, *args, **kwargs: text,
+        ):
+            evidence, count = build_assessment_evidence(
+                owner,
+                language_code="sv",
+            )
+
+        self.assertEqual(count, 1)
+        self.assertIn("Motivation:", evidence)
+        self.assertIn("Variation: stive 4.8", evidence)
+        self.assertNotIn("Variety", evidence)
+        self.assertNotIn("0085_MQ_Sova_Motivation_Research", evidence)
 
 
     def test_content_block_prompts_are_isolated_from_legacy_guidance(self):

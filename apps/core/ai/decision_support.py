@@ -19,8 +19,8 @@ from .openai_client import (
     get_openai_client,
 )
 from .motivation_interpretation import (
-    build_motivation_evidence_text,
     extract_motivation_results,
+    get_motivation_factor_display_name,
 )
 from .shared_context import (
     build_shared_ai_context,
@@ -179,8 +179,12 @@ def _format_list_field(
 
 
 
-def _build_motivation_assessment_evidence(owner) -> str:
-    """Return authoritative Sova motivation scores for synthesis prompts."""
+def _build_motivation_assessment_evidence(
+    owner,
+    *,
+    language_code: str | None = None,
+) -> str:
+    """Return only the authoritative, localized Sova top-three scores."""
     results = extract_motivation_results(owner)
     if not results:
         return ""
@@ -197,25 +201,27 @@ def _build_motivation_assessment_evidence(owner) -> str:
         "AUTHORITATIVE TOP THREE MOTIVATION FACTORS",
         "These factor names and their rank come directly from the Sova "
         "Motivation Questionnaire STIVE scores.",
-        "Use these exact factors in this exact order when describing the "
-        "candidate's three leading motivators. Do not substitute factors "
+        "Use these exact factor names in this exact order when describing "
+        "the candidate's three leading motivators. Do not substitute factors "
         "based on personality results, interview notes or role context.",
+        "Do not describe or list any other motivation factor in the overall "
+        "picture, even if another source mentions it.",
+        "Use the exact supplied display names; do not use English source names "
+        "when Swedish names are supplied.",
     ]
     lines.extend(
-        f"{rank}. {item['name']} — STIVE {item['score']} of 5"
+        f"{rank}. {get_motivation_factor_display_name(item['name'], language_code=language_code)} "
+        f"— STIVE {item['score']} of 5"
         for rank, item in enumerate(top_three, start=1)
     )
-    lines.extend([
-        "",
-        "FULL MOTIVATION SCORE EVIDENCE",
-        build_motivation_evidence_text(results),
-    ])
     return "\n".join(lines)
 
 
 
 def build_pre_interview_evidence(
     owner,
+    *,
+    language_code: str | None = None,
 ) -> dict[str, Any]:
     """
     Collect existing saved Talena interpretations.
@@ -349,7 +355,10 @@ def build_pre_interview_evidence(
     # --------------------------------------------------------
 
     motivation_assessment_evidence = (
-        _build_motivation_assessment_evidence(owner)
+        _build_motivation_assessment_evidence(
+            owner,
+            language_code=language_code,
+        )
     )
 
     add_section(
@@ -718,7 +727,8 @@ def build_pre_interview_decision_support_prompt(
     candidate = shared_context["candidate"]
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     source_names = (
@@ -1325,7 +1335,8 @@ def stream_pre_interview_decision_support(
     )
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     if not evidence["has_evidence"]:
@@ -1765,6 +1776,8 @@ def _normalise_contradiction_items(
 
 def build_post_interview_decision_support_prompt(
     owner,
+    *,
+    language_code: str | None = None,
 ) -> str:
     shared_context = build_shared_ai_context(
         owner
@@ -1785,7 +1798,8 @@ def build_post_interview_decision_support_prompt(
     ]
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     interview_notes = _clean_text(
@@ -2825,7 +2839,8 @@ def build_post_interview_decision_support_prompt(
     candidate = shared_context["candidate"]
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     interview_notes = _clean_text(
@@ -3084,7 +3099,8 @@ def stream_post_interview_decision_support(
         )
 
     evidence = build_pre_interview_evidence(
-        owner
+        owner,
+        language_code=language_code,
     )
 
     if not evidence["has_evidence"]:
