@@ -7115,3 +7115,12 @@ msgstr "Använd frågorna för att förstå vad som kan skapa energi och engagem
 # #190 section-specific interview question guidance
 msgid "Use these questions to explore how the candidate works with information, complexity and problem solving in practice. Listen for working methods, strategies, priorities and how the person uses support or checking. The assessment result is an indication from the test situation, not a measure of the candidate's overall ability or competence."
 msgstr "Använd frågorna för att utforska hur kandidaten arbetar med information, komplexitet och problemlösning i praktiken. Lyssna efter arbetssätt, strategier, prioriteringar och hur personen använder stöd eller kontroll. Testresultatet är en indikation från testsituationen, inte ett mått på kandidatens hela förmåga eller kompetens."
+
+
+#: apps/processes/forms.py
+msgid "Candidate can view results"
+msgstr "Kandidaten kan se resultat"
+
+#: apps/processes/forms.py
+msgid "Allow the candidate to view a simplified result after all required assessments have been completed. Turning this off revokes existing result links."
+msgstr "Tillåt kandidaten att se ett förenklat resultat när alla obligatoriska tester är genomförda. Om du stänger av detta återkallas befintliga resultatlänkar."
