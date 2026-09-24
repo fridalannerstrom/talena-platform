@@ -821,3 +821,45 @@
   fill: #cf5950;
   stroke: #cf5950;
 }
+
+/* Explain the five-project limit without letting the sixth star submit. */
+.process-pin-limit {
+  position: relative;
+  display: inline-flex;
+  border-radius: 50%;
+  outline-offset: 2px;
+}
+
+.process-card .process-pin.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.process-pin-tooltip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 3;
+  width: 180px;
+  padding: 0.48rem 0.6rem;
+  border-radius: 8px;
+  background: var(--talena-ink);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 6px 18px rgba(23, 19, 18, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--talena-transition-fast);
+}
+
+.process-pin-limit:hover .process-pin-tooltip,
+.process-pin-limit:focus-visible .process-pin-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
