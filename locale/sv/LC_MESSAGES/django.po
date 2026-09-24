@@ -7124,3 +7124,15 @@ msgstr "Kandidaten kan se resultat"
 #: apps/processes/forms.py
 msgid "Allow the candidate to view a simplified result after all required assessments have been completed. Turning this off revokes existing result links."
 msgstr "Tillåt kandidaten att se ett förenklat resultat när alla obligatoriska tester är genomförda. Om du stänger av detta återkallas befintliga resultatlänkar."
+
+msgid "Pinned projects"
+msgstr "Fästa projekt"
+
+msgid "Pin project"
+msgstr "Fäst projekt"
+
+msgid "Unpin project"
+msgstr "Ta bort från fästa projekt"
+
+msgid "You can pin up to five projects. Unpin one first."
+msgstr "Du kan fästa högst fem projekt. Ta bort ett först."
