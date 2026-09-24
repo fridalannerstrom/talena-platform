@@ -225,7 +225,7 @@ def candidate_result(request, token: str):
     access = _get_access(token)
     now = timezone.now()
 
-    if not access.is_active(now):
+    if not access.snapshot.process.candidate_results_enabled or not access.is_active(now):
         return _render_unavailable(request, access)
 
     session_key = _session_key(access)
