@@ -219,12 +219,12 @@
                 <span>{% trans "Completed" %}</span>
               </div>
 
-              {% if not p.is_complete %}
-                {% if p.started_candidates_count %}
-                  <span class="process-progress-status is-started">{% trans "Started" %}</span>
-                {% else %}
-                  <span class="process-progress-status">{% trans "Not started" %}</span>
-                {% endif %}
+              {% if p.is_complete %}
+                <span class="process-progress-status is-completed">{% trans "Completed" %}</span>
+              {% elif p.started_candidates_count %}
+                <span class="process-progress-status is-started">{% trans "Started" %}</span>
+              {% else %}
+                <span class="process-progress-status">{% trans "Not started" %}</span>
               {% endif %}
 
               <div class="process-meta-item">
