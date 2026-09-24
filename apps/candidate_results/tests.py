@@ -16,7 +16,10 @@ from .models import (
     CandidateResultFeedback,
     CandidateResultSnapshot,
 )
-from .services import create_candidate_result_access
+from .services import (
+    create_candidate_result_access,
+    revoke_candidate_result_access_for_process,
+)
 
 
 class CandidateResultFoundationTests(TestCase):
@@ -89,6 +92,38 @@ class CandidateResultFoundationTests(TestCase):
         access.revoked_at = timezone.now()
         access.save(update_fields=["revoked_at"])
         self.assertFalse(access.is_active())
+
+    def test_disabling_a_process_revokes_its_issued_links_only(self):
+        self.process.candidate_results_enabled = True
+        self.process.save(update_fields=["candidate_results_enabled"])
+        access, _, _ = create_candidate_result_access(self._snapshot())
+
+        other_process = TestProcess.objects.create(
+            name="Other project",
+            company=self.company,
+            project_code="other-project",
+            account_code="other-account",
+            created_by=self.user,
+            candidate_results_enabled=True,
+        )
+        other_invitation = TestInvitation.objects.create(
+            process=other_process,
+            candidate=self.candidate,
+        )
+        other_snapshot = CandidateResultSnapshot.objects.create(
+            invitation=other_invitation,
+            candidate=self.candidate,
+            process=other_process,
+        )
+        other_access, _, _ = create_candidate_result_access(other_snapshot)
+
+        self.process.candidate_results_enabled = False
+        self.process.save(update_fields=["candidate_results_enabled"])
+        self.assertEqual(revoke_candidate_result_access_for_process(self.process), 1)
+        access.refresh_from_db()
+        other_access.refresh_from_db()
+        self.assertFalse(access.is_active())
+        self.assertTrue(other_access.is_active())
 
     def test_wrong_codes_are_rate_limited(self):
         snapshot = self._snapshot()
@@ -520,6 +555,14 @@ class CandidateResultAccessViewTests(TestCase):
 
         self.assertEqual(response.status_code, 410)
 
+
+    def test_disabled_sharing_denies_previously_issued_link(self):
+        self.process.candidate_results_enabled = False
+        self.process.save(update_fields=["candidate_results_enabled"])
+
+        response = self.client.get(f"/candidate-results/{self.raw_token}/")
+
+        self.assertEqual(response.status_code, 410)
 
     def test_authorised_preview_shows_snapshot_without_code(self):
         self.user.role = "admin"
