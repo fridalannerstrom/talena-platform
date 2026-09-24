@@ -16,7 +16,8 @@ class TestProcessCreateForm(forms.ModelForm):
         label=_("Candidate can view results"),
         help_text=_(
             "Allow the candidate to view a simplified result after all "
-            "required assessments have been completed."
+            "required assessments have been completed. Turning this off "
+            "revokes existing result links."
         ),
         widget=forms.CheckboxInput(
             attrs={"class": "form-check-input"},
@@ -202,7 +203,8 @@ class TestProcessWizardCreateForm(forms.Form):
         label=_("Candidate can view results"),
         help_text=_(
             "Allow the candidate to view a simplified result after all "
-            "required assessments have been completed."
+            "required assessments have been completed. Turning this off "
+            "revokes existing result links."
         ),
         widget=forms.CheckboxInput(
             attrs={"class": "form-check-input"},
