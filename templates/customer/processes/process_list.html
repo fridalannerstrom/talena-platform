@@ -108,7 +108,7 @@
             </div>
 
             {% with can_edit=can_edit_by_process_id|get_item:p.id %}
-              <div class="process-card-actions">
+              <div class="process-card-actions {% if p.id in pinned_project_ids %}has-pinned{% endif %}">
                 {% if not show_archived %}
                   <form method="post" action="{% url 'processes:toggle_pinned_project' p.id %}">
                     {% csrf_token %}
