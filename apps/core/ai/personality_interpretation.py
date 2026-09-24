@@ -16,7 +16,10 @@ from .prompt_templates import (
     get_ai_feature_prompt_instructions,
 )
 
-from .shared_context import get_process_purpose_key
+from .shared_context import (
+    build_shared_ai_context,
+    get_process_purpose_key,
+)
 
 from .personality_questions import (
     build_personality_evidence_text,
@@ -242,12 +245,9 @@ def build_personality_interpretation_prompt(
         language=language_code,
     )
 
-    candidate = owner.candidate
-    candidate_name = " ".join(
-        part.strip()
-        for part in (candidate.first_name, candidate.last_name)
-        if part and part.strip()
-    ) or candidate.email
+    shared_context = build_shared_ai_context(
+        owner
+    )
 
     evidence_text = build_personality_evidence_text(
         personality_results
@@ -282,7 +282,13 @@ def build_personality_interpretation_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate_name}
+Name: {shared_context["candidate_name"]}
+
+SELECTED PROCESS PURPOSE
+Purpose: {shared_context["purpose_label"]}
+
+PROCESS CONTEXT
+{shared_context["context_text"] or "No additional process context supplied."}
 
 PERSONALITY ASSESSMENT DATA
 {evidence_text}
@@ -337,9 +343,9 @@ PROTECTED EVIDENCE BOUNDARY FOR THIS SECTION
 The substantive content of motivation_interaction must be grounded only in
 the supplied PERSONALITY ASSESSMENT DATA and MOTIVATION ASSESSMENT DATA.
 
-Do not use assumed role requirements, candidate history or outside
-knowledge to infer an interaction for this section. Do not invent missing
-assessment results.
+Do not use PROCESS CONTEXT, process purpose, assumed role requirements,
+candidate history or outside knowledge to infer an interaction for this
+section. Do not invent missing assessment results.
 
 Keep personality preference and motivational importance conceptually
 distinct. A low motivation score must not be interpreted as low ability,
