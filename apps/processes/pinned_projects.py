@@ -37,12 +37,15 @@ def pinned_projects(request):
 @login_required
 @require_POST
 def toggle_pinned_project(request, pk):
-    accessible, _ = get_accessible_processes_for_user(request.user)
+    accessible, _company = get_accessible_processes_for_user(request.user)
     process = get_object_or_404(accessible, pk=pk)
 
     # Lock per user so simultaneous tabs cannot exceed the shortcut limit.
     with transaction.atomic():
         get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        PinnedProject.objects.filter(user=request.user).exclude(
+            process__in=accessible
+        ).delete()
         existing = PinnedProject.objects.filter(user=request.user, process=process)
         if existing.exists():
             existing.delete()
