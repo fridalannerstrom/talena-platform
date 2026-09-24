@@ -244,6 +244,7 @@ TEMPLATES = [
 
                 # Talena migration onboarding
                 'apps.accounts.context_processors.migration_onboarding',
+                'apps.processes.pinned_projects.pinned_projects',
             ],
         },
     },
