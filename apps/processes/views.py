@@ -6556,6 +6556,7 @@ def process_update(request, pk):
     old_proj = (obj.project_code or "").strip()
     locked = obj.is_template_locked()
     old_purpose = obj.purpose
+    old_candidate_results_enabled = obj.candidate_results_enabled
 
     client = SovaClient()
     error = None
@@ -6768,8 +6769,16 @@ def process_update(request, pk):
             # --------------------------------------------------
             # Spara ändringarna
             # --------------------------------------------------
-            obj.save()
-            obj.labels.set(label_objs)
+            with transaction.atomic():
+                obj.save()
+                obj.labels.set(label_objs)
+
+                if old_candidate_results_enabled and not obj.candidate_results_enabled:
+                    from apps.candidate_results.services import (
+                        revoke_candidate_result_access_for_process,
+                    )
+
+                    revoke_candidate_result_access_for_process(obj)
 
             if old_purpose != obj.purpose:
                 result = mark_candidate_ai_content_outdated(obj)
