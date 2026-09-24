@@ -180,11 +180,11 @@
               <div class="team-followup__content">
                 <strong>{% if wizard_language|slice:":2" == "sv" %}Teamet:{% else %}The team:{% endif %}</strong>
                 <span class="team-followup__messages" aria-live="polite">
-                  <span data-team-followup-default>{% if wizard_language|slice:":2" == "sv" %}Kan teamets sammanhang ge fler perspektiv?{% else %}Could the team context add perspective?{% endif %}</span>
-                    <span data-team-followup-copy data-team-followup-purposes="hiring" hidden>{% if wizard_language|slice:":2" == "sv" %}Vilka perspektiv finns redan i teamet personen ska ingå i?{% else %}What perspectives are already in the team this person will join?{% endif %}</span>
-                    <span data-team-followup-copy data-team-followup-purposes="leader_development leadership_potential" hidden>{% if wizard_language|slice:":2" == "sv" %}Hur kompletterar ledarna varandra i gruppen?{% else %}How do the leaders complement one another?{% endif %}</span>
-                    <span data-team-followup-copy data-team-followup-purposes="employee_development career_path onboarding internal_role_match" hidden>{% if wizard_language|slice:":2" == "sv" %}Vilken teammiljö hjälper personen att utvecklas?{% else %}What team environment helps this person develop?{% endif %}</span>
-                    <span data-team-followup-copy data-team-followup-purposes="team_development" hidden>{% if wizard_language|slice:":2" == "sv" %}Kan individuell coaching hjälpa teamet vidare?{% else %}Could individual coaching help the team move forward?{% endif %}</span>
+                  <span data-team-followup-default>{% if wizard_language|slice:":2" == "sv" %}Har ni skapat ett team i Talena? Teamets samlade arbetssätt kan ge mer sammanhang till era frågor och resultat.{% else %}Have you created a team in Talena? Its combined working styles can add context to your questions and results.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="hiring" hidden>{% if wizard_language|slice:":2" == "sv" %}Har ni skapat teamet personen ska ingå i? Se vilka arbetssätt och perspektiv som finns där när ni väljer frågor i rekryteringen.{% else %}Have you created the team this person will join? Explore its working styles and perspectives when choosing recruitment questions.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="leader_development leadership_potential" hidden>{% if wizard_language|slice:":2" == "sv" %}Har ni skapat ledningsgruppen som ett team? En överblick över arbetssätten kan visa hur ledarna kompletterar varandra.{% else %}Have you created the leadership group as a team? An overview of working styles can show how the leaders complement one another.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="employee_development career_path onboarding internal_role_match" hidden>{% if wizard_language|slice:":2" == "sv" %}Finns personens team i Talena? Teamets arbetssätt kan ge sammanhang när ni utforskar vad som hjälper eller hindrar utvecklingen.{% else %}Is the person's team in Talena? Its working styles can add context when exploring what helps or hinders development.{% endif %}</span>
+                    <span data-team-followup-copy data-team-followup-purposes="team_development" hidden>{% if wizard_language|slice:":2" == "sv" %}Har ni skapat teamet i Talena? Se hur medlemmarnas arbetssätt samspelar och om individuellt stöd kan hjälpa teamet vidare.{% else %}Have you created the team in Talena? Explore how members' working styles interact and whether individual support could help.{% endif %}</span>
                 </span>
               </div>
               <a class="team-followup__link" href="{% url 'teams:team_list' %}" target="_blank" rel="noopener noreferrer" aria-label="{% if wizard_language|slice:":2" == "sv" %}Visa team (öppnas i ny flik){% else %}View teams (opens in a new tab){% endif %}">{% if wizard_language|slice:":2" == "sv" %}Visa team{% else %}View teams{% endif %}</a>
@@ -663,13 +663,13 @@
   gap: 0.3rem;
   min-width: 0;
   color: #5d5552;
-  font-size: 0.73rem;
-  line-height: 1.4;
+  font-size: 0.69rem;
+  line-height: 1.45;
 }
 
 .team-followup__content strong {
   color: #2a2523;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 
