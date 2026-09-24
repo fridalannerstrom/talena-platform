@@ -6493,11 +6493,11 @@ msgstr "Förklara vad som är viktigt"
 
 #: .\templates\customer\processes\process_role_context.html:65
 msgid ""
-"Include important expectations, behaviours, requirements, priorities or "
-"success criteria."
+"Include important expectations, behaviours, requirements, priorities, "
+"success criteria, goals and values."
 msgstr ""
-"Inkludera viktiga förväntningar, beteenden, krav, prioriteringar eller "
-"framgångskriterier."
+"Inkludera viktiga förväntningar, beteenden, krav, prioriteringar, "
+"framgångskriterier, mål och värderingar."
 
 #: .\templates\customer\processes\process_role_context.html:80
 msgid "Add useful nuance"
