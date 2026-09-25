@@ -385,10 +385,11 @@
       <article class="personality-overview-group">
         <h4 class="personality-overview-group__title">{{ section.section_name }}</h4>
         <div class="personality-overview-group__plot">
-          <span class="personality-overview-group__midline" aria-hidden="true"></span>
           {% for trait in section.traits %}
             <div class="personality-overview-item">
-              <div class="personality-overview-item__scale">
+              <span class="personality-overview-item__label">{{ trait.label }}</span>
+              <div class="personality-overview-item__scale" aria-label="{{ trait.label }} personality result">
+                <span class="personality-overview-item__midpoint" aria-hidden="true"></span>
                 {% for segment in trait.graph_segments %}
                   {% if segment.selected %}
                     <span
@@ -402,7 +403,6 @@
                   {% endif %}
                 {% endfor %}
               </div>
-              <span class="personality-overview-item__label">{{ trait.label }}</span>
             </div>
           {% endfor %}
         </div>
