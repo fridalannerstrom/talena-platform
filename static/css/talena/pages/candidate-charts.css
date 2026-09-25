@@ -129,14 +129,14 @@
   overflow-wrap: anywhere;
   color: var(--talena-text-muted);
   font-size: 0.55rem;
-  font-weight: 650;
+  font-weight: 500;
   line-height: 1.18;
   text-align: right;
 }
 
 .process-page .personality-overview-item__scale {
   position: relative;
-  height: 20px;
+  height: 10px;
   border-radius: 999px;
   background:
     linear-gradient(
@@ -169,8 +169,8 @@
 .process-page .personality-overview-item__midpoint {
   position: absolute;
   z-index: 2;
-  top: -3px;
-  bottom: -3px;
+  top: -2px;
+  bottom: -2px;
   left: 50%;
   width: 1px;
   background: rgba(23, 19, 18, 0.14);
@@ -180,8 +180,8 @@
 .process-page .personality-overview-item__range {
   position: absolute;
   z-index: 1;
-  top: 4px;
-  height: 12px;
+  top: 2px;
+  height: 6px;
   border-radius: 999px;
   background: rgba(255, 111, 97, 0.25);
 }
@@ -202,9 +202,9 @@
   position: absolute;
   z-index: 3;
   top: 50%;
-  width: 12px;
-  height: 12px;
-  border: 2px solid #fff;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #fff;
   border-radius: 50%;
   background: var(--talena-chart-accent);
   box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.32);
