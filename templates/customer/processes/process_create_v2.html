@@ -335,6 +335,26 @@
 </p>
             </div>
 
+            {% if org_units|length > 1 %}
+              <div class="mb-4">
+                <label class="form-label" for="{{ form.org_unit.id_for_label }}">
+                  {% if wizard_language|slice:":2" == "sv" %}Konto{% else %}Account{% endif %}
+                </label>
+                {{ form.org_unit }}
+                <div class="form-text">
+                  {% if wizard_language|slice:":2" == "sv" %}Välj vilket konto projektet ska tillhöra.{% else %}Choose the account this project belongs to.{% endif %}
+                </div>
+                {% if form.org_unit.errors %}
+                  <div class="text-danger small mt-1">{{ form.org_unit.errors }}</div>
+                {% endif %}
+              </div>
+            {% else %}
+              <p class="small text-muted mb-4">
+                {% if wizard_language|slice:":2" == "sv" %}Konto:{% else %}Account:{% endif %}
+                {{ org_units.0.company.name }} · {{ org_units.0.name }}
+              </p>
+            {% endif %}
+
             <div class="row g-4">
 
               <div class="col-12 col-lg-7">
