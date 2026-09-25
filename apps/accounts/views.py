@@ -1724,7 +1724,13 @@ def admin_customers_create(request):
             user.is_active = False
             user.save()
 
-            send_invite_email(request, user)
+            send_invite_email(
+                request,
+                user,
+                invite_link=build_invite_link(request, user),
+                subject=form.cleaned_data["invite_subject"],
+                message=form.cleaned_data["invite_message"],
+            )
             messages.success(request, f"Invite sent to {user.email}.")
             return redirect("accounts:admin_customers_list")
 
@@ -4058,6 +4064,8 @@ def company_invite_member(request, company_pk):
                 user,
                 invite_link=invite_link,
                 company=company,
+                subject=invite_form.cleaned_data["invite_subject"],
+                message=invite_form.cleaned_data["invite_message"],
             )
 
             log_event(
