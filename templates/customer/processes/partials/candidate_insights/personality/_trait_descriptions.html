@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n personality_i18n %}
 {# Talena personality UI and response styles language batch 1 #}
 <!-- PERSONALITY TRAIT DESCRIPTIONS -->
 
@@ -19,7 +19,7 @@
           <header class="personality-quick-section__header">
 
             <h4 class="personality-quick-section__title">
-              {{ section.section_name }}
+              {{ section.section_name|personality_section_label }}
             </h4>
 
           </header>
