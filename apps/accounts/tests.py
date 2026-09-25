@@ -60,7 +60,7 @@ class InvitationEmailTests(TestCase):
     def test_subject_rejects_line_breaks(self):
         form = CompanyInviteMemberForm({
             "email": "new-user@example.com",
-            "invite_subject": "Welcome\\nBcc: extra@example.com".replace("\\n", "\n"),
+            "invite_subject": "Welcome\nBcc: extra@example.com",
             "invite_message": "A message.",
         })
 
