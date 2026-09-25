@@ -422,6 +422,25 @@
       font-weight: 800;
     }
 
+    .candidate-comment {
+      margin-top: 16px;
+    }
+
+    .candidate-comment__label {
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .candidate-comment__text {
+      margin: 5px 0 0;
+      color: var(--text);
+      font-size: .88rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
     .experience-intro { margin-bottom: 17px; }
     .experience-options {
       display: flex;
@@ -564,7 +583,8 @@
       margin-top: 22px;
     }
 
-    .dialog-actions button {
+    .dialog-actions button,
+    .experience-submit {
       min-height: 42px;
       padding: 10px 17px;
       border-radius: 999px;
@@ -713,13 +733,21 @@
                   <span>{{ copy.feedback_not_recognise }}</span>
                 </button>
               </div>
-              <button type="button" class="comment-button" data-feedback-open="feedback-dialog-{{ section.key }}">
-                <span aria-hidden="true">✎</span>
-                <span>{% if section.feedback and section.feedback.comment %}{{ copy.feedback_edit_comment }}{% else %}{{ copy.feedback_comment_button }}{% endif %}</span>
-              </button>
-              {% if section.feedback %}
-                <span class="feedback-state">{{ copy.feedback_saved_short }}</span>
+              {% if section.feedback and section.feedback.comment %}
+                <div class="candidate-comment">
+                  <div class="candidate-comment__label">{{ copy.feedback_your_comment }}</div>
+                  <p class="candidate-comment__text">{{ section.feedback.comment }}</p>
+                </div>
               {% endif %}
+              <div>
+                <button type="button" class="comment-button" data-feedback-open="feedback-dialog-{{ section.key }}">
+                  <span aria-hidden="true">✎</span>
+                  <span>{% if section.feedback and section.feedback.comment %}{{ copy.feedback_edit_comment }}{% else %}{{ copy.feedback_comment_button }}{% endif %}</span>
+                </button>
+                {% if section.feedback and not section.feedback.comment %}
+                  <span class="feedback-state">{{ copy.feedback_saved_short }}</span>
+                {% endif %}
+              </div>
             </div>
           {% endif %}
         </section>
