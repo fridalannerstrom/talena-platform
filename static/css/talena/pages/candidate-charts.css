@@ -21,8 +21,8 @@
 
 /* =========================================================
    BALANCED PERSONALITY OVERVIEW
-   A compact fingerprint chart centred on the neutral midpoint.
-   Direction, rather than magnitude, is the visual message.
+   Horizontal bipolar scales make direction explicit without
+   suggesting that a higher vertical position is "better".
    ========================================================= */
 
 .process-page .personality-overview-chart {
@@ -94,7 +94,7 @@
 
 .process-page .personality-overview-group {
   min-width: 0;
-  padding: 0.78rem 0.72rem 0.65rem;
+  padding: 0.82rem 0.78rem 0.75rem;
   border: 1px solid var(--talena-border);
   border-radius: 12px;
   background: #fff;
@@ -102,7 +102,7 @@
 
 .process-page .personality-overview-group__title {
   min-height: 2.2em;
-  margin: 0 0 0.65rem;
+  margin: 0 0 0.8rem;
   color: var(--talena-text-muted);
   font-size: 0.57rem;
   font-weight: 720;
@@ -112,100 +112,115 @@
 }
 
 .process-page .personality-overview-group__plot {
-  position: relative;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.28rem;
-  min-height: 155px;
-}
-
-.process-page .personality-overview-group__midline {
-  position: absolute;
-  top: 55px;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: rgba(23, 19, 18, 0.13);
+  gap: 0.58rem;
 }
 
 .process-page .personality-overview-item {
-  position: relative;
-  z-index: 1;
   display: grid;
-  grid-template-rows: 110px auto;
+  grid-template-columns: minmax(68px, 0.8fr) minmax(120px, 1.7fr);
+  gap: 0.55rem;
+  align-items: center;
   min-width: 0;
 }
-
-.process-page .personality-overview-item__scale {
-  position: relative;
-  width: 100%;
-  height: 110px;
-}
-
-.process-page .personality-overview-item__scale::before {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 50%;
-  width: 1px;
-  background: var(--talena-chart-track-soft);
-  content: "";
-  transform: translateX(-50%);
-}
-
-.process-page .personality-overview-item__range {
-  position: absolute;
-  left: 50%;
-  width: 7px;
-  border-radius: 999px;
-  background: rgba(255, 111, 97, 0.32);
-  transform: translateX(-50%);
-}
-
-.process-page .personality-overview-item__marker {
-  position: absolute;
-  left: 50%;
-  width: 11px;
-  height: 11px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  background: var(--talena-chart-accent);
-  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.28);
-  transform: translate(-50%, -50%);
-}
-
-/* STEN 1-5 travel upwards from the midpoint; 6-10 downwards. */
-.process-page .personality-overview-item__range--score-1 { top: 8px; height: 47px; }
-.process-page .personality-overview-item__range--score-2 { top: 18px; height: 37px; }
-.process-page .personality-overview-item__range--score-3 { top: 28px; height: 27px; }
-.process-page .personality-overview-item__range--score-4 { top: 38px; height: 17px; }
-.process-page .personality-overview-item__range--score-5 { top: 48px; height: 7px; }
-.process-page .personality-overview-item__range--score-6 { top: 55px; height: 7px; }
-.process-page .personality-overview-item__range--score-7 { top: 55px; height: 17px; }
-.process-page .personality-overview-item__range--score-8 { top: 55px; height: 27px; }
-.process-page .personality-overview-item__range--score-9 { top: 55px; height: 37px; }
-.process-page .personality-overview-item__range--score-10 { top: 55px; height: 47px; }
-
-.process-page .personality-overview-item__marker--score-1 { top: 8px; }
-.process-page .personality-overview-item__marker--score-2 { top: 18px; }
-.process-page .personality-overview-item__marker--score-3 { top: 28px; }
-.process-page .personality-overview-item__marker--score-4 { top: 38px; }
-.process-page .personality-overview-item__marker--score-5 { top: 48px; }
-.process-page .personality-overview-item__marker--score-6 { top: 62px; }
-.process-page .personality-overview-item__marker--score-7 { top: 72px; }
-.process-page .personality-overview-item__marker--score-8 { top: 82px; }
-.process-page .personality-overview-item__marker--score-9 { top: 92px; }
-.process-page .personality-overview-item__marker--score-10 { top: 102px; }
 
 .process-page .personality-overview-item__label {
   display: block;
   overflow-wrap: anywhere;
   color: var(--talena-text-muted);
-  font-size: 0.52rem;
-  font-weight: 620;
-  line-height: 1.2;
-  text-align: center;
+  font-size: 0.55rem;
+  font-weight: 650;
+  line-height: 1.18;
+  text-align: right;
 }
+
+.process-page .personality-overview-item__scale {
+  position: relative;
+  height: 20px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(23, 19, 18, 0.055) 0%,
+      rgba(23, 19, 18, 0.035) 49.5%,
+      rgba(23, 19, 18, 0.035) 50.5%,
+      rgba(23, 19, 18, 0.055) 100%
+    );
+}
+
+.process-page .personality-overview-item__scale::after {
+  position: absolute;
+  top: 3px;
+  right: 10%;
+  bottom: 3px;
+  left: 10%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(10% - 1px),
+      rgba(255, 255, 255, 0.9) calc(10% - 1px),
+      rgba(255, 255, 255, 0.9) 10%
+    );
+  content: "";
+  pointer-events: none;
+}
+
+.process-page .personality-overview-item__midpoint {
+  position: absolute;
+  z-index: 2;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 1px;
+  background: rgba(23, 19, 18, 0.14);
+  transform: translateX(-50%);
+}
+
+.process-page .personality-overview-item__range {
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 111, 97, 0.25);
+}
+
+/* STEN positions are centred inside ten equal horizontal buckets. */
+.process-page .personality-overview-item__range--score-1 { left: 5%; width: 45%; }
+.process-page .personality-overview-item__range--score-2 { left: 15%; width: 35%; }
+.process-page .personality-overview-item__range--score-3 { left: 25%; width: 25%; }
+.process-page .personality-overview-item__range--score-4 { left: 35%; width: 15%; }
+.process-page .personality-overview-item__range--score-5 { left: 45%; width: 5%; }
+.process-page .personality-overview-item__range--score-6 { left: 50%; width: 5%; }
+.process-page .personality-overview-item__range--score-7 { left: 50%; width: 15%; }
+.process-page .personality-overview-item__range--score-8 { left: 50%; width: 25%; }
+.process-page .personality-overview-item__range--score-9 { left: 50%; width: 35%; }
+.process-page .personality-overview-item__range--score-10 { left: 50%; width: 45%; }
+
+.process-page .personality-overview-item__marker {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--talena-chart-accent);
+  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.32);
+  transform: translate(-50%, -50%);
+}
+
+.process-page .personality-overview-item__marker--score-1 { left: 5%; }
+.process-page .personality-overview-item__marker--score-2 { left: 15%; }
+.process-page .personality-overview-item__marker--score-3 { left: 25%; }
+.process-page .personality-overview-item__marker--score-4 { left: 35%; }
+.process-page .personality-overview-item__marker--score-5 { left: 45%; }
+.process-page .personality-overview-item__marker--score-6 { left: 55%; }
+.process-page .personality-overview-item__marker--score-7 { left: 65%; }
+.process-page .personality-overview-item__marker--score-8 { left: 75%; }
+.process-page .personality-overview-item__marker--score-9 { left: 85%; }
+.process-page .personality-overview-item__marker--score-10 { left: 95%; }
 
 @media (max-width: 980px) {
   .process-page .personality-overview-chart__groups {
@@ -214,6 +229,10 @@
 
   .process-page .personality-overview-group__title {
     min-height: 0;
+  }
+
+  .process-page .personality-overview-item {
+    grid-template-columns: minmax(95px, 0.7fr) minmax(160px, 2fr);
   }
 }
 
@@ -225,8 +244,11 @@
   .process-page .personality-overview-chart__legend {
     margin-top: 0.65rem;
   }
-}
 
+  .process-page .personality-overview-item {
+    grid-template-columns: minmax(78px, 0.8fr) minmax(130px, 1.7fr);
+  }
+}
 
 /* =========================================================
    PERSONALITY QUICK PROFILE
