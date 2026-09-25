@@ -421,9 +421,9 @@
                               </span>
                             {% endif %}
                           </div>
-                          {% if reflection.submitted_at %}
+                          {% if reflection.created_at %}
                             <div class="candidate-result-feedback-panel__timestamp">
-                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Besvarad{% else %}Answered{% endif %} {{ reflection.submitted_at|date:"Y-m-d H:i" }}
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Besvarad{% else %}Answered{% endif %} {{ reflection.created_at|date:"Y-m-d H:i" }}
                             </div>
                           {% endif %}
                           {% if reflection.comment %}
