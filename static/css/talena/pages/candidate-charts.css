@@ -118,7 +118,7 @@
 
 .process-page .personality-overview-item {
   display: grid;
-  grid-template-columns: minmax(68px, 0.8fr) minmax(120px, 1.7fr);
+  grid-template-columns: minmax(92px, 1fr) minmax(105px, 1.45fr);
   gap: 0.55rem;
   align-items: center;
   min-width: 0;
@@ -126,7 +126,9 @@
 
 .process-page .personality-overview-item__label {
   display: block;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
   color: var(--talena-text-muted);
   font-size: 0.55rem;
   font-weight: 500;
