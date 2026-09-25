@@ -15,7 +15,7 @@ register = template.Library()
 
 _SECTION_LABELS_SV = {
     "leading and working with others": "Leda och samarbeta med andra",
-    "organisation and thinking style": "Organisation och tankestil",
+    "organisation and thinking style": "Organisering och tankestil",
     "interacting and managing emotions": "Samspel och känslomässig hantering",
 }
 
