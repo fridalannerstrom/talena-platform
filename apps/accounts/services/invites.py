@@ -4,8 +4,10 @@ from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.utils import translation
 
+from apps.accounts.forms import DEFAULT_INVITE_MESSAGE, DEFAULT_INVITE_SUBJECT
 
-def send_invite_email(request, user, invite_link, company=None):
+
+def send_invite_email(request, user, invite_link, company=None, *, subject=None, message=None):
     """
     Send Talena account invitations in English.
 
@@ -31,12 +33,13 @@ def send_invite_email(request, user, invite_link, company=None):
             or request.user.email
         ),
         "logo_url": logo_url,
+        "invite_message": message if message is not None else DEFAULT_INVITE_MESSAGE,
     }
 
     # Account invitations should always be sent in English,
     # regardless of the language selected by the administrator.
     with translation.override("en"):
-        subject = "Welcome to Talena"
+        subject = subject if subject is not None else DEFAULT_INVITE_SUBJECT
 
         text_body = render_to_string(
             "emails/invite.txt",
