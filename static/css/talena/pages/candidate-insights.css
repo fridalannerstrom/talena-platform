@@ -1134,6 +1134,81 @@
   font-size: 0.64rem;
 }
 
+.process-page .candidate-result-feedback-panel {
+  display: block !important;
+  margin-top: 16px;
+}
+
+.process-page .candidate-result-feedback-panel__list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.process-page .candidate-result-feedback-panel__item {
+  padding: 14px 16px;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.process-page .candidate-result-feedback-panel__heading,
+.process-page .candidate-result-feedback-panel__experience-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.process-page .candidate-result-feedback-panel__area {
+  color: var(--talena-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.process-page .candidate-result-feedback-panel__label {
+  margin-top: 12px;
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.process-page .candidate-result-feedback-panel__comment {
+  margin: 4px 0 0;
+  color: var(--talena-ink);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.process-page .candidate-result-feedback-panel__experience {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--talena-border);
+}
+
+.process-page .candidate-result-feedback-panel__experience-heading {
+  justify-content: flex-start;
+  margin-top: 9px;
+}
+
+.process-page .candidate-result-feedback-panel__rating {
+  display: inline-flex;
+  padding: 6px 10px;
+  border: 1px solid var(--talena-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--talena-ink);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.process-page .candidate-result-feedback-panel__empty {
+  margin: 10px 0 0;
+}
+
 .process-page .candidate-result-preview-panel {
   margin-top: 0 !important;
 }
