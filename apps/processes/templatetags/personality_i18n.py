@@ -13,6 +13,12 @@ from apps.reports.libraries.personality.definitions import (
 
 register = template.Library()
 
+_SECTION_LABELS_SV = {
+    "leading and working with others": "Leda och samarbeta med andra",
+    "organisation and thinking style": "Organisation och tankestil",
+    "interacting and managing emotions": "Samspel och känslomässig hantering",
+}
+
 
 def _normalise(value) -> str:
     return " ".join(
@@ -109,3 +115,15 @@ def personality_label(value):
     )
 
     return label_map.get(_normalise(text), text)
+
+
+@register.filter
+def personality_section_label(value):
+    """Localize personality section headings without changing stored report data."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    language = str(get_language() or "sv").lower()
+    if language.startswith("sv"):
+        return _SECTION_LABELS_SV.get(_normalise(text), text)
+    return text
