@@ -374,25 +374,90 @@
                 </div>
 
                 {% if candidate_result_status.sharing_enabled and candidate_result_snapshot %}
-                  <div class="candidate-link-panel" style="margin-top: 16px; display: block;">
+                  <div class="candidate-link-panel candidate-result-feedback-panel">
                     <div class="candidate-inline-title">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Feedback om testupplevelsen{% else %}Test-experience feedback{% endif %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens reflektioner{% else %}Candidate reflections{% endif %}
                     </div>
                     <div class="candidate-inline-meta">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens allmänna upplevelse av testerna, separat från reflektionerna om resultaten.{% else %}The candidate's overall experience of the tests, separate from their reflections on the results.{% endif %}
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Så svarade kandidaten på beskrivningarna i sitt resultat.{% else %}How the candidate responded to the descriptions in their result.{% endif %}
                     </div>
-                    {% with experience=candidate_result_snapshot.test_experience_feedback %}
-                      {% if experience %}
-                        <p style="margin: 12px 0 4px;"><strong>{{ experience.rating }} / 5</strong> · {{ experience.updated_at|date:"Y-m-d H:i" }}</p>
-                        {% if experience.comment %}
-                          <p style="margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;">{{ experience.comment }}</p>
-                        {% endif %}
-                      {% else %}
-                        <p class="candidate-inline-meta" style="margin: 10px 0 0;">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen feedback om testupplevelsen ännu.{% else %}No test-experience feedback yet.{% endif %}
+
+                    <div class="candidate-result-feedback-panel__list">
+                      {% for reflection in candidate_result_snapshot.feedback.all %}
+                        <div class="candidate-result-feedback-panel__item">
+                          <div class="candidate-result-feedback-panel__heading">
+                            <span class="candidate-result-feedback-panel__area">
+                              {% if reflection.result_area == "personality" %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}
+                              {% elif reflection.result_area == "motivation" %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Motivation{% else %}Motivation{% endif %}
+                              {% elif reflection.result_area == "skills" %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdigheter{% else %}Skills{% endif %}
+                              {% endif %}
+                            </span>
+                            {% if reflection.response == "recognises" %}
+                              <span class="candidate-reflection__response is-positive">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jag känner igen mig{% else %}I recognise myself{% endif %}
+                              </span>
+                            {% elif reflection.response == "partly_recognises" %}
+                              <span class="candidate-reflection__response is-partial">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Delvis{% else %}Partly{% endif %}
+                              </span>
+                            {% elif reflection.response == "does_not_recognise" %}
+                              <span class="candidate-reflection__response is-negative">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Jag känner inte igen mig{% else %}I do not recognise myself{% endif %}
+                              </span>
+                            {% endif %}
+                          </div>
+                          {% if reflection.comment %}
+                            <div class="candidate-result-feedback-panel__label">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens kommentar{% else %}Candidate comment{% endif %}
+                            </div>
+                            <p class="candidate-result-feedback-panel__comment">{{ reflection.comment }}</p>
+                          {% endif %}
+                        </div>
+                      {% empty %}
+                        <p class="candidate-inline-meta">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidaten har inte lämnat några reflektioner ännu.{% else %}The candidate has not left any reflections yet.{% endif %}
                         </p>
-                      {% endif %}
-                    {% endwith %}
+                      {% endfor %}
+                    </div>
+
+                    <div class="candidate-result-feedback-panel__experience">
+                      <div class="candidate-inline-title">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Testupplevelse{% else %}Test experience{% endif %}
+                      </div>
+                      {% with experience=candidate_result_snapshot.test_experience_feedback %}
+                        {% if experience %}
+                          <div class="candidate-result-feedback-panel__experience-heading">
+                            <span class="candidate-result-feedback-panel__rating">
+                              {% if experience.rating == 1 %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte alls bra{% else %}Not good at all{% endif %}
+                              {% elif experience.rating == 2 %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte särskilt bra{% else %}Not very good{% endif %}
+                              {% elif experience.rating == 3 %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Helt okej{% else %}Okay{% endif %}
+                              {% elif experience.rating == 4 %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Bra{% else %}Good{% endif %}
+                              {% elif experience.rating == 5 %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mycket bra{% else %}Very good{% endif %}
+                              {% endif %}
+                            </span>
+                            <span class="candidate-inline-meta">{{ experience.updated_at|date:"Y-m-d H:i" }}</span>
+                          </div>
+                          {% if experience.comment %}
+                            <div class="candidate-result-feedback-panel__label">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kommentar om testupplevelsen{% else %}Comment on the test experience{% endif %}
+                            </div>
+                            <p class="candidate-result-feedback-panel__comment">{{ experience.comment }}</p>
+                          {% endif %}
+                        {% else %}
+                          <p class="candidate-inline-meta candidate-result-feedback-panel__empty">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen feedback om testupplevelsen ännu.{% else %}No test-experience feedback yet.{% endif %}
+                          </p>
+                        {% endif %}
+                      {% endwith %}
+                    </div>
                   </div>
                 {% endif %}
 
