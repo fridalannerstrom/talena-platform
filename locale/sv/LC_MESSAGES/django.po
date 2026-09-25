@@ -2483,30 +2483,10 @@ msgstr "All aktivitet"
 
 #: .\templates\customer\core\activity_list.html:70
 #, python-format
-msgid ""
-"
-"
-"              %(event_count)s recorded event
-"
-"            "
-msgid_plural ""
-"
-"
-"              %(event_count)s recorded events
-"
-"            "
-msgstr[0] ""
-"
-"
-"              %(event_count)s registrerad händelse
-"
-"            "
-msgstr[1] ""
-"
-"
-"              %(event_count)s registrerade händelser
-"
-"            "
+msgid "%(event_count)s recorded event"
+msgid_plural "%(event_count)s recorded events"
+msgstr[0] "%(event_count)s registrerad händelse"
+msgstr[1] "%(event_count)s registrerade händelser"
 
 #: .\templates\customer\core\activity_list.html:137
 #: .\templates\customer\core\layouts\customer_dashboard.html:418
@@ -2736,18 +2716,8 @@ msgstr "Stäng"
 
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:56
 #, python-format
-msgid ""
-"
-"
-"              Welcome, %(first_name)s!
-"
-"            "
-msgstr ""
-"
-"
-"              Välkommen, %(first_name)s!
-"
-"            "
+msgid "Welcome, %(first_name)s!"
+msgstr "Välkommen, %(first_name)s!"
 
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:62
 msgid "Welcome to Talena!"
@@ -2756,21 +2726,13 @@ msgstr "Välkommen till Talena!"
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:71
 #, python-format
 msgid ""
-"
-"
-"            As a %(company_name)s user, you have access to your previous "
-"candidates and test processes from Sova. We've brought them into Talena so "
-"you can pick up where you left off.
-"
-"          "
+"As a %(company_name)s user, you have access to your previous candidates and "
+"test processes from Sova. We've brought them into Talena so you can pick up "
+"where you left off."
 msgstr ""
-"
-"
-"            Som användare på %(company_name)s har du tillgång till era "
-"tidigare kandidater och testprocesser från Sova. Vi har flyttat in dem i "
-"Talena så att ni kan fortsätta där ni slutade.
-"
-"          "
+"Som användare på %(company_name)s har du tillgång till era tidigare "
+"kandidater och testprocesser från Sova. Vi har flyttat in dem i Talena så "
+"att ni kan fortsätta där ni slutade."
 
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:86
 msgid "archived processes"
