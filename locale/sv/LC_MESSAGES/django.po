@@ -324,36 +324,22 @@ msgstr ""
 
 #: .\apps\processes\forms.py:202
 msgid ""
-"Describe the role, situation or development context.
-"
-"
-"
-"You can include:
-"
-"• responsibilities and expectations
-"
-"• important requirements or behaviours
-"
-"• team or organisational context
-"
-"• priorities, challenges or success criteria
-"
+"Describe the role, situation or development context.\\n"
+"\\n"
+"You can include:\\n"
+"• responsibilities and expectations\\n"
+"• important requirements or behaviours\\n"
+"• team or organisational context\\n"
+"• priorities, challenges or success criteria\\n"
 "• areas you want Talena to explore"
 msgstr ""
-"Beskriv rollen, situationen eller utvecklingskontexten.
-"
-"
-"
-"Du kan inkludera:
-"
-"• ansvar och förväntningar
-"
-"• viktiga krav eller beteenden
-"
-"• team- eller organisationskontext
-"
-"• prioriteringar, utmaningar eller framgångskriterier
-"
+"Beskriv rollen, situationen eller utvecklingskontexten.\\n"
+"\\n"
+"Du kan inkludera:\\n"
+"• ansvar och förväntningar\\n"
+"• viktiga krav eller beteenden\\n"
+"• team- eller organisationskontext\\n"
+"• prioriteringar, utmaningar eller framgångskriterier\\n"
 "• områden som du vill att Talena ska utforska"
 
 #: .\apps\processes\forms.py:225 .\apps\processes\purpose_context_config.py:313
