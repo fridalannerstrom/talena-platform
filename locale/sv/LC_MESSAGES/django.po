@@ -3731,11 +3731,11 @@ msgstr ""
 # | msgid "Average profile"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:379
 msgid "Trait Profile"
-msgstr "Egenskapsprofil"
+msgstr "Karaktärsdragsprofil"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:392
 msgid "Trait & Indicator Profile"
-msgstr "Egenskaps- och indikatorprofil"
+msgstr "Karaktärsdrags- och indikatorsprofil"
 
 # | msgid "Description"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:405
