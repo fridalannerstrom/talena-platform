@@ -362,6 +362,56 @@
 </div>
 <!-- /PERSONALITY VIEW CONTROLS -->
 
+<!-- BALANCED PERSONALITY OVERVIEW -->
+<section class="personality-overview-chart" aria-labelledby="personality-overview-chart-title">
+  <div class="personality-overview-chart__header">
+    <div>
+      <h3 id="personality-overview-chart-title" class="personality-overview-chart__title">
+        {% trans "Personality at a glance" %}
+      </h3>
+      <p class="personality-overview-chart__intro">
+        {% trans "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole." %}
+      </p>
+    </div>
+    <div class="personality-overview-chart__legend" aria-hidden="true">
+      <span>{% trans "Left pole" %}</span>
+      <span class="personality-overview-chart__legend-line"></span>
+      <span>{% trans "Right pole" %}</span>
+    </div>
+  </div>
+
+  <div class="personality-overview-chart__groups">
+    {% for section in personality_profile.sections %}
+      <article class="personality-overview-group">
+        <h4 class="personality-overview-group__title">{{ section.section_name }}</h4>
+        <div class="personality-overview-group__plot">
+          <span class="personality-overview-group__midline" aria-hidden="true"></span>
+          {% for trait in section.traits %}
+            <div class="personality-overview-item">
+              <div class="personality-overview-item__scale">
+                {% for segment in trait.graph_segments %}
+                  {% if segment.selected %}
+                    <span
+                      class="personality-overview-item__range personality-overview-item__range--score-{{ segment.score }}"
+                      aria-hidden="true"
+                    ></span>
+                    <span
+                      class="personality-overview-item__marker personality-overview-item__marker--score-{{ segment.score }}"
+                      title="{{ trait.label }}: {{ segment.score }}/10"
+                    ></span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <span class="personality-overview-item__label">{{ trait.label }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+<!-- /BALANCED PERSONALITY OVERVIEW -->
+
 <div
   id="personality-detailed-view"
   class="personality-view-panel"
