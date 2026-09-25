@@ -2958,6 +2958,11 @@ def _build_candidate_result_reflections(snapshot) -> dict:
             "body": body,
             "points": points,
             "has_feedback": feedback is not None,
+            "submitted_at": (
+                feedback.created_at
+                if feedback is not None
+                else None
+            ),
             "response": (
                 feedback.response
                 if feedback is not None
@@ -3909,6 +3914,20 @@ def build_candidate_detail_context(
         for reflection in candidate_result_reflections.values()
         if reflection.get("has_feedback")
     )
+    if candidate_result_feedback_count == 0:
+        candidate_result_feedback_status = "not_started"
+    elif candidate_result_feedback_count == candidate_result_feedback_total:
+        candidate_result_feedback_status = "submitted"
+    else:
+        candidate_result_feedback_status = "in_progress"
+    candidate_result_last_feedback_at = max(
+        (
+            reflection["submitted_at"]
+            for reflection in candidate_result_reflections.values()
+            if reflection.get("submitted_at")
+        ),
+        default=None,
+    )
 
     if candidate_result_access is None:
         candidate_result_access_state = "not_created"
@@ -3950,6 +3969,8 @@ def build_candidate_detail_context(
         "access_state": candidate_result_access_state,
         "feedback_count": candidate_result_feedback_count,
         "feedback_total": candidate_result_feedback_total,
+        "feedback_status": candidate_result_feedback_status,
+        "last_feedback_at": candidate_result_last_feedback_at,
     }
 
     return {
