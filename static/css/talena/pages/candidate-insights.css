@@ -1134,6 +1134,10 @@
   font-size: 0.64rem;
 }
 
+.process-page .candidate-result-status__feedback-time {
+  flex-basis: 100%;
+}
+
 .process-page .candidate-result-feedback-panel {
   display: block !important;
   margin-top: 16px;
@@ -1165,6 +1169,12 @@
   color: var(--talena-ink);
   font-size: 0.76rem;
   font-weight: 700;
+}
+
+.process-page .candidate-result-feedback-panel__timestamp {
+  margin-top: 5px;
+  color: var(--talena-text-muted);
+  font-size: 0.64rem;
 }
 
 .process-page .candidate-result-feedback-panel__label {
