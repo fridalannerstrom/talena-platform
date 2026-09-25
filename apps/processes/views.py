@@ -164,7 +164,7 @@ import requests
 
 from django.conf import settings
 
-from apps.accounts.models import Company, CompanyMember
+from apps.accounts.models import Company, CompanyMember, OrgUnit
 from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
@@ -8905,29 +8905,47 @@ def process_create_v2(request):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
-    # --------------------------------------------------
-    # 3. Hämta company
-    # --------------------------------------------------
-    company_id = (
+    # Only accounts in companies where this user is a member can be selected.
+    memberships = list(
         CompanyMember.objects
         .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
+        .select_related("company")
     )
-
-    if not company_id:
+    if not memberships:
         messages.error(request, "You are not linked to a company.")
         return redirect("processes:process_list")
 
-    company = get_object_or_404(Company, pk=company_id)
+    accessible_ids = set()
+    for membership in memberships:
+        accessible_ids.update(
+            get_accessible_orgunit_ids(request.user, membership.company)
+        )
+    org_units = list(
+        OrgUnit.objects
+        .filter(
+            pk__in=accessible_ids,
+            company_id__in=[membership.company_id for membership in memberships],
+        )
+        .select_related("company")
+        .order_by("company__name", "name", "pk")
+    )
+    if not org_units:
+        messages.error(request, "You do not have an assigned account.")
+        return redirect("processes:process_list")
 
     # --------------------------------------------------
     # 4. POST: skapa processen
     # --------------------------------------------------
     if request.method == "POST":
-        form = TestProcessWizardCreateForm(request.POST)
+        form = TestProcessWizardCreateForm(request.POST, org_units=org_units)
 
         if form.is_valid():
+            selected_unit = (
+                form.cleaned_data["org_unit"]
+                if len(org_units) > 1
+                else org_units[0]
+            )
+            company = selected_unit.company
             purpose = form.cleaned_data.get("purpose")
             selected_tests = form.cleaned_data.get("selected_tests") or []
 
@@ -8965,6 +8983,7 @@ def process_create_v2(request):
                     "template_cards": template_cards,
                     "templates_count": len(template_cards),
                     "accounts_count": len(accounts),
+                    "org_units": org_units,
                 })
 
             if not resolved_template:
@@ -8997,6 +9016,7 @@ def process_create_v2(request):
                     "template_cards": template_cards,
                     "templates_count": len(template_cards),
                     "accounts_count": len(accounts),
+                    "org_units": org_units,
                 })
             
             
@@ -9007,41 +9027,12 @@ def process_create_v2(request):
             value = resolved_template["value"]
 
             # --------------------------------------------------
-            # 6. Hämta org unit
-            # --------------------------------------------------
-            active_unit_id = request.session.get("active_org_unit_id")
-            accessible_ids = get_accessible_orgunit_ids(request.user, company)
-
-            if not active_unit_id or int(active_unit_id) not in accessible_ids:
-                fallback_id = next(iter(accessible_ids), None)
-
-                if not fallback_id:
-                    form.add_error(
-                        None,
-                        "You do not have an assigned org unit, so a process cannot be created."
-                    )
-
-                    return render(request, "customer/processes/process_create_v2.html", {
-                        "form": form,
-                        "error": error,
-                        "process_purposes": PROCESS_PURPOSES,
-                        "available_tests": AVAILABLE_TESTS,
-                        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-                        "template_cards": template_cards,
-                        "templates_count": len(template_cards),
-                        "accounts_count": len(accounts),
-                    })
-
-                active_unit_id = fallback_id
-                request.session["active_org_unit_id"] = active_unit_id
-
-            # --------------------------------------------------
             # 7. Skapa TestProcess
             # --------------------------------------------------
             obj = TestProcess(
                 name=name,
                 company=company,
-                org_unit_id=int(active_unit_id),
+                org_unit=selected_unit,
                 provider="sova",
                 account_code=acc,
                 project_code=proj,
@@ -9070,6 +9061,7 @@ def process_create_v2(request):
                 )
 
             obj.save()
+            request.session["active_org_unit_id"] = selected_unit.pk
 
             # --------------------------------------------------
             # 9. Spara labels
@@ -9128,7 +9120,7 @@ def process_create_v2(request):
     # 11. GET: visa tom form
     # --------------------------------------------------
     else:
-        form = TestProcessWizardCreateForm()
+        form = TestProcessWizardCreateForm(org_units=org_units)
 
     return render(request, "customer/processes/process_create_v2.html", {
         "form": form,
@@ -9139,6 +9131,7 @@ def process_create_v2(request):
         "template_cards": template_cards,
         "templates_count": len(template_cards),
         "accounts_count": len(accounts),
+                    "org_units": org_units,
     })
 
 def normalise_five_point_score(
