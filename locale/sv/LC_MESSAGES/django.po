@@ -2935,15 +2935,6 @@ msgstr ""
 msgid "Team role profile chart"
 msgstr "Diagram över teamstilsprofil"
 
-# | msgid ""
-# | "
-"
-# | "          %(question_count)s question
-"
-# | "        "
-# | msgid_plural ""
-# | "          %(question_count)s questions
-"
 #: .\templates\customer\processes\partials\_team_styles.html:43
 #, python-format
 msgid "%(title)s: %(value)s out of 5"
@@ -3050,30 +3041,10 @@ msgstr ""
 
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:176
 #, python-format
-msgid ""
-"
-"
-"                    %(section_count)s section will be updated:
-"
-"                  "
-msgid_plural ""
-"
-"
-"                    %(section_count)s sections will be updated:
-"
-"                  "
-msgstr[0] ""
-"
-"
-"                    %(section_count)s avsnitt kommer att uppdateras:
-"
-"                  "
-msgstr[1] ""
-"
-"
-"                    %(section_count)s avsnitt kommer att uppdateras:
-"
-"                  "
+msgid "%(section_count)s section will be updated:"
+msgid_plural "%(section_count)s sections will be updated:"
+msgstr[0] "%(section_count)s avsnitt kommer att uppdateras:"
+msgstr[1] "%(section_count)s avsnitt kommer att uppdateras:"
 
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:202
 msgid ""
