@@ -4,18 +4,30 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Talena 1.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-11 21:49+0200\n"
-"PO-Revision-Date: 2026-07-22 23:25+0200\n"
-"Last-Translator: Talent Qode\n"
-"Language-Team: Swedish\n"
-"Language: sv\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Generated-By: Babel 2.18.0\n"
+"Project-Id-Version: Talena 1.0
+"
+"Report-Msgid-Bugs-To: 
+"
+"POT-Creation-Date: 2026-08-11 21:49+0200
+"
+"PO-Revision-Date: 2026-07-22 23:25+0200
+"
+"Last-Translator: Talent Qode
+"
+"Language-Team: Swedish
+"
+"Language: sv
+"
+"MIME-Version: 1.0
+"
+"Content-Type: text/plain; charset=UTF-8
+"
+"Content-Transfer-Encoding: 8bit
+"
+"Plural-Forms: nplurals=2; plural=(n != 1);
+"
+"Generated-By: Babel 2.18.0
+"
 
 #: .\apps\activity\models.py:125
 #: .\templates\customer\processes\_process_header.html:333
@@ -156,24 +168,40 @@ msgstr "Inbjudan till testprocess"
 #: .\apps\emails\utils.py:41 .\apps\emails\views.py:63
 #, python-brace-format
 msgid ""
-"Hi {first_name},\n"
-"\n"
-"You have been invited to complete assessments.\n"
-"\n"
-"Click the link below to start:\n"
-"{assessment_url}\n"
-"\n"
-"Best regards,\n"
+"Hi {first_name},
+"
+"
+"
+"You have been invited to complete assessments.
+"
+"
+"
+"Click the link below to start:
+"
+"{assessment_url}
+"
+"
+"
+"Best regards,
+"
 "{sender_full_name}"
 msgstr ""
-"Hej {first_name},\n"
-"\n"
-"Du har blivit inbjuden att genomföra tester.\n"
-"\n"
-"Klicka på länken nedan för att börja:\n"
-"{assessment_url}\n"
-"\n"
-"Vänliga hälsningar,\n"
+"Hej {first_name},
+"
+"
+"
+"Du har blivit inbjuden att genomföra tester.
+"
+"
+"
+"Klicka på länken nedan för att börja:
+"
+"{assessment_url}
+"
+"
+"
+"Vänliga hälsningar,
+"
 "{sender_full_name}"
 
 #: .\apps\emails\views.py:114
@@ -324,22 +352,36 @@ msgstr ""
 
 #: .\apps\processes\forms.py:202
 msgid ""
-"Describe the role, situation or development context.\n"
-"\n"
-"You can include:\n"
-"• responsibilities and expectations\n"
-"• important requirements or behaviours\n"
-"• team or organisational context\n"
-"• priorities, challenges or success criteria\n"
+"Describe the role, situation or development context.
+"
+"
+"
+"You can include:
+"
+"• responsibilities and expectations
+"
+"• important requirements or behaviours
+"
+"• team or organisational context
+"
+"• priorities, challenges or success criteria
+"
 "• areas you want Talena to explore"
 msgstr ""
-"Beskriv rollen, situationen eller utvecklingskontexten.\n"
-"\n"
-"Du kan inkludera:\n"
-"• ansvar och förväntningar\n"
-"• viktiga krav eller beteenden\n"
-"• team- eller organisationskontext\n"
-"• prioriteringar, utmaningar eller framgångskriterier\n"
+"Beskriv rollen, situationen eller utvecklingskontexten.
+"
+"
+"
+"Du kan inkludera:
+"
+"• ansvar och förväntningar
+"
+"• viktiga krav eller beteenden
+"
+"• team- eller organisationskontext
+"
+"• prioriteringar, utmaningar eller framgångskriterier
+"
 "• områden som du vill att Talena ska utforska"
 
 #: .\apps\processes\forms.py:225 .\apps\processes\purpose_context_config.py:313
@@ -1980,20 +2022,32 @@ msgstr "Ditt test"
 #: .\apps\processes\views.py:7109
 #, python-brace-format
 msgid ""
-"Hi {first_name}!\n"
-"\n"
-"Click the link below to start your assessment:\n"
-"{assessment_url}\n"
-"\n"
-"Best regards,\n"
+"Hi {first_name}!
+"
+"
+"
+"Click the link below to start your assessment:
+"
+"{assessment_url}
+"
+"
+"
+"Best regards,
+"
 "Talena"
 msgstr ""
-"Hej {first_name}!\n"
-"\n"
-"Klicka på länken nedan för att starta ditt test:\n"
-"{assessment_url}\n"
-"\n"
-"Vänliga hälsningar,\n"
+"Hej {first_name}!
+"
+"
+"
+"Klicka på länken nedan för att starta ditt test:
+"
+"{assessment_url}
+"
+"
+"
+"Vänliga hälsningar,
+"
 "Talena"
 
 #: .\apps\processes\views.py:8593
@@ -2368,20 +2422,28 @@ msgstr ""
 #: .\templates\customer\candidates\candidate_list.html:82
 #, python-format
 msgid ""
-"\n"
-"          Showing %(candidate_count)s candidate.\n"
+"
+"
+"          Showing %(candidate_count)s candidate.
+"
 "        "
 msgid_plural ""
-"\n"
-"          Showing %(candidate_count)s candidates.\n"
+"
+"
+"          Showing %(candidate_count)s candidates.
+"
 "        "
 msgstr[0] ""
-"\n"
-"          Visar %(candidate_count)s kandidat.\n"
+"
+"
+"          Visar %(candidate_count)s kandidat.
+"
 "        "
 msgstr[1] ""
-"\n"
-"          Visar %(candidate_count)s kandidater.\n"
+"
+"
+"          Visar %(candidate_count)s kandidater.
+"
 "        "
 
 #: .\templates\customer\candidates\candidate_list.html:113
@@ -2448,20 +2510,28 @@ msgstr "Åtgärder"
 #: .\templates\customer\candidates\candidate_list.html:247
 #, python-format
 msgid ""
-"\n"
-"                      %(process_count)s process\n"
+"
+"
+"                      %(process_count)s process
+"
 "                    "
 msgid_plural ""
-"\n"
-"                      %(process_count)s processes\n"
+"
+"
+"                      %(process_count)s processes
+"
 "                    "
 msgstr[0] ""
-"\n"
-"                      %(process_count)s process\n"
+"
+"
+"                      %(process_count)s process
+"
 "                    "
 msgstr[1] ""
-"\n"
-"                      %(process_count)s processer\n"
+"
+"
+"                      %(process_count)s processer
+"
 "                    "
 
 #: .\templates\customer\candidates\candidate_list.html:268
@@ -2508,20 +2578,28 @@ msgstr "All aktivitet"
 #: .\templates\customer\core\activity_list.html:70
 #, python-format
 msgid ""
-"\n"
-"              %(event_count)s recorded event\n"
+"
+"
+"              %(event_count)s recorded event
+"
 "            "
 msgid_plural ""
-"\n"
-"              %(event_count)s recorded events\n"
+"
+"
+"              %(event_count)s recorded events
+"
 "            "
 msgstr[0] ""
-"\n"
-"              %(event_count)s registrerad händelse\n"
+"
+"
+"              %(event_count)s registrerad händelse
+"
 "            "
 msgstr[1] ""
-"\n"
-"              %(event_count)s registrerade händelser\n"
+"
+"
+"              %(event_count)s registrerade händelser
+"
 "            "
 
 #: .\templates\customer\core\activity_list.html:137
@@ -2753,12 +2831,16 @@ msgstr "Stäng"
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:56
 #, python-format
 msgid ""
-"\n"
-"              Welcome, %(first_name)s!\n"
+"
+"
+"              Welcome, %(first_name)s!
+"
 "            "
 msgstr ""
-"\n"
-"              Välkommen, %(first_name)s!\n"
+"
+"
+"              Välkommen, %(first_name)s!
+"
 "            "
 
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:62
@@ -2768,16 +2850,20 @@ msgstr "Välkommen till Talena!"
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:71
 #, python-format
 msgid ""
-"\n"
+"
+"
 "            As a %(company_name)s user, you have access to your previous "
 "candidates and test processes from Sova. We've brought them into Talena so "
-"you can pick up where you left off.\n"
+"you can pick up where you left off.
+"
 "          "
 msgstr ""
-"\n"
+"
+"
 "            Som användare på %(company_name)s har du tillgång till era "
 "tidigare kandidater och testprocesser från Sova. Vi har flyttat in dem i "
-"Talena så att ni kan fortsätta där ni slutade.\n"
+"Talena så att ni kan fortsätta där ni slutade.
+"
 "          "
 
 #: .\templates\customer\core\partials\migration_onboarding_modal.html:86
@@ -2982,11 +3068,14 @@ msgid "Team role profile chart"
 msgstr "Diagram över teamstilsprofil"
 
 # | msgid ""
-# | "\n"
-# | "          %(question_count)s question\n"
+# | "
+"
+# | "          %(question_count)s question
+"
 # | "        "
 # | msgid_plural ""
-# | "          %(question_count)s questions\n"
+# | "          %(question_count)s questions
+"
 #: .\templates\customer\processes\partials\_team_styles.html:43
 #, python-format
 msgid "%(title)s: %(value)s out of 5"
@@ -3094,20 +3183,28 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:176
 #, python-format
 msgid ""
-"\n"
-"                    %(section_count)s section will be updated:\n"
+"
+"
+"                    %(section_count)s section will be updated:
+"
 "                  "
 msgid_plural ""
-"\n"
-"                    %(section_count)s sections will be updated:\n"
+"
+"
+"                    %(section_count)s sections will be updated:
+"
 "                  "
 msgstr[0] ""
-"\n"
-"                    %(section_count)s avsnitt kommer att uppdateras:\n"
+"
+"
+"                    %(section_count)s avsnitt kommer att uppdateras:
+"
 "                  "
 msgstr[1] ""
-"\n"
-"                    %(section_count)s avsnitt kommer att uppdateras:\n"
+"
+"
+"                    %(section_count)s avsnitt kommer att uppdateras:
+"
 "                  "
 
 #: .\templates\customer\processes\partials\candidate_insights\_global_ai_update.html:202
@@ -4014,17 +4111,25 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:613
 #, python-format
 msgid ""
-"\n"
-"  %(question_count)s question\n"
+"
+"
+"  %(question_count)s question
+"
 msgid_plural ""
-"\n"
-"  %(question_count)s questions\n"
+"
+"
+"  %(question_count)s questions
+"
 msgstr[0] ""
-"\n"
-"  %(question_count)s fråga\n"
+"
+"
+"  %(question_count)s fråga
+"
 msgstr[1] ""
-"\n"
-"  %(question_count)s frågor\n"
+"
+"
+"  %(question_count)s frågor
+"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_final_output.html:728
 msgid "Evidence still missing"
@@ -4350,9 +4455,12 @@ msgstr "AI-sammanfattning"
 #| "A combined interpretation of the candidate’s available assessment "
 #| "results, selected process purpose and any added process context."
 msgid ""
-"\n"
-"                A combined interpretation of the candidate’s available\n"
-"                imported assessment results.\n"
+"
+"
+"                A combined interpretation of the candidate’s available
+"
+"                imported assessment results.
+"
 "              "
 msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
@@ -4364,10 +4472,14 @@ msgstr ""
 #| "A combined interpretation of the candidate’s available assessment "
 #| "results, selected process purpose and any added process context."
 msgid ""
-"\n"
-"                A combined interpretation of the candidate’s available\n"
-"                assessment results, selected process purpose and any\n"
-"                added process context.\n"
+"
+"
+"                A combined interpretation of the candidate’s available
+"
+"                assessment results, selected process purpose and any
+"
+"                added process context.
+"
 "              "
 msgstr ""
 "En samlad tolkning av kandidatens tillgängliga testresultat, det valda "
@@ -4392,22 +4504,33 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:111
 #, fuzzy, python-format
 #| msgid ""
-#| "\n"
-#| "          %(completed)s of %(total)s assessments are complete.\n"
-#| "          The combined AI summary will be generated when all assessments\n"
-#| "          in the process have been completed.\n"
+#| "
+"
+#| "          %(completed)s of %(total)s assessments are complete.
+"
+#| "          The combined AI summary will be generated when all assessments
+"
+#| "          in the process have been completed.
+"
 #| "        "
 msgid ""
-"\n"
-"          %(completed)s of %(total)s assessments are complete.\n"
+"
+"
+"          %(completed)s of %(total)s assessments are complete.
+"
 "          This summary is based only on the assessment results currently "
-"available.\n"
+"available.
+"
 "        "
 msgstr ""
-"\n"
-"          %(completed)s av %(total)s tester är genomförda.\n"
-"          Den kombinerade AI-sammanfattningen skapas när samtliga tester\n"
-"          i processen har genomförts.\n"
+"
+"
+"          %(completed)s av %(total)s tester är genomförda.
+"
+"          Den kombinerade AI-sammanfattningen skapas när samtliga tester
+"
+"          i processen har genomförts.
+"
 "        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:118
@@ -4512,12 +4635,17 @@ msgstr "Ingen tillagd kontext"
 #| "final decision or prediction of future performance. Use it together with "
 #| "relevant conversations, experience and other available information."
 msgid ""
-"\n"
+"
+"
 "              This is an AI-generated interpretation of assessment "
-"evidence,\n"
-"              not a final decision or prediction of future performance.\n"
-"              Use it together with relevant conversations, experience and\n"
-"              other available information.\n"
+"evidence,
+"
+"              not a final decision or prediction of future performance.
+"
+"              Use it together with relevant conversations, experience and
+"
+"              other available information.
+"
 "            "
 msgstr ""
 "Detta är en AI-genererad tolkning av testunderlaget, inte ett slutgiltigt "
@@ -4530,9 +4658,12 @@ msgstr ""
 #| "The purpose-fit interpretation could not be generated. Use the refresh "
 #| "button to try again."
 msgid ""
-"\n"
-"          The purpose-fit interpretation could not be generated.\n"
-"          Use the refresh button to try again.\n"
+"
+"
+"          The purpose-fit interpretation could not be generated.
+"
+"          Use the refresh button to try again.
+"
 "        "
 msgstr ""
 "Den syftesanpassade tolkningen kunde inte genereras. Använd "
@@ -4551,9 +4682,12 @@ msgstr "Inga resultat från kognitiva tester är tillgängliga"
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:510
 msgid ""
-"\n"
-"            No structured historical assessment results are currently\n"
-"            available for this candidate.\n"
+"
+"
+"            No structured historical assessment results are currently
+"
+"            available for this candidate.
+"
 "          "
 msgstr ""
 
@@ -4564,43 +4698,67 @@ msgstr "Sammanfattningen väntar på återstående tester"
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:540
 #, fuzzy, python-format
 #| msgid ""
-#| "\n"
-#| "          %(completed)s of %(total)s assessments are complete.\n"
-#| "          The combined AI summary will be generated when all assessments\n"
-#| "          in the process have been completed.\n"
+#| "
+"
+#| "          %(completed)s of %(total)s assessments are complete.
+"
+#| "          The combined AI summary will be generated when all assessments
+"
+#| "          in the process have been completed.
+"
 #| "        "
 msgid ""
-"\n"
-"            %(completed)s of %(total)s assessments are complete.\n"
-"            The combined AI summary will be generated when all assessments\n"
-"            in the process have been completed.\n"
+"
+"
+"            %(completed)s of %(total)s assessments are complete.
+"
+"            The combined AI summary will be generated when all assessments
+"
+"            in the process have been completed.
+"
 "          "
 msgstr ""
-"\n"
-"          %(completed)s av %(total)s tester är genomförda.\n"
-"          Den kombinerade AI-sammanfattningen skapas när samtliga tester\n"
-"          i processen har genomförts.\n"
+"
+"
+"          %(completed)s av %(total)s tester är genomförda.
+"
+"          Den kombinerade AI-sammanfattningen skapas när samtliga tester
+"
+"          i processen har genomförts.
+"
 "        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_overview.html:551
 #, fuzzy
 #| msgid ""
-#| "\n"
-#| "          Results that are already available can be explored through\n"
-#| "          the assessment tabs above while the remaining assessments\n"
-#| "          are being completed.\n"
+#| "
+"
+#| "          Results that are already available can be explored through
+"
+#| "          the assessment tabs above while the remaining assessments
+"
+#| "          are being completed.
+"
 #| "        "
 msgid ""
-"\n"
-"            Results that are already available can be explored through\n"
-"            the assessment tabs above while the remaining assessments\n"
-"            are being completed.\n"
+"
+"
+"            Results that are already available can be explored through
+"
+"            the assessment tabs above while the remaining assessments
+"
+"            are being completed.
+"
 "          "
 msgstr ""
-"\n"
-"          Resultat som redan finns tillgängliga kan utforskas via\n"
-"          testflikarna ovan medan kandidaten genomför de återstående\n"
-"          testerna.\n"
+"
+"
+"          Resultat som redan finns tillgängliga kan utforskas via
+"
+"          testflikarna ovan medan kandidaten genomför de återstående
+"
+"          testerna.
+"
 "        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_personality.html:3
@@ -4649,20 +4807,28 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_questions.html:32
 #, python-format
 msgid ""
-"\n"
-"          %(question_count)s question\n"
+"
+"
+"          %(question_count)s question
+"
 "        "
 msgid_plural ""
-"\n"
-"          %(question_count)s questions\n"
+"
+"
+"          %(question_count)s questions
+"
 "        "
 msgstr[0] ""
-"\n"
-"          %(question_count)s fråga\n"
+"
+"
+"          %(question_count)s fråga
+"
 "        "
 msgstr[1] ""
-"\n"
-"          %(question_count)s frågor\n"
+"
+"
+"          %(question_count)s frågor
+"
 "        "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_questions.html:60
@@ -4682,20 +4848,28 @@ msgstr ""
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_questions.html:105
 #, python-format
 msgid ""
-"\n"
-"      %(question_count)s question\n"
+"
+"
+"      %(question_count)s question
+"
 "    "
 msgid_plural ""
-"\n"
-"      %(question_count)s questions\n"
+"
+"
+"      %(question_count)s questions
+"
 "    "
 msgstr[0] ""
-"\n"
-"      %(question_count)s fråga\n"
+"
+"
+"      %(question_count)s fråga
+"
 "    "
 msgstr[1] ""
-"\n"
-"      %(question_count)s frågor\n"
+"
+"
+"      %(question_count)s frågor
+"
 "    "
 
 #: .\templates\customer\processes\partials\candidate_insights\tabs\_questions.html:229
@@ -6114,39 +6288,55 @@ msgstr ""
 #: .\templates\customer\processes\process_detail.html:154
 #, python-format
 msgid ""
-"\n"
-"        %(candidate_count)s candidate in this historical test process\n"
+"
+"
+"        %(candidate_count)s candidate in this historical test process
+"
 "      "
 msgid_plural ""
-"\n"
-"        %(candidate_count)s candidates in this historical test process\n"
+"
+"
+"        %(candidate_count)s candidates in this historical test process
+"
 "      "
 msgstr[0] ""
-"\n"
-"        %(candidate_count)s kandidat i den här historiska testprocessen\n"
+"
+"
+"        %(candidate_count)s kandidat i den här historiska testprocessen
+"
 "      "
 msgstr[1] ""
-"\n"
-"        %(candidate_count)s kandidater i den här historiska testprocessen\n"
+"
+"
+"        %(candidate_count)s kandidater i den här historiska testprocessen
+"
 "      "
 
 #: .\templates\customer\processes\process_detail.html:162
 #, python-format
 msgid ""
-"\n"
-"        %(candidate_count)s candidate in this test process\n"
+"
+"
+"        %(candidate_count)s candidate in this test process
+"
 "      "
 msgid_plural ""
-"\n"
-"        %(candidate_count)s candidates in this test process\n"
+"
+"
+"        %(candidate_count)s candidates in this test process
+"
 "      "
 msgstr[0] ""
-"\n"
-"        %(candidate_count)s kandidat i den här testprocessen\n"
+"
+"
+"        %(candidate_count)s kandidat i den här testprocessen
+"
 "      "
 msgstr[1] ""
-"\n"
-"        %(candidate_count)s kandidater i den här testprocessen\n"
+"
+"
+"        %(candidate_count)s kandidater i den här testprocessen
+"
 "      "
 
 #: .\templates\customer\processes\process_detail.html:184
@@ -6770,20 +6960,28 @@ msgstr "Ingen beskrivning"
 #: .\templates\customer\teams\team_list.html:103
 #, python-format
 msgid ""
-"\n"
-"                    %(member_count)s member\n"
+"
+"
+"                    %(member_count)s member
+"
 "                  "
 msgid_plural ""
-"\n"
-"                    %(member_count)s members\n"
+"
+"
+"                    %(member_count)s members
+"
 "                  "
 msgstr[0] ""
-"\n"
-"                    %(member_count)s medlem\n"
+"
+"
+"                    %(member_count)s medlem
+"
 "                  "
 msgstr[1] ""
-"\n"
-"                    %(member_count)s medlemmar\n"
+"
+"
+"                    %(member_count)s medlemmar
+"
 "                  "
 
 #: .\templates\customer\teams\team_list.html:136
@@ -7045,14 +7243,20 @@ msgstr ""
 #~ msgstr "Översikt för historisk kandidat"
 
 #~ msgid ""
-#~ "\n"
-#~ "          This candidate uses imported assessment data.\n"
-#~ "          Explore the available assessment areas through the tabs above.\n"
+#~ "
+"
+#~ "          This candidate uses imported assessment data.
+"
+#~ "          Explore the available assessment areas through the tabs above.
+"
 #~ "        "
 #~ msgstr ""
-#~ "\n"
-#~ "          Den här kandidaten använder importerade testdata.\n"
-#~ "          Utforska de tillgängliga testområdena via flikarna ovan.\n"
+#~ "
+"
+#~ "          Den här kandidaten använder importerade testdata.
+"
+#~ "          Utforska de tillgängliga testområdena via flikarna ovan.
+"
 #~ "        "
 
 #, python-brace-format
@@ -7136,4 +7340,15 @@ msgstr "Ta bort från fästa projekt"
 
 msgid "You can pin up to five projects. Unpin one first."
 msgstr "Du kan fästa högst fem projekt. Ta bort ett först."
-\nmsgid "Personality at a glance"\nmsgstr "Personlighet i korthet"\n\nmsgid "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole."\nmsgstr "En visuell översikt av hela profilen. Mittpunkten är ett neutralt läge och varje markör visar kandidatens position mot vänster eller höger pol."\n\nmsgid "Left pole"\nmsgstr "Vänster pol"\n\nmsgid "Right pole"\nmsgstr "Höger pol"\n
+
+msgid "Personality at a glance"
+msgstr "Personlighet i korthet"
+
+msgid "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole."
+msgstr "En visuell översikt av hela profilen. Mittpunkten är ett neutralt läge och varje markör visar kandidatens position mot vänster eller höger pol."
+
+msgid "Left pole"
+msgstr "Vänster pol"
+
+msgid "Right pole"
+msgstr "Höger pol"
