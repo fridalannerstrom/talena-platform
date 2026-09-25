@@ -379,7 +379,7 @@
 
         <div class="personality-profile-section__header">
           <h4 class="personality-profile-section__title">
-            {% if forloop.counter == 1 %}{% trans "Leading and working with others" %}{% elif forloop.counter == 2 %}{% trans "Organisation and thinking style" %}{% else %}{% trans "Interacting and managing emotions" %}{% endif %}
+            {{ section|personality_profile_group_label }}
           </h4>
         </div>
 
@@ -697,7 +697,7 @@
   <div class="personality-overview-chart__groups">
     {% for section in personality_profile.sections %}
       <article class="personality-overview-group">
-        <h4 class="personality-overview-group__title">{% if forloop.counter == 1 %}{% trans "Leading and working with others" %}{% elif forloop.counter == 2 %}{% trans "Organisation and thinking style" %}{% else %}{% trans "Interacting and managing emotions" %}{% endif %}</h4>
+        <h4 class="personality-overview-group__title">{{ section|personality_profile_group_label }}</h4>
         <div class="personality-overview-group__plot">
           {% for trait in section.traits %}
             <div class="personality-overview-item">
@@ -733,7 +733,7 @@
       <header class="personality-quick-section__header">
 
         <h4 class="personality-quick-section__title">
-          {% if forloop.counter == 1 %}{% trans "Leading and working with others" %}{% elif forloop.counter == 2 %}{% trans "Organisation and thinking style" %}{% else %}{% trans "Interacting and managing emotions" %}{% endif %}
+          {{ section|personality_profile_group_label }}
         </h4>
 
       </header>
