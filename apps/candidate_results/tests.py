@@ -798,17 +798,41 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertContains(response, "Answered")
 
     def test_customer_portal_sheet_shows_partial_reflection_progress(self):
-        self.snapshot.content["skills"] = {
-            "title": "Färdigheter",
-            "body": "Beskrivning av färdigheter.",
-            "points": [],
-        }
-        self.snapshot.save(update_fields=["content"])
+        candidate = Candidate.objects.create(
+            first_name="Second",
+            last_name="Candidate",
+            email="second-candidate@example.com",
+        )
+        invitation = TestInvitation.objects.create(
+            process=self.process,
+            candidate=candidate,
+            status="completed",
+            completed_at=timezone.now(),
+        )
+        snapshot = CandidateResultSnapshot.objects.create(
+            invitation=invitation,
+            candidate=candidate,
+            process=self.process,
+            locale="sv",
+            content={
+                "personality": {
+                    "title": "Personlighet",
+                    "body": "Möjliga preferenser.",
+                    "points": [],
+                },
+                "skills": {
+                    "title": "Färdigheter",
+                    "body": "Beskrivning av färdigheter.",
+                    "points": [],
+                },
+            },
+            prompt_versions={"candidate_result": {"version": "test"}},
+        )
         self.user.role = "admin"
         self.user.save(update_fields=["role"])
         self.client.force_login(self.user)
         url = reverse("processes:process_candidate_detail", kwargs={
-            "process_id": self.process.pk, "candidate_id": self.candidate.pk,
+            "process_id": self.process.pk, "candidate_id": candidate.pk,
         })
 
         response = self.client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
@@ -816,7 +840,7 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertContains(response, "Not started")
 
         CandidateResultFeedback.objects.create(
-            snapshot=self.snapshot,
+            snapshot=snapshot,
             result_area="personality",
             response=CandidateResultFeedback.RECOGNISES,
         )
@@ -828,14 +852,13 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertNotContains(response, "All answered")
 
         CandidateResultFeedback.objects.create(
-            snapshot=self.snapshot,
+            snapshot=snapshot,
             result_area="skills",
             response=CandidateResultFeedback.PARTLY_RECOGNISES,
         )
         response = self.client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertContains(response, "2 / 2")
         self.assertContains(response, "All answered")
-
 
 class CandidateResultEmailTests(TestCase):
     def setUp(self):
