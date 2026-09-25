@@ -494,6 +494,8 @@ class CandidateResultAccessViewTests(TestCase):
 
         response = self.client.get(result_url)
         self.assertContains(response, "Redigera kommentar")
+        self.assertContains(response, '<div class="candidate-comment__label">Din kommentar:</div>', html=True)
+        self.assertContains(response, '<p class="candidate-comment__text">Det här stämmer bra med min upplevelse.</p>', html=True)
         self.assertContains(response, "Jag känner igen mig")
 
     def test_candidate_feedback_replaces_the_existing_area_response(self):
