@@ -494,6 +494,8 @@ class CandidateResultAccessViewTests(TestCase):
 
         response = self.client.get(result_url)
         self.assertContains(response, "Redigera kommentar")
+        self.assertContains(response, '<div class="candidate-comment__label">Din kommentar:</div>', html=True)
+        self.assertContains(response, '<p class="candidate-comment__text">Det här stämmer bra med min upplevelse.</p>', html=True)
         self.assertContains(response, "Jag känner igen mig")
 
     def test_candidate_feedback_replaces_the_existing_area_response(self):
@@ -593,9 +595,41 @@ class CandidateResultAccessViewTests(TestCase):
         response = self.client.get(reverse("processes:process_candidate_detail", kwargs={
             "process_id": self.process.pk, "candidate_id": self.candidate.pk,
         }), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
-        self.assertContains(response, "Test-experience feedback")
+        self.assertContains(response, "Test experience")
+        self.assertContains(response, "Very good")
         self.assertContains(response, "Bra testupplevelse.")
         self.assertContains(response, "0 / 1")
+
+    def test_customer_result_link_shows_candidate_reflection_and_test_experience_separately(self):
+        CandidateResultFeedback.objects.create(
+            snapshot=self.snapshot,
+            result_area="personality",
+            response=CandidateResultFeedback.RECOGNISES,
+            comment="Jag känner igen mig i beskrivningen.",
+            locale="sv",
+        )
+        CandidateTestExperienceFeedback.objects.create(
+            snapshot=self.snapshot,
+            rating=5,
+            comment="Testerna var tydliga.",
+            locale="sv",
+        )
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("processes:process_candidate_detail", kwargs={
+            "process_id": self.process.pk, "candidate_id": self.candidate.pk,
+        }), HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        self.assertContains(response, "Candidate reflections")
+        self.assertContains(response, "I recognise myself")
+        self.assertContains(response, "Candidate comment")
+        self.assertContains(response, "Jag känner igen mig i beskrivningen.")
+        self.assertContains(response, "Test experience")
+        self.assertContains(response, "Very good")
+        self.assertContains(response, "Testerna var tydliga.")
+        self.assertNotContains(response, "<strong>5 / 5</strong>")
 
     def test_revoked_access_returns_gone(self):
         self.access.revoked_at = timezone.now()
