@@ -24,6 +24,7 @@
     <div class="card-body">
       <form method="post">
         {% csrf_token %}
+        <p class="small text-muted">Du kan ändra ämnesrad och välkomsttext nedan. Aktiveringslänken och standardinstruktionerna läggs till automatiskt.</p>
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Skicka inbjudan</button>
       </form>
