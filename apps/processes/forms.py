@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import get_language, gettext_lazy as _
 
 from apps.accounts.models import OrgUnit
 from apps.processes.services.process_locking import is_test_package_locked
@@ -250,9 +250,18 @@ class TestProcessWizardCreateForm(forms.Form):
         super().__init__(*args, **kwargs)
         available = list(org_units or [])
         field = self.fields["org_unit"]
-        field.queryset = OrgUnit.objects.filter(pk__in=[unit.pk for unit in available]).select_related("company")
+        field.queryset = OrgUnit.objects.filter(
+            pk__in=[unit.pk for unit in available]
+        ).select_related("company")
         field.required = len(available) > 1
-        field.label_from_instance = lambda unit: f"{unit.company.name} · {unit.name}"
+        field.empty_label = (
+            "Välj konto"
+            if (get_language() or "").startswith("sv")
+            else "Select an account"
+        )
+        field.label_from_instance = (
+            lambda unit: f"{unit.company.name} · {unit.name}"
+        )
 
 
 # Talena process context i18n batch 1
