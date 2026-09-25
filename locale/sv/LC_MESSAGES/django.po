@@ -156,40 +156,24 @@ msgstr "Inbjudan till testprocess"
 #: .\apps\emails\utils.py:41 .\apps\emails\views.py:63
 #, python-brace-format
 msgid ""
-"Hi {first_name},
-"
-"
-"
-"You have been invited to complete assessments.
-"
-"
-"
-"Click the link below to start:
-"
-"{assessment_url}
-"
-"
-"
-"Best regards,
-"
+"Hi {first_name},\\n"
+"\\n"
+"You have been invited to complete assessments.\\n"
+"\\n"
+"Click the link below to start:\\n"
+"{assessment_url}\\n"
+"\\n"
+"Best regards,\\n"
 "{sender_full_name}"
 msgstr ""
-"Hej {first_name},
-"
-"
-"
-"Du har blivit inbjuden att genomföra tester.
-"
-"
-"
-"Klicka på länken nedan för att börja:
-"
-"{assessment_url}
-"
-"
-"
-"Vänliga hälsningar,
-"
+"Hej {first_name},\\n"
+"\\n"
+"Du har blivit inbjuden att genomföra tester.\\n"
+"\\n"
+"Klicka på länken nedan för att börja:\\n"
+"{assessment_url}\\n"
+"\\n"
+"Vänliga hälsningar,\\n"
 "{sender_full_name}"
 
 #: .\apps\emails\views.py:114
