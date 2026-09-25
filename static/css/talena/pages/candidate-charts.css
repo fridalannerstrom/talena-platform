@@ -55,10 +55,10 @@
 
 .process-page .personality-quick-row {
   display: grid !important;
-  grid-template-columns: minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(300px, 1.65fr) minmax(150px, 0.9fr) !important;
   gap: 1rem !important;
   align-items: center !important;
-  padding: 0.82rem 0.9rem !important;
+  padding: 0.68rem 0.9rem !important;
   border-bottom: 1px solid var(--talena-border) !important;
   background: #fff !important;
 }
@@ -70,8 +70,8 @@
 .process-page .personality-quick-row__pole p {
   margin: 0 !important;
   color: var(--talena-text-muted) !important;
-  font-size: 0.62rem !important;
-  line-height: 1.45 !important;
+  font-size: 0.58rem !important;
+  line-height: 1.35 !important;
 }
 
 .process-page .personality-quick-row__pole--right p {
@@ -103,7 +103,7 @@
 }
 
 .process-page .personality-quick-scale__segment {
-  height: 9px !important;
+  height: 10px !important;
   border: 0 !important;
   border-radius: 999px !important;
   background: var(--talena-chart-track) !important;
@@ -111,8 +111,8 @@
 }
 
 .process-page .personality-quick-scale__segment--selected {
-  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
-  box-shadow: none !important;
+  background: var(--talena-chart-accent) !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(207, 89, 80, 0.18) !important;
 }
 
 .process-page .personality-quick-scale__center-line {
