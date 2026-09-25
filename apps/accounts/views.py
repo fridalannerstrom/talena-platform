@@ -97,6 +97,7 @@ from django.utils.encoding import force_bytes
 from .models import UserInvite
 from django.utils import timezone
 
+import csv
 import json
 from django.http import JsonResponse
 from django.db.models import Count, Q, Max
@@ -770,6 +771,77 @@ def admin_usage_billing(request):
     totals["process_count"] = len(
         totals["processes"]
     )
+
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="talena-billing-{date_from}-{date_to}.csv"'
+        )
+        response.write("\ufeff")
+        writer = csv.writer(response, delimiter=";")
+        headers = [
+            "Company / account",
+            "Process",
+            "Sent by",
+            "Candidates",
+            "Tests",
+            "Test types",
+        ]
+        if lifecycle == "completed":
+            headers.append("Status")
+        writer.writerow(headers)
+
+        type_labels = (
+            ("personality", "Personality"),
+            ("motivation", "Motivation"),
+            ("verbal", "Verbal"),
+            ("numerical", "Numerical"),
+            ("logical", "Logical"),
+            ("other", "Other"),
+        )
+        for row in rows:
+            if not row["selected_count"]:
+                continue
+            account = row["account_name"]
+            if row["account_code"]:
+                account += f" · {row['account_code']}"
+            process_name = f"{row['process_name']} · {row['project_name']}"
+            if row["labels"]:
+                process_name += " · " + ", ".join(
+                    label.name for label in row["labels"]
+                )
+            sender = row["sent_by"]
+            sender_name = (
+                sender.get_full_name() or sender.email
+                if sender else "Unknown / historical"
+            )
+            types = ", ".join(
+                f"{label} {row[key]}"
+                for key, label in type_labels
+                if row[key]
+            )
+            values = [
+                f"{row['company_name']} · {account}",
+                process_name,
+                sender_name,
+                row["candidate_count"],
+                row["selected_count"],
+                types,
+            ]
+            if lifecycle == "completed":
+                estimated = row["estimated_completed"]
+                if estimated == row["selected_count"]:
+                    detail = "Historical completion date"
+                elif estimated:
+                    detail = (
+                        f"{estimated} of {row['selected_count']} "
+                        "use historical dates"
+                    )
+                else:
+                    detail = "Recorded per assessment"
+                values.append(f"Completed & billable · {detail}")
+            writer.writerow(values)
+        return response
 
     # ------------------------------------------------------------
     # Filter choices
