@@ -2367,30 +2367,10 @@ msgstr ""
 
 #: .\templates\customer\candidates\candidate_list.html:82
 #, python-format
-msgid ""
-"
-"
-"          Showing %(candidate_count)s candidate.
-"
-"        "
-msgid_plural ""
-"
-"
-"          Showing %(candidate_count)s candidates.
-"
-"        "
-msgstr[0] ""
-"
-"
-"          Visar %(candidate_count)s kandidat.
-"
-"        "
-msgstr[1] ""
-"
-"
-"          Visar %(candidate_count)s kandidater.
-"
-"        "
+msgid "Showing %(candidate_count)s candidate."
+msgid_plural "Showing %(candidate_count)s candidates."
+msgstr[0] "Visar %(candidate_count)s kandidat."
+msgstr[1] "Visar %(candidate_count)s kandidater."
 
 #: .\templates\customer\candidates\candidate_list.html:113
 #: .\templates\customer\teams\team_members_edit.html:58
@@ -2455,30 +2435,10 @@ msgstr "Åtgärder"
 
 #: .\templates\customer\candidates\candidate_list.html:247
 #, python-format
-msgid ""
-"
-"
-"                      %(process_count)s process
-"
-"                    "
-msgid_plural ""
-"
-"
-"                      %(process_count)s processes
-"
-"                    "
-msgstr[0] ""
-"
-"
-"                      %(process_count)s process
-"
-"                    "
-msgstr[1] ""
-"
-"
-"                      %(process_count)s processer
-"
-"                    "
+msgid "%(process_count)s process"
+msgid_plural "%(process_count)s processes"
+msgstr[0] "%(process_count)s process"
+msgstr[1] "%(process_count)s processer"
 
 #: .\templates\customer\candidates\candidate_list.html:268
 msgid "Sent or started"
