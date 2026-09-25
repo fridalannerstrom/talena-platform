@@ -7148,3 +7148,12 @@ msgstr "Vänster pol"
 
 msgid "Right pole"
 msgstr "Höger pol"
+
+msgid "Leading and working with others"
+msgstr "Leda och samarbeta med andra"
+
+msgid "Organisation and thinking style"
+msgstr "Organisering och tankestil"
+
+msgid "Interacting and managing emotions"
+msgstr "Samspel och känslomässig hantering"
