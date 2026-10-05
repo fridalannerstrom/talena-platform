@@ -1467,15 +1467,15 @@
 }
 
 .process-page .candidate-result-overview__skills-list {
-  align-content: center;
+  align-content: stretch;
   flex: 1;
 }
 
 .process-page .candidate-result-overview__skills-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  gap: 0.25rem;
+  align-items: stretch;
+  gap: 0.4rem;
 }
 
 .process-page .candidate-result-overview__skill-card {
