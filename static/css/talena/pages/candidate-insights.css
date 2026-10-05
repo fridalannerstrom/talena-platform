@@ -1372,21 +1372,25 @@
   font-weight: 730;
 }
 
+.process-page .candidate-result-overview__side--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .process-page .candidate-result-overview__motivation-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0.55rem;
 }
 
 .process-page .candidate-result-overview__motivation-group {
   display: grid;
   align-content: start;
-  gap: 0.35rem;
+  gap: 0.48rem;
   min-width: 0;
 }
 
 .process-page .candidate-result-overview__list-label {
-  margin: 0 0 0.08rem;
+  margin: 0 0 0.04rem;
   color: var(--talena-text-subtle);
   font-size: 0.52rem;
   font-weight: 720;
@@ -1397,27 +1401,11 @@
 .process-page .candidate-result-overview__motivation-item {
   display: grid;
   min-width: 0;
-  gap: 0.22rem;
-  padding: 0.32rem 0.42rem;
-  border-left: 3px solid var(--motivation-domain, #d7c4bd);
-  border-radius: 4px;
-  background: #faf9f7;
-}
-
-.process-page .candidate-result-overview__motivation-item--domain-0 {
-  --motivation-domain: #f0847b;
-}
-
-.process-page .candidate-result-overview__motivation-item--domain-1 {
-  --motivation-domain: #d9a09d;
-}
-
-.process-page .candidate-result-overview__motivation-item--domain-2 {
-  --motivation-domain: #91ad99;
-}
-
-.process-page .candidate-result-overview__motivation-item--domain-3 {
-  --motivation-domain: #d3ae73;
+  gap: 0.28rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 11px;
+  background: var(--talena-surface-soft);
 }
 
 .process-page .candidate-result-overview__motivation-item-main {
@@ -1425,13 +1413,14 @@
   min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .process-page .candidate-result-overview__motivation-name {
   overflow: hidden;
-  color: var(--talena-text);
-  font-size: 0.58rem;
+  color: var(--talena-ink);
+  font-size: 0.63rem;
+  font-weight: 680;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1439,27 +1428,40 @@
 
 .process-page .candidate-result-overview__motivation-score {
   flex: 0 0 auto;
-  color: var(--talena-ink);
-  font-size: 0.56rem;
+  color: var(--talena-coral-strong);
+  font-size: 0.59rem;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
 }
 
+.process-page .candidate-result-overview__motivation-description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--talena-text-muted);
+  font-size: 0.55rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .process-page .candidate-result-overview__motivation-scale {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px;
+  gap: 0.24rem;
   width: 100%;
 }
 
-.process-page .candidate-result-overview__motivation-segment {
-  height: 3px;
-  border-radius: 99px;
-  background: #e8e4e0;
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segments {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.22rem;
 }
 
-.process-page .candidate-result-overview__motivation-segment.is-filled {
-  background: var(--motivation-domain, #d7c4bd);
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.2rem;
+  font-size: 0.45rem;
+  line-height: 1.2;
 }
 
 .process-page .candidate-result-overview__skills-list {
@@ -1569,5 +1571,9 @@
 @media (max-width: 460px) {
   .process-page .candidate-result-overview__motivation-list {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .candidate-result-overview__motivation-item {
+    padding: 0.55rem 0.6rem;
   }
 }
