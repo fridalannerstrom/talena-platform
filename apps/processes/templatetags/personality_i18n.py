@@ -14,9 +14,9 @@ from apps.reports.libraries.personality.definitions import (
 register = template.Library()
 
 _SECTION_LABELS_SV = {
-    "leading and working with others": "Leda och samarbeta med andra",
-    "organisation and thinking style": "Organisering och tankestil",
-    "interacting and managing emotions": "Samspel och känslomässig hantering",
+    "leading and working with others": "Leda och arbeta med andra",
+    "organisation and thinking style": "Organisering och tankemönster",
+    "interacting and managing emotions": "Interaktion och känslohantering",
 }
 
 
@@ -130,12 +130,12 @@ def personality_section_label(value):
 
 
 _PROFILE_GROUPS_SV = {
-    "samverkande": "Leda och samarbeta med andra",
-    "collaborative": "Leda och samarbeta med andra",
-    "måldriven": "Organisering och tankestil",
-    "goal focused": "Organisering och tankestil",
-    "uppriktighet och regelstyrd": "Samspel och känslomässig hantering",
-    "honesty and rule orientation": "Samspel och känslomässig hantering",
+    "samverkande": "Leda och arbeta med andra",
+    "collaborative": "Leda och arbeta med andra",
+    "måldriven": "Organisering och tankemönster",
+    "goal focused": "Organisering och tankemönster",
+    "uppriktighet och regelstyrd": "Interaktion och känslohantering",
+    "honesty and rule orientation": "Interaktion och känslohantering",
 }
 
 _PROFILE_GROUPS_EN = {
