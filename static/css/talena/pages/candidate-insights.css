@@ -1267,22 +1267,10 @@
 
 /* CANDIDATE RESULT OVERVIEW */
 .process-page .candidate-result-overview {
-  padding: 1.05rem;
-  border: 1px solid var(--talena-border);
-  border-radius: 12px;
-  background: linear-gradient(145deg, #fff 0%, #fdfbf9 100%);
-}
-
-.process-page .candidate-result-overview__header {
-  margin-bottom: 0.8rem;
-}
-
-.process-page .candidate-result-overview__title {
-  margin: 0;
-  color: var(--talena-ink);
-  font-size: 1rem;
-  font-weight: 720;
-  letter-spacing: -0.025em;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .process-page .candidate-result-overview__grid {
