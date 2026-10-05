@@ -5,6 +5,8 @@ from __future__ import annotations
 from django import template
 from django.utils.translation import get_language
 
+from apps.core.motivation_factor_names import MOTIVATION_FACTOR_NAMES_SV
+
 
 register = template.Library()
 
@@ -31,7 +33,6 @@ DOMAIN_CONTENT = {
 
 FACTOR_CONTENT = {
     "attachment": {
-        "name": "Anknytning",
         "description": "Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer.",
         "top_text": (
             "Värdesätter social interaktion med andra på jobbet. Detta är en primär drivkraft för personen. Trivs med känslan av att tillhöra ett team och drivs av att utveckla starka band och goda arbetsrelationer."
@@ -43,7 +44,6 @@ FACTOR_CONTENT = {
         ),
     },
     "customer_service": {
-        "name": "Kundservice",
         "description": "Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar.",
         "top_text": (
             "Trivs i en kundorienterad roll där personen får hjälpa och stödja andra. Lägger gärna tid på att bygga relationer med kunder och förstå kundernas behov. Lägger stor vikt vid att möta och överträffa kundernas behov och förväntningar."
@@ -55,7 +55,6 @@ FACTOR_CONTENT = {
         ),
     },
     "work_life_balance": {
-        "name": "Work life Balance",
         "description": "Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga.",
         "top_text": (
             "Balans mellan arbete och privatliv, så personen kan uppfylla sina åtaganden både i arbetet och utanför. Söker tydliga gränser så personen kan stänga av när arbetsdagen är slut och ägna tid åt andra aktiviteter som är viktiga."
@@ -67,7 +66,6 @@ FACTOR_CONTENT = {
         ),
     },
     "people_development": {
-        "name": "Människors utveckling",
         "description": "Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa.",
         "top_text": (
             "Hjälpa och stödja andra och aktivt bidra till deras utveckling. Trivs med att vägleda andra genom svåra perioder och hjälpa andra att motivera och övervinna motgångar. Erbjuder proaktivt stöd så att andra kan växa."
@@ -79,7 +77,6 @@ FACTOR_CONTENT = {
         ),
     },
     "stability": {
-        "name": "Stabilitet",
         "description": "Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll.",
         "top_text": (
             "Känna trygghet på jobbet. Föredrar troligen att arbeta i en bransch eller organisation som de ser som stabil. Lägger vikt vid att känna att deras position på jobbet är säker och är sannolikt mer angelägen om att ha stabilitet i sin roll."
@@ -91,7 +88,6 @@ FACTOR_CONTENT = {
         ),
     },
     "authority": {
-        "name": "Auktoritet",
         "description": "Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska.",
         "top_text": (
             "Värdesätter möjligheten att ta på sig ledande befattningar och möjlighet till befordran. Uppskattar roller där det ges utrymme att ange riktningen, organisera andra och säkerställa att arbetet utförs som det ska."
@@ -103,7 +99,6 @@ FACTOR_CONTENT = {
         ),
     },
     "acquisition": {
-        "name": "Anskaffning",
         "description": "Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande.",
         "top_text": (
             "Motiveras av ekonomisk belöning och av att arbeta i en välbetald roll så personen har råd med saker den vill ha utan att behöva oroa sig för kostnader. Fokus på lön och förmåner är starkt; attraktiv ersättning är motiverande."
@@ -115,7 +110,6 @@ FACTOR_CONTENT = {
         ),
     },
     "independence": {
-        "name": "Självständighet",
         "description": "Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt.",
         "top_text": (
             "Friheten att fatta egna beslut om hur personen ska planera sin tid och organisera sitt arbete. Presterar som bäst när personen får förtroende att sätta sin egen arbetsriktning och sköta sitt arbete på det sätt personen själv tycker är lämpligt."
@@ -127,7 +121,6 @@ FACTOR_CONTENT = {
         ),
     },
     "recognition": {
-        "name": "Erkännande",
         "description": "Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande.",
         "top_text": (
             "Motiveras av erkännande, beröm och uppskattning. Prioriterar aktiviteter eller projekt som är synliga i organisationen så att andra kan se arbetet personen gör och värdet det tillför. Positiv feedback och beröm är motiverande."
@@ -139,7 +132,6 @@ FACTOR_CONTENT = {
         ),
     },
     "making_a_difference": {
-        "name": "Göra skillnad",
         "description": "Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort.",
         "top_text": (
             "Känna att personen gör en positiv skillnad för andra. Anser att det är viktigt att vara en del av en organisation vars mål och syfte förefaller värdiga och att kunna se hur arbetet har en gynnsam inverkan på samhället i stort."
@@ -151,7 +143,6 @@ FACTOR_CONTENT = {
         ),
     },
     "achievement": {
-        "name": "Prestation",
         "description": "Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras.",
         "top_text": (
             "Får energi av definierade och utmanande mål att arbeta mot. Möjligheter som utmanar professionellt har stor betydelse, trivs med konkurrens och en miljö där personen har möjlighet att jämföra sin prestation med andras."
@@ -163,7 +154,6 @@ FACTOR_CONTENT = {
         ),
     },
     "quality": {
-        "name": "Kvalité",
         "description": "Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt.",
         "top_text": (
             "Leverera högkvalitativa resultat på en konsekvent basis. Är stolt över att producera arbete som är i linje med både vad personen har lovat och vad som förväntas. Säkerställer att arbetet slutförs så perfekt som möjligt."
@@ -175,7 +165,6 @@ FACTOR_CONTENT = {
         ),
     },
     "learning": {
-        "name": "Lärande",
         "description": "Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter.",
         "top_text": (
             "Drivs av möjligheten att lära sig och utveckla sin expertis. Känner sig bekväm i en miljö där det finns gott om möjligheter till fortlöpande utbildning och utveckling och att bemästra nya färdigheter."
@@ -187,7 +176,6 @@ FACTOR_CONTENT = {
         ),
     },
     "ethics": {
-        "name": "Etik",
         "description": "Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna.",
         "top_text": (
             "Upprätthåller hög etisk standard för sig själv och sin organisation. Följer branschriktlinjer och krav på bästa praxis. Är stolt över sin professionella integritet och trivs i en organisation vars etiska värderingar ligger i linje med de egna."
@@ -199,7 +187,6 @@ FACTOR_CONTENT = {
         ),
     },
     "commercial_focus": {
-        "name": "Kommersiellt fokus",
         "description": "Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst.",
         "top_text": (
             "Trivs i en roll som är kommersiellt fokuserad och bidrar till organisationens ekonomiska framgång. Värdesätter att se kopplingen mellan sin roll och organisationens resultat och får energi av att se hur arbetet leder till kommersiell vinst."
@@ -211,7 +198,6 @@ FACTOR_CONTENT = {
         ),
     },
     "curiosity": {
-        "name": "Nyfikenhet",
         "description": "Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset.",
         "top_text": (
             "Utforska och upptäcka nya saker. Eftersträvar kunskap och erfarenhet, utnyttjar möjligheter för nya upplevelser och ny information och utforskar de saker som fångar intresset."
@@ -223,7 +209,6 @@ FACTOR_CONTENT = {
         ),
     },
     "creativity": {
-        "name": "Kreativitet",
         "description": "Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika.",
         "top_text": (
             "Utöva sin kreativitet, tänka utanför ramarna, generera nya idéer och identifiera nya lösningar. Idéer och förslag kommer sannolikt att vara användbara, inte bara originella för att vara annorlunda eller unika."
@@ -235,7 +220,6 @@ FACTOR_CONTENT = {
         ),
     },
     "enjoyment": {
-        "name": "Glädje",
         "description": "Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är.",
         "top_text": (
             "Värdesätter en miljö där personen trivs med sitt arbete men även kan ha roligt med sina kollegor. Trivs i en lättsam miljö där personen kan uttrycka sin lekfulla sida, dela humor med kollegor och bli accepterad för den man är."
@@ -247,7 +231,6 @@ FACTOR_CONTENT = {
         ),
     },
     "variety": {
-        "name": "Variation",
         "description": "Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter.",
         "top_text": (
             "Motiveras av en roll med mycket variation och möjlighet att arbeta med olika saker. Trivs i en mångsidig roll med en blandning av uppgifter och projekt där personen får rikta sin uppmärksamhet mot olika arbetskrav och dra nytta av sina olika färdigheter."
@@ -259,7 +242,6 @@ FACTOR_CONTENT = {
         ),
     },
     "risk": {
-        "name": "Risk",
         "description": "Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig.",
         "top_text": (
             "Motiveras av risk i arbetet och att få möta situationer där utgången är oklar. Är bekväm med att ta riskfyllda beslut och trivs i roller som ger utrymme att uppleva spänningen i att ta en risk och sedan se om det lönar sig."
@@ -312,7 +294,10 @@ def motivation_name_sv(value):
     if not isinstance(value, dict):
         return value
     content = FACTOR_CONTENT.get(_item_key(value))
-    return content["name"] if content else value.get("name", "")
+    return MOTIVATION_FACTOR_NAMES_SV.get(
+        _item_key(value),
+        value.get("name", ""),
+    )
 
 
 @register.filter
@@ -330,7 +315,10 @@ def motivation_name(value):
     if not _is_swedish():
         return value.get("name", "")
     content = FACTOR_CONTENT.get(_item_key(value))
-    return content["name"] if content else value.get("name", "")
+    return MOTIVATION_FACTOR_NAMES_SV.get(
+        _item_key(value),
+        value.get("name", ""),
+    )
 
 
 @register.filter
