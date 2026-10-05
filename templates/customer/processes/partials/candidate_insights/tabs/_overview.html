@@ -299,7 +299,6 @@
                           <span class="candidate-result-overview__motivation-item">
                             <span class="candidate-result-overview__motivation-item-main">
                               <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
-                              <span class="candidate-result-overview__motivation-score">{{ item.score|floatformat:0 }} / 5</span>
                             </span>
                             <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
                                   role="meter"
@@ -328,8 +327,7 @@
                               <span class="candidate-result-overview__motivation-item">
                                 <span class="candidate-result-overview__motivation-item-main">
                                   <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
-                                  <span class="candidate-result-overview__motivation-score">{{ item.score|floatformat:0 }} / 5</span>
-                                </span>
+                                    </span>
                                     <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
                                       role="meter"
                                       aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score|floatformat:0 %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
