@@ -3032,7 +3032,14 @@ function initCandidateSheetInteractions(container) {
     workspace.dataset.insightsWorkspaceInitialised = "true";
 
     const tabs = Array.from(
-      workspace.querySelectorAll("[data-insights-tab]")
+      workspace.querySelectorAll(
+        ".candidate-profile-tabs [data-insights-tab]"
+      )
+    );
+    const overviewActions = Array.from(
+      workspace.querySelectorAll(
+        ".candidate-result-overview__area[data-insights-tab]"
+      )
     );
 
     const panels = Array.from(
@@ -3124,6 +3131,14 @@ if (target === "motivation") {
       tab.addEventListener("click", () => {
         activateTab(
           tab.dataset.insightsTab
+        );
+      });
+    });
+
+    overviewActions.forEach((action) => {
+      action.addEventListener("click", () => {
+        activateTab(
+          action.dataset.insightsTab
         );
       });
     });
