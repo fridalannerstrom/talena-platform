@@ -37,6 +37,7 @@
 }
 
 .process-page .global-ai-update-banner__action {
+  order: -1;
   flex: 0 0 auto;
 }
 
