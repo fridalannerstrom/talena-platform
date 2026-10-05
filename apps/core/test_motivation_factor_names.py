@@ -4,10 +4,10 @@ from apps.core.motivation_factor_names import MOTIVATION_FACTOR_NAMES_SV
 from apps.processes.templatetags.motivation_i18n import motivation_name_sv
 
 
-SOVA_SWEDISH_MOTIVATION_NAMES = {
+EXPECTED_SWEDISH_MOTIVATION_NAMES = {
     "attachment": "Anknytning",
     "customer_service": "Kundservice",
-    "work_life_balance": "Balans mellan arbete och privatliv",
+    "work_life_balance": "Work life Balance",
     "people_development": "Människors utveckling",
     "stability": "Stabilitet",
     "authority": "Auktoritet",
@@ -29,8 +29,8 @@ SOVA_SWEDISH_MOTIVATION_NAMES = {
 
 
 class MotivationFactorNameTests(SimpleTestCase):
-    def test_swedish_labels_match_the_sova_report(self):
-        self.assertEqual(MOTIVATION_FACTOR_NAMES_SV, SOVA_SWEDISH_MOTIVATION_NAMES)
+    def test_labels_match_the_approved_swedish_display_names(self):
+        self.assertEqual(MOTIVATION_FACTOR_NAMES_SV, EXPECTED_SWEDISH_MOTIVATION_NAMES)
 
     def test_result_view_uses_canonical_swedish_labels(self):
         self.assertEqual(
