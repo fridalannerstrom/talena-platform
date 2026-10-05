@@ -37,7 +37,6 @@
 }
 
 .process-page .global-ai-update-banner__action {
-  order: -1;
   flex: 0 0 auto;
 }
 
@@ -141,7 +140,7 @@
   }
 
   .process-page .global-ai-update-banner__action {
-    align-self: flex-start;
-    margin-left: 3.1rem;
+    align-self: flex-end;
+    margin-left: 0;
   }
 }
