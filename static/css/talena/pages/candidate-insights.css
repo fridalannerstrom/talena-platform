@@ -1431,14 +1431,6 @@
   white-space: nowrap;
 }
 
-.process-page .candidate-result-overview__motivation-score {
-  flex: 0 0 auto;
-  color: var(--talena-coral-strong);
-  font-size: 0.59rem;
-  font-weight: 720;
-  font-variant-numeric: tabular-nums;
-}
-
 .process-page .candidate-result-overview__motivation-scale {
   display: block;
   width: 100%;
