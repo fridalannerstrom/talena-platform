@@ -1372,57 +1372,66 @@
   font-weight: 730;
 }
 
-.process-page .candidate-result-overview__motivation-list,
-.process-page .candidate-result-overview__skills-list {
+.process-page .candidate-result-overview__motivation-list {
   display: grid;
-  gap: 0.34rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.process-page .candidate-result-overview__motivation-group {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .process-page .candidate-result-overview__list-label {
-  margin-top: 0.03rem;
+  margin: 0 0 0.08rem;
   color: var(--talena-text-subtle);
-  font-size: 0.54rem;
+  font-size: 0.52rem;
   font-weight: 720;
   letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
-.process-page .candidate-result-overview__list-label--bottom {
-  margin-top: 0.28rem;
-}
-
 .process-page .candidate-result-overview__motivation-item {
-  display: flex;
+  display: grid;
   min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.32rem 0.45rem;
-  border-left: 3px solid #d7c4bd;
+  gap: 0.22rem;
+  padding: 0.32rem 0.42rem;
+  border-left: 3px solid var(--motivation-domain, #d7c4bd);
   border-radius: 4px;
   background: #faf9f7;
 }
 
 .process-page .candidate-result-overview__motivation-item--domain-0 {
-  border-left-color: #d58b8a;
+  --motivation-domain: #f0847b;
 }
 
 .process-page .candidate-result-overview__motivation-item--domain-1 {
-  border-left-color: #d7b56d;
+  --motivation-domain: #d9a09d;
 }
 
 .process-page .candidate-result-overview__motivation-item--domain-2 {
-  border-left-color: #93ae91;
+  --motivation-domain: #91ad99;
 }
 
 .process-page .candidate-result-overview__motivation-item--domain-3 {
-  border-left-color: #b797bd;
+  --motivation-domain: #d3ae73;
+}
+
+.process-page .candidate-result-overview__motivation-item-main {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem;
 }
 
 .process-page .candidate-result-overview__motivation-name {
   overflow: hidden;
   color: var(--talena-text);
-  font-size: 0.61rem;
+  font-size: 0.58rem;
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1431,41 +1440,100 @@
 .process-page .candidate-result-overview__motivation-score {
   flex: 0 0 auto;
   color: var(--talena-ink);
-  font-size: 0.59rem;
+  font-size: 0.56rem;
   font-weight: 720;
   font-variant-numeric: tabular-nums;
 }
 
-.process-page .candidate-result-overview__skill {
+.process-page .candidate-result-overview__motivation-scale {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: baseline;
-  gap: 0.4rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid rgba(23, 19, 18, 0.07);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+  width: 100%;
 }
 
-.process-page .candidate-result-overview__skill:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
+.process-page .candidate-result-overview__motivation-segment {
+  height: 3px;
+  border-radius: 99px;
+  background: #e8e4e0;
+}
+
+.process-page .candidate-result-overview__motivation-segment.is-filled {
+  background: var(--motivation-domain, #d7c4bd);
+}
+
+.process-page .candidate-result-overview__skills-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.25rem;
+}
+
+.process-page .candidate-result-overview__skill-card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.42rem;
+  min-width: 0;
+  padding: 0.35rem 0.12rem 0.1rem;
 }
 
 .process-page .candidate-result-overview__skill-name {
-  color: var(--talena-text);
-  font-size: 0.64rem;
-  font-weight: 620;
+  color: var(--talena-ink);
+  font-size: 0.58rem;
+  font-weight: 670;
+  text-align: center;
+}
+
+.process-page .candidate-result-overview__skill-ring {
+  position: relative;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--talena-coral-strong) var(--percentile), #ece8e5 0);
+}
+
+.process-page .candidate-result-overview__skill-ring.is-empty {
+  background: #ece8e5;
+}
+
+.process-page .candidate-result-overview__skill-ring::before {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.process-page .candidate-result-overview__skill-ring-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
 }
 
 .process-page .candidate-result-overview__skill-value {
   color: var(--talena-ink);
-  font-size: 0.72rem;
-  font-weight: 740;
+  font-size: 1rem;
+  font-weight: 760;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .process-page .candidate-result-overview__skill-unit {
+  max-width: 62px;
   color: var(--talena-text-muted);
-  font-size: 0.54rem;
+  font-size: 0.39rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .process-page .candidate-result-overview__empty {
@@ -1477,8 +1545,8 @@
 
 @media (max-width: 720px) {
   .process-page .candidate-result-overview {
-    padding: 0.8rem;
-    border-radius: 10px;
+    padding: 0;
+    border-radius: 0;
   }
 
   .process-page .candidate-result-overview__personality {
@@ -1495,5 +1563,11 @@
 
   .process-page .candidate-result-overview__area {
     padding: 0.75rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .process-page .candidate-result-overview__motivation-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
