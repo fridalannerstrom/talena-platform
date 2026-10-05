@@ -206,17 +206,7 @@
 
         <!-- ================================================== -->
         <!-- COMPACT FACTUAL ASSESSMENT OVERVIEW -->
-        <section class="candidate-result-overview mb-4" aria-labelledby="candidateResultOverviewTitle">
-          <div class="candidate-result-overview__intro">
-            <div>
-              <h3 id="candidateResultOverviewTitle">
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultatöversikt{% else %}Assessment overview{% endif %}
-              </h3>
-              <p>
-                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Testresultat i korthet{% else %}A concise view of the available assessment results{% endif %}
-              </p>
-            </div>
-          </div>
+        <section class="candidate-result-overview mb-4" >
           <div class="candidate-result-overview__grid">
             {% if has_personality_assessment_in_process %}
               {% if has_personality_results and personality_profile.sections %}
