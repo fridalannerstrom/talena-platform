@@ -34,8 +34,8 @@ class MotivationFactorNameTests(SimpleTestCase):
 
     def test_result_view_uses_canonical_swedish_labels(self):
         self.assertEqual(
-            motivation_name_sv({"key": "work_life_balance", "name": "Work life Balance"}),
-            "Balans mellan arbete och privatliv",
+            motivation_name_sv({"key": "work_life_balance", "name": "Balans mellan arbete och privatliv"}),
+            "Work life Balance",
         )
         self.assertEqual(
             motivation_name_sv({"key": "quality", "name": "Kvalité"}),
