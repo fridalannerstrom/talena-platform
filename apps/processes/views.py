@@ -3189,6 +3189,12 @@ def build_candidate_detail_context(
         activities=activities,
     )
 
+    assessment_keys_in_process = sorted({
+        assessment.get("key")
+        for assessment in sent_assessments
+        if assessment.get("key")
+    })
+
     activity_events = (
         ActivityEvent.objects
         .filter(company=process.company, process=process, candidate=candidate)
@@ -3989,6 +3995,7 @@ def build_candidate_detail_context(
 
         "activities": activities,
         "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
         "project_results": project_results,
         "project_scores": project_scores,
         "competency_scores": competency_scores,
@@ -9943,6 +9950,25 @@ def build_historical_candidate_detail_context(
             ),
         })
 
+    assessment_keys_in_process = set()
+    for result in assessment_results:
+        assessment_type = str(
+            result.assessment_type or ""
+        ).strip().lower()
+
+        if "personality" in assessment_type or "personlig" in assessment_type:
+            assessment_keys_in_process.add("personality")
+        elif "motivation" in assessment_type:
+            assessment_keys_in_process.add("motivation")
+        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
+            assessment_keys_in_process.add("numerical")
+        elif "logical" in assessment_type or "logisk" in assessment_type:
+            assessment_keys_in_process.add("logical")
+        elif "verbal" in assessment_type:
+            assessment_keys_in_process.add("verbal")
+
+    assessment_keys_in_process = sorted(assessment_keys_in_process)
+
     all_competencies = (
         mq_competencies
         + normalised_personality_competencies
@@ -10010,6 +10036,7 @@ def build_historical_candidate_detail_context(
 
         # Header information.
         "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
         "tests_sent_count": assessment_results.count(),
         "tests_completed_count": assessment_results.count(),
 
