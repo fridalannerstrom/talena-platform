@@ -293,7 +293,6 @@ def motivation_name_sv(value):
     """Swedish chart label independent of the request's current locale."""
     if not isinstance(value, dict):
         return value
-    content = FACTOR_CONTENT.get(_item_key(value))
     return MOTIVATION_FACTOR_NAMES_SV.get(
         _item_key(value),
         value.get("name", ""),
@@ -314,7 +313,6 @@ def motivation_name(value):
         return value
     if not _is_swedish():
         return value.get("name", "")
-    content = FACTOR_CONTENT.get(_item_key(value))
     return MOTIVATION_FACTOR_NAMES_SV.get(
         _item_key(value),
         value.get("name", ""),
