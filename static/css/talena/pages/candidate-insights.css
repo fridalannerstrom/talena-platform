@@ -1263,3 +1263,295 @@
     border-bottom: 0;
   }
 }
+
+
+/* CANDIDATE RESULT OVERVIEW — FACTUAL MINI PROFILES */
+.process-page .candidate-result-overview {
+  padding: 1.05rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff 0%, #fdfbf9 100%);
+}
+
+.process-page .candidate-result-overview__header {
+  margin-bottom: 0.8rem;
+}
+
+.process-page .candidate-result-overview__title {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+}
+
+.process-page .candidate-result-overview__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.process-page .candidate-result-overview__side {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 0.68fr);
+  gap: 0.75rem;
+}
+
+.process-page .candidate-result-overview__area {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.72rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--talena-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--talena-transition-fast), box-shadow var(--talena-transition-fast), transform var(--talena-transition-fast);
+}
+
+.process-page .candidate-result-overview__area:hover,
+.process-page .candidate-result-overview__area:focus-visible {
+  border-color: rgba(255, 111, 97, 0.4);
+  box-shadow: 0 7px 20px rgba(23, 19, 18, 0.06);
+  outline: 0;
+}
+
+.process-page .candidate-result-overview__area:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.15);
+}
+
+.process-page .candidate-result-overview__area-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.process-page .candidate-result-overview__area-title {
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 730;
+}
+
+.process-page .candidate-result-overview__link-hint {
+  flex: 0 0 auto;
+  color: var(--talena-coral-strong);
+  font-size: 0.6rem;
+  font-weight: 650;
+}
+
+.process-page .candidate-result-overview__personality-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.process-page .candidate-result-overview__personality-group {
+  display: grid;
+  align-content: start;
+  gap: 0.36rem;
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  background: #faf9f7;
+}
+
+.process-page .candidate-result-overview__group-title {
+  margin-bottom: 0.08rem;
+  color: var(--talena-text-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.process-page .candidate-result-overview__trait {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(48px, 0.78fr) 1.2rem;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+}
+
+.process-page .candidate-result-overview__trait-label {
+  overflow: hidden;
+  color: var(--talena-text);
+  font-size: 0.58rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-page .candidate-result-overview__trait-scale {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(2px, 1fr));
+  gap: 2px;
+  align-items: center;
+  height: 9px;
+}
+
+.process-page .candidate-result-overview__trait-segment {
+  height: 4px;
+  border-radius: 99px;
+  background: #e9e5e1;
+}
+
+.process-page .candidate-result-overview__trait-segment.is-selected {
+  height: 8px;
+  background: var(--talena-coral-strong);
+  box-shadow: 0 0 0 2px rgba(255, 111, 97, 0.13);
+}
+
+.process-page .candidate-result-overview__trait-score {
+  color: var(--talena-text-muted);
+  font-size: 0.55rem;
+  font-weight: 680;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.process-page .candidate-result-overview__motivation-list,
+.process-page .candidate-result-overview__skills-list {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.process-page .candidate-result-overview__list-label {
+  margin-top: 0.03rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.54rem;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-overview__list-label--bottom {
+  margin-top: 0.28rem;
+}
+
+.process-page .candidate-result-overview__motivation-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.32rem 0.45rem;
+  border-left: 3px solid #d7c4bd;
+  border-radius: 4px;
+  background: #faf9f7;
+}
+
+.process-page .candidate-result-overview__motivation-item--domain-0 {
+  border-left-color: #d58b8a;
+}
+
+.process-page .candidate-result-overview__motivation-item--domain-1 {
+  border-left-color: #d7b56d;
+}
+
+.process-page .candidate-result-overview__motivation-item--domain-2 {
+  border-left-color: #93ae91;
+}
+
+.process-page .candidate-result-overview__motivation-item--domain-3 {
+  border-left-color: #b797bd;
+}
+
+.process-page .candidate-result-overview__motivation-name {
+  overflow: hidden;
+  color: var(--talena-text);
+  font-size: 0.61rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-page .candidate-result-overview__motivation-score {
+  flex: 0 0 auto;
+  color: var(--talena-ink);
+  font-size: 0.59rem;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+.process-page .candidate-result-overview__skill {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(23, 19, 18, 0.07);
+}
+
+.process-page .candidate-result-overview__skill:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.process-page .candidate-result-overview__skill-name {
+  color: var(--talena-text);
+  font-size: 0.64rem;
+  font-weight: 620;
+}
+
+.process-page .candidate-result-overview__skill-value {
+  color: var(--talena-ink);
+  font-size: 0.72rem;
+  font-weight: 740;
+  font-variant-numeric: tabular-nums;
+}
+
+.process-page .candidate-result-overview__skill-unit {
+  color: var(--talena-text-muted);
+  font-size: 0.54rem;
+}
+
+.process-page .candidate-result-overview__empty {
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 1000px) {
+  .process-page .candidate-result-overview__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .candidate-result-overview__side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .process-page .candidate-result-overview {
+    padding: 0.8rem;
+    border-radius: 10px;
+  }
+
+  .process-page .candidate-result-overview__side,
+  .process-page .candidate-result-overview__personality-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .candidate-result-overview__area {
+    padding: 0.75rem;
+  }
+
+  .process-page .candidate-result-overview__trait {
+    grid-template-columns: minmax(0, 1fr) minmax(82px, 0.8fr) 1.3rem;
+  }
+
+  .process-page .candidate-result-overview__trait-label,
+  .process-page .candidate-result-overview__motivation-name {
+    font-size: 0.64rem;
+  }
+
+  .process-page .candidate-result-overview__skill {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+}
