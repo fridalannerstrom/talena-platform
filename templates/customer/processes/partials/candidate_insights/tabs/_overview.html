@@ -208,7 +208,7 @@
         <!-- COMPACT FACTUAL ASSESSMENT OVERVIEW -->
         <section class="candidate-result-overview mb-4" >
           <div class="candidate-result-overview__grid">
-            {% if "personality" in assessment_keys_in_process %}
+            {% if has_personality_assessment_in_process %}
               {% if has_personality_results and personality_profile.sections %}
                 <section class="personality-overview-chart candidate-result-overview__personality" aria-labelledby="candidatePersonalityOverviewTitle">
                   <div class="personality-overview-chart__header">
@@ -278,8 +278,8 @@
               {% endif %}
             {% endif %}
 
-            <div class="candidate-result-overview__side">
-              {% if "motivation" in assessment_keys_in_process %}
+            <div class="candidate-result-overview__side{% if has_motivation_assessment_in_process and has_cognitive_assessments_in_process %}{% else %} candidate-result-overview__side--single{% endif %}">
+              {% if has_motivation_assessment_in_process %}
                 <button type="button" class="candidate-result-overview__area candidate-result-overview__area--motivation"
                         data-insights-tab="motivation" aria-controls="candidate-insights-panel-motivation">
                   <span class="candidate-result-overview__area-heading">
@@ -302,7 +302,7 @@
                               <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
                             </span>
                             <span class="candidate-result-overview__motivation-description">{{ item|motivation_description }}</span>
-                            <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
+                            <span class="response-style-scale response-style-scale--linear motivation-factor-result__scale candidate-result-overview__motivation-scale"
                                   role="meter"
                                   aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
                                   aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
@@ -370,7 +370,7 @@
                 </button>
               {% endif %}
 
-              {% if "verbal" in assessment_keys_in_process or "logical" in assessment_keys_in_process or "numerical" in assessment_keys_in_process %}
+              {% if has_cognitive_assessments_in_process %}
                 <button type="button" class="candidate-result-overview__area candidate-result-overview__area--skills"
                         data-insights-tab="cognitive" aria-controls="candidate-insights-panel-cognitive">
                   <span class="candidate-result-overview__area-heading">
