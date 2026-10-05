@@ -3,7 +3,7 @@
 MOTIVATION_FACTOR_NAMES_SV = {
     "attachment": "Anknytning",
     "customer_service": "Kundservice",
-    "work_life_balance": "Balans mellan arbete och privatliv",
+    "work_life_balance": "Work life Balance",
     "people_development": "Människors utveckling",
     "stability": "Stabilitet",
     "authority": "Auktoritet",
