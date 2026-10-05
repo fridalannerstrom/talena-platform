@@ -386,6 +386,22 @@
                                 </span>
                               </span>
                             </span>
+                            {% if result.completed %}
+                              <span class="candidate-result-overview__skill-comparison">
+                                <span class="candidate-result-overview__skill-comparison-label">{% trans "Compared with the reference group" %}</span>
+                                <span class="candidate-result-overview__skill-comparison-track"
+                                      role="meter"
+                                      aria-label="{{ result.percentile_aria_label }}"
+                                      aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ result.percentile }}">
+                                  <span class="candidate-result-overview__skill-comparison-fill" style="width: {{ result.percentile }}%;"></span>
+                                </span>
+                                <span class="candidate-result-overview__skill-comparison-labels">
+                                  <span>{% trans "Lower" %}</span>
+                                  <span>{% trans "Typical range" %}</span>
+                                  <span>{% trans "Higher" %}</span>
+                                </span>
+                              </span>
+                            {% endif %}
                           </span>
                         {% endif %}
                       {% endfor %}
