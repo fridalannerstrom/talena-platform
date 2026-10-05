@@ -1286,11 +1286,31 @@
 }
 
 .process-page .candidate-result-overview__personality .personality-overview-chart__header {
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
   margin-bottom: 0.75rem;
 }
 
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row > div {
+  min-width: 0;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row .candidate-result-overview__open {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
 .process-page .candidate-result-overview__personality .personality-overview-chart__legend {
+  align-self: flex-end;
   flex-wrap: wrap;
   justify-content: flex-end;
   white-space: normal;
