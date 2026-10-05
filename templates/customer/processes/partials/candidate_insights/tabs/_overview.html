@@ -296,13 +296,12 @@
                           {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest framträdande{% else %}Top drivers{% endif %}
                         </span>
                         {% for item in motivation_insights.motivators|slice:":3" %}
-                          <span class="candidate-result-overview__motivation-item motivation-factor-result">
+                          <span class="candidate-result-overview__motivation-item">
                             <span class="candidate-result-overview__motivation-item-main">
                               <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
                               <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
                             </span>
-                            <span class="candidate-result-overview__motivation-description">{{ item|motivation_description }}</span>
-                            <span class="response-style-scale response-style-scale--linear motivation-factor-result__scale candidate-result-overview__motivation-scale"
+                            <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
                                   role="meter"
                                   aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
                                   aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
@@ -310,13 +309,6 @@
                                 {% for segment in item.segments %}
                                   <span class="response-style-scale__segment{% if segment.filled %} response-style-scale__segment--filled{% endif %}{% if segment.number == item.score %} response-style-scale__segment--marker{% endif %}"></span>
                                 {% endfor %}
-                              </span>
-                              <span class="response-style-scale__labels">
-                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                                  <span>Mindre viktigt</span><span>Medel</span><span>Mer viktigt</span>
-                                {% else %}
-                                  <span>Less important</span><span>Average</span><span>More important</span>
-                                {% endif %}
                               </span>
                             </span>
                           </span>
@@ -333,13 +325,12 @@
                               {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre framträdande{% else %}Less prominent{% endif %}
                             </span>
                             {% for item in least_prominent %}
-                              <span class="candidate-result-overview__motivation-item motivation-factor-result">
+                              <span class="candidate-result-overview__motivation-item">
                                 <span class="candidate-result-overview__motivation-item-main">
                                   <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
                                   <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
                                 </span>
-                                <span class="candidate-result-overview__motivation-description">{{ item|motivation_description }}</span>
-                                <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
+                                    <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
                                       role="meter"
                                       aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
                                       aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
@@ -347,13 +338,6 @@
                                     {% for segment in item.segments %}
                                       <span class="response-style-scale__segment{% if segment.filled %} response-style-scale__segment--filled{% endif %}{% if segment.number == item.score %} response-style-scale__segment--marker{% endif %}"></span>
                                     {% endfor %}
-                                  </span>
-                                  <span class="response-style-scale__labels">
-                                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                                      <span>Mindre viktigt</span><span>Medel</span><span>Mer viktigt</span>
-                                    {% else %}
-                                      <span>Less important</span><span>Average</span><span>More important</span>
-                                    {% endif %}
                                   </span>
                                 </span>
                               </span>
