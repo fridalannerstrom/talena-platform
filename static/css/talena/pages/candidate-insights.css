@@ -1450,6 +1450,18 @@
   gap: 0.18rem;
 }
 
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segment {
+  min-height: 7px;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segment--filled {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
 .process-page .candidate-result-overview__area--skills {
   min-height: 220px;
 }
