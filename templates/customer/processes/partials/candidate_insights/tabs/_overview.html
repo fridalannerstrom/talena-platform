@@ -290,26 +290,40 @@
 
                 {% if has_motivation_results and motivation_insights %}
                   <span class="candidate-result-overview__motivation-list">
-                    <span class="candidate-result-overview__list-label">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest framträdande{% else %}More prominent{% endif %}
-                    </span>
-                    {% for item in motivation_insights.motivators|slice:":3" %}
-                      <span class="candidate-result-overview__motivation-item candidate-result-overview__motivation-item--domain-{{ item.domain_index }}">
-                        <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
-                        <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
+                    <span class="candidate-result-overview__motivation-group">
+                      <span class="candidate-result-overview__list-label">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest framträdande{% else %}Top drivers{% endif %}
                       </span>
-                    {% endfor %}
-                    {% with least_prominent=motivation_insights|motivation_least_prominent %}
-                      {% if least_prominent %}
-                        <span class="candidate-result-overview__list-label candidate-result-overview__list-label--bottom">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre framträdande{% else %}Less prominent{% endif %}
-                        </span>
-                        {% for item in least_prominent %}
-                          <span class="candidate-result-overview__motivation-item candidate-result-overview__motivation-item--domain-{{ item.domain_index }}">
+                      {% for item in motivation_insights.motivators|slice:":3" %}
+                        <span class="candidate-result-overview__motivation-item candidate-result-overview__motivation-item--domain-{{ item.domain_index }}">
+                          <span class="candidate-result-overview__motivation-item-main">
                             <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
                             <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
                           </span>
-                        {% endfor %}
+                          <span class="candidate-result-overview__motivation-scale" aria-hidden="true">
+                            {% for segment in item.segments %}<span class="candidate-result-overview__motivation-segment{% if segment.filled %} is-filled{% endif %}"></span>{% endfor %}
+                          </span>
+                        </span>
+                      {% endfor %}
+                    </span>
+                    {% with least_prominent=motivation_insights|motivation_least_prominent %}
+                      {% if least_prominent %}
+                        <span class="candidate-result-overview__motivation-group candidate-result-overview__motivation-group--bottom">
+                          <span class="candidate-result-overview__list-label">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre framträdande{% else %}Less prominent{% endif %}
+                          </span>
+                          {% for item in least_prominent %}
+                            <span class="candidate-result-overview__motivation-item candidate-result-overview__motivation-item--domain-{{ item.domain_index }}">
+                              <span class="candidate-result-overview__motivation-item-main">
+                                <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
+                                <span class="candidate-result-overview__motivation-score">{{ item.score|unlocalize }} / 5</span>
+                              </span>
+                              <span class="candidate-result-overview__motivation-scale" aria-hidden="true">
+                                {% for segment in item.segments %}<span class="candidate-result-overview__motivation-segment{% if segment.filled %} is-filled{% endif %}"></span>{% endfor %}
+                              </span>
+                            </span>
+                          {% endfor %}
+                        </span>
                       {% endif %}
                     {% endwith %}
                   </span>
@@ -331,20 +345,24 @@
                 {% if candidate_insights.cognitive_results %}
                   <span class="candidate-result-overview__skills-list">
                     {% for result in candidate_insights.cognitive_results %}
-                      <span class="candidate-result-overview__skill">
+                      <span class="candidate-result-overview__skill-card">
                         <span class="candidate-result-overview__skill-name">
                           {% if result.key == "verbal" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
                           {% elif result.key == "logical" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
                           {% elif result.key == "numerical" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
                           {% else %}{{ result.title }}{% endif %}
                         </span>
-                        <span class="candidate-result-overview__skill-value">{% if result.completed %}{{ result.percentile }}{% else %}—{% endif %}</span>
-                        <span class="candidate-result-overview__skill-unit">
-                          {% if result.completed %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}
-                          {% else %}
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}
-                          {% endif %}
+                        <span class="candidate-result-overview__skill-ring{% if not result.completed %} is-empty{% endif %}"
+                              {% if result.completed %}style="--percentile: {{ result.percentile }}%;"{% endif %}
+                              role="img"
+                              aria-label="{% if result.completed %}{{ result.title }}: {{ result.percentile }} {% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}{% else %}{{ result.title }}: {% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}">
+                          <span class="candidate-result-overview__skill-ring-inner">
+                            <span class="candidate-result-overview__skill-value">{% if result.completed %}{{ result.percentile }}{% else %}—{% endif %}</span>
+                            <span class="candidate-result-overview__skill-unit">
+                              {% if result.completed %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}
+                              {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}
+                            </span>
+                          </span>
                         </span>
                       </span>
                     {% endfor %}
