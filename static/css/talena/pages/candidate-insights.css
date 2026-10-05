@@ -1662,7 +1662,7 @@
   line-height: 1.55;
 }
 
-.process-page .personality-interpretation__context-note__title {
+.process-page .personality-interpretation__context-note .personality-questions-context-note__title {
   color: var(--talena-ink);
   font-weight: 700;
 }
