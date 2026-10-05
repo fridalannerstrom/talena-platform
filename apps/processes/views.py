@@ -3194,6 +3194,16 @@ def build_candidate_detail_context(
         for assessment in sent_assessments
         if assessment.get("key")
     })
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
 
     activity_events = (
         ActivityEvent.objects
@@ -3996,6 +4006,9 @@ def build_candidate_detail_context(
         "activities": activities,
         "sent_assessments": sent_assessments,
         "assessment_keys_in_process": assessment_keys_in_process,
+        "has_personality_assessment_in_process": has_personality_assessment_in_process,
+        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
+        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
         "project_results": project_results,
         "project_scores": project_scores,
         "competency_scores": competency_scores,
@@ -9968,6 +9981,16 @@ def build_historical_candidate_detail_context(
             assessment_keys_in_process.add("verbal")
 
     assessment_keys_in_process = sorted(assessment_keys_in_process)
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
 
     all_competencies = (
         mq_competencies
