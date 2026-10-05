@@ -184,7 +184,7 @@ TRAIT_PROFILE_CONTENT = {
         ),
     },
     "Structured": {
-        "label_sv": "Strukturerad & disciplinerad",
+        "label_sv": "Strukturerad och disciplinerad",
         "label_en": "Structured",
         "low_pole": _localized(
             (
@@ -880,7 +880,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Building Networks": _indicator(
-        label_sv="Skapa nätverk",
+        label_sv="Skapar nätverk",
         label_en="Building Networks",
         score_1_2=_localized(
             (
@@ -934,7 +934,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Initiating Contact": _indicator(
-        label_sv="Ta kontakt",
+        label_sv="Tar kontakt",
         label_en="Initiating Contact",
         score_1_2=_localized(
             "Upplever det utmanande att ta kontakt med nya personer.",
@@ -1163,7 +1163,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Desire to Lead": _indicator(
-        label_sv="Viljan att leda andra",
+        label_sv="Vilja att leda",
         label_en="Desire to Lead",
         score_1_2=_localized(
             (
@@ -1498,7 +1498,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Keeping Promises": _indicator(
-        label_sv="Hålla löften",
+        label_sv="Håller löften",
         label_en="Keeping Promises",
         score_1_2=_localized(
             "Är tolerant när det gäller mindre misstag eller ändringar i tidsplaner.",
@@ -1851,7 +1851,7 @@ INDICATOR_PROFILE_CONTENT = {
 
     # Creativity
     "Innovating": _indicator(
-        label_sv="Innovation",
+        label_sv="Innovativ",
         label_en="Innovating",
         score_1_2=_localized(
             (
@@ -2438,7 +2438,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Avoiding Status": _indicator(
-        label_sv="Undvika status",
+        label_sv="Undviker status",
         label_en="Avoiding Status",
         score_1_2=_localized(
             (
@@ -2602,7 +2602,7 @@ INDICATOR_PROFILE_CONTENT = {
         ),
     ),
     "Avoiding Attention": _indicator(
-        label_sv="Undvika uppmärksamhet",
+        label_sv="Undviker uppmärksamhet",
         label_en="Avoiding Attention",
         score_1_2=_localized(
             (
