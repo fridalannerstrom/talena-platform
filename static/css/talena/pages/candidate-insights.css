@@ -1345,18 +1345,18 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--talena-transition-fast), box-shadow var(--talena-transition-fast);
+  transition: none;
 }
 
-.process-page .candidate-result-overview__area:hover,
+.process-page .candidate-result-overview__area:hover {
+  border-color: var(--talena-border);
+  box-shadow: none;
+}
+
 .process-page .candidate-result-overview__area:focus-visible {
   border-color: rgba(255, 111, 97, 0.4);
-  box-shadow: 0 7px 20px rgba(23, 19, 18, 0.06);
-  outline: 0;
-}
-
-.process-page .candidate-result-overview__area:focus-visible {
   box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.15);
+  outline: 0;
 }
 
 .process-page .candidate-result-overview__area-heading {
@@ -1481,24 +1481,28 @@
 .process-page .candidate-result-overview__skill-card {
   display: grid;
   justify-items: center;
-  align-content: start;
-  gap: 0.42rem;
+  align-content: center;
+  gap: 0.58rem;
   min-width: 0;
-  padding: 0.35rem 0.12rem 0.1rem;
+  min-height: 142px;
+  padding: 0.7rem 0.35rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: var(--talena-surface-soft);
 }
 
 .process-page .candidate-result-overview__skill-name {
   color: var(--talena-ink);
-  font-size: 0.58rem;
-  font-weight: 670;
+  font-size: 0.62rem;
+  font-weight: 690;
   text-align: center;
 }
 
 .process-page .candidate-result-overview__skill-ring {
   position: relative;
   display: grid;
-  width: 76px;
-  height: 76px;
+  width: 86px;
+  height: 86px;
   place-items: center;
   border-radius: 50%;
   background: conic-gradient(var(--talena-coral-strong) var(--percentile), #ece8e5 0);
@@ -1510,7 +1514,7 @@
 
 .process-page .candidate-result-overview__skill-ring::before {
   position: absolute;
-  inset: 6px;
+  inset: 7px;
   border-radius: 50%;
   background: #fff;
   content: "";
@@ -1529,7 +1533,7 @@
 
 .process-page .candidate-result-overview__skill-value {
   color: var(--talena-ink);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 760;
   line-height: 1;
   font-variant-numeric: tabular-nums;
