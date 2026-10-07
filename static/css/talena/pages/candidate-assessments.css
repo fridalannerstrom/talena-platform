@@ -983,16 +983,12 @@
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 0.9rem 1.2rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--talena-border);
+  margin: 0;
 }
 
 .process-page .profile-contrast-card__label {
   display: block;
   margin-bottom: 0.4rem;
-  color: var(--talena-text-muted);
-  font-size: 0.7rem;
-  font-weight: 650;
 }
 
 .process-page .profile-contrast-card__chips {
@@ -1004,9 +1000,9 @@
 .process-page .profile-contrast-card__chip {
   display: inline-flex;
   padding: 0.3rem 0.55rem;
-  border: 1px solid var(--talena-border);
+  border: 1px solid rgba(255, 111, 97, 0.18);
   border-radius: var(--talena-radius-pill);
-  background: var(--talena-surface-soft);
+  background: #fff;
   color: var(--talena-ink);
   font-size: 0.76rem;
   line-height: 1.35;
