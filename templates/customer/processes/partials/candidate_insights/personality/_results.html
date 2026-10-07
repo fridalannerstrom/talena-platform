@@ -901,9 +901,6 @@
           <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
           <span class="profile-contrast-cell__value">{{ contrast.hypothesis }}</span>
         </div>
-        {% if contrast.context_dimensions %}
-          <p class="profile-contrast-context">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kan variera med situationen:{% else %}May vary by situation:{% endif %} {{ contrast.context_dimensions }}</p>
-        {% endif %}
       </article>
     {% empty %}
       <p>{{ profile_contrast_analysis.neutral_message }}</p>
@@ -923,9 +920,6 @@
             <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
             <span class="profile-contrast-cell__value">{{ contrast.question }}</span>
           </div>
-          {% if contrast.context_dimensions %}
-            <p class="profile-contrast-context">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kan variera med situationen:{% else %}May vary by situation:{% endif %} {{ contrast.context_dimensions }}</p>
-          {% endif %}
         </article>
       {% endfor %}
     </div>
