@@ -417,7 +417,7 @@
   font-weight: 660;
 }
 
-.talena-team-page .team-form-card input,
+.talena-team-page .team-form-card input:not([type="checkbox"]):not([type="radio"]),
 .talena-team-page .team-form-card textarea,
 .talena-team-page .team-member-toolbar input[type="search"] {
   border: 1px solid var(--talena-border) !important;
@@ -427,7 +427,7 @@
   box-shadow: none !important;
 }
 
-.talena-team-page .team-form-card input {
+.talena-team-page .team-form-card input:not([type="checkbox"]):not([type="radio"]) {
   min-height: 44px;
 }
 
@@ -436,7 +436,7 @@
   resize: vertical;
 }
 
-.talena-team-page .team-form-card input:focus,
+.talena-team-page .team-form-card input:not([type="checkbox"]):not([type="radio"]):focus,
 .talena-team-page .team-form-card textarea:focus,
 .talena-team-page .team-member-toolbar input[type="search"]:focus {
   border-color: rgba(255,111,97,0.45) !important;

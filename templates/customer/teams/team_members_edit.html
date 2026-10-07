@@ -30,14 +30,23 @@
     </div>
   </div>
 
-  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
-    <a class="team-wizard-step is-complete" href="{% url 'teams:team_edit' team.pk %}"><b>1</b> {% trans "Team goals and context" %}</a>
-    <span class="team-wizard-step is-active"><b>2</b> {% trans "Members" %}</span>
-    <span class="team-wizard-step"><b>3</b> {% trans "Team report" %}</span>
-  </nav>
-
   <form method="post">
     {% csrf_token %}
+
+    <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+      <button class="team-wizard-step is-complete" type="submit" name="wizard_next_step" value="1">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>1</b><span>{% trans "Team goals and context" %}</span></span>
+      </button>
+      <span class="team-wizard-step is-active" aria-current="step">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
+      </span>
+      <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="3">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>3</b><span>{% trans "Team report" %}</span></span>
+      </button>
+    </nav>
 
     <div class="card team-list-card">
       <div class="team-member-toolbar">
@@ -51,7 +60,7 @@
           >
         </div>
 
-        <button type="submit" class="btn btn-primary team-primary-action">
+        <button type="submit" name="wizard_next_step" value="3" class="btn btn-primary team-primary-action">
           {% trans "Save members" %}
         </button>
       </div>

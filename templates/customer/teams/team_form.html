@@ -27,16 +27,26 @@
     </div>
   </div>
 
-  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
-    <span class="team-wizard-step is-active"><b>1</b> {% trans "Team goals and context" %}</span>
-    <span class="team-wizard-step"><b>2</b> {% trans "Members" %}</span>
-    <span class="team-wizard-step"><b>3</b> {% trans "Team report" %}</span>
-  </nav>
+  <form method="post">
+    {% csrf_token %}
 
-  <div class="card team-form-card">
-    <div class="card-body">
-      <form method="post">
-        {% csrf_token %}
+    <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+      <span class="team-wizard-step is-active" aria-current="step">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>1</b><span>{% trans "Team goals and context" %}</span></span>
+      </span>
+      <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="2">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
+      </button>
+      <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="3">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>3</b><span>{% trans "Team report" %}</span></span>
+      </button>
+    </nav>
+
+    <div class="card team-form-card">
+      <div class="card-body">
 
         {% if form.non_field_errors %}
           <div class="alert alert-danger">
@@ -94,13 +104,13 @@
             {% trans "Cancel" %}
           </a>
 
-          <button type="submit" class="btn btn-primary team-primary-action">
+          <button type="submit" name="wizard_next_step" value="2" class="btn btn-primary team-primary-action">
             {{ submit_label }}
           </button>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
+  </form>
 
 </div>
 
