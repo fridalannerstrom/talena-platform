@@ -9782,6 +9782,7 @@ regenerateButton?.addEventListener(
       questions: [],
       combination_note: "",
       context_note: "",
+      profile_contrasts: [],
     };
   }
 
@@ -9932,6 +9933,33 @@ regenerateButton?.addEventListener(
 
 
 
+  function renderProfileContrastGuidance(root, items) {
+    const profileRoot = root.closest("[data-personality-profile-root]") || document;
+    const target = profileRoot.querySelector("[data-profile-contrast-ai]");
+    if (!target) return;
+
+    target.replaceChildren();
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      if (!item || !item.question) return;
+
+      const card = document.createElement("article");
+      card.className = "response-style-ai-content__section";
+
+      const heading = document.createElement("h5");
+      heading.textContent =
+        (item.left_label || "") + " (STEN " + item.left_sten + ") · "
+        + (item.right_label || "") + " (STEN " + item.right_sten + ")";
+      card.appendChild(heading);
+
+      const question = document.createElement("p");
+      question.textContent = item.question;
+      card.appendChild(question);
+
+      target.appendChild(card);
+    });
+  }
+
+
   function renderGuidance(root, guidance) {
     if (!guidance) {
       return;
@@ -10037,6 +10065,11 @@ regenerateButton?.addEventListener(
       !guidance.context_note
     );
 
+    renderProfileContrastGuidance(
+      root,
+      guidance.profile_contrasts
+    );
+
     setHidden(content, false);
     setHidden(thinking, true);
     setHidden(error, true);
@@ -10083,6 +10116,12 @@ regenerateButton?.addEventListener(
       case "context_note":
         guidance.context_note =
           event.text || "";
+        break;
+
+      case "profile_contrasts":
+        guidance.profile_contrasts = Array.isArray(event.items)
+          ? event.items
+          : [];
         break;
 
       case "saved_result":
