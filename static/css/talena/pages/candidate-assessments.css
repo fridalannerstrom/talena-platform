@@ -1002,21 +1002,26 @@
   font-weight: 650;
 }
 
-.process-page .profile-contrast-card__chips {
-  display: flex;
-  flex-wrap: wrap;
+.process-page .profile-contrast-card__scale-list {
+  display: grid;
   gap: 0.55rem;
 }
 
-.process-page .profile-contrast-card__chip {
-  display: inline-flex;
-  padding: 0.3rem 0.55rem;
-  border: 1px solid var(--talena-border);
-  border-radius: var(--talena-radius-pill);
-  background: #fff;
+.process-page .profile-contrast-card__scale-item {
+  display: grid;
+  grid-template-columns: minmax(105px, 0.9fr) minmax(110px, 1.4fr);
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.process-page .profile-contrast-card__dimension-name {
   color: var(--talena-ink);
   font-size: 0.7rem;
   line-height: 1.35;
+}
+
+.process-page .profile-contrast-card__scale {
+  height: 8px;
 }
 
 .process-page .profile-contrast-card__hypothesis p,
@@ -1043,6 +1048,10 @@
     grid-template-columns: 1fr;
     gap: 0.75rem;
     padding: 0.9rem;
+  }
+
+  .process-page .profile-contrast-card__scale-item {
+    grid-template-columns: minmax(95px, 0.9fr) minmax(110px, 1.4fr);
   }
 
   .process-page .profile-contrast-card__question {
