@@ -74,7 +74,7 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
             item for item in result["activated_contrasts"]
             if item["id"] == "cooperative_sensitivity_teamwork"
         )
-        self.assertEqual(hit["right_dimensions"], "")
+        self.assertEqual(hit["right_dimensions"], "Sensitivity")
         self.assertEqual(hit["left_dimensions"], "Teamwork")
         self.assertEqual(hit["context_dimensions"], "Sensitivity")
 
