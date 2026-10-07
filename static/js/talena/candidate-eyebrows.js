@@ -604,13 +604,6 @@
 
     addEyebrowBefore(
       root.querySelector(
-        ".response-styles-section .response-styles-header h2.insight-summary-title"
-      ),
-      personalityLabel
-    );
-
-    addEyebrowBefore(
-      root.querySelector(
         ".personality-profile > .response-styles-header h2.insight-summary-title"
       ),
       personalityLabel
