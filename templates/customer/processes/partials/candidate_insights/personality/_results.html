@@ -892,9 +892,21 @@
       <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
         <div class="profile-contrast-card__dimensions">
           <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaper att utforska tillsammans{% else %}Traits to explore together{% endif %}</span>
-          <div class="profile-contrast-card__chips">
-            <span class="profile-contrast-card__chip">{{ contrast.left_label }}</span>
-            <span class="profile-contrast-card__chip">{{ contrast.right_label }}</span>
+          <div class="profile-contrast-card__scale-list">
+            {% for dimension in contrast.dimensions %}
+              <div class="profile-contrast-card__scale-item">
+                <span class="profile-contrast-card__dimension-name">{{ dimension.label }}</span>
+                <div
+                  class="personality-overview-item__scale profile-contrast-card__scale"
+                  role="img"
+                  aria-label="{{ dimension.label }} profile position"
+                >
+                  <span class="personality-overview-item__midpoint" aria-hidden="true"></span>
+                  <span class="personality-overview-item__range personality-overview-item__range--score-{{ dimension.sten }}" aria-hidden="true"></span>
+                  <span class="personality-overview-item__marker personality-overview-item__marker--score-{{ dimension.sten }}" aria-hidden="true"></span>
+                </div>
+              </div>
+            {% endfor %}
           </div>
         </div>
         <div class="profile-contrast-card__hypothesis">
