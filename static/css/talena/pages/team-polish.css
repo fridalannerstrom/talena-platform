@@ -649,7 +649,8 @@
 }
 .team-wizard-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
   margin: 0 0 1.25rem;
 }
@@ -714,6 +715,33 @@
 .team-wizard-step.is-complete .team-wizard-line::after { background: #cf5950; transform: scaleX(1); }
 .team-wizard-step.is-complete b { border-color: #cf5950; background: #cf5950; color: #fff; }
 .team-wizard-step.is-upcoming:hover b { border-color: #cf5950; color: #a8443b; }
+
+.talena-team-page .team-danger-action {
+  border-color: #ead0cd !important;
+  background: #fff !important;
+  color: #9d443d !important;
+}
+.talena-team-page .team-danger-action:hover {
+  border-color: #cf5950 !important;
+  background: #fff7f6 !important;
+  color: #87352f !important;
+}
+.talena-team-page .team-delete-confirm-action {
+  min-height: 40px;
+  padding: 0.62rem 0.9rem;
+  border-color: #a9433c !important;
+  border-radius: var(--talena-radius-pill) !important;
+  background: #a9433c !important;
+  color: #fff !important;
+  font-size: 0.69rem;
+  font-weight: 670;
+  box-shadow: none !important;
+}
+.talena-team-page .team-delete-confirm-action:hover {
+  border-color: #87352f !important;
+  background: #87352f !important;
+  color: #fff !important;
+}
 
 .team-goal-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.65rem; }
 .team-goal-option {

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.teams.models import Team
@@ -112,3 +113,24 @@ class TeamAccessTests(TestCase):
         self.assertFalse(
             _user_can_edit_team(self.own_only, self.company, self.shared_team)
         )
+
+    def test_editor_can_delete_team(self):
+        self.client.force_login(self.editor)
+
+        response = self.client.post(
+            reverse("teams:team_delete", args=[self.shared_team.pk])
+        )
+
+        self.assertRedirects(response, reverse("teams:team_list"))
+        self.assertFalse(Team.objects.filter(pk=self.shared_team.pk).exists())
+        self.assertTrue(Team.objects.filter(pk=self.own_team.pk).exists())
+
+    def test_viewer_cannot_delete_team(self):
+        self.client.force_login(self.viewer)
+
+        response = self.client.post(
+            reverse("teams:team_delete", args=[self.shared_team.pk])
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Team.objects.filter(pk=self.shared_team.pk).exists())

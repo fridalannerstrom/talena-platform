@@ -150,6 +150,12 @@
         <i data-feather="users" class="icon-14"></i>
         {% if LANGUAGE_CODE|slice:":2" == "sv" %}Redigera medlemmar{% else %}Edit members{% endif %}
       </a>
+      {% if can_edit_team %}
+        <a href="{% url 'teams:team_delete' team.pk %}" class="btn team-danger-action">
+          <i data-feather="trash-2" class="icon-14"></i>
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ta bort team{% else %}{% trans "Delete team" %}{% endif %}
+        </a>
+      {% endif %}
     </div>
   </div>
 
