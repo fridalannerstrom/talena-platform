@@ -139,7 +139,7 @@
         role="switch"
         aria-checked="false"
       >
-        <span class="team-anonymity-label">Anonymisera</span>
+        <span class="team-anonymity-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anonymisera{% else %}Anonymise{% endif %}</span>
         <span class="team-anonymity-switch" aria-hidden="true"></span>
       </button>
       <a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-outline-secondary team-secondary-action">

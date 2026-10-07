@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Team(models.Model):
@@ -48,7 +49,7 @@ class Team(models.Model):
             and self.org_unit.company_id != self.company_id
         ):
             raise ValidationError(
-                {"org_unit": "Teamets enhet måste tillhöra samma företag."}
+                {"org_unit": _("The team’s unit must belong to the same company.")}
             )
 
     def __str__(self):

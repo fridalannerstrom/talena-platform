@@ -7254,5 +7254,73 @@ msgstr "Beskriv teamet, dess situation eller vad Talena ska ta hänsyn till."
 msgid "Update this team’s goals, description and context."
 msgstr "Uppdatera teamets mål, beskrivning och kontext."
 
-msgid "Set the team’s goals and context, then choose members and review the team report."
-msgstr "Ange teamets mål och kontext, välj sedan medlemmar och gå igenom teamrapporten."
+msgid "Set the team’s goals and context, then choose members to create the team report."
+msgstr "Ange teamets mål och kontext, välj sedan medlemmar för att skapa teamrapporten."
+
+msgid "Delete team"
+msgstr "Ta bort team"
+
+msgid "The team’s member links and generated insights will be removed. Candidate records and assessment results will remain."
+msgstr "Teamets medlemskopplingar och genererade insikter tas bort. Kandidater och deras testresultat påverkas inte."
+
+msgid "Team deleted."
+msgstr "Teamet har tagits bort."
+
+msgid "You do not have permission to delete this team."
+msgstr "Du har inte behörighet att ta bort det här teamet."
+
+msgid "Name already in use"
+msgstr "Namnet används redan"
+
+msgid "A team with this name already exists. Choose a different name to continue."
+msgstr "Det finns redan ett team med det här namnet. Välj ett annat namn för att fortsätta."
+
+msgid "Open"
+msgstr "Öppna"
+
+msgid "Create a team to group candidates and explore shared patterns."
+msgstr "Skapa ett team för att gruppera kandidater och utforska gemensamma mönster."
+
+msgid "Members with data"
+msgstr "Medlemmar med data"
+
+msgid "No team style data yet"
+msgstr "Ingen teamstilsdata ännu"
+
+msgid "Team insights will appear here when candidates have compatible personality results."
+msgstr "Teaminsikter visas här när kandidaterna har kompatibla personlighetsresultat."
+
+msgid "Exploring"
+msgstr "Utforska"
+
+msgid "Directing"
+msgstr "Leda"
+
+msgid "Delivering"
+msgstr "Leverera"
+
+msgid "Critiquing"
+msgstr "Kritiskt granska"
+
+msgid "You do not have permission to create teams."
+msgstr "Du har inte behörighet att skapa team."
+
+msgid "You do not have permission to edit this team."
+msgstr "Du har inte behörighet att redigera det här teamet."
+
+msgid "Unknown team insight type"
+msgstr "Okänd typ av teaminsikt"
+
+msgid "The AI returned an empty team insight."
+msgstr "AI:n returnerade en tom teaminsikt."
+
+msgid "The team’s unit must belong to the same company."
+msgstr "Teamets enhet måste tillhöra samma företag."
+
+#, python-format
+msgid "Open %(team_name)s"
+msgstr "Öppna %(team_name)s"
+
+#, python-format
+msgid "Delete %(team_name)s permanently?"
+msgstr "Ta bort %(team_name)s permanent?"
