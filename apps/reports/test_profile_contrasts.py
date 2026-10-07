@@ -62,6 +62,21 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
         self.assertEqual(hit["rule_version"], "veronika-2026-10-07-v1")
         self.assertIn("Veronika", hit["approval_source"])
         self.assertEqual(hit["strength"], 1)
+        self.assertEqual(hit["right_dimensions"], "Sensitivity")
+        self.assertEqual(hit["left_dimensions"], "Teamwork")
+        self.assertEqual(hit["context_dimensions"], "")
+
+    def test_middle_score_is_shown_as_context_not_as_a_pole(self):
+        result = profile_contrasts.build_profile_contrast_analysis(
+            self._profile({"sensitivity": 6, "teamwork": 1}), language="sv"
+        )
+        hit = next(
+            item for item in result["activated_contrasts"]
+            if item["id"] == "cooperative_sensitivity_teamwork"
+        )
+        self.assertEqual(hit["right_dimensions"], "")
+        self.assertEqual(hit["left_dimensions"], "Teamwork")
+        self.assertEqual(hit["context_dimensions"], "Sensitivity")
 
     def test_approved_pair_uses_only_its_versioned_rule_and_available_data(self):
         catalog = list(deepcopy(profile_contrasts.CONTRAST_CATALOG))
