@@ -214,6 +214,8 @@ def _flatten_profile(profile: dict[str, Any] | None) -> tuple[dict[str, dict[str
                     "key": key,
                     "label": str(item.get("label") or item.get("name") or key),
                     "sten": value,
+                    "low_pole": str(item.get("low_pole") or "").strip(),
+                    "high_pole": str(item.get("high_pole") or "").strip(),
                 }
                 previous = dimensions.get(key)
                 if previous and previous["sten"] != value:
@@ -310,6 +312,19 @@ def build_profile_contrast_analysis(
         right = dimensions.get(entry["right_key"])
         if not left or not right or not _rule_matches(rule, left["sten"], right["sten"]):
             continue
+        pair_dimensions = (left, right)
+        left_labels = [
+            item["label"] for item in pair_dimensions
+            if item["sten"] <= 3
+        ]
+        right_labels = [
+            item["label"] for item in pair_dimensions
+            if item["sten"] >= 8
+        ]
+        context_labels = [
+            item["label"] for item in pair_dimensions
+            if 4 <= item["sten"] <= 7
+        ]
         activated.append({
             "id": entry["id"],
             "trait_key": entry["trait_key"],
@@ -319,6 +334,9 @@ def build_profile_contrast_analysis(
             "right_label": right["label"],
             "left_sten": left["sten"],
             "right_sten": right["sten"],
+            "left_dimensions": " · ".join(left_labels),
+            "right_dimensions": " · ".join(right_labels),
+            "context_dimensions": " · ".join(context_labels),
             "hypothesis": entry["hypothesis"].get(language) or entry["hypothesis"]["en"],
             "rule_version": entry["rule_version"],
             "approval_source": entry["approval_source"],
