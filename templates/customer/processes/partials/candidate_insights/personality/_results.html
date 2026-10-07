@@ -877,8 +877,8 @@
 {% endif %}
 <!-- /RESPONSE STYLES -->
   <section class="purpose-fit-card mt-4">
-    <h3 class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Om konsekvens och svarsspridning{% else %}About profile spread and response spread{% endif %}</h3>
-    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Konsekvensskala och värderingsspridning visas inte som poäng. Talena kan hjälpa till att tolka relevanta mönster i profilen, men inget enskilt sådant mönster är ett mått på resultatens giltighet.{% else %}Profile spread and response spread are not shown as scores. Talena can help interpret relevant patterns in the profile, but no single pattern is a validity measure.{% endif %}</p>
+    <h3 class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Om konsekvensskala och värderingsspridning{% else %}About Consequence Scale and Ratings Spread{% endif %}</h3>
+    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Konsekvensskala och värderingsspridning visas inte som värden. Talena hjälper till att tolka relevanta mönster i profilen utan att hävda att något enskilt mönster är ett mått på resultatens giltighet.{% else %}Consequence Scale and Ratings Spread are not shown as values. Talena helps interpret relevant profile patterns without claiming that any single pattern is a validity measure.{% endif %}</p>
   </section>
   <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
     <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilkontraster{% else %}Profile contrasts{% endif %}</h3>
