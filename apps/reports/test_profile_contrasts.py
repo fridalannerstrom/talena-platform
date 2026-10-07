@@ -38,14 +38,27 @@ class ProfileContrastRuleTests(SimpleTestCase):
 
 
 class ProfileContrastCatalogTests(ProfileContrastRuleTests):
-    def test_draft_catalog_does_not_activate_unapproved_pairs(self):
-        scores = {"sensitivity": 2, "teamwork": 9}
+    def test_reviewed_catalog_does_not_activate_pairs_below_threshold(self):
+        scores = {"sensitivity": 4, "teamwork": 7}
         result = profile_contrasts.build_profile_contrast_analysis(
             self._profile(scores), language="sv"
         )
         self.assertEqual(result["activated_contrasts"], [])
         self.assertEqual(result["catalog_version"], profile_contrasts.CONTRAST_CATALOG_VERSION)
         self.assertTrue(result["neutral_message"])
+
+    def test_expert_approved_pair_activates_with_values_and_source(self):
+        result = profile_contrasts.build_profile_contrast_analysis(
+            self._profile({"sensitivity": 8, "teamwork": 3}), language="sv"
+        )
+        hit = next(
+            item for item in result["activated_contrasts"]
+            if item["id"] == "cooperative_sensitivity_teamwork"
+        )
+        self.assertEqual((hit["left_sten"], hit["right_sten"]), (8, 3))
+        self.assertEqual(hit["rule_version"], "veronika-2026-10-07-v1")
+        self.assertIn("Veronika", hit["approval_source"])
+        self.assertEqual(hit["strength"], 1)
 
     def test_approved_pair_uses_only_its_versioned_rule_and_available_data(self):
         catalog = list(deepcopy(profile_contrasts.CONTRAST_CATALOG))
