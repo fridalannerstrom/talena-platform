@@ -10737,7 +10737,7 @@ function updatePersonalityGlobalToggle() {
 
 /*
  * Match the initial state defined in the HTML.
- * Trait Profile is used as the fallback view.
+ * Trait & indicator profile is the default view.
  */
 const initiallyActiveTab = root.querySelector(
   '[data-personality-view-tab][aria-selected="true"]'
@@ -10745,7 +10745,7 @@ const initiallyActiveTab = root.querySelector(
 
 activatePersonalityView(
   initiallyActiveTab?.dataset.personalityViewTab
-  || "quick"
+  || "detailed"
 );
         });
     };
