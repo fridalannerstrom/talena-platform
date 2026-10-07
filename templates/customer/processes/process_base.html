@@ -10667,16 +10667,34 @@ function updatePersonalityGlobalToggle() {
           }
 
 
+          function activateLinkedPersonalityView() {
+            const prefix = "#personality-view-";
+            const hash = window.location.hash || "";
+            if (!hash.startsWith(prefix)) return false;
+            const viewName = hash.slice(prefix.length);
+            if (!Array.from(tabs).some(function (tab) {
+              return tab.dataset.personalityViewTab === viewName;
+            })) return false;
+            activatePersonalityView(viewName);
+            return true;
+          }
+
           tabs.forEach(function (tab) {
             tab.addEventListener(
               "click",
               function () {
-                activatePersonalityView(
-                  tab.dataset.personalityViewTab
+                const viewName = tab.dataset.personalityViewTab;
+                activatePersonalityView(viewName);
+                window.history.replaceState(
+                  null,
+                  "",
+                  "#personality-view-" + viewName
                 );
               }
             );
           });
+
+          window.addEventListener("hashchange", activateLinkedPersonalityView);
 
 
           /*
@@ -10743,10 +10761,12 @@ const initiallyActiveTab = root.querySelector(
   '[data-personality-view-tab][aria-selected="true"]'
 );
 
-activatePersonalityView(
-  initiallyActiveTab?.dataset.personalityViewTab
-  || "detailed"
-);
+if (!activateLinkedPersonalityView()) {
+  activatePersonalityView(
+    initiallyActiveTab?.dataset.personalityViewTab
+    || "detailed"
+  );
+}
         });
     };
 
