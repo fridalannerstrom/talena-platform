@@ -185,6 +185,9 @@ from apps.core.ai.candidate_summary import (
 )
 
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
+from apps.reports.libraries.personality.profile_contrasts import (
+    build_profile_contrast_analysis,
+)
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
@@ -4048,6 +4051,11 @@ def build_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
 
@@ -10330,6 +10338,11 @@ def build_historical_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
         "available_reports_count": available_reports_count,
 
         # General insight data.
