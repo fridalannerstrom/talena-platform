@@ -9935,47 +9935,32 @@ regenerateButton?.addEventListener(
 
   function renderProfileContrastGuidance(root, items) {
     const profileRoot = root.closest("[data-personality-profile-root]") || document;
-    const target = profileRoot.querySelector("[data-profile-contrast-ai]");
-    if (!target) return;
+    const cards = Array.from(
+      profileRoot.querySelectorAll("[data-profile-contrast-id]")
+    );
+    const isSwedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
 
-    target.replaceChildren();
+    cards.forEach(function (card) {
+      const questionSection = card.querySelector("[data-profile-contrast-question]");
+      const questionText = card.querySelector("[data-profile-contrast-question-text]");
+      if (questionText) questionText.textContent = "";
+      if (questionSection) questionSection.hidden = true;
+    });
+
     (Array.isArray(items) ? items : []).forEach(function (item) {
-      if (!item || !item.question) return;
+      if (!item || !item.id || !item.question) return;
 
-      const card = document.createElement("article");
-      card.className = "response-style-ai-content__section";
+      const card = cards.find(function (candidate) {
+        return candidate.dataset.profileContrastId === item.id;
+      });
+      if (!card) return;
 
-      const row = document.createElement("div");
-      row.className = "profile-contrast-row";
+      const questionSection = card.querySelector("[data-profile-contrast-question]");
+      const questionText = card.querySelector("[data-profile-contrast-question-text]");
+      if (!questionSection || !questionText) return;
 
-      function addCell(label, value, extraClass) {
-        const cell = document.createElement("div");
-        cell.className = "profile-contrast-cell" + (extraClass ? " " + extraClass : "");
-
-        const title = document.createElement("span");
-        title.className = "profile-contrast-cell__label";
-        title.textContent = label;
-        cell.appendChild(title);
-
-        const text = document.createElement("span");
-        text.className = "profile-contrast-cell__value";
-        text.textContent = value || "—";
-        cell.appendChild(text);
-        row.appendChild(cell);
-      }
-
-      const isSwedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
-      addCell(isSwedish ? "Höger" : "Right", item.right_dimensions);
-      addCell(isSwedish ? "Vänster" : "Left", item.left_dimensions);
-      addCell(
-        isSwedish ? "Möjlig hypotes att utforska" : "Possible hypothesis to explore",
-        item.question,
-        "profile-contrast-cell--hypothesis"
-      );
-
-      card.appendChild(row);
-
-      target.appendChild(card);
+      questionText.textContent = item.question;
+      questionSection.hidden = false;
     });
   }
 
