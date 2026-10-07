@@ -218,7 +218,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                         else None
                     ),
                     "percent": (
-                        min(max((float(value) / 5) * 100, 0), 100)
+                        min(max(round((float(value) / 5) * 100, 1), 0), 100)
                         if value is not None
                         else 0
                     ),
@@ -296,7 +296,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                     else None
                 ),
                 "average_percent": (
-                    min(max((avg_value / 5) * 100, 0), 100)
+                    min(max(round((avg_value / 5) * 100, 1), 0), 100)
                     if avg_value is not None
                     else 0
                 ),
@@ -319,7 +319,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                     else None
                 ),
                 "maximum_percent": (
-                    min(max((max_value / 5) * 100, 0), 100)
+                    min(max(round((max_value / 5) * 100, 1), 0), 100)
                     if max_value is not None
                     else 0
                 ),
