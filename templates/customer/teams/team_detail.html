@@ -153,21 +153,6 @@
     </div>
   </div>
 
-  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
-    <a class="team-wizard-step is-complete" href="{% url 'teams:team_edit' team.pk %}">
-      <span class="team-wizard-line" aria-hidden="true"></span>
-      <span class="team-wizard-step-content"><b>1</b><span>{% trans "Team goals and context" %}</span></span>
-    </a>
-    <a class="team-wizard-step is-complete" href="{% url 'teams:team_members_edit' team.pk %}">
-      <span class="team-wizard-line" aria-hidden="true"></span>
-      <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
-    </a>
-    <span class="team-wizard-step is-active" aria-current="step">
-      <span class="team-wizard-line" aria-hidden="true"></span>
-      <span class="team-wizard-step-content"><b>3</b><span>{% trans "Team report" %}</span></span>
-    </span>
-  </nav>
-
   {% if team.goals or team.context or team.description %}
     <section class="card mb-4" aria-labelledby="team-goals-heading">
       <div class="card-header"><h2 id="team-goals-heading" class="team-section-title">{% trans "Team goals and context" %}</h2></div>
@@ -348,7 +333,6 @@
                       action="{% url 'teams:team_insight_generate' team.pk section.type %}"
                       data-team-ai-insight-form
                       data-auto-generate="{% if not section.insight %}true{% else %}false{% endif %}"
-                      data-auto-key="{{ team.pk }}-{{ insight_language }}-{{ section.type }}"
                       data-loading-label="{% trans 'Updating…' %}"
                       data-error-label="{% trans 'The team insight could not be generated. Please try again later.' %}"
                       data-generated-label="{% trans 'Generated' %}"

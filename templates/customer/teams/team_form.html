@@ -21,7 +21,7 @@
         </p>
       {% else %}
         <p class="team-page-description">
-          {% trans "Set the team’s goals and context, then choose members and review the team report." %}
+          {% trans "Set the team’s goals and context, then choose members to create the team report." %}
         </p>
       {% endif %}
     </div>
@@ -38,10 +38,6 @@
       <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="2">
         <span class="team-wizard-line" aria-hidden="true"></span>
         <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
-      </button>
-      <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="3">
-        <span class="team-wizard-line" aria-hidden="true"></span>
-        <span class="team-wizard-step-content"><b>3</b><span>{% trans "Team report" %}</span></span>
       </button>
     </nav>
 

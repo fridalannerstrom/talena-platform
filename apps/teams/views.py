@@ -609,8 +609,6 @@ def team_create(request):
             team.save()
 
             messages.success(request, _("Team created."))
-            if request.POST.get("wizard_next_step") == "3":
-                return redirect("teams:team_detail", pk=team.pk)
             return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm()
@@ -742,8 +740,6 @@ def team_edit(request, pk):
             updated_team.save()
 
             messages.success(request, _("Team updated."))
-            if request.POST.get("wizard_next_step") == "3":
-                return redirect("teams:team_detail", pk=team.pk)
             return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm(instance=team)

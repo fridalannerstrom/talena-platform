@@ -1230,22 +1230,17 @@
         return;
       }
 
-      const attemptKey = `talena-team-insight-attempted-${form.dataset.autoKey}`;
-      try {
-        if (window.sessionStorage.getItem(attemptKey) === "1") {
-          form.dataset.autoGenerate = "false";
-          return;
-        }
-        window.sessionStorage.setItem(attemptKey, "1");
-      } catch (error) {
-        // Automatic generation still runs if storage is unavailable.
-      }
       automaticForms.push(form);
     });
 
     automaticForms.forEach(generateInsight);
   }
 
-  document.addEventListener("DOMContentLoaded", initTeamExtremeTabs);
-  document.addEventListener("DOMContentLoaded", initTeamAIInsights);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTeamExtremeTabs, { once: true });
+    document.addEventListener("DOMContentLoaded", initTeamAIInsights, { once: true });
+  } else {
+    initTeamExtremeTabs();
+    initTeamAIInsights();
+  }
 })();
