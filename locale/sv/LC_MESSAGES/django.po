@@ -7250,3 +7250,9 @@ msgstr "Stödja teamets utveckling"
 
 msgid "Describe the team, its current situation or what you would like Talena to take into account."
 msgstr "Beskriv teamet, dess situation eller vad Talena ska ta hänsyn till."
+
+msgid "Update this team’s goals, description and context."
+msgstr "Uppdatera teamets mål, beskrivning och kontext."
+
+msgid "Set the team’s goals and context, then choose members and review the team report."
+msgstr "Ange teamets mål och kontext, välj sedan medlemmar och gå igenom teamrapporten."
