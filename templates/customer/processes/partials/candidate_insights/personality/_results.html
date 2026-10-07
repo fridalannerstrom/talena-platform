@@ -888,19 +888,44 @@
       <p>{{ profile_contrast_analysis.insufficient_data_message }}</p>
     {% endif %}
     {% for contrast in profile_contrast_analysis.activated_contrasts %}
-      <article class="response-style-ai-content__section">
-        <h4>{{ contrast.left_label }} (STEN {{ contrast.left_sten }}) · {{ contrast.right_label }} (STEN {{ contrast.right_sten }})</h4>
-        <p><strong>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska:{% else %}Possible hypothesis to explore:{% endif %}</strong> {{ contrast.hypothesis }}</p>
-        <p class="small text-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Källa: SOVA-personlighetsbedömning · Regelversion{% else %}Source: SOVA personality assessment · Rule version{% endif %} {{ contrast.rule_version }}</p>
+      <article class="profile-contrast-row">
+        <div class="profile-contrast-cell">
+          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger{% else %}Right{% endif %}</span>
+          <span class="profile-contrast-cell__value">{% if contrast.right_dimensions %}{{ contrast.right_dimensions }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="profile-contrast-cell">
+          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster{% else %}Left{% endif %}</span>
+          <span class="profile-contrast-cell__value">{% if contrast.left_dimensions %}{{ contrast.left_dimensions }}{% else %}—{% endif %}</span>
+        </div>
+        <div class="profile-contrast-cell profile-contrast-cell--hypothesis">
+          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
+          <span class="profile-contrast-cell__value">{{ contrast.hypothesis }}</span>
+        </div>
+        {% if contrast.context_dimensions %}
+          <p class="profile-contrast-context">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kan variera med situationen:{% else %}May vary by situation:{% endif %} {{ contrast.context_dimensions }}</p>
+        {% endif %}
       </article>
     {% empty %}
       <p>{{ profile_contrast_analysis.neutral_message }}</p>
     {% endfor %}
     <div data-profile-contrast-ai>
       {% for contrast in response_style_guidance.profile_contrasts %}
-        <article class="response-style-ai-content__section">
-          <h4>{{ contrast.left_label }} (STEN {{ contrast.left_sten }}) · {{ contrast.right_label }} (STEN {{ contrast.right_sten }})</h4>
-          <p>{{ contrast.question }}</p>
+        <article class="profile-contrast-row">
+          <div class="profile-contrast-cell">
+            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger{% else %}Right{% endif %}</span>
+            <span class="profile-contrast-cell__value">{% if contrast.right_dimensions %}{{ contrast.right_dimensions }}{% else %}—{% endif %}</span>
+          </div>
+          <div class="profile-contrast-cell">
+            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster{% else %}Left{% endif %}</span>
+            <span class="profile-contrast-cell__value">{% if contrast.left_dimensions %}{{ contrast.left_dimensions }}{% else %}—{% endif %}</span>
+          </div>
+          <div class="profile-contrast-cell profile-contrast-cell--hypothesis">
+            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
+            <span class="profile-contrast-cell__value">{{ contrast.question }}</span>
+          </div>
+          {% if contrast.context_dimensions %}
+            <p class="profile-contrast-context">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Kan variera med situationen:{% else %}May vary by situation:{% endif %} {{ contrast.context_dimensions }}</p>
+          {% endif %}
         </article>
       {% endfor %}
     </div>
