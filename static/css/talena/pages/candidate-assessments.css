@@ -981,13 +981,13 @@
 /* Profile contrast summary */
 .process-page .profile-contrast-card {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: 0.9rem 1.2rem;
-  margin: 0 0 0.85rem;
-  padding: 1rem 1.1rem;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 0.9rem 1.25rem;
+  margin: 0 0 0.9rem;
+  padding: 1.05rem 1.15rem;
   border: 1px solid rgba(255, 111, 97, 0.15);
   border-radius: 13px;
-  background: var(--talena-surface-soft);
+  background: #fff;
 }
 
 .process-page .profile-contrast-card:last-child {
@@ -1009,8 +1009,8 @@
 
 .process-page .profile-contrast-card__scale-item {
   display: grid;
-  grid-template-columns: minmax(105px, 0.9fr) minmax(110px, 1.4fr);
-  gap: 0.55rem;
+  grid-template-columns: minmax(145px, 0.95fr) minmax(130px, 1.5fr);
+  gap: 0.65rem;
   align-items: center;
 }
 
@@ -1021,7 +1021,7 @@
 }
 
 .process-page .profile-contrast-card__scale {
-  height: 8px;
+  height: 10px;
 }
 
 .process-page .profile-contrast-card__hypothesis p,
@@ -1051,7 +1051,7 @@
   }
 
   .process-page .profile-contrast-card__scale-item {
-    grid-template-columns: minmax(95px, 0.9fr) minmax(110px, 1.4fr);
+    grid-template-columns: minmax(110px, 0.9fr) minmax(120px, 1.4fr);
   }
 
   .process-page .profile-contrast-card__question {
