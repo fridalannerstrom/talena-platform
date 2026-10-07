@@ -57,6 +57,7 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
             },
             "rule_version": "expert-rule-v1",
             "approval_source": "psychometric-review",
+            "display_priority": 10,
         })
         profile = self._profile({"sensitivity": 9, "teamwork": 3})
         with self.settings():  # isolate the global catalogue override
