@@ -890,7 +890,8 @@
     {% for contrast in profile_contrast_analysis.activated_contrasts %}
       <article class="response-style-ai-content__section">
         <h4>{{ contrast.left_label }} (STEN {{ contrast.left_sten }}) · {{ contrast.right_label }} (STEN {{ contrast.right_sten }})</h4>
-        <p>{{ contrast.hypothesis }}</p>
+        <p><strong>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska:{% else %}Possible hypothesis to explore:{% endif %}</strong> {{ contrast.hypothesis }}</p>
+        <p class="small text-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Källa: SOVA-personlighetsbedömning · Regelversion{% else %}Source: SOVA personality assessment · Rule version{% endif %} {{ contrast.rule_version }}</p>
       </article>
     {% empty %}
       <p>{{ profile_contrast_analysis.neutral_message }}</p>
