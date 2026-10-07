@@ -9945,15 +9945,43 @@ regenerateButton?.addEventListener(
       const card = document.createElement("article");
       card.className = "response-style-ai-content__section";
 
-      const heading = document.createElement("h5");
-      heading.textContent =
-        (item.left_label || "") + " (STEN " + item.left_sten + ") · "
-        + (item.right_label || "") + " (STEN " + item.right_sten + ")";
-      card.appendChild(heading);
+      const row = document.createElement("div");
+      row.className = "profile-contrast-row";
 
-      const question = document.createElement("p");
-      question.textContent = item.question;
-      card.appendChild(question);
+      function addCell(label, value, extraClass) {
+        const cell = document.createElement("div");
+        cell.className = "profile-contrast-cell" + (extraClass ? " " + extraClass : "");
+
+        const title = document.createElement("span");
+        title.className = "profile-contrast-cell__label";
+        title.textContent = label;
+        cell.appendChild(title);
+
+        const text = document.createElement("span");
+        text.className = "profile-contrast-cell__value";
+        text.textContent = value || "—";
+        cell.appendChild(text);
+        row.appendChild(cell);
+      }
+
+      const isSwedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
+      addCell(isSwedish ? "Höger" : "Right", item.right_dimensions);
+      addCell(isSwedish ? "Vänster" : "Left", item.left_dimensions);
+      addCell(
+        isSwedish ? "Möjlig hypotes att utforska" : "Possible hypothesis to explore",
+        item.question,
+        "profile-contrast-cell--hypothesis"
+      );
+
+      card.appendChild(row);
+
+      if (item.context_dimensions) {
+        const context = document.createElement("p");
+        context.className = "profile-contrast-context";
+        context.textContent = (isSwedish ? "Kan variera med situationen: " : "May vary by situation: ")
+          + item.context_dimensions;
+        card.appendChild(context);
+      }
 
       target.appendChild(card);
     });
