@@ -139,6 +139,36 @@ class TeamAccessTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertTrue(Team.objects.filter(pk=self.shared_team.pk).exists())
 
+    def test_duplicate_team_name_is_reported_on_the_form(self):
+        self.client.force_login(self.editor)
+
+        with (
+            patch(
+                "apps.teams.views.get_accessible_processes_for_user",
+                return_value=([], self.company),
+            ),
+            patch(
+                "apps.teams.views._resolve_team_create_org_unit_id",
+                return_value=self.unit.pk,
+            ),
+        ):
+            response = self.client.post(
+                reverse("teams:team_create"),
+                {
+                    "name": self.shared_team.name,
+                    "description": "",
+                    "goals": [],
+                    "context": "",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("name", response.context["form"].errors)
+        self.assertEqual(
+            Team.objects.filter(company=self.company, name=self.shared_team.name).count(),
+            1,
+        )
+
     @patch("apps.teams.ai_insights.generate_team_insight")
     @patch("apps.teams.team_report_views.get_accessible_processes_for_user")
     def test_ajax_insight_generation_returns_generated_content(

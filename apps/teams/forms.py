@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
@@ -60,7 +61,10 @@ class TeamForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.company = kwargs.pop("company", None)
         super().__init__(*args, **kwargs)
+        if self.company is None and self.instance.pk:
+            self.company = self.instance.company
         language = translation.get_language() or "en"
         use_swedish = language.startswith("sv")
         self.fields["goals"].choices = [
@@ -77,3 +81,26 @@ class TeamForm(forms.ModelForm):
         ]
         if self.instance.pk:
             self.initial.setdefault("goals", existing_goals)
+
+    def clean_name(self):
+        name = self.cleaned_data["name"]
+        if self.company is None:
+            return name
+
+        duplicate_teams = Team.objects.filter(
+            company=self.company,
+            name=name,
+        )
+        if self.instance.pk:
+            duplicate_teams = duplicate_teams.exclude(pk=self.instance.pk)
+
+        if duplicate_teams.exists():
+            language = translation.get_language() or "en"
+            message = (
+                "Ett team med det här namnet finns redan i företaget."
+                if language.startswith("sv")
+                else _("A team with this name already exists in this company.")
+            )
+            raise ValidationError(message)
+
+        return name
