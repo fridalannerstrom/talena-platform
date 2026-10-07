@@ -267,6 +267,24 @@ def _rule_matches(rule: dict[str, Any], left: int, right: int) -> bool:
     return False
 
 
+def _rule_strength(rule: dict[str, Any], left: int, right: int) -> int:
+    """Return the deterministic margin beyond an approved rule threshold."""
+    mode = str(rule.get("mode") or "").strip().lower()
+    if mode in {"left_higher_by", "right_higher_by", "either_direction"}:
+        return abs(left - right) - int(rule["minimum_difference"])
+    if mode == "both_high":
+        return min(left, right) - int(rule["threshold"])
+    if mode == "both_low":
+        return int(rule["threshold"]) - max(left, right)
+    if mode == "opposed_extremes":
+        low, high = sorted((left, right))
+        return min(
+            int(rule["low_maximum"]) - low,
+            high - int(rule["high_minimum"]),
+        )
+    return 0
+
+
 def build_profile_contrast_analysis(
     personality_profile: dict[str, Any] | None,
     *,
@@ -305,7 +323,7 @@ def build_profile_contrast_analysis(
             "rule_version": entry["rule_version"],
             "approval_source": entry["approval_source"],
             "display_priority": display_priority,
-            "strength": abs(left["sten"] - right["sten"]) - int(rule["minimum_difference"]),
+            "strength": _rule_strength(rule, left["sten"], right["sten"]),
             "catalog_version": CONTRAST_CATALOG_VERSION,
         })
 
