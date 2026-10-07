@@ -888,6 +888,69 @@ def build_response_styles_for_guidance_owner(
     )
 
 
+def build_profile_contrast_analysis_for_guidance_owner(
+    guidance_owner,
+    *,
+    language_code="sv",
+):
+    """Build contrast evidence using the same canonical profile resolver."""
+    process = guidance_owner.process
+
+    if getattr(process, "is_historical", False):
+        historical_profile = build_historical_candidate_profile(
+            guidance_owner
+        )
+        source = "historical_import"
+        competencies = [
+            {
+                "competency": item.get("competency") or item.get("name"),
+                "sten": item.get("sten"),
+                "sten_rounded": item.get("sten_rounded"),
+            }
+            for item in (historical_profile.get("personality_competencies") or [])
+        ]
+        activities = [{
+            "activity": "Personality Assessment",
+            "competencies": competencies,
+        }]
+    else:
+        payload = guidance_owner.sova_payload or {}
+        activities = list(
+            guidance_owner.sova_activities
+            or payload.get("activities")
+            or []
+        )
+        if not activities:
+            for phase in payload.get("phases") or []:
+                activities.extend(phase.get("activities") or [])
+        source = "sova_assessment"
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+    )
+    resolved_report = next(
+        (
+            report for report in personality_reports
+            if report.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+    personality_profile = (
+        build_profile_from_resolved_report(
+            resolved_report=resolved_report,
+            language=language_code,
+            include_missing_traits=False,
+        )
+        if resolved_report
+        else None
+    )
+    return build_profile_contrast_analysis(
+        personality_profile,
+        language=language_code,
+        source=source,
+    )
+
+
 def build_motivation_insight_section(
     mq_competencies,
     candidate_name="",
@@ -8171,6 +8234,13 @@ def process_candidate_response_style_guidance_stream(
         if style.get("available")
         and style.get("key") == "social_desirability"
     ]
+    profile_contrast_analysis = build_profile_contrast_analysis_for_guidance_owner(
+        guidance_owner,
+        language_code=language_code,
+    )
+    active_profile_contrasts = (
+        profile_contrast_analysis.get("activated_contrasts") or []
+    )
 
     if not available_response_styles:
         return JsonResponse(
@@ -8309,11 +8379,13 @@ def process_candidate_response_style_guidance_stream(
                 guidance_owner=guidance_owner,
                 response_styles=available_response_styles,
                 language_code=language_code,
+                profile_contrast_analysis=profile_contrast_analysis,
             ):
                 guidance = (
                     apply_response_style_guidance_event(
                         guidance,
                         event,
+                        allowed_profile_contrasts=active_profile_contrasts,
                     )
                 )
 
