@@ -164,6 +164,9 @@ class TeamAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("name", response.context["form"].errors)
+        self.assertTrue(response.context["form"].has_duplicate_name)
+        self.assertContains(response, "team-name-warning")
+        self.assertContains(response, "Namnet används redan")
         self.assertEqual(
             Team.objects.filter(company=self.company, name=self.shared_team.name).count(),
             1,

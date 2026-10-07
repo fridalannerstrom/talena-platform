@@ -62,6 +62,7 @@ class TeamForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.company = kwargs.pop("company", None)
+        self.has_duplicate_name = False
         super().__init__(*args, **kwargs)
         if self.company is None and self.instance.pk:
             self.company = self.instance.company
@@ -83,6 +84,7 @@ class TeamForm(forms.ModelForm):
             self.initial.setdefault("goals", existing_goals)
 
     def clean_name(self):
+        self.has_duplicate_name = False
         name = self.cleaned_data["name"]
         if self.company is None:
             return name
@@ -95,11 +97,13 @@ class TeamForm(forms.ModelForm):
             duplicate_teams = duplicate_teams.exclude(pk=self.instance.pk)
 
         if duplicate_teams.exists():
+            self.has_duplicate_name = True
+            self.fields["name"].widget.attrs["aria-invalid"] = "true"
             language = translation.get_language() or "en"
             message = (
-                "Ett team med det här namnet finns redan i företaget."
+                "Det finns redan ett team med det här namnet. Välj ett annat namn för att fortsätta."
                 if language.startswith("sv")
-                else _("A team with this name already exists in this company.")
+                else _("A team with this name already exists. Choose a different name to continue.")
             )
             raise ValidationError(message)
 

@@ -744,6 +744,35 @@
 }
 
 .team-goal-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.65rem; }
+.talena-team-page .team-name-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #eadbb7;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #6d562a;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+.talena-team-page .team-name-warning svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: #aa7c24;
+}
+.talena-team-page .team-name-warning strong,
+.talena-team-page .team-name-warning span {
+  display: block;
+}
+.talena-team-page .team-name-warning strong {
+  margin-bottom: 0.12rem;
+  color: #5b451f;
+  font-size: 0.72rem;
+  font-weight: 720;
+}
 .team-goal-option {
   display: flex;
   min-height: 58px;
