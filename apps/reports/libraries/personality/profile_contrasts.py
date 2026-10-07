@@ -336,6 +336,10 @@ def build_profile_contrast_analysis(
             "right_label": right["label"],
             "left_sten": left["sten"],
             "right_sten": right["sten"],
+            "dimensions": [
+                {"label": left["label"], "sten": left["sten"]},
+                {"label": right["label"], "sten": right["sten"]},
+            ],
             "left_dimensions": " · ".join(left_labels),
             "right_dimensions": " · ".join(right_labels),
             "context_dimensions": " · ".join(context_labels),
