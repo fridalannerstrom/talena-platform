@@ -17,6 +17,7 @@ MIDDLE_PROFILE_RULE_VERSION = "middle-profile-v1"
 MIDDLE_PROFILE_MINIMUM_COUNT = 10
 MIDDLE_PROFILE_MINIMUM_SHARE = 0.5
 MIDDLE_PROFILE_MINIMUM_COVERAGE = 0.5
+MAX_PROFILE_CONTRASTS = 5
 
 
 def _pair(pair_id: str, trait_key: str, left_key: str, right_key: str,
@@ -31,6 +32,7 @@ def _pair(pair_id: str, trait_key: str, left_key: str, right_key: str,
         "activation_rule": None,
         "rule_version": None,
         "approval_source": None,
+        "display_priority": None,
     }
 
 
@@ -263,6 +265,10 @@ def build_profile_contrast_analysis(
             continue
         if not entry.get("rule_version") or not entry.get("approval_source"):
             continue
+        try:
+            display_priority = int(entry.get("display_priority"))
+        except (TypeError, ValueError):
+            continue
         left = dimensions.get(entry["left_key"])
         right = dimensions.get(entry["right_key"])
         if not left or not right or not _rule_matches(rule, left["sten"], right["sten"]):
@@ -279,8 +285,12 @@ def build_profile_contrast_analysis(
             "hypothesis": entry["hypothesis"].get(language) or entry["hypothesis"]["en"],
             "rule_version": entry["rule_version"],
             "approval_source": entry["approval_source"],
+            "display_priority": display_priority,
             "catalog_version": CONTRAST_CATALOG_VERSION,
         })
+
+    activated.sort(key=lambda item: (-item["display_priority"], item["id"]))
+    activated = activated[:MAX_PROFILE_CONTRASTS]
 
     expected_count = expected_profile_dimension_count()
     available_count = len(dimensions)
