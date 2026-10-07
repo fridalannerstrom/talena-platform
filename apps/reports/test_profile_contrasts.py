@@ -66,6 +66,17 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
         self.assertEqual(hit["left_dimensions"], "Teamwork")
         self.assertEqual(hit["context_dimensions"], "")
 
+    def test_two_dimensions_can_share_the_same_direction(self):
+        result = profile_contrasts.build_profile_contrast_analysis(
+            self._profile({"sensitivity": 10, "teamwork": 6}), language="sv"
+        )
+        hit = next(
+            item for item in result["activated_contrasts"]
+            if item["id"] == "cooperative_sensitivity_teamwork"
+        )
+        self.assertEqual(hit["right_dimensions"], "Sensitivity · Teamwork")
+        self.assertEqual(hit["left_dimensions"], "")
+
     def test_middle_score_is_shown_as_context_not_as_a_pole(self):
         result = profile_contrasts.build_profile_contrast_analysis(
             self._profile({"sensitivity": 6, "teamwork": 1}), language="sv"
