@@ -62,6 +62,13 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
         self.assertEqual(hit["rule_version"], "veronika-2026-10-07-v1")
         self.assertIn("Veronika", hit["approval_source"])
         self.assertEqual(hit["strength"], 1)
+        self.assertEqual(
+            hit["dimensions"],
+            [
+                {"label": "Sensitivity", "sten": 8},
+                {"label": "Teamwork", "sten": 3},
+            ],
+        )
         self.assertEqual(hit["right_dimensions"], "Sensitivity")
         self.assertEqual(hit["left_dimensions"], "Teamwork")
         self.assertEqual(hit["context_dimensions"], "")
