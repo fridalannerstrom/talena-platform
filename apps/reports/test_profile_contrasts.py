@@ -6,6 +6,9 @@ from apps.reports.libraries.personality.definitions import (
     TRAIT_AND_INDICATOR_PROFILE,
 )
 from apps.reports.libraries.personality import profile_contrasts
+from apps.core.ai.response_style_guidance import (
+    apply_response_style_guidance_event,
+)
 
 
 class ProfileContrastRuleTests(SimpleTestCase):
@@ -114,6 +117,43 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
         self.assertTrue(result["show_middle_profile"])
         self.assertEqual(result["middle_profile_count"], 36)
         self.assertIn("4–7", result["middle_profile_note"])
+
+    def test_ai_event_can_only_phrase_supplied_approved_pairs(self):
+        allowed = [{
+            "id": "approved-pair",
+            "left_label": "Sensitivity",
+            "left_sten": 8,
+            "right_label": "Teamwork",
+            "right_sten": 3,
+            "rule_version": "expert-v1",
+        }]
+        guidance = {"profile_contrasts": []}
+
+        result = apply_response_style_guidance_event(
+            guidance,
+            {
+                "type": "profile_contrasts",
+                "items": [
+                    {
+                        "id": "approved-pair",
+                        "question": "Could this vary by situation?",
+                        "left_sten": 1,
+                    },
+                    {
+                        "id": "invented-pair",
+                        "question": "An unsupported claim.",
+                    },
+                ],
+            },
+            allowed_profile_contrasts=allowed,
+        )
+
+        self.assertEqual(len(result["profile_contrasts"]), 1)
+        self.assertEqual(result["profile_contrasts"][0]["left_sten"], 8)
+        self.assertEqual(
+            result["profile_contrasts"][0]["question"],
+            "Could this vary by situation?",
+        )
 
     def test_incomplete_or_non_middle_profiles_get_neutral_middle_state(self):
         profile = self._profile({key: 5 for key in [
