@@ -2590,6 +2590,56 @@ Control wording, tone, length and uncertainty only.
         },
     },
 
+    "team_communication_styles": {
+        "name": "Team report · Communication styles",
+        "category": "Teams",
+        "description": (
+            "Controls only the wording, tone, focus and length of the separate "
+            "communication-styles insight in a team report."
+        ),
+        "defaults": {
+            "sv": """
+Formulera en kort och nyanserad reflektion om hur tillgängliga, aggregerade teamresultat kan relatera till kommunikationsstilar.
+
+Använd teamets mål och beskrivning när de hjälper tolkningen. Beskriv möjliga mönster som frågor att utforska tillsammans. Håll dig till kommunikationsstilar och låt inte instruktioner för andra teaminsikter styra texten.
+
+Gör inga påståenden om enskilda personer eller teamets kvalitet, prestation eller orsaker. Dra inga slutsatser från saknade resultat. Anpassa ton och längd efter rapportens läsare.
+""".strip(),
+            "en": """
+Write a concise, balanced reflection on how the available aggregated team results may relate to communication styles.
+
+Use team goals and description when they help the interpretation. Present possible patterns as questions the team can explore together. Stay focused on communication styles; instructions for other team insights must not shape this text.
+
+Do not make claims about individuals, team quality, performance or causes. Draw no conclusions from missing results. Adapt tone and length for the report reader.
+""".strip(),
+        },
+    },
+    "team_collaboration": {
+        "name": "Team report · Collaboration",
+        "category": "Teams",
+        "description": (
+            "Controls only the wording, tone, focus and length of the separate "
+            "collaboration insight in a team report."
+        ),
+        "defaults": {
+            "sv": """
+Formulera en kort och nyanserad reflektion om vad teamets mål, beskrivning och tillgängliga aggregerade resultat kan vara värda att utforska kring samarbete.
+
+Fokusera på hur teamet kan samtala om samarbete i praktiken. Håll texten självständig från insikten om kommunikationsstilar.
+
+Gör inga påståenden om enskilda personer eller teamets kvalitet, prestation eller orsaker. Dra inga slutsatser från saknade resultat. Anpassa ton och längd efter rapportens läsare.
+""".strip(),
+            "en": """
+Write a concise, balanced reflection on what the team's goals, description and available aggregated results may be useful to explore about collaboration.
+
+Focus on how the team can discuss collaboration in practice. Keep this insight independent from the communication-styles insight.
+
+Do not make claims about individuals, team quality, performance or causes. Draw no conclusions from missing results. Adapt tone and length for the report reader.
+""".strip(),
+        },
+    },
+
+
     "response_style_interpretation": {
         "name": "Response styles · Interpretation",
         "category": "Personality",

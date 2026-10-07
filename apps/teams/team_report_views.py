@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _, get_language
 
 from apps.processes.models import HistoricalProcessCandidate, TestInvitation
 from apps.processes.services.access import get_accessible_processes_for_user
@@ -477,6 +479,41 @@ def team_detail(request, pk):
         process_ids=accessible_process_ids,
     )
 
+    from .ai_insights import build_team_insight_input, normalize_language
+    from .models import TeamAIInsight
+
+    language = normalize_language(get_language())
+    _, current_signature, _, _, _ = build_team_insight_input(
+        team,
+        accessible_processes,
+        language,
+    )
+    insight_rows = TeamAIInsight.objects.filter(
+        team=team,
+        language=language,
+    )
+    insights = {
+        insight.insight_type: {
+            "record": insight,
+            "is_stale": insight.source_signature != current_signature,
+        }
+        for insight in insight_rows
+    }
+    insight_sections = [
+        {
+            "type": "communication_styles",
+            "title_sv": "Kommunikationsstilar",
+            "title_en": "Communication styles",
+            "insight": insights.get("communication_styles"),
+        },
+        {
+            "type": "collaboration",
+            "title_sv": "Samarbete",
+            "title_en": "Collaboration",
+            "insight": insights.get("collaboration"),
+        },
+    ]
+
     return render(
         request,
         "customer/teams/team_detail.html",
@@ -486,6 +523,9 @@ def team_detail(request, pk):
             "memberships": memberships,
             "stats": stats,
             "team_style_stats": team_style_stats,
+            "team_insights": insights,
+            "insight_sections": insight_sections,
+            "insight_language": language,
             "can_edit_team": _user_can_edit_team(
                 request.user,
                 company,
@@ -493,3 +533,42 @@ def team_detail(request, pk):
             ),
         },
     )
+
+
+@login_required
+def generate_team_insight_view(request, pk, insight_type):
+    if request.method != "POST":
+        return redirect("teams:team_detail", pk=pk)
+
+    accessible_processes, company = get_accessible_processes_for_user(
+        request.user,
+        include_archived=True,
+    )
+    team = get_object_or_404(
+        _team_visibility_queryset(request.user, company),
+        pk=pk,
+    )
+    if not _user_can_edit_team(request.user, company, team):
+        return redirect("teams:team_detail", pk=team.pk)
+
+    from .ai_insights import generate_team_insight
+
+    try:
+        generate_team_insight(
+            team=team,
+            insight_type=insight_type,
+            accessible_processes=accessible_processes,
+            user=request.user,
+            language=get_language(),
+        )
+    except ValueError as exc:
+        messages.warning(request, _(str(exc)))
+    except Exception:
+        messages.error(
+            request,
+            _("The team insight could not be generated. Please try again later."),
+        )
+    else:
+        messages.success(request, _("Team insight updated."))
+
+    return redirect("teams:team_detail", pk=team.pk)

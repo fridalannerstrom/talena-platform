@@ -7157,3 +7157,96 @@ msgstr "Organisering och tankestil"
 
 msgid "Interacting and managing emotions"
 msgstr "Samspel och känslomässig hantering"
+
+msgid "Team setup progress"
+msgstr "Teamets upplägg"
+
+msgid "Team goals and context"
+msgstr "Teamets mål och kontext"
+
+msgid "Team report"
+msgstr "Teamrapport"
+
+msgid "Short description"
+msgstr "Kort beskrivning"
+
+msgid "What would you like to explore?"
+msgstr "Vad vill ni utforska?"
+
+msgid "Choose any goals that fit. You can change them later."
+msgstr "Välj de mål som passar. Du kan ändra dem senare."
+
+msgid "Tell us more about the team"
+msgstr "Berätta mer om teamet"
+
+msgid "Optional. Share the team’s situation or what you would like to explore."
+msgstr "Valfritt. Beskriv teamets situation eller vad ni vill utforska."
+
+msgid "Results available"
+msgstr "Resultat finns"
+
+msgid "No usable results yet"
+msgstr "Inga användbara resultat ännu"
+
+msgid "Edit goals and context"
+msgstr "Redigera mål och kontext"
+
+msgid "Add goals or context to tailor team insights."
+msgstr "Lägg till mål eller kontext för att anpassa teaminsikterna."
+
+msgid "Add team context"
+msgstr "Lägg till teamkontext"
+
+msgid "Team insights"
+msgstr "Teaminsikter"
+
+msgid "Separate reflections based on the team’s goals and available assessment results."
+msgstr "Separata reflektioner utifrån teamets mål och tillgängliga testresultat."
+
+msgid "Add team members to get started"
+msgstr "Lägg till teammedlemmar för att komma igång"
+
+msgid "The report will show available data and only generate insights when assessment results are available."
+msgstr "Rapporten visar tillgängliga data och skapar insikter först när testresultat finns."
+
+msgid "Choose team members"
+msgstr "Välj teammedlemmar"
+
+msgid "Regenerate"
+msgstr "Skapa igen"
+
+msgid "Generate insight"
+msgstr "Skapa insikt"
+
+msgid "This insight is out of date because team context, members or results have changed."
+msgstr "Insikten är inaktuell eftersom teamets kontext, medlemmar eller resultat har ändrats."
+
+msgid "Generated"
+msgstr "Skapad"
+
+msgid "Generate this reflection when usable assessment results are available."
+msgstr "Skapa den här reflektionen när användbara testresultat finns."
+
+msgid "No team assessment data is available yet."
+msgstr "Det finns inga testresultat för teamet ännu."
+
+msgid "The team insight could not be generated. Please try again later."
+msgstr "Teaminsikten kunde inte skapas. Försök igen senare."
+
+msgid "Team insight updated."
+msgstr "Teaminsikten har uppdaterats."
+
+msgid "Understand how we collaborate"
+msgstr "Förstå hur vi samarbetar"
+
+msgid "Develop our communication"
+msgstr "Utveckla vår kommunikation"
+
+msgid "Discover strengths and development areas"
+msgstr "Upptäcka styrkor och utvecklingsområden"
+
+msgid "Support the team’s development"
+msgstr "Stödja teamets utveckling"
+
+msgid "Describe the team, its current situation or what you would like Talena to take into account."
+msgstr "Beskriv teamet, dess situation eller vad Talena ska ta hänsyn till."

@@ -30,6 +30,12 @@
     </div>
   </div>
 
+  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+    <a class="team-wizard-step is-complete" href="{% url 'teams:team_edit' team.pk %}"><b>1</b> {% trans "Team goals and context" %}</a>
+    <span class="team-wizard-step is-active"><b>2</b> {% trans "Members" %}</span>
+    <span class="team-wizard-step"><b>3</b> {% trans "Team report" %}</span>
+  </nav>
+
   <form method="post">
     {% csrf_token %}
 
@@ -58,6 +64,7 @@
                 <th class="team-select-column"></th>
                 <th>{% trans "Candidate" %}</th>
                 <th>{% trans "Email" %}</th>
+                <th>{% trans "Assessment results" %}</th>
               </tr>
             </thead>
 
@@ -89,11 +96,18 @@
                   <td>
                     <span class="text-muted small">{{ candidate.email }}</span>
                   </td>
+                  <td>
+                    {% if candidate.id in result_candidate_ids %}
+                      <span class="team-result-status is-available">{% trans "Results available" %}</span>
+                    {% else %}
+                      <span class="team-result-status">{% trans "No usable results yet" %}</span>
+                    {% endif %}
+                  </td>
                 </tr>
 
               {% empty %}
                 <tr>
-                  <td colspan="3" class="team-empty-state">
+                  <td colspan="4" class="team-empty-state">
                     <div class="team-empty-icon" aria-hidden="true">
                       <i data-feather="user-plus"></i>
                     </div>

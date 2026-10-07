@@ -153,6 +153,39 @@
     </div>
   </div>
 
+  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+    <a class="team-wizard-step is-complete" href="{% url 'teams:team_edit' team.pk %}"><b>1</b> {% trans "Team goals and context" %}</a>
+    <a class="team-wizard-step is-complete" href="{% url 'teams:team_members_edit' team.pk %}"><b>2</b> {% trans "Members" %}</a>
+    <span class="team-wizard-step is-active"><b>3</b> {% trans "Team report" %}</span>
+  </nav>
+
+  {% if team.goals or team.context or team.description %}
+    <section class="card mb-4" aria-labelledby="team-goals-heading">
+      <div class="card-header"><h2 id="team-goals-heading" class="team-section-title">{% trans "Team goals and context" %}</h2></div>
+      <div class="card-body">
+        {% if team.goals %}
+          <ul class="team-goal-list">
+            {% for goal in team.goals %}
+              <li>{% if goal == "understand_collaboration" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Förstå hur vi samarbetar{% else %}Understand how we collaborate{% endif %}
+                {% elif goal == "develop_communication" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Utveckla vår kommunikation{% else %}Develop our communication{% endif %}
+                {% elif goal == "discover_strengths" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Upptäcka styrkor och utvecklingsområden{% else %}Discover strengths and development areas{% endif %}
+                {% elif goal == "support_team_development" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Stödja teamets utveckling{% else %}Support the team’s development{% endif %}
+                {% else %}{{ goal|cut:"_" }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        {% if team.description %}<p class="mb-2">{{ team.description }}</p>{% endif %}
+        {% if team.context %}<p class="mb-0 text-muted">{{ team.context }}</p>{% endif %}
+        {% if can_edit_team %}<a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary mt-3">{% trans "Edit goals and context" %}</a>{% endif %}
+      </div>
+    </section>
+  {% else %}
+    <section class="card mb-4"><div class="card-body d-flex justify-content-between align-items-center gap-3 flex-wrap">
+      <p class="mb-0 text-muted">{% trans "Add goals or context to tailor team insights." %}</p>
+      {% if can_edit_team %}<a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Add team context" %}</a>{% endif %}
+    </div></section>
+  {% endif %}
+
   {% if team_style_stats.members_with_scores %}
     <div class="team-summary-strip">
       <div class="team-summary-item">
@@ -277,6 +310,52 @@
       {% endif %}
     </div>
   </div>
+
+  <section class="card mb-4" aria-labelledby="team-ai-insights-heading">
+    <div class="card-header">
+      <h2 id="team-ai-insights-heading" class="team-section-title">{% trans "Team insights" %}</h2>
+      <p class="team-section-copy mb-0">{% trans "Separate reflections based on the team’s goals and available assessment results." %}</p>
+    </div>
+    <div class="card-body">
+      {% if not memberships %}
+        <div class="team-empty-state">
+          <div class="fw-semibold">{% trans "Add team members to get started" %}</div>
+          <p class="small text-muted mb-2">{% trans "The report will show available data and only generate insights when assessment results are available." %}</p>
+          {% if can_edit_team %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'teams:team_members_edit' team.pk %}">{% trans "Choose team members" %}</a>{% endif %}
+        </div>
+      {% else %}
+        <div class="team-insight-grid">
+          {% for section in insight_sections %}
+            <article class="team-insight-card">
+              <div class="d-flex align-items-start justify-content-between gap-3">
+                <h3>{% if LANGUAGE_CODE|slice:":2" == "sv" %}{{ section.title_sv }}{% else %}{{ section.title_en }}{% endif %}</h3>
+                {% if can_edit_team and team_style_stats.members_with_scores %}
+                  <form method="post" action="{% url 'teams:team_insight_generate' team.pk section.type %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                      {% if section.insight %}{% trans "Regenerate" %}{% else %}{% trans "Generate insight" %}{% endif %}
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+              {% with insight=section.insight %}
+                {% if insight %}
+                  {% if insight.is_stale %}
+                    <p class="small text-muted mb-0">{% trans "This insight is out of date because team context, members or results have changed." %}</p>
+                  {% else %}
+                    <div class="team-insight-copy">{{ insight.record.content|linebreaksbr }}</div>
+                    <p class="small text-muted mt-3 mb-0">{% trans "Generated" %} {{ insight.record.generated_at|date:"Y-m-d H:i" }}</p>
+                  {% endif %}
+                {% else %}
+                  <p class="small text-muted mb-0">{% trans "Generate this reflection when usable assessment results are available." %}</p>
+                {% endif %}
+              {% endwith %}
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
 
   {% if team_style_stats.members_with_scores %}
     <div class="row g-4 mb-4">

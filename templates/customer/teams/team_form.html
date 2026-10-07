@@ -27,6 +27,12 @@
     </div>
   </div>
 
+  <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+    <span class="team-wizard-step is-active"><b>1</b> {% trans "Team goals and context" %}</span>
+    <span class="team-wizard-step"><b>2</b> {% trans "Members" %}</span>
+    <span class="team-wizard-step"><b>3</b> {% trans "Team report" %}</span>
+  </nav>
+
   <div class="card team-form-card">
     <div class="card-body">
       <form method="post">
@@ -51,13 +57,36 @@
 
         <div class="mb-4">
           <label for="{{ form.description.id_for_label }}" class="form-label">
-            {% trans "Description" %}
+            {% trans "Short description" %}
           </label>
           {{ form.description }}
 
           {% if form.description.errors %}
             <div class="text-danger small mt-1">{{ form.description.errors }}</div>
           {% endif %}
+        </div>
+
+        <fieldset class="mb-4">
+          <legend class="form-label">{{ form.goals.label }}</legend>
+          <p class="form-text">{% trans "Choose any goals that fit. You can change them later." %}</p>
+          <div class="team-goal-options">
+            {% for checkbox in form.goals %}
+              <label class="team-goal-option" for="{{ checkbox.id_for_label }}">
+                {{ checkbox.tag }}
+                <span>{{ checkbox.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.goals.errors %}<div class="text-danger small mt-1">{{ form.goals.errors }}</div>{% endif %}
+        </fieldset>
+
+        <div class="mb-4">
+          <label for="{{ form.context.id_for_label }}" class="form-label">
+            {% trans "Tell us more about the team" %}
+          </label>
+          {{ form.context }}
+          <div class="form-text">{% trans "Optional. Share the team’s situation or what you would like to explore." %}</div>
+          {% if form.context.errors %}<div class="text-danger small mt-1">{{ form.context.errors }}</div>{% endif %}
         </div>
 
         <div class="team-form-actions">

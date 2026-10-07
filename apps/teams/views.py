@@ -609,7 +609,7 @@ def team_create(request):
             team.save()
 
             messages.success(request, _("Team created."))
-            return redirect("teams:team_detail", pk=team.pk)
+            return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm()
 
@@ -648,6 +648,24 @@ def team_members_edit(request, pk):
         Candidate.objects
         .filter(id__in=candidate_ids)
         .order_by("last_name", "first_name", "email")
+    )
+
+    accessible_process_ids = list(
+        accessible_processes.values_list("id", flat=True)
+    )
+    result_candidate_ids = set(
+        TestInvitation.objects.filter(
+            process_id__in=accessible_process_ids,
+            candidate_id__in=candidate_ids,
+            status="completed",
+        ).values_list("candidate_id", flat=True)
+    )
+    result_candidate_ids.update(
+        HistoricalProcessCandidate.objects.filter(
+            process_id__in=accessible_process_ids,
+            candidate_id__in=candidate_ids,
+            status="completed",
+        ).values_list("candidate_id", flat=True)
     )
 
     if request.method == "POST":
@@ -689,6 +707,7 @@ def team_members_edit(request, pk):
             "team": team,
             "candidates": candidates,
             "selected_candidate_ids": selected_candidate_ids,
+            "result_candidate_ids": result_candidate_ids,
         },
     )
 
@@ -719,7 +738,7 @@ def team_edit(request, pk):
             updated_team.save()
 
             messages.success(request, _("Team updated."))
-            return redirect("teams:team_detail", pk=team.pk)
+            return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm(instance=team)
 
