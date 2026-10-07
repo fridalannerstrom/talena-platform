@@ -1,5 +1,9 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.models import Company, CompanyMember, OrgUnit, User, UserOrgUnitAccess
 from apps.teams.models import Team
@@ -134,3 +138,35 @@ class TeamAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(Team.objects.filter(pk=self.shared_team.pk).exists())
+
+    @patch("apps.teams.ai_insights.generate_team_insight")
+    @patch("apps.teams.team_report_views.get_accessible_processes_for_user")
+    def test_ajax_insight_generation_returns_generated_content(
+        self,
+        get_accessible_processes,
+        generate_insight,
+    ):
+        self.client.force_login(self.editor)
+        get_accessible_processes.return_value = ([], self.company)
+        generate_insight.return_value = SimpleNamespace(
+            content="A team reflection.",
+            generated_at=timezone.now(),
+        )
+
+        response = self.client.post(
+            reverse(
+                "teams:team_insight_generate",
+                args=[self.shared_team.pk, "communication_styles"],
+            ),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "ok": True,
+                "content": "A team reflection.",
+                "generated_at": generate_insight.return_value.generated_at.isoformat(),
+            },
+        )

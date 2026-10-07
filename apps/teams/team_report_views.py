@@ -560,7 +560,7 @@ def generate_team_insight_view(request, pk, insight_type):
     from .ai_insights import generate_team_insight
 
     try:
-        generate_team_insight(
+        insight = generate_team_insight(
             team=team,
             insight_type=insight_type,
             accessible_processes=accessible_processes,
