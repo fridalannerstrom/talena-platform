@@ -69,6 +69,7 @@ from apps.core.ai.response_style_guidance import (
     apply_response_style_guidance_event,
     stream_response_style_guidance,
     save_response_style_guidance,
+    RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION,
 )
 
 from apps.processes.services.team_styles import (
@@ -8192,6 +8193,18 @@ def process_candidate_response_style_guidance_stream(
         guidance_owner.ai_response_style_guidance
         or {}
     )
+
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and saved_guidance.get("_schema_version")
+        != RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
+    ):
+        current_status = "outdated"
+        guidance_owner.ai_response_style_guidance_status = "outdated"
+        guidance_owner.save(update_fields=[
+            "ai_response_style_guidance_status",
+        ])
 
     current_purpose = (
         process.purpose
