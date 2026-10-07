@@ -9975,14 +9975,6 @@ regenerateButton?.addEventListener(
 
       card.appendChild(row);
 
-      if (item.context_dimensions) {
-        const context = document.createElement("p");
-        context.className = "profile-contrast-context";
-        context.textContent = (isSwedish ? "Kan variera med situationen: " : "May vary by situation: ")
-          + item.context_dimensions;
-        card.appendChild(context);
-      }
-
       target.appendChild(card);
     });
   }
