@@ -599,7 +599,7 @@ def team_create(request):
         )
 
     if request.method == "POST":
-        form = TeamForm(request.POST)
+        form = TeamForm(request.POST, company=company)
 
         if form.is_valid():
             team = form.save(commit=False)
@@ -733,7 +733,7 @@ def team_edit(request, pk):
         )
 
     if request.method == "POST":
-        form = TeamForm(request.POST, instance=team)
+        form = TeamForm(request.POST, instance=team, company=company)
 
         if form.is_valid():
             updated_team = form.save(commit=False)
@@ -792,3 +792,4 @@ def team_delete(request, pk):
         "customer/teams/team_confirm_delete.html",
         {"team": team},
     )
+
