@@ -2,6 +2,8 @@ Hi{% if user.first_name %} {{ user.first_name }}{% endif %}!
 
 You have been invited to Talena for {{ company_name }}.
 
+{% autoescape off %}{{ invite_message }}{% endautoescape %}
+
 Create your password using the link below to activate your account:
 
 {{ invite_link }}

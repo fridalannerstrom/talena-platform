@@ -342,10 +342,22 @@
                         {% if LANGUAGE_CODE|slice:":2" == "sv" %}Reflektioner{% else %}Reflections{% endif %}
                       </div>
                       <div class="candidate-result-status__value">
+                        {% if candidate_result_status.feedback_status == "submitted" %}
+                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Alla besvarade{% else %}All answered{% endif %}</span>
+                        {% elif candidate_result_status.feedback_status == "in_progress" %}
+                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Påbörjad{% else %}In progress{% endif %}</span>
+                        {% else %}
+                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte påbörjad{% else %}Not started{% endif %}</span>
+                        {% endif %}
                         <strong>{{ candidate_result_status.feedback_count }} / {{ candidate_result_status.feedback_total }}</strong>
                         <span class="candidate-result-status__meta">
                           {% if LANGUAGE_CODE|slice:":2" == "sv" %}områden besvarade{% else %}areas answered{% endif %}
                         </span>
+                        {% if candidate_result_status.last_feedback_at %}
+                          <span class="candidate-result-status__meta candidate-result-status__feedback-time">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Senaste svar{% else %}Latest response{% endif %}: {{ candidate_result_status.last_feedback_at|date:"Y-m-d H:i" }}
+                          </span>
+                        {% endif %}
                       </div>
                     </div>
 
@@ -409,6 +421,11 @@
                               </span>
                             {% endif %}
                           </div>
+                          {% if reflection.created_at %}
+                            <div class="candidate-result-feedback-panel__timestamp">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Besvarad{% else %}Answered{% endif %} {{ reflection.created_at|date:"Y-m-d H:i" }}
+                            </div>
+                          {% endif %}
                           {% if reflection.comment %}
                             <div class="candidate-result-feedback-panel__label">
                               {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatens kommentar{% else %}Candidate comment{% endif %}

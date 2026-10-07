@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n personality_i18n %}
 {# Talena personality UI and response styles language batch 1 #}
 <div
   class="personality-profile"
@@ -362,6 +362,8 @@
 </div>
 <!-- /PERSONALITY VIEW CONTROLS -->
 
+
+
 <div
   id="personality-detailed-view"
   class="personality-view-panel"
@@ -377,7 +379,7 @@
 
         <div class="personality-profile-section__header">
           <h4 class="personality-profile-section__title">
-            {{ section.section_name }}
+            {{ section|personality_profile_group_label }}
           </h4>
         </div>
 
@@ -674,6 +676,56 @@
   data-personality-view-panel="quick"
 >
 
+<!-- BALANCED PERSONALITY OVERVIEW -->
+<section class="personality-overview-chart" aria-labelledby="personality-overview-chart-title">
+  <div class="personality-overview-chart__header">
+    <div>
+      <h3 id="personality-overview-chart-title" class="personality-overview-chart__title">
+        {% trans "Personality at a glance" %}
+      </h3>
+      <p class="personality-overview-chart__intro">
+        {% trans "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole." %}
+      </p>
+    </div>
+    <div class="personality-overview-chart__legend" aria-hidden="true">
+      <span>{% trans "Left pole" %}</span>
+      <span class="personality-overview-chart__legend-line"></span>
+      <span>{% trans "Right pole" %}</span>
+    </div>
+  </div>
+
+  <div class="personality-overview-chart__groups">
+    {% for section in personality_profile.sections %}
+      <article class="personality-overview-group">
+        <h4 class="personality-overview-group__title">{{ section|personality_profile_group_label }}</h4>
+        <div class="personality-overview-group__plot">
+          {% for trait in section.traits %}
+            <div class="personality-overview-item">
+              <span class="personality-overview-item__label">{{ trait.label }}</span>
+              <div class="personality-overview-item__scale" aria-label="{{ trait.label }} personality result">
+                <span class="personality-overview-item__midpoint" aria-hidden="true"></span>
+                {% for segment in trait.graph_segments %}
+                  {% if segment.selected %}
+                    <span
+                      class="personality-overview-item__range personality-overview-item__range--score-{{ segment.score }}"
+                      aria-hidden="true"
+                    ></span>
+                    <span
+                      class="personality-overview-item__marker personality-overview-item__marker--score-{{ segment.score }}"
+                      title="{{ trait.label }}: {{ segment.score }}/10"
+                    ></span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+<!-- /BALANCED PERSONALITY OVERVIEW -->
+
   {% for section in personality_profile.sections %}
 
     <section class="personality-quick-section">
@@ -681,7 +733,7 @@
       <header class="personality-quick-section__header">
 
         <h4 class="personality-quick-section__title">
-          {{ section.section_name }}
+          {{ section|personality_profile_group_label }}
         </h4>
 
       </header>
@@ -755,9 +807,9 @@
 
 
               <div class="personality-quick-scale__labels">
-                <span>Left</span>
-                <span>Average</span>
-                <span>Right</span>
+                <span>{% trans "Left" %}</span>
+                <span>{% trans "Middle" %}</span>
+                <span>{% trans "Right" %}</span>
               </div>
 
             </div>

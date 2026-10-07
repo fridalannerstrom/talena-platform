@@ -13,6 +13,12 @@ from apps.reports.libraries.personality.definitions import (
 
 register = template.Library()
 
+_SECTION_LABELS_SV = {
+    "leading and working with others": "Leda och arbeta med andra",
+    "organisation and thinking style": "Organisering och tankemönster",
+    "interacting and managing emotions": "Interaktion och känslohantering",
+}
+
 
 def _normalise(value) -> str:
     return " ".join(
@@ -109,3 +115,61 @@ def personality_label(value):
     )
 
     return label_map.get(_normalise(text), text)
+
+
+@register.filter
+def personality_section_label(value):
+    """Localize personality section headings without changing stored report data."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    language = str(get_language() or "sv").lower()
+    if language.startswith("sv"):
+        return _SECTION_LABELS_SV.get(_normalise(text), text)
+    return text
+
+
+_PROFILE_GROUPS_SV = {
+    "samverkande": "Leda och arbeta med andra",
+    "collaborative": "Leda och arbeta med andra",
+    "måldriven": "Organisering och tankemönster",
+    "goal focused": "Organisering och tankemönster",
+    "uppriktighet och regelstyrd": "Interaktion och känslohantering",
+    "honesty and rule orientation": "Interaktion och känslohantering",
+}
+
+_PROFILE_GROUPS_EN = {
+    "samverkande": "Leading and working with others",
+    "collaborative": "Leading and working with others",
+    "måldriven": "Organisation and thinking style",
+    "goal focused": "Organisation and thinking style",
+    "uppriktighet och regelstyrd": "Interacting and managing emotions",
+    "honesty and rule orientation": "Interacting and managing emotions",
+}
+
+
+@register.filter
+def personality_profile_group_label(section):
+    """Label a profile group from its actual traits, not unreliable section metadata."""
+    traits = getattr(section, "traits", None)
+    if traits is None and isinstance(section, dict):
+        traits = section.get("traits")
+    traits = traits or []
+    if not traits:
+        return personality_section_label(
+            section.get("section_name", "") if isinstance(section, dict)
+            else getattr(section, "section_name", "")
+        )
+
+    first = traits[0]
+    if isinstance(first, dict):
+        candidate = first.get("label") or first.get("trait_name") or first.get("name") or ""
+    else:
+        candidate = getattr(first, "label", "") or getattr(first, "trait_name", "") or getattr(first, "name", "")
+    key = _normalise(candidate)
+    language = str(get_language() or "sv").lower()
+    mapping = _PROFILE_GROUPS_SV if language.startswith("sv") else _PROFILE_GROUPS_EN
+    return mapping.get(key, personality_section_label(
+        section.get("section_name", "") if isinstance(section, dict)
+        else getattr(section, "section_name", "")
+    ))

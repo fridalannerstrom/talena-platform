@@ -3731,11 +3731,11 @@ msgstr ""
 # | msgid "Average profile"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:379
 msgid "Trait Profile"
-msgstr "Egenskapsprofil"
+msgstr "Karaktärsdragsprofil"
 
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:392
 msgid "Trait & Indicator Profile"
-msgstr "Egenskaps- och indikatorprofil"
+msgstr "Karaktärsdrags- och indikatorsprofil"
 
 # | msgid "Description"
 #: .\templates\customer\processes\partials\candidate_insights\personality\_results.html:405
@@ -7136,3 +7136,24 @@ msgstr "Ta bort från fästa projekt"
 
 msgid "You can pin up to five projects. Unpin one first."
 msgstr "Du kan fästa högst fem projekt. Ta bort ett först."
+
+msgid "Personality at a glance"
+msgstr "Personlighet i korthet"
+
+msgid "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole."
+msgstr "En visuell översikt av hela profilen. Mittpunkten är ett neutralt läge och varje markör visar kandidatens position mot vänster eller höger pol."
+
+msgid "Left pole"
+msgstr "Vänster pol"
+
+msgid "Right pole"
+msgstr "Höger pol"
+
+msgid "Leading and working with others"
+msgstr "Leda och samarbeta med andra"
+
+msgid "Organisation and thinking style"
+msgstr "Organisering och tankestil"
+
+msgid "Interacting and managing emotions"
+msgstr "Samspel och känslomässig hantering"

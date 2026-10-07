@@ -1134,6 +1134,10 @@
   font-size: 0.64rem;
 }
 
+.process-page .candidate-result-status__feedback-time {
+  flex-basis: 100%;
+}
+
 .process-page .candidate-result-feedback-panel {
   display: block !important;
   margin-top: 16px;
@@ -1165,6 +1169,12 @@
   color: var(--talena-ink);
   font-size: 0.76rem;
   font-weight: 700;
+}
+
+.process-page .candidate-result-feedback-panel__timestamp {
+  margin-top: 5px;
+  color: var(--talena-text-muted);
+  font-size: 0.64rem;
 }
 
 .process-page .candidate-result-feedback-panel__label {
@@ -1251,5 +1261,542 @@
 
   .process-page .candidate-result-status__item:last-child {
     border-bottom: 0;
+  }
+}
+
+
+/* CANDIDATE RESULT OVERVIEW */
+.process-page .candidate-result-overview {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.process-page .candidate-result-overview__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.process-page .candidate-result-overview__personality {
+  margin: 0;
+  padding: 0.95rem 1rem 0.9rem;
+  border-radius: 10px;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row > div {
+  min-width: 0;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__heading-row .candidate-result-overview__open {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
+.process-page .candidate-result-overview__personality .personality-overview-chart__legend {
+  align-self: flex-end;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  white-space: normal;
+}
+
+.process-page .candidate-result-overview__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--talena-coral-strong);
+  font: inherit;
+  font-size: 0.61rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.process-page .candidate-result-overview__open:hover,
+.process-page .candidate-result-overview__open:focus-visible {
+  color: var(--talena-ink);
+  text-decoration: underline;
+  outline: 0;
+}
+
+.process-page .candidate-result-overview__open:focus-visible {
+  border-radius: 3px;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.16);
+}
+
+.process-page .candidate-result-overview__side {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.process-page .candidate-result-overview__area {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.72rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--talena-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: none;
+}
+
+.process-page .candidate-result-overview__area:hover {
+  border-color: var(--talena-border);
+  box-shadow: none;
+}
+
+.process-page .candidate-result-overview__area:focus-visible {
+  border-color: rgba(255, 111, 97, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.15);
+  outline: 0;
+}
+
+.process-page .candidate-result-overview__area-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.process-page .candidate-result-overview__area-title {
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 730;
+}
+
+.process-page .candidate-result-overview__side--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.process-page .candidate-result-overview__motivation-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.process-page .candidate-result-overview__motivation-group {
+  display: grid;
+  align-content: start;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.process-page .candidate-result-overview__list-label {
+  margin: 0 0 0.12rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.52rem;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-overview__motivation-item {
+  display: grid;
+  min-width: 0;
+  gap: 0.16rem;
+  padding: 0.38rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--talena-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.process-page .candidate-result-overview__motivation-item:last-child {
+  border-bottom: 0;
+}
+
+.process-page .candidate-result-overview__motivation-item-main {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.process-page .candidate-result-overview__motivation-name {
+  overflow: hidden;
+  color: var(--talena-ink);
+  font-size: 0.63rem;
+  font-weight: 680;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-page .candidate-result-overview__motivation-scale {
+  display: block;
+  width: 100%;
+}
+
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segments {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.18rem;
+}
+
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segment {
+  min-height: 7px;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--talena-chart-track) !important;
+  box-shadow: none !important;
+}
+
+.process-page .candidate-result-overview__motivation-scale .response-style-scale__segment--filled {
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
+}
+
+.process-page .candidate-result-overview__area--skills {
+  min-height: 220px;
+}
+
+.process-page .candidate-result-overview__skills-list {
+  align-content: stretch;
+  flex: 1;
+}
+
+.process-page .candidate-result-overview__skills-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0;
+}
+
+.process-page .candidate-result-overview__skill-card {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.58rem;
+  min-width: 0;
+  min-height: 190px;
+  padding: 0.8rem 0.65rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.process-page .candidate-result-overview__skill-card:not(:last-child) {
+  border-right: 1px solid var(--talena-border);
+}
+
+.process-page .candidate-result-overview__skill-name {
+  color: var(--talena-ink);
+  font-size: 0.62rem;
+  font-weight: 690;
+  text-align: center;
+}
+
+.process-page .candidate-result-overview__skill-ring {
+  position: relative;
+  display: grid;
+  width: 86px;
+  height: 86px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--talena-coral-strong) var(--percentile), #ece8e5 0);
+}
+
+.process-page .candidate-result-overview__skill-ring.is-empty {
+  background: #ece8e5;
+}
+
+.process-page .candidate-result-overview__skill-ring::before {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.process-page .candidate-result-overview__skill-ring-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.process-page .candidate-result-overview__skill-value {
+  color: var(--talena-ink);
+  font-size: 1.05rem;
+  font-weight: 760;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.process-page .candidate-result-overview__skill-unit {
+  max-width: 62px;
+  color: var(--talena-text-muted);
+  font-size: 0.39rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-overview__skill-comparison {
+  display: grid;
+  gap: 0.32rem;
+  width: 100%;
+  margin-top: 0.08rem;
+}
+
+.process-page .candidate-result-overview__skill-comparison-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.43rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1.25;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-overview__skill-comparison-track {
+  display: block;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--talena-chart-track);
+}
+
+.process-page .candidate-result-overview__skill-comparison-fill {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent));
+}
+
+.process-page .candidate-result-overview__skill-comparison-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.15rem;
+  color: var(--talena-text-muted);
+  font-size: 0.39rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.process-page .candidate-result-overview__empty {
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .process-page .candidate-result-overview {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .process-page .candidate-result-overview__personality {
+    padding: 0.75rem;
+  }
+
+  .process-page .candidate-result-overview__personality .personality-overview-chart__legend {
+    justify-content: flex-start;
+  }
+
+  .process-page .candidate-result-overview__side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .candidate-result-overview__area {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .process-page .candidate-result-overview__motivation-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .candidate-result-overview__motivation-item {
+    padding: 0.55rem 0.6rem;
+  }
+}
+
+/* PERSONALITY INTERPRETATION */
+.process-page .personality-interpretation__context-note {
+  margin-top: 1rem !important;
+  padding: 0.95rem 1rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 14px !important;
+  background: var(--talena-surface-soft, #faf9f7) !important;
+  color: var(--talena-text-muted) !important;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.process-page .personality-interpretation__context-note .personality-questions-context-note__title {
+  color: var(--talena-ink);
+  font-weight: 700;
+}
+
+.process-page .personality-interpretation__overall {
+  margin-top: 1rem !important;
+  padding: 1.2rem 1.25rem !important;
+  border-radius: 15px !important;
+  background: #fff;
+}
+
+.process-page .personality-interpretation__overall .purpose-fit-section-title {
+  margin-bottom: 0.5rem !important;
+  font-size: 1rem !important;
+}
+
+.process-page .personality-interpretation__overall .purpose-fit-summary {
+  font-size: 0.82rem !important;
+  line-height: 1.68 !important;
+}
+
+.process-page .personality-interpretation__dynamics,
+.process-page .personality-interpretation__motivation {
+  padding: 1.1rem 1.2rem !important;
+  border: 1px solid #dfe4ee !important;
+  border-radius: 15px !important;
+  background: #fbfcfe;
+}
+
+.process-page .personality-interpretation__dynamics > .d-flex,
+.process-page .personality-interpretation__motivation > .d-flex {
+  gap: 0.85rem !important;
+}
+
+.process-page .personality-interpretation__dynamics > .d-flex > .flex-shrink-0,
+.process-page .personality-interpretation__motivation > .d-flex > .flex-shrink-0 {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 1px solid #e4e7f0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--talena-coral-strong);
+}
+
+.process-page .personality-interpretation__dynamics .purpose-fit-section-title,
+.process-page .personality-interpretation__motivation .purpose-fit-section-title {
+  margin: 0 0 0.45rem !important;
+  font-size: 0.92rem !important;
+}
+
+.process-page .personality-interpretation__dynamics .purpose-fit-summary,
+.process-page .personality-interpretation__motivation .purpose-fit-summary {
+  font-size: 0.78rem !important;
+  line-height: 1.62 !important;
+}
+
+.process-page .personality-interpretation__motivation--missing {
+  border-color: #eadfd9 !important;
+  background: #fcf9f7;
+}
+
+.process-page .personality-interpretation__missing-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 1px solid rgba(255, 111, 97, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 111, 97, 0.08);
+  color: #b85d52;
+}
+
+.process-page .personality-interpretation__missing-title {
+  color: #514b47 !important;
+}
+
+.process-page .personality-interpretation__missing-badge {
+  border: 1px solid #e6dfda;
+  background: rgba(255, 255, 255, 0.82);
+  color: #766e69;
+  font-size: 0.62rem;
+  font-weight: 650;
+}
+
+.process-page .personality-interpretation__missing-copy {
+  max-width: 760px;
+  color: #7b746f;
+  line-height: 1.55;
+}
+
+.process-page .personality-interpretation__lists {
+  margin-top: 1.25rem !important;
+  row-gap: 1rem !important;
+}
+
+.process-page .personality-interpretation__list-card {
+  height: 100%;
+  padding: 1.05rem 1.1rem !important;
+  border: 1px solid var(--talena-border) !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+}
+
+.process-page .personality-interpretation__list-card > .purpose-fit-section-title {
+  margin-bottom: 0.75rem;
+  font-size: 0.92rem !important;
+}
+
+.process-page .personality-interpretation__list-card .purpose-fit-list {
+  gap: 0.55rem;
+}
+
+.process-page .personality-interpretation__list-card .purpose-fit-list li {
+  min-height: 0;
+  padding: 0.72rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 620px) {
+  .process-page .personality-interpretation__overall,
+  .process-page .personality-interpretation__dynamics,
+  .process-page .personality-interpretation__motivation,
+  .process-page .personality-interpretation__list-card {
+    padding: 0.9rem !important;
+    border-radius: 13px !important;
+  }
+
+  .process-page .personality-interpretation__context-note {
+    padding: 0.8rem !important;
   }
 }

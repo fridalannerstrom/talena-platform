@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import get_language, gettext_lazy as _
 
 from apps.accounts.models import OrgUnit
 from apps.processes.services.process_locking import is_test_package_locked
@@ -169,6 +169,14 @@ class SelfRegisterForm(forms.Form):
 
 
 class TestProcessWizardCreateForm(forms.Form):
+    org_unit = forms.ModelChoiceField(
+        queryset=OrgUnit.objects.none(),
+        required=False,
+        label=_("Account"),
+        empty_label=_("Select an account"),
+        widget=forms.Select(attrs={"class": "form-select form-select-lg"}),
+    )
+
     purpose = forms.CharField(
         max_length=80,
         widget=forms.HiddenInput(),
@@ -237,6 +245,23 @@ class TestProcessWizardCreateForm(forms.Form):
             "Separate the labels with commas."
         ),
     )
+
+    def __init__(self, *args, org_units=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        available = list(org_units or [])
+        field = self.fields["org_unit"]
+        field.queryset = OrgUnit.objects.filter(
+            pk__in=[unit.pk for unit in available]
+        ).select_related("company")
+        field.required = len(available) > 1
+        field.empty_label = (
+            "Välj konto"
+            if (get_language() or "").startswith("sv")
+            else "Select an account"
+        )
+        field.label_from_instance = (
+            lambda unit: f"{unit.company.name} · {unit.name}"
+        )
 
 
 # Talena process context i18n batch 1

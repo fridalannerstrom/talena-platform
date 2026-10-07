@@ -30,9 +30,9 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py makemigrations processes candidate_results --check --dry-run
-      - name: Run focused candidate result, interview, and project pin tests
+      - name: Run focused candidate result, interview, project pin, and account invite tests
         env:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests.test_stream_saves_complete_content_blocks_without_legacy_fields apps.processes.test_pinned_projects --noinput
+        run: python manage.py test apps.accounts.tests apps.accounts.test_usage_billing_export apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests.test_stream_saves_complete_content_blocks_without_legacy_fields apps.processes.test_pinned_projects apps.processes.test_process_create_accounts --noinput

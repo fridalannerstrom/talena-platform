@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n l10n motivation_i18n personality_i18n %}
 {# Talena candidate i18n batch 1 #}
 
 {% with overview_owner=historical_candidate|default:invitation %}
@@ -205,6 +205,219 @@
 
 
         <!-- ================================================== -->
+        <!-- COMPACT FACTUAL ASSESSMENT OVERVIEW -->
+        <section class="candidate-result-overview mb-4" >
+          <div class="candidate-result-overview__grid">
+            {% if has_personality_assessment_in_process %}
+              {% if has_personality_results and personality_profile.sections %}
+                <section class="personality-overview-chart candidate-result-overview__personality" aria-labelledby="candidatePersonalityOverviewTitle">
+                  <div class="personality-overview-chart__header">
+                    <div class="personality-overview-chart__heading-row">
+                      <div>
+                        <h4 id="candidatePersonalityOverviewTitle" class="personality-overview-chart__title">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet i korthet{% else %}Personality at a glance{% endif %}
+                        </h4>
+                        <p class="personality-overview-chart__intro">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                            En visuell översikt av hela profilen. Mitten är ett neutralt läge och varje markör visar kandidatens position mot vänster eller höger pol.
+                          {% else %}
+                            A visual overview of the complete profile. The centre is neutral; each marker shows the candidate's position towards the left or right pole.
+                          {% endif %}
+                        </p>
+                      </div>
+                      <button type="button" class="candidate-result-overview__open"
+                              data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
+                      </button>
+                    </div>
+                    <div class="personality-overview-chart__legend">
+                      <span aria-hidden="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster pol{% else %}Left pole{% endif %}</span>
+                      <span class="personality-overview-chart__legend-line" aria-hidden="true"></span>
+                      <span aria-hidden="true">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger pol{% else %}Right pole{% endif %}</span>
+                    </div>
+                  </div>
+
+                  <div class="personality-overview-chart__groups">
+                    {% for section in personality_profile.sections %}
+                      <article class="personality-overview-group">
+                        <h5 class="personality-overview-group__title">{{ section|personality_profile_group_label }}</h5>
+                        <div class="personality-overview-group__plot">
+                          {% for trait in section.traits %}
+                            <div class="personality-overview-item">
+                              <span class="personality-overview-item__label">{{ trait.label }}</span>
+                              <div class="personality-overview-item__scale"
+                                   role="img"
+                                   aria-label="{{ trait.label }}: {% for segment in trait.graph_segments %}{% if segment.selected %}{{ segment.score }}{% endif %}{% endfor %} / 10">
+                                <span class="personality-overview-item__midpoint" aria-hidden="true"></span>
+                                {% for segment in trait.graph_segments %}
+                                  {% if segment.selected %}
+                                    <span class="personality-overview-item__range personality-overview-item__range--score-{{ segment.score }}" aria-hidden="true"></span>
+                                    <span class="personality-overview-item__marker personality-overview-item__marker--score-{{ segment.score }}"
+                                          title="{{ trait.label }}: {{ segment.score }}/10" aria-hidden="true"></span>
+                                  {% endif %}
+                                {% endfor %}
+                              </div>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </article>
+                    {% endfor %}
+                  </div>
+                </section>
+              {% else %}
+                <section class="candidate-result-overview__area candidate-result-overview__area--personality">
+                  <div class="candidate-result-overview__area-heading">
+                    <span class="candidate-result-overview__area-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}</span>
+                    <button type="button" class="candidate-result-overview__open"
+                            data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
+                    </button>
+                  </div>
+                  <p class="candidate-result-overview__empty">
+                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga personlighetsresultat är tillgängliga.{% else %}No personality results are available.{% endif %}
+                  </p>
+                </section>
+              {% endif %}
+            {% endif %}
+
+            <div class="candidate-result-overview__side{% if has_motivation_assessment_in_process and has_cognitive_assessments_in_process %}{% else %} candidate-result-overview__side--single{% endif %}">
+              {% if has_motivation_assessment_in_process %}
+                <button type="button" class="candidate-result-overview__area candidate-result-overview__area--motivation"
+                        data-insights-tab="motivation" aria-controls="candidate-insights-panel-motivation">
+                  <span class="candidate-result-overview__area-heading">
+                    <span class="candidate-result-overview__area-title">Motivation</span>
+                    <span class="candidate-result-overview__open">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
+                    </span>
+                  </span>
+
+                  {% if has_motivation_results and motivation_insights %}
+                    <span class="candidate-result-overview__motivation-list">
+                      <span class="candidate-result-overview__motivation-group">
+                        <span class="candidate-result-overview__list-label">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest framträdande{% else %}Top drivers{% endif %}
+                        </span>
+                        {% for item in motivation_insights.motivators|slice:":3" %}
+                          <span class="candidate-result-overview__motivation-item">
+                            <span class="candidate-result-overview__motivation-item-main">
+                              <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
+                            </span>
+                            <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
+                                  role="meter"
+                                  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score|floatformat:0 %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
+                                  aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
+                              <span class="response-style-scale__segments">
+                                {% for segment in item.segments %}
+                                  <span class="response-style-scale__segment{% if segment.filled or segment.number <= item.score %} response-style-scale__segment--filled{% endif %}"></span>
+                                {% endfor %}
+                              </span>
+                            </span>
+                          </span>
+                        {% empty %}
+                          <span class="candidate-result-overview__empty">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsvärden är tillgängliga.{% else %}No motivation scores are available.{% endif %}
+                          </span>
+                        {% endfor %}
+                      </span>
+                      {% with least_prominent=motivation_insights|motivation_least_prominent %}
+                        {% if least_prominent %}
+                          <span class="candidate-result-overview__motivation-group">
+                            <span class="candidate-result-overview__list-label">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre framträdande{% else %}Less prominent{% endif %}
+                            </span>
+                            {% for item in least_prominent %}
+                              <span class="candidate-result-overview__motivation-item">
+                                <span class="candidate-result-overview__motivation-item-main">
+                                  <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
+                                    </span>
+                                    <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
+                                      role="meter"
+                                      aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score|floatformat:0 %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
+                                      aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
+                                  <span class="response-style-scale__segments">
+                                    {% for segment in item.segments %}
+                                      <span class="response-style-scale__segment{% if segment.filled or segment.number <= item.score %} response-style-scale__segment--filled{% endif %}"></span>
+                                    {% endfor %}
+                                  </span>
+                                </span>
+                              </span>
+                            {% endfor %}
+                          </span>
+                        {% endif %}
+                      {% endwith %}
+                    </span>
+                  {% else %}
+                    <span class="candidate-result-overview__empty">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsresultat är tillgängliga.{% else %}No motivation results are available.{% endif %}
+                    </span>
+                  {% endif %}
+                </button>
+              {% endif %}
+
+              {% if has_cognitive_assessments_in_process %}
+                <button type="button" class="candidate-result-overview__area candidate-result-overview__area--skills"
+                        data-insights-tab="cognitive" aria-controls="candidate-insights-panel-cognitive">
+                  <span class="candidate-result-overview__area-heading">
+                    <span class="candidate-result-overview__area-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Färdighet{% else %}Skills{% endif %}</span>
+                    <span class="candidate-result-overview__open">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
+                    </span>
+                  </span>
+                  {% if candidate_insights.cognitive_results %}
+                    <span class="candidate-result-overview__skills-list">
+                      {% for result in candidate_insights.cognitive_results %}
+                        {% if result.key in assessment_keys_in_process %}
+                          <span class="candidate-result-overview__skill-card">
+                            <span class="candidate-result-overview__skill-name">
+                              {% if result.key == "verbal" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
+                              {% elif result.key == "logical" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Logiskt{% else %}Logical{% endif %}
+                              {% elif result.key == "numerical" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
+                              {% else %}{{ result.title }}{% endif %}
+                            </span>
+                            <span class="candidate-result-overview__skill-ring{% if not result.completed %} is-empty{% endif %}"
+                                  {% if result.completed %}style="--percentile: {{ result.percentile }}%;"{% endif %}
+                                  role="img"
+                                  aria-label="{% if result.completed %}{{ result.title }}: {{ result.percentile }} {% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}{% else %}{{ result.title }}: {% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}">
+                              <span class="candidate-result-overview__skill-ring-inner">
+                                <span class="candidate-result-overview__skill-value">{% if result.completed %}{{ result.percentile }}{% else %}—{% endif %}</span>
+                                <span class="candidate-result-overview__skill-unit">
+                                  {% if result.completed %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}
+                                  {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}
+                                </span>
+                              </span>
+                            </span>
+                            {% if result.completed %}
+                              <span class="candidate-result-overview__skill-comparison">
+                                <span class="candidate-result-overview__skill-comparison-label">{% trans "Compared with the reference group" %}</span>
+                                <span class="candidate-result-overview__skill-comparison-track"
+                                      role="meter"
+                                      aria-label="{{ result.percentile_aria_label }}"
+                                      aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ result.percentile }}">
+                                  <span class="candidate-result-overview__skill-comparison-fill" style="width: {{ result.percentile }}%;"></span>
+                                </span>
+                                <span class="candidate-result-overview__skill-comparison-labels">
+                                  <span>{% trans "Lower" %}</span>
+                                  <span>{% trans "Typical range" %}</span>
+                                  <span>{% trans "Higher" %}</span>
+                                </span>
+                              </span>
+                            {% endif %}
+                          </span>
+                        {% endif %}
+                      {% endfor %}
+                    </span>
+                  {% else %}
+                    <span class="candidate-result-overview__empty">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga färdighetsresultat är tillgängliga.{% else %}No skills results are available.{% endif %}
+                    </span>
+                  {% endif %}
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+
         <!-- SUPPORT + EXPLORE -->
         <!-- ================================================== -->
 

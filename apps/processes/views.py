@@ -164,7 +164,7 @@ import requests
 
 from django.conf import settings
 
-from apps.accounts.models import Company, CompanyMember
+from apps.accounts.models import Company, CompanyMember, OrgUnit
 from apps.projects.models import ProjectMeta
 
 from apps.activity.models import ActivityEvent
@@ -2958,6 +2958,11 @@ def _build_candidate_result_reflections(snapshot) -> dict:
             "body": body,
             "points": points,
             "has_feedback": feedback is not None,
+            "submitted_at": (
+                feedback.created_at
+                if feedback is not None
+                else None
+            ),
             "response": (
                 feedback.response
                 if feedback is not None
@@ -3182,6 +3187,22 @@ def build_candidate_detail_context(
         process=process,
         invitation=invitation,
         activities=activities,
+    )
+
+    assessment_keys_in_process = sorted({
+        assessment.get("key")
+        for assessment in sent_assessments
+        if assessment.get("key")
+    })
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
     )
 
     activity_events = (
@@ -3909,6 +3930,20 @@ def build_candidate_detail_context(
         for reflection in candidate_result_reflections.values()
         if reflection.get("has_feedback")
     )
+    if candidate_result_feedback_count == 0:
+        candidate_result_feedback_status = "not_started"
+    elif candidate_result_feedback_count == candidate_result_feedback_total:
+        candidate_result_feedback_status = "submitted"
+    else:
+        candidate_result_feedback_status = "in_progress"
+    candidate_result_last_feedback_at = max(
+        (
+            reflection["submitted_at"]
+            for reflection in candidate_result_reflections.values()
+            if reflection.get("submitted_at")
+        ),
+        default=None,
+    )
 
     if candidate_result_access is None:
         candidate_result_access_state = "not_created"
@@ -3950,6 +3985,8 @@ def build_candidate_detail_context(
         "access_state": candidate_result_access_state,
         "feedback_count": candidate_result_feedback_count,
         "feedback_total": candidate_result_feedback_total,
+        "feedback_status": candidate_result_feedback_status,
+        "last_feedback_at": candidate_result_last_feedback_at,
     }
 
     return {
@@ -3968,6 +4005,10 @@ def build_candidate_detail_context(
 
         "activities": activities,
         "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
+        "has_personality_assessment_in_process": has_personality_assessment_in_process,
+        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
+        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
         "project_results": project_results,
         "project_scores": project_scores,
         "competency_scores": competency_scores,
@@ -8884,29 +8925,47 @@ def process_create_v2(request):
 
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
-    # --------------------------------------------------
-    # 3. Hämta company
-    # --------------------------------------------------
-    company_id = (
+    # Only accounts in companies where this user is a member can be selected.
+    memberships = list(
         CompanyMember.objects
         .filter(user=request.user)
-        .values_list("company_id", flat=True)
-        .first()
+        .select_related("company")
     )
-
-    if not company_id:
+    if not memberships:
         messages.error(request, "You are not linked to a company.")
         return redirect("processes:process_list")
 
-    company = get_object_or_404(Company, pk=company_id)
+    accessible_ids = set()
+    for membership in memberships:
+        accessible_ids.update(
+            get_accessible_orgunit_ids(request.user, membership.company)
+        )
+    org_units = list(
+        OrgUnit.objects
+        .filter(
+            pk__in=accessible_ids,
+            company_id__in=[membership.company_id for membership in memberships],
+        )
+        .select_related("company")
+        .order_by("company__name", "name", "pk")
+    )
+    if not org_units:
+        messages.error(request, "You do not have an assigned account.")
+        return redirect("processes:process_list")
 
     # --------------------------------------------------
     # 4. POST: skapa processen
     # --------------------------------------------------
     if request.method == "POST":
-        form = TestProcessWizardCreateForm(request.POST)
+        form = TestProcessWizardCreateForm(request.POST, org_units=org_units)
 
         if form.is_valid():
+            selected_unit = (
+                form.cleaned_data["org_unit"]
+                if len(org_units) > 1
+                else org_units[0]
+            )
+            company = selected_unit.company
             purpose = form.cleaned_data.get("purpose")
             selected_tests = form.cleaned_data.get("selected_tests") or []
 
@@ -8944,6 +9003,7 @@ def process_create_v2(request):
                     "template_cards": template_cards,
                     "templates_count": len(template_cards),
                     "accounts_count": len(accounts),
+                    "org_units": org_units,
                 })
 
             if not resolved_template:
@@ -8976,6 +9036,7 @@ def process_create_v2(request):
                     "template_cards": template_cards,
                     "templates_count": len(template_cards),
                     "accounts_count": len(accounts),
+                    "org_units": org_units,
                 })
             
             
@@ -8986,41 +9047,12 @@ def process_create_v2(request):
             value = resolved_template["value"]
 
             # --------------------------------------------------
-            # 6. Hämta org unit
-            # --------------------------------------------------
-            active_unit_id = request.session.get("active_org_unit_id")
-            accessible_ids = get_accessible_orgunit_ids(request.user, company)
-
-            if not active_unit_id or int(active_unit_id) not in accessible_ids:
-                fallback_id = next(iter(accessible_ids), None)
-
-                if not fallback_id:
-                    form.add_error(
-                        None,
-                        "You do not have an assigned org unit, so a process cannot be created."
-                    )
-
-                    return render(request, "customer/processes/process_create_v2.html", {
-                        "form": form,
-                        "error": error,
-                        "process_purposes": PROCESS_PURPOSES,
-                        "available_tests": AVAILABLE_TESTS,
-                        "purpose_recommended_tests": PURPOSE_RECOMMENDED_TESTS,
-                        "template_cards": template_cards,
-                        "templates_count": len(template_cards),
-                        "accounts_count": len(accounts),
-                    })
-
-                active_unit_id = fallback_id
-                request.session["active_org_unit_id"] = active_unit_id
-
-            # --------------------------------------------------
             # 7. Skapa TestProcess
             # --------------------------------------------------
             obj = TestProcess(
                 name=name,
                 company=company,
-                org_unit_id=int(active_unit_id),
+                org_unit=selected_unit,
                 provider="sova",
                 account_code=acc,
                 project_code=proj,
@@ -9049,6 +9081,7 @@ def process_create_v2(request):
                 )
 
             obj.save()
+            request.session["active_org_unit_id"] = selected_unit.pk
 
             # --------------------------------------------------
             # 9. Spara labels
@@ -9107,7 +9140,7 @@ def process_create_v2(request):
     # 11. GET: visa tom form
     # --------------------------------------------------
     else:
-        form = TestProcessWizardCreateForm()
+        form = TestProcessWizardCreateForm(org_units=org_units)
 
     return render(request, "customer/processes/process_create_v2.html", {
         "form": form,
@@ -9118,6 +9151,7 @@ def process_create_v2(request):
         "template_cards": template_cards,
         "templates_count": len(template_cards),
         "accounts_count": len(accounts),
+                    "org_units": org_units,
     })
 
 def normalise_five_point_score(
@@ -9929,6 +9963,35 @@ def build_historical_candidate_detail_context(
             ),
         })
 
+    assessment_keys_in_process = set()
+    for result in assessment_results:
+        assessment_type = str(
+            result.assessment_type or ""
+        ).strip().lower()
+
+        if "personality" in assessment_type or "personlig" in assessment_type:
+            assessment_keys_in_process.add("personality")
+        elif "motivation" in assessment_type:
+            assessment_keys_in_process.add("motivation")
+        elif "numerical" in assessment_type or "numeric" in assessment_type or "numerisk" in assessment_type:
+            assessment_keys_in_process.add("numerical")
+        elif "logical" in assessment_type or "logisk" in assessment_type:
+            assessment_keys_in_process.add("logical")
+        elif "verbal" in assessment_type:
+            assessment_keys_in_process.add("verbal")
+
+    assessment_keys_in_process = sorted(assessment_keys_in_process)
+    has_personality_assessment_in_process = (
+        "personality" in assessment_keys_in_process
+    )
+    has_motivation_assessment_in_process = (
+        "motivation" in assessment_keys_in_process
+    )
+    has_cognitive_assessments_in_process = any(
+        key in assessment_keys_in_process
+        for key in ("verbal", "logical", "numerical")
+    )
+
     all_competencies = (
         mq_competencies
         + normalised_personality_competencies
@@ -9996,6 +10059,7 @@ def build_historical_candidate_detail_context(
 
         # Header information.
         "sent_assessments": sent_assessments,
+        "assessment_keys_in_process": assessment_keys_in_process,
         "tests_sent_count": assessment_results.count(),
         "tests_completed_count": assessment_results.count(),
 

@@ -15,7 +15,38 @@
 }
 
 .process-page [data-global-ai-update-banner] .card-body {
-  padding: 1rem 1.05rem !important;
+  padding: 0.85rem 1.05rem !important;
+}
+
+.process-page .global-ai-update-banner__layout {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.process-page .global-ai-update-banner__message {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.process-page .global-ai-update-banner__copy {
+  min-width: 0;
+}
+
+.process-page .global-ai-update-banner__action {
+  flex: 0 0 auto;
+}
+
+.process-page .global-ai-update-title {
+  margin: 0 0 0.2rem !important;
+  color: var(--talena-ink);
+  font-size: 0.87rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left !important;
 }
 
 .process-page .global-ai-update-icon {
@@ -39,7 +70,7 @@
   max-width: 700px;
   color: var(--talena-text-muted);
   font-size: .69rem;
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .process-page [data-global-ai-update-banner] .btn-primary,
@@ -102,7 +133,14 @@
     padding: .9rem !important;
   }
 
-  .process-page [data-global-ai-update-banner] .btn-primary {
-    width: 100%;
+  .process-page .global-ai-update-banner__layout {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .process-page .global-ai-update-banner__action {
+    align-self: flex-end;
+    margin-left: 0;
   }
 }

@@ -5,7 +5,7 @@
 {% if has_personality_results %}
 
   <section
-    class=""
+    class="personality-interpretation"
     data-personality-ai-root
     data-stream-url="{{ personality_interpretation_stream_url }}"
     data-regenerate-url="{{ personality_interpretation_regenerate_url }}"
@@ -133,7 +133,7 @@
         >{{ personality_interpretation.context_note }}</div>
 
         <!-- AI / EVIDENCE NOTE -->
-        <div class="personality-questions-context-note mt-4">
+        <div class="personality-questions-context-note mt-4 personality-interpretation__context-note">
           <div class="d-flex align-items-start gap-3">
             <div class="personality-questions-context-note__icon">
               <i data-feather="info"></i>
@@ -160,7 +160,7 @@
         </div>
 
         <!-- OVERALL INTERPRETATION -->
-        <section class="mt-4 purpose-fit-section">
+        <section class="mt-4 purpose-fit-section personality-interpretation__overall">
 
           <h3 class="mb-2 purpose-fit-section-title">
             {% if personality_interpretation_language|slice:":2" == "sv" %}
@@ -185,6 +185,7 @@
             rounded-4
             p-3
             mt-4
+            personality-interpretation__dynamics
             {% if not personality_interpretation.profile_dynamics %}
               d-none
             {% endif %}
@@ -220,7 +221,7 @@
         {% if has_motivation_results %}
 
           <section
-            class="border rounded-4 p-3 mt-4"
+            class="border rounded-4 p-3 mt-4 personality-interpretation__motivation"
             data-personality-ai-motivation-section
           >
             <div class="d-flex align-items-start gap-3">
@@ -259,16 +260,14 @@
         {% else %}
 
           <section
-            class="rounded-4 p-3 mt-4"
-            style="border: 1px dashed #ded8d3; background: linear-gradient(135deg, #fbfaf9 0%, #fff8f5 100%); color: #625c58;"
+            class="rounded-4 p-3 mt-4 personality-interpretation__motivation personality-interpretation__motivation--missing"
             data-personality-ai-motivation-section
             data-personality-ai-motivation-missing
             aria-disabled="true"
           >
             <div class="d-flex align-items-start gap-3">
               <div
-                class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle"
-                style="width: 36px; height: 36px; border: 1px solid rgba(255, 111, 97, 0.18); background: rgba(255, 111, 97, 0.08); color: #b85d52;"
+                class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-circle personality-interpretation__missing-icon"
               >
                 <i data-feather="lock"></i>
               </div>
@@ -276,8 +275,7 @@
               <div class="flex-grow-1 pt-1">
                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                   <h3
-                    class="purpose-fit-section-title mb-0"
-                    style="color: #514b47;"
+                    class="purpose-fit-section-title mb-0 personality-interpretation__missing-title"
                   >
                     {% if personality_interpretation_language|slice:":2" == "sv" %}
                       Samspel med motivation
@@ -287,8 +285,7 @@
                   </h3>
 
                   <span
-                    class="badge rounded-pill"
-                    style="border: 1px solid #e6dfda; background: rgba(255, 255, 255, 0.82); color: #766e69; font-size: 0.62rem; font-weight: 650;"
+                    class="badge rounded-pill personality-interpretation__missing-badge"
                   >
                     {% if personality_interpretation_language|slice:":2" == "sv" %}
                       Ingen motivationsdata
@@ -299,8 +296,7 @@
                 </div>
 
                 <div
-                  class="small"
-                  style="max-width: 760px; color: #7b746f; line-height: 1.55;"
+                  class="small personality-interpretation__missing-copy"
                 >
                   {% if personality_interpretation_language|slice:":2" == "sv" %}
                     Ingen kombinerad insikt ännu. Kandidaten saknar resultat från Motivation. Lägg till Motivation i framtida processer för att se hur drivkrafter kan samspela med personlighetsprofilen.
@@ -316,7 +312,7 @@
 
 
         <!-- STRENGTHS + DEVELOPMENT AREAS -->
-<div class="row g-4 mt-1">
+<div class="row g-4 mt-1 personality-interpretation__lists">
 
   <!-- POTENTIAL STRENGTHS -->
   <div class="col-lg-6">
@@ -325,6 +321,7 @@
       class="
         purpose-fit-list-card
         purpose-fit-list-card--positive
+        personality-interpretation__list-card
         h-100
         {% if not personality_interpretation.supportive_patterns %}
           d-none
@@ -370,6 +367,7 @@
       class="
         purpose-fit-list-card
         purpose-fit-list-card--verify
+        personality-interpretation__list-card
         h-100
         {% if not personality_interpretation.areas_to_explore %}
           d-none

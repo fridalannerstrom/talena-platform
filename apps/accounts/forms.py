@@ -6,7 +6,36 @@ from apps.accounts.models import OrgUnit, UserOrgUnitAccess, CompanyMember, Comp
 User = get_user_model()
 
 
+DEFAULT_INVITE_SUBJECT = "Welcome to Talena"
+DEFAULT_INVITE_MESSAGE = (
+    "You've received a Talena account, bringing assessment processes, results "
+    "and AI-supported insights together in one clear workflow."
+)
+
+
+def clean_invite_subject(value):
+    if "\r" in value or "\n" in value:
+        raise forms.ValidationError("The email subject must be one line.")
+    return value
+
+
 class InviteUserForm(forms.ModelForm):
+    invite_subject = forms.CharField(
+        label="Email subject",
+        max_length=160,
+        initial=DEFAULT_INVITE_SUBJECT,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    invite_message = forms.CharField(
+        label="Email message",
+        max_length=3000,
+        initial=DEFAULT_INVITE_MESSAGE,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+    )
+
+    def clean_invite_subject(self):
+        return clean_invite_subject(self.cleaned_data["invite_subject"])
+
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name"]
@@ -192,6 +221,22 @@ class CompanyForm(forms.ModelForm):
     
 
 class CompanyInviteMemberForm(forms.Form):
+    invite_subject = forms.CharField(
+        label="Email subject",
+        max_length=160,
+        initial=DEFAULT_INVITE_SUBJECT,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    invite_message = forms.CharField(
+        label="Email message",
+        max_length=3000,
+        initial=DEFAULT_INVITE_MESSAGE,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+    )
+
+    def clean_invite_subject(self):
+        return clean_invite_subject(self.cleaned_data["invite_subject"])
+
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "name@company.com"})
     )

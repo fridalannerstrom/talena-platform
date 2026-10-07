@@ -17,6 +17,241 @@
 }
 
 
+
+
+/* =========================================================
+   BALANCED PERSONALITY OVERVIEW
+   Horizontal bipolar scales make direction explicit without
+   suggesting that a higher vertical position is "better".
+   ========================================================= */
+
+.process-page .personality-overview-chart {
+  margin: 1.1rem 0 1.4rem;
+  padding: 1.1rem 1.15rem 1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 16px;
+  background: #fbfaf8;
+}
+
+.process-page .personality-overview-chart__header {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.process-page .personality-overview-chart__title {
+  margin: 0 0 0.22rem;
+  color: var(--talena-ink);
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.process-page .personality-overview-chart__intro {
+  max-width: 680px;
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.process-page .personality-overview-chart__legend {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.45rem;
+  align-items: center;
+  padding-top: 0.15rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.55rem;
+  white-space: nowrap;
+}
+
+.process-page .personality-overview-chart__legend-line {
+  position: relative;
+  width: 52px;
+  height: 1px;
+  background: var(--talena-chart-track);
+}
+
+.process-page .personality-overview-chart__legend-line::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--talena-chart-line);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.process-page .personality-overview-chart__groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.process-page .personality-overview-group {
+  min-width: 0;
+  padding: 0.82rem 0.78rem 0.75rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.process-page .personality-overview-group__title {
+  min-height: 2.2em;
+  margin: 0 0 0.8rem;
+  color: var(--talena-text-muted);
+  font-size: 0.57rem;
+  font-weight: 720;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.process-page .personality-overview-group__plot {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.process-page .personality-overview-item {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) minmax(105px, 1.45fr);
+  gap: 0.55rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.process-page .personality-overview-item__label {
+  display: block;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  color: var(--talena-text-muted);
+  font-size: 0.55rem;
+  font-weight: 500;
+  line-height: 1.18;
+  text-align: right;
+}
+
+.process-page .personality-overview-item__scale {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(23, 19, 18, 0.055) 0%,
+      rgba(23, 19, 18, 0.035) 49.5%,
+      rgba(23, 19, 18, 0.035) 50.5%,
+      rgba(23, 19, 18, 0.055) 100%
+    );
+}
+
+.process-page .personality-overview-item__scale::after {
+  position: absolute;
+  top: 3px;
+  right: 10%;
+  bottom: 3px;
+  left: 10%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(10% - 1px),
+      rgba(255, 255, 255, 0.9) calc(10% - 1px),
+      rgba(255, 255, 255, 0.9) 10%
+    );
+  content: "";
+  pointer-events: none;
+}
+
+.process-page .personality-overview-item__midpoint {
+  position: absolute;
+  z-index: 2;
+  top: -2px;
+  bottom: -2px;
+  left: 50%;
+  width: 1px;
+  background: rgba(23, 19, 18, 0.14);
+  transform: translateX(-50%);
+}
+
+.process-page .personality-overview-item__range {
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 111, 97, 0.25);
+}
+
+/* STEN positions are centred inside ten equal horizontal buckets. */
+.process-page .personality-overview-item__range--score-1 { left: 5%; width: 45%; }
+.process-page .personality-overview-item__range--score-2 { left: 15%; width: 35%; }
+.process-page .personality-overview-item__range--score-3 { left: 25%; width: 25%; }
+.process-page .personality-overview-item__range--score-4 { left: 35%; width: 15%; }
+.process-page .personality-overview-item__range--score-5 { left: 45%; width: 5%; }
+.process-page .personality-overview-item__range--score-6 { left: 50%; width: 5%; }
+.process-page .personality-overview-item__range--score-7 { left: 50%; width: 15%; }
+.process-page .personality-overview-item__range--score-8 { left: 50%; width: 25%; }
+.process-page .personality-overview-item__range--score-9 { left: 50%; width: 35%; }
+.process-page .personality-overview-item__range--score-10 { left: 50%; width: 45%; }
+
+.process-page .personality-overview-item__marker {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--talena-chart-accent);
+  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.32);
+  transform: translate(-50%, -50%);
+}
+
+.process-page .personality-overview-item__marker--score-1 { left: 5%; }
+.process-page .personality-overview-item__marker--score-2 { left: 15%; }
+.process-page .personality-overview-item__marker--score-3 { left: 25%; }
+.process-page .personality-overview-item__marker--score-4 { left: 35%; }
+.process-page .personality-overview-item__marker--score-5 { left: 45%; }
+.process-page .personality-overview-item__marker--score-6 { left: 55%; }
+.process-page .personality-overview-item__marker--score-7 { left: 65%; }
+.process-page .personality-overview-item__marker--score-8 { left: 75%; }
+.process-page .personality-overview-item__marker--score-9 { left: 85%; }
+.process-page .personality-overview-item__marker--score-10 { left: 95%; }
+
+@media (max-width: 980px) {
+  .process-page .personality-overview-chart__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .process-page .personality-overview-group__title {
+    min-height: 0;
+  }
+
+  .process-page .personality-overview-item {
+    grid-template-columns: minmax(95px, 0.7fr) minmax(160px, 2fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .process-page .personality-overview-chart__header {
+    display: block;
+  }
+
+  .process-page .personality-overview-chart__legend {
+    margin-top: 0.65rem;
+  }
+
+  .process-page .personality-overview-item {
+    grid-template-columns: minmax(78px, 0.8fr) minmax(130px, 1.7fr);
+  }
+}
+
 /* =========================================================
    PERSONALITY QUICK PROFILE
    ========================================================= */
@@ -55,10 +290,10 @@
 
 .process-page .personality-quick-row {
   display: grid !important;
-  grid-template-columns: minmax(180px, 1fr) minmax(320px, 1.5fr) minmax(180px, 1fr) !important;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(300px, 1.65fr) minmax(150px, 0.9fr) !important;
   gap: 1rem !important;
   align-items: center !important;
-  padding: 0.82rem 0.9rem !important;
+  padding: 0.68rem 0.9rem !important;
   border-bottom: 1px solid var(--talena-border) !important;
   background: #fff !important;
 }
@@ -70,8 +305,8 @@
 .process-page .personality-quick-row__pole p {
   margin: 0 !important;
   color: var(--talena-text-muted) !important;
-  font-size: 0.62rem !important;
-  line-height: 1.45 !important;
+  font-size: 0.58rem !important;
+  line-height: 1.35 !important;
 }
 
 .process-page .personality-quick-row__pole--right p {
@@ -103,7 +338,7 @@
 }
 
 .process-page .personality-quick-scale__segment {
-  height: 9px !important;
+  height: 10px !important;
   border: 0 !important;
   border-radius: 999px !important;
   background: var(--talena-chart-track) !important;
@@ -111,8 +346,8 @@
 }
 
 .process-page .personality-quick-scale__segment--selected {
-  background: linear-gradient(90deg, var(--talena-chart-accent-soft), var(--talena-chart-accent)) !important;
-  box-shadow: none !important;
+  background: var(--talena-chart-accent) !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(207, 89, 80, 0.18) !important;
 }
 
 .process-page .personality-quick-scale__center-line {

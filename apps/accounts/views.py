@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -97,6 +97,7 @@ from django.utils.encoding import force_bytes
 from .models import UserInvite
 from django.utils import timezone
 
+import csv
 import json
 from django.http import JsonResponse
 from django.db.models import Count, Q, Max
@@ -770,6 +771,77 @@ def admin_usage_billing(request):
     totals["process_count"] = len(
         totals["processes"]
     )
+
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="talena-billing-{date_from}-{date_to}.csv"'
+        )
+        response.write("\ufeff")
+        writer = csv.writer(response, delimiter=";")
+        headers = [
+            "Company / account",
+            "Process",
+            "Sent by",
+            "Candidates",
+            "Tests",
+            "Test types",
+        ]
+        if lifecycle == "completed":
+            headers.append("Status")
+        writer.writerow(headers)
+
+        type_labels = (
+            ("personality", "Personality"),
+            ("motivation", "Motivation"),
+            ("verbal", "Verbal"),
+            ("numerical", "Numerical"),
+            ("logical", "Logical"),
+            ("other", "Other"),
+        )
+        for row in rows:
+            if not row["selected_count"]:
+                continue
+            account = row["account_name"]
+            if row["account_code"]:
+                account += f" · {row['account_code']}"
+            process_name = f"{row['process_name']} · {row['project_name']}"
+            if row["labels"]:
+                process_name += " · " + ", ".join(
+                    label.name for label in row["labels"]
+                )
+            sender = row["sent_by"]
+            sender_name = (
+                sender.get_full_name() or sender.email
+                if sender else "Unknown / historical"
+            )
+            types = ", ".join(
+                f"{label} {row[key]}"
+                for key, label in type_labels
+                if row[key]
+            )
+            values = [
+                f"{row['company_name']} · {account}",
+                process_name,
+                sender_name,
+                row["candidate_count"],
+                row["selected_count"],
+                types,
+            ]
+            if lifecycle == "completed":
+                estimated = row["estimated_completed"]
+                if estimated == row["selected_count"]:
+                    detail = "Historical completion date"
+                elif estimated:
+                    detail = (
+                        f"{estimated} of {row['selected_count']} "
+                        "use historical dates"
+                    )
+                else:
+                    detail = "Recorded per assessment"
+                values.append(f"Completed & billable · {detail}")
+            writer.writerow(values)
+        return response
 
     # ------------------------------------------------------------
     # Filter choices
@@ -1724,7 +1796,13 @@ def admin_customers_create(request):
             user.is_active = False
             user.save()
 
-            send_invite_email(request, user)
+            send_invite_email(
+                request,
+                user,
+                invite_link=build_invite_link(request, user),
+                subject=form.cleaned_data["invite_subject"],
+                message=form.cleaned_data["invite_message"],
+            )
             messages.success(request, f"Invite sent to {user.email}.")
             return redirect("accounts:admin_customers_list")
 
@@ -4058,6 +4136,8 @@ def company_invite_member(request, company_pk):
                 user,
                 invite_link=invite_link,
                 company=company,
+                subject=invite_form.cleaned_data["invite_subject"],
+                message=invite_form.cleaned_data["invite_message"],
             )
 
             log_event(

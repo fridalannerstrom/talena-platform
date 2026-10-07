@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import math
 from typing import Any, Iterable
+
+from apps.core.motivation_factor_names import MOTIVATION_FACTOR_NAMES_SV
 from django.utils import timezone
 
 from .openai_client import (
@@ -168,30 +170,6 @@ def _motivation_definition_key(value: Any) -> str:
         "commercial focus",
     } else canonical_key
 
-MOTIVATION_FACTOR_SWEDISH_NAMES = {
-    "attachment": "Anknytning",
-    "customer_service": "Kundservice",
-    "work_life_balance": "Balans mellan arbete och privatliv",
-    "people_development": "Människors utveckling",
-    "stability": "Stabilitet",
-    "authority": "Auktoritet",
-    "acquisition": "Anskaffning",
-    "independence": "Självständighet",
-    "recognition": "Erkännande",
-    "making_a_difference": "Göra skillnad",
-    "achievement": "Prestation",
-    "quality": "Kvalitet",
-    "learning": "Lärande",
-    "ethics": "Etik",
-    "commercial_focus": "Kommersiellt fokus",
-    "curiosity": "Nyfikenhet",
-    "creativity": "Kreativitet",
-    "enjoyment": "Glädje",
-    "variety": "Variation",
-    "risk": "Risk",
-}
-
-
 def get_motivation_factor_display_name(
     value: Any,
     *,
@@ -204,7 +182,7 @@ def get_motivation_factor_display_name(
         return name
 
     key = _motivation_definition_key(name)
-    return MOTIVATION_FACTOR_SWEDISH_NAMES.get(key, name)
+    return MOTIVATION_FACTOR_NAMES_SV.get(key, name)
 
 
 def _normalise_name(value: Any) -> str:
