@@ -8168,6 +8168,7 @@ def process_candidate_response_style_guidance_stream(
         style
         for style in response_styles
         if style.get("available")
+        and style.get("key") == "social_desirability"
     ]
 
     if not available_response_styles:
