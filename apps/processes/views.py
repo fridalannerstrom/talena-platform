@@ -5037,6 +5037,12 @@ def process_candidate_pre_interview_decision_support_stream(
                 if event.get("type") == "done":
                     received_done_event = True
 
+                if event.get("type") == "profile_contrasts":
+                    event = {
+                        "type": "profile_contrasts",
+                        "items": guidance.get("profile_contrasts") or [],
+                    }
+
                 yield json.dumps(
                     event,
                     ensure_ascii=False,
