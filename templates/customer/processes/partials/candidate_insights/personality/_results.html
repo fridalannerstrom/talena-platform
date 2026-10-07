@@ -881,48 +881,34 @@
     <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Konsekvensskala och värderingsspridning visas inte som värden. Talena hjälper till att tolka relevanta mönster i profilen utan att hävda att något enskilt mönster är ett mått på resultatens giltighet.{% else %}Consequence Scale and Ratings Spread are not shown as values. Talena helps interpret relevant profile patterns without claiming that any single pattern is a validity measure.{% endif %}</p>
   </section>
   <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
-    <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilkontraster{% else %}Profile contrasts{% endif %}</h3>
+    <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjliga nyanser att utforska{% else %}Possible nuances to explore{% endif %}</h3>
+    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}När egenskaperna läses tillsammans kan de väcka frågor om hur personen fungerar i olika situationer. Se dem som möjliga nyanser att utforska, inte som slutsatser.{% else %}Read together, these traits can raise questions about how the person responds in different situations. Treat them as possible nuances to explore, not as conclusions.{% endif %}</p>
     {% if profile_contrast_analysis.show_middle_profile %}
       <p>{{ profile_contrast_analysis.middle_profile_note }}</p>
     {% elif profile_contrast_analysis.available_dimension_count < profile_contrast_analysis.expected_dimension_count %}
       <p>{{ profile_contrast_analysis.insufficient_data_message }}</p>
     {% endif %}
     {% for contrast in profile_contrast_analysis.activated_contrasts %}
-      <article class="profile-contrast-row">
-        <div class="profile-contrast-cell">
-          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger{% else %}Right{% endif %}</span>
-          <span class="profile-contrast-cell__value">{% if contrast.right_dimensions %}{{ contrast.right_dimensions }}{% else %}—{% endif %}</span>
+      <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
+        <div class="profile-contrast-card__dimensions">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaper att utforska tillsammans{% else %}Traits to explore together{% endif %}</span>
+          <div class="profile-contrast-card__chips">
+            <span class="profile-contrast-card__chip">{{ contrast.left_label }}</span>
+            <span class="profile-contrast-card__chip">{{ contrast.right_label }}</span>
+          </div>
         </div>
-        <div class="profile-contrast-cell">
-          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster{% else %}Left{% endif %}</span>
-          <span class="profile-contrast-cell__value">{% if contrast.left_dimensions %}{{ contrast.left_dimensions }}{% else %}—{% endif %}</span>
+        <div class="profile-contrast-card__hypothesis">
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
+          <p>{{ contrast.hypothesis }}</p>
         </div>
-        <div class="profile-contrast-cell profile-contrast-cell--hypothesis">
-          <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
-          <span class="profile-contrast-cell__value">{{ contrast.hypothesis }}</span>
+        <div class="profile-contrast-card__question" data-profile-contrast-question{% if not contrast.question %} hidden{% endif %}>
+          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Fråga att utforska{% else %}Question to explore{% endif %}</span>
+          <p data-profile-contrast-question-text>{{ contrast.question }}</p>
         </div>
       </article>
     {% empty %}
       <p>{{ profile_contrast_analysis.neutral_message }}</p>
     {% endfor %}
-    <div data-profile-contrast-ai>
-      {% for contrast in response_style_guidance.profile_contrasts %}
-        <article class="profile-contrast-row">
-          <div class="profile-contrast-cell">
-            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Höger{% else %}Right{% endif %}</span>
-            <span class="profile-contrast-cell__value">{% if contrast.right_dimensions %}{{ contrast.right_dimensions }}{% else %}—{% endif %}</span>
-          </div>
-          <div class="profile-contrast-cell">
-            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Vänster{% else %}Left{% endif %}</span>
-            <span class="profile-contrast-cell__value">{% if contrast.left_dimensions %}{{ contrast.left_dimensions }}{% else %}—{% endif %}</span>
-          </div>
-          <div class="profile-contrast-cell profile-contrast-cell--hypothesis">
-            <span class="profile-contrast-cell__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
-            <span class="profile-contrast-cell__value">{{ contrast.question }}</span>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
   </section>
 </div>
 <!-- /RESPONSE STYLES VIEW -->
