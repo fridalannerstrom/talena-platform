@@ -27,6 +27,8 @@ from .prompt_templates import (
     get_ai_feature_prompt_instructions,
 )
 
+RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION = "social_desirability_only_v2"
+
 
 # Talena personality UI and response styles language batch 1
 def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
@@ -548,6 +550,7 @@ def save_response_style_guidance(
 
     language_code = normalize_ai_language(language_code)
     guidance["_language"] = language_code
+    guidance["_schema_version"] = RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
     set_ai_content_language(
         guidance_owner,
         "response_style_guidance",
