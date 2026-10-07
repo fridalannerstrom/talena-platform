@@ -313,13 +313,15 @@ def build_profile_contrast_analysis(
         if not left or not right or not _rule_matches(rule, left["sten"], right["sten"]):
             continue
         pair_dimensions = (left, right)
+        # Group dimensions by their direction around the scale midpoint.
+        # This allows two dimensions on the same side to appear together.
         left_labels = [
             item["label"] for item in pair_dimensions
-            if item["sten"] <= 3
+            if item["sten"] <= 5
         ]
         right_labels = [
             item["label"] for item in pair_dimensions
-            if item["sten"] >= 8
+            if item["sten"] >= 6
         ]
         context_labels = [
             item["label"] for item in pair_dimensions
