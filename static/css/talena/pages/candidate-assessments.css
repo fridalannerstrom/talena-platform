@@ -976,3 +976,61 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Profile contrast summary */
+.process-page .profile-contrast-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.8fr);
+  gap: 0.9rem;
+  padding: 0.9rem 0;
+}
+
+.process-page .profile-contrast-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.process-page .profile-contrast-cell + .profile-contrast-cell {
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--talena-border);
+}
+
+.process-page .profile-contrast-cell__label {
+  color: var(--talena-text-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.process-page .profile-contrast-cell__value {
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.process-page .profile-contrast-cell--hypothesis .profile-contrast-cell__label {
+  color: var(--talena-coral-strong);
+}
+
+.process-page .profile-contrast-context {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .process-page .profile-contrast-row {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .process-page .profile-contrast-cell + .profile-contrast-cell {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
