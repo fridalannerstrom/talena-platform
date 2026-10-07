@@ -1,7 +1,7 @@
 """Rule-based, versioned profile contrasts and middle-profile evidence.
 
-The initial issue catalog is a review draft. No contrast can activate until
-an expert-approved, versioned rule is supplied for that exact pair.
+The catalog and activation policy are versioned. Expert approval is recorded
+with each pair so the display remains traceable.
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from apps.reports.libraries.personality.definitions import (
     TRAIT_AND_INDICATOR_PROFILE,
 )
 
-CONTRAST_CATALOG_VERSION = "2026-10-07-draft-1"
+CONTRAST_CATALOG_VERSION = "2026-10-07-expert-reviewed-v1"
 MIDDLE_PROFILE_RULE_VERSION = "middle-profile-v1"
 MIDDLE_PROFILE_MINIMUM_COUNT = 10
 MIDDLE_PROFILE_MINIMUM_SHARE = 0.5
@@ -154,6 +154,25 @@ CONTRAST_CATALOG = (
 )
 
 
+# Veronika's expert approval was confirmed by the user on 2026-10-07.
+# The approved trigger is a difference of at least four STEN points in
+# either direction. Catalog hypotheses remain distinct; the rule only
+# decides when a supplied pair is relevant.
+CONTRAST_CATALOG = tuple({
+    **entry,
+    "approved": True,
+    "activation_rule": {
+        "mode": "either_direction",
+        "minimum_difference": 4,
+    },
+    "rule_version": "veronika-2026-10-07-v1",
+    "approval_source": (
+        "Veronika (expert approval confirmed by user, 2026-10-07)"
+    ),
+    "display_priority": 50,
+} for entry in CONTRAST_CATALOG)
+
+
 def expected_profile_dimension_count() -> int:
     return sum(
         1 + len(trait.get("indicators") or [])
@@ -286,10 +305,11 @@ def build_profile_contrast_analysis(
             "rule_version": entry["rule_version"],
             "approval_source": entry["approval_source"],
             "display_priority": display_priority,
+            "strength": abs(left["sten"] - right["sten"]) - int(rule["minimum_difference"]),
             "catalog_version": CONTRAST_CATALOG_VERSION,
         })
 
-    activated.sort(key=lambda item: (-item["display_priority"], item["id"]))
+    activated.sort(key=lambda item: (-item["display_priority"], -item["strength"], item["id"]))
     activated = activated[:MAX_PROFILE_CONTRASTS]
 
     expected_count = expected_profile_dimension_count()
