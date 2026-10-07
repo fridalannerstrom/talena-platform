@@ -771,8 +771,12 @@
 .team-goal-list { display: flex; flex-wrap: wrap; gap: 0.45rem 1.5rem; padding-left: 1.15rem; margin-bottom: 0.8rem; }
 .team-insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .team-insight-card { min-width: 0; padding: 1rem; border: 1px solid #e3dfdc; border-radius: 14px; background: #fff; }
+.team-insight-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 0.5rem; }
+.team-insight-refresh { display: inline-grid; width: 38px; height: 38px; padding: 0; place-items: center; }
+.team-insight-refresh svg { width: 16px; height: 16px; }
+.team-insight-refresh[disabled] { cursor: wait; opacity: 0.65; }
 .team-insight-card h3 { margin: 0; font-size: 1rem; font-weight: 700; }
-.team-insight-copy { margin-top: 0.9rem; color: #433c38; line-height: 1.65; }
+.team-insight-copy { margin-top: 0.9rem; color: #433c38; line-height: 1.65; white-space: pre-line; }
 
 @media (max-width: 575.98px) {
   .team-wizard-steps { gap: 0.45rem; }

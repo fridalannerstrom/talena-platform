@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _, get_language
 
@@ -537,7 +538,10 @@ def team_detail(request, pk):
 
 @login_required
 def generate_team_insight_view(request, pk, insight_type):
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method != "POST":
+        if is_ajax:
+            return JsonResponse({"ok": False}, status=405)
         return redirect("teams:team_detail", pk=pk)
 
     accessible_processes, company = get_accessible_processes_for_user(
@@ -549,6 +553,8 @@ def generate_team_insight_view(request, pk, insight_type):
         pk=pk,
     )
     if not _user_can_edit_team(request.user, company, team):
+        if is_ajax:
+            return JsonResponse({"ok": False}, status=403)
         return redirect("teams:team_detail", pk=team.pk)
 
     from .ai_insights import generate_team_insight
@@ -562,13 +568,24 @@ def generate_team_insight_view(request, pk, insight_type):
             language=get_language(),
         )
     except ValueError as exc:
-        messages.warning(request, _(str(exc)))
+        message = _(str(exc))
+        if is_ajax:
+            return JsonResponse({"ok": False, "message": str(message)}, status=422)
+        messages.warning(request, message)
     except Exception:
-        messages.error(
-            request,
-            _("The team insight could not be generated. Please try again later."),
-        )
+        message = _("The team insight could not be generated. Please try again later.")
+        if is_ajax:
+            return JsonResponse({"ok": False, "message": str(message)}, status=500)
+        messages.error(request, message)
     else:
+        if is_ajax:
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "content": insight.content,
+                    "generated_at": insight.generated_at.isoformat(),
+                }
+            )
         messages.success(request, _("Team insight updated."))
 
     return redirect("teams:team_detail", pk=team.pk)

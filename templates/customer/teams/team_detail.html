@@ -338,25 +338,58 @@
             <article class="team-insight-card">
               <div class="d-flex align-items-start justify-content-between gap-3">
                 <h3>{% if LANGUAGE_CODE|slice:":2" == "sv" %}{{ section.title_sv }}{% else %}{{ section.title_en }}{% endif %}</h3>
-                {% if can_edit_team and team_style_stats.members_with_scores %}
-                  <form method="post" action="{% url 'teams:team_insight_generate' team.pk section.type %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">
-                      {% if section.insight %}{% trans "Regenerate" %}{% else %}{% trans "Generate insight" %}{% endif %}
-                    </button>
-                  </form>
-                {% endif %}
+                <div class="team-insight-actions">
+                  {% if section.insight.is_stale %}
+                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">{% trans "Needs update" %}</span>
+                  {% endif %}
+                  {% if can_edit_team and team_style_stats.members_with_scores %}
+                    <form
+                      method="post"
+                      action="{% url 'teams:team_insight_generate' team.pk section.type %}"
+                      data-team-ai-insight-form
+                      data-auto-generate="{% if not section.insight %}true{% else %}false{% endif %}"
+                      data-auto-key="{{ team.pk }}-{{ insight_language }}-{{ section.type }}"
+                      data-loading-label="{% trans 'Updating…' %}"
+                      data-error-label="{% trans 'The team insight could not be generated. Please try again later.' %}"
+                      data-generated-label="{% trans 'Generated' %}"
+                      data-regenerate-label="{% trans 'Regenerate' %}"
+                    >
+                      {% csrf_token %}
+                      <button
+                        type="submit"
+                        class="{% if section.insight.is_stale %}btn btn-icon btn-light team-insight-refresh{% else %}btn btn-sm btn-outline-secondary{% endif %}"
+                        {% if section.insight.is_stale %}
+                          title="{% trans 'Regenerate' %}"
+                          aria-label="{% trans 'Regenerate' %}"
+                        {% endif %}
+                      >
+                        {% if section.insight.is_stale %}
+                          <i data-feather="refresh-cw" aria-hidden="true"></i>
+                        {% elif section.insight %}
+                          {% trans "Regenerate" %}
+                        {% else %}
+                          {% trans "Generate insight" %}
+                        {% endif %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
               </div>
               {% with insight=section.insight %}
                 {% if insight %}
                   {% if insight.is_stale %}
-                    <p class="small text-muted mb-0">{% trans "This insight is out of date because team context, members or results have changed." %}</p>
+                    <p class="small text-muted mb-2" data-team-insight-status role="status" aria-live="polite">{% trans "This insight is out of date because team context, members or results have changed." %}</p>
                   {% else %}
-                    <div class="team-insight-copy">{{ insight.record.content|linebreaksbr }}</div>
-                    <p class="small text-muted mt-3 mb-0">{% trans "Generated" %} {{ insight.record.generated_at|date:"Y-m-d H:i" }}</p>
+                    <p class="small text-muted mb-2" data-team-insight-status role="status" aria-live="polite" hidden></p>
                   {% endif %}
+                  <div class="team-insight-copy">{{ insight.record.content|linebreaksbr }}</div>
+                  <p class="small text-muted mt-3 mb-0" data-team-insight-generated>{% trans "Generated" %} {{ insight.record.generated_at|date:"Y-m-d H:i" }}</p>
                 {% else %}
-                  <p class="small text-muted mb-0">{% trans "Generate this reflection when usable assessment results are available." %}</p>
+                  {% if team_style_stats.members_with_scores %}
+                    <p class="small text-muted mb-0" data-team-insight-status role="status" aria-live="polite">{% trans "Updating…" %}</p>
+                  {% else %}
+                    <p class="small text-muted mb-0" data-team-insight-status role="status" aria-live="polite">{% trans "Generate this reflection when usable assessment results are available." %}</p>
+                  {% endif %}
                 {% endif %}
               {% endwith %}
             </article>
