@@ -403,7 +403,7 @@
 
 /* Forms */
 .talena-team-page .team-form-card {
-  max-width: 760px;
+  width: 100%;
 }
 
 .talena-team-page .team-form-card .card-body {
