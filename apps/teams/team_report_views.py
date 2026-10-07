@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _, get_language
 
 from apps.processes.models import HistoricalProcessCandidate, TestInvitation
 from apps.processes.services.access import get_accessible_processes_for_user
@@ -216,7 +219,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                         else None
                     ),
                     "percent": (
-                        min(max((float(value) / 5) * 100, 0), 100)
+                        min(max(round((float(value) / 5) * 100, 1), 0), 100)
                         if value is not None
                         else 0
                     ),
@@ -294,7 +297,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                     else None
                 ),
                 "average_percent": (
-                    min(max((avg_value / 5) * 100, 0), 100)
+                    min(max(round((avg_value / 5) * 100, 1), 0), 100)
                     if avg_value is not None
                     else 0
                 ),
@@ -317,7 +320,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                     else None
                 ),
                 "maximum_percent": (
-                    min(max((max_value / 5) * 100, 0), 100)
+                    min(max(round((max_value / 5) * 100, 1), 0), 100)
                     if max_value is not None
                     else 0
                 ),
@@ -477,6 +480,41 @@ def team_detail(request, pk):
         process_ids=accessible_process_ids,
     )
 
+    from .ai_insights import build_team_insight_input, normalize_language
+    from .models import TeamAIInsight
+
+    language = normalize_language(get_language())
+    _, current_signature, _, _, _ = build_team_insight_input(
+        team,
+        accessible_processes,
+        language,
+    )
+    insight_rows = TeamAIInsight.objects.filter(
+        team=team,
+        language=language,
+    )
+    insights = {
+        insight.insight_type: {
+            "record": insight,
+            "is_stale": insight.source_signature != current_signature,
+        }
+        for insight in insight_rows
+    }
+    insight_sections = [
+        {
+            "type": "communication_styles",
+            "title_sv": "Kommunikationsstilar",
+            "title_en": "Communication styles",
+            "insight": insights.get("communication_styles"),
+        },
+        {
+            "type": "collaboration",
+            "title_sv": "Samarbete",
+            "title_en": "Collaboration",
+            "insight": insights.get("collaboration"),
+        },
+    ]
+
     return render(
         request,
         "customer/teams/team_detail.html",
@@ -486,6 +524,9 @@ def team_detail(request, pk):
             "memberships": memberships,
             "stats": stats,
             "team_style_stats": team_style_stats,
+            "team_insights": insights,
+            "insight_sections": insight_sections,
+            "insight_language": language,
             "can_edit_team": _user_can_edit_team(
                 request.user,
                 company,
@@ -493,3 +534,58 @@ def team_detail(request, pk):
             ),
         },
     )
+
+
+@login_required
+def generate_team_insight_view(request, pk, insight_type):
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if request.method != "POST":
+        if is_ajax:
+            return JsonResponse({"ok": False}, status=405)
+        return redirect("teams:team_detail", pk=pk)
+
+    accessible_processes, company = get_accessible_processes_for_user(
+        request.user,
+        include_archived=True,
+    )
+    team = get_object_or_404(
+        _team_visibility_queryset(request.user, company),
+        pk=pk,
+    )
+    if not _user_can_edit_team(request.user, company, team):
+        if is_ajax:
+            return JsonResponse({"ok": False}, status=403)
+        return redirect("teams:team_detail", pk=team.pk)
+
+    from .ai_insights import generate_team_insight
+
+    try:
+        insight = generate_team_insight(
+            team=team,
+            insight_type=insight_type,
+            accessible_processes=accessible_processes,
+            user=request.user,
+            language=get_language(),
+        )
+    except ValueError as exc:
+        message = _(str(exc))
+        if is_ajax:
+            return JsonResponse({"ok": False, "message": str(message)}, status=422)
+        messages.warning(request, message)
+    except Exception:
+        message = _("The team insight could not be generated. Please try again later.")
+        if is_ajax:
+            return JsonResponse({"ok": False, "message": str(message)}, status=500)
+        messages.error(request, message)
+    else:
+        if is_ajax:
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "content": insight.content,
+                    "generated_at": insight.generated_at.isoformat(),
+                }
+            )
+        messages.success(request, _("Team insight updated."))
+
+    return redirect("teams:team_detail", pk=team.pk)

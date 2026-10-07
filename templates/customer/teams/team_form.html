@@ -1,5 +1,6 @@
 {% extends "../core/layouts/customer_base.html" %}
 {% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 
 {% block extra_css %}
   <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
@@ -17,20 +18,32 @@
 
       {% if team %}
         <p class="team-page-description">
-          {% trans "Update this team’s name and description." %}
+          {% trans "Update this team’s goals, description and context." %}
         </p>
       {% else %}
         <p class="team-page-description">
-          {% trans "Create a team to group candidates across different test processes." %}
+          {% trans "Set the team’s goals and context, then choose members to create the team report." %}
         </p>
       {% endif %}
     </div>
   </div>
 
-  <div class="card team-form-card">
-    <div class="card-body">
-      <form method="post">
-        {% csrf_token %}
+  <form method="post">
+    {% csrf_token %}
+
+    <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+      <span class="team-wizard-step is-active" aria-current="step">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>1</b><span>{% trans "Team goals and context" %}</span></span>
+      </span>
+      <button class="team-wizard-step is-upcoming" type="submit" name="wizard_next_step" value="2">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
+      </button>
+    </nav>
+
+    <div class="card team-form-card">
+      <div class="card-body">
 
         {% if form.non_field_errors %}
           <div class="alert alert-danger">
@@ -45,13 +58,23 @@
           {{ form.name }}
 
           {% if form.name.errors %}
-            <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+            {% if form.has_duplicate_name %}
+              <div class="team-name-warning mt-2" role="alert">
+                <i data-feather="alert-circle" aria-hidden="true"></i>
+                <div>
+                  <strong>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Namnet används redan{% else %}{% trans "Name already in use" %}{% endif %}</strong>
+                  <span>{{ form.name.errors|join:" " }}</span>
+                </div>
+              </div>
+            {% else %}
+              <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+            {% endif %}
           {% endif %}
         </div>
 
         <div class="mb-4">
           <label for="{{ form.description.id_for_label }}" class="form-label">
-            {% trans "Description" %}
+            {% trans "Short description" %}
           </label>
           {{ form.description }}
 
@@ -60,18 +83,41 @@
           {% endif %}
         </div>
 
+        <fieldset class="mb-4">
+          <legend class="form-label">{{ form.goals.label }}</legend>
+          <p class="form-text">{% trans "Choose any goals that fit. You can change them later." %}</p>
+          <div class="team-goal-options">
+            {% for checkbox in form.goals %}
+              <label class="team-goal-option" for="{{ checkbox.id_for_label }}">
+                {{ checkbox.tag }}
+                <span>{{ checkbox.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.goals.errors %}<div class="text-danger small mt-1">{{ form.goals.errors }}</div>{% endif %}
+        </fieldset>
+
+        <div class="mb-4">
+          <label for="{{ form.context.id_for_label }}" class="form-label">
+            {% trans "Tell us more about the team" %}
+          </label>
+          {{ form.context }}
+          <div class="form-text">{% trans "Optional. Share the team’s situation or what you would like to explore." %}</div>
+          {% if form.context.errors %}<div class="text-danger small mt-1">{{ form.context.errors }}</div>{% endif %}
+        </div>
+
         <div class="team-form-actions">
           <a href="{% url 'teams:team_list' %}" class="btn btn-outline-secondary team-secondary-action">
             {% trans "Cancel" %}
           </a>
 
-          <button type="submit" class="btn btn-primary team-primary-action">
+          <button type="submit" name="wizard_next_step" value="2" class="btn btn-primary team-primary-action">
             {{ submit_label }}
           </button>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
+  </form>
 
 </div>
 

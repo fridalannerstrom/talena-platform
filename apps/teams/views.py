@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods
 
 from apps.accounts.utils.org_access import get_effective_orgunit_permissions
 from apps.core.utils.auth import is_admin
@@ -598,7 +599,7 @@ def team_create(request):
         )
 
     if request.method == "POST":
-        form = TeamForm(request.POST)
+        form = TeamForm(request.POST, company=company)
 
         if form.is_valid():
             team = form.save(commit=False)
@@ -609,7 +610,7 @@ def team_create(request):
             team.save()
 
             messages.success(request, _("Team created."))
-            return redirect("teams:team_detail", pk=team.pk)
+            return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm()
 
@@ -650,6 +651,24 @@ def team_members_edit(request, pk):
         .order_by("last_name", "first_name", "email")
     )
 
+    accessible_process_ids = list(
+        accessible_processes.values_list("id", flat=True)
+    )
+    result_candidate_ids = set(
+        TestInvitation.objects.filter(
+            process_id__in=accessible_process_ids,
+            candidate_id__in=candidate_ids,
+            status="completed",
+        ).values_list("candidate_id", flat=True)
+    )
+    result_candidate_ids.update(
+        HistoricalProcessCandidate.objects.filter(
+            process_id__in=accessible_process_ids,
+            candidate_id__in=candidate_ids,
+            status="completed",
+        ).values_list("candidate_id", flat=True)
+    )
+
     if request.method == "POST":
         posted_ids = {
             int(candidate_id)
@@ -673,6 +692,8 @@ def team_members_edit(request, pk):
             )
 
         messages.success(request, _("Team members updated."))
+        if request.POST.get("wizard_next_step") == "1":
+            return redirect("teams:team_edit", pk=team.pk)
         return redirect("teams:team_detail", pk=team.pk)
 
     selected_candidate_ids = set(
@@ -689,6 +710,7 @@ def team_members_edit(request, pk):
             "team": team,
             "candidates": candidates,
             "selected_candidate_ids": selected_candidate_ids,
+            "result_candidate_ids": result_candidate_ids,
         },
     )
 
@@ -711,7 +733,7 @@ def team_edit(request, pk):
         )
 
     if request.method == "POST":
-        form = TeamForm(request.POST, instance=team)
+        form = TeamForm(request.POST, instance=team, company=company)
 
         if form.is_valid():
             updated_team = form.save(commit=False)
@@ -719,7 +741,7 @@ def team_edit(request, pk):
             updated_team.save()
 
             messages.success(request, _("Team updated."))
-            return redirect("teams:team_detail", pk=team.pk)
+            return redirect("teams:team_members_edit", pk=team.pk)
     else:
         form = TeamForm(instance=team)
 
@@ -733,3 +755,41 @@ def team_edit(request, pk):
             "submit_label": _("Save changes"),
         },
     )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def team_delete(request, pk):
+    _, company = get_accessible_processes_for_user(
+        request.user,
+        include_archived=True,
+    )
+
+    team = get_object_or_404(
+        _team_visibility_queryset(request.user, company),
+        pk=pk,
+    )
+
+    if not _user_can_edit_team(request.user, company, team):
+        return HttpResponseForbidden(
+            "Du har inte behörighet att ta bort det här teamet."
+            if getattr(request, "LANGUAGE_CODE", "en").startswith("sv")
+            else "You do not have permission to delete this team."
+        )
+
+    if request.method == "POST":
+        team.delete()
+        messages.success(
+            request,
+            "Teamet har tagits bort."
+            if getattr(request, "LANGUAGE_CODE", "en").startswith("sv")
+            else "Team deleted.",
+        )
+        return redirect("teams:team_list")
+
+    return render(
+        request,
+        "customer/teams/team_confirm_delete.html",
+        {"team": team},
+    )
+

@@ -69,6 +69,7 @@ from apps.core.ai.response_style_guidance import (
     apply_response_style_guidance_event,
     stream_response_style_guidance,
     save_response_style_guidance,
+    RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION,
 )
 
 from apps.processes.services.team_styles import (
@@ -185,6 +186,9 @@ from apps.core.ai.candidate_summary import (
 )
 
 from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
+from apps.reports.libraries.personality.profile_contrasts import (
+    build_profile_contrast_analysis,
+)
 from apps.reports.libraries.personality.builder import (
     build_profile_from_resolved_report,
 )
@@ -881,6 +885,69 @@ def build_response_styles_for_guidance_owner(
 
     return build_response_style_results(
         personality_competencies
+    )
+
+
+def build_profile_contrast_analysis_for_guidance_owner(
+    guidance_owner,
+    *,
+    language_code="sv",
+):
+    """Build contrast evidence using the same canonical profile resolver."""
+    process = guidance_owner.process
+
+    if getattr(process, "is_historical", False):
+        historical_profile = build_historical_candidate_profile(
+            guidance_owner
+        )
+        source = "historical_import"
+        competencies = [
+            {
+                "competency": item.get("competency") or item.get("name"),
+                "sten": item.get("sten"),
+                "sten_rounded": item.get("sten_rounded"),
+            }
+            for item in (historical_profile.get("personality_competencies") or [])
+        ]
+        activities = [{
+            "activity": "Personality Assessment",
+            "competencies": competencies,
+        }]
+    else:
+        payload = guidance_owner.sova_payload or {}
+        activities = list(
+            guidance_owner.sova_activities
+            or payload.get("activities")
+            or []
+        )
+        if not activities:
+            for phase in payload.get("phases") or []:
+                activities.extend(phase.get("activities") or [])
+        source = "sova_assessment"
+
+    personality_reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+    )
+    resolved_report = next(
+        (
+            report for report in personality_reports
+            if report.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+    personality_profile = (
+        build_profile_from_resolved_report(
+            resolved_report=resolved_report,
+            language=language_code,
+            include_missing_traits=False,
+        )
+        if resolved_report
+        else None
+    )
+    return build_profile_contrast_analysis(
+        personality_profile,
+        language=language_code,
+        source=source,
     )
 
 
@@ -4048,6 +4115,11 @@ def build_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
         "has_motivation_results": has_motivation_results,
         "has_personality_results": has_personality_results,
 
@@ -4964,6 +5036,12 @@ def process_candidate_pre_interview_decision_support_stream(
 
                 if event.get("type") == "done":
                     received_done_event = True
+
+                if event.get("type") == "profile_contrasts":
+                    event = {
+                        "type": "profile_contrasts",
+                        "items": guidance.get("profile_contrasts") or [],
+                    }
 
                 yield json.dumps(
                     event,
@@ -8160,7 +8238,15 @@ def process_candidate_response_style_guidance_stream(
         style
         for style in response_styles
         if style.get("available")
+        and style.get("key") == "social_desirability"
     ]
+    profile_contrast_analysis = build_profile_contrast_analysis_for_guidance_owner(
+        guidance_owner,
+        language_code=language_code,
+    )
+    active_profile_contrasts = (
+        profile_contrast_analysis.get("activated_contrasts") or []
+    )
 
     if not available_response_styles:
         return JsonResponse(
@@ -8183,6 +8269,18 @@ def process_candidate_response_style_guidance_stream(
         guidance_owner.ai_response_style_guidance
         or {}
     )
+
+    if (
+        saved_guidance
+        and current_status == "completed"
+        and saved_guidance.get("_schema_version")
+        != RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
+    ):
+        current_status = "outdated"
+        guidance_owner.ai_response_style_guidance_status = "outdated"
+        guidance_owner.save(update_fields=[
+            "ai_response_style_guidance_status",
+        ])
 
     current_purpose = (
         process.purpose
@@ -8287,11 +8385,13 @@ def process_candidate_response_style_guidance_stream(
                 guidance_owner=guidance_owner,
                 response_styles=available_response_styles,
                 language_code=language_code,
+                profile_contrast_analysis=profile_contrast_analysis,
             ):
                 guidance = (
                     apply_response_style_guidance_event(
                         guidance,
                         event,
+                        allowed_profile_contrasts=active_profile_contrasts,
                     )
                 )
 
@@ -10330,6 +10430,11 @@ def build_historical_candidate_detail_context(
         "ability_reports_for_ui": ability_reports_for_ui,
         "personality_reports": personality_reports,
         "personality_profile": personality_profile,
+        "profile_contrast_analysis": build_profile_contrast_analysis(
+            personality_profile,
+            language=language,
+            source="personality_assessment",
+        ),
         "available_reports_count": available_reports_count,
 
         # General insight data.

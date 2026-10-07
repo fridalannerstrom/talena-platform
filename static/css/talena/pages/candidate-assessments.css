@@ -976,3 +976,97 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Profile contrast summary */
+.process-page .profile-contrast-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 0.9rem 1.25rem;
+  margin: 0 0 0.9rem;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.process-page .profile-contrast-card:last-child {
+  margin-bottom: 0;
+}
+
+.process-page .profile-contrast-card__label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--talena-text-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.process-page .profile-contrast-card__scale-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.process-page .profile-contrast-card__scale-item {
+  display: grid;
+  grid-template-columns: minmax(145px, 0.95fr) minmax(130px, 1.5fr);
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.process-page .profile-contrast-card__dimension-name {
+  color: var(--talena-ink);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.process-page .profile-contrast-card__scale {
+  height: 10px;
+}
+
+.process-page .profile-contrast-card__hypothesis {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--talena-border);
+}
+
+.process-page .profile-contrast-card__hypothesis p,
+.process-page .profile-contrast-card__question p {
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.process-page .profile-contrast-card__question {
+  grid-column: 1 / -1;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.process-page .profile-contrast-card__question[hidden] {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .process-page .profile-contrast-card {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+
+  .process-page .profile-contrast-card__scale-item {
+    grid-template-columns: minmax(110px, 0.9fr) minmax(120px, 1.4fr);
+  }
+
+  .process-page .profile-contrast-card__hypothesis {
+    padding-top: 0.75rem;
+    padding-left: 0;
+    border-top: 1px solid var(--talena-border);
+    border-left: 0;
+  }
+
+  .process-page .profile-contrast-card__question {
+    grid-column: auto;
+  }
+}

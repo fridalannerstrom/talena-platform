@@ -1120,5 +1120,127 @@
     page.dataset.extremeTabsReady = "true";
   }
 
-  document.addEventListener("DOMContentLoaded", initTeamExtremeTabs);
+  function initTeamAIInsights() {
+    const forms = Array.from(
+      document.querySelectorAll("[data-team-ai-insight-form]")
+    );
+
+    if (!forms.length) {
+      return;
+    }
+
+    async function generateInsight(form) {
+      const button = form.querySelector('button[type="submit"]');
+      const card = form.closest(".team-insight-card");
+      let status = card.querySelector("[data-team-insight-status]");
+
+      if (!status) {
+        status = document.createElement("p");
+        status.className = "small text-muted mb-2";
+        status.dataset.teamInsightStatus = "";
+        const content = card.querySelector(".team-insight-copy");
+        if (content) {
+          content.insertAdjacentElement("beforebegin", status);
+        } else {
+          card.appendChild(status);
+        }
+      }
+
+      const originalLabel = button.textContent.trim();
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      status.hidden = false;
+      status.textContent = form.dataset.loadingLabel || "Updating…";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || form.dataset.errorLabel);
+        }
+
+        let content = card.querySelector(".team-insight-copy");
+        if (!content) {
+          content = document.createElement("div");
+          content.className = "team-insight-copy";
+          status.insertAdjacentElement("afterend", content);
+        }
+        content.textContent = result.content || "";
+
+        status.hidden = true;
+        status.textContent = "";
+
+        const staleBadge = card.querySelector(".team-insight-actions .bg-warning-subtle");
+        staleBadge?.remove();
+
+        let generated = card.querySelector("[data-team-insight-generated]");
+        if (!generated) {
+          generated = document.createElement("p");
+          generated.className = "small text-muted mt-3 mb-0";
+          generated.dataset.teamInsightGenerated = "";
+          content.insertAdjacentElement("afterend", generated);
+        }
+        const generatedDate = result.generated_at
+          ? new Date(result.generated_at)
+          : new Date();
+        const formattedDate = Number.isNaN(generatedDate.getTime())
+          ? ""
+          : new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+              dateStyle: "short",
+              timeStyle: "short",
+            }).format(generatedDate);
+        generated.textContent = [form.dataset.generatedLabel, formattedDate]
+          .filter(Boolean)
+          .join(" ");
+
+        form.dataset.autoGenerate = "false";
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        if (!button.classList.contains("team-insight-refresh")) {
+          button.textContent = form.dataset.regenerateLabel || originalLabel;
+        }
+        return true;
+      } catch (error) {
+        status.hidden = false;
+        status.textContent =
+          error.message || form.dataset.errorLabel || originalLabel;
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        return false;
+      }
+    }
+
+    const automaticForms = [];
+    forms.forEach(function (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        generateInsight(form);
+      });
+
+      if (form.dataset.autoGenerate !== "true") {
+        return;
+      }
+
+      automaticForms.push(form);
+    });
+
+    automaticForms.forEach(generateInsight);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTeamExtremeTabs, { once: true });
+    document.addEventListener("DOMContentLoaded", initTeamAIInsights, { once: true });
+  } else {
+    initTeamExtremeTabs();
+    initTeamAIInsights();
+  }
 })();

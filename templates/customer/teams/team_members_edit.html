@@ -33,6 +33,17 @@
   <form method="post">
     {% csrf_token %}
 
+    <nav class="team-wizard-steps" aria-label="{% trans 'Team setup progress' %}">
+      <button class="team-wizard-step is-complete" type="submit" name="wizard_next_step" value="1">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>1</b><span>{% trans "Team goals and context" %}</span></span>
+      </button>
+      <span class="team-wizard-step is-active" aria-current="step">
+        <span class="team-wizard-line" aria-hidden="true"></span>
+        <span class="team-wizard-step-content"><b>2</b><span>{% trans "Members" %}</span></span>
+      </span>
+    </nav>
+
     <div class="card team-list-card">
       <div class="team-member-toolbar">
         <div class="team-member-search">
@@ -58,6 +69,7 @@
                 <th class="team-select-column"></th>
                 <th>{% trans "Candidate" %}</th>
                 <th>{% trans "Email" %}</th>
+                <th>{% trans "Assessment results" %}</th>
               </tr>
             </thead>
 
@@ -89,11 +101,18 @@
                   <td>
                     <span class="text-muted small">{{ candidate.email }}</span>
                   </td>
+                  <td>
+                    {% if candidate.id in result_candidate_ids %}
+                      <span class="team-result-status is-available">{% trans "Results available" %}</span>
+                    {% else %}
+                      <span class="team-result-status">{% trans "No usable results yet" %}</span>
+                    {% endif %}
+                  </td>
                 </tr>
 
               {% empty %}
                 <tr>
-                  <td colspan="3" class="team-empty-state">
+                  <td colspan="4" class="team-empty-state">
                     <div class="team-empty-icon" aria-hidden="true">
                       <i data-feather="user-plus"></i>
                     </div>

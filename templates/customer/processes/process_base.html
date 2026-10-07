@@ -9782,6 +9782,7 @@ regenerateButton?.addEventListener(
       questions: [],
       combination_note: "",
       context_note: "",
+      profile_contrasts: [],
     };
   }
 
@@ -9932,6 +9933,38 @@ regenerateButton?.addEventListener(
 
 
 
+  function renderProfileContrastGuidance(root, items) {
+    const profileRoot = root.closest("[data-personality-profile-root]") || document;
+    const cards = Array.from(
+      profileRoot.querySelectorAll("[data-profile-contrast-id]")
+    );
+    const isSwedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
+
+    cards.forEach(function (card) {
+      const questionSection = card.querySelector("[data-profile-contrast-question]");
+      const questionText = card.querySelector("[data-profile-contrast-question-text]");
+      if (questionText) questionText.textContent = "";
+      if (questionSection) questionSection.hidden = true;
+    });
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      if (!item || !item.id || !item.question) return;
+
+      const card = cards.find(function (candidate) {
+        return candidate.dataset.profileContrastId === item.id;
+      });
+      if (!card) return;
+
+      const questionSection = card.querySelector("[data-profile-contrast-question]");
+      const questionText = card.querySelector("[data-profile-contrast-question-text]");
+      if (!questionSection || !questionText) return;
+
+      questionText.textContent = item.question;
+      questionSection.hidden = false;
+    });
+  }
+
+
   function renderGuidance(root, guidance) {
     if (!guidance) {
       return;
@@ -10037,6 +10070,11 @@ regenerateButton?.addEventListener(
       !guidance.context_note
     );
 
+    renderProfileContrastGuidance(
+      root,
+      guidance.profile_contrasts
+    );
+
     setHidden(content, false);
     setHidden(thinking, true);
     setHidden(error, true);
@@ -10083,6 +10121,12 @@ regenerateButton?.addEventListener(
       case "context_note":
         guidance.context_note =
           event.text || "";
+        break;
+
+      case "profile_contrasts":
+        guidance.profile_contrasts = Array.isArray(event.items)
+          ? event.items
+          : [];
         break;
 
       case "saved_result":
@@ -10667,16 +10711,34 @@ function updatePersonalityGlobalToggle() {
           }
 
 
+          function activateLinkedPersonalityView() {
+            const prefix = "#personality-view-";
+            const hash = window.location.hash || "";
+            if (!hash.startsWith(prefix)) return false;
+            const viewName = hash.slice(prefix.length);
+            if (!Array.from(tabs).some(function (tab) {
+              return tab.dataset.personalityViewTab === viewName;
+            })) return false;
+            activatePersonalityView(viewName);
+            return true;
+          }
+
           tabs.forEach(function (tab) {
             tab.addEventListener(
               "click",
               function () {
-                activatePersonalityView(
-                  tab.dataset.personalityViewTab
+                const viewName = tab.dataset.personalityViewTab;
+                activatePersonalityView(viewName);
+                window.history.replaceState(
+                  null,
+                  "",
+                  "#personality-view-" + viewName
                 );
               }
             );
           });
+
+          window.addEventListener("hashchange", activateLinkedPersonalityView);
 
 
           /*
@@ -10737,16 +10799,18 @@ function updatePersonalityGlobalToggle() {
 
 /*
  * Match the initial state defined in the HTML.
- * Trait Profile is used as the fallback view.
+ * Trait & indicator profile is the default view.
  */
 const initiallyActiveTab = root.querySelector(
   '[data-personality-view-tab][aria-selected="true"]'
 );
 
-activatePersonalityView(
-  initiallyActiveTab?.dataset.personalityViewTab
-  || "quick"
-);
+if (!activateLinkedPersonalityView()) {
+  activatePersonalityView(
+    initiallyActiveTab?.dataset.personalityViewTab
+    || "detailed"
+  );
+}
         });
     };
 
