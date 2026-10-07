@@ -5,291 +5,7 @@
   data-personality-profile-root
 >
 
-<!-- RESPONSE STYLES -->
-{% if has_personality_results and response_styles %}
-  <section
-    class="mb-4 purpose-fit-card"
-    data-response-style-guidance-root
-    data-guidance-stream-url="{{ response_style_guidance_stream_url }}"
-    data-guidance-status="{{ response_style_guidance_status|default:'not_started' }}"
-    data-has-guidance="{% if response_style_guidance %}true{% else %}false{% endif %}"
-  >
 
-
-      <!-- HEADER -->
-      <div class="response-styles-header mb-4 mt-4">
-
-        <div>
-          <h2 class="insight-summary-title mb-1">
-             {% trans "Response styles" %}
-          </h2>
-
-          <p class="text-muted small mb-0">
-             {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
-          </p>
-        </div>
-
-      </div>
-
-
-      <!-- RESPONSE STYLE RESULTS -->
-      <div class="response-style-card">
-
-        {% for style in response_styles %}
-          <article
-            class="
-              response-style-item
-              {% if not style.available %}
-                response-style-item--missing
-              {% endif %}
-            "
-          >
-
-            <!-- TITLE AND VALUE -->
-            <div class="response-style-item__header">
-
-              <div>
-                <h3 class="response-style-item__title">
-                  {{ style.title }}
-                </h3>
-
-              </div>
-
-              {% if style.available %}
-                <div class="response-style-item__result">
-                </div>
-              {% else %}
-                <span
-                  class="
-                    response-style-item__badge
-                    response-style-item__badge--missing
-                  "
-                >
-                   {% trans "Not available" %}
-                </span>
-              {% endif %}
-
-            </div>
-
-
-            {% if style.available %}
-
-              <!-- SCALE WITH POLE DESCRIPTIONS -->
-              <div class="response-style-profile">
-
-                <!-- LOWER SCORE -->
-                <div class="response-style-profile__pole">
-
-                  <div class="personality-trait-card__pole-label">
-                    {% trans "Left score" %}
-                  </div>
-
-                  <p class="response-style-profile__pole-text">
-                    {{ style.low_pole }}
-                  </p>
-
-                </div>
-
-
-<!-- SCALE -->
-<div
-  class="response-style-scale response-style-profile__scale"
-  role="img"
-  aria-label="{{ style.title }}: {{ style.value }} out of 10"
->
-  <div class="response-style-scale__track">
-
-    <!-- LEFT SIDE -->
-    <div class="response-style-scale__side response-style-scale__side--left">
-      {% for segment in response_style_side_segments %}
-        <span
-          class="
-            response-style-scale__segment
-            {% if style.scale_side == 'left' and segment <= style.scale_strength %}
-              response-style-scale__segment--filled
-            {% endif %}
-          "
-        ></span>
-      {% endfor %}
-    </div>
-
-    <!-- CENTER LINE -->
-    <span class="response-style-scale__center-line" aria-hidden="true"></span>
-
-    <!-- RIGHT SIDE -->
-    <div class="response-style-scale__side response-style-scale__side--right">
-      {% for segment in response_style_side_segments %}
-        <span
-          class="
-            response-style-scale__segment
-            {% if style.scale_side == 'right' and segment <= style.scale_strength %}
-              response-style-scale__segment--filled
-            {% endif %}
-          "
-        ></span>
-      {% endfor %}
-    </div>
-
-  </div>
-
-  <div class="response-style-scale__labels">
-    <span class="response-style-scale__label response-style-scale__label--left">
-      {% trans "Left" %}
-    </span>
-    <span class="response-style-scale__label response-style-scale__label--center">
-      {% trans "Typical" %}
-    </span>
-    <span class="response-style-scale__label response-style-scale__label--right">
-      {% trans "Right" %}
-    </span>
-  </div>
-</div>
-
-
-                <!-- HIGHER SCORE -->
-                <div
-                  class="
-                    response-style-profile__pole
-                    response-style-profile__pole--right
-                  "
-                >
-
-                  <div class="personality-trait-card__pole-label align-right">
-                    {% trans "Right score" %}
-                  </div>
-
-                  <p class="response-style-profile__pole-text align-right">
-                    {{ style.high_pole }}
-                  </p>
-
-                </div>
-
-              </div>
-
-            {% endif %}
-
-          </article>
-        {% endfor %}
-
-      </div>
-
-      
-      <!-- AI GUIDANCE -->
-      <section
-        class="response-style-ai-card mt-4"
-        data-response-style-guidance
-      >
-
-        <div class="response-style-ai-card__header">
-
-          <div class="response-style-ai-card__heading">
-    <div class="insight-summary-kicker">
-       {% trans "AI-generated insight" %}
-    </div>
-            <h3
-              class="insight-summary-sub-title"
-              data-guidance-title
-            >
-             {% blocktrans with candidate_name=candidate.first_name %}What does this mean for {{ candidate_name }}?{% endblocktrans %}
-            </h3>
-
-          </div>
-
-        </div>
-
-
-        <!-- THINKING STATE -->
-        <div
-          class="response-style-ai-thinking"
-          data-guidance-thinking
-          {% if response_style_guidance %}hidden{% endif %}
-        >
-
-          <span class="response-style-ai-thinking__dots" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
-
-          <span data-guidance-thinking-text>
-             {% trans "Analysing the response pattern and preparing practical guidance…" %}
-          </span>
-
-        </div>
-
-
-        <!-- ERROR STATE -->
-        <div
-          class="response-style-ai-error"
-          data-guidance-error
-          hidden
-        >
-          <div>
-             {% trans "The interpretation could not be generated." %}
-          </div>
-
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-secondary"
-            data-guidance-retry
-          >
-             {% trans "Try again" %}
-          </button>
-        </div>
-
-
-<!-- GUIDANCE CONTENT -->
-<div
-  class="response-style-ai-content"
-  data-guidance-content
-  {% if not response_style_guidance %}hidden{% endif %}
->
-
-  <!-- OVERALL MEANING -->
-  <p
-    class="response-style-ai-content__summary"
-    data-guidance-summary
-  >
-    {{ response_style_guidance.summary }}
-  </p>
-
-
-  <!-- HOW TO INTERPRET THE PERSONALITY PROFILE -->
-  <div
-    class="response-style-ai-content__section"
-    data-guidance-how-section
-    {% if not response_style_guidance.how_to_interpret %}hidden{% endif %}
-  >
-
-    <div class="response-style-ai-content__label">
-       {% trans "Keep in mind when reading the profile" %}
-    </div>
-
-    <p
-      class="response-style-ai-content__text"
-      data-guidance-how
-    >
-      {{ response_style_guidance.how_to_interpret }}
-    </p>
-
-  </div>
-
-
-
-</div>
-
-      </section>
-      <!-- /AI GUIDANCE -->
-
-
-      <!-- FOOTER -->
-      <div class="small text-muted border-bottom mt-4 pb-4">
-         {% blocktrans %}Response-style indicators should be used as interpretive context rather than as measures of ability, suitability or honesty.{% endblocktrans %}
-      </div>
-
-  </section>
-{% endif %}
-<!-- /RESPONSE STYLES -->
 
 
 
@@ -320,31 +36,31 @@
 
   <button
     type="button"
-    id="personality-quick-tab"
+    id="personality-detailed-tab"
     class="personality-view-tab is-active"
     role="tab"
     aria-selected="true"
-    aria-controls="personality-quick-view"
-    data-personality-view-tab="quick"
-  >
-    <i data-feather="align-justify" aria-hidden="true"></i>
-     <span>{% trans "Trait Profile" %}</span>
-  </button>
-
-  <button
-    type="button"
-    id="personality-detailed-tab"
-    class="personality-view-tab"
-    role="tab"
-    aria-selected="false"
     aria-controls="personality-detailed-view"
     data-personality-view-tab="detailed"
   >
     <i data-feather="list" aria-hidden="true"></i>
-     <span>{% trans "Trait & Indicator Profile" %}</span>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskaps- och indikatorprofilen{% else %}Trait & indicator profile{% endif %}</span>
   </button>
 
-  <button
+<button
+    type="button"
+    id="personality-quick-tab"
+    class="personality-view-tab"
+    role="tab"
+    aria-selected="false"
+    aria-controls="personality-quick-view"
+    data-personality-view-tab="quick"
+  >
+    <i data-feather="align-justify" aria-hidden="true"></i>
+     <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Egenskapsprofilen{% else %}Trait profile{% endif %}</span>
+  </button>
+
+<button
   type="button"
   id="personality-descriptions-tab"
   class="personality-view-tab"
@@ -354,8 +70,13 @@
   data-personality-view-tab="descriptions"
 >
   <i data-feather="book-open" aria-hidden="true"></i>
-   <span>{% trans "Trait Descriptions" %}</span>
+   <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultatsammanfattning{% else %}Results summary{% endif %}</span>
 </button>
+
+<button type="button" id="personality-response-styles-tab" class="personality-view-tab" role="tab" aria-selected="false" aria-controls="personality-response-styles-view" data-personality-view-tab="response-styles">
+    <i data-feather="activity" aria-hidden="true"></i>
+    <span>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Svarsstilar{% else %}Response styles{% endif %}</span>
+  </button>
 
 </div>
 
@@ -370,7 +91,6 @@
   role="tabpanel"
   aria-labelledby="personality-detailed-tab"
   data-personality-view-panel="detailed"
-  hidden
 >
 
     {% for section in personality_profile.sections %}
@@ -674,6 +394,7 @@
   role="tabpanel"
   aria-labelledby="personality-quick-tab"
   data-personality-view-panel="quick"
+  hidden
 >
 
 <!-- BALANCED PERSONALITY OVERVIEW -->
@@ -860,6 +581,323 @@
 </div>
 <!-- /TRAIT DESCRIPTIONS VIEW -->
 
+<!-- RESPONSE STYLES VIEW -->
+<div
+  id="personality-response-styles-view"
+  class="personality-view-panel"
+  role="tabpanel"
+  aria-labelledby="personality-response-styles-tab"
+  data-personality-view-panel="response-styles"
+  hidden
+>
+<!-- RESPONSE STYLES -->
+{% if has_personality_results and response_styles %}
+  <section
+    class="mb-4 purpose-fit-card"
+    data-response-style-guidance-root
+    data-guidance-stream-url="{{ response_style_guidance_stream_url }}"
+    data-guidance-status="{{ response_style_guidance_status|default:'not_started' }}"
+    data-has-guidance="{% if response_style_guidance %}true{% else %}false{% endif %}"
+  >
+
+
+      <!-- HEADER -->
+      <div class="response-styles-header mb-4 mt-4">
+
+        <div>
+          <h2 class="insight-summary-title mb-1">
+             {% trans "Response styles" %}
+          </h2>
+
+          <p class="text-muted small mb-0">
+             {% blocktrans with candidate_name=candidate.first_name %}These indicators describe how {{ candidate_name }} used the questionnaire response scale. They provide context for interpreting the personality profile and are not personality traits themselves.{% endblocktrans %}
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- RESPONSE STYLE RESULTS -->
+      <div class="response-style-card">
+
+        {% for style in response_styles %}
+          {% if style.key == "social_desirability" %}
+          <article
+            class="
+              response-style-item
+              {% if not style.available %}
+                response-style-item--missing
+              {% endif %}
+            "
+          >
+
+            <!-- TITLE AND VALUE -->
+            <div class="response-style-item__header">
+
+              <div>
+                <h3 class="response-style-item__title">
+                  {{ style.title }}
+                </h3>
+
+              </div>
+
+              {% if style.available %}
+                <div class="response-style-item__result">STEN {{ style.value }}</div>
+              {% else %}
+                <span
+                  class="
+                    response-style-item__badge
+                    response-style-item__badge--missing
+                  "
+                >
+                   {% trans "Not available" %}
+                </span>
+              {% endif %}
+
+            </div>
+
+
+            {% if style.available %}
+
+              <!-- SCALE WITH POLE DESCRIPTIONS -->
+              <div class="response-style-profile">
+
+                <!-- LOWER SCORE -->
+                <div class="response-style-profile__pole">
+
+                  <div class="personality-trait-card__pole-label">
+                    {% trans "Left score" %}
+                  </div>
+
+                  <p class="response-style-profile__pole-text">
+                    {{ style.low_pole }}
+                  </p>
+
+                </div>
+
+
+<!-- SCALE -->
+<div
+  class="response-style-scale response-style-profile__scale"
+  role="img"
+  aria-label="{{ style.title }}: {{ style.value }} out of 10"
+>
+  <div class="response-style-scale__track">
+
+    <!-- LEFT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--left">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'left' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
+
+    <!-- CENTER LINE -->
+    <span class="response-style-scale__center-line" aria-hidden="true"></span>
+
+    <!-- RIGHT SIDE -->
+    <div class="response-style-scale__side response-style-scale__side--right">
+      {% for segment in response_style_side_segments %}
+        <span
+          class="
+            response-style-scale__segment
+            {% if style.scale_side == 'right' and segment <= style.scale_strength %}
+              response-style-scale__segment--filled
+            {% endif %}
+          "
+        ></span>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div class="response-style-scale__labels">
+    <span class="response-style-scale__label response-style-scale__label--left">
+      {% trans "Left" %}
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--center">
+      {% trans "Typical" %}
+    </span>
+    <span class="response-style-scale__label response-style-scale__label--right">
+      {% trans "Right" %}
+    </span>
+  </div>
+</div>
+
+
+                <!-- HIGHER SCORE -->
+                <div
+                  class="
+                    response-style-profile__pole
+                    response-style-profile__pole--right
+                  "
+                >
+
+                  <div class="personality-trait-card__pole-label align-right">
+                    {% trans "Right score" %}
+                  </div>
+
+                  <p class="response-style-profile__pole-text align-right">
+                    {{ style.high_pole }}
+                  </p>
+
+                </div>
+
+              </div>
+
+            {% endif %}
+
+          </article>
+          {% endif %}
+        {% endfor %}
+
+      </div>
+
+      
+      <!-- AI GUIDANCE -->
+      <section
+        class="response-style-ai-card mt-4"
+        data-response-style-guidance
+      >
+
+        <div class="response-style-ai-card__header">
+
+          <div class="response-style-ai-card__heading">
+    <div class="insight-summary-kicker">
+       {% trans "AI-generated insight" %}
+    </div>
+            <h3
+              class="insight-summary-sub-title"
+              data-guidance-title
+            >
+             {% blocktrans with candidate_name=candidate.first_name %}What does this mean for {{ candidate_name }}?{% endblocktrans %}
+            </h3>
+
+          </div>
+
+        </div>
+
+
+        <!-- THINKING STATE -->
+        <div
+          class="response-style-ai-thinking"
+          data-guidance-thinking
+          {% if response_style_guidance %}hidden{% endif %}
+        >
+
+          <span class="response-style-ai-thinking__dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+
+          <span data-guidance-thinking-text>
+             {% trans "Analysing the response pattern and preparing practical guidance…" %}
+          </span>
+
+        </div>
+
+
+        <!-- ERROR STATE -->
+        <div
+          class="response-style-ai-error"
+          data-guidance-error
+          hidden
+        >
+          <div>
+             {% trans "The interpretation could not be generated." %}
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-guidance-retry
+          >
+             {% trans "Try again" %}
+          </button>
+        </div>
+
+
+<!-- GUIDANCE CONTENT -->
+<div
+  class="response-style-ai-content"
+  data-guidance-content
+  {% if not response_style_guidance %}hidden{% endif %}
+>
+
+  <!-- OVERALL MEANING -->
+  <p
+    class="response-style-ai-content__summary"
+    data-guidance-summary
+  >
+    {{ response_style_guidance.summary }}
+  </p>
+
+
+  <!-- HOW TO INTERPRET THE PERSONALITY PROFILE -->
+  <div
+    class="response-style-ai-content__section"
+    data-guidance-how-section
+    {% if not response_style_guidance.how_to_interpret %}hidden{% endif %}
+  >
+
+    <div class="response-style-ai-content__label">
+       {% trans "Keep in mind when reading the profile" %}
+    </div>
+
+    <p
+      class="response-style-ai-content__text"
+      data-guidance-how
+    >
+      {{ response_style_guidance.how_to_interpret }}
+    </p>
+
+  </div>
+
+
+
+</div>
+
+      </section>
+      <!-- /AI GUIDANCE -->
+
+
+      <!-- FOOTER -->
+      <div class="small text-muted border-bottom mt-4 pb-4">
+         {% blocktrans %}Response-style indicators should be used as interpretive context rather than as measures of ability, suitability or honesty.{% endblocktrans %}
+      </div>
+
+  </section>
+{% endif %}
+<!-- /RESPONSE STYLES -->
+  <section class="purpose-fit-card mt-4">
+    <h3 class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Om konsekvens och svarsspridning{% else %}About profile spread and response spread{% endif %}</h3>
+    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Konsekvensskala och värderingsspridning visas inte som poäng. Talena kan hjälpa till att tolka relevanta mönster i profilen, men inget enskilt sådant mönster är ett mått på resultatens giltighet.{% else %}Profile spread and response spread are not shown as scores. Talena can help interpret relevant patterns in the profile, but no single pattern is a validity measure.{% endif %}</p>
+  </section>
+  <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
+    <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilkontraster{% else %}Profile contrasts{% endif %}</h3>
+    {% if profile_contrast_analysis.show_middle_profile %}
+      <p>{{ profile_contrast_analysis.middle_profile_note }}</p>
+    {% elif profile_contrast_analysis.available_dimension_count < profile_contrast_analysis.expected_dimension_count %}
+      <p>{{ profile_contrast_analysis.insufficient_data_message }}</p>
+    {% endif %}
+    {% for contrast in profile_contrast_analysis.activated_contrasts %}
+      <article class="response-style-ai-content__section">
+        <h4>{{ contrast.left_label }} (STEN {{ contrast.left_sten }}) · {{ contrast.right_label }} (STEN {{ contrast.right_sten }})</h4>
+        <p>{{ contrast.hypothesis }}</p>
+      </article>
+    {% empty %}
+      <p>{{ profile_contrast_analysis.neutral_message }}</p>
+    {% endfor %}
+  </section>
+</div>
+<!-- /RESPONSE STYLES VIEW -->
 
 </div>
 <!-- /personality-profile -->
