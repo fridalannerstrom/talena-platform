@@ -160,6 +160,7 @@ class TeamAccessTests(TestCase):
                     "goals": [],
                     "context": "",
                 },
+                HTTP_ACCEPT_LANGUAGE="sv",
             )
 
         self.assertEqual(response.status_code, 200)
