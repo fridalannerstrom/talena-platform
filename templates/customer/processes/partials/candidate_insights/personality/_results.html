@@ -896,6 +896,14 @@
     {% empty %}
       <p>{{ profile_contrast_analysis.neutral_message }}</p>
     {% endfor %}
+    <div data-profile-contrast-ai>
+      {% for contrast in response_style_guidance.profile_contrasts %}
+        <article class="response-style-ai-content__section">
+          <h4>{{ contrast.left_label }} (STEN {{ contrast.left_sten }}) · {{ contrast.right_label }} (STEN {{ contrast.right_sten }})</h4>
+          <p>{{ contrast.question }}</p>
+        </article>
+      {% endfor %}
+    </div>
   </section>
 </div>
 <!-- /RESPONSE STYLES VIEW -->
