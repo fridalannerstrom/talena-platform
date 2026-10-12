@@ -149,6 +149,11 @@ def build_graph_segments(selected_sten):
             "score": score,
             "height": height,
             "selected": score == selected_sten,
+            "filled_toward_midpoint": (
+                selected_sten <= score <= 5
+                if selected_sten <= 5
+                else 6 <= score <= selected_sten
+            ),
         }
         for score, height in enumerate(
             DEFAULT_GRAPH_HEIGHTS,
