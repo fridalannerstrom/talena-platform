@@ -600,8 +600,8 @@
   z-index: 2;
   height: 10px;
   border: 1px solid #fff;
-  background: var(--talena-chart-accent);
-  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.48);
+  background: linear-gradient(90deg, #e6776d, #cf5950) !important;
+  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.72), 0 1px 4px rgba(207, 89, 80, 0.24);
 }
 
 
