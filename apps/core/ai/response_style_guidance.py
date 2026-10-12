@@ -347,7 +347,6 @@ def create_empty_response_style_guidance(
         "questions": [],
         "combination_note": "",
         "context_note": "",
-        "profile_contrasts": [],
     }
 
 
@@ -355,7 +354,6 @@ def apply_response_style_guidance_event(
     guidance: dict[str, Any],
     event: dict[str, Any],
     *,
-    allowed_profile_contrasts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Apply one streamed NDJSON event to the complete guidance result.
