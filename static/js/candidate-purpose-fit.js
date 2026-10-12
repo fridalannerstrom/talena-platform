@@ -777,10 +777,58 @@
         result.dataset.hasFit
         === "true";
 
+      const areaSummaryElements = [
+        ...container.querySelectorAll(
+          "[data-personality-area-summary]"
+        )
+      ];
+      const needsPersonalityAreaSummaries =
+        areaSummaryElements.length === 3
+        && areaSummaryElements.some(
+          (element) => !element.textContent.trim()
+        );
+
       if (!hasFit) {
         await streamPurposeFit(
           streamUrl
         );
+      } else if (needsPersonalityAreaSummaries) {
+        const regenerateUrl =
+          refreshButton?.dataset.regenerateUrl;
+
+        if (regenerateUrl) {
+          try {
+            const response = await fetch(
+              regenerateUrl,
+              {
+                method: "POST",
+                headers: {
+                  "X-CSRFToken": getCookie("csrftoken"),
+                  "X-Requested-With": "XMLHttpRequest",
+                },
+                credentials: "same-origin",
+              }
+            );
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(
+                data.error
+                || getI18n(
+                  "couldNotRegenerateAiOverview",
+                  "Could not regenerate AI overview."
+                )
+              );
+            }
+            await streamPurposeFit(
+              data.stream_url || streamUrl
+            );
+          } catch (error) {
+            console.error(
+              "[PURPOSE FIT] Could not add personality area summaries:",
+              error
+            );
+          }
+        }
       }
 
       refreshIcons();
