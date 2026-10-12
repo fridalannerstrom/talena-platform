@@ -224,6 +224,16 @@
         refreshIcons();
       }
 
+      function setPersonalityAreaSummary(area, text) {
+        const element = container.querySelector(
+          `[data-personality-area-summary="${area}"]`
+        );
+        if (!element) return;
+        const value = String(text || "").trim();
+        element.textContent = value;
+        element.classList.toggle("d-none", !value);
+      }
+
       function resetPurposeFit() {
         if (title) {
           title.textContent =
@@ -236,6 +246,10 @@
         if (summary) {
           summary.textContent = "";
         }
+
+        ["leadership", "organisation", "interaction"].forEach(
+          (area) => setPersonalityAreaSummary(area, "")
+        );
 
         alignmentList?.replaceChildren();
         verifyList?.replaceChildren();
@@ -278,6 +292,12 @@
           summary.textContent =
             data.summary || "";
         }
+
+        const areaSummaries =
+          data.personality_area_summaries || {};
+        ["leadership", "organisation", "interaction"].forEach(
+          (area) => setPersonalityAreaSummary(area, areaSummaries[area])
+        );
 
         renderList(
           alignmentList,
@@ -363,6 +383,15 @@
                 event.text || "";
             }
 
+            break;
+
+          case "personality_area_summary":
+            if (
+              ["leadership", "organisation", "interaction"]
+                .includes(event.area)
+            ) {
+              setPersonalityAreaSummary(event.area, event.text);
+            }
             break;
 
           case "key_alignment":
