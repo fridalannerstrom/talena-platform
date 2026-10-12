@@ -111,6 +111,13 @@
   text-transform: uppercase;
 }
 
+.process-page .personality-overview-group__summary {
+  margin: 0 0 0.75rem;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
 .process-page .personality-overview-group__plot {
   display: grid;
   gap: 0.58rem;
