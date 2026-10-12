@@ -316,59 +316,20 @@
                   </span>
 
                   {% if has_motivation_results and motivation_insights %}
-                    <span class="candidate-result-overview__motivation-list">
-                      <span class="candidate-result-overview__motivation-group">
-                        <span class="candidate-result-overview__list-label">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mest framträdande{% else %}Top drivers{% endif %}
+                    <span class="candidate-result-overview__motivation-list-label">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Topp 3 motivationer{% else %}Top 3 motivators{% endif %}
+                    </span>
+                    <span class="candidate-result-overview__motivation-cards">
+                      {% for item in motivation_insights.motivators|slice:":3" %}
+                        <span class="candidate-result-overview__motivation-card">
+                          <span class="candidate-result-overview__motivation-card-name">{{ item|motivation_name }}</span>
+                          <span class="candidate-result-overview__motivation-card-description">{{ item|motivation_top_interpretation }}</span>
                         </span>
-                        {% for item in motivation_insights.motivators|slice:":3" %}
-                          <span class="candidate-result-overview__motivation-item">
-                            <span class="candidate-result-overview__motivation-item-main">
-                              <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
-                            </span>
-                            <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
-                                  role="meter"
-                                  aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score|floatformat:0 %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
-                                  aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
-                              <span class="response-style-scale__segments">
-                                {% for segment in item.segments %}
-                                  <span class="response-style-scale__segment{% if segment.filled or segment.number <= item.score %} response-style-scale__segment--filled{% endif %}"></span>
-                                {% endfor %}
-                              </span>
-                            </span>
-                          </span>
-                        {% empty %}
-                          <span class="candidate-result-overview__empty">
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsvärden är tillgängliga.{% else %}No motivation scores are available.{% endif %}
-                          </span>
-                        {% endfor %}
-                      </span>
-                      {% with least_prominent=motivation_insights|motivation_least_prominent %}
-                        {% if least_prominent %}
-                          <span class="candidate-result-overview__motivation-group">
-                            <span class="candidate-result-overview__list-label">
-                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Mindre framträdande{% else %}Less prominent{% endif %}
-                            </span>
-                            {% for item in least_prominent %}
-                              <span class="candidate-result-overview__motivation-item">
-                                <span class="candidate-result-overview__motivation-item-main">
-                                  <span class="candidate-result-overview__motivation-name">{{ item|motivation_name }}</span>
-                                    </span>
-                                    <span class="response-style-scale response-style-scale--linear candidate-result-overview__motivation-scale"
-                                      role="meter"
-                                      aria-label="{% blocktrans with factor_name=item|motivation_name factor_score=item.score|floatformat:0 %}{{ factor_name }}: {{ factor_score }} out of 5{% endblocktrans %}"
-                                      aria-valuemin="1" aria-valuemax="5" aria-valuenow="{{ item.score|unlocalize }}">
-                                  <span class="response-style-scale__segments">
-                                    {% for segment in item.segments %}
-                                      <span class="response-style-scale__segment{% if segment.filled or segment.number <= item.score %} response-style-scale__segment--filled{% endif %}"></span>
-                                    {% endfor %}
-                                  </span>
-                                </span>
-                              </span>
-                            {% endfor %}
-                          </span>
-                        {% endif %}
-                      {% endwith %}
+                      {% empty %}
+                        <span class="candidate-result-overview__empty">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsvärden är tillgängliga.{% else %}No motivation scores are available.{% endif %}
+                        </span>
+                      {% endfor %}
                     </span>
                   {% else %}
                     <span class="candidate-result-overview__empty">
