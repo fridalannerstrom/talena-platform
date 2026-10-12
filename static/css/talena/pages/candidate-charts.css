@@ -600,11 +600,11 @@
   z-index: 2;
   height: 10px;
   border: 1px solid #fff;
-  background: linear-gradient(90deg, #e6776d, #cf5950) !important;
-  box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.72), 0 1px 4px rgba(207, 89, 80, 0.24);
+  background: var(--talena-chart-accent) !important;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(207, 89, 80, 0.18);
 }
 
 
 .process-page .personality-overview-chart--profile .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
-  background: linear-gradient(90deg, rgba(255, 111, 97, 0.44), rgba(255, 111, 97, 0.62));
+  background: var(--talena-chart-accent) !important;
 }
