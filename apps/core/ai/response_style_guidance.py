@@ -353,7 +353,6 @@ def create_empty_response_style_guidance(
 def apply_response_style_guidance_event(
     guidance: dict[str, Any],
     event: dict[str, Any],
-    *,
 ) -> dict[str, Any]:
     """
     Apply one streamed NDJSON event to the complete guidance result.
