@@ -516,13 +516,13 @@
 
 
 /* PERSONALISED QUICK PROFILE CHART */
-.process-page .personality-overview-chart--profile .personality-overview-item {
+.process-page .personality-overview-chart--segmented .personality-overview-item {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.34rem;
   align-items: stretch;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__label {
+.process-page .personality-overview-chart--segmented .personality-overview-item__label {
   color: var(--talena-ink);
   font-size: 0.62rem;
   font-weight: 650;
@@ -530,7 +530,7 @@
   text-align: center;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__scale {
+.process-page .personality-overview-chart--segmented .personality-overview-item__scale {
   display: flex;
   height: auto;
   align-items: center;
@@ -538,18 +538,18 @@
   background: transparent;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__scale::after {
+.process-page .personality-overview-chart--segmented .personality-overview-item__scale::after {
   content: none;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__arrow {
+.process-page .personality-overview-chart--segmented .personality-overview-item__arrow {
   flex: 0 0 auto;
   color: var(--talena-text-subtle);
   font-size: 0.78rem;
   line-height: 1;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__track {
+.process-page .personality-overview-chart--segmented .personality-overview-item__track {
   position: relative;
   display: grid;
   flex: 1 1 auto;
@@ -559,7 +559,7 @@
   min-width: 0;
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__track::after {
+.process-page .personality-overview-chart--segmented .personality-overview-item__track::after {
   position: absolute;
   z-index: 0;
   top: -3px;
@@ -571,7 +571,7 @@
   transform: translateX(-50%);
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment {
   position: relative;
   z-index: 1;
   display: block;
@@ -580,23 +580,23 @@
   background: rgba(255, 111, 97, 0.22);
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(2),
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(9) {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(2),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(9) {
   background: rgba(255, 111, 97, 0.16);
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(3),
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(8) {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(3),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(8) {
   background: rgba(255, 111, 97, 0.11);
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(4),
-.process-page .personality-overview-chart--profile .personality-overview-item__segment:nth-child(7),
-.process-page .personality-overview-chart--profile .personality-overview-item__segment--center {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(4),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(7),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--center {
   background: var(--talena-chart-track);
 }
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment--selected {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--selected {
   z-index: 2;
   height: 10px;
   border: 1px solid #fff;
@@ -605,6 +605,6 @@
 }
 
 
-.process-page .personality-overview-chart--profile .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
   background: var(--talena-chart-accent) !important;
 }
