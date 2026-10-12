@@ -241,6 +241,13 @@
                     {% for section in personality_profile.sections %}
                       <article class="personality-overview-group">
                         <h5 class="personality-overview-group__title">{{ section|personality_profile_group_label }}</h5>
+                        {% if forloop.counter == 1 %}
+                          <p class="personality-overview-group__summary{% if not overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}" data-personality-area-summary="leadership">{{ overview_owner.ai_purpose_fit.personality_area_summaries.leadership }}</p>
+                        {% elif forloop.counter == 2 %}
+                          <p class="personality-overview-group__summary{% if not overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}" data-personality-area-summary="organisation">{{ overview_owner.ai_purpose_fit.personality_area_summaries.organisation }}</p>
+                        {% elif forloop.counter == 3 %}
+                          <p class="personality-overview-group__summary{% if not overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}" data-personality-area-summary="interaction">{{ overview_owner.ai_purpose_fit.personality_area_summaries.interaction }}</p>
+                        {% endif %}
                         <div class="personality-overview-group__plot">
                           {% for trait in section.traits %}
                             <div class="personality-overview-item">
