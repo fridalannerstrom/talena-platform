@@ -405,7 +405,11 @@
         {% trans "Personality at a glance" %}
       </h3>
       <p class="personality-overview-chart__intro">
-        {% trans "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole." %}
+        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+          En översikt av hela profilen. Mitten är neutral; markörerna visar kandidatens position från vänster till höger.
+        {% else %}
+          {% trans "A visual fingerprint of the complete profile. The centre is the midpoint; each marker shows the candidate's position towards the left or right pole." %}
+        {% endif %}
       </p>
     </div>
     <div class="personality-overview-chart__legend" aria-hidden="true">
