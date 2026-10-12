@@ -359,16 +359,12 @@
                               {% elif result.key == "numerical" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Numeriskt{% else %}Numerical{% endif %}
                               {% else %}{{ result.title }}{% endif %}
                             </span>
-                            <span class="candidate-result-overview__skill-ring{% if not result.completed %} is-empty{% endif %}"
-                                  {% if result.completed %}style="--percentile: {{ result.percentile }}%;"{% endif %}
-                                  role="img"
+                            <span class="candidate-result-overview__skill-score" role="img"
                                   aria-label="{% if result.completed %}{{ result.title }}: {{ result.percentile }} {% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}{% else %}{{ result.title }}: {% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}">
-                              <span class="candidate-result-overview__skill-ring-inner">
-                                <span class="candidate-result-overview__skill-value">{% if result.completed %}{{ result.percentile }}{% else %}—{% endif %}</span>
-                                <span class="candidate-result-overview__skill-unit">
-                                  {% if result.completed %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}
-                                  {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}
-                                </span>
+                              <span class="candidate-result-overview__skill-value">{% if result.completed %}{{ result.percentile }}{% else %}—{% endif %}</span>
+                              <span class="candidate-result-overview__skill-unit">
+                                {% if result.completed %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}percentil{% else %}percentile{% endif %}
+                                {% else %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}inget resultat{% else %}no result{% endif %}{% endif %}
                               </span>
                             </span>
                             {% if result.completed %}
@@ -377,8 +373,9 @@
                                 <span class="candidate-result-overview__skill-comparison-track"
                                       role="meter"
                                       aria-label="{{ result.percentile_aria_label }}"
-                                      aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ result.percentile }}">
-                                  <span class="candidate-result-overview__skill-comparison-fill" style="width: {{ result.percentile }}%;"></span>
+                                      aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ result.percentile }}"
+                                      style="--percentile: {{ result.percentile }}%;">
+                                  <span class="candidate-result-overview__skill-comparison-marker" aria-hidden="true"></span>
                                 </span>
                                 <span class="candidate-result-overview__skill-comparison-labels">
                                   <span>{% trans "Lower" %}</span>
