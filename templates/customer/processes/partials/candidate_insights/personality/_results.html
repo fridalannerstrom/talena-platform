@@ -887,12 +887,7 @@
   </section>
   <section class="purpose-fit-card mt-4" aria-labelledby="profileContrastsHeading">
     <h3 id="profileContrastsHeading" class="insight-summary-sub-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjliga nyanser att utforska{% else %}Possible nuances to explore{% endif %}</h3>
-    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}När egenskaperna läses tillsammans kan de väcka frågor om hur personen fungerar i olika situationer. Se dem som möjliga nyanser att utforska, inte som slutsatser.{% else %}Read together, these traits can raise questions about how the person responds in different situations. Treat them as possible nuances to explore, not as conclusions.{% endif %}</p>
-    {% if profile_contrast_analysis.show_middle_profile %}
-      <p>{{ profile_contrast_analysis.middle_profile_note }}</p>
-    {% elif profile_contrast_analysis.available_dimension_count < profile_contrast_analysis.expected_dimension_count %}
-      <p>{{ profile_contrast_analysis.insufficient_data_message }}</p>
-    {% endif %}
+    <p>{% if LANGUAGE_CODE|slice:":2" == "sv" %}Mönstren visas när indikatorer ligger långt åt varsitt håll. Se dem som möjliga nyanser att utforska, inte som slutsatser.{% else %}Patterns appear when indicators fall at opposite extremes. Treat them as possible nuances to explore, not as conclusions.{% endif %}</p>
     {% for contrast in profile_contrast_analysis.activated_contrasts %}
       <article class="profile-contrast-card" data-profile-contrast-id="{{ contrast.id }}">
         <div class="profile-contrast-card__dimensions">
@@ -917,10 +912,6 @@
         <div class="profile-contrast-card__hypothesis">
           <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Möjlig hypotes att utforska{% else %}Possible hypothesis to explore{% endif %}</span>
           <p>{{ contrast.hypothesis }}</p>
-        </div>
-        <div class="profile-contrast-card__question" data-profile-contrast-question{% if not contrast.question %} hidden{% endif %}>
-          <span class="profile-contrast-card__label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Fråga att utforska{% else %}Question to explore{% endif %}</span>
-          <p data-profile-contrast-question-text>{{ contrast.question }}</p>
         </div>
       </article>
     {% empty %}
