@@ -232,6 +232,10 @@
         const value = String(text || "").trim();
         element.textContent = value;
         element.classList.toggle("d-none", !value);
+        const placeholder = element
+          .closest(".personality-overview-summary")
+          ?.querySelector(".personality-overview-summary__placeholder");
+        placeholder?.classList.toggle("d-none", Boolean(value));
       }
 
       function resetPurposeFit() {
