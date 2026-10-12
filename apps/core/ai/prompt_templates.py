@@ -7398,27 +7398,27 @@ def normalize_prompt_language(
 
 
 AI_PROMPT_REGISTRY.update({
-    "candidate_personality_leadership": {
-        "name": "Candidate summary · Leading and working with others",
-        "category": "Candidate summary",
+    "ai_overview_personality_leadership": {
+        "name": "AI Overview · Leading and working with others",
+        "category": "AI Overview",
         "description": "Controls the short personality summary for Leading and working with others.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i att leda och arbeta med andra. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller kompetenser.""",
             "en": """Briefly describe how the candidate's personality results may relate to leading and working with others. Use personality assessment evidence only. Select the most relevant patterns and write 2–3 natural, nuanced sentences about possible preferences, not established behaviour or competence."""
         },
     },
-    "candidate_personality_organisation": {
-        "name": "Candidate summary · Organising and thinking style",
-        "category": "Candidate summary",
+    "ai_overview_personality_organisation": {
+        "name": "AI Overview · Organising and thinking style",
+        "category": "AI Overview",
         "description": "Controls the short personality summary for Organising and thinking style.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i organisering och tankestil. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller förmågor.""",
             "en": """Briefly describe how the candidate's personality results may relate to organising and thinking style. Use personality assessment evidence only. Select the most relevant patterns and write 2–3 natural, nuanced sentences about possible preferences, not established behaviour or ability."""
         },
     },
-    "candidate_personality_interaction": {
-        "name": "Candidate summary · Interacting and managing emotions",
-        "category": "Candidate summary",
+    "ai_overview_personality_interaction": {
+        "name": "AI Overview · Interacting and managing emotions",
+        "category": "AI Overview",
         "description": "Controls the short personality summary for Interacting and managing emotions.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i samspel och känslomässig hantering. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller emotionell förmåga.""",
