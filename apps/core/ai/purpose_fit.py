@@ -463,6 +463,21 @@ def build_purpose_fit_prompt(
         language=language_code,
     )
 
+    personality_area_guidance = {
+        "leadership": get_ai_feature_prompt_instructions(
+            key="ai_overview_personality_leadership",
+            language=language_code,
+        ),
+        "organisation": get_ai_feature_prompt_instructions(
+            key="ai_overview_personality_organisation",
+            language=language_code,
+        ),
+        "interaction": get_ai_feature_prompt_instructions(
+            key="ai_overview_personality_interaction",
+            language=language_code,
+        ),
+    }
+
     shared_context = build_shared_ai_context(
         invitation
     )
@@ -472,6 +487,16 @@ def build_purpose_fit_prompt(
     assessment_text, _ = build_assessment_evidence(
         invitation,
         language_code=language_code,
+    )
+    personality_assessment_text = next(
+        (
+            section
+            for section in assessment_text.split("\\n\\n")
+            if section.splitlines()
+            and section.splitlines()[0].rstrip(":").strip().casefold()
+            in {"personality", "personlighet"}
+        ),
+        "No completed personality assessment scores were available.",
     )
 
     return f"""
@@ -489,6 +514,9 @@ PROCESS CONTEXT
 
 AVAILABLE ASSESSMENT EVIDENCE
 {assessment_text}
+
+PERSONALITY ASSESSMENT EVIDENCE FOR THE THREE AREA SUMMARIES
+{personality_assessment_text}
 
 
 ADMINISTRATOR AI GUIDANCE
@@ -532,6 +560,23 @@ Do not use it to change the overall interpretation
 or supportive patterns.
 
 {areas_to_explore_instructions}
+
+
+PERSONALITY AREA SUMMARY GUIDANCE
+
+The following three administrator prompts apply only to their matching
+personality_area_summary event. Use only PERSONALITY ASSESSMENT EVIDENCE
+FOR THE THREE AREA SUMMARIES. Do not use motivation, ability, process purpose,
+role context or outside knowledge in these descriptions.
+
+LEADING AND WORKING WITH OTHERS
+{personality_area_guidance["leadership"]}
+
+ORGANISING AND THINKING STYLE
+{personality_area_guidance["organisation"]}
+
+INTERACTION AND EMOTIONAL MANAGEMENT
+{personality_area_guidance["interaction"]}
 
 
 SECTION ISOLATION
@@ -648,7 +693,22 @@ If administrator guidance does not require substantive content,
 preserve the event using an empty text value.
 
 
-7. DONE
+7. PERSONALITY AREA SUMMARIES
+
+Return exactly one personality_area_summary event for each of these area keys,
+in this order: leadership, organisation, interaction. Each text must be 2–3
+short sentences, use the matching administrator guidance, and describe
+possible personality preferences rather than fixed behaviours. Do not include
+raw scores. If the personality evidence is insufficient, return an empty text.
+
+{{"type":"personality_area_summary","area":"leadership","text":"Short, evidence-based description."}}
+
+{{"type":"personality_area_summary","area":"organisation","text":"Short, evidence-based description."}}
+
+{{"type":"personality_area_summary","area":"interaction","text":"Short, evidence-based description."}}
+
+
+8. DONE
 
 Finish with:
 
@@ -668,6 +728,11 @@ def create_empty_purpose_fit(invitation) -> dict[str, Any]:
         "areas_to_verify": [],
         "suggested_next_step": "",
         "context_note": "",
+        "personality_area_summaries": {
+            "leadership": "",
+            "organisation": "",
+            "interaction": "",
+        },
     }
 
 
@@ -730,6 +795,13 @@ def apply_purpose_fit_event(
                 for item in items
                 if str(item).strip()
             ]
+
+    elif event_type == "personality_area_summary":
+        area = event.get("area")
+        if area in {"leadership", "organisation", "interaction"}:
+            purpose_fit.setdefault("personality_area_summaries", {})[
+                area
+            ] = str(event.get("text") or "").strip()
 
     elif event_type == "suggested_next_step":
         purpose_fit["suggested_next_step"] = str(
