@@ -7400,7 +7400,7 @@ def normalize_prompt_language(
 AI_PROMPT_REGISTRY.update({
     "ai_overview_personality_leadership": {
         "name": "AI Overview · Leading and working with others",
-        "category": "AI Overview",
+        "category": "Overview",
         "description": "Controls the short personality summary for Leading and working with others.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i att leda och arbeta med andra. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller kompetenser.""",
@@ -7409,7 +7409,7 @@ AI_PROMPT_REGISTRY.update({
     },
     "ai_overview_personality_organisation": {
         "name": "AI Overview · Organising and thinking style",
-        "category": "AI Overview",
+        "category": "Overview",
         "description": "Controls the short personality summary for Organising and thinking style.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i organisering och tankestil. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller förmågor.""",
@@ -7418,7 +7418,7 @@ AI_PROMPT_REGISTRY.update({
     },
     "ai_overview_personality_interaction": {
         "name": "AI Overview · Interacting and managing emotions",
-        "category": "AI Overview",
+        "category": "Overview",
         "description": "Controls the short personality summary for Interacting and managing emotions.",
         "defaults": {
             "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i samspel och känslomässig hantering. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller emotionell förmåga.""",
