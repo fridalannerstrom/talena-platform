@@ -210,7 +210,7 @@
           <div class="candidate-result-overview__grid">
             {% if has_personality_assessment_in_process %}
               {% if has_personality_results and personality_profile.sections %}
-                <section class="personality-overview-chart candidate-result-overview__personality" aria-labelledby="candidatePersonalityOverviewTitle">
+                <section class="personality-overview-chart personality-overview-chart--segmented candidate-result-overview__personality" aria-labelledby="candidatePersonalityOverviewTitle">
                   <div class="personality-overview-chart__header">
                     <div class="personality-overview-chart__heading-row">
                       <div>
@@ -248,14 +248,14 @@
                               <div class="personality-overview-item__scale"
                                    role="img"
                                    aria-label="{{ trait.label }}: {% for segment in trait.graph_segments %}{% if segment.selected %}{{ segment.score }}{% endif %}{% endfor %} / 10">
-                                <span class="personality-overview-item__midpoint" aria-hidden="true"></span>
-                                {% for segment in trait.graph_segments %}
-                                  {% if segment.selected %}
-                                    <span class="personality-overview-item__range personality-overview-item__range--score-{{ segment.score }}" aria-hidden="true"></span>
-                                    <span class="personality-overview-item__marker personality-overview-item__marker--score-{{ segment.score }}"
-                                          title="{{ trait.label }}: {{ segment.score }}/10" aria-hidden="true"></span>
-                                  {% endif %}
-                                {% endfor %}
+                                <span class="personality-overview-item__arrow" aria-hidden="true">←</span>
+                                <span class="personality-overview-item__track" aria-hidden="true">
+                                  {% for segment in trait.graph_segments %}
+                                    <span class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.filled_toward_midpoint %} personality-overview-item__segment--filled{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
+                                          title="{{ trait.label }}: {{ segment.score }}/10"></span>
+                                  {% endfor %}
+                                </span>
+                                <span class="personality-overview-item__arrow" aria-hidden="true">→</span>
                               </div>
                             </div>
                           {% endfor %}
