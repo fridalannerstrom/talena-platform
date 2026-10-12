@@ -603,3 +603,8 @@
   background: var(--talena-chart-accent);
   box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.48);
 }
+
+
+.process-page .personality-overview-chart--profile .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
+  background: linear-gradient(90deg, rgba(255, 111, 97, 0.44), rgba(255, 111, 97, 0.62));
+}
