@@ -48,6 +48,13 @@ class ProfileContrastCatalogTests(ProfileContrastRuleTests):
         self.assertEqual((hit["left_sten"], hit["right_sten"]), (8, 3))
         self.assertEqual(hit["hypothesis"],
                          "Kan vara lyhörd för andra men behöver troligtvis inte föredra att arbeta tillsammans med dem")
+        left_segments = hit["dimensions"][0]["graph_segments"]
+        right_segments = hit["dimensions"][1]["graph_segments"]
+        self.assertEqual(len(left_segments), 10)
+        self.assertTrue(next(segment for segment in left_segments if segment["score"] == 8)["selected"])
+        self.assertTrue(next(segment for segment in left_segments if segment["score"] == 7)["filled_toward_midpoint"])
+        self.assertTrue(next(segment for segment in right_segments if segment["score"] == 3)["selected"])
+        self.assertTrue(next(segment for segment in right_segments if segment["score"] == 4)["filled_toward_midpoint"])
 
     def test_high_right_low_left_activates_in_the_declared_direction(self):
         result = self._activated_ids({"tolerance": 3, "listening": 8})
