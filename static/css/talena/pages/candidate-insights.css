@@ -1529,11 +1529,11 @@
 .process-page .candidate-result-overview__skill-card {
   display: grid;
   justify-items: stretch;
-  align-content: start;
-  gap: 0.55rem;
+  align-content: center;
+  gap: 0.6rem;
   min-width: 0;
-  min-height: 0;
-  padding: 0.72rem 0.62rem;
+  min-height: 190px;
+  padding: 0.72rem 0.55rem;
   border: 1px solid var(--talena-border);
   border-radius: 11px;
   background: var(--talena-surface-soft);
@@ -1547,27 +1547,55 @@
   text-align: center;
 }
 
-.process-page .candidate-result-overview__skill-score {
+.process-page .candidate-result-overview__skill-ring {
+  position: relative;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  justify-self: center;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--talena-coral-strong) var(--percentile), #ece8e5 0);
+}
+
+.process-page .candidate-result-overview__skill-ring.is-empty {
+  background: #ece8e5;
+}
+
+.process-page .candidate-result-overview__skill-ring::before {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.process-page .candidate-result-overview__skill-ring-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 0.28rem;
-  min-height: 1.55rem;
-  color: var(--talena-ink);
+  gap: 0.12rem;
+  min-width: 0;
 }
 
 .process-page .candidate-result-overview__skill-value {
-  font-size: 1.12rem;
+  color: var(--talena-ink);
+  font-size: 1rem;
   font-weight: 760;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .process-page .candidate-result-overview__skill-unit {
+  max-width: 62px;
   color: var(--talena-text-muted);
-  font-size: 0.43rem;
-  font-weight: 650;
-  line-height: 1.2;
+  font-size: 0.4rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
   text-transform: uppercase;
 }
 
