@@ -27,6 +27,8 @@ from apps.core.ai.openai_client import (
     get_chat_model,
 )
 
+from apps.core.ai.prompt_templates import get_ai_feature_prompt_instructions
+
 from django.forms.models import model_to_dict
 
 
@@ -215,6 +217,34 @@ def _build_historical_summary_assessment_text(
     )
 
 
+def _build_personality_summary_assessment_text(owner) -> str:
+    """Return personality-only evidence for the three candidate summary areas."""
+    process = owner.process
+
+    if getattr(process, "is_historical", False):
+        profile = build_historical_candidate_profile(owner)
+        items = profile.get("personality_competencies") or []
+        result_lines = []
+        for item in items:
+            name = item.get("competency") or item.get("name") or item.get("label") or "Unnamed competency"
+            score_parts = _get_score_parts(item)
+            if score_parts:
+                result_lines.append(f"- {name}: {', '.join(score_parts)}")
+        return "\n".join(result_lines) or "No completed personality assessment scores were available."
+
+    result_lines = []
+    for activity in (owner.sova_activities or []):
+        activity_name = str(activity.get("activity") or "").strip()
+        if not any(token in activity_name.casefold() for token in ("personality", "personlighet", "character", "karaktär", "pq")):
+            continue
+        for item in activity.get("competencies") or []:
+            name = item.get("competency") or item.get("name") or "Unnamed competency"
+            score_parts = _get_score_parts(item)
+            if score_parts:
+                result_lines.append(f"- {name}: {', '.join(score_parts)}")
+    return "\n".join(result_lines) or "No completed personality assessment scores were available."
+
+
 def _build_summary_assessment_text(
     owner,
 ) -> str:
@@ -263,6 +293,18 @@ def build_candidate_prompt(
             owner
         )
     )
+    personality_assessment_text = _build_personality_summary_assessment_text(owner)
+    personality_area_guidance = {
+        "leadership": get_ai_feature_prompt_instructions(
+            key="candidate_personality_leadership", language=language_code
+        ),
+        "organisation": get_ai_feature_prompt_instructions(
+            key="candidate_personality_organisation", language=language_code
+        ),
+        "interaction": get_ai_feature_prompt_instructions(
+            key="candidate_personality_interaction", language=language_code
+        ),
+    }
 
     purpose_value = (
         process.purpose
@@ -404,6 +446,24 @@ ASSESSMENT RESULTS
 {assessment_text}
 
 
+PERSONALITY RESULTS FOR THE THREE PROFILE AREAS
+
+{personality_assessment_text}
+
+AREA-SPECIFIC ADMINISTRATOR GUIDANCE
+
+Leading and working with others:
+{personality_area_guidance["leadership"]}
+
+Organising and thinking style:
+{personality_area_guidance["organisation"]}
+
+Interaction and emotional management:
+{personality_area_guidance["interaction"]}
+
+Use only the personality results above for these three area descriptions. Do not use motivation, cognitive ability, process purpose or role context to change what the personality results may indicate.
+
+
 INTERPRETATION INSTRUCTION
 
 {interpretation_instruction}
@@ -430,17 +490,16 @@ STRUCTURE
 
 Overall summary
 
-Write one concise paragraph of approximately 100–160 words.
+Write one concise paragraph of approximately 100–160 words. Preserve the existing overall summary as the first section.
 
-The paragraph should:
-- describe the most important overall profile themes
-- highlight likely strengths
-- mention one or two useful areas to explore
-- reflect the process purpose
-- use added context when available
-- clearly remain an assessment-based interpretation
+Then add these three headings exactly, in this order, each followed by a short description of 2–3 sentences:
+- Leading and working with others
+- Organising and thinking style
+- Interaction and emotional management
 
-Do not include any other headings.
+Use the matching area-specific administrator guidance for each description. Keep each area distinct and use only personality assessment results for these descriptions. Never invent a missing result; if the evidence is insufficient for an area, say so briefly.
+
+Do not include raw scores. Do not add any other headings.
 Do not use markdown tables.
 """.strip()
 
