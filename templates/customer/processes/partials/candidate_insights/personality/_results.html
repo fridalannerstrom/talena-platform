@@ -432,7 +432,7 @@
                 <span class="personality-overview-item__track" aria-hidden="true">
                   {% for segment in trait.graph_segments %}
                     <span
-                      class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
+                      class="personality-overview-item__segment{% if segment.score == 5 or segment.score == 6 %} personality-overview-item__segment--center{% endif %}{% if segment.filled_toward_midpoint %} personality-overview-item__segment--filled{% endif %}{% if segment.selected %} personality-overview-item__segment--selected{% endif %}"
                       title="{{ trait.label }}: {{ segment.score }}/10"
                     ></span>
                   {% endfor %}
