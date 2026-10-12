@@ -213,6 +213,22 @@ def _flatten_profile(profile: dict[str, Any] | None) -> dict[str, dict[str, Any]
     return dimensions
 
 
+def _graph_segments(selected_sten: int) -> list[dict[str, Any]]:
+    """Return the same ten filled/selected markers used by the personality chart."""
+    return [
+        {
+            "score": score,
+            "selected": score == selected_sten,
+            "filled_toward_midpoint": (
+                selected_sten <= score <= 5
+                if selected_sten <= 5
+                else 6 <= score <= selected_sten
+            ),
+        }
+        for score in range(1, 11)
+    ]
+
+
 def _rule_matches(rule: dict[str, Any], left: int, right: int) -> bool:
     high_side = rule.get("high_side")
     if high_side == "left":
@@ -250,8 +266,8 @@ def build_profile_contrast_analysis(
             "left_sten": left["sten"],
             "right_sten": right["sten"],
             "dimensions": [
-                {"label": left["label"], "sten": left["sten"]},
-                {"label": right["label"], "sten": right["sten"]},
+                {"label": left["label"], "sten": left["sten"], "graph_segments": _graph_segments(left["sten"])},
+                {"label": right["label"], "sten": right["sten"], "graph_segments": _graph_segments(right["sten"])},
             ],
             "hypothesis": entry["hypothesis"].get(language) or entry["hypothesis"]["en"],
             "strength": min(high - HIGH_MINIMUM, LOW_MAXIMUM - low),
