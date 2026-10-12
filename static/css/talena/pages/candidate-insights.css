@@ -1730,6 +1730,7 @@
 }
 
 @media (max-width: 460px) {
+  .process-page .personality-overview-summaries,
   .process-page .candidate-result-overview__motivation-list,
   .process-page .candidate-result-overview__motivation-cards {
     grid-template-columns: minmax(0, 1fr);
