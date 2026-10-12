@@ -1523,7 +1523,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
-  gap: 0;
+  gap: 0.48rem;
 }
 
 .process-page .candidate-result-overview__skill-card {
@@ -1537,10 +1537,6 @@
   border: 1px solid var(--talena-border);
   border-radius: 11px;
   background: var(--talena-surface-soft);
-}
-
-.process-page .candidate-result-overview__skill-card:not(:last-child) {
-  border-right: 1px solid var(--talena-border);
 }
 
 .process-page .candidate-result-overview__skill-name {
@@ -1664,10 +1660,6 @@
   .process-page .candidate-result-overview__skills-list {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.45rem;
-  }
-
-  .process-page .candidate-result-overview__skill-card:not(:last-child) {
-    border-right: 1px solid var(--talena-border);
   }
 
   .process-page .candidate-result-overview__motivation-item {
