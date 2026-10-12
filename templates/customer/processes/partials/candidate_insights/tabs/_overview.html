@@ -263,23 +263,7 @@
                       </article>
                     {% endfor %}
                   </div>
-                  <div class="personality-overview-summaries" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetssammanfattningar{% else %}Personality summaries{% endif %}">
-                    <article class="personality-overview-summary">
-                      <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leda och arbeta med andra{% else %}Leading and working with others{% endif %}</h5>
-                      <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}" data-personality-area-summary="leadership">{{ overview_owner.ai_purpose_fit.personality_area_summaries.leadership }}</p>
-                      <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                    </article>
-                    <article class="personality-overview-summary">
-                      <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Organisering och tankemönster{% else %}Organisation and thinking style{% endif %}</h5>
-                      <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}" data-personality-area-summary="organisation">{{ overview_owner.ai_purpose_fit.personality_area_summaries.organisation }}</p>
-                      <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                    </article>
-                    <article class="personality-overview-summary">
-                      <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Interaktion och känslohantering{% else %}Interaction and emotional management{% endif %}</h5>
-                      <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}" data-personality-area-summary="interaction">{{ overview_owner.ai_purpose_fit.personality_area_summaries.interaction }}</p>
-                      <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
-                    </article>
-                  </div>
+
                 </section>
               {% else %}
                 <section class="candidate-result-overview__area candidate-result-overview__area--personality">
@@ -295,6 +279,29 @@
                   </p>
                 </section>
               {% endif %}
+            {% endif %}
+
+            {% if has_personality_assessment_in_process and has_personality_results and personality_profile.sections %}
+              <section class="personality-area-summaries mb-2" aria-labelledby="personalityAreaSummariesTitle">
+                <h4 id="personalityAreaSummariesTitle" class="personality-area-summaries__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet per område{% else %}Personality by area{% endif %}</h4>
+                    <div class="personality-overview-summaries" aria-label="{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighetssammanfattningar{% else %}Personality summaries{% endif %}">
+                      <article class="personality-overview-summary">
+                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Leda och arbeta med andra{% else %}Leading and working with others{% endif %}</h5>
+                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}" data-personality-area-summary="leadership">{{ overview_owner.ai_purpose_fit.personality_area_summaries.leadership }}</p>
+                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.leadership %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
+                      </article>
+                      <article class="personality-overview-summary">
+                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Organisering och tankemönster{% else %}Organisation and thinking style{% endif %}</h5>
+                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}" data-personality-area-summary="organisation">{{ overview_owner.ai_purpose_fit.personality_area_summaries.organisation }}</p>
+                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.organisation %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
+                      </article>
+                      <article class="personality-overview-summary">
+                        <h5 class="personality-overview-summary__title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Interaktion och känslohantering{% else %}Interaction and emotional management{% endif %}</h5>
+                        <p class="personality-overview-summary__text{% if not overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}" data-personality-area-summary="interaction">{{ overview_owner.ai_purpose_fit.personality_area_summaries.interaction }}</p>
+                        <p class="personality-overview-summary__placeholder{% if overview_owner.ai_purpose_fit.personality_area_summaries.interaction %} d-none{% endif %}">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Sammanfattningen skapas när AI-översikten uppdateras.{% else %}This summary will appear when the AI overview is generated.{% endif %}</p>
+                      </article>
+                    </div>
+              </section>
             {% endif %}
 
             <div class="candidate-result-overview__side{% if has_motivation_assessment_in_process and has_cognitive_assessments_in_process %}{% else %} candidate-result-overview__side--single{% endif %}">
