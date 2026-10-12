@@ -9782,7 +9782,6 @@ regenerateButton?.addEventListener(
       questions: [],
       combination_note: "",
       context_note: "",
-      profile_contrasts: [],
     };
   }
 
@@ -9933,38 +9932,6 @@ regenerateButton?.addEventListener(
 
 
 
-  function renderProfileContrastGuidance(root, items) {
-    const profileRoot = root.closest("[data-personality-profile-root]") || document;
-    const cards = Array.from(
-      profileRoot.querySelectorAll("[data-profile-contrast-id]")
-    );
-    const isSwedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
-
-    cards.forEach(function (card) {
-      const questionSection = card.querySelector("[data-profile-contrast-question]");
-      const questionText = card.querySelector("[data-profile-contrast-question-text]");
-      if (questionText) questionText.textContent = "";
-      if (questionSection) questionSection.hidden = true;
-    });
-
-    (Array.isArray(items) ? items : []).forEach(function (item) {
-      if (!item || !item.id || !item.question) return;
-
-      const card = cards.find(function (candidate) {
-        return candidate.dataset.profileContrastId === item.id;
-      });
-      if (!card) return;
-
-      const questionSection = card.querySelector("[data-profile-contrast-question]");
-      const questionText = card.querySelector("[data-profile-contrast-question-text]");
-      if (!questionSection || !questionText) return;
-
-      questionText.textContent = item.question;
-      questionSection.hidden = false;
-    });
-  }
-
-
   function renderGuidance(root, guidance) {
     if (!guidance) {
       return;
@@ -10070,10 +10037,6 @@ regenerateButton?.addEventListener(
       !guidance.context_note
     );
 
-    renderProfileContrastGuidance(
-      root,
-      guidance.profile_contrasts
-    );
 
     setHidden(content, false);
     setHidden(thinking, true);
@@ -10121,12 +10084,6 @@ regenerateButton?.addEventListener(
       case "context_note":
         guidance.context_note =
           event.text || "";
-        break;
-
-      case "profile_contrasts":
-        guidance.profile_contrasts = Array.isArray(event.items)
-          ? event.items
-          : [];
         break;
 
       case "saved_result":
