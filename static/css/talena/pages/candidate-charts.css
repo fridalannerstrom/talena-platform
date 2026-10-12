@@ -601,7 +601,7 @@
   height: 10px;
   border: 1px solid #fff;
   background: var(--talena-chart-accent) !important;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(207, 89, 80, 0.18);
+  box-shadow: 0 0 0 1px #fff, 0 0 0 2px rgba(207, 89, 80, 0.18);
 }
 
 
