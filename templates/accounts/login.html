@@ -312,19 +312,31 @@
       <div class="login-showcase">
 
         <div class="login-showcase-badge">
-          A note from the Talena team
+          {% if CURRENT_LANGUAGE == "sv" %}En hälsning från Talena-teamet{% else %}A note from the Talena team{% endif %}
         </div>
 
         <h2 class="login-showcase-title">
-          Welcome to Talena.
-          <span>Make yourself at home.</span>
+          {% if CURRENT_LANGUAGE == "sv" %}
+            Välkommen till Talena.
+            <span>Känn dig som hemma.</span>
+          {% else %}
+            Welcome to Talena.
+            <span>Make yourself at home.</span>
+          {% endif %}
         </h2>
 
         <p class="login-showcase-copy">
-          We built Talena to make assessment work clearer,
-          calmer and a little more useful. Explore the results,
-          ask questions and use the tools in the way that works
-          best for you.
+          {% if CURRENT_LANGUAGE == "sv" %}
+            Vi skapade Talena för att göra testarbete tydligare,
+            lugnare och lite mer användbart. Utforska resultaten,
+            ställ frågor och använd verktygen på det sätt som passar
+            dig bäst.
+          {% else %}
+            We built Talena to make assessment work clearer,
+            calmer and a little more useful. Explore the results,
+            ask questions and use the tools in the way that works
+            best for you.
+          {% endif %}
         </p>
 
         <div class="login-showcase-card login-welcome-card">
@@ -337,20 +349,29 @@
 
             <div>
               <div class="login-showcase-card-title">
-                From the people behind Talena
+                {% if CURRENT_LANGUAGE == "sv" %}
+                  Från människorna bakom Talena
+                {% else %}
+                  From the people behind Talena
+                {% endif %}
               </div>
 
               <p class="login-welcome-card-copy">
-                We hope you enjoy working in Talena.
-                And if there's something we could make better,
-                we'd genuinely love to hear it.
+                {% if CURRENT_LANGUAGE == "sv" %}
+                  Vi hoppas att du trivs med att arbeta i Talena.
+                  Om det är något vi kan göra bättre vill vi gärna höra det.
+                {% else %}
+                  We hope you enjoy working in Talena.
+                  And if there's something we could make better,
+                  we'd genuinely love to hear it.
+                {% endif %}
               </p>
             </div>
 
           </div>
 
           <div class="login-welcome-footer">
-            <span>Built with care by Talent Qode</span>
+            <span>{% if CURRENT_LANGUAGE == "sv" %}Skapat med omtanke av Talent Qode{% else %}Built with care by Talent Qode{% endif %}</span>
 
             <span class="login-welcome-dot"></span>
 
