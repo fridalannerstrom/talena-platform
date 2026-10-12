@@ -208,8 +208,7 @@
         <!-- COMPACT FACTUAL ASSESSMENT OVERVIEW -->
         <section class="candidate-result-overview mb-4" >
           <div class="candidate-result-overview__grid">
-            {% if has_personality_assessment_in_process %}
-              {% if has_personality_results and personality_profile.sections %}
+            {% if has_personality_assessment_in_process and has_personality_results and personality_profile.sections %}
                 <section class="personality-overview-chart personality-overview-chart--segmented candidate-result-overview__personality" aria-labelledby="candidatePersonalityOverviewTitle">
                   <div class="personality-overview-chart__header">
                     <div class="personality-overview-chart__heading-row">
@@ -265,20 +264,6 @@
                   </div>
 
                 </section>
-              {% else %}
-                <section class="candidate-result-overview__area candidate-result-overview__area--personality">
-                  <div class="candidate-result-overview__area-heading">
-                    <span class="candidate-result-overview__area-title">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Personlighet{% else %}Personality{% endif %}</span>
-                    <button type="button" class="candidate-result-overview__open"
-                            data-insights-tab="personality" aria-controls="candidate-insights-panel-personality">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %} <span aria-hidden="true">→</span>
-                    </button>
-                  </div>
-                  <p class="candidate-result-overview__empty">
-                    {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga personlighetsresultat är tillgängliga.{% else %}No personality results are available.{% endif %}
-                  </p>
-                </section>
-              {% endif %}
             {% endif %}
 
             {% if has_personality_assessment_in_process and has_personality_results and personality_profile.sections %}
@@ -304,8 +289,9 @@
               </section>
             {% endif %}
 
+            {% if has_motivation_assessment_in_process and has_motivation_results and motivation_insights.motivators or has_cognitive_assessments_in_process and has_completed_cognitive_results %}
             <div class="candidate-result-overview__side{% if has_motivation_assessment_in_process and has_cognitive_assessments_in_process %}{% else %} candidate-result-overview__side--single{% endif %}">
-              {% if has_motivation_assessment_in_process %}
+              {% if has_motivation_assessment_in_process and has_motivation_results and motivation_insights.motivators %}
                 <button type="button" class="candidate-result-overview__area candidate-result-overview__area--motivation"
                         data-insights-tab="motivation" aria-controls="candidate-insights-panel-motivation">
                   <span class="candidate-result-overview__area-heading">
@@ -325,21 +311,14 @@
                           <span class="candidate-result-overview__motivation-card-name">{{ item|motivation_name }}</span>
                           <span class="candidate-result-overview__motivation-card-description">{{ item|motivation_top_interpretation }}</span>
                         </span>
-                      {% empty %}
-                        <span class="candidate-result-overview__empty">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsvärden är tillgängliga.{% else %}No motivation scores are available.{% endif %}
-                        </span>
+
                       {% endfor %}
-                    </span>
-                  {% else %}
-                    <span class="candidate-result-overview__empty">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga motivationsresultat är tillgängliga.{% else %}No motivation results are available.{% endif %}
                     </span>
                   {% endif %}
                 </button>
               {% endif %}
 
-              {% if has_cognitive_assessments_in_process %}
+              {% if has_cognitive_assessments_in_process and has_completed_cognitive_results %}
                 <button type="button" class="candidate-result-overview__area candidate-result-overview__area--skills"
                         data-insights-tab="cognitive" aria-controls="candidate-insights-panel-cognitive">
                   <span class="candidate-result-overview__area-heading">
@@ -351,7 +330,7 @@
                   {% if candidate_insights.cognitive_results %}
                     <span class="candidate-result-overview__skills-list">
                       {% for result in candidate_insights.cognitive_results %}
-                        {% if result.key in assessment_keys_in_process %}
+                        {% if result.key in assessment_keys_in_process and result.completed %}
                           <span class="candidate-result-overview__skill-card">
                             <span class="candidate-result-overview__skill-name">
                               {% if result.key == "verbal" %}{% if LANGUAGE_CODE|slice:":2" == "sv" %}Verbalt{% else %}Verbal{% endif %}
@@ -392,14 +371,11 @@
                         {% endif %}
                       {% endfor %}
                     </span>
-                  {% else %}
-                    <span class="candidate-result-overview__empty">
-                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga färdighetsresultat är tillgängliga.{% else %}No skills results are available.{% endif %}
-                    </span>
                   {% endif %}
                 </button>
               {% endif %}
             </div>
+            {% endif %}
           </div>
         </section>
 
