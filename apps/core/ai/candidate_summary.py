@@ -306,6 +306,20 @@ def build_candidate_prompt(
         ),
     }
 
+    area_headings = (
+        {
+            "leadership": "Leda och arbeta med andra",
+            "organisation": "Organisering och tankestil",
+            "interaction": "Samspel och känslomässig hantering",
+        }
+        if language_code == "sv"
+        else {
+            "leadership": "Leading and working with others",
+            "organisation": "Organising and thinking style",
+            "interaction": "Interaction and emotional management",
+        }
+    )
+
     purpose_value = (
         process.purpose
         or ""
@@ -452,13 +466,13 @@ PERSONALITY RESULTS FOR THE THREE PROFILE AREAS
 
 AREA-SPECIFIC ADMINISTRATOR GUIDANCE
 
-Leading and working with others:
+{area_headings["leadership"]}:
 {personality_area_guidance["leadership"]}
 
-Organising and thinking style:
+{area_headings["organisation"]}:
 {personality_area_guidance["organisation"]}
 
-Interaction and emotional management:
+{area_headings["interaction"]}:
 {personality_area_guidance["interaction"]}
 
 Use only the personality results above for these three area descriptions. Do not use motivation, cognitive ability, process purpose or role context to change what the personality results may indicate.
@@ -493,10 +507,9 @@ Overall summary
 Write one concise paragraph of approximately 100–160 words. Preserve the existing overall summary as the first section.
 
 Then add these three headings exactly, in this order, each followed by a short description of 2–3 sentences:
-- Leading and working with others
-- Organising and thinking style
-- Interaction and emotional management
-
+{area_headings["leadership"]}
+{area_headings["organisation"]}
+{area_headings["interaction"]}
 Use the matching area-specific administrator guidance for each description. Keep each area distinct and use only personality assessment results for these descriptions. Never invent a missing result; if the evidence is insufficient for an area, say so briefly.
 
 Do not include raw scores. Do not add any other headings.
