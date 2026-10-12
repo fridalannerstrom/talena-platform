@@ -491,7 +491,7 @@ def build_purpose_fit_prompt(
     personality_assessment_text = next(
         (
             section
-            for section in assessment_text.split("\\n\\n")
+            for section in assessment_text.split("\n\n")
             if section.splitlines()
             and section.splitlines()[0].rstrip(":").strip().casefold()
             in {"personality", "personlighet"}
