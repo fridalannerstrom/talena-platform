@@ -555,7 +555,7 @@
   flex: 1 1 auto;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   align-items: center;
-  gap: clamp(2px, 0.35vw, 5px);
+  gap: clamp(1px, 0.22vw, 2px);
   min-width: 0;
 }
 
@@ -575,7 +575,7 @@
   position: relative;
   z-index: 1;
   display: block;
-  height: 10px;
+  height: 7px;
   border-radius: 999px;
   background: rgba(255, 111, 97, 0.22);
 }
@@ -598,7 +598,7 @@
 
 .process-page .personality-overview-chart--profile .personality-overview-item__segment--selected {
   z-index: 2;
-  height: 13px;
+  height: 10px;
   border: 1px solid #fff;
   background: var(--talena-chart-accent);
   box-shadow: 0 0 0 1px rgba(207, 89, 80, 0.48);
