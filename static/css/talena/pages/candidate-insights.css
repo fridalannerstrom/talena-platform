@@ -1396,6 +1396,42 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.process-page .candidate-result-overview__motivation-list-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.55rem;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.process-page .candidate-result-overview__motivation-cards {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.process-page .candidate-result-overview__motivation-card {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+  padding: 0.62rem 0.68rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: var(--talena-surface-soft);
+}
+
+.process-page .candidate-result-overview__motivation-card-name {
+  color: var(--talena-ink);
+  font-size: 0.67rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.process-page .candidate-result-overview__motivation-card-description {
+  color: var(--talena-text-muted);
+  font-size: 0.6rem;
+  line-height: 1.45;
+}
+
 .process-page .candidate-result-overview__motivation-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
