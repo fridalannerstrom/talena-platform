@@ -1,176 +1,166 @@
-"""Rule-based, versioned profile contrasts and middle-profile evidence.
-
-The catalog and activation policy are versioned. Expert approval is recorded
-with each pair so the display remains traceable.
-"""
+"""Deterministic response-style profile contrasts based on approved indicator pairs."""
 from __future__ import annotations
 
-from math import ceil
 from typing import Any
 
 from apps.reports.libraries.personality.definitions import (
     TRAIT_AND_INDICATOR_PROFILE,
 )
 
-CONTRAST_CATALOG_VERSION = "2026-10-07-expert-reviewed-v1"
-MIDDLE_PROFILE_RULE_VERSION = "middle-profile-v1"
-MIDDLE_PROFILE_MINIMUM_COUNT = 10
-MIDDLE_PROFILE_MINIMUM_SHARE = 0.5
-MIDDLE_PROFILE_MINIMUM_COVERAGE = 0.5
-MAX_PROFILE_CONTRASTS = 5
+CONTRAST_CATALOG_VERSION = "indicator-extremes-8-10-v1"
+LOW_MAXIMUM = 3
+HIGH_MINIMUM = 8
 
 
-def _pair(pair_id: str, trait_key: str, left_key: str, right_key: str,
-          hypothesis_sv: str, hypothesis_en: str) -> dict[str, Any]:
+def _pair(
+    pair_id: str,
+    trait_key: str,
+    left_key: str,
+    right_key: str,
+    high_side: str,
+    hypothesis_sv: str,
+    hypothesis_en: str,
+) -> dict[str, Any]:
     return {
         "id": pair_id,
         "trait_key": trait_key,
         "left_key": left_key,
         "right_key": right_key,
+        "high_side": high_side,
         "hypothesis": {"sv": hypothesis_sv, "en": hypothesis_en},
-        "approved": False,
-        "activation_rule": None,
-        "rule_version": None,
-        "approval_source": None,
-        "display_priority": None,
     }
 
 
-# Starter hypotheses from issue #282. The draft entries deliberately have no
-# activation thresholds. A pair remains inactive until an expert-reviewed rule
-# and its approval source/version are recorded here.
+# Fixed hypotheses from "Kontraster i indikatorer Uppdaterad.docx".
+# The document's 7–10 upper range is corrected to 8–10 per product decision.
 CONTRAST_CATALOG = (
-    _pair("cooperative_sensitivity_teamwork", "cooperative", "sensitivity", "teamwork",
-          "Kan vara lyhörd för andra utan att föredra grupparbete.",
-          "May be attentive to others without preferring group work."),
-    _pair("cooperative_teamwork_agreeableness", "cooperative", "teamwork", "agreeableness",
-          "Kan trivas i grupp och samtidigt säga ifrån; eller samarbeta smidigt utan att söka grupparbete.",
-          "May enjoy group work while still speaking up, or collaborate smoothly without seeking group work."),
-    _pair("empathy_listening_warmth", "empathy", "listening", "warmth",
-          "Tar in andras perspektiv utan att nödvändigtvis söka nära relationer.",
-          "Takes in other perspectives without necessarily seeking close relationships."),
-    _pair("empathy_tolerance_listening", "empathy", "tolerance", "listening",
-          "Vill förstå andra men kan ändå ställa tydliga krav.",
-          "Wants to understand others while still being able to set clear expectations."),
-    _pair("supporting_helpfulness_developing_others", "supporting", "helpfulness", "developing_others",
-          "Hjälper gärna i stunden men lämnar kanske utvecklingsansvaret åt individen.",
-          "May gladly help in the moment while leaving development responsibility with the individual."),
-    _pair("supporting_considerate_helpfulness", "supporting", "considerate", "helpfulness",
-          "Tänker på stöd men agerar inte alltid praktiskt, eller tvärtom.",
-          "May be considerate of support needs without always acting practically, or the reverse."),
-    _pair("connecting_open_communication_initiating_contact", "connecting", "open_communication", "initiating_contact",
-          "Är bekväm i etablerad kontakt men tar inte alltid initiativet.",
-          "May be comfortable in established contact without always taking the initiative."),
-    _pair("connecting_initiating_contact_building_networks", "connecting", "initiating_contact", "building_networks",
-          "Tar nya kontakter lättare än hen bygger långvariga nätverk.",
-          "May find it easier to make new contacts than to build lasting networks."),
-    _pair("dynamic_energetic_risk_appetite", "dynamic", "energetic", "risk_appetite",
-          "Håller högt tempo men fattar ändå försiktiga beslut.",
-          "May maintain a high pace while still making cautious decisions."),
-    _pair("dynamic_enthusiastic_risk_appetite", "dynamic", "enthusiastic", "risk_appetite",
-          "Agerar snabbt utan att nödvändigtvis vara riskbenägen.",
-          "May act quickly without necessarily being inclined to take risks."),
-    _pair("influential_persuading_desire_to_lead", "influential", "persuading", "desire_to_lead",
-          "Påverkar gärna utan att söka en ledarroll.",
-          "May enjoy influencing others without seeking a leadership role."),
-    _pair("influential_desire_to_lead_assertive", "influential", "desire_to_lead", "assertive",
-          "Tar gärna befälet utan att alltid driva egna åsikter hårt.",
-          "May be willing to take the lead without always pushing personal views strongly."),
-    _pair("influential_assertive_persuading", "influential", "assertive", "persuading",
-          "Är tydlig med sin åsikt utan starkt behov av att övertyga andra.",
-          "May express views clearly without a strong need to persuade others."),
-    _pair("goal_focused_self_discipline_competitive", "goal_focused", "self_discipline", "competitive",
-          "Är uthållig utan att drivas av konkurrens.",
-          "May be persistent without being driven by competition."),
-    _pair("goal_focused_challenge_self_discipline", "goal_focused", "challenge", "self_discipline",
-          "Lockas av höga mål, men uthållighet i genomförandet behöver utforskas separat.",
-          "May be drawn to ambitious goals, while persistence in carrying them through needs separate exploration."),
-    _pair("structured_planning_attention_to_detail", "structured", "planning_and_organising", "attention_to_detail",
-          "Planerar systematiskt men fokuserar mindre på detaljer, eller tvärtom.",
-          "May plan systematically while focusing less on detail, or the reverse."),
-    _pair("structured_keeping_promises_planning", "structured", "keeping_promises", "planning_and_organising",
-          "Levererar på åtaganden trots ett flexibelt arbetssätt.",
-          "May deliver on commitments while working flexibly."),
-    _pair("analytical_data_focus_problem_analysis", "analytical", "data_focus", "analysing_problems",
-          "Analyserar komplexa problem men föredrar inte nödvändigtvis siffror.",
-          "May analyse complex problems without necessarily preferring numerical data."),
-    _pair("analytical_evaluating_data_focus", "analytical", "evaluating", "data_focus",
-          "Granskar kritiskt utan starkt intresse för kvantitativa data.",
-          "May review information critically without a strong interest in quantitative data."),
-    _pair("complex_thinking_strategy_curiosity", "complex_thinking", "strategic_thinking", "curiosity",
-          "Gillar komplexa frågor men söker inte alltid nya perspektiv.",
-          "May enjoy complex questions without always seeking new perspectives."),
-    _pair("complex_thinking_conceptual_strategy", "complex_thinking", "conceptual", "strategic_thinking",
-          "Tänker abstrakt utan att alltid vilja lösa strategiska problem.",
-          "May think abstractly without always wanting to solve strategic problems."),
-    _pair("creativity_ideas_experimenting", "creativity", "generating_ideas", "experimenting",
-          "Tar fram idéer men är försiktig med att testa dem.",
-          "May generate ideas while being cautious about testing them."),
-    _pair("creativity_innovating_experimenting", "creativity", "innovating", "experimenting",
-          "Söker nya lösningar men föredrar ett kontrollerat genomförande.",
-          "May seek new solutions while preferring a controlled implementation."),
-    _pair("adaptability_variety_change", "adaptability", "variety", "adapting_to_change",
-          "Söker variation men kan behöva tid vid ofrivillig förändring.",
-          "May seek variety while needing time to adjust to unplanned change."),
-    _pair("adaptability_flexible_variety", "adaptability", "flexible", "variety",
-          "Anpassar synsätt utan att behöva ständig omväxling.",
-          "May adapt their approach without needing constant variety."),
-    _pair("straightforward_candid_rules", "straightforward", "candid", "adhering_to_rules",
-          "Kan vara rak i kommunikationen men pragmatisk med regler; det rör skilda aspekter av samma drag.",
-          "May communicate candidly while being pragmatic about rules; these are distinct aspects of the broader trait."),
-    _pair("straightforward_earnest_candid", "straightforward", "earnest", "candid",
-          "Upplevs som genuin utan att alltid uttrycka åsikter direkt.",
-          "May come across as genuine without always expressing views directly."),
-    _pair("status_egalitarian_avoiding_status", "status_avoidance", "egalitarian", "avoiding_status",
-          "Vill ha jämlikt bemötande men uppskattar kanske erkännande.",
-          "May value equal treatment while still appreciating recognition."),
-    _pair("status_collective_avoiding_status", "status_avoidance", "collective", "avoiding_status",
-          "Föredrar gruppfokus utan att sakna intresse för status.",
-          "May prefer a group focus without lacking interest in status."),
-    _pair("modesty_modest_avoiding_attention", "modesty", "modest", "avoiding_attention",
-          "Tonar ned egna prestationer men kan trivas med synlighet.",
-          "May downplay personal achievements while still being comfortable with visibility."),
-    _pair("modesty_humble_avoiding_attention", "modesty", "humble", "avoiding_attention",
-          "Ser sig som en i gruppen men undviker inte nödvändigtvis uppmärksamhet.",
-          "May see themselves as one of the group without necessarily avoiding attention."),
-    _pair("resilience_tough_minded_recovering", "resilience", "tough_minded", "recovering",
-          "Tar kritik lättare än motgångar, eller tvärtom.",
-          "May handle criticism more easily than setbacks, or the reverse."),
-    _pair("resilience_optimistic_tough_minded", "resilience", "optimistic", "tough_minded",
-          "Ser positivt på utmaningar men kan vara känslig för kritik.",
-          "May view challenges positively while remaining sensitive to criticism."),
-    _pair("emotional_control_stress_calm", "emotional_control", "controlling_stress", "calm",
-          "Håller beteendet under kontroll trots inre oro.",
-          "May keep behaviour composed despite feeling inner worry."),
-    _pair("emotional_control_calm_composed", "emotional_control", "calm", "composed",
-          "Verkar lugn i vardagen men reagerar annorlunda i laddade situationer.",
-          "May seem calm day to day but respond differently in emotionally charged situations."),
-    _pair("independence_self_reliant_independent_thinking", "independence", "self_reliant", "thinking_independently",
-          "Driver arbete utan stöd men kan vilja bolla beslut.",
-          "May drive work forward without support while still wanting to discuss decisions."),
-    _pair("independence_self_contained_self_reliant", "independence", "self_contained", "self_reliant",
-          "Behov av socialt stöd och praktisk vägledning kan skilja sig åt.",
-          "The need for social support and practical guidance may differ."),
+    _pair("cooperative_sensitivity_teamwork", "cooperative", "sensitivity", "teamwork", "left",
+          "Kan vara lyhörd för andra men behöver troligtvis inte föredra att arbeta tillsammans med dem",
+          "May be attentive to others without necessarily preferring to work together with them."),
+    _pair("cooperative_teamwork_agreeableness", "cooperative", "teamwork", "agreeableness", "left",
+          "Gillar troligen grupparbete men kan ändå säga ifrån",
+          "Probably enjoys group work but can still speak up."),
+    _pair("empathy_listening_warmth", "empathy", "listening", "warmth", "left",
+          "Lyssnar gärna och tar in perspektiv utan att nödvändigtvis vara särskilt relationsskapande",
+          "Enjoys listening and taking in perspectives without necessarily being especially relationship-oriented."),
+    _pair("empathy_tolerance_listening", "empathy", "tolerance", "listening", "right",
+          "Vill troligen gärna förstå andra men kan samtidigt ha relativt tydliga krav på dem",
+          "Probably wants to understand others while also having relatively clear expectations of them."),
+    _pair("supporting_helpfulness_developing_others", "supporting", "helpfulness", "developing_others", "left",
+          "Kan hjälpa här och nu men lämnar kanske utvecklingsansvaret till individen",
+          "May help in the moment while leaving responsibility for development to the individual."),
+    _pair("supporting_considerate_helpfulness", "supporting", "considerate", "helpfulness", "right",
+          "Troligen mer uppgiftsfokuserad och tänker kanske inte så mycket på hur andra kan stöttas, men ingriper troligen om någon aktivt ber om hjälp",
+          "Probably more task-focused and may not think much about how others can be supported, but will likely step in if someone actively asks for help."),
+    _pair("connecting_open_communication_initiating_contact", "connecting", "open_communication", "initiating_contact", "left",
+          "Troligtvis mer bekväm när kontakten väl finns, men initierar den inte nödvändigtvis",
+          "Probably more comfortable once contact has been established, but does not necessarily initiate it."),
+    _pair("connecting_initiating_contact_building_networks", "connecting", "initiating_contact", "building_networks", "left",
+          "Tar förmodligen lätt nya kontakter utan att kanske lägga lika mycket energi på att bygga mer långvariga nätverk",
+          "Probably makes new contacts easily without necessarily putting as much effort into building longer-term networks."),
+    _pair("dynamic_energetic_risk_appetite", "dynamic", "energetic", "risk_appetite", "left",
+          "Kan ha högt tempo och tar sig antagligen an mycket men är troligen mer hänsynsfull vid själva beslutsfattandet",
+          "May work at a high pace and take on a lot, while probably being more considerate when making decisions."),
+    _pair("dynamic_enthusiastic_energetic", "dynamic", "enthusiastic", "energetic", "left",
+          "Kan vara snabb med att agera och komma igång med en uppgift, men föredrar kanske att arbeta i ett jämnare tempo med möjlighet att fokusera på färre saker",
+          "May be quick to act and get started on a task, but may prefer a steadier pace with the chance to focus on fewer things."),
+    _pair("influential_persuading_desire_to_lead", "influential", "persuading", "desire_to_lead", "left",
+          "Kan tycka om att påverka, utan att nödvändigtvis ha behov av att ta befälet",
+          "May enjoy influencing others without necessarily needing to take charge."),
+    _pair("influential_desire_to_lead_assertive", "influential", "desire_to_lead", "assertive", "left",
+          "Tar troligen gärna befälet, men behöver inte alltid vara särskilt pådrivande med egna åsikter",
+          "Probably enjoys taking charge, but does not necessarily push personal opinions strongly."),
+    _pair("influential_assertive_persuading", "influential", "assertive", "persuading", "right",
+          "Sannolikt mer bekväm att övertyga andra, men har kanske inget större behov att pådyvla sin egen åsikt på andra",
+          "Probably more comfortable persuading others, but may have little need to impose personal opinions on them."),
+    _pair("goal_focused_self_discipline_competitive", "goal_focused", "self_discipline", "competitive", "left",
+          "Kan vara mer uthållig och disciplinerad, utan att för den sakens skull kanske drivas av konkurrens med andra",
+          "May be more persistent and disciplined without necessarily being driven by competition with others."),
+    _pair("goal_focused_challenge_self_discipline", "goal_focused", "challenge", "self_discipline", "left",
+          "Lockas troligen av mer utmanande mål men det säger kanske inte automatiskt något om disciplinen i själva genomförandet",
+          "Probably drawn to more challenging goals, though that does not automatically indicate discipline in carrying them out."),
+    _pair("structured_planning_attention_to_detail", "structured", "planning_and_organising", "attention_to_detail", "left",
+          "Planerar sannolikt mer systematiskt men kan vara mindre detaljorienterad",
+          "Probably plans more systematically but may be less detail-oriented."),
+    _pair("structured_keeping_promises_planning", "structured", "keeping_promises", "planning_and_organising", "left",
+          "Har troligen en starkare leveransplikt medan vägen dit kan vara mer flexibel och spontan i arbetssättet",
+          "Probably has a stronger sense of delivery, while the way of getting there may be more flexible and spontaneous."),
+    _pair("analytical_data_focus_problem_analysis", "analytical", "data_focus", "analysing_problems", "right",
+          "Analyserar förmodligen gärna olika informationskällor och perspektiv vid komplexa problem, men behöver inte nödvändigtvis föredra siffror och statistik",
+          "Probably enjoys analysing different information sources and perspectives in complex problems, without necessarily preferring numbers and statistics."),
+    _pair("analytical_evaluating_data_focus", "analytical", "evaluating", "data_focus", "right",
+          "Troligen ett starkare intresse för siffror och statistik, men kanske inte nödvändigtvis kritiskt granskar och utvärderar olika situationer",
+          "Probably has a stronger interest in numbers and statistics, but may not necessarily critically examine and evaluate different situations."),
+    _pair("complex_thinking_strategy_curiosity", "complex_thinking", "strategic_thinking", "curiosity", "left",
+          "Kan gilla komplexa problem men behöver kanske inte alltid vara villig att sätta sig in i och lära sig nya metoder och arbetssätt",
+          "May enjoy complex problems without always being willing to learn new methods and ways of working."),
+    _pair("complex_thinking_conceptual_strategy", "complex_thinking", "conceptual", "strategic_thinking", "left",
+          "Tänker troligen gärna abstrakt och brett men behöver inte alltid vilja lösa strategiskt komplexa problem",
+          "Probably enjoys thinking abstractly and broadly, but may not always want to solve strategically complex problems."),
+    _pair("creativity_ideas_experimenting", "creativity", "generating_ideas", "experimenting", "left",
+          "Genererar sannolikt gärna idéer men är kanske inte lika intresserad att testa dem i praktiken",
+          "Probably enjoys generating ideas but may be less interested in testing them in practice."),
+    _pair("creativity_ideas_innovating", "creativity", "generating_ideas", "innovating", "left",
+          "Kan troligen generera en större mängd idéer, vilka kanske tenderar att vara mer ‘innanför boxen’ och främst baserade på beprövade metoder",
+          "May generate a larger number of ideas, which may tend to stay within the box and rely mainly on proven methods."),
+    _pair("creativity_innovating_ideas", "creativity", "generating_ideas", "innovating", "right",
+          "Troligen mindre bekväm att generera idéer på rak arm, men tänker gärna utanför boxen",
+          "Probably less comfortable generating ideas on the spot, but enjoys thinking outside the box."),
+    _pair("adaptability_variety_change", "adaptability", "variety", "adapting_to_change", "left",
+          "Kan söka variation men kanske behöva tid när förändringen inte är självvald",
+          "May seek variety but need time when a change is not self-chosen."),
+    _pair("adaptability_flexible_variety", "adaptability", "flexible", "variety", "left",
+          "Anpassar troligen sitt synsätt efter situationen, utan att för den sakens skull behöva ständig omväxling",
+          "Probably adapts their perspective to the situation without needing constant variety."),
+    _pair("straightforward_earnest_candid", "straightforward", "earnest", "candid", "right",
+          "Kan förmodligen ha en mer rak kommunikation, men visar kanske inte fullt ut vad hen själv egentligen tycker eller känner",
+          "May communicate more directly, but may not fully show what they really think or feel."),
+    _pair("straightforward_earnest_candid_reverse", "straightforward", "earnest", "candid", "left",
+          "Kan troligen ha en tydlig och genuint förankrad uppfattning, men kan kanske vara mer försiktig med att uttrycka den öppet till andra",
+          "May have a clear and genuinely held view, while being more cautious about expressing it openly to others."),
+    _pair("status_collective_egalitarian", "status_avoidance", "collective", "egalitarian", "left",
+          "Tycks kanske helst inte vilja stå ut eller få särskild uppmärksamhet som individ, samtidigt som hen kan ha en viss förväntan på att en särskild roll eller position får betydelse för hur man blir bemött",
+          "May prefer not to stand out or receive special attention as an individual, while still expecting a particular role or position to affect how they are treated."),
+    _pair("status_avoiding_status_collective_low", "status_avoidance", "avoiding_status", "collective", "right",
+          "Kan kanske lägga vikt vid status och den egna positionen, samtidigt som hen inte verkar ha något större behov av personlig uppmärksamhet eller uppskattning",
+          "May value status and personal position while not seeming to need much personal attention or appreciation."),
+    _pair("status_avoiding_status_collective_high", "status_avoidance", "avoiding_status", "collective", "left",
+          "Lägger troligen inte särskilt stor vikt vid titel eller formell status, men kan samtidigt kanske vilja bli uppmärksammad och erkänd för sina egna egenskaper och bidrag",
+          "Probably places little importance on title or formal status, while perhaps wanting recognition for personal qualities and contributions."),
+    _pair("modesty_modest_avoiding_attention", "modesty", "modest", "avoiding_attention", "right",
+          "Talar troligen inte mycket om egna bedrifter men kan ändå trivas med att stå i centrum",
+          "Probably does not talk much about personal achievements but may still enjoy being the centre of attention."),
+    _pair("modesty_humble_modest", "modesty", "humble", "modest", "right",
+          "Kan vilja bli sedd och uppskattad för sina insatser, men lyfter kanske inte alltid själv fram vad hen själv har åstadkommit",
+          "May want their efforts to be seen and appreciated, but may not always highlight what they have achieved."),
+    _pair("resilience_tough_minded_recovering", "resilience", "tough_minded", "recovering", "left",
+          "Kritik kan lättare rinna av medan motgångar kan ta tid att återhämta sig från",
+          "Criticism may roll off more easily, while setbacks may take time to recover from."),
+    _pair("resilience_optimistic_tough_minded", "resilience", "optimistic", "tough_minded", "left",
+          "Ser troligen positivt på utmaningar men kan kanske vara känslig för kritik",
+          "Probably sees challenges positively but may be sensitive to criticism."),
+    _pair("resilience_optimistic_recovering", "resilience", "optimistic", "recovering", "left",
+          "Kan sannolikt möta situationer med optimism och fokus på möjligheter, men kan ha svårare att gå vidare när något faktiskt har gått fel eller blivit en motgång",
+          "May approach situations with optimism and focus on possibilities, but find it harder to move on when something has gone wrong or become a setback."),
+    _pair("emotional_control_stress_composed", "emotional_control", "controlling_stress", "composed", "right",
+          "Kan kanske reagera känslomässigt och låta det märkas under press, men verkar samtidigt kunna behålla kontrollen över sitt agerande när situationen blir utmanande",
+          "May react emotionally and show it under pressure, while still seeming able to control their actions when things become challenging."),
+    _pair("emotional_control_stress_calm", "emotional_control", "controlling_stress", "calm", "left",
+          "Kan troligen känna en tydlig oro i utmanande situationer, samtidigt som hen kan ha lättare att lyckas reglera sina känslor och inte visa så mycket utåt",
+          "May feel clear anxiety in challenging situations, while finding it easier to regulate emotions and show little outwardly."),
+    _pair("emotional_control_calm_composed", "emotional_control", "calm", "composed", "left",
+          "Oroar sig troligen sällan i vanliga situationer, men kan kanske få svårare att behålla självbehärskningen när belastningen blir riktigt hög",
+          "Probably rarely worries in everyday situations, but may find it harder to stay composed under very high strain."),
+    _pair("independence_self_reliant_independent_thinking", "independence", "self_reliant", "thinking_independently", "left",
+          "Kan sannolikt driva sitt arbete utan vägledning men ändå uppskatta bollning inför beslut ibland",
+          "May drive their work without guidance while still appreciating discussion before decisions."),
+    _pair("independence_self_contained_self_reliant", "independence", "self_contained", "self_reliant", "left",
+          "Behöver förmodligen inte så mycket socialt stöd men kan fortfarande uppskatta praktisk vägledning",
+          "Probably does not need much social support but may still appreciate practical guidance."),
+    _pair("independence_independent_thinking_self_contained", "independence", "thinking_independently", "self_contained", "left",
+          "Föredrar troligtvis att tänka själv men kan uppskatta emotionellt stöd från andra",
+          "Probably prefers to think independently but may appreciate emotional support from others."),
 )
-
-
-# Veronika's expert approval was confirmed by the user on 2026-10-07.
-# The approved trigger is a difference of at least four STEN points in
-# either direction. Catalog hypotheses remain distinct; the rule only
-# decides when a supplied pair is relevant.
-CONTRAST_CATALOG = tuple({
-    **entry,
-    "approved": True,
-    "activation_rule": {
-        "mode": "either_direction",
-        "minimum_difference": 4,
-    },
-    "rule_version": "veronika-2026-10-07-v1",
-    "approval_source": (
-        "Veronika (expert approval confirmed by user, 2026-10-07)"
-    ),
-    "display_priority": 50,
-} for entry in CONTRAST_CATALOG)
 
 
 def expected_profile_dimension_count() -> int:
@@ -191,16 +181,15 @@ def _score(value: Any) -> int | None:
     return result if 1 <= result <= 10 else None
 
 
-def _flatten_profile(profile: dict[str, Any] | None) -> tuple[dict[str, dict[str, Any]], set[str]]:
+def _flatten_profile(profile: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     dimensions: dict[str, dict[str, Any]] = {}
     ambiguous: set[str] = set()
     if not isinstance(profile, dict):
-        return dimensions, ambiguous
+        return dimensions
 
     for section in profile.get("sections") or []:
         for trait in section.get("traits") or []:
-            records = [trait, *(trait.get("indicators") or [])]
-            for item in records:
+            for item in [trait, *(trait.get("indicators") or [])]:
                 if not isinstance(item, dict):
                     continue
                 key = str(item.get("canonical_key") or "").strip().lower()
@@ -214,8 +203,6 @@ def _flatten_profile(profile: dict[str, Any] | None) -> tuple[dict[str, dict[str
                     "key": key,
                     "label": str(item.get("label") or item.get("name") or key),
                     "sten": value,
-                    "low_pole": str(item.get("low_pole") or "").strip(),
-                    "high_pole": str(item.get("high_pole") or "").strip(),
                 }
                 previous = dimensions.get(key)
                 if previous and previous["sten"] != value:
@@ -223,68 +210,16 @@ def _flatten_profile(profile: dict[str, Any] | None) -> tuple[dict[str, dict[str
                     ambiguous.add(key)
                 elif key not in ambiguous:
                     dimensions.setdefault(key, record)
-
-    return dimensions, ambiguous
+    return dimensions
 
 
 def _rule_matches(rule: dict[str, Any], left: int, right: int) -> bool:
-    mode = str(rule.get("mode") or "").strip().lower()
-    if mode in {"left_higher_by", "right_higher_by", "either_direction"}:
-        try:
-            minimum_difference = int(rule.get("minimum_difference"))
-        except (TypeError, ValueError):
-            return False
-        if minimum_difference < 1:
-            return False
-        difference = left - right
-        if mode == "left_higher_by":
-            return difference >= minimum_difference
-        if mode == "right_higher_by":
-            return -difference >= minimum_difference
-        return abs(difference) >= minimum_difference
-
-    if mode in {"both_high", "both_low"}:
-        try:
-            threshold = int(rule.get("threshold"))
-        except (TypeError, ValueError):
-            return False
-        if not 1 <= threshold <= 10:
-            return False
-        return left >= threshold and right >= threshold if mode == "both_high" else left <= threshold and right <= threshold
-
-    if mode == "opposed_extremes":
-        try:
-            low_maximum = int(rule.get("low_maximum"))
-            high_minimum = int(rule.get("high_minimum"))
-        except (TypeError, ValueError):
-            return False
-        if not (1 <= low_maximum < high_minimum <= 10):
-            return False
-        return (
-            left <= low_maximum and right >= high_minimum
-        ) or (
-            right <= low_maximum and left >= high_minimum
-        )
-
+    high_side = rule.get("high_side")
+    if high_side == "left":
+        return left >= HIGH_MINIMUM and right <= LOW_MAXIMUM
+    if high_side == "right":
+        return right >= HIGH_MINIMUM and left <= LOW_MAXIMUM
     return False
-
-
-def _rule_strength(rule: dict[str, Any], left: int, right: int) -> int:
-    """Return the deterministic margin beyond an approved rule threshold."""
-    mode = str(rule.get("mode") or "").strip().lower()
-    if mode in {"left_higher_by", "right_higher_by", "either_direction"}:
-        return abs(left - right) - int(rule["minimum_difference"])
-    if mode == "both_high":
-        return min(left, right) - int(rule["threshold"])
-    if mode == "both_low":
-        return int(rule["threshold"]) - max(left, right)
-    if mode == "opposed_extremes":
-        low, high = sorted((left, right))
-        return min(
-            int(rule["low_maximum"]) - low,
-            high - int(rule["high_minimum"]),
-        )
-    return 0
 
 
 def build_profile_contrast_analysis(
@@ -293,40 +228,18 @@ def build_profile_contrast_analysis(
     language: str = "sv",
     source: str = "sova_assessment",
 ) -> dict[str, Any]:
-    """Return only deterministic, expert-approved contrasts and middle-profile evidence."""
+    """Return fixed contrast hypotheses whose indicators meet opposite extremes."""
     language = "sv" if str(language or "").lower().startswith("sv") else "en"
-    dimensions, ambiguous = _flatten_profile(personality_profile)
+    dimensions = _flatten_profile(personality_profile)
     activated = []
 
     for entry in CONTRAST_CATALOG:
-        rule = entry.get("activation_rule")
-        if not entry.get("approved") or not isinstance(rule, dict):
-            continue
-        if not entry.get("rule_version") or not entry.get("approval_source"):
-            continue
-        try:
-            display_priority = int(entry.get("display_priority"))
-        except (TypeError, ValueError):
-            continue
         left = dimensions.get(entry["left_key"])
         right = dimensions.get(entry["right_key"])
-        if not left or not right or not _rule_matches(rule, left["sten"], right["sten"]):
+        if not left or not right or not _rule_matches(entry, left["sten"], right["sten"]):
             continue
-        pair_dimensions = (left, right)
-        # Group dimensions by their direction around the scale midpoint.
-        # This allows two dimensions on the same side to appear together.
-        left_labels = [
-            item["label"] for item in pair_dimensions
-            if item["sten"] <= 5
-        ]
-        right_labels = [
-            item["label"] for item in pair_dimensions
-            if item["sten"] >= 6
-        ]
-        context_labels = [
-            item["label"] for item in pair_dimensions
-            if 4 <= item["sten"] <= 7
-        ]
+        high = left["sten"] if entry["high_side"] == "left" else right["sten"]
+        low = right["sten"] if entry["high_side"] == "left" else left["sten"]
         activated.append({
             "id": entry["id"],
             "trait_key": entry["trait_key"],
@@ -340,71 +253,27 @@ def build_profile_contrast_analysis(
                 {"label": left["label"], "sten": left["sten"]},
                 {"label": right["label"], "sten": right["sten"]},
             ],
-            "left_dimensions": " · ".join(left_labels),
-            "right_dimensions": " · ".join(right_labels),
-            "context_dimensions": " · ".join(context_labels),
             "hypothesis": entry["hypothesis"].get(language) or entry["hypothesis"]["en"],
-            "rule_version": entry["rule_version"],
-            "approval_source": entry["approval_source"],
-            "display_priority": display_priority,
-            "strength": _rule_strength(rule, left["sten"], right["sten"]),
+            "strength": min(high - HIGH_MINIMUM, LOW_MAXIMUM - low),
             "catalog_version": CONTRAST_CATALOG_VERSION,
         })
 
-    activated.sort(key=lambda item: (-item["display_priority"], -item["strength"], item["id"]))
-    activated = activated[:MAX_PROFILE_CONTRASTS]
-
-    expected_count = expected_profile_dimension_count()
-    available_count = len(dimensions)
-    middle_count = sum(4 <= item["sten"] <= 7 for item in dimensions.values())
-    minimum_coverage = max(
-        MIDDLE_PROFILE_MINIMUM_COUNT,
-        ceil(expected_count * MIDDLE_PROFILE_MINIMUM_COVERAGE),
-    )
-    enough_coverage = available_count >= minimum_coverage
-    middle_is_many = (
-        available_count > 0
-        and middle_count >= MIDDLE_PROFILE_MINIMUM_COUNT
-        and middle_count / available_count >= MIDDLE_PROFILE_MINIMUM_SHARE
-    )
-    show_middle_profile = enough_coverage and middle_is_many
+    activated.sort(key=lambda item: (-item["strength"], item["id"]))
 
     if language == "sv":
-        middle_note = (
-            "Minst tio av de tillgängliga resultaten ligger i intervallet 4–7. "
-            "Det kan tyda på att flera av kandidatens preferenser påverkas mer av situation och sammanhang."
-        )
-        no_contrasts_message = (
-            "Inga granskade profilkontraster är tillgängliga för den här profilen. "
-            "Därför visas inga kontrasttolkningar."
-        )
-        insufficient_data_message = (
-            "Underlaget räcker inte för att visa ett mönster i mitten av profilen."
+        neutral_message = (
+            "Inga indikatorpar med tydliga ytterlägen matchar de fördefinierade mönstren."
         )
     else:
-        middle_note = (
-            "At least ten available results fall in the 4–7 range. "
-            "This may mean several of the candidate's preferences vary more with the situation and context."
-        )
-        no_contrasts_message = (
-            "No reviewed profile contrasts are available for this profile, "
-            "so no contrast interpretations are shown."
-        )
-        insufficient_data_message = (
-            "There is not enough available evidence to show a middle-profile pattern."
+        neutral_message = (
+            "No indicator pairs at the defined extremes match the predefined patterns."
         )
 
     return {
         "catalog_version": CONTRAST_CATALOG_VERSION,
-        "middle_rule_version": MIDDLE_PROFILE_RULE_VERSION,
         "source": source,
-        "available_dimension_count": available_count,
-        "expected_dimension_count": expected_count,
-        "ambiguous_dimension_keys": sorted(ambiguous),
+        "available_dimension_count": len(dimensions),
+        "expected_dimension_count": expected_profile_dimension_count(),
         "activated_contrasts": activated,
-        "show_middle_profile": show_middle_profile,
-        "middle_profile_count": middle_count if show_middle_profile else 0,
-        "middle_profile_note": middle_note if show_middle_profile else "",
-        "neutral_message": no_contrasts_message,
-        "insufficient_data_message": insufficient_data_message,
+        "neutral_message": neutral_message,
     }
