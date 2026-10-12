@@ -26,6 +26,9 @@ from .prompt_templates import (
 from .motivation_interpretation import (
     get_motivation_factor_display_name,
 )
+from .personality_ai_evidence import (
+    build_owner_personality_ai_evidence_text,
+)
 
 # Talena AI Overview language batch 1
 
@@ -488,16 +491,27 @@ def build_purpose_fit_prompt(
         invitation,
         language_code=language_code,
     )
-    personality_assessment_text = next(
-        (
-            section
-            for section in assessment_text.split("\n\n")
-            if section.splitlines()
-            and section.splitlines()[0].rstrip(":").strip().casefold()
-            in {"personality", "personlighet"}
-        ),
-        "No completed personality assessment scores were available.",
+    # Use Talena's canonical personality evidence builder for this section.
+    # The general evidence string may also contain appended grounding under a
+    # separate heading, so extracting by section title can accidentally omit
+    # the candidate's actual personality results.
+    personality_assessment_text = build_owner_personality_ai_evidence_text(
+        invitation,
+        language_code=language_code,
+        include_indicator_details=False,
     )
+
+    if not personality_assessment_text:
+        personality_assessment_text = next(
+            (
+                section
+                for section in assessment_text.split("\n\n")
+                if section.splitlines()
+                and section.splitlines()[0].rstrip(":").strip().casefold()
+                in {"personality", "personlighet"}
+            ),
+            "No completed personality assessment scores were available.",
+        )
 
     return f"""
 TALENA INPUT DATA
@@ -699,7 +713,9 @@ Return exactly one personality_area_summary event for each of these area keys,
 in this order: leadership, organisation, interaction. Each text must be 2–3
 short sentences, use the matching administrator guidance, and describe
 possible personality preferences rather than fixed behaviours. Do not include
-raw scores. If the personality evidence is insufficient, return an empty text.
+raw scores. When the personality evidence block contains candidate results,
+write a concise evidence-based summary for every area; return empty text only
+when the block explicitly states that no completed personality results exist.
 
 {{"type":"personality_area_summary","area":"leadership","text":"Short, evidence-based description."}}
 
