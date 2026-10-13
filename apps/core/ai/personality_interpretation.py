@@ -288,7 +288,7 @@ def build_personality_indicator_interpretations(
                 )
 
     return {
-        key: "\\n".join(lines)
+        key: "\n".join(lines)
         for key, lines in evidence.items()
     }
 
@@ -980,6 +980,8 @@ def save_personality_interpretation(
         }
         for theme in PERSONALITY_MANAGER_REPORT_THEMES
     }
+
+    interpretation["manager_report_personality_schema_version"] = 1
 
     supportive_patterns = interpretation.get(
         "supportive_patterns"
