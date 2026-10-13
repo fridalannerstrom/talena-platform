@@ -12,6 +12,7 @@
         interview: "Intervjusammanfattning",
         explore: "Undersök vidare",
         wellbeing: "Tips för trivsel",
+        managerReport: "Chefsrapport",
         evidence: "Underlag",
       },
       descriptions: {
@@ -19,8 +20,12 @@
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
         explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
         wellbeing: "Förutsättningar och samtalspunkter som kan bidra till trivsel i rollen.",
+        managerReport: "Ett samlat stöd för rekryteraren och ansvarig chef, med fokus på kandidatens resultat och relevanta frågor att följa upp.",
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
+      managerReportTitle: "Chefsrapport",
+      managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
+      savePdf: "Spara som PDF",
       generated: "AI-genererat",
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
@@ -32,6 +37,7 @@
         interview: "Interview summary",
         explore: "Explore further",
         wellbeing: "Wellbeing tips",
+        managerReport: "Manager report",
         evidence: "Evidence",
       },
       descriptions: {
@@ -39,8 +45,12 @@
         interview: "What the interview confirms, nuances or adds to the assessment results.",
         explore: "Questions and areas where additional evidence may create a more complete view.",
         wellbeing: "Conditions and conversation points that may support wellbeing in the role.",
+        managerReport: "A practical overview for the recruiter and manager, focused on the candidate’s results and relevant topics to follow up.",
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
+      managerReportTitle: "Manager report",
+      managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
+      savePdf: "Save as PDF",
       generated: "AI-generated",
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
@@ -283,6 +293,26 @@
       __PANEL__ [data-post-interview-content].after-interview-content-source {
         display: none !important;
       }
+      @media print {
+        body.manager-report-printing * { visibility: hidden !important; }
+        body.manager-report-printing #candidate-insights-panel-after-interview,
+        body.manager-report-printing #candidate-insights-panel-after-interview * { visibility: visible !important; }
+        body.manager-report-printing #candidate-insights-panel-after-interview .candidate-insights-subnavigation { display: none !important; }
+        body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
+        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] { display: block !important; position: absolute; inset: 0; width: 100%; }
+        body.manager-report-printing .after-interview-manager-report__actions { display: none !important; }
+        body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
+      }
+      __PANEL__ .after-interview-manager-report__header {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__actions { flex: 0 0 auto; }
+      __PANEL__ .after-interview-manager-report__intro {
+        max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
+      }
+      @media (max-width: 575px) {
+        __PANEL__ .after-interview-manager-report__header { flex-direction: column; }
+      }
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
         __PANEL__ .candidate-insights-view-switcher { gap: .9rem; }
@@ -338,7 +368,7 @@
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    const keys = ["overview", "interview", "explore", "wellbeing", "evidence"];
+    const keys = ["overview", "interview", "explore", "wellbeing", "managerReport", "evidence"];
     const buttons = new Map();
     const panels = new Map();
     keys.forEach((key) => {
@@ -387,6 +417,44 @@
     panels.get("wellbeing").appendChild(
       makeCard(panel, "wellbeing_tips", copy().tabs.wellbeing, copy().descriptions.wellbeing, wellbeingFallback.childNodes.length ? wellbeingFallback : null),
     );
+
+    const managerReportCard = document.createElement("section");
+    managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
+    const managerReportHeader = document.createElement("div");
+    managerReportHeader.className = "after-interview-manager-report__header";
+    const managerReportHeading = document.createElement("h3");
+    managerReportHeading.className = "after-interview-tab-card__title";
+    managerReportHeading.textContent = copy().managerReportTitle;
+    const managerReportActions = document.createElement("div");
+    managerReportActions.className = "after-interview-manager-report__actions";
+    const pdfButton = document.createElement("button");
+    pdfButton.type = "button";
+    pdfButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2";
+    pdfButton.setAttribute("aria-label", copy().savePdf);
+    const pdfIcon = document.createElement("i");
+    pdfIcon.setAttribute("data-feather", "download");
+    const pdfLabel = document.createElement("span");
+    pdfLabel.textContent = copy().savePdf;
+    pdfButton.append(pdfIcon, pdfLabel);
+    pdfButton.addEventListener("click", () => {
+      const originalTitle = document.title;
+      const cleanup = () => {
+        document.body.classList.remove("manager-report-printing");
+        document.title = originalTitle;
+      };
+      document.title = copy().managerReportTitle;
+      document.body.classList.add("manager-report-printing");
+      window.addEventListener("afterprint", cleanup, { once: true });
+      window.print();
+      window.setTimeout(cleanup, 1000);
+    });
+    managerReportActions.appendChild(pdfButton);
+    managerReportHeader.append(managerReportHeading, managerReportActions);
+    const managerReportIntro = document.createElement("p");
+    managerReportIntro.className = "after-interview-manager-report__intro";
+    managerReportIntro.textContent = copy().managerReportIntro;
+    managerReportCard.append(managerReportHeader, managerReportIntro);
+    panels.get("managerReport").appendChild(managerReportCard);
 
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
