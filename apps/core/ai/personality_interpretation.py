@@ -29,6 +29,9 @@ from .motivation_interpretation import (
     build_motivation_evidence_text,
     extract_motivation_results,
 )
+from apps.reports.libraries.personality.builder import build_profile_from_resolved_report
+from apps.reports.libraries.personality.resolver import build_personality_reports_for_candidate
+
 from .personality_motivation_interaction_policy import (
     PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_EN,
     PERSONALITY_MOTIVATION_INTERACTION_DEFAULT_SV,
@@ -189,6 +192,107 @@ def build_motivation_results_for_personality_owner(
     return list(results_by_name.values())
 
 
+PERSONALITY_MANAGER_REPORT_THEMES = (
+    {
+        "key": "leading_and_working_with_others",
+        "label": "Leda och arbeta med andra",
+        "prompt_stem": "leading_and_working_with_others",
+    },
+    {
+        "key": "organising_and_thinking_patterns",
+        "label": "Organisering och tankemönster",
+        "prompt_stem": "organising_and_thinking_patterns",
+    },
+    {
+        "key": "interaction_and_emotion_management",
+        "label": "Interaktion och känslohantering",
+        "prompt_stem": "interaction_and_emotion_management",
+    },
+)
+
+
+def build_personality_indicator_interpretations(
+    owner,
+    *,
+    language_code: str = "en",
+) -> dict[str, str]:
+    """Build localized, library-backed indicator interpretations by report theme."""
+    process = owner.process
+    if getattr(process, "is_historical", False):
+        from apps.processes.services.candidate_profile import (
+            build_historical_candidate_profile,
+        )
+
+        historical_profile = build_historical_candidate_profile(owner)
+        competencies = historical_profile.get("personality_competencies") or []
+        activities = [{
+            "activity": "Personality Assessment",
+            "competencies": [
+                {
+                    "competency": item.get("competency") or item.get("name"),
+                    "sten": item.get("sten"),
+                    "sten_rounded": item.get("sten_rounded"),
+                    "percentile": item.get("percentile"),
+                }
+                for item in competencies
+            ],
+        }]
+    else:
+        payload = getattr(owner, "sova_payload", None) or {}
+        activities = list(
+            getattr(owner, "sova_activities", None)
+            or payload.get("activities")
+            or []
+        )
+        if not activities:
+            for phase in payload.get("phases") or []:
+                activities.extend(phase.get("activities") or [])
+
+    reports = build_personality_reports_for_candidate(
+        sova_activities=activities,
+    )
+    report = next(
+        (
+            item for item in reports
+            if item.get("report_id") == "trait_indicator_profile"
+        ),
+        None,
+    )
+    profile = (
+        build_profile_from_resolved_report(
+            resolved_report=report,
+            language=language_code,
+            include_missing_traits=True,
+        )
+        if report
+        else None
+    )
+
+    evidence = {
+        theme["key"]: []
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES
+    }
+    for index, section in enumerate((profile or {}).get("sections") or []):
+        if index >= len(PERSONALITY_MANAGER_REPORT_THEMES):
+            break
+        theme_key = PERSONALITY_MANAGER_REPORT_THEMES[index]["key"]
+        for trait in section.get("traits") or []:
+            for indicator in trait.get("indicators") or []:
+                text = str(indicator.get("text") or "").strip()
+                if not text:
+                    continue
+                label = str(indicator.get("label") or indicator.get("name") or "").strip()
+                evidence[theme_key].append(
+                    f"- {trait.get('label') or trait.get('name')}: "
+                    f"{label}: {text}"
+                )
+
+    return {
+        key: "\\n".join(lines)
+        for key, lines in evidence.items()
+    }
+
+
 def build_personality_interpretation_prompt(
     owner,
     personality_results: list[dict[str, Any]],
@@ -245,6 +349,27 @@ def build_personality_interpretation_prompt(
         language=language_code,
     )
 
+    manager_personality_instructions = {}
+    for theme in PERSONALITY_MANAGER_REPORT_THEMES:
+        manager_personality_instructions[theme["key"]] = {
+            "testbild": get_ai_feature_prompt_instructions(
+                key=f"manager_personality_{theme['prompt_stem']}_testbild",
+                language=language_code,
+            ),
+            "candidate_describes": get_ai_feature_prompt_instructions(
+                key=f"manager_personality_{theme['prompt_stem']}_candidate_describes",
+                language=language_code,
+            ),
+        }
+
+    indicator_interpretations = build_personality_indicator_interpretations(
+        owner,
+        language_code=language_code,
+    )
+    interview_notes = str(
+        getattr(owner, "interview_notes", "") or ""
+    ).strip()
+
     shared_context = build_shared_ai_context(
         owner
     )
@@ -292,6 +417,12 @@ PROCESS CONTEXT
 
 PERSONALITY ASSESSMENT DATA
 {evidence_text}
+
+PERSONALITY INDICATOR INTERPRETATIONS BY THEME
+{json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
+
+CANDIDATE INTERVIEW NOTES
+{interview_notes or "No candidate interview notes are available."}
 
 MOTIVATION ASSESSMENT DATA
 {motivation_evidence_text}
@@ -375,6 +506,51 @@ Do not use it to change the overall interpretation,
 profile dynamics, motivation interaction or supportive patterns.
 
 {areas_to_explore_instructions}
+
+
+MANAGER REPORT PERSONALITY SECTION GUIDANCE
+
+The manager report contains three themes. For each theme, generate
+a separate testbild text and a separate candidate-describes text.
+
+For testbild, use only the personality indicator interpretations
+supplied under PERSONALITY INDICATOR INTERPRETATIONS BY THEME.
+Do not use interview notes as evidence in a testbild text.
+
+For candidate_describes, use only CANDIDATE INTERVIEW NOTES.
+Do not use personality test results as evidence in a candidate_describes
+text. Use the notes only when they contain relevant information for
+that theme.
+
+PROCESS CONTEXT and process purpose may help explain relevance in
+either text, but must not be presented as evidence about the candidate.
+Do not invent facts. If the required source evidence for a text is
+missing, return an empty text for that text.
+
+The following six administrator prompt instructions apply to exactly
+one theme and one text field each. Do not transfer their guidance
+between fields.
+
+THEME Leda och arbeta med andra
+Testbild guidance:
+{manager_personality_instructions["leading_and_working_with_others"]["testbild"]}
+
+Kandidaten beskriver guidance:
+{manager_personality_instructions["leading_and_working_with_others"]["candidate_describes"]}
+
+THEME Organisering och tankemönster
+Testbild guidance:
+{manager_personality_instructions["organising_and_thinking_patterns"]["testbild"]}
+
+Kandidaten beskriver guidance:
+{manager_personality_instructions["organising_and_thinking_patterns"]["candidate_describes"]}
+
+THEME Interaktion och känslohantering
+Testbild guidance:
+{manager_personality_instructions["interaction_and_emotion_management"]["testbild"]}
+
+Kandidaten beskriver guidance:
+{manager_personality_instructions["interaction_and_emotion_management"]["candidate_describes"]}
 
 
 SECTION ISOLATION
@@ -499,7 +675,23 @@ If administrator guidance does not require substantive context-note
 content, preserve the event and return an empty text value.
 
 
-8. DONE
+8. MANAGER REPORT PERSONALITY TEXTS
+
+Return exactly one personality_report_text event for each of the six
+theme and part combinations shown below. Use the exact theme keys and
+part values. If evidence for a particular text is missing, return
+an empty string for its text field.
+
+{{"type":"personality_report_text","theme":"leading_and_working_with_others","part":"testbild","text":"Concise grounded interpretation"}}
+{{"type":"personality_report_text","theme":"leading_and_working_with_others","part":"candidate_describes","text":"Concise summary of interview evidence"}}
+
+{{"type":"personality_report_text","theme":"organising_and_thinking_patterns","part":"testbild","text":"Concise grounded interpretation"}}
+{{"type":"personality_report_text","theme":"organising_and_thinking_patterns","part":"candidate_describes","text":"Concise summary of interview evidence"}}
+
+{{"type":"personality_report_text","theme":"interaction_and_emotion_management","part":"testbild","text":"Concise grounded interpretation"}}
+{{"type":"personality_report_text","theme":"interaction_and_emotion_management","part":"candidate_describes","text":"Concise summary of interview evidence"}}
+
+9. DONE
 
 Finish with:
 
@@ -523,6 +715,13 @@ def create_empty_personality_interpretation(
         "supportive_patterns": [],
         "areas_to_explore": [],
         "context_note": "",
+        "manager_report_personality": {
+            theme["key"]: {
+                "testbild": "",
+                "candidate_describes": "",
+            }
+            for theme in PERSONALITY_MANAGER_REPORT_THEMES
+        },
     }
 
 
@@ -590,6 +789,25 @@ def apply_personality_interpretation_event(
             event.get("text")
             or ""
         ).strip()
+
+    elif event_type == "personality_report_text":
+        theme_key = str(event.get("theme") or "")
+        part = str(event.get("part") or "")
+        valid_theme_keys = {
+            theme["key"]
+            for theme in PERSONALITY_MANAGER_REPORT_THEMES
+        }
+        if theme_key in valid_theme_keys and part in {
+            "testbild",
+            "candidate_describes",
+        }:
+            interpretation.setdefault(
+                "manager_report_personality",
+                {},
+            ).setdefault(
+                theme_key,
+                {},
+            )[part] = str(event.get("text") or "").strip()
 
     return interpretation
 
@@ -747,6 +965,21 @@ def save_personality_interpretation(
         interpretation.get("context_note")
         or ""
     ).strip()
+
+    manager_report_personality = interpretation.get(
+        "manager_report_personality"
+    )
+    if not isinstance(manager_report_personality, dict):
+        manager_report_personality = {}
+    interpretation["manager_report_personality"] = {
+        theme["key"]: {
+            part: str(
+                (manager_report_personality.get(theme["key"]) or {}).get(part) or ""
+            ).strip()
+            for part in ("testbild", "candidate_describes")
+        }
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES
+    }
 
     supportive_patterns = interpretation.get(
         "supportive_patterns"

@@ -7427,6 +7427,64 @@ AI_PROMPT_REGISTRY.update({
     },
 })
 
+AI_PROMPT_REGISTRY.update({
+  "manager_personality_leading_and_working_with_others_testbild": {
+    "name": "Personlighet · Leda och arbeta med andra · Testbild",
+    "category": "Personality",
+    "description": "Controls the Testbild text for the Leda och arbeta med andra theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast de tillhandahållna tolkningstexterna för personlighetstestets indikatorer i detta tema. Sammanfatta de mest relevanta mönstren nyanserat på 2–4 meningar. Beskriv möjliga preferenser, inte fastslagna beteenden eller kompetenser. Väg in processens syfte och tillgänglig rollkontext endast när det är relevant och tydligt märk kontext som kontext. Om indikatorstolkning saknas, returnera en tom text.""",
+      "en": """Use only the supplied personality-test indicator interpretation texts for this theme. Summarise the most relevant patterns in 2–4 nuanced sentences. Describe possible preferences, not established behaviours or competencies. Consider process purpose and available role context only when relevant, and keep context distinct from test evidence. If indicator interpretations are missing, return empty text."""
+    },
+  },
+  "manager_personality_leading_and_working_with_others_candidate_describes": {
+    "name": "Personlighet · Leda och arbeta med andra · Kandidaten beskriver",
+    "category": "Personality",
+    "description": "Controls the Kandidaten beskriver text for the Leda och arbeta med andra theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast kandidatens tillhandahållna intervjuanteckningar för detta tema. Sammanfatta vad kandidaten själv beskriver i intervjun på 2–4 meningar. Håll detta separat från testresultat och skilj kandidatens egna utsagor från tolkning. Väg in roll och processkontext endast för att förstå relevansen, utan att hitta på uppgifter. Om intervjuanteckningar saknas, returnera en tom text.""",
+      "en": """Use only the supplied interview notes for this theme. Summarise what the candidate describes about themselves in the interview in 2–4 sentences. Keep this separate from test results and distinguish the candidate's own statements from interpretation. Use role and process context only to understand relevance, without inventing job details. If interview notes are missing, return empty text."""
+    },
+  },
+  "manager_personality_organising_and_thinking_patterns_testbild": {
+    "name": "Personlighet · Organisering och tankemönster · Testbild",
+    "category": "Personality",
+    "description": "Controls the Testbild text for the Organisering och tankemönster theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast de tillhandahållna tolkningstexterna för personlighetstestets indikatorer i detta tema. Sammanfatta de mest relevanta mönstren nyanserat på 2–4 meningar. Beskriv möjliga preferenser, inte fastslagna beteenden eller kompetenser. Väg in processens syfte och tillgänglig rollkontext endast när det är relevant och tydligt märk kontext som kontext. Om indikatorstolkning saknas, returnera en tom text.""",
+      "en": """Use only the supplied personality-test indicator interpretation texts for this theme. Summarise the most relevant patterns in 2–4 nuanced sentences. Describe possible preferences, not established behaviours or competencies. Consider process purpose and available role context only when relevant, and keep context distinct from test evidence. If indicator interpretations are missing, return empty text."""
+    },
+  },
+  "manager_personality_organising_and_thinking_patterns_candidate_describes": {
+    "name": "Personlighet · Organisering och tankemönster · Kandidaten beskriver",
+    "category": "Personality",
+    "description": "Controls the Kandidaten beskriver text for the Organisering och tankemönster theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast kandidatens tillhandahållna intervjuanteckningar för detta tema. Sammanfatta vad kandidaten själv beskriver i intervjun på 2–4 meningar. Håll detta separat från testresultat och skilj kandidatens egna utsagor från tolkning. Väg in roll och processkontext endast för att förstå relevansen, utan att hitta på uppgifter. Om intervjuanteckningar saknas, returnera en tom text.""",
+      "en": """Use only the supplied interview notes for this theme. Summarise what the candidate describes about themselves in the interview in 2–4 sentences. Keep this separate from test results and distinguish the candidate's own statements from interpretation. Use role and process context only to understand relevance, without inventing job details. If interview notes are missing, return empty text."""
+    },
+  },
+  "manager_personality_interaction_and_emotion_management_testbild": {
+    "name": "Personlighet · Interaktion och känslohantering · Testbild",
+    "category": "Personality",
+    "description": "Controls the Testbild text for the Interaktion och känslohantering theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast de tillhandahållna tolkningstexterna för personlighetstestets indikatorer i detta tema. Sammanfatta de mest relevanta mönstren nyanserat på 2–4 meningar. Beskriv möjliga preferenser, inte fastslagna beteenden eller kompetenser. Väg in processens syfte och tillgänglig rollkontext endast när det är relevant och tydligt märk kontext som kontext. Om indikatorstolkning saknas, returnera en tom text.""",
+      "en": """Use only the supplied personality-test indicator interpretation texts for this theme. Summarise the most relevant patterns in 2–4 nuanced sentences. Describe possible preferences, not established behaviours or competencies. Consider process purpose and available role context only when relevant, and keep context distinct from test evidence. If indicator interpretations are missing, return empty text."""
+    },
+  },
+  "manager_personality_interaction_and_emotion_management_candidate_describes": {
+    "name": "Personlighet · Interaktion och känslohantering · Kandidaten beskriver",
+    "category": "Personality",
+    "description": "Controls the Kandidaten beskriver text for the Interaktion och känslohantering theme in the manager report.",
+    "defaults": {
+      "sv": """Använd endast kandidatens tillhandahållna intervjuanteckningar för detta tema. Sammanfatta vad kandidaten själv beskriver i intervjun på 2–4 meningar. Håll detta separat från testresultat och skilj kandidatens egna utsagor från tolkning. Väg in roll och processkontext endast för att förstå relevansen, utan att hitta på uppgifter. Om intervjuanteckningar saknas, returnera en tom text.""",
+      "en": """Use only the supplied interview notes for this theme. Summarise what the candidate describes about themselves in the interview in 2–4 sentences. Keep this separate from test results and distinguish the candidate's own statements from interpretation. Use role and process context only to understand relevance, without inventing job details. If interview notes are missing, return empty text."""
+    },
+  }
+})
+
+
 def get_ai_prompt_definition(
     key: str,
 ) -> dict[str, Any]:
