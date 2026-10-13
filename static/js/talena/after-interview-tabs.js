@@ -27,6 +27,7 @@
       managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
       savePdf: "Spara som PDF",
       managerSkillsTitle: "Färdighet",
+      managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
       managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
       managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
       managerSkillsGuideIntro: "Resultaten visar hur kandidaten kan hantera uppgifter med olika grad av komplexitet. Se dem som ett underlag i samtalet och väg in rollens krav och övrig information.",
@@ -100,6 +101,7 @@
       managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
       savePdf: "Save as PDF",
       managerSkillsTitle: "Skills",
+      managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
       managerSkillsGuideIntro: "The results indicate how the candidate may handle tasks with different levels of complexity. Use them as a starting point for conversation and consider the role requirements alongside other information.",
@@ -666,11 +668,7 @@
       }
     });
 
-    const skillLabels = {
-      numerical: copy().tabs.managerReport === "Manager report" ? "Numerical" : "Numeriskt",
-      logical: copy().tabs.managerReport === "Manager report" ? "Logical" : "Logiskt",
-      verbal: copy().tabs.managerReport === "Manager report" ? "Verbal" : "Verbalt",
-    };
+    const skillLabels = copy().managerSkillNames;
     const skillOrder = ["numerical", "logical", "verbal"];
     skillOrder.forEach((key) => {
       const percentile = completedSkills.get(key);
