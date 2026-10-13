@@ -456,7 +456,7 @@
         transition: border-color .16s ease, background-color .16s ease;
       }
       __PANEL__ .after-interview-manager-report__guide[open] {
-        border-color: #f2c6bf; background: #fffaf8;
+        border-color: var(--talena-border, #e5dfd8); background: #fff;
       }
       __PANEL__ .after-interview-manager-report__guide-summary {
         display: flex; align-items: center; justify-content: space-between; gap: 1rem;
@@ -508,6 +508,23 @@
       __PANEL__ .after-interview-manager-report__intro {
         max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
       }
+      __PANEL__ .after-interview-manager-report .after-interview-tab-card__title {
+        font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+      }
+      __PANEL__ .after-interview-manager-report__intro { font-size: .84rem; }
+      __PANEL__ .after-interview-manager-report__skills-title { font-size: 1.15rem; }
+      __PANEL__ .after-interview-manager-report__skill-title { font-size: .95rem; }
+      __PANEL__ .after-interview-manager-report__level-title { font-size: .84rem; }
+      __PANEL__ .after-interview-manager-report__level-description { font-size: .72rem; }
+      __PANEL__ .after-interview-manager-report__level-check { font-size: .76rem; }
+      __PANEL__ .after-interview-manager-report__guide-summary { font-size: .9rem; }
+      __PANEL__ .after-interview-manager-report__guide-intro { font-size: .78rem; }
+      __PANEL__ .after-interview-manager-report__guide-level h5 { font-size: .78rem; }
+      __PANEL__ .after-interview-manager-report__guide-level p { font-size: .71rem; }
+      __PANEL__ .after-interview-manager-report__guide-level ul { font-size: .70rem; }
+      __PANEL__ .after-interview-manager-report__guide-caveat { font-size: .70rem; }
+      __PANEL__ .after-interview-manager-report__skills-empty { font-size: .76rem; }
+      __PANEL__ .after-interview-manager-report__actions .btn { font-size: .84rem; }
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
