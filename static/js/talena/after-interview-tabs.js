@@ -485,7 +485,8 @@
         display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-top: 1rem;
       }
       __PANEL__ .after-interview-manager-report__guide-level {
-        padding: .9rem; border-radius: 10px; background: #fff;
+        padding: .9rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #fff;
       }
       __PANEL__ .after-interview-manager-report__guide-level h5 {
         margin: 0 0 .4rem; font-size: .82rem; font-weight: 750;
