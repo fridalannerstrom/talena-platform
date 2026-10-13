@@ -46,8 +46,6 @@ def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
             "question_3": "Tredje öppna frågan",
             "combination": "Om ett känt kombinationsmönster är relevant och vad som kan utforskas.",
             "context": "Hur råden anpassades till syfte och eventuell processkontext.",
-            "contrast_id": "cooperative_sensitivity_teamwork",
-            "contrast_question": "När märks detta i ditt arbete?",
         }
     return {
         "title": "How to approach this profile",
@@ -61,8 +59,6 @@ def _get_response_style_output_examples(language_code: str) -> dict[str, str]:
         "question_3": "Question three",
         "combination": "Whether a known combination applies and what may be useful to explore.",
         "context": "Whether the advice was adapted to purpose or added context.",
-        "contrast_id": "cooperative_sensitivity_teamwork",
-        "contrast_question": "When does this show up in your work?",
     }
 
 
@@ -172,33 +168,6 @@ def build_response_style_guidance_prompt(
         key="response_style_interview_approach",
         language=language_code,
     )
-    profile_contrast_instructions = get_ai_prompt_instructions(
-        key="profile_contrasts",
-        language=language_code,
-    )
-    active_contrasts = (
-        profile_contrast_analysis.get("activated_contrasts")
-        if isinstance(profile_contrast_analysis, dict)
-        else []
-    ) or []
-    contrast_input = json.dumps(
-        [
-            {
-                "id": item["id"],
-                "left_label": item["left_label"],
-                "left_sten": item["left_sten"],
-                "right_label": item["right_label"],
-                "right_sten": item["right_sten"],
-                "hypothesis": item["hypothesis"],
-                "source": profile_contrast_analysis.get("source"),
-                "catalog_version": item["catalog_version"],
-                "rule_version": item["rule_version"],
-            }
-            for item in active_contrasts
-        ],
-        ensure_ascii=False,
-    )
-
     shared_context = build_shared_ai_context(
         guidance_owner
     )
@@ -230,10 +199,6 @@ PROCESS CONTEXT
 
 RESPONSE-STYLE ASSESSMENT DATA
 {response_style_text}
-
-ACTIVE EXPERT-APPROVED PROFILE CONTRASTS
-{contrast_input}
-
 
 ADMINISTRATOR AI GUIDANCE
 
@@ -279,14 +244,6 @@ corresponding events.
 
 Instructions for one section must not change the substantive content,
 number of items or emphasis of the other section.
-
-PROFILE CONTRAST WORDING GUIDANCE
-
-This guidance applies only to the profile_contrasts event. It may shape
-wording, tone, length and uncertainty. It must not select pairs, change
-rules or values, or create a contrast when the supplied list is empty.
-
-{profile_contrast_instructions}
 
 Global Talena administrator guidance still applies across all sections.
 
@@ -369,16 +326,7 @@ using an empty items array.
 {{"type":"context_note","text":"{output_examples["context"]}"}}
 
 
-8. PROFILE CONTRASTS
-
-Return only the supplied expert-approved IDs. For each supplied item,
-write one cautious conversation question that reflects its hypothesis and
-actual values. Return an empty items list when no pairs are supplied.
-
-{{"type":"profile_contrasts","items":[{{"id":"{output_examples["contrast_id"]}","question":"{output_examples["contrast_question"]}"}}]}}
-
-
-9. DONE
+8. DONE
 
 {{"type":"done"}}
 """.strip()
@@ -399,15 +347,12 @@ def create_empty_response_style_guidance(
         "questions": [],
         "combination_note": "",
         "context_note": "",
-        "profile_contrasts": [],
     }
 
 
 def apply_response_style_guidance_event(
     guidance: dict[str, Any],
     event: dict[str, Any],
-    *,
-    allowed_profile_contrasts: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Apply one streamed NDJSON event to the complete guidance result.
@@ -472,28 +417,6 @@ def apply_response_style_guidance_event(
             or ""
         ).strip()
 
-    elif event_type == "profile_contrasts":
-        allowed = {
-            item.get("id"): item
-            for item in (allowed_profile_contrasts or [])
-            if item.get("id")
-        }
-        generated = []
-        items = event.get("items")
-        if isinstance(items, list):
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
-                pair_id = str(item.get("id") or "").strip()
-                question = str(item.get("question") or "").strip()
-                approved = allowed.get(pair_id)
-                if not approved or not question:
-                    continue
-                generated.append({
-                    **approved,
-                    "question": question[:1000],
-                })
-        guidance["profile_contrasts"] = generated
 
     return guidance
 

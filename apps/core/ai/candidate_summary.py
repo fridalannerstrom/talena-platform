@@ -263,7 +263,6 @@ def build_candidate_prompt(
             owner
         )
     )
-
     purpose_value = (
         process.purpose
         or ""

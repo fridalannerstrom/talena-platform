@@ -3895,6 +3895,11 @@ def build_candidate_detail_context(
             numerical_percentile=numerical_percentile,
         )
     )
+    has_completed_cognitive_results = any(
+        result.get("completed")
+        and result.get("key") in assessment_keys_in_process
+        for result in candidate_insights["cognitive_results"]
+    )
 
     print("=== FLEXIBLE AI CONDITION DEBUG ===")
     print("PROCESS PURPOSE:", repr(process.purpose))
@@ -4076,6 +4081,7 @@ def build_candidate_detail_context(
         "has_personality_assessment_in_process": has_personality_assessment_in_process,
         "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
         "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
+        "has_completed_cognitive_results": has_completed_cognitive_results,
         "project_results": project_results,
         "project_scores": project_scores,
         "competency_scores": competency_scores,
@@ -9893,6 +9899,11 @@ def build_historical_candidate_detail_context(
             numerical_percentile=numerical_percentile,
         ),
     }
+    has_completed_cognitive_results = any(
+        result.get("completed")
+        and result.get("key") in assessment_keys_in_process
+        for result in candidate_insights["cognitive_results"]
+    )
 
     if has_any_results:
         candidate_insights["summary"] = {
@@ -10160,6 +10171,10 @@ def build_historical_candidate_detail_context(
         # Header information.
         "sent_assessments": sent_assessments,
         "assessment_keys_in_process": assessment_keys_in_process,
+        "has_personality_assessment_in_process": has_personality_assessment_in_process,
+        "has_motivation_assessment_in_process": has_motivation_assessment_in_process,
+        "has_cognitive_assessments_in_process": has_cognitive_assessments_in_process,
+        "has_completed_cognitive_results": has_completed_cognitive_results,
         "tests_sent_count": assessment_results.count(),
         "tests_completed_count": assessment_results.count(),
 

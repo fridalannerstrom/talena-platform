@@ -140,21 +140,30 @@ def build_graph_segments(selected_sten):
     Build the ten visual segments used by the arched STEN graph.
 
     The heights are purely visual. They do not represent another
-    assessment calculation.
+    assessment calculation. Missing scores leave the graph unselected.
     """
     selected_sten = normalize_sten(selected_sten)
+    segments = []
 
-    return [
-        {
-            "score": score,
-            "height": height,
-            "selected": score == selected_sten,
-        }
-        for score, height in enumerate(
-            DEFAULT_GRAPH_HEIGHTS,
-            start=1,
+    for score, height in enumerate(DEFAULT_GRAPH_HEIGHTS, start=1):
+        filled_toward_midpoint = False
+
+        if selected_sten is not None:
+            if selected_sten <= 5:
+                filled_toward_midpoint = selected_sten <= score <= 5
+            else:
+                filled_toward_midpoint = 6 <= score <= selected_sten
+
+        segments.append(
+            {
+                "score": score,
+                "height": height,
+                "selected": score == selected_sten,
+                "filled_toward_midpoint": filled_toward_midpoint,
+            }
         )
-    ]
+
+    return segments
 
 
 def build_indicator_profile(row, language="sv"):

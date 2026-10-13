@@ -2543,53 +2543,6 @@ Refer to the candidate by name where natural.
 """.strip(),
     },
 },
-    "profile_contrasts": {
-        "name": "Personality · Profile contrasts",
-        "category": "Personality",
-        "description": (
-            "Controls only the wording of already approved profile contrasts. "
-            "It cannot select pairs, thresholds, results or whether a contrast is active."
-        ),
-        "defaults": {
-            "sv": """
-UPPGIFT
-
-Formulera försiktiga samtalsfrågor utifrån de profilkontraster som Talena
-redan har identifierat med en aktiv, expertgranskad regel.
-
-REGLER
-
-- Behandla kontrasten som en möjlig hypotes, aldrig som en slutsats.
-- Beskriv inte någon pol som bättre, sämre, mer lämplig eller mer giltig.
-- Påstå inte att resultaten bevisar kompetens, prestation eller beteende.
-- Be användaren utforska konkreta situationer och exempel med kandidaten.
-- Om en godkänd kontrast saknas ska du inte skapa eller antyda någon.
-- Ändra aldrig vilka kontraster som visas, regler, trösklar, värden eller
-  källor. Dessa bestäms av Talenas regelbaserade analys före textgenereringen.
-
-Styr endast språk, ton, längd och graden av osäkerhet i formuleringen.
-""".strip(),
-            "en": """
-TASK
-
-Phrase cautious conversation questions from profile contrasts that Talena
-has already identified using an active, expert-reviewed rule.
-
-RULES
-
-- Treat a contrast as a possible hypothesis, never as a conclusion.
-- Do not describe either pole as better, worse, more suitable or more valid.
-- Do not claim that results prove competence, performance or behaviour.
-- Invite the user to explore concrete situations and examples with the candidate.
-- If no approved contrast is supplied, do not create or imply one.
-- Never change which contrasts are shown, their rules, thresholds, values or
-  sources. Talena's rule-based analysis determines these before text generation.
-
-Control wording, tone, length and uncertainty only.
-""".strip(),
-        },
-    },
-
     "team_communication_styles": {
         "name": "Team report · Communication styles",
         "category": "Teams",
@@ -7443,6 +7396,36 @@ def normalize_prompt_language(
 
     return "sv"
 
+
+AI_PROMPT_REGISTRY.update({
+    "ai_overview_personality_leadership": {
+        "name": "AI Overview · Leading and working with others",
+        "category": "Overview",
+        "description": "Controls the short personality summary for Leading and working with others.",
+        "defaults": {
+            "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i att leda och arbeta med andra. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller kompetenser.""",
+            "en": """Briefly describe how the candidate's personality results may relate to leading and working with others. Use personality assessment evidence only. Select the most relevant patterns and write 2–3 natural, nuanced sentences about possible preferences, not established behaviour or competence."""
+        },
+    },
+    "ai_overview_personality_organisation": {
+        "name": "AI Overview · Organising and thinking style",
+        "category": "Overview",
+        "description": "Controls the short personality summary for Organising and thinking style.",
+        "defaults": {
+            "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i organisering och tankestil. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller förmågor.""",
+            "en": """Briefly describe how the candidate's personality results may relate to organising and thinking style. Use personality assessment evidence only. Select the most relevant patterns and write 2–3 natural, nuanced sentences about possible preferences, not established behaviour or ability."""
+        },
+    },
+    "ai_overview_personality_interaction": {
+        "name": "AI Overview · Interacting and managing emotions",
+        "category": "Overview",
+        "description": "Controls the short personality summary for Interacting and managing emotions.",
+        "defaults": {
+            "sv": """Beskriv kort hur kandidatens personlighetsresultat kan ta sig uttryck i samspel och känslomässig hantering. Utgå endast från personlighetsresultaten. Välj de mest relevanta mönstren, skriv 2–3 meningar på ett naturligt och nyanserat sätt och beskriv möjliga preferenser, inte säkerställda beteenden eller emotionell förmåga.""",
+            "en": """Briefly describe how the candidate's personality results may relate to interaction and emotional management. Use personality assessment evidence only. Select the most relevant patterns and write 2–3 natural, nuanced sentences about possible preferences, not established behaviour or emotional ability."""
+        },
+    },
+})
 
 def get_ai_prompt_definition(
     key: str,

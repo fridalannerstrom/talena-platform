@@ -111,6 +111,64 @@
   text-transform: uppercase;
 }
 
+.process-page .personality-overview-group__summary {
+  margin: 0 0 0.75rem;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.process-page .personality-area-summaries {
+  margin: 0.25rem 0 0.95rem;
+}
+
+.process-page .personality-area-summaries__title {
+  margin: 0 0 0.6rem;
+  color: var(--talena-ink);
+  font-size: 0.82rem;
+  font-weight: 720;
+}
+
+.process-page .personality-overview-summaries {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.process-page .personality-overview-summary {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.process-page .personality-overview-summary__title {
+  margin: 0 0 0.5rem;
+  color: var(--talena-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.process-page .personality-overview-summary__text,
+.process-page .personality-overview-summary__placeholder {
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.process-page .personality-overview-summary__placeholder {
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .process-page .personality-overview-summaries {
+    grid-template-columns: 1fr;
+  }
+}
+
 .process-page .personality-overview-group__plot {
   display: grid;
   gap: 0.58rem;
@@ -512,4 +570,99 @@
   .process-page .personality-quick-row__pole--right {
     display: none;
   }
+}
+
+
+/* PERSONALISED QUICK PROFILE CHART */
+.process-page .personality-overview-chart--segmented .personality-overview-item {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.34rem;
+  align-items: stretch;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__label {
+  color: var(--talena-ink);
+  font-size: 0.62rem;
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__scale {
+  display: flex;
+  height: auto;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__scale::after {
+  content: none;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__arrow {
+  flex: 0 0 auto;
+  color: var(--talena-text-subtle);
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__track {
+  position: relative;
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(1px, 0.22vw, 2px);
+  min-width: 0;
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__track::after {
+  position: absolute;
+  z-index: 0;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  width: 1px;
+  background: var(--talena-chart-line);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 111, 97, 0.22);
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(2),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(9) {
+  background: rgba(255, 111, 97, 0.16);
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(3),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(8) {
+  background: rgba(255, 111, 97, 0.11);
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(4),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment:nth-child(7),
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--center {
+  background: var(--talena-chart-track);
+}
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--selected {
+  z-index: 2;
+  height: 10px;
+  border: 1px solid #fff;
+  background: var(--talena-chart-accent) !important;
+  box-shadow: 0 0 0 1px #fff, 0 0 0 2px rgba(207, 89, 80, 0.18);
+}
+
+
+.process-page .personality-overview-chart--segmented .personality-overview-item__segment--filled:not(.personality-overview-item__segment--selected) {
+  background: var(--talena-chart-accent) !important;
 }
