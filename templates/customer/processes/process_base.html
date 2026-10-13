@@ -4674,6 +4674,10 @@ iconWrapper.className =
       ...(data || {}),
     };
 
+    root.dataset.managerPersonalitySchemaVersion = String(
+      savedResult.manager_report_personality_schema_version || "0"
+    );
+
     if (titleElement) {
       titleElement.textContent =
         savedResult.title;
@@ -5177,8 +5181,11 @@ notifyCandidateAiContentUpdated(
     "not_started";
 
 
+  const managerPersonalitySchemaVersion =
+    root.dataset.managerPersonalitySchemaVersion || "0";
+
   if (
-    !hasResult &&
+    (!hasResult || managerPersonalitySchemaVersion !== "1") &&
     status !== "generating"
   ) {
     await streamInterpretation(

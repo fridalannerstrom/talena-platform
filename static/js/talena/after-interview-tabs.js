@@ -927,13 +927,8 @@
         motivationGrid.appendChild(motivator);
       });
       managerMotivation.appendChild(motivationGrid);
-    } else {
-      const empty = document.createElement("p");
-      empty.className = "after-interview-manager-report__motivation-empty";
-      empty.textContent = copy().managerMotivationUnavailable;
-      managerMotivation.appendChild(empty);
+      managerReportCard.appendChild(managerMotivation);
     }
-    managerReportCard.appendChild(managerMotivation);
 
     const managerPersonality = document.createElement("section");
     managerPersonality.className = "after-interview-manager-report__personality";
@@ -999,7 +994,9 @@
       }
     });
 
-    managerReportCard.appendChild(managerPersonality);
+    if (personalityRoot) {
+      managerReportCard.appendChild(managerPersonality);
+    }
     panels.get("managerReport").appendChild(managerReportCard);
 
     const evidenceCard = document.createElement("section");
