@@ -5026,7 +5026,6 @@ def process_candidate_pre_interview_decision_support_stream(
         )
 
         received_done_event = False
-        received_manager_report_texts = set()
 
         try:
             for event in (
@@ -5055,17 +5054,6 @@ def process_candidate_pre_interview_decision_support_stream(
                     event,
                     ensure_ascii=False,
                 ) + "\n"
-
-            expected_manager_report_texts = {
-                (theme["key"], part)
-                for theme in PERSONALITY_MANAGER_REPORT_THEMES
-                for part in ("testbild", "candidate_describes")
-            }
-            if received_manager_report_texts != expected_manager_report_texts:
-                raise ValueError(
-                    "The AI response did not contain all six "
-                    "manager-report personality texts."
-                )
 
             if not received_done_event:
                 yield json.dumps(
@@ -5421,10 +5409,6 @@ def process_candidate_post_interview_decision_support_stream(
 
                 if event.get("type") == "done":
                     received_done_event = True
-                elif event.get("type") == "personality_report_text":
-                    received_manager_report_texts.add(
-                        (event.get("theme"), event.get("part"))
-                    )
 
                 yield json.dumps(
                     event,
@@ -8704,20 +8688,6 @@ def process_candidate_purpose_fit_stream(
             },
             status=400,
         )
-
-    # Older saved personality interpretations predate the manager-report
-    # personality sections. Regenerate them once so all six report texts
-    # are available, even when the main interpretation was already saved.
-    if (
-        saved_interpretation
-        and current_status == "completed"
-        and saved_interpretation.get(
-            "manager_report_personality_schema_version"
-        ) != 1
-    ):
-        current_status = "outdated"
-        owner.ai_personality_interpretation_status = "outdated"
-        owner.save(update_fields=["ai_personality_interpretation_status"])
 
     # ---------------------------------------------------------
     # RETURN SAVED RESULT
@@ -12200,6 +12170,20 @@ def process_candidate_personality_interpretation_stream(
         or {}
     )
 
+    # Older saved personality interpretations predate the manager-report
+    # personality sections. Regenerate them once so all six report texts
+    # are available, even when the main interpretation was already saved.
+    if (
+        saved_interpretation
+        and current_status == "completed"
+        and saved_interpretation.get(
+            "manager_report_personality_schema_version"
+        ) != 1
+    ):
+        current_status = "outdated"
+        owner.ai_personality_interpretation_status = "outdated"
+        owner.save(update_fields=["ai_personality_interpretation_status"])
+
     current_purpose = normalize_purpose_key(
         process.purpose
     )
@@ -12298,6 +12282,7 @@ def process_candidate_personality_interpretation_stream(
         )
 
         received_done_event = False
+        received_manager_report_texts = set()
 
         try:
             for event in stream_personality_interpretation(
@@ -12314,11 +12299,26 @@ def process_candidate_personality_interpretation_stream(
 
                 if event.get("type") == "done":
                     received_done_event = True
+                elif event.get("type") == "personality_report_text":
+                    received_manager_report_texts.add(
+                        (event.get("theme"), event.get("part"))
+                    )
 
                 yield json.dumps(
                     event,
                     ensure_ascii=False,
                 ) + "\n"
+
+            expected_manager_report_texts = {
+                (theme["key"], part)
+                for theme in PERSONALITY_MANAGER_REPORT_THEMES
+                for part in ("testbild", "candidate_describes")
+            }
+            if received_manager_report_texts != expected_manager_report_texts:
+                raise ValueError(
+                    "The AI response did not contain all six "
+                    "manager-report personality texts."
+                )
 
             if not (
                 interpretation.get(
