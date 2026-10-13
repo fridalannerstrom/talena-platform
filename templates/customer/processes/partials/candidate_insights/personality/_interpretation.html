@@ -11,6 +11,12 @@
     data-regenerate-url="{{ personality_interpretation_regenerate_url }}"
     data-status="{{ personality_interpretation_status }}"
     data-has-result="{% if personality_interpretation %}true{% else %}false{% endif %}"
+    data-manager-personality-leading-and-working-with-others-testbild="{{ personality_interpretation.manager_report_personality.leading_and_working_with_others.testbild|default:''|escape }}"
+    data-manager-personality-leading-and-working-with-others-candidate-describes="{{ personality_interpretation.manager_report_personality.leading_and_working_with_others.candidate_describes|default:''|escape }}"
+    data-manager-personality-organising-and-thinking-patterns-testbild="{{ personality_interpretation.manager_report_personality.organising_and_thinking_patterns.testbild|default:''|escape }}"
+    data-manager-personality-organising-and-thinking-patterns-candidate-describes="{{ personality_interpretation.manager_report_personality.organising_and_thinking_patterns.candidate_describes|default:''|escape }}"
+    data-manager-personality-interaction-and-emotion-management-testbild="{{ personality_interpretation.manager_report_personality.interaction_and_emotion_management.testbild|default:''|escape }}"
+    data-manager-personality-interaction-and-emotion-management-candidate-describes="{{ personality_interpretation.manager_report_personality.interaction_and_emotion_management.candidate_describes|default:''|escape }}"
   >
 
       <!-- HEADER -->

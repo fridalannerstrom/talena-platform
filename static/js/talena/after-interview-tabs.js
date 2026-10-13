@@ -109,6 +109,26 @@
       managerMotivationPracticalTitle: "In practice",
       managerMotivationComingSoon: "Coming soon",
       managerMotivationUnavailable: "Motivation results will appear here when they are available.",
+      managerPersonalityTitle: "Personality",
+      managerPersonalityThemes: [
+        { key: "leading_and_working_with_others", title: "Leading and working with others" },
+        { key: "organising_and_thinking_patterns", title: "Organising and thinking patterns" },
+        { key: "interaction_and_emotion_management", title: "Interaction and emotional management" }
+      ],
+      managerPersonalityTestbild: "Test profile",
+      managerPersonalityCandidateDescribes: "The candidate describes",
+      managerPersonalityTestMissing: "No test interpretation is available yet.",
+      managerPersonalityInterviewMissing: "No interview notes are available yet.",
+      managerPersonalityTitle: "Personlighet",
+      managerPersonalityThemes: [
+        { key: "leading_and_working_with_others", title: "Leda och arbeta med andra" },
+        { key: "organising_and_thinking_patterns", title: "Organisering och tankemönster" },
+        { key: "interaction_and_emotion_management", title: "Interaktion och känslohantering" }
+      ],
+      managerPersonalityTestbild: "Testbild",
+      managerPersonalityCandidateDescribes: "Kandidaten beskriver",
+      managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
+      managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
@@ -544,6 +564,32 @@
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
       }
+      __PANEL__ .after-interview-manager-report__personality {
+        margin-top: 1.8rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-title {
+        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__personality-theme {
+        margin-bottom: .8rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__personality-theme-title {
+        margin: 0 0 .7rem; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__personality-parts {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
+        padding-left: .9rem; border-left: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-title {
+        margin: 0 0 .35rem; color: var(--talena-coral-strong, #ed7468);
+        font-size: .68rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-text {
+        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
+      }
       __PANEL__ .after-interview-manager-report__intro {
         max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
       }
@@ -573,6 +619,10 @@
       @media (max-width: 720px) {
         __PANEL__ .after-interview-manager-report__guide-levels { grid-template-columns: 1fr; }
         __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__personality-parts { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__personality-part + .after-interview-manager-report__personality-part {
+          padding-left: 0; border-left: 0;
+        }
       }
       @media (max-width: 575px) {
         __PANEL__ .after-interview-manager-report__header { flex-direction: column; }
@@ -884,6 +934,72 @@
       managerMotivation.appendChild(empty);
     }
     managerReportCard.appendChild(managerMotivation);
+
+    const managerPersonality = document.createElement("section");
+    managerPersonality.className = "after-interview-manager-report__personality";
+    const managerPersonalityTitle = document.createElement("h4");
+    managerPersonalityTitle.className = "after-interview-manager-report__personality-title";
+    managerPersonalityTitle.textContent = copy().managerPersonalityTitle;
+    managerPersonality.appendChild(managerPersonalityTitle);
+
+    const personalityRoot = workspace?.querySelector(
+      "#candidate-insights-panel-personality [data-personality-ai-root]"
+    );
+    const personalityFallbacks = {
+      testbild: copy().managerPersonalityTestMissing,
+      candidate_describes: copy().managerPersonalityInterviewMissing,
+    };
+    const datasetKeyFor = (theme, part) => {
+      const pascal = (value) => value.split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join("");
+      return "managerPersonality" + pascal(theme) + pascal(part);
+    };
+    const renderPersonalityText = (theme, part, text) => {
+      const target = managerPersonality.querySelector(
+        '[data-manager-personality-text="' + theme + ':' + part + '"]'
+      );
+      if (target) target.textContent = text || personalityFallbacks[part];
+    };
+
+    copy().managerPersonalityThemes.forEach((theme) => {
+      const themeCard = document.createElement("article");
+      themeCard.className = "after-interview-manager-report__personality-theme";
+      themeCard.dataset.personalityTheme = theme.key;
+      const themeTitle = document.createElement("h5");
+      themeTitle.className = "after-interview-manager-report__personality-theme-title";
+      themeTitle.textContent = theme.title;
+      const parts = document.createElement("div");
+      parts.className = "after-interview-manager-report__personality-parts";
+      [
+        { key: "testbild", title: copy().managerPersonalityTestbild },
+        { key: "candidate_describes", title: copy().managerPersonalityCandidateDescribes },
+      ].forEach((part) => {
+        const content = document.createElement("div");
+        content.className = "after-interview-manager-report__personality-part";
+        const heading = document.createElement("h6");
+        heading.className = "after-interview-manager-report__personality-part-title";
+        heading.textContent = part.title;
+        const text = document.createElement("p");
+        text.className = "after-interview-manager-report__personality-part-text";
+        text.dataset.managerPersonalityText = theme.key + ":" + part.key;
+        text.textContent = personalityRoot?.dataset[datasetKeyFor(theme.key, part.key)]
+          || personalityFallbacks[part.key];
+        content.append(heading, text);
+        parts.appendChild(content);
+      });
+      themeCard.append(themeTitle, parts);
+      managerPersonality.appendChild(themeCard);
+    });
+
+    document.addEventListener("talena:manager-personality-updated", (event) => {
+      const detail = event.detail || {};
+      if (detail.theme && detail.part) {
+        renderPersonalityText(detail.theme, detail.part, detail.text || "");
+      }
+    });
+
+    managerReportCard.appendChild(managerPersonality);
     panels.get("managerReport").appendChild(managerReportCard);
 
     const evidenceCard = document.createElement("section");
