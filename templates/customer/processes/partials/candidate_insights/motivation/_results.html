@@ -193,6 +193,7 @@
           {% for item in sorted_factors %}
             <div
               class="team-style-result motivation-factor-result"
+              data-manager-motivation-key="{{ item.key|escape }}"
               data-manager-motivation-name="{{ item|motivation_name|escape }}"
               data-manager-motivation-definition="{{ item|motivation_description|escape }}"
             >
