@@ -31,6 +31,16 @@
       managerMotivationPracticalTitle: "Led i praktiken",
       managerMotivationComingSoon: "Kommer snart",
       managerMotivationUnavailable: "Motivationsresultat visas här när de är tillgängliga.",
+      managerPersonalityTitle: "Personlighet",
+      managerPersonalityThemes: [
+        { key: "leading_and_working_with_others", title: "Leda och arbeta med andra" },
+        { key: "organising_and_thinking_patterns", title: "Organisering och tankemönster" },
+        { key: "interaction_and_emotion_management", title: "Interaktion och känslohantering" }
+      ],
+      managerPersonalityTestbild: "Testbild",
+      managerPersonalityCandidateDescribes: "Kandidaten beskriver",
+      managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
+      managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
       managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
       managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
@@ -119,16 +129,6 @@
       managerPersonalityCandidateDescribes: "The candidate describes",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "No interview notes are available yet.",
-      managerPersonalityTitle: "Personlighet",
-      managerPersonalityThemes: [
-        { key: "leading_and_working_with_others", title: "Leda och arbeta med andra" },
-        { key: "organising_and_thinking_patterns", title: "Organisering och tankemönster" },
-        { key: "interaction_and_emotion_management", title: "Interaktion och känslohantering" }
-      ],
-      managerPersonalityTestbild: "Testbild",
-      managerPersonalityCandidateDescribes: "Kandidaten beskriver",
-      managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
-      managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
