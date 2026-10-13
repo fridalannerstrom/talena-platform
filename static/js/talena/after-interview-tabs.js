@@ -27,6 +27,10 @@
       managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
       savePdf: "Spara som PDF",
       managerSkillsTitle: "Färdighet",
+      managerMotivationTitle: "Motivation",
+      managerMotivationPracticalTitle: "Led i praktiken",
+      managerMotivationComingSoon: "Kommer snart",
+      managerMotivationUnavailable: "Motivationsresultat visas här när de är tillgängliga.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
       managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
       managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
@@ -101,6 +105,10 @@
       managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
       savePdf: "Save as PDF",
       managerSkillsTitle: "Skills",
+      managerMotivationTitle: "Motivation",
+      managerMotivationPracticalTitle: "In practice",
+      managerMotivationComingSoon: "Coming soon",
+      managerMotivationUnavailable: "Motivation results will appear here when they are available.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
       managerSkillsUnavailable: "Skills results will appear here when they are available.",
       managerSkillsGuideTitle: "How to interpret the skills results",
@@ -506,6 +514,36 @@
         margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
         border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .8rem;
       }
+      __PANEL__ .after-interview-manager-report__motivation {
+        margin-top: 1.8rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-title {
+        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-grid {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem;
+      }
+      __PANEL__ .after-interview-manager-report__motivator {
+        min-width: 0; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-name {
+        margin: 0 0 .55rem; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-definition {
+        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical-title {
+        margin: .9rem 0 .35rem; padding-top: .7rem; border-top: 1px solid var(--talena-border, #e5dfd8);
+        color: var(--talena-ink, #191817); font-size: .76rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__motivator-practical {
+        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .72rem; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__motivation-empty {
+        margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
+        border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .76rem;
+      }
       __PANEL__ .after-interview-manager-report__intro {
         max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
       }
@@ -529,8 +567,12 @@
       @media (max-width: 1050px) {
         __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
+      @media (max-width: 1050px) {
+        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
       @media (max-width: 720px) {
         __PANEL__ .after-interview-manager-report__guide-levels { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__motivation-grid { grid-template-columns: 1fr; }
       }
       @media (max-width: 575px) {
         __PANEL__ .after-interview-manager-report__header { flex-direction: column; }
@@ -800,6 +842,48 @@
     guide.append(guideSummary, guideContent);
     managerSkills.appendChild(guide);
     managerReportCard.appendChild(managerSkills);
+
+    const managerMotivation = document.createElement("section");
+    managerMotivation.className = "after-interview-manager-report__motivation";
+    const managerMotivationTitle = document.createElement("h4");
+    managerMotivationTitle.className = "after-interview-manager-report__motivation-title";
+    managerMotivationTitle.textContent = copy().managerMotivationTitle;
+    managerMotivation.appendChild(managerMotivationTitle);
+
+    const managerMotivators = [
+      ...(workspace?.querySelectorAll(
+        "#candidate-insights-panel-motivation [data-manager-motivation-name][data-manager-motivation-definition]"
+      ) || []),
+    ].slice(0, 3);
+    if (managerMotivators.length) {
+      const motivationGrid = document.createElement("div");
+      motivationGrid.className = "after-interview-manager-report__motivation-grid";
+      managerMotivators.forEach((source) => {
+        const motivator = document.createElement("article");
+        motivator.className = "after-interview-manager-report__motivator";
+        const name = document.createElement("h5");
+        name.className = "after-interview-manager-report__motivator-name";
+        name.textContent = source.dataset.managerMotivationName;
+        const definition = document.createElement("p");
+        definition.className = "after-interview-manager-report__motivator-definition";
+        definition.textContent = source.dataset.managerMotivationDefinition;
+        const practicalTitle = document.createElement("h6");
+        practicalTitle.className = "after-interview-manager-report__motivator-practical-title";
+        practicalTitle.textContent = copy().managerMotivationPracticalTitle;
+        const practical = document.createElement("p");
+        practical.className = "after-interview-manager-report__motivator-practical";
+        practical.textContent = copy().managerMotivationComingSoon;
+        motivator.append(name, definition, practicalTitle, practical);
+        motivationGrid.appendChild(motivator);
+      });
+      managerMotivation.appendChild(motivationGrid);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "after-interview-manager-report__motivation-empty";
+      empty.textContent = copy().managerMotivationUnavailable;
+      managerMotivation.appendChild(empty);
+    }
+    managerReportCard.appendChild(managerMotivation);
     panels.get("managerReport").appendChild(managerReportCard);
 
     const evidenceCard = document.createElement("section");
