@@ -420,12 +420,13 @@
       }
       __PANEL__ .after-interview-manager-report__level {
         position: relative; min-width: 0; min-height: 145px; padding: 1rem;
-        overflow: hidden; border: 1px solid #e9e8e6; border-radius: 12px;
-        background: #f2f3f4; color: var(--talena-ink, #191817);
+        overflow: hidden; border: 1px solid var(--talena-border, #e5dfd8); border-radius: 12px;
+        background: #fff; color: var(--talena-ink, #191817);
+        transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
       }
       __PANEL__ .after-interview-manager-report__level::before {
         display: block; width: 30px; height: 6px; margin-bottom: .8rem;
-        border-radius: 99px; background: #a9adb4; content: "";
+        border-radius: 99px; background: #e8e2dd; content: "";
       }
       __PANEL__ .after-interview-manager-report__level-title {
         margin: 0 1.4rem .45rem 0; font-size: .9rem; font-weight: 750; line-height: 1.3;
@@ -434,19 +435,15 @@
         margin: 0; color: #777b84; font-size: .76rem; line-height: 1.5;
       }
       __PANEL__ .after-interview-manager-report__level--selected {
-        border-color: var(--skill-accent, #ed7468); background: var(--skill-tint, #fff0ed);
+        border-color: var(--talena-coral, #ff6f61);
+        background: #fff4f1;
+        box-shadow: 0 0 0 1px var(--talena-coral, #ff6f61);
       }
-      __PANEL__ .after-interview-manager-report__skill[data-skill-key="numerical"] {
-        --skill-accent: #d97724; --skill-tint: #fff0df;
-      }
-      __PANEL__ .after-interview-manager-report__skill[data-skill-key="logical"] {
-        --skill-accent: #c99a18; --skill-tint: #fff6c9;
-      }
-      __PANEL__ .after-interview-manager-report__skill[data-skill-key="verbal"] {
-        --skill-accent: #dc5576; --skill-tint: #ffe4ec;
+      __PANEL__ .after-interview-manager-report__skill {
+        --skill-accent: var(--talena-coral, #ff6f61);
       }
       __PANEL__ .after-interview-manager-report__skill .after-interview-manager-report__level--selected::before {
-        background: var(--skill-accent);
+        background: var(--talena-coral, #ff6f61);
       }
       __PANEL__ .after-interview-manager-report__level-check {
         position: absolute; top: .72rem; right: .78rem; display: grid; place-items: center;
@@ -456,10 +453,29 @@
       __PANEL__ .after-interview-manager-report__guide {
         margin-top: 1.6rem; padding: 1.1rem 1.2rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 13px; background: #fff;
+        transition: border-color .16s ease, background-color .16s ease;
+      }
+      __PANEL__ .after-interview-manager-report__guide[open] {
+        border-color: #f2c6bf; background: #fffaf8;
       }
       __PANEL__ .after-interview-manager-report__guide-summary {
         display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-        cursor: pointer; color: var(--talena-ink, #191817); font-weight: 700;
+        list-style: none; cursor: pointer; color: var(--talena-ink, #191817); font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__guide-summary::-webkit-details-marker { display: none; }
+      __PANEL__ .after-interview-manager-report__guide-summary::marker { content: ""; }
+      __PANEL__ .after-interview-manager-report__guide-summary::after {
+        flex: 0 0 auto; width: .62rem; height: .62rem; margin-right: .2rem;
+        border-right: 2px solid var(--talena-coral-strong, #ed7468);
+        border-bottom: 2px solid var(--talena-coral-strong, #ed7468);
+        content: ""; transform: rotate(45deg) translateY(-2px);
+        transition: transform .16s ease;
+      }
+      __PANEL__ .after-interview-manager-report__guide[open] .after-interview-manager-report__guide-summary::after {
+        transform: rotate(225deg) translate(-2px, -1px);
+      }
+      __PANEL__ .after-interview-manager-report__guide-summary:focus-visible {
+        outline: 2px solid var(--talena-coral, #ff6f61); outline-offset: 4px; border-radius: 3px;
       }
       __PANEL__ .after-interview-manager-report__guide-intro {
         max-width: 860px; margin: .8rem 0 0; color: var(--talena-text-muted, #766e68);
