@@ -370,6 +370,20 @@ def build_personality_interpretation_prompt(
         getattr(owner, "interview_notes", "") or ""
     ).strip()
 
+    # Keep saved answers and notes attached to their exact generated interview
+    # questions; they are interview evidence alongside the general notes field.
+    from apps.processes.interview_question_evidence import (
+        build_interview_question_evidence,
+    )
+
+    question_evidence = build_interview_question_evidence(owner)
+    question_evidence_text = str(
+        question_evidence.get("text") or ""
+    ).strip()
+    question_evidence_count = int(
+        question_evidence.get("count") or 0
+    )
+
     shared_context = build_shared_ai_context(
         owner
     )
@@ -403,6 +417,20 @@ def build_personality_interpretation_prompt(
         language_code
     )
 
+    general_interview_notes_status = (
+        "AVAILABLE" if interview_notes else "NOT PROVIDED"
+    )
+    question_interview_evidence_status = (
+        f"AVAILABLE ({question_evidence_count} saved answer/note record(s))"
+        if question_evidence_count
+        else "NOT PROVIDED"
+    )
+    overall_interview_evidence_status = (
+        "AVAILABLE"
+        if interview_notes or question_evidence_count
+        else "NOT PROVIDED"
+    )
+
     return f"""
 TALENA INPUT DATA
 
@@ -418,18 +446,36 @@ PROCESS CONTEXT
 PERSONALITY ASSESSMENT DATA
 {evidence_text}
 
-PERSONALITY INDICATOR INTERPRETATIONS BY THEME
-{json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
-
-CANDIDATE INTERVIEW NOTES
-{interview_notes or "No candidate interview notes are available."}
-
 MOTIVATION ASSESSMENT DATA
 {motivation_evidence_text}
 
 MOTIVATION DATA AVAILABILITY
 {motivation_availability_instruction}
 
+PERSONALITY INDICATOR INTERPRETATIONS BY THEME
+{json.dumps(indicator_interpretations, ensure_ascii=False, indent=2)}
+
+INTERVIEW EVIDENCE STATUS
+General interview notes: {general_interview_notes_status}
+Question-specific interview evidence: {question_interview_evidence_status}
+Overall interview evidence: {overall_interview_evidence_status}
+
+GENERAL INTERVIEW NOTES
+{interview_notes or "No general interview notes were provided."}
+
+QUESTION-SPECIFIC INTERVIEW EVIDENCE
+{question_evidence_text or "No question-specific answers or notes were saved."}
+
+INTERVIEW EVIDENCE BOUNDARIES
+
+General interview notes and question-specific answers or notes are separate,
+complementary interview evidence. Use only evidence relevant to each theme.
+Always interpret each question-specific answer or note in the context of its exact
+question shown in the structured record. Do not detach an answer/note from its
+question, invent missing answers, or present an interviewer note as a verbatim
+candidate quote. If any interview evidence is available, do not describe
+interview evidence as entirely missing. Keep interview evidence separate from
+personality-test interpretation.
 
 ADMINISTRATOR AI GUIDANCE
 

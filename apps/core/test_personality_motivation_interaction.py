@@ -113,6 +113,44 @@ class PersonalityMotivationInteractionTests(SimpleTestCase):
         self.assertTrue(by_name["Autonomy"]["definition"])
 
     @patch(
+        "apps.processes.interview_question_evidence.build_interview_question_evidence",
+        return_value={
+            "text": '[{"question":"Tell me about a difficult team decision.",'
+                    '"saved_answer_or_note":"I gathered input and explained the trade-off."}]',
+            "count": 1,
+            "has_evidence": True,
+            "items": [],
+        },
+    )
+    def test_prompt_includes_general_notes_and_question_specific_evidence(
+        self,
+        _question_evidence,
+    ):
+        owner = self._owner()
+        owner.interview_notes = "General note: prefers to invite discussion."
+        prompt = build_personality_interpretation_prompt(
+            owner=owner,
+            personality_results=[{"name": "Empathy", "sten": 6}],
+            motivation_results=[],
+            language_code="en",
+        )
+
+        self.assertIn(
+            "General note: prefers to invite discussion.",
+            prompt,
+        )
+        self.assertIn("Tell me about a difficult team decision.", prompt)
+        self.assertIn(
+            "I gathered input and explained the trade-off.",
+            prompt,
+        )
+        normalised = " ".join(prompt.split())
+        self.assertIn(
+            "Always interpret each question-specific answer or note in the context of its exact question.",
+            normalised,
+        )
+
+    @patch(
         "apps.core.ai.prompt_templates.get_global_ai_guidance",
         return_value="GLOBAL GUIDANCE",
     )
