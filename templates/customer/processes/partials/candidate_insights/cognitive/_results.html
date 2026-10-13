@@ -12,7 +12,11 @@
         {% if result.completed %}
 
           <!-- COMPLETED TEST -->
-          <article class="cognitive-result-card">
+          <article
+            class="cognitive-result-card"
+            data-manager-skill-key="{{ result.key }}"
+            data-manager-skill-result="{{ result.percentile }}"
+          >
 
             <div class="cognitive-result-card__header">
               <div>
@@ -89,6 +93,7 @@
           <!-- NOT COMPLETED -->
           <article
             class="cognitive-result-card cognitive-result-card--missing"
+            data-manager-skill-key="{{ result.key }}"
           >
 
             <div class="cognitive-result-card__header">

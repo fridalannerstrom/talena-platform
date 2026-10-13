@@ -26,6 +26,54 @@
       managerReportTitle: "Chefsrapport",
       managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
       savePdf: "Spara som PDF",
+      managerSkillsTitle: "Färdighet",
+      managerSkillsUnavailable: "Färdighetsresultat visas här när de är tillgängliga.",
+      managerSkillsGuideTitle: "Så tolkar du färdighetsresultaten",
+      managerSkillsGuideIntro: "Resultaten visar hur kandidaten kan hantera uppgifter med olika grad av komplexitet. Se dem som ett underlag i samtalet och väg in rollens krav och övrig information.",
+      managerSkillsGuideCaveat: "Resultatet säger inte ensamt hur kandidaten kommer att prestera i en viss roll.",
+      managerSkillSelected: "Markerad nivå",
+      managerSkillBands: [
+        {
+          title: "Mer tid kan behövas",
+          shortDescription: "Det kan ta längre tid att lösa den här typen av uppgift.",
+          description: "Det kan ta längre tid för kandidaten att lösa den här typen av uppgift. Om uppgiften är mer komplex kan den innebära en utmaning.",
+          examples: [],
+        },
+        {
+          title: "Mindre komplex",
+          shortDescription: "Ofta tillräckligt för mindre komplexa arbetsuppgifter.",
+          description: "Ofta tillräckligt för mindre komplexa arbetsuppgifter, vilket kan innebära:",
+          examples: [
+            "Följa etablerade rutiner eller instruktioner",
+            "Utföra återkommande och förutsägbara aktiviteter",
+            "Arbeta med konkret och tydlig information",
+            "Begränsat behov av problemlösning eller beslutsfattande",
+          ],
+        },
+        {
+          title: "Relativt komplex",
+          shortDescription: "Ofta tillräckligt för relativt komplexa arbetsuppgifter.",
+          description: "Ofta tillräckligt för relativt komplexa arbetsuppgifter, vilket kan innebära:",
+          examples: [
+            "Viss grad av problemlösning eller felsökning",
+            "Anpassa sig till förändrade situationer eller ny information",
+            "Fatta beslut med måttliga konsekvenser",
+            "Bearbeta och koppla samman flera informationsdelar",
+          ],
+        },
+        {
+          title: "Mer komplexa",
+          shortDescription: "Ofta tillräckligt för mer komplexa arbetsuppgifter.",
+          description: "Ofta tillräckligt för mer komplexa arbetsuppgifter, vilket kan innebära:",
+          examples: [
+            "Analysera abstrakt eller tvetydig information",
+            "Strategiskt tänkande och planering",
+            "Lösa nya eller oförutsägbara problem",
+            "Fatta beslut med stora och betydande konsekvenser",
+            "Snabbt lära sig och tillämpa nya koncept",
+          ],
+        },
+      ],
       generated: "AI-genererat",
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
@@ -51,6 +99,54 @@
       managerReportTitle: "Manager report",
       managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
       savePdf: "Save as PDF",
+      managerSkillsTitle: "Skills",
+      managerSkillsUnavailable: "Skills results will appear here when they are available.",
+      managerSkillsGuideTitle: "How to interpret the skills results",
+      managerSkillsGuideIntro: "The results indicate how the candidate may handle tasks with different levels of complexity. Use them as a starting point for conversation and consider the role requirements alongside other information.",
+      managerSkillsGuideCaveat: "The result alone does not determine how the candidate will perform in a specific role.",
+      managerSkillSelected: "Selected level",
+      managerSkillBands: [
+        {
+          title: "More time may be needed",
+          shortDescription: "It may take longer to solve this type of task.",
+          description: "It may take the candidate longer to solve this type of task. A more complex task may be challenging.",
+          examples: [],
+        },
+        {
+          title: "Less complex",
+          shortDescription: "Often sufficient for less complex work tasks.",
+          description: "Often sufficient for less complex work tasks, which may involve:",
+          examples: [
+            "Following established routines or instructions",
+            "Carrying out recurring and predictable activities",
+            "Working with concrete and clear information",
+            "Limited need for problem-solving or decision-making",
+          ],
+        },
+        {
+          title: "Relatively complex",
+          shortDescription: "Often sufficient for relatively complex work tasks.",
+          description: "Often sufficient for relatively complex work tasks, which may involve:",
+          examples: [
+            "Some degree of problem-solving or troubleshooting",
+            "Adapting to changing situations or new information",
+            "Making decisions with moderate consequences",
+            "Processing and connecting several pieces of information",
+          ],
+        },
+        {
+          title: "More complex",
+          shortDescription: "Often sufficient for more complex work tasks.",
+          description: "Often sufficient for more complex work tasks, which may involve:",
+          examples: [
+            "Analysing abstract or ambiguous information",
+            "Strategic thinking and planning",
+            "Solving new or unpredictable problems",
+            "Making decisions with significant consequences",
+            "Learning and applying new concepts quickly",
+          ],
+        },
+      ],
       generated: "AI-generated",
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
@@ -301,17 +397,109 @@
         body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
         body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] { display: block !important; position: absolute; inset: 0; width: 100%; }
         body.manager-report-printing .after-interview-manager-report__actions { display: none !important; }
+        body.manager-report-printing .after-interview-manager-report__guide { display: block; }
+        body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
         body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
       }
       __PANEL__ .after-interview-manager-report__header {
         display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
       }
       __PANEL__ .after-interview-manager-report__actions { flex: 0 0 auto; }
+      __PANEL__ .after-interview-manager-report__skills { margin-top: 1.6rem; }
+      __PANEL__ .after-interview-manager-report__skills-title {
+        margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.25rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__skill { margin: 0 0 1.5rem; }
+      __PANEL__ .after-interview-manager-report__skill-title {
+        margin: 0 0 .7rem; color: var(--talena-ink, #191817); font-size: 1rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__levels {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem;
+      }
+      __PANEL__ .after-interview-manager-report__level {
+        position: relative; min-width: 0; min-height: 145px; padding: 1rem;
+        overflow: hidden; border: 1px solid #e9e8e6; border-radius: 12px;
+        background: #f2f3f4; color: var(--talena-ink, #191817);
+      }
+      __PANEL__ .after-interview-manager-report__level::before {
+        display: block; width: 30px; height: 6px; margin-bottom: .8rem;
+        border-radius: 99px; background: #a9adb4; content: "";
+      }
+      __PANEL__ .after-interview-manager-report__level-title {
+        margin: 0 1.4rem .45rem 0; font-size: .9rem; font-weight: 750; line-height: 1.3;
+      }
+      __PANEL__ .after-interview-manager-report__level-description {
+        margin: 0; color: #777b84; font-size: .76rem; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__level--selected {
+        border-color: var(--skill-accent, #ed7468); background: var(--skill-tint, #fff0ed);
+      }
+      __PANEL__ .after-interview-manager-report__skill[data-skill-key="numerical"] {
+        --skill-accent: #d97724; --skill-tint: #fff0df;
+      }
+      __PANEL__ .after-interview-manager-report__skill[data-skill-key="logical"] {
+        --skill-accent: #c99a18; --skill-tint: #fff6c9;
+      }
+      __PANEL__ .after-interview-manager-report__skill[data-skill-key="verbal"] {
+        --skill-accent: #dc5576; --skill-tint: #ffe4ec;
+      }
+      __PANEL__ .after-interview-manager-report__skill .after-interview-manager-report__level--selected::before {
+        background: var(--skill-accent);
+      }
+      __PANEL__ .after-interview-manager-report__level-check {
+        position: absolute; top: .72rem; right: .78rem; display: grid; place-items: center;
+        width: 22px; height: 22px; border-radius: 50%; background: var(--skill-accent);
+        color: #fff; font-size: .8rem; font-weight: 800; line-height: 1;
+      }
+      __PANEL__ .after-interview-manager-report__guide {
+        margin-top: 1.6rem; padding: 1.1rem 1.2rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 13px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__guide-summary {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        cursor: pointer; color: var(--talena-ink, #191817); font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__guide-intro {
+        max-width: 860px; margin: .8rem 0 0; color: var(--talena-text-muted, #766e68);
+        font-size: .82rem; line-height: 1.6;
+      }
+      __PANEL__ .after-interview-manager-report__guide-levels {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin-top: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__guide-level {
+        padding: .9rem; border-radius: 10px; background: #f8f7f5;
+      }
+      __PANEL__ .after-interview-manager-report__guide-level h5 {
+        margin: 0 0 .4rem; font-size: .82rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__guide-level p {
+        margin: 0; color: var(--talena-text-muted, #766e68); font-size: .75rem; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__guide-level ul {
+        margin: .45rem 0 0; padding-left: 1.1rem; color: var(--talena-text-muted, #766e68);
+        font-size: .74rem; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__guide-caveat {
+        margin: 1rem 0 0; padding-top: .8rem; border-top: 1px solid var(--talena-border, #e5dfd8);
+        color: var(--talena-text-muted, #766e68); font-size: .74rem; line-height: 1.5;
+      }
+      __PANEL__ .after-interview-manager-report__skills-empty {
+        margin: 0; padding: 1rem; border: 1px dashed var(--talena-border, #e5dfd8);
+        border-radius: 11px; color: var(--talena-text-muted, #766e68); font-size: .8rem;
+      }
       __PANEL__ .after-interview-manager-report__intro {
         max-width: 760px; margin: .65rem 0 0; color: var(--talena-text-muted, #766e68); font-size: .9rem; line-height: 1.65;
       }
+      @media (max-width: 1050px) {
+        __PANEL__ .after-interview-manager-report__levels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 720px) {
+        __PANEL__ .after-interview-manager-report__guide-levels { grid-template-columns: 1fr; }
+      }
       @media (max-width: 575px) {
         __PANEL__ .after-interview-manager-report__header { flex-direction: column; }
+        __PANEL__ .after-interview-manager-report__levels { grid-template-columns: 1fr; }
+        __PANEL__ .after-interview-manager-report__level { min-height: 0; }
       }
       @media (max-width: 767px) {
         __PANEL__ .candidate-insights-subnavigation { padding: 0 1rem; }
@@ -454,6 +642,132 @@
     managerReportIntro.className = "after-interview-manager-report__intro";
     managerReportIntro.textContent = copy().managerReportIntro;
     managerReportCard.append(managerReportHeader, managerReportIntro);
+
+    const managerSkills = document.createElement("section");
+    managerSkills.className = "after-interview-manager-report__skills";
+    const managerSkillsTitle = document.createElement("h4");
+    managerSkillsTitle.className = "after-interview-manager-report__skills-title";
+    managerSkillsTitle.textContent = copy().managerSkillsTitle;
+    managerSkills.appendChild(managerSkillsTitle);
+
+    const workspace = panel.closest("[data-candidate-insights-workspace]");
+    const skillNodes = [
+      ...(workspace?.querySelectorAll(
+        '#candidate-insights-panel-cognitive [data-manager-skill-key][data-manager-skill-result]'
+      ) || []),
+    ];
+    const completedSkills = new Map();
+    skillNodes.forEach((node) => {
+      const key = node.dataset.managerSkillKey;
+      const percentile = Number(node.dataset.managerSkillResult);
+      if (["numerical", "logical", "verbal"].includes(key)
+        && Number.isFinite(percentile) && percentile >= 1 && percentile <= 99) {
+        completedSkills.set(key, percentile);
+      }
+    });
+
+    const skillLabels = {
+      numerical: copy().tabs.managerReport === "Manager report" ? "Numerical" : "Numeriskt",
+      logical: copy().tabs.managerReport === "Manager report" ? "Logical" : "Logiskt",
+      verbal: copy().tabs.managerReport === "Manager report" ? "Verbal" : "Verbalt",
+    };
+    const skillOrder = ["numerical", "logical", "verbal"];
+    skillOrder.forEach((key) => {
+      const percentile = completedSkills.get(key);
+      if (percentile === undefined) return;
+
+      const selectedBandIndex = percentile <= 20 ? 0
+        : percentile <= 40 ? 1
+        : percentile <= 60 ? 2
+        : 3;
+      const skill = document.createElement("section");
+      skill.className = "after-interview-manager-report__skill";
+      skill.dataset.skillKey = key;
+      const heading = document.createElement("h5");
+      heading.className = "after-interview-manager-report__skill-title";
+      heading.textContent = skillLabels[key];
+      skill.appendChild(heading);
+
+      const levels = document.createElement("div");
+      levels.className = "after-interview-manager-report__levels";
+      levels.setAttribute("role", "list");
+      copy().managerSkillBands.forEach((band, index) => {
+        const selected = index === selectedBandIndex;
+        const level = document.createElement("article");
+        level.className = "after-interview-manager-report__level";
+        level.setAttribute("role", "listitem");
+        if (selected) {
+          level.classList.add("after-interview-manager-report__level--selected");
+          level.setAttribute("aria-current", "true");
+          level.setAttribute("aria-label", band.title + " · " + copy().managerSkillSelected);
+        } else {
+          level.setAttribute("aria-current", "false");
+        }
+        const title = document.createElement("h6");
+        title.className = "after-interview-manager-report__level-title";
+        title.textContent = band.title;
+        const description = document.createElement("p");
+        description.className = "after-interview-manager-report__level-description";
+        description.textContent = band.shortDescription;
+        level.append(title, description);
+        if (selected) {
+          const check = document.createElement("span");
+          check.className = "after-interview-manager-report__level-check";
+          check.setAttribute("aria-hidden", "true");
+          check.textContent = "✓";
+          level.appendChild(check);
+        }
+        levels.appendChild(level);
+      });
+      skill.appendChild(levels);
+      managerSkills.appendChild(skill);
+    });
+
+    if (!completedSkills.size) {
+      const empty = document.createElement("p");
+      empty.className = "after-interview-manager-report__skills-empty";
+      empty.textContent = copy().managerSkillsUnavailable;
+      managerSkills.appendChild(empty);
+    }
+
+    const guide = document.createElement("details");
+    guide.className = "after-interview-manager-report__guide";
+    const guideSummary = document.createElement("summary");
+    guideSummary.className = "after-interview-manager-report__guide-summary";
+    guideSummary.textContent = copy().managerSkillsGuideTitle;
+    const guideContent = document.createElement("div");
+    guideContent.className = "after-interview-manager-report__guide-content";
+    const guideIntro = document.createElement("p");
+    guideIntro.className = "after-interview-manager-report__guide-intro";
+    guideIntro.textContent = copy().managerSkillsGuideIntro;
+    const guideLevels = document.createElement("div");
+    guideLevels.className = "after-interview-manager-report__guide-levels";
+    copy().managerSkillBands.forEach((band) => {
+      const level = document.createElement("section");
+      level.className = "after-interview-manager-report__guide-level";
+      const title = document.createElement("h5");
+      title.textContent = band.title;
+      const description = document.createElement("p");
+      description.textContent = band.description;
+      level.append(title, description);
+      if (band.examples.length) {
+        const list = document.createElement("ul");
+        band.examples.forEach((example) => {
+          const item = document.createElement("li");
+          item.textContent = example;
+          list.appendChild(item);
+        });
+        level.appendChild(list);
+      }
+      guideLevels.appendChild(level);
+    });
+    const guideCaveat = document.createElement("p");
+    guideCaveat.className = "after-interview-manager-report__guide-caveat";
+    guideCaveat.textContent = copy().managerSkillsGuideCaveat;
+    guideContent.append(guideIntro, guideLevels, guideCaveat);
+    guide.append(guideSummary, guideContent);
+    managerSkills.appendChild(guide);
+    managerReportCard.appendChild(managerSkills);
     panels.get("managerReport").appendChild(managerReportCard);
 
     const evidenceCard = document.createElement("section");
