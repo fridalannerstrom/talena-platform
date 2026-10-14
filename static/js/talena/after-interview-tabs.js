@@ -1126,6 +1126,19 @@
       __PANEL__ .after-interview-manager-report__personality {
         margin-top: 1.8rem;
       }
+      __PANEL__ .after-interview-manager-report__personality-header {
+        display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+        margin-bottom: .85rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-title {
+        margin: 0; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__personality-generate {
+        display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap;
+      }
+      __PANEL__ .after-interview-manager-report__personality-generate[aria-busy="true"] {
+        opacity: .75; cursor: wait;
+      }
       __PANEL__ .after-interview-manager-report__personality-title {
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
@@ -1524,7 +1537,6 @@
     const managerPersonalityTitle = document.createElement("h4");
     managerPersonalityTitle.className = "after-interview-manager-report__personality-title";
     managerPersonalityTitle.textContent = copy().managerPersonalityTitle;
-    managerPersonality.appendChild(managerPersonalityTitle);
 
     const personalityRoot = workspace?.querySelector(
       "#candidate-insights-panel-personality [data-personality-ai-root]"
@@ -1539,11 +1551,105 @@
         .join("");
       return "managerPersonality" + pascal(theme) + pascal(part);
     };
+    let personalityGenerateButton = null;
+    let personalityGenerateError = null;
+    let personalityGenerateLabel = null;
+
+    const managerPersonalityHeader = document.createElement("div");
+    managerPersonalityHeader.className = "after-interview-manager-report__personality-header";
+    managerPersonalityHeader.appendChild(managerPersonalityTitle);
+
+    const updatePersonalityGenerateLabel = () => {
+      if (!personalityGenerateLabel || !personalityRoot) return;
+      const hasGeneratedText = copy().managerPersonalityThemes.some((theme) =>
+        ["testbild", "candidate_describes"].some((part) =>
+          String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
+        )
+      );
+      personalityGenerateLabel.textContent = hasGeneratedText
+        ? copy().regenerateSection
+        : copy().generateSection;
+      personalityGenerateButton.title = personalityGenerateLabel.textContent;
+      personalityGenerateButton.setAttribute("aria-label", personalityGenerateLabel.textContent);
+    };
+
+    if (personalityRoot) {
+      personalityGenerateButton = document.createElement("button");
+      personalityGenerateButton.type = "button";
+      personalityGenerateButton.className = "btn btn-sm btn-primary after-interview-manager-report__personality-generate";
+      personalityGenerateButton.innerHTML = '<i data-feather="star" aria-hidden="true"></i><span></span>';
+      personalityGenerateLabel = personalityGenerateButton.querySelector("span");
+      managerPersonalityHeader.appendChild(personalityGenerateButton);
+      managerPersonality.appendChild(managerPersonalityHeader);
+
+      personalityGenerateError = document.createElement("div");
+      personalityGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
+      personalityGenerateError.setAttribute("role", "alert");
+      managerPersonality.appendChild(personalityGenerateError);
+
+      personalityGenerateButton.addEventListener("click", async () => {
+        if (personalityGenerateButton.disabled) return;
+        const regenerateButton = personalityRoot.querySelector("[data-personality-ai-regenerate]");
+        if (!regenerateButton) {
+          personalityGenerateError.textContent = copy().sectionGenerationFailed;
+          personalityGenerateError.classList.remove("d-none");
+          return;
+        }
+
+        personalityGenerateError.classList.add("d-none");
+        const existingError = personalityRoot.querySelector("[data-personality-ai-error]");
+        existingError?.classList.add("d-none");
+        personalityGenerateButton.disabled = true;
+        personalityGenerateButton.setAttribute("aria-busy", "true");
+        personalityGenerateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span></span>';
+        personalityGenerateLabel = personalityGenerateButton.querySelector("span");
+
+        try {
+          if (!regenerateButton.disabled) regenerateButton.click();
+
+          let sawGeneration = regenerateButton.disabled;
+          const deadline = Date.now() + 180000;
+          while (Date.now() < deadline) {
+            await new Promise((resolve) => window.setTimeout(resolve, 200));
+            if (regenerateButton.disabled) sawGeneration = true;
+            if (sawGeneration && !regenerateButton.disabled) break;
+          }
+
+          if (!sawGeneration || regenerateButton.disabled) {
+            throw new Error(copy().sectionGenerationFailed);
+          }
+
+          const currentError = personalityRoot.querySelector("[data-personality-ai-error]");
+          if (
+            personalityRoot.dataset.status !== "completed" ||
+            (currentError && !currentError.classList.contains("d-none"))
+          ) {
+            throw new Error(currentError?.textContent?.trim() || copy().sectionGenerationFailed);
+          }
+
+          updatePersonalityGenerateLabel();
+        } catch (generationError) {
+          personalityGenerateError.textContent =
+            generationError.message || copy().sectionGenerationFailed;
+          personalityGenerateError.classList.remove("d-none");
+        } finally {
+          personalityGenerateButton.disabled = false;
+          personalityGenerateButton.removeAttribute("aria-busy");
+          personalityGenerateButton.innerHTML = '<i data-feather="star" aria-hidden="true"></i><span></span>';
+          personalityGenerateLabel = personalityGenerateButton.querySelector("span");
+          updatePersonalityGenerateLabel();
+          if (window.feather) window.feather.replace();
+        }
+      });
+
+      updatePersonalityGenerateLabel();
+    }
     const renderPersonalityText = (theme, part, text) => {
       const target = managerPersonality.querySelector(
         '[data-manager-personality-text="' + theme + ':' + part + '"]'
       );
       if (target) target.textContent = text || personalityFallbacks[part];
+      updatePersonalityGenerateLabel();
     };
 
     copy().managerPersonalityThemes.forEach((theme) => {
