@@ -351,6 +351,7 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
     """Generate the manager-report personality content as part of compilation."""
     import time
 
+    from apps.core.ai.language import ai_content_language_matches
     from apps.core.ai.personality_interpretation import (
         PERSONALITY_MANAGER_REPORT_THEMES,
         apply_personality_interpretation_event,
@@ -358,6 +359,7 @@ def _manager_report_personality_events(owner, language_code, *, force=False):
         save_personality_interpretation,
         stream_personality_interpretation,
     )
+    from .purpose_utils import normalize_purpose_key
     from .views import build_personality_results_for_ai_owner
 
     owner = type(owner).objects.get(pk=owner.pk)
