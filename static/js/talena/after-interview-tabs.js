@@ -1590,7 +1590,11 @@
       personalityGenerateButton.addEventListener("click", async () => {
         if (personalityGenerateButton.disabled) return;
         const regenerateButton = personalityRoot.querySelector("[data-personality-ai-regenerate]");
-        if (!regenerateButton) {
+        if (
+          !regenerateButton ||
+          !personalityRoot.dataset.regenerateUrl ||
+          !personalityRoot.dataset.streamUrl
+        ) {
           personalityGenerateError.textContent = copy().sectionGenerationFailed;
           personalityGenerateError.classList.remove("d-none");
           return;
