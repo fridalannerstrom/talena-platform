@@ -1215,7 +1215,12 @@
   };
 
   const initPanel = (panel) => {
-    if (!(panel instanceof Element) || panel.dataset.afterInterviewTabsReady === "true") return;
+    if (!(panel instanceof Element)) return;
+    const existingTabs = panel.querySelector(
+      ":scope > .final-output-card > .after-interview-tabs"
+    );
+    if (panel.dataset.afterInterviewTabsReady === "true" && existingTabs?.isConnected) return;
+    panel.dataset.afterInterviewTabsReady = "false";
 
     const card = panel.querySelector(":scope > .final-output-card");
     const header = card?.querySelector(":scope > div:first-child");
@@ -1764,6 +1769,15 @@
     if (scope instanceof Element && scope.matches(PANEL_SELECTOR)) initPanel(scope);
     scope.querySelectorAll?.(PANEL_SELECTOR).forEach(initPanel);
   };
+  window.initAfterInterviewTabs = scan;
+
+  // The outer insights panel can be reactivated after an async root refresh.
+  // Re-scan after the tab switch so a panel whose markup arrived late is initialized.
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.("[data-insights-tab]")) {
+      window.requestAnimationFrame(() => scan(document));
+    }
+  });
 
   const start = () => {
     scan(document);
