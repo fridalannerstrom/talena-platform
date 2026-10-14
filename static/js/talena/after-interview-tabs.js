@@ -1137,10 +1137,6 @@
       __PANEL__ .after-interview-manager-report__personality-title {
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
-      __PANEL__ .after-interview-manager-report__generate {
-        display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap;
-        min-height: 2.65rem;
-      }
       __PANEL__ .after-interview-manager-report__generate[aria-busy="true"] {
         opacity: .75; cursor: wait;
       }
@@ -1561,32 +1557,30 @@
     };
     let managerReportGenerateButton = null;
     let managerReportGenerateError = null;
-    let managerReportGenerateLabel = null;
 
     const updateManagerReportGenerateLabel = () => {
       if (
-        !managerReportGenerateLabel ||
+        !managerReportGenerateButton ||
         !personalityRoot ||
-        managerReportGenerateButton?.getAttribute("aria-busy") === "true"
+        managerReportGenerateButton.getAttribute("aria-busy") === "true"
       ) return;
       const hasGeneratedText = copy().managerPersonalityThemes.some((theme) =>
         ["testbild", "candidate_describes"].some((part) =>
           String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
         )
       );
-      managerReportGenerateLabel.textContent = hasGeneratedText
+      const label = hasGeneratedText
         ? copy().regenerateManagerReport
         : copy().generateManagerReport;
-      managerReportGenerateButton.title = managerReportGenerateLabel.textContent;
-      managerReportGenerateButton.setAttribute("aria-label", managerReportGenerateLabel.textContent);
+      managerReportGenerateButton.title = label;
+      managerReportGenerateButton.setAttribute("aria-label", label);
     };
 
     if (personalityRoot) {
       managerReportGenerateButton = document.createElement("button");
       managerReportGenerateButton.type = "button";
-      managerReportGenerateButton.className = "btn btn-primary after-interview-manager-report__generate";
-      managerReportGenerateButton.innerHTML = '<i data-feather="star" aria-hidden="true"></i><span></span>';
-      managerReportGenerateLabel = managerReportGenerateButton.querySelector("span");
+      managerReportGenerateButton.className = "btn btn-icon btn-light after-interview-tab-card__regenerate after-interview-manager-report__generate";
+      managerReportGenerateButton.innerHTML = '<i data-feather="refresh-cw" aria-hidden="true"></i>';
       managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
 
       managerReportGenerateError = document.createElement("div");
@@ -1636,10 +1630,7 @@
         managerReportGenerateButton.disabled = true;
         managerReportGenerateButton.setAttribute("aria-busy", "true");
         managerReportGenerateButton.innerHTML =
-          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span>' +
-          copy().generatingManagerReport +
-          "</span>";
-        managerReportGenerateLabel = managerReportGenerateButton.querySelector("span");
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         try {
           const failures = [];
@@ -1660,8 +1651,7 @@
           managerReportGenerateButton.disabled = false;
           managerReportGenerateButton.removeAttribute("aria-busy");
           managerReportGenerateButton.innerHTML =
-            '<i data-feather="star" aria-hidden="true"></i><span></span>';
-          managerReportGenerateLabel = managerReportGenerateButton.querySelector("span");
+            '<i data-feather="refresh-cw" aria-hidden="true"></i>';
           updateManagerReportGenerateLabel();
           if (window.feather) window.feather.replace();
         }
