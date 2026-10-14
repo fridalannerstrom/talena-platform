@@ -6572,14 +6572,14 @@ By default, do not include raw assessment scores.
         "name": "After interview · Overall picture",
         "category": "After interview",
         "description": (
-            "Controls the AI-generated Helhetsbild section after the interview."
+            "Controls only the Helhetsbild tab. This prompt is run independently from the other After interview tabs."
         ),
         "defaults": {
             "sv": """
-Skriv en tydlig helhetsbild av kandidaten efter intervjun. Väg samman relevant testdata, tidigare tolkningar, processkontext och intervjuunderlag. Beskriv mönster, styrkor och osäkerheter med nyanserat språk. Dra inte slutsatser som underlaget inte stödjer och hitta inte på saknade uppgifter.
+Skriv endast Helhetsbild. Väg samman relevanta bedömningstolkningar, processens syfte och kontext samt allmänna intervjuanteckningar och sparade svar eller anteckningar kopplade till intervjufrågor. Beskriv de viktigaste mönstren, vad intervjun bekräftar eller nyanserar och betydelsefulla osäkerheter. Håll testindikationer, kandidatens svar och intervjuarens observationer tydligt åtskilda. Koppla alltid frågespecifikt underlag till den exakta frågan och framställ inte en anteckning som ett ordagrant citat. Dra inga slutsatser som saknar stöd och gör ingen lämplighetsbedömning. Upprepa inte innehåll som hör hemma i en annan flik.
 """.strip(),
             "en": """
-Write a clear overall picture of the candidate after the interview. Weigh relevant test data, previous interpretations, process context and interview evidence. Describe patterns, strengths and uncertainties with nuanced language. Do not draw conclusions unsupported by the evidence or invent missing information.
+Write only the Overall picture section. Weigh relevant assessment interpretations, process purpose and context, general interview notes, and saved answers or notes attached to interview questions. Describe the key patterns, what the interview confirms or adds, and meaningful uncertainties. Keep assessment indications, candidate responses and interviewer observations distinct. Keep question-specific evidence tied to its exact question and do not present a note as a verbatim quote. Do not make unsupported conclusions or a suitability judgement. Do not repeat content that belongs in another tab.
 """.strip(),
         },
     },
@@ -6632,14 +6632,14 @@ Write respectful and constructive candidate-facing feedback about the test resul
         "name": "After interview · Interview summary",
         "category": "After interview",
         "description": (
-            "Controls the Intervjusammanfattning section."
+            "Controls only the Intervjusammanfattning tab. This prompt is run independently from the other After interview tabs."
         ),
         "defaults": {
             "sv": """
-Sammanfatta det viktigaste som intervjun tillförde. Separera tydliga kandidatuttalanden och konkreta exempel från intervjuarens observationer och tolkningar. Ta med både bekräftelser och nya nyanser. Markera när information saknas eller är osäker.
+Sammanfatta endast vad intervjun tillför. Använd allmänna intervjuanteckningar och sparade svar eller anteckningar kopplade till intervjufrågor. Skilj mellan kandidatens uttryckliga svar och konkreta exempel, intervjuarens observationer samt intervjuarens tolkningar. Behåll kopplingen mellan varje frågespecifikt svar eller anteckning och den exakta frågan; framställ inte en anteckning som ett ordagrant citat. Ta med både sådant som bekräftar tidigare förståelse och nya nyanser. Markera relevant osäkerhet. Ta inte in testresultat och hitta inte på saknade uppgifter.
 """.strip(),
             "en": """
-Summarise what the interview added. Distinguish clear candidate statements and concrete examples from interviewer observations and interpretations. Include both confirmations and new nuances. Mark information that is missing or uncertain.
+Summarise only what the interview evidence adds. Use general interview notes and saved answers or notes attached to interview questions. Distinguish explicit candidate responses and concrete examples from interviewer observations and interpretations. Keep each question-specific response or note connected to its exact question; do not present a note as a verbatim quote. Include confirmations and new nuances, and mark meaningful uncertainty. Do not bring in assessment results or invent missing information.
 """.strip(),
         },
     },
@@ -6647,14 +6647,14 @@ Summarise what the interview added. Distinguish clear candidate statements and c
         "name": "After interview · Explore further",
         "category": "After interview",
         "description": (
-            "Controls the Undersök vidare section."
+            "Controls only the Undersök vidare tab. This prompt is run independently from the other After interview tabs."
         ),
         "defaults": {
             "sv": """
-Identifiera de viktigaste osäkerheterna, spänningarna eller obesvarade frågorna som är relevanta att undersöka vidare. Föreslå konkreta och proportionerliga uppföljningar som förbättrar beslutsunderlaget.
+Identifiera endast de viktigaste osäkerheterna, spänningarna eller relevanta obesvarade frågorna i det samlade underlaget. Föreslå konkreta, neutrala och proportionerliga uppföljningar som kan ge mer information. Knyt varje uppföljning till den fråga, observation eller testindikation som väckte den. Skapa inte problem eller risker utan stöd, och gör ingen lämplighetsbedömning.
 """.strip(),
             "en": """
-Identify the most important uncertainties, tensions or unanswered questions that are relevant to explore further. Suggest concrete and proportionate follow-ups that would improve the evidence base.
+Identify only the most important uncertainties, tensions or relevant unanswered questions in the available evidence. Suggest concrete, neutral and proportionate follow-ups that could add useful information. Tie each follow-up to the question, observation or assessment indication that prompted it. Do not invent concerns or make a suitability judgement.
 """.strip(),
         },
     },
@@ -6662,14 +6662,14 @@ Identify the most important uncertainties, tensions or unanswered questions that
         "name": "After interview · Wellbeing tips",
         "category": "After interview",
         "description": (
-            "Controls the Tips för trivsel section."
+            "Controls only the Tips för trivsel tab. This prompt is run independently from the other After interview tabs."
         ),
         "defaults": {
             "sv": """
-Beskriv konkreta förutsättningar som kan hjälpa kandidaten att trivas, prestera och komma till sin rätt i rollen. Utgå från tillgänglig evidens och formulera tips som hypoteser att pröva, inte som säkra personliga sanningar.
+Beskriv konkreta arbetsförutsättningar som, utifrån det tillgängliga underlaget, kan hjälpa kandidaten att trivas och komma till sin rätt. Knyt varje förslag till en testindikation, ett intervjusvar, en observation eller relevant processkontext. Behandla förslagen som hypoteser att pröva tillsammans med kandidaten, inte som säkra personliga sanningar. Håll frågespecifika svar kopplade till sina exakta frågor. Hitta inte på behov, arbetsuppgifter eller rollkrav och gör ingen lämplighetsbedömning.
 """.strip(),
             "en": """
-Describe concrete conditions that may help the candidate thrive, perform and contribute in the role. Base the suggestions on available evidence and frame them as hypotheses to test, not as certain personal truths.
+Describe concrete working conditions that may help the candidate thrive and contribute, based on the available evidence. Tie each suggestion to an assessment indication, interview response, observation or relevant process context. Treat suggestions as hypotheses to test with the candidate, not as certain personal truths. Keep question-specific responses tied to their exact questions. Do not invent needs, duties or role requirements, and do not make a suitability judgement.
 """.strip(),
         },
     },
