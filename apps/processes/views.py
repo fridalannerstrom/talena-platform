@@ -3946,6 +3946,13 @@ def build_candidate_detail_context(
             )
             or ""
         ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
     )
 
     from apps.candidate_results.models import CandidateResultSnapshot
@@ -5873,6 +5880,13 @@ def process_candidate_final_output(
             )
             or ""
         ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
     )
 
     # #187:
@@ -10149,6 +10163,13 @@ def build_historical_candidate_detail_context(
             )
             or ""
         ).strip()
+        or any(
+            str(value or "").strip()
+            for value in (
+                post_interview_decision_support.get("content_blocks")
+                or {}
+            ).values()
+        )
     )
 
     return {
