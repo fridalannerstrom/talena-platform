@@ -4627,15 +4627,56 @@ iconWrapper.className =
       areas_to_explore: [],
 
       context_note: "",
+
+      manager_report_personality: {
+        leading_and_working_with_others: {
+          testbild: "",
+          candidate_describes: "",
+        },
+        organising_and_thinking_patterns: {
+          testbild: "",
+          candidate_describes: "",
+        },
+        interaction_and_emotion_management: {
+          testbild: "",
+          candidate_describes: "",
+        }
+      },
     };
   }
 
+  const managerPersonalityThemeKeys = [
+    "leading_and_working_with_others",
+    "organising_and_thinking_patterns",
+    "interaction_and_emotion_management"
+  ];
+
+  function personalityDatasetKey(theme, part) {
+    const pascal = (value) => value.split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("");
+    return "managerPersonality" + pascal(theme) + pascal(part);
+  }
+
+  function updateManagerPersonalityText(theme, part, text) {
+    const normalisedText = String(text || "").trim();
+    const field = root.dataset[personalityDatasetKey(theme, part)];
+    root.dataset[personalityDatasetKey(theme, part)] = normalisedText;
+    document.dispatchEvent(new CustomEvent(
+      "talena:manager-personality-updated",
+      { detail: { theme, part, text: normalisedText } }
+    ));
+  }
 
   function applySavedResult(data) {
     const savedResult = {
       ...createEmptyDraft(),
       ...(data || {}),
     };
+
+    root.dataset.managerPersonalitySchemaVersion = String(
+      savedResult.manager_report_personality_schema_version || "0"
+    );
 
     if (titleElement) {
       titleElement.textContent =
@@ -4680,6 +4721,14 @@ iconWrapper.className =
       contextNote.textContent =
         savedResult.context_note || "";
     }
+
+    const managerPersonality =
+      savedResult.manager_report_personality || {};
+    managerPersonalityThemeKeys.forEach((theme) => {
+      const parts = managerPersonality[theme] || {};
+      updateManagerPersonalityText(theme, "testbild", parts.testbild || "");
+      updateManagerPersonalityText(theme, "candidate_describes", parts.candidate_describes || "");
+    });
 
     showContent();
     refreshIcons();
@@ -4797,6 +4846,23 @@ iconWrapper.className =
             draft.context_note;
         }
 
+        showContent();
+        break;
+
+
+      case "personality_report_text":
+        if (
+          managerPersonalityThemeKeys.includes(event.theme) &&
+          ["testbild", "candidate_describes"].includes(event.part)
+        ) {
+          draft.manager_report_personality[event.theme][event.part] =
+            event.text || "";
+          updateManagerPersonalityText(
+            event.theme,
+            event.part,
+            event.text || ""
+          );
+        }
         showContent();
         break;
 
@@ -5115,8 +5181,11 @@ notifyCandidateAiContentUpdated(
     "not_started";
 
 
+  const managerPersonalitySchemaVersion =
+    root.dataset.managerPersonalitySchemaVersion || "0";
+
   if (
-    !hasResult &&
+    (!hasResult || managerPersonalitySchemaVersion !== "1") &&
     status !== "generating"
   ) {
     await streamInterpretation(
@@ -11142,6 +11211,9 @@ function initialiseDecisionSupportRoot(
         }
       }
 
+      window.requestAnimationFrame(() => {
+        window.initAfterInterviewTabs?.(replacement);
+      });
       refreshFeatherIcons();
     }
 

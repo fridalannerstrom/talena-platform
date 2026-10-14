@@ -13,6 +13,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .interview_question_models import InterviewQuestionNote
@@ -346,6 +347,126 @@ def _post_interview_evidence_state(
     return process, owner, evidence, None
 
 
+def _manager_report_personality_events(owner, language_code, *, force=False):
+    """Generate the manager-report personality content as part of compilation."""
+    import time
+
+    from apps.core.ai.language import ai_content_language_matches
+    from apps.core.ai.personality_interpretation import (
+        PERSONALITY_MANAGER_REPORT_THEMES,
+        apply_personality_interpretation_event,
+        create_empty_personality_interpretation,
+        save_personality_interpretation,
+        stream_personality_interpretation,
+    )
+    from .purpose_utils import normalize_purpose_key
+    from .views import build_personality_results_for_ai_owner
+
+    owner = type(owner).objects.get(pk=owner.pk)
+    personality_results = build_personality_results_for_ai_owner(owner)
+    if not personality_results:
+        yield {"type": "manager_report_personality_skipped", "reason": "no_results"}
+        return
+
+    # Another view may already be generating this same interpretation (for
+    # example, when the Personality tab was opened first). Wait for that
+    # request to finish rather than starting a competing AI call.
+    if owner.ai_personality_interpretation_status == "generating":
+        yield {"type": "manager_report_personality_waiting"}
+        deadline = time.monotonic() + 180
+        while time.monotonic() < deadline:
+            time.sleep(0.5)
+            owner = type(owner).objects.get(pk=owner.pk)
+            if owner.ai_personality_interpretation_status != "generating":
+                break
+        if owner.ai_personality_interpretation_status == "generating":
+            yield {
+                "type": "manager_report_personality_error",
+                "message": "Personality content is still being generated.",
+            }
+            return
+
+    saved = owner.ai_personality_interpretation or {}
+    report_texts = saved.get("manager_report_personality") or {}
+    expected = {
+        (theme["key"], part)
+        for theme in PERSONALITY_MANAGER_REPORT_THEMES
+        for part in ("testbild", "candidate_describes")
+    }
+    has_all_report_texts = all(
+        str((report_texts.get(theme) or {}).get(part) or "").strip()
+        for theme, part in expected
+    )
+    if (
+        not force
+        and owner.ai_personality_interpretation_status == "completed"
+        and saved.get("manager_report_personality_schema_version") == 1
+        and has_all_report_texts
+        and ai_content_language_matches(
+            owner, "personality_interpretation", language_code
+        )
+        and normalize_purpose_key(owner.ai_personality_interpretation_purpose)
+        == normalize_purpose_key(owner.process.purpose)
+    ):
+        yield {"type": "manager_report_personality_skipped", "reason": "up_to_date"}
+        return
+
+    owner.ai_personality_interpretation_status = "generating"
+    owner.save(update_fields=["ai_personality_interpretation_status"])
+    interpretation = create_empty_personality_interpretation(
+        owner, language_code=language_code
+    )
+    received_done_event = False
+    received_report_texts = set()
+
+    try:
+        yield {"type": "manager_report_personality_started"}
+        for event in stream_personality_interpretation(
+            owner=owner,
+            personality_results=personality_results,
+            language_code=language_code,
+        ):
+            interpretation = apply_personality_interpretation_event(
+                interpretation, event
+            )
+            if event.get("type") == "done":
+                received_done_event = True
+            elif event.get("type") == "personality_report_text":
+                received_report_texts.add(
+                    (event.get("theme"), event.get("part"))
+                )
+            yield event
+
+        if received_report_texts != expected:
+            raise ValueError(
+                "The AI response did not contain all six manager-report personality texts."
+            )
+        if not str(interpretation.get("interpretation") or "").strip():
+            raise ValueError(
+                "The AI response did not contain a personality interpretation."
+            )
+        if not received_done_event:
+            yield {"type": "done"}
+
+        save_personality_interpretation(
+            owner=owner,
+            interpretation=interpretation,
+            language_code=language_code,
+        )
+        yield {"type": "manager_report_personality_complete"}
+    except Exception as error:
+        logger.exception(
+            "Manager report personality generation failed (owner_id=%s)",
+            owner.pk,
+        )
+        owner.ai_personality_interpretation_status = "failed"
+        owner.save(update_fields=["ai_personality_interpretation_status"])
+        yield {
+            "type": "manager_report_personality_error",
+            "message": str(error),
+        }
+
+
 @login_required
 @require_GET
 def process_candidate_post_interview_decision_support_stream_with_evidence(
@@ -353,39 +474,24 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
     process_id,
     candidate_id,
 ):
-    """
-    Stream After interview when either valid interview-evidence source exists.
-
-    This mirrors the established post-interview stream while replacing the old
-    free-text-only guard with the ticket #164 evidence rule.
-    """
+    """Generate one After interview section, or all sections as separate calls."""
 
     process, owner, _evidence, error_response = (
-        _post_interview_evidence_state(
-            request,
-            process_id,
-            candidate_id,
-        )
+        _post_interview_evidence_state(request, process_id, candidate_id)
     )
-
     if error_response is not None:
         return error_response
-
     if owner.status != "completed":
         return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed the assessments yet."
-                )
-            },
+            {"error": "The candidate has not completed the assessments yet."},
             status=400,
         )
 
     from apps.core.ai.decision_support import (
-        apply_post_interview_decision_support_event,
-        create_empty_post_interview_decision_support,
-        save_post_interview_decision_support,
-        stream_post_interview_decision_support,
+        POST_INTERVIEW_CONTENT_BLOCK_KEYS,
+        save_post_interview_content_block,
+        set_post_interview_content_block_status,
+        stream_post_interview_content_block,
     )
     from apps.core.ai.language import (
         ai_content_language_matches,
@@ -393,129 +499,147 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
         mark_ai_content_outdated_if_language_changed,
     )
     from .purpose_utils import normalize_purpose_key
-    from .views import should_return_saved_ai_result
 
-    language_code = get_request_ai_language(
-        request
-    )
+    language_code = get_request_ai_language(request)
+    block_key = str(request.GET.get("block") or "").strip()
+    if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
     mark_ai_content_outdated_if_language_changed(
         owner,
         content_key="post_interview_decision_support",
         result_field="ai_post_interview_decision_support",
-        status_field=(
-            "ai_post_interview_decision_support_status"
-        ),
+        status_field="ai_post_interview_decision_support_status",
         language_code=language_code,
     )
 
-    current_status = (
-        owner.ai_post_interview_decision_support_status
-        or "not_started"
-    )
-    saved_result = (
-        owner.ai_post_interview_decision_support
-        or {}
-    )
-
-    current_purpose = normalize_purpose_key(
-        process.purpose
-    )
+    current_status = owner.ai_post_interview_decision_support_status or "not_started"
+    saved_result = owner.ai_post_interview_decision_support or {}
+    saved_blocks = saved_result.get("content_blocks") or {}
+    current_purpose = normalize_purpose_key(process.purpose)
     saved_purpose = normalize_purpose_key(
         owner.ai_post_interview_decision_support_purpose
     )
-
-    current_notes_version = (
-        owner.interview_notes_updated_at
-    )
-    saved_notes_version = (
-        owner.ai_post_interview_decision_support_notes_version
-    )
-
-    purpose_has_changed = (
-        saved_purpose != current_purpose
-    )
-
-    general_notes_have_changed = bool(
-        current_notes_version
-        and (
-            not saved_notes_version
-            or current_notes_version > saved_notes_version
-        )
-    )
-
+    current_notes_version = owner.interview_notes_updated_at
+    saved_notes_version = owner.ai_post_interview_decision_support_notes_version
     latest_question_note = (
         InterviewQuestionNote.objects
-        .filter(
-            process=process,
-            candidate=owner.candidate,
-        )
+        .filter(process=process, candidate=owner.candidate)
         .exclude(note="")
         .aggregate(latest=Max("updated_at"))
         .get("latest")
     )
+    generated_at = owner.ai_post_interview_decision_support_generated_at
 
-    generated_at = (
-        owner.ai_post_interview_decision_support_generated_at
-    )
+    manager_personality_results = []
+    manager_personality_ready = block_key != ""
+    if not block_key:
+        from apps.core.ai.personality_interpretation import (
+            PERSONALITY_MANAGER_REPORT_THEMES,
+        )
+        from .views import build_personality_results_for_ai_owner
 
-    question_notes_have_changed = bool(
-        latest_question_note
-        and saved_result
-        and (
-            not generated_at
-            or latest_question_note > generated_at
+        mark_ai_content_outdated_if_language_changed(
+            owner,
+            content_key="personality_interpretation",
+            result_field="ai_personality_interpretation",
+            status_field="ai_personality_interpretation_status",
+            language_code=language_code,
+        )
+        manager_personality_results = build_personality_results_for_ai_owner(owner)
+        if not manager_personality_results:
+            manager_personality_ready = True
+        else:
+            personality_result = owner.ai_personality_interpretation or {}
+            personality_texts = personality_result.get("manager_report_personality") or {}
+            manager_personality_ready = (
+                owner.ai_personality_interpretation_status == "completed"
+                and personality_result.get("manager_report_personality_schema_version") == 1
+                and all(
+                    str((personality_texts.get(theme["key"]) or {}).get(part) or "").strip()
+                    for theme in PERSONALITY_MANAGER_REPORT_THEMES
+                    for part in ("testbild", "candidate_describes")
+                )
+                and ai_content_language_matches(
+                    owner, "personality_interpretation", language_code
+                )
+                and normalize_purpose_key(owner.ai_personality_interpretation_purpose)
+                == current_purpose
+                and not (
+                    owner.ai_personality_interpretation_generated_at
+                    and current_notes_version
+                    and current_notes_version > owner.ai_personality_interpretation_generated_at
+                )
+                and not (
+                    owner.ai_personality_interpretation_generated_at
+                    and latest_question_note
+                    and latest_question_note > owner.ai_personality_interpretation_generated_at
+                )
+            )
+
+    evidence_changed = (
+        saved_purpose != current_purpose
+        or bool(
+            current_notes_version
+            and (
+                not saved_notes_version
+                or current_notes_version > saved_notes_version
+            )
+        )
+        or bool(
+            latest_question_note
+            and saved_result
+            and (not generated_at or latest_question_note > generated_at)
         )
     )
-
-    if (
-        saved_result
-        and current_status == "completed"
-        and (
-            purpose_has_changed
-            or general_notes_have_changed
-            or question_notes_have_changed
-        )
-    ):
+    if saved_result and evidence_changed and current_status == "completed":
         current_status = "outdated"
         owner.ai_post_interview_decision_support_status = "outdated"
-        owner.save(
-            update_fields=[
-                "ai_post_interview_decision_support_status",
-            ]
-        )
+        saved_result = dict(saved_result)
+        statuses = dict(saved_result.get("content_block_statuses") or {})
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+            if str(saved_blocks.get(key) or "").strip():
+                statuses[key] = "outdated"
+        saved_result["content_block_statuses"] = statuses
+        owner.ai_post_interview_decision_support = saved_result
+        owner.save(update_fields=[
+            "ai_post_interview_decision_support",
+            "ai_post_interview_decision_support_status",
+        ])
 
-    force_regeneration = (
-        request.GET.get("force") == "1"
-    )
+    if current_status == "outdated" and saved_result:
+        statuses = dict(saved_result.get("content_block_statuses") or {})
+        changed = False
+        for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+            if str(saved_blocks.get(key) or "").strip() and statuses.get(key) != "outdated":
+                statuses[key] = "outdated"
+                changed = True
+        if changed:
+            saved_result = dict(saved_result)
+            saved_result["content_block_statuses"] = statuses
+            owner.ai_post_interview_decision_support = saved_result
+            owner.save(update_fields=["ai_post_interview_decision_support"])
 
+    force = request.GET.get("force") == "1"
+    selected_keys = [block_key] if block_key else list(POST_INTERVIEW_CONTENT_BLOCK_KEYS)
+    blocks_ready = all(str(saved_blocks.get(key) or "").strip() for key in selected_keys)
     if (
-        not force_regeneration
+        not force
+        and current_status == "completed"
+        and blocks_ready
         and ai_content_language_matches(
-            owner,
-            "post_interview_decision_support",
-            language_code,
+            owner, "post_interview_decision_support", language_code
         )
-        and should_return_saved_ai_result(
-            saved_result,
-            current_status,
-        )
+        and manager_personality_ready
     ):
         def existing_generator():
             yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_result,
-                    "status": current_status,
-                },
+                {"type": "saved_result", "data": saved_result, "status": current_status},
                 ensure_ascii=False,
             ) + "\n"
-
         response = StreamingHttpResponse(
             existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
+            content_type="application/x-ndjson; charset=utf-8",
         )
         response["Cache-Control"] = "no-cache"
         response["X-Accel-Buffering"] = "no"
@@ -523,191 +647,182 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
 
     if current_status == "generating":
         return JsonResponse(
-            {
-                "error": (
-                    "Post-interview decision support is already being generated."
-                )
-            },
+            {"error": "After interview content is already being generated."},
             status=409,
         )
 
-    owner.ai_post_interview_decision_support_status = "generating"
-    owner.save(
-        update_fields=[
-            "ai_post_interview_decision_support_status",
-        ]
-    )
+    if not saved_result or not str(saved_result.get("overall_synthesis") or "").strip():
+        owner.ai_post_interview_decision_support_status = "generating"
+        owner.save(update_fields=["ai_post_interview_decision_support_status"])
+
+    result_holder = {
+        "completed_blocks": [],
+        "failed_blocks": [],
+    }
 
     def generator():
-        result = create_empty_post_interview_decision_support(
-            owner,
-            language_code=language_code,
-        )
-        received_done_event = False
-
+        nonlocal saved_result
+        errors = []
         try:
-            for event in stream_post_interview_decision_support(
-                owner=owner,
-                language_code=language_code,
-            ):
-                result = apply_post_interview_decision_support_event(
-                    result,
-                    event,
+            for key in selected_keys:
+                current_blocks = (
+                    (owner.ai_post_interview_decision_support or {}).get("content_blocks")
+                    or {}
                 )
-
-                if event.get("type") == "done":
-                    received_done_event = True
+                current_statuses = (
+                    (owner.ai_post_interview_decision_support or {}).get(
+                        "content_block_statuses"
+                    )
+                    or {}
+                )
+                already_ready = (
+                    str(current_blocks.get(key) or "").strip()
+                    and current_statuses.get(
+                        key,
+                        "completed" if current_status == "completed" else "not_started",
+                    ) == "completed"
+                    and current_status != "outdated"
+                )
+                if already_ready and not force:
+                    result_holder["completed_blocks"].append(key)
+                    yield json.dumps(
+                        {"type": "content_block_skipped", "block": key},
+                        ensure_ascii=False,
+                    ) + "\n"
+                    continue
 
                 yield json.dumps(
-                    event,
+                    {"type": "content_block_started", "block": key},
                     ensure_ascii=False,
                 ) + "\n"
+                chunks = []
+                try:
+                    for event in stream_post_interview_content_block(
+                        owner=owner,
+                        block_key=key,
+                        language_code=language_code,
+                    ):
+                        if event.get("type") == "content_block_delta":
+                            chunks.append(str(event.get("text") or ""))
+                        yield json.dumps(event, ensure_ascii=False) + "\n"
 
-            content_blocks = (
-                result.get("content_blocks")
-                or {}
+                    generated_text = "".join(chunks).strip()
+                    save_post_interview_content_block(
+                        owner=owner,
+                        block_key=key,
+                        text=generated_text,
+                        language_code=language_code,
+                    )
+                    result_holder["completed_blocks"].append(key)
+                    yield json.dumps(
+                        {"type": "content_block_complete", "block": key},
+                        ensure_ascii=False,
+                    ) + "\n"
+                except Exception as block_error:
+                    logger.exception(
+                        "After interview section failed (process_id=%s, candidate_id=%s, block=%s)",
+                        process.id,
+                        candidate_id,
+                        key,
+                    )
+                    errors.append((key, str(block_error)))
+                    set_post_interview_content_block_status(
+                        owner=owner,
+                        block_key=key,
+                        status="failed",
+                    )
+                    result_holder["failed_blocks"].append(key)
+                    yield json.dumps(
+                        {
+                            "type": "content_block_error",
+                            "block": key,
+                            "message": str(block_error),
+                        },
+                        ensure_ascii=False,
+                    ) + "\n"
+
+            manager_personality_status = "skipped"
+            if not block_key and manager_personality_results:
+                for event in _manager_report_personality_events(
+                    owner,
+                    language_code,
+                    force=force,
+                ):
+                    if event.get("type") == "manager_report_personality_complete":
+                        manager_personality_status = "completed"
+                    elif event.get("type") == "manager_report_personality_error":
+                        manager_personality_status = "failed"
+                        errors.append(("manager_report_personality", event.get("message") or ""))
+                    yield json.dumps(event, ensure_ascii=False) + "\\n"
+
+            stored_owner = type(owner).objects.get(pk=owner.pk)
+            final_result = stored_owner.ai_post_interview_decision_support or {}
+            final_blocks = final_result.get("content_blocks") or {}
+            final_statuses = final_result.get("content_block_statuses") or {}
+            all_complete = all(
+                str(final_blocks.get(key) or "").strip()
+                and final_statuses.get(
+                    key,
+                    "completed" if current_status == "completed" else "not_started",
+                ) == "completed"
+                for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
             )
-            required_content_block_keys = (
-                "overall_picture",
-                "interview_summary",
-                "explore_further",
-                "wellbeing_tips",
-            )
-            missing_content_blocks = [
-                key
-                for key in required_content_block_keys
-                if not str(
-                    content_blocks.get(key)
-                    or ""
-                ).strip()
-            ]
-            has_complete_content_blocks = not missing_content_blocks
-
-            overall_synthesis = str(
-                result.get("overall_synthesis")
-                or ""
-            ).strip()
-
-            # The new After interview UI is driven by content_blocks.
-            # Keep the legacy field populated for compatibility with older
-            # saved records, but do not reject a valid new-format result just
-            # because the model omitted the legacy synthesis event.
-            if (
-                not overall_synthesis
-                and has_complete_content_blocks
-            ):
-                overall_synthesis = str(
-                    content_blocks["overall_picture"]
-                ).strip()
-                result["overall_synthesis"] = overall_synthesis
-
+            if all_complete:
+                stored_owner.ai_post_interview_decision_support_status = "completed"
+                stored_owner.ai_post_interview_decision_support_generated_at = timezone.now()
+                stored_owner.ai_post_interview_decision_support_purpose = current_purpose
+                stored_owner.ai_post_interview_decision_support_notes_version = (
+                    stored_owner.interview_notes_updated_at or timezone.now()
+                )
+                stored_owner.save(update_fields=[
+                    "ai_post_interview_decision_support_status",
+                    "ai_post_interview_decision_support_generated_at",
+                    "ai_post_interview_decision_support_purpose",
+                    "ai_post_interview_decision_support_notes_version",
+                ])
+            elif errors:
+                stored_owner.ai_post_interview_decision_support_status = "failed"
+                stored_owner.save(update_fields=[
+                    "ai_post_interview_decision_support_status",
+                ])
             yield json.dumps(
                 {
-                    "type": "result_debug",
-                    "data": {
-                        "overall_synthesis_characters": len(
-                            overall_synthesis
-                        ),
-                        "content_block_characters": {
-                            key: len(
-                                str(
-                                    content_blocks.get(key)
-                                    or ""
-                                ).strip()
-                            )
-                            for key in required_content_block_keys
-                        },
-                        "missing_content_blocks": missing_content_blocks,
-                        "supported_indications": len(
-                            result.get("supported_indications")
-                            or []
-                        ),
-                        "added_nuance": len(
-                            result.get("added_nuance")
-                            or []
-                        ),
-                    },
+                    "type": "generation_complete",
+                    "completed_blocks": result_holder["completed_blocks"],
+                    "failed_blocks": result_holder["failed_blocks"],
+                    "all_complete": all_complete,
+                    "manager_report_personality_status": manager_personality_status,
                 },
                 ensure_ascii=False,
             ) + "\n"
-
-
-            if not overall_synthesis:
-                raise ValueError(
-                    "The AI response did not contain an overall synthesis "
-                    "or a complete After interview content-block result. "
-                    "Missing content blocks: "
-                    + ", ".join(missing_content_blocks)
-                )
-
-            supported_indications = (
-                result.get("supported_indications")
-                or []
-            )
-            added_nuance = (
-                result.get("added_nuance")
-                or []
-            )
-
-            # New-format generations may intentionally contain only the
-            # user-facing content blocks. The legacy comparison arrays remain
-            # supported when present, but are not required for persistence.
-            if (
-                not (
-                    supported_indications
-                    or added_nuance
-                )
-                and not has_complete_content_blocks
-            ):
-                raise ValueError(
-                    "The AI response did not contain valid assessment and "
-                    "interview comparisons or complete content blocks."
-                )
-
-            if not received_done_event:
+            if errors:
                 yield json.dumps(
-                    {"type": "done"},
+                    {
+                        "type": "generation_partial_error",
+                        "message": "One or more After interview sections or manager-report sections could not be generated.",
+                    },
                     ensure_ascii=False,
                 ) + "\n"
-
-            save_post_interview_decision_support(
-                owner=owner,
-                result=result,
-                language_code=language_code,
-            )
-
         except Exception as error:
             logger.exception(
-                "After interview generation failed "
-                "(process_id=%s, candidate_id=%s)",
+                "After interview generation failed (process_id=%s, candidate_id=%s)",
                 process.id,
                 candidate_id,
             )
             owner.ai_post_interview_decision_support_status = "failed"
-            owner.save(
-                update_fields=[
-                    "ai_post_interview_decision_support_status",
-                ]
-            )
-
+            owner.save(update_fields=["ai_post_interview_decision_support_status"])
             yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
+                {"type": "error", "message": str(error)},
                 ensure_ascii=False,
             ) + "\n"
 
     response = StreamingHttpResponse(
         generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
+        content_type="application/x-ndjson; charset=utf-8",
     )
     response["Cache-Control"] = "no-cache"
     response["X-Accel-Buffering"] = "no"
     return response
-
 
 @login_required
 @require_POST
@@ -729,33 +844,49 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
     if error_response is not None:
         return error_response
 
-    owner.ai_post_interview_decision_support_status = "not_started"
-    owner.ai_post_interview_decision_support_generated_at = None
-    owner.ai_post_interview_decision_support_purpose = ""
-    owner.ai_post_interview_decision_support_notes_version = None
+    from apps.core.ai.decision_support import POST_INTERVIEW_CONTENT_BLOCK_KEYS
 
-    owner.save(
-        update_fields=[
-            "ai_post_interview_decision_support_status",
-            "ai_post_interview_decision_support_generated_at",
-            "ai_post_interview_decision_support_purpose",
-            "ai_post_interview_decision_support_notes_version",
-        ]
-    )
+    block_key = str(request.GET.get("block") or "").strip()
+    if block_key and block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        return JsonResponse({"error": "Unknown After interview section."}, status=400)
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_post_interview_"
-                    "decision_support_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ) + "?force=1",
-        }
+    if block_key:
+        from apps.core.ai.decision_support import (
+            set_post_interview_content_block_status,
+        )
+        set_post_interview_content_block_status(
+            owner=owner,
+            block_key=block_key,
+            status="generating",
+        )
+    else:
+        owner.ai_post_interview_decision_support_status = "not_started"
+        owner.ai_post_interview_decision_support_generated_at = None
+        owner.ai_post_interview_decision_support_purpose = ""
+        owner.ai_post_interview_decision_support_notes_version = None
+        owner.save(
+            update_fields=[
+                "ai_post_interview_decision_support_status",
+                "ai_post_interview_decision_support_generated_at",
+                "ai_post_interview_decision_support_purpose",
+                "ai_post_interview_decision_support_notes_version",
+            ]
+        )
+
+    stream_url = reverse(
+        (
+            "processes:"
+            "process_candidate_post_interview_"
+            "decision_support_stream"
+        ),
+        kwargs={
+            "process_id": process.id,
+            "candidate_id": candidate_id,
+        },
     )
+    if block_key:
+        stream_url += f"?block={block_key}&force=1"
+    else:
+        stream_url += "?force=1"
+
+    return JsonResponse({"ok": True, "stream_url": stream_url})

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from typing import Any, Iterable
 
+from django.db import transaction
 from django.utils import timezone
 
 # Talena final output pre-interview language batch 1
@@ -3230,3 +3231,276 @@ def save_post_interview_decision_support(
             update_fields=language_update_fields
         )
 
+
+def set_post_interview_content_block_status(
+    *,
+    owner,
+    block_key: str,
+    status: str,
+) -> dict[str, Any]:
+    """Update one section's status without overwriting other section data."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+    if status not in {"generating", "completed", "outdated", "failed"}:
+        raise ValueError("Unknown After interview content block status.")
+
+    with transaction.atomic():
+        stored_owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        result = dict(stored_owner.ai_post_interview_decision_support or {})
+        statuses = dict(result.get("content_block_statuses") or {})
+        statuses[block_key] = status
+        result["content_block_statuses"] = statuses
+        stored_owner.ai_post_interview_decision_support = result
+        stored_owner.save(update_fields=["ai_post_interview_decision_support"])
+    return result
+
+
+def build_post_interview_content_block_prompt(
+    owner,
+    *,
+    block_key: str,
+    language_code: str | None = None,
+) -> str:
+    """Build a focused prompt for one After interview tab."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+
+    language_code = _post_normalize_ai_language(language_code)
+    shared_context = build_shared_ai_context(owner)
+    note_evidence_policy = __import__(
+        "apps.core.ai.post_interview_question_evidence_policy",
+        fromlist=["get_post_interview_note_evidence"],
+    )
+    note_evidence = note_evidence_policy.get_post_interview_note_evidence(owner)
+    if not note_evidence["has_evidence"]:
+        raise ValueError(
+            "Interview notes or saved interview question answers must be added."
+        )
+
+    evidence = build_pre_interview_evidence(
+        owner,
+        language_code=language_code,
+    )
+    if block_key != "interview_summary" and not evidence.get("has_evidence"):
+        raise ValueError("No completed assessment interpretations are available.")
+
+    candidate = shared_context["candidate"]
+    general_notes = note_evidence["general_notes"]
+    question_data = note_evidence["question_evidence"]
+    question_text = (
+        str(question_data.get("text") or "").strip()
+        or "No question-specific answers or notes were saved."
+    )
+    evidence_status = (
+        "General interview notes: AVAILABLE"
+        if general_notes
+        else "General interview notes: NOT PROVIDED"
+    ) + "\n" + (
+        "Question-specific interview evidence: AVAILABLE"
+        if note_evidence["has_question_evidence"]
+        else "Question-specific interview evidence: NOT PROVIDED"
+    )
+
+    include_assessment_evidence = block_key != "interview_summary"
+    assessment_text = (
+        evidence.get("evidence_text") or "No assessment interpretation evidence."
+        if include_assessment_evidence
+        else "Omitted for this section; focus on what the interview evidence itself adds."
+    )
+
+    admin_guidance = _post_get_content_block_prompt_instructions(
+        key=block_key,
+        language=language_code,
+    )
+    global_guidance = get_global_ai_guidance(language=language_code)
+    language_instruction = _post_get_ai_language_instruction(language_code)
+
+    block_titles = {
+        "overall_picture": "Helhetsbild",
+        "interview_summary": "Intervjusammanfattning",
+        "explore_further": "Undersök vidare",
+        "wellbeing_tips": "Tips för trivsel",
+    }
+    block_title = block_titles[block_key]
+
+    return f"""
+You are writing only the After interview section: {block_title}.
+
+CANDIDATE
+Name: {candidate.first_name} {candidate.last_name}
+
+PROCESS PURPOSE AND CONTEXT
+Purpose: {shared_context["purpose_label"]}
+{shared_context["context_text"] or "No additional process context supplied."}
+
+ASSESSMENT INDICATIONS
+{assessment_text}
+
+INTERVIEW EVIDENCE STATUS
+{evidence_status}
+
+GENERAL INTERVIEW NOTES
+{general_notes or "No additional general interview notes were supplied."}
+
+QUESTION-SPECIFIC INTERVIEW EVIDENCE
+{question_text}
+
+SHARED TALENA GUIDANCE
+{global_guidance}
+
+ADMINISTRATOR GUIDANCE FOR THIS SECTION ONLY
+{admin_guidance}
+
+EVIDENCE RULES
+- Use only the supplied Talena evidence; never invent details.
+- Treat assessment results as indications, not proof or a suitability verdict.
+- Keep each saved answer or note connected to its exact interview question.
+- A saved answer or note may be a candidate response, interviewer summary or observation; do not present it as a verbatim quote unless it clearly is one.
+- Do not say interview evidence is missing when either evidence source is available.
+- Separate concrete evidence from interpretation and mark meaningful uncertainty.
+- Do not make a hiring, rejection, promotion or suitability decision.
+- Do not repeat material that belongs in another After interview section.
+
+OUTPUT
+Write only the requested section in {language_instruction}.
+Return readable Markdown text only. Do not return JSON, code fences, labels for other sections or text outside this section.
+""".strip()
+
+
+def stream_post_interview_content_block(
+    *,
+    owner,
+    block_key: str,
+    language_code: str | None = None,
+) -> Iterable[dict[str, Any]]:
+    """Stream plain Markdown deltas for exactly one After interview tab."""
+    language_code = _post_normalize_ai_language(language_code)
+    prompt = build_post_interview_content_block_prompt(
+        owner,
+        block_key=block_key,
+        language_code=language_code,
+    )
+    yield {
+        "type": "prompt_debug",
+        "data": {
+            "language": language_code,
+            "block": block_key,
+            "prompt_characters": len(prompt),
+        },
+    }
+
+    client = get_openai_client()
+    stream = client.chat.completions.create(
+        model=get_chat_model(),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are Talena's careful assessment assistant. "
+                    "Follow the section-specific administrator guidance and "
+                    "the protected evidence rules in the user prompt. "
+                    "Return only the requested section."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.2,
+        stream=True,
+        max_completion_tokens=6000,
+    )
+
+    finish_reason = None
+    received_text = False
+    for response_event in stream:
+        choices = getattr(response_event, "choices", None) or []
+        if not choices:
+            continue
+        choice = choices[0]
+        finish_reason = getattr(choice, "finish_reason", None) or finish_reason
+        delta = getattr(choice, "delta", None)
+        content = getattr(delta, "content", None) if delta else None
+        if not content:
+            continue
+        received_text = True
+        yield {
+            "type": "content_block_delta",
+            "block": block_key,
+            "text": content,
+        }
+
+    if finish_reason == "length":
+        raise ValueError(
+            "The AI response reached the section output limit. Try generating this tab again."
+        )
+    if not received_text:
+        raise ValueError("The AI response did not contain any section text.")
+
+    yield {"type": "content_block_done", "block": block_key}
+
+
+def save_post_interview_content_block(
+    *,
+    owner,
+    block_key: str,
+    text: str,
+    language_code: str,
+) -> dict[str, Any]:
+    """Merge one completed section into the existing result without losing peers."""
+    if block_key not in POST_INTERVIEW_CONTENT_BLOCK_KEYS:
+        raise ValueError("Unknown After interview content block.")
+    clean_text = _clean_text(text)
+    if not clean_text:
+        raise ValueError("The generated section is empty.")
+
+    language_code = _post_normalize_ai_language(language_code)
+    with transaction.atomic():
+        stored_owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        result = dict(
+            stored_owner.ai_post_interview_decision_support or {}
+        )
+        result.setdefault(
+            "content_blocks",
+            {key: "" for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS},
+        )
+        result["content_blocks"] = dict(result["content_blocks"])
+        result["content_blocks"][block_key] = clean_text
+        result.setdefault("content_block_statuses", {})
+        result["content_block_statuses"] = dict(
+            result["content_block_statuses"]
+        )
+        result["content_block_statuses"][block_key] = "completed"
+        result.setdefault("content_block_generated_at", {})
+        result["content_block_generated_at"] = dict(
+            result["content_block_generated_at"]
+        )
+        result["content_block_generated_at"][block_key] = (
+            timezone.now().isoformat()
+        )
+        result["_language"] = language_code
+
+        if all(
+            _clean_text(result["content_blocks"].get(key))
+            for key in POST_INTERVIEW_CONTENT_BLOCK_KEYS
+        ):
+            result["overall_synthesis"] = result["content_blocks"][
+                "overall_picture"
+            ]
+
+        stored_owner.ai_post_interview_decision_support = result
+        stored_owner.ai_post_interview_decision_support_purpose = (
+            get_process_purpose_key(stored_owner.process)
+        )
+        stored_owner.ai_post_interview_decision_support_notes_version = (
+            stored_owner.interview_notes_updated_at or timezone.now()
+        )
+        _post_set_ai_content_language(
+            stored_owner,
+            "post_interview_decision_support",
+            language_code,
+        )
+        stored_owner.save(update_fields=[
+            "ai_post_interview_decision_support",
+            "ai_post_interview_decision_support_purpose",
+            "ai_post_interview_decision_support_notes_version",
+        ] + _post_get_ai_language_update_fields(stored_owner))
+    return result
