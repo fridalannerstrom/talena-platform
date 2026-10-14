@@ -32,6 +32,9 @@
       managerMotivationDoTitle: "Gör så här",
       managerMotivationAvoidTitle: "Undvik det här",
       managerMotivationUnavailable: "Motivationsresultat visas här när de är tillgängliga.",
+      generateSection: "Generera",
+      regenerateSection: "Generera igen",
+      sectionGenerationFailed: "Det gick inte att generera den här fliken. Försök igen.",
       managerPersonalityTitle: "Personlighet",
       managerPersonalityThemes: [
         { key: "leading_and_working_with_others", title: "Leda och arbeta med andra" },
@@ -121,6 +124,9 @@
       managerMotivationDoTitle: "Do this",
       managerMotivationAvoidTitle: "Avoid this",
       managerMotivationUnavailable: "Motivation results will appear here when they are available.",
+      generateSection: "Generate",
+      regenerateSection: "Generate again",
+      sectionGenerationFailed: "This section could not be generated. Please try again.",
       managerPersonalityTitle: "Personality",
       managerPersonalityThemes: [
         { key: "leading_and_working_with_others", title: "Leading and working with others" },
@@ -699,7 +705,7 @@
     return content;
   };
 
-  const makeCard = (panel, key, title, description, fallback) => {
+  const makeCard = (panel, key, title, description, fallback, blockKey = null) => {
     const card = document.createElement("section");
     card.className = "after-interview-tab-card";
     const header = document.createElement("div");
@@ -709,29 +715,151 @@
     eyebrow.className = "after-interview-tab-card__eyebrow";
     eyebrow.textContent = "✦ " + copy().generated;
 
+    const toolbar = document.createElement("div");
+    toolbar.className = "after-interview-tab-card__toolbar";
     const heading = document.createElement("h3");
     heading.className = "after-interview-tab-card__title";
     heading.textContent = title;
+    toolbar.appendChild(heading);
 
     const intro = document.createElement("p");
     intro.className = "after-interview-tab-card__description";
     intro.textContent = description;
 
-    header.append(eyebrow, heading, intro);
+    header.append(eyebrow, toolbar, intro);
     card.appendChild(header);
 
-    const supplied = sourceContent(panel, key);
-    const body = supplied || fallback;
-    if (body) {
-      body.classList.add("after-interview-tab-card__body");
-      card.appendChild(body);
+    const supplied = blockKey ? sourceContent(panel, blockKey) : null;
+    const body = supplied || fallback || document.createElement("div");
+    body.classList.add("after-interview-tab-card__body");
+    if (blockKey) {
+      body.dataset.afterInterviewBlockContent = blockKey;
+      if (!supplied && !fallback) {
+        body.classList.add("after-interview-tab-empty");
+        body.textContent = copy().unavailable;
+      }
+      const error = document.createElement("div");
+      error.className = "alert alert-danger d-none mt-3 mb-0";
+      error.dataset.afterInterviewBlockError = blockKey;
+      card.append(body, error);
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn btn-icon btn-light after-interview-tab-card__regenerate";
+      const actionLabel = body.textContent?.trim()
+        ? copy().regenerateSection
+        : copy().generateSection;
+      button.title = actionLabel;
+      button.setAttribute("aria-label", actionLabel);
+      button.dataset.afterInterviewRegenerate = blockKey;
+      button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      toolbar.appendChild(button);
+      button.addEventListener("click", () => generateContentBlock(panel, blockKey, body, error, button));
     } else {
-      const empty = document.createElement("div");
-      empty.className = "after-interview-tab-empty";
-      empty.textContent = copy().unavailable;
-      card.appendChild(empty);
+      card.appendChild(body);
     }
     return card;
+  };
+
+  const csrfToken = () => {
+    const cookie = document.cookie.split("; ").find((item) => item.startsWith("csrftoken="));
+    return cookie ? decodeURIComponent(cookie.slice("csrftoken=".length)) : "";
+  };
+
+  const generateContentBlock = async (panel, blockKey, body, error, button) => {
+    if (button.disabled) return;
+    const root = panel.closest("[data-final-output-root]");
+    const regenerateUrl = root?.dataset.postInterviewRegenerateUrl || "";
+    if (!regenerateUrl) {
+      error.textContent = copy().sectionGenerationFailed;
+      error.classList.remove("d-none");
+      return;
+    }
+
+    const previousText = body.textContent || "";
+    error.classList.add("d-none");
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
+    delete body.dataset.markdownRendered;
+    body.replaceChildren();
+
+    try {
+      const startUrl = new URL(regenerateUrl, window.location.origin);
+      startUrl.searchParams.set("block", blockKey);
+      const startResponse = await fetch(startUrl.toString(), {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({}),
+      });
+      const startData = await startResponse.json();
+      if (!startResponse.ok) throw new Error(startData.error || copy().sectionGenerationFailed);
+
+      const streamResponse = await fetch(startData.stream_url, {
+        headers: { Accept: "application/x-ndjson", "X-Requested-With": "XMLHttpRequest" },
+        credentials: "same-origin",
+      });
+      if (!streamResponse.ok || !streamResponse.body) {
+        let message = copy().sectionGenerationFailed;
+        try { message = (await streamResponse.json()).error || message; } catch (_error) {}
+        throw new Error(message);
+      }
+
+      const reader = streamResponse.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let received = "";
+      const handleLine = (rawLine) => {
+        const line = rawLine.trim();
+        if (!line) return;
+        const event = JSON.parse(line);
+        if (event.type === "content_block_delta" && event.block === blockKey) {
+          received += event.text || "";
+          body.textContent = received;
+        } else if (event.type === "content_block_error" && event.block === blockKey) {
+          throw new Error(event.message || copy().sectionGenerationFailed);
+        }
+      };
+
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffer += decoder.decode(chunk.value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        lines.forEach(handleLine);
+      }
+      buffer += decoder.decode();
+      if (buffer.trim()) handleLine(buffer);
+      if (!received.trim()) throw new Error(copy().sectionGenerationFailed);
+
+      delete body.dataset.markdownRendered;
+      renderGeneratedMarkdown(body);
+      button.title = copy().regenerateSection;
+      button.setAttribute("aria-label", copy().regenerateSection);
+    } catch (generationError) {
+      body.textContent = previousText;
+      if (!previousText.trim()) {
+        body.classList.add("after-interview-tab-empty");
+        body.textContent = copy().unavailable;
+      } else {
+        delete body.dataset.markdownRendered;
+        renderGeneratedMarkdown(body);
+      }
+      error.textContent = generationError.message || copy().sectionGenerationFailed;
+      error.classList.remove("d-none");
+    } finally {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+      button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      if (window.feather) window.feather.replace();
+    }
   };
 
   const makeTab = (key, label, panelId) => {
@@ -798,6 +926,14 @@
         min-width: 0; padding: 1.25rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 14px; background: #fff;
       }
+      __PANEL__ .after-interview-tab-card__toolbar {
+        display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      }
+      __PANEL__ .after-interview-tab-card__regenerate {
+        flex: 0 0 auto; width: 2.25rem; height: 2.25rem; padding: .35rem;
+        color: var(--talena-text-muted, #766e68); border: 1px solid var(--talena-border, #e5dfd8);
+      }
+      __PANEL__ .after-interview-tab-card__regenerate[aria-busy="true"] { opacity: .7; }
       __PANEL__ .after-interview-tab-card__eyebrow {
         margin-bottom: .3rem; color: var(--talena-coral, #ed7468);
         font-size: .68rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;
@@ -1070,14 +1206,21 @@
     const header = card?.querySelector(":scope > div:first-child");
     const notesRoot = card?.querySelector("[data-interview-notes-root]");
     const postSection = card?.querySelector("[data-post-interview-section]");
+    const legacyGlobalRegenerate = postSection?.querySelector(
+      '[data-post-interview-generate][data-regenerate="true"]'
+    );
+    legacyGlobalRegenerate?.remove();
     const postContent = postSection?.querySelector("[data-post-interview-content]");
+    const outputRoot = panel.closest("[data-final-output-root]");
     const hasPostInterviewResult =
-      panel.closest("[data-final-output-root]")?.dataset.hasPostInterviewResult === "true";
+      outputRoot?.dataset.hasPostInterviewResult === "true";
+    const hasCompletePostInterviewResult =
+      outputRoot?.dataset.postInterviewStatus === "completed";
 
     if (!card || !header || !notesRoot || !postSection) return;
 
     ensureStyles();
-    if (hasPostInterviewResult) {
+    if (hasCompletePostInterviewResult) {
       const generatedTitle = postSection.querySelector(".insight-summary-title");
       const generatedDescription = postSection.querySelector("p.text-muted.small.mb-0");
       if (generatedTitle) generatedTitle.textContent = copy().generatedComplete;
@@ -1145,16 +1288,16 @@
     if (suggestedColumn) wellbeingFallback.appendChild(suggestedColumn.cloneNode(true));
 
     panels.get("overview").appendChild(
-      makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary),
+      makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
     );
     panels.get("interview").appendChild(
-      makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid),
+      makeCard(panel, "interview_summary", copy().tabs.interview, copy().descriptions.interview, evidenceGrid, "interview_summary"),
     );
     panels.get("explore").appendChild(
-      makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null),
+      makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
     );
     panels.get("wellbeing").appendChild(
-      makeCard(panel, "wellbeing_tips", copy().tabs.wellbeing, copy().descriptions.wellbeing, wellbeingFallback.childNodes.length ? wellbeingFallback : null),
+      makeCard(panel, "wellbeing_tips", copy().tabs.wellbeing, copy().descriptions.wellbeing, wellbeingFallback.childNodes.length ? wellbeingFallback : null, "wellbeing_tips"),
     );
 
     const managerReportCard = document.createElement("section");
