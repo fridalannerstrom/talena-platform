@@ -60,13 +60,7 @@
       data-insights-subpanel="leadership-report"
       hidden
     >
-      <div class="alert alert-light border mb-0">
-        {% if reports_language|slice:":2" == "sv" %}
-          Innehåll för den här rapporten läggs till senare.
-        {% else %}
-          Content for this report will be added later.
-        {% endif %}
-      </div>
+      {% include "customer/processes/partials/candidate_insights/tabs/_leadership_report.html" %}
     </div>
 
     <div
