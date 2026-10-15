@@ -72,10 +72,10 @@
           </div>
           <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
             <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
-              {{ derailment_report_content.guidance_label }} · {{ factor.level_label }}
+              {{ derailment_report_content.guidance_label }} · {% for interpretation in factor.interpretations %}{{ interpretation.label }}{% if not forloop.last %} / {% endif %}{% endfor %}
             </summary>
             <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
-              <div class="team-style-guidance__header"><p>{{ factor.interpretation }}</p></div>
+              {% for interpretation in factor.interpretations %}<div class="team-style-guidance__header"><p>{{ interpretation.text }}</p></div>{% endfor %}
             </div>
           </details>
         </article>
