@@ -9,7 +9,10 @@
       "body": "Diagrammet nedan visar en grafisk översikt över dina resultat i förhållande till var och en av\nledarskapskompetenserna. Hur stark din självrapporterade preferens eller orientering är anges av hur långt\nutanför cirkeln de färgade banden når. När du granskar dina resultat, kan du fundera på ditt resultatmönster\noch områden du skulle kunna lägga mer fokus på för att maximera dina styrkor som ledare."
     },
     "strengths_intro": null,
-    "strength_title": "Sannolika styrkor",
+    "aria_label": "Ledarskapsrapport",
+  "profile_eyebrow": "Ledarskapsprofil",
+  "competency_count_label": "kompetenser",
+  "strength_title": "Sannolika styrkor",
     "development_title": "Potentiellt utvecklingsbehov",
     "quadrants": [
       {
@@ -303,7 +306,10 @@
       "title": "Your Leadership Competencies",
       "body": "In this section your likely strengths and development needs are outlined based on your\nself-reported behavioural style.\nYour likely strengths are based on the two scales which you indicated the strongest preference for. Your\npossible development need reflects the scale which you indicated was least aligned with your preferences.\nPlease note that these are solely based on the rank order of your personal preferences. This means that\neven the competency deemed a possible development need may still be an area which you show some\npreference and strength for, it is simply the lowest of the eight competencies for you.\nIn reviewing the below, consider how each of these scales influences how you approach, and respond to,\nyour responsibilities as a leader and perhaps the difficult situations that you face. Think about the strengths\nyou can leverage in this context and where you could benefit from adapting your preferred leadership style."
     },
-    "strength_title": "Likely strengths",
+    "aria_label": "Leadership report",
+  "profile_eyebrow": "Leadership profile",
+  "competency_count_label": "competencies",
+  "strength_title": "Likely strengths",
     "development_title": "Potential development need",
     "quadrants": [
       {
