@@ -1,0 +1,88 @@
+{% load i18n %}
+{% get_current_language as reports_language %}
+
+<div class="candidate-insights-subworkspace" data-candidate-insights-subtabs>
+  <section class="candidate-insights-subnavigation">
+    <div class="candidate-insights-subnavigation__layout mb-4">
+      <div
+        class="candidate-insights-view-switcher"
+        role="tablist"
+        aria-label="{% if reports_language|slice:":2" == "sv" %}Rapporter{% else %}Reports{% endif %}"
+      >
+        <button
+          type="button"
+          class="candidate-insights-view-option is-active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="reports-subpanel-team-report"
+          data-insights-subtab="team-report"
+        >
+          {% if reports_language|slice:":2" == "sv" %}Teamrapport{% else %}Team report{% endif %}
+        </button>
+        <button
+          type="button"
+          class="candidate-insights-view-option"
+          role="tab"
+          aria-selected="false"
+          aria-controls="reports-subpanel-leadership-report"
+          data-insights-subtab="leadership-report"
+        >
+          {% if reports_language|slice:":2" == "sv" %}Ledarskapsrapport{% else %}Leadership report{% endif %}
+        </button>
+        <button
+          type="button"
+          class="candidate-insights-view-option"
+          role="tab"
+          aria-selected="false"
+          aria-controls="reports-subpanel-derailment-report"
+          data-insights-subtab="derailment-report"
+        >
+          Derailment report
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="candidate-insights-subworkspace__panels">
+    <div
+      id="reports-subpanel-team-report"
+      class="candidate-insights-subpanel is-active"
+      role="tabpanel"
+      data-insights-subpanel="team-report"
+    >
+      {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
+    </div>
+
+    <div
+      id="reports-subpanel-leadership-report"
+      class="candidate-insights-subpanel"
+      role="tabpanel"
+      data-insights-subpanel="leadership-report"
+      hidden
+    >
+      <div class="alert alert-light border mb-0">
+        {% if reports_language|slice:":2" == "sv" %}
+          Innehåll för den här rapporten läggs till senare.
+        {% else %}
+          Content for this report will be added later.
+        {% endif %}
+      </div>
+    </div>
+
+    <div
+      id="reports-subpanel-derailment-report"
+      class="candidate-insights-subpanel"
+      role="tabpanel"
+      data-insights-subpanel="derailment-report"
+      hidden
+    >
+      <div class="alert alert-light border mb-0">
+        {% if reports_language|slice:":2" == "sv" %}
+          Innehåll för den här rapporten läggs till senare.
+        {% else %}
+          Content for this report will be added later.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
