@@ -15,14 +15,14 @@ _DATA_FILE = (
 
 # SOVA returns these competencies in English even when Talena is Swedish.
 _SOURCE_NAMES = {
-    "creates_the_vision": ("Creates the Vision", "Creates the Vision"),
-    "generates_solutions": ("Generates Solutions", "Generates Solutions"),
-    "builds_alliances": ("Builds Alliances", "Builds Alliances"),
-    "embraces_diversity": ("Embraces Diversity", "Embraces Diversity"),
-    "nurtures_talent": ("Nurtures Talent", "Nurtures Talent"),
+    "creates_the_vision": ("Creates the Vision",),
+    "generates_solutions": ("Generates Solutions",),
+    "builds_alliances": ("Builds Alliances",),
+    "embraces_diversity": ("Embraces Diversity",),
+    "nurtures_talent": ("Nurtures Talent",),
     "leads_by_example": ("Leads by Example", "Leads by Exapmle"),
-    "clarifies_expectations": ("Clarifies Expectations", "Clarifies Expectations"),
-    "drives_momentum": ("Drives Momentum", "Drives Momentum"),
+    "clarifies_expectations": ("Clarifies Expectations",),
+    "drives_momentum": ("Drives Momentum",),
 }
 
 
@@ -40,7 +40,7 @@ def _name_key(value: str | None) -> str:
 def _parse_score(item: dict) -> float | None:
     # STIVE is SOVA's native 1–5 leadership preference score.
     raw_score = item.get("stive")
-    if raw_score is None and item.get("category") == "leadership":
+    if raw_score is None and str(item.get("category") or "").strip().lower() == "leadership":
         scale = str(item.get("scale") or "").strip().lower().replace("-", "_")
         if scale in {"one_to_five", "1_to_5", "1 to 5"}:
             raw_score = item.get("score")
@@ -71,53 +71,38 @@ def build_leadership_report_content(
     language = "sv" if language == "sv" else "en"
     content = _load_leadership_report_data()[language]
 
+    source_key_by_name = {}
+    for source_key, source_names in _SOURCE_NAMES.items():
+        for source_name in source_names:
+            source_key_by_name[_name_key(source_name)] = source_key
+
+    report_competencies = [
+        competency
+        for quadrant in content["quadrants"]
+        for competency in quadrant["competencies"]
+    ]
+    source_keys = list(_SOURCE_NAMES)
+    for index, competency in enumerate(report_competencies):
+        if index < len(source_keys):
+            source_key_by_name[_name_key(competency["title"])] = source_keys[index]
+
     scores_by_key = {}
     for item in competencies or []:
-        key = _name_key(item.get("competency") or item.get("name"))
+        name_key = _name_key(item.get("competency") or item.get("name"))
+        source_key = source_key_by_name.get(name_key)
         score = _parse_score(item)
-        if key in _SOURCE_NAMES and score is not None:
-            # Keep the first source row if SOVA happens to include duplicates.
-            scores_by_key.setdefault(key, score)
+        if source_key and score is not None:
+            scores_by_key.setdefault(source_key, score)
 
     quadrants = []
     all_competencies = []
+    slot_index = 0
     for quadrant in content["quadrants"]:
         rendered_quadrant = {**quadrant, "competencies": []}
         for competency in quadrant["competencies"]:
-            source_key = next(
-                (
-                    key for key, names in _SOURCE_NAMES.items()
-                    if _name_key(names[0]) == key
-                    and (
-                        key in scores_by_key
-                    )
-                    and (
-                        _name_key(names[0]) == key
-                    )
-                ),
-                None,
-            )
-            # Match by the localized display title or by the canonical SOVA name.
-            title_key = _name_key(competency["title"])
-            key = next(
-                (
-                    candidate_key
-                    for candidate_key, names in _SOURCE_NAMES.items()
-                    if candidate_key in scores_by_key
-                    and (
-                        title_key == candidate_key
-                        or _name_key(names[0]) == candidate_key
-                    )
-                ),
-                None,
-            )
-            # The report data order is the same as SOVA's fixed 8-competency order.
-            # Use the current quadrant/competency index only as a localized-label map.
-            if key is None:
-                flattened_index = len(all_competencies)
-                key = list(_SOURCE_NAMES)[flattened_index] if flattened_index < 8 else None
-
-            score = scores_by_key.get(key) if key else None
+            source_key = source_keys[slot_index] if slot_index < len(source_keys) else None
+            slot_index += 1
+            score = scores_by_key.get(source_key) if source_key else None
             if score is None:
                 continue
 
@@ -138,10 +123,11 @@ def build_leadership_report_content(
             }
             rendered_quadrant["competencies"].append(rendered)
             all_competencies.append(rendered)
+
         quadrants.append(rendered_quadrant)
 
     ordered = sorted(all_competencies, key=lambda item: item["score"], reverse=True)
-    content = {
+    return {
         **content,
         "quadrants": quadrants,
         "has_results": bool(all_competencies),
@@ -164,4 +150,4 @@ def build_leadership_report_content(
         "lowest_score_title": "Lägsta resultat" if language == "sv" else "Lowest result",
         "score_scale_label": "Poängskala 1–5" if language == "sv" else "Score scale 1–5",
     }
-    return content
+}
