@@ -143,3 +143,382 @@
     transition: none;
   }
 }
+
+
+/* ---------------------------------------------------------
+   LEADERSHIP REPORT
+   Keep the supplied interpretation library compact and
+   browsable, using the same quiet card language as Team Report.
+   --------------------------------------------------------- */
+.process-page .leadership-report {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  color: var(--talena-ink);
+}
+
+.process-page .leadership-report__intro {
+  display: grid;
+  grid-template-columns: 2.7rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.2rem;
+  border: 1px solid rgba(239, 94, 82, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(239, 94, 82, 0.08), rgba(250, 249, 247, 0.92) 58%);
+}
+
+.process-page .leadership-report__intro-icon,
+.process-page .leadership-report__section-icon {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
+  color: var(--talena-coral);
+  background: rgba(239, 94, 82, 0.12);
+}
+
+.process-page .leadership-report__intro-icon svg,
+.process-page .leadership-report__section-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.process-page .leadership-report__eyebrow {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--talena-text-subtle);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.process-page .leadership-report__intro h3,
+.process-page .leadership-report__section-heading h3 {
+  margin: 0 0 0.45rem;
+  color: var(--talena-ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__intro-text,
+.process-page .leadership-report__section-heading p,
+.process-page .leadership-report__strengths-intro p {
+  margin: 0;
+  color: var(--talena-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.process-page .leadership-report__profile-intro,
+.process-page .leadership-report__strengths-intro {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.process-page .leadership-report__section-heading {
+  display: grid;
+  grid-template-columns: 2.45rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+}
+
+.process-page .leadership-report__section-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  color: #927044;
+  background: rgba(197, 151, 79, 0.13);
+}
+
+.process-page .leadership-report__strengths-intro {
+  color: var(--talena-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__strengths-intro p {
+  margin-top: 0.4rem;
+  font-weight: 400;
+}
+
+.process-page .leadership-report__quadrants {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.process-page .leadership-report__quadrant {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--talena-border);
+  border-radius: 15px;
+  background: rgba(250, 249, 247, 0.48);
+}
+
+.process-page .leadership-report__quadrant-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid var(--talena-border);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.process-page .leadership-report__quadrant-index {
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex: 0 0 1.85rem;
+  border-radius: 9px;
+  color: var(--talena-coral);
+  background: rgba(239, 94, 82, 0.1);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__quadrant-heading h3 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--talena-ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__quadrant-count {
+  color: var(--talena-text-subtle);
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+.process-page .leadership-report__competencies {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.65rem;
+}
+
+.process-page .leadership-report__competency {
+  min-width: 0;
+  border: 1px solid var(--talena-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.process-page .leadership-report__competency-summary {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.process-page .leadership-report__competency-summary::-webkit-details-marker {
+  display: none;
+}
+
+.process-page .leadership-report__competency-summary::marker {
+  content: "";
+}
+
+.process-page .leadership-report__competency-content {
+  display: block;
+  min-width: 0;
+}
+
+.process-page .leadership-report__competency-title {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: var(--talena-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__definition {
+  display: block;
+  color: var(--talena-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.process-page .leadership-report__chevron {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 0.55rem;
+  margin: 0.2rem 0.1rem 0 0;
+  border-right: 1.5px solid var(--talena-text-subtle);
+  border-bottom: 1.5px solid var(--talena-text-subtle);
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.process-page .leadership-report__competency[open] .leadership-report__chevron {
+  transform: rotate(225deg);
+}
+
+.process-page .leadership-report__competency-detail {
+  padding: 0 0.75rem 0.8rem;
+}
+
+.process-page .leadership-report__levels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.process-page .leadership-report__level {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: rgba(250, 249, 247, 0.7);
+}
+
+.process-page .leadership-report__level--low {
+  border-top: 2px solid rgba(197, 151, 79, 0.75);
+}
+
+.process-page .leadership-report__level--mid {
+  border-top: 2px solid rgba(126, 162, 143, 0.8);
+}
+
+.process-page .leadership-report__level--high {
+  border-top: 2px solid rgba(239, 94, 82, 0.72);
+}
+
+.process-page .leadership-report__level-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+.process-page .leadership-report__level-label {
+  color: var(--talena-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__score-label {
+  color: var(--talena-text-subtle);
+  font-size: 0.58rem;
+}
+
+.process-page .leadership-report__interpretation,
+.process-page .leadership-report__questions {
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.6;
+}
+
+.process-page .leadership-report__interpretation {
+  margin: 0;
+}
+
+.process-page .leadership-report__questions {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--talena-border);
+}
+
+.process-page .leadership-report__questions h5 {
+  margin: 0 0 0.4rem;
+  color: var(--talena-ink);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__questions div {
+  white-space: normal;
+}
+
+.process-page .leadership-report__takeaways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.process-page .leadership-report__takeaway {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--talena-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.process-page .leadership-report__takeaway--strength {
+  background: rgba(126, 162, 143, 0.08);
+}
+
+.process-page .leadership-report__takeaway--development {
+  background: rgba(197, 151, 79, 0.08);
+}
+
+.process-page .leadership-report__takeaway-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--talena-ink);
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+.process-page .leadership-report__takeaway-label svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--talena-coral);
+}
+
+.process-page .leadership-report__takeaway p {
+  margin: 0.45rem 0 0;
+  color: var(--talena-text-muted);
+  font-size: 0.66rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .process-page .leadership-report__quadrants {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .process-page .leadership-report__levels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .process-page .leadership-report__intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .process-page .leadership-report__takeaways {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .process-page .leadership-report__quadrant-heading {
+    flex-wrap: wrap;
+  }
+
+  .process-page .leadership-report__quadrant-count {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-page .leadership-report__chevron {
+    transition: none;
+  }
+}
