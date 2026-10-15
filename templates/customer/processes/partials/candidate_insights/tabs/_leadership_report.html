@@ -13,18 +13,8 @@
         </span>
       </div>
 
-      <div class="leadership-report__score-chart" role="img" aria-label="{{ leadership_report_content.chart_intro.title }}">
-        {% for quadrant in leadership_report_content.quadrants %}
-          {% for competency in quadrant.competencies %}
-            <div class="leadership-report__score-row">
-              <span class="leadership-report__score-name">{{ competency.title }}</span>
-              <span class="leadership-report__score-track" aria-hidden="true">
-                <span class="leadership-report__score-fill" style="width: {{ competency.score_percent }}%"></span>
-              </span>
-              <strong class="leadership-report__score-value">{{ competency.score_display }}</strong>
-            </div>
-          {% endfor %}
-        {% endfor %}
+      <div class="leadership-report__wheel-wrap">
+        {{ leadership_report_content.chart_svg|safe }}
       </div>
       <p class="leadership-report__score-scale">{{ leadership_report_content.score_scale_label }}</p>
     </section>
