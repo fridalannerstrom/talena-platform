@@ -69,11 +69,11 @@ def _display_score(score: float, language: str) -> str:
 
 
 def _clean_display_text(value: str | None) -> str:
-    return re.sub(r"\\s+", " ", (value or "").strip())
+    return re.sub(r"\s+", " ", (value or "").strip())
 
 
 def _split_reflection_questions(value: str | None) -> list[str]:
-    pieces = re.split(r"(?:^|\\n)\\s*•\\s*", (value or "").strip())
+    pieces = re.split(r"(?:^|\n)\s*•\s*", (value or "").strip())
     return [_clean_display_text(piece) for piece in pieces if _clean_display_text(piece)]
 
 
