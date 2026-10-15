@@ -566,3 +566,30 @@
 .leadership-wheel__trait{font:600 13px/1.2 sans-serif;fill:#526071}
 .leadership-wheel__quadrant{font:700 20px/1 sans-serif;fill:#191919}
 @media(max-width:760px){.leadership-report__score-overview{padding:12px 6px}.leadership-report__wheel{min-width:620px}.leadership-report__wheel-wrap{overflow-x:auto;overflow-y:hidden}.leadership-report__score-overview-heading{padding:0 12px}}
+
+
+/* Leadership competency cards follow the Team report preference scale */
+.leadership-report__quadrant--1{--leadership-accent:#f36d62}
+.leadership-report__quadrant--2{--leadership-accent:#d99a95}
+.leadership-report__quadrant--3{--leadership-accent:#81aa9b}
+.leadership-report__quadrant--4{--leadership-accent:#d2b98b}
+.leadership-report__competency-card{border:1px solid #eee8e5;border-radius:18px;background:#fff;padding:22px 24px;margin:0 0 18px}
+.leadership-report__competency-card-heading{align-items:flex-start}
+.leadership-report__score-pill{background:#f8f5f4;color:#302e36}
+.leadership-report__preference-scale{margin:20px 0 18px}
+.leadership-report__preference-segments{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.leadership-report__preference-segment{height:13px;border-radius:99px;background:#eeeae8;position:relative}
+.leadership-report__preference-segment.is-filled{background:var(--leadership-accent)}
+.leadership-report__preference-segment.is-selected{outline:2px solid #fff;box-shadow:0 0 0 2px var(--leadership-accent);z-index:1}
+.leadership-report__preference-labels{display:flex;justify-content:space-between;gap:10px;margin-top:9px;color:#89827f;font-size:.76rem;font-weight:600}
+.leadership-report__guidance{border:1px solid color-mix(in srgb,var(--leadership-accent) 24%,white);border-radius:16px;padding:0 18px 18px;background:#fffdfc}
+.leadership-report__guidance>summary{padding:16px 0 13px;color:#69615e;font-weight:700;cursor:pointer;list-style:none}
+.leadership-report__guidance>summary::-webkit-details-marker{display:none}
+.leadership-report__guidance>summary::after{content:"⌃";float:right;color:#817b78;font-size:1.2rem;line-height:1}
+.leadership-report__guidance:not([open])>summary::after{content:"⌄"}
+.leadership-report__guidance-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid #e8e5e3;border-radius:15px;overflow:hidden;background:#fff}
+.leadership-report__guidance-card{padding:20px 22px;min-width:0}
+.leadership-report__guidance-card+ .leadership-report__guidance-card{border-left:1px solid #e8e5e3}
+.leadership-report__guidance-card h5{margin:0 0 11px;color:#171717;font-size:.88rem;font-weight:750}
+.leadership-report__guidance-card p,.leadership-report__guidance-card div{margin:0;color:#615d6f;line-height:1.62}
+@media(max-width:700px){.leadership-report__competency-card{padding:18px 16px}.leadership-report__guidance{padding:0 12px 12px}.leadership-report__guidance-panel{grid-template-columns:1fr}.leadership-report__guidance-card+ .leadership-report__guidance-card{border-left:0;border-top:1px solid #e8e5e3}.leadership-report__preference-labels{font-size:.68rem}}
