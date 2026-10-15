@@ -718,7 +718,7 @@
   document.addEventListener("click", (event) => {
     if (
       event.target.closest("[data-insights-tab='motivation']") ||
-      event.target.closest("[data-insights-tab='team-styles']") ||
+      event.target.closest("[data-insights-tab='reports']") ||
       event.target.closest("[data-insights-subtab]")
     ) {
       scheduleThemePasses();
