@@ -37,7 +37,7 @@
           aria-controls="reports-subpanel-derailment-report"
           data-insights-subtab="derailment-report"
         >
-          Derailment report
+          {% if reports_language|slice:":2" == "sv" %}Urspårningsrapport{% else %}Derailment report{% endif %}
         </button>
       </div>
     </div>
@@ -70,13 +70,7 @@
       data-insights-subpanel="derailment-report"
       hidden
     >
-      <div class="alert alert-light border mb-0">
-        {% if reports_language|slice:":2" == "sv" %}
-          Innehåll för den här rapporten läggs till senare.
-        {% else %}
-          Content for this report will be added later.
-        {% endif %}
-      </div>
+      {% include "customer/processes/partials/candidate_insights/tabs/_derailment_report.html" %}
     </div>
   </div>
 </div>
