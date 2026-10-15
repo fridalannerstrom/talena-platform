@@ -57,7 +57,9 @@ def _parse_score(item: dict) -> float | None:
 
 
 def _display_score(score: float, language: str) -> str:
-    rendered = f"{score:.1f}".rstrip("0").rstrip(".")
+    rendered = str(score)
+    if rendered.endswith(".0"):
+        rendered = rendered[:-2]
     if language == "sv":
         rendered = rendered.replace(".", ",")
         return f"Poäng {rendered}"
@@ -94,7 +96,12 @@ def build_leadership_report_content(
         source_key = source_key_by_name.get(name_key)
         score = _parse_score(item)
         if source_key and score is not None:
-            scores_by_key.setdefault(source_key, score)
+            rounded_score = item.get("stive_rounded")
+            try:
+                rounded_score = int(round(float(rounded_score))) if rounded_score is not None else int(score + 0.5)
+            except (TypeError, ValueError):
+                rounded_score = int(score + 0.5)
+            scores_by_key.setdefault(source_key, (score, max(1, min(5, rounded_score))))
 
     quadrants = []
     all_competencies = []
@@ -104,11 +111,10 @@ def build_leadership_report_content(
         for competency in quadrant["competencies"]:
             source_key = source_keys[slot_index] if slot_index < len(source_keys) else None
             slot_index += 1
-            score = scores_by_key.get(source_key) if source_key else None
-            if score is None:
+            score_result = scores_by_key.get(source_key) if source_key else None
+            if score_result is None:
                 continue
-
-            rounded_score = max(1, min(5, int(round(score))))
+            score, rounded_score = score_result
             level_key = "low" if rounded_score == 1 else ("high" if rounded_score == 5 else "mid")
             level = next(
                 item for item in competency["levels"]
