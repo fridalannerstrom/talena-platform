@@ -112,8 +112,8 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
         result = scores_by_key.get(source_keys[index])
         if result is None:
             continue
-        score, _rounded = result
-        sector_radius = radius * score / 5
+        score, rounded_score = result
+        sector_radius = radius * rounded_score / 5
         start = point(sector_radius, -112.5 + index * 45)
         end = point(sector_radius, -67.5 + index * 45)
         parts.append(
@@ -150,9 +150,9 @@ def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: st
         result = scores_by_key.get(source_keys[index])
         if result is None:
             continue
-        score, _rounded = result
-        score_x, score_y = point(max(29, radius * score / 5 * 0.67), -90 + index * 45)
-        score_text = fmt(score).replace(".", ",") if language == "sv" else fmt(score)
+        _score, rounded_score = result
+        score_x, score_y = point(max(29, radius * rounded_score / 5 * 0.67), -90 + index * 45)
+        score_text = str(rounded_score)
         parts.append(
             f'<text class="leadership-wheel__score" x="{fmt(score_x)}" y="{fmt(score_y)}" '
             f'text-anchor="middle" dominant-baseline="central">{escape(score_text)}</text>'
@@ -248,8 +248,8 @@ def build_leadership_report_content(
             rendered = {
                 **competency,
                 "score": score,
-                "score_display": _display_score(score, language),
-                "score_percent": score * 20,
+                "score_display": _display_score(float(rounded_score), language),
+                "score_percent": rounded_score * 20,
                 "level": level,
                 "interpretation": level["interpretation"],
                 "questions": level["questions"],
