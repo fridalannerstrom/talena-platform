@@ -19,6 +19,9 @@ from apps.reports.services.candidate_insights import (
 from apps.reports.services.leadership_report import (
     build_leadership_report_content,
 )
+from apps.reports.services.derailment_report import (
+    build_derailment_report_content,
+)
 
 
 from apps.core.utils.auth import is_admin
@@ -4391,6 +4394,7 @@ def build_candidate_detail_context(
 
         "team_style_profile": team_style_profile,
         "leadership_report_content": build_leadership_report_content(language, personality_competencies),
+        "derailment_report_content": build_derailment_report_content(language, personality_competencies),
         # Cognitive AI interpretation
         "cognitive_interpretation": (
             invitation.ai_cognitive_interpretation
@@ -10515,6 +10519,7 @@ def build_historical_candidate_detail_context(
 
         "team_style_profile": team_style_profile,
         "leadership_report_content": build_leadership_report_content(language, normalised_personality_competencies + normalised_team_style_scores),
+        "derailment_report_content": build_derailment_report_content(language, normalised_personality_competencies),
 
         "personality_interpretation_status": (
             historical_candidate
