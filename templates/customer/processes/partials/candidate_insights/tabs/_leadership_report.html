@@ -27,7 +27,7 @@
       </div>
     </header>
 
-    <section class="leadership-report__quadrants">
+    <div class="leadership-report__quadrants">
       {% for quadrant in leadership_report_content.quadrants %}
         {% if quadrant.competencies %}
           <section class="leadership-report__quadrant leadership-report__quadrant--{{ forloop.counter }}">
@@ -35,41 +35,58 @@
               <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
               <h3>{{ quadrant.title }}</h3>
             </header>
-            <div class="leadership-report__competencies">
+            <div class="team-style-ranked-list">
               {% for competency in quadrant.competencies %}
-                <article class="leadership-report__competency-card">
-                  <header class="leadership-report__competency-card-heading">
-                    <div>
-                      <h4>{{ competency.title }}</h4>
-                      <p class="leadership-report__definition">{{ competency.definition|linebreaksbr }}</p>
-                    </div>
-                    <span class="leadership-report__score-pill">{{ competency.score_display }}</span>
-                  </header>
+                <article class="insight-summary-content mb-4 team-style-profile-card leadership-report__competency-card">
+                  <div class="team-style-profile-card__intro">
+                    <h4 class="response-style-item__title team-style-profile-card__title">
+                      {{ competency.title }}
+                      <span class="leadership-report__score-pill">{{ competency.score_display }}</span>
+                    </h4>
+                    <p class="team-style-profile-card__definition">{{ competency.definition_display }}</p>
+                  </div>
 
-                  <div class="leadership-report__preference-scale" aria-label="{{ competency.score_display }}">
-                    <div class="leadership-report__preference-segments" aria-hidden="true">
-                      {% for point in competency.scale_points %}
-                        <span class="leadership-report__preference-segment{% if point.filled %} is-filled{% endif %}{% if point.selected %} is-selected{% endif %}"></span>
+                  <div
+                    class="response-style-scale response-style-scale--linear team-style-result__scale team-style-profile-card__scale"
+                    role="meter"
+                    aria-label="{{ competency.title }}: {{ competency.score_display }}"
+                    aria-valuemin="1"
+                    aria-valuemax="5"
+                    aria-valuenow="{{ competency.score_rounded }}"
+                  >
+                    <div class="response-style-scale__segments">
+                      {% for segment in competency.scale_segments %}
+                        <span class="response-style-scale__segment{% if segment == competency.score_rounded %} response-style-scale__segment--marker{% endif %}{% if segment <= competency.score_rounded %} response-style-scale__segment--filled{% endif %}"></span>
                       {% endfor %}
                     </div>
-                    <div class="leadership-report__preference-labels" aria-hidden="true">
+                    <div class="response-style-scale__labels">
                       <span>{{ leadership_report_content.least_preferred_label }}</span>
                       <span>{{ leadership_report_content.average_label }}</span>
                       <span>{{ leadership_report_content.most_preferred_label }}</span>
                     </div>
                   </div>
 
-                  <details class="leadership-report__guidance" open>
-                    <summary>{{ leadership_report_content.guidance_title }}</summary>
-                    <div class="leadership-report__guidance-panel">
-                      <article class="leadership-report__guidance-card">
-                        <h5>{{ leadership_report_content.interpretation_title }}</h5>
-                        <p>{{ competency.interpretation|linebreaksbr }}</p>
-                      </article>
-                      <article class="leadership-report__guidance-card">
-                        <h5>{{ leadership_report_content.reflection_title }}</h5>
-                        <div>{{ competency.questions|linebreaksbr }}</div>
-                      </article>
+                  <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
+                    <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
+                      {{ leadership_report_content.guidance_title }}
+                    </summary>
+                    <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+                      <div class="team-style-guidance">
+                        <div class="team-style-guidance__header">
+                          <p>{{ competency.interpretation_display }}</p>
+                        </div>
+                        <div class="team-style-guidance__grid">
+                          {% for question in competency.question_items %}
+                            <div class="team-style-guidance__item">
+                              <div class="team-style-guidance__item-header">
+                                <i data-feather="message-circle" aria-hidden="true"></i>
+                                <span>{{ leadership_report_content.reflection_question_label }} {{ forloop.counter }}</span>
+                              </div>
+                              <p>{{ question }}</p>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
                     </div>
                   </details>
                 </article>
@@ -78,7 +95,7 @@
           </section>
         {% endif %}
       {% endfor %}
-    </section>
+    </div>
   {% else %}
     <section class="leadership-report__empty">
       <span class="leadership-report__empty-icon" aria-hidden="true"><i data-feather="bar-chart-2"></i></span>
