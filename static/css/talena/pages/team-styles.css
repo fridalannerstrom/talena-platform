@@ -556,3 +556,13 @@
 .leadership-report__empty h3{margin:10px 0 8px}
 .leadership-report__empty p{max-width:560px;margin:0 auto;color:#706c7f;line-height:1.6}
 @media(max-width:760px){.leadership-report__score-chart{grid-template-columns:1fr}.leadership-report__rankings{grid-template-columns:1fr}.leadership-report__score-overview{padding:18px}.leadership-report__score-row{grid-template-columns:minmax(105px,1fr) minmax(60px,1fr) auto}.leadership-report__competency-card{padding:17px}}
+
+
+/* Circular, SOVA-inspired leadership competency score wheel */
+.leadership-report__wheel-wrap{width:100%;max-width:940px;margin:0 auto;overflow:visible}
+.leadership-report__wheel{display:block;width:100%;height:auto;max-height:820px;overflow:visible}
+.leadership-wheel__ring-label{font:500 13px/1 sans-serif;fill:#8a8585}
+.leadership-wheel__score{font:700 17px/1 sans-serif;fill:#fff}
+.leadership-wheel__trait{font:600 13px/1.2 sans-serif;fill:#526071}
+.leadership-wheel__quadrant{font:700 20px/1 sans-serif;fill:#191919}
+@media(max-width:760px){.leadership-report__score-overview{padding:12px 6px}.leadership-report__wheel{min-width:620px}.leadership-report__wheel-wrap{overflow-x:auto;overflow-y:hidden}.leadership-report__score-overview-heading{padding:0 12px}}
