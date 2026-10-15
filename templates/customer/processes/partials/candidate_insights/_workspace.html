@@ -14,10 +14,12 @@
   {% trans "Skills" as cognitive_panel_title %}
 {% endif %}
 {% trans "A practical interpretation of the available cognitive results in relation to the selected purpose and process context." as cognitive_panel_description %}
-{% trans "Team styles" as team_styles_panel_title %}
-{% blocktrans trimmed asvar team_styles_panel_description %}
-  The profile shows how the candidate may approach eight roles commonly observed in teams. Results use Sova's five-point team-style scale.
-{% endblocktrans %}
+{% trans "Reports" as reports_panel_title %}
+{% if LANGUAGE_CODE|slice:":2" == "sv" %}
+  {% trans "Rapporter för team, ledarskap och beteendemönster." as reports_panel_description %}
+{% else %}
+  {% trans "Reports covering team, leadership and derailment." as reports_panel_description %}
+{% endif %}
 
 {% if show_context_prompt %}
 
@@ -162,18 +164,18 @@
         </div>
 
 
-        <!-- TEAM STYLES -->
+        <!-- REPORTS -->
 
         <div
-          id="candidate-insights-panel-team-styles"
+          id="candidate-insights-panel-reports"
           class="candidate-insights-panel candidate-insight-page"
           role="tabpanel"
-          data-insights-panel="team-styles"
+          data-insights-panel="reports"
           hidden
         >
-          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=team_styles_panel_title section_description=team_styles_panel_description %}
+          {% include "customer/processes/partials/candidate_insights/_panel_header.html" with section_eyebrow=candidate_insights_eyebrow section_title=reports_panel_title section_description=reports_panel_description %}
           <div class="candidate-insight-page-body">
-            {% include "customer/processes/partials/candidate_insights/tabs/_team_styles.html" %}
+            {% include "customer/processes/partials/candidate_insights/tabs/_reports.html" %}
           </div>
         </div>
 
@@ -215,7 +217,7 @@
       >
 
         <span class="fw-semibold">
-          {% trans "Reports" %}
+          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Testrapporter{% else %}Assessment report files{% endif %}
         </span>
 
         <span class="reports-toggle__right">
