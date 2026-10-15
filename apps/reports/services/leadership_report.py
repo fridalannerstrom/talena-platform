@@ -68,6 +68,15 @@ def _display_score(score: float, language: str) -> str:
     return f"Score {rendered}"
 
 
+def _clean_display_text(value: str | None) -> str:
+    return re.sub(r"\\s+", " ", (value or "").strip())
+
+
+def _split_reflection_questions(value: str | None) -> list[str]:
+    pieces = re.split(r"(?:^|\\n)\\s*•\\s*", (value or "").strip())
+    return [_clean_display_text(piece) for piece in pieces if _clean_display_text(piece)]
+
+
 def _wrap_svg_label(value: str, limit: int = 16) -> list[str]:
     words = value.split()
     lines = []
@@ -251,14 +260,10 @@ def build_leadership_report_content(
                 "score_display": _display_score(float(rounded_score), language),
                 "score_percent": rounded_score * 20,
                 "score_rounded": rounded_score,
-                "scale_points": [
-                    {
-                        "value": value,
-                        "filled": value <= rounded_score,
-                        "selected": value == rounded_score,
-                    }
-                    for value in range(1, 6)
-                ],
+                "scale_points": [value for value in range(1, 6)],
+                "definition_display": _clean_display_text(competency["definition"]),
+                "interpretation_display": _clean_display_text(level["interpretation"]),
+                "question_items": _split_reflection_questions(level["questions"]),
                 "level": level,
                 "interpretation": level["interpretation"],
                 "questions": level["questions"],
