@@ -40,6 +40,8 @@ def _name_key(value: str | None) -> str:
 def _parse_score(item: dict) -> float | None:
     # STIVE is SOVA's native 1–5 leadership preference score.
     raw_score = item.get("stive")
+    if raw_score is None:
+        raw_score = item.get("stive_rounded")
     if raw_score is None and str(item.get("category") or "").strip().lower() == "leadership":
         scale = str(item.get("scale") or "").strip().lower().replace("-", "_")
         if scale in {"one_to_five", "1_to_5", "1 to 5"}:
