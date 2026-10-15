@@ -605,3 +605,46 @@
 .process-page .leadership-report__competency-card .response-style-scale__labels{display:flex;justify-content:space-between}
 .process-page .leadership-report__competency-card .team-style-guidance-explainer{display:block;width:100%}
 .process-page .leadership-report__competency-card .team-style-guidance__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+
+/* Candidate-specific Derailment Report */
+.derailment-report__overview,
+.derailment-report__intro,
+.derailment-report__factor-card,
+.derailment-report__empty{background:#fff;border:1px solid #e9e5e2;border-radius:18px;box-shadow:0 7px 22px rgba(30,27,75,.045)}
+.derailment-report__overview{padding:24px;margin:0 0 22px}
+.derailment-report__overview-heading,.derailment-report__factor-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.derailment-report__eyebrow{display:block;color:#827b76;font-size:.73rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+.derailment-report__overview-heading h3,.derailment-report__section-heading h3{margin:5px 0 0;color:#242126;font-size:1.2rem}
+.derailment-report__score-count,.derailment-report__score-pill{white-space:nowrap;font-weight:750;color:#51429a;background:#f1effa;border-radius:999px;padding:7px 11px;font-size:.82rem}
+.derailment-report__profile-list{margin-top:18px}
+.derailment-report__profile-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.85fr) minmax(0,1fr);align-items:center;gap:20px;padding:17px 0;border-top:1px solid #eee9e6}
+.derailment-report__profile-copy{min-width:0;color:#65616b;font-size:.82rem;line-height:1.5}
+.derailment-report__profile-copy>span{display:block;margin-bottom:4px;color:#89827f;font-size:.68rem;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.derailment-report__profile-copy p{margin:0}
+.derailment-report__profile-copy--higher{text-align:right}
+.derailment-report__profile-result{min-width:0}
+.derailment-report__profile-result-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.derailment-report__profile-result-heading strong{color:#302e36;font-size:.88rem}
+.derailment-report__profile-result-heading span{white-space:nowrap;color:#51429a;font-size:.75rem;font-weight:750}
+.derailment-report__scale-segments{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.derailment-report__scale-segment{height:10px;border-radius:99px;background:#eeeae8;position:relative}
+.derailment-report__scale-segment.is-filled{background:#d9d4d1}
+.derailment-report__scale-segment.is-marker{background:#f36d62;box-shadow:0 0 0 2px white,0 0 0 4px #f36d62;z-index:1}
+.derailment-report__scale-labels{display:flex;justify-content:space-between;margin-top:7px;color:#928b88;font-size:.68rem}
+.derailment-report__scale-note{margin:14px 0 0;text-align:right;color:#89827f;font-size:.76rem}
+.derailment-report__intro{display:flex;gap:15px;padding:22px;margin:0 0 24px}
+.derailment-report__intro-icon{display:flex;align-items:center;justify-content:center;flex:0 0 40px;height:40px;border-radius:13px;background:#f8f2ef;color:#c35d54}
+.derailment-report__intro h3{margin:0 0 7px;font-size:1.02rem}
+.derailment-report__intro p{margin:0;color:#625e67;line-height:1.65}
+.derailment-report__section-heading{margin:0 0 14px}
+.derailment-report__factor-card{padding:19px 21px;margin-bottom:14px}
+.derailment-report__factor-heading{margin-bottom:13px}
+.derailment-report__factor-heading h4{margin:0;font-size:1rem}
+.derailment-report .team-style-guidance__header{padding:18px 20px;border:1px solid #ece8e5;border-radius:14px;background:#fff}
+.derailment-report .team-style-guidance__header p{margin:0;color:#625e67;line-height:1.65}
+.derailment-report__empty{text-align:center;padding:48px 24px;border-style:dashed}
+.derailment-report__empty h3{margin:10px 0 8px}
+.derailment-report__empty p{max-width:560px;margin:0 auto;color:#706c7f;line-height:1.6}
+@media(max-width:900px){.derailment-report__profile-row{grid-template-columns:1fr 1fr;gap:12px}.derailment-report__profile-result{grid-column:1/-1;grid-row:1}.derailment-report__profile-copy--higher{text-align:left}}
+@media(max-width:600px){.derailment-report__overview{padding:16px 14px}.derailment-report__profile-row{grid-template-columns:1fr}.derailment-report__profile-result{grid-column:auto;grid-row:auto}.derailment-report__profile-copy--higher{text-align:left}.derailment-report__intro{padding:17px}.derailment-report__factor-card{padding:17px 15px}.derailment-report__overview-heading{align-items:flex-start}}
