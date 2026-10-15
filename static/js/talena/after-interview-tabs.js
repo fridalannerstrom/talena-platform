@@ -11,7 +11,6 @@
         overview: "Helhetsbild",
         interview: "Intervjusammanfattning",
         explore: "Undersök vidare",
-        wellbeing: "Tips för trivsel",
         managerReport: "Chefsrapport",
         evidence: "Underlag",
       },
@@ -19,7 +18,6 @@
         overview: "En samlad bild av testresultat, intervjuunderlag och processkontext.",
         interview: "Vad intervjun bekräftar, nyanserar eller tillför till testresultaten.",
         explore: "Frågor och områden där ytterligare underlag kan ge en mer komplett bild.",
-        wellbeing: "Förutsättningar och samtalspunkter som kan bidra till trivsel i rollen.",
         managerReport: "Ett samlat stöd för rekryteraren och ansvarig chef, med fokus på kandidatens resultat och relevanta frågor att följa upp.",
         evidence: "Intervjuanteckningar och svar som Talena använder som underlag.",
       },
@@ -46,6 +44,7 @@
       ],
       managerPersonalityTestbild: "Testbild",
       managerPersonalityCandidateDescribes: "Kandidaten beskriver",
+      managerPersonalityAdviceTitle: "För chefen",
       managerPersonalityTestMissing: "Ingen testtolkning är tillgänglig ännu.",
       managerPersonalityInterviewMissing: "Inga intervjuanteckningar är tillgängliga ännu.",
       managerSkillNames: { numerical: "Numeriskt", logical: "Logiskt", verbal: "Verbalt" },
@@ -106,7 +105,6 @@
         overview: "Overall picture",
         interview: "Interview summary",
         explore: "Explore further",
-        wellbeing: "Wellbeing tips",
         managerReport: "Manager report",
         evidence: "Evidence",
       },
@@ -114,7 +112,6 @@
         overview: "A combined view of assessment results, interview evidence and process context.",
         interview: "What the interview confirms, nuances or adds to the assessment results.",
         explore: "Questions and areas where additional evidence may create a more complete view.",
-        wellbeing: "Conditions and conversation points that may support wellbeing in the role.",
         managerReport: "A practical overview for the recruiter and manager, focused on the candidate’s results and relevant topics to follow up.",
         evidence: "Interview notes and answers used by Talena as evidence.",
       },
@@ -141,6 +138,7 @@
       ],
       managerPersonalityTestbild: "Test profile",
       managerPersonalityCandidateDescribes: "The candidate describes",
+      managerPersonalityAdviceTitle: "For the manager",
       managerPersonalityTestMissing: "No test interpretation is available yet.",
       managerPersonalityInterviewMissing: "No interview notes are available yet.",
       managerSkillNames: { numerical: "Numerical", logical: "Logical", verbal: "Verbal" },
@@ -1137,6 +1135,19 @@
       __PANEL__ .after-interview-manager-report__personality-title {
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
+      __PANEL__ .after-interview-manager-report__personality-advice {
+        margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 12px; background: #fff;
+      }
+      __PANEL__ .after-interview-manager-report__personality-advice-header {
+        display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-advice-title {
+        margin: 0; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__personality-advice-text {
+        margin-top: .55rem; color: var(--talena-text-muted, #766e68); font-size: .78rem; line-height: 1.65;
+      }
       __PANEL__ .after-interview-manager-report__generate[aria-busy="true"] {
         opacity: .75; cursor: wait;
       }
@@ -1266,7 +1277,7 @@
     const tabPanels = document.createElement("div");
     tabPanels.className = "candidate-insights-subworkspace__panels";
 
-    const keys = ["overview", "interview", "explore", "wellbeing", "managerReport", "evidence"];
+    const keys = ["overview", "interview", "explore", "managerReport", "evidence"];
     const buttons = new Map();
     const panels = new Map();
     keys.forEach((key) => {
@@ -1299,10 +1310,6 @@
     const exploreFallback = document.createElement("div");
     [contradictions, remaining].filter(Boolean).forEach((node) => exploreFallback.appendChild(node));
 
-    const wellbeingFallback = document.createElement("div");
-    const suggestedColumn = remaining?.querySelector(".after-interview-next-steps-column");
-    if (suggestedColumn) wellbeingFallback.appendChild(suggestedColumn.cloneNode(true));
-
     panels.get("overview").appendChild(
       makeCard(panel, "overall_picture", copy().tabs.overview, copy().descriptions.overview, summary, "overall_picture"),
     );
@@ -1312,10 +1319,6 @@
     panels.get("explore").appendChild(
       makeCard(panel, "explore_further", copy().tabs.explore, copy().descriptions.explore, exploreFallback.childNodes.length ? exploreFallback : null, "explore_further"),
     );
-    panels.get("wellbeing").appendChild(
-      makeCard(panel, "wellbeing_tips", copy().tabs.wellbeing, copy().descriptions.wellbeing, wellbeingFallback.childNodes.length ? wellbeingFallback : null, "wellbeing_tips"),
-    );
-
     const managerReportCard = document.createElement("section");
     managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
     const managerReportHeader = document.createElement("div");
@@ -1697,6 +1700,40 @@
       themeCard.append(themeTitle, parts);
       managerPersonality.appendChild(themeCard);
     });
+
+    const managerAdvice = document.createElement("section");
+    managerAdvice.className = "after-interview-manager-report__personality-advice";
+    const managerAdviceHeader = document.createElement("div");
+    managerAdviceHeader.className = "after-interview-manager-report__personality-advice-header";
+    const managerAdviceTitle = document.createElement("h5");
+    managerAdviceTitle.className = "after-interview-manager-report__personality-advice-title";
+    managerAdviceTitle.textContent = copy().managerPersonalityAdviceTitle;
+    const managerAdviceBody =
+      sourceContent(panel, "wellbeing_tips") || document.createElement("div");
+    const hasManagerAdviceText = Boolean(managerAdviceBody.textContent?.trim());
+    managerAdviceBody.classList.add("after-interview-manager-report__personality-advice-text");
+    if (!hasManagerAdviceText) {
+      managerAdviceBody.classList.add("after-interview-tab-empty");
+      managerAdviceBody.textContent = copy().unavailable;
+    }
+    const managerAdviceError = document.createElement("div");
+    managerAdviceError.className = "alert alert-danger d-none mt-3 mb-0";
+    managerAdviceError.setAttribute("role", "alert");
+    const managerAdviceRegenerate = document.createElement("button");
+    managerAdviceRegenerate.type = "button";
+    managerAdviceRegenerate.className = "btn btn-icon btn-light after-interview-tab-card__regenerate";
+    managerAdviceRegenerate.title = hasManagerAdviceText
+      ? copy().regenerateSection
+      : copy().generateSection;
+    managerAdviceRegenerate.setAttribute("aria-label", managerAdviceRegenerate.title);
+    managerAdviceRegenerate.dataset.afterInterviewRegenerate = "wellbeing_tips";
+    managerAdviceRegenerate.innerHTML = '<i data-feather="refresh-cw"></i>';
+    managerAdviceHeader.append(managerAdviceTitle, managerAdviceRegenerate);
+    managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
+    managerPersonality.appendChild(managerAdvice);
+    managerAdviceRegenerate.addEventListener("click", () =>
+      generateContentBlock(panel, "wellbeing_tips", managerAdviceBody, managerAdviceError, managerAdviceRegenerate),
+    );
 
     document.addEventListener("talena:manager-personality-updated", (event) => {
       const detail = event.detail || {};
