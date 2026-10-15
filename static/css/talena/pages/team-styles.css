@@ -593,3 +593,15 @@
 .leadership-report__guidance-card h5{margin:0 0 11px;color:#171717;font-size:.88rem;font-weight:750}
 .leadership-report__guidance-card p,.leadership-report__guidance-card div{margin:0;color:#615d6f;line-height:1.62}
 @media(max-width:700px){.leadership-report__competency-card{padding:18px 16px}.leadership-report__guidance{padding:0 12px 12px}.leadership-report__guidance-panel{grid-template-columns:1fr}.leadership-report__guidance-card+ .leadership-report__guidance-card{border-left:0;border-top:1px solid #e8e5e3}.leadership-report__preference-labels{font-size:.68rem}}
+
+
+/* Leadership uses the Team report's single-column result card flow. */
+.process-page .leadership-report__quadrants{grid-template-columns:minmax(0,1fr)!important}
+.process-page .leadership-report__quadrant{width:100%;overflow:visible}
+.process-page .leadership-report__quadrant .team-style-ranked-list{display:block;width:100%}
+.process-page .leadership-report__competency-card{display:block;width:100%;text-align:left}
+.process-page .leadership-report__competency-card .team-style-profile-card__intro{width:100%;text-align:left}
+.process-page .leadership-report__competency-card .team-style-profile-card__definition{max-width:900px}
+.process-page .leadership-report__competency-card .response-style-scale__labels{display:flex;justify-content:space-between}
+.process-page .leadership-report__competency-card .team-style-guidance-explainer{display:block;width:100%}
+.process-page .leadership-report__competency-card .team-style-guidance__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
