@@ -1,102 +1,102 @@
 {% load i18n %}
 
 <section class="leadership-report" aria-label="{{ leadership_report_content.aria_label }}">
-  <header class="leadership-report__intro">
-    <div class="leadership-report__intro-icon" aria-hidden="true">
-      <i data-feather="compass"></i>
-    </div>
-    <div class="leadership-report__intro-copy">
-      <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
-      <h3>{{ leadership_report_content.introduction.title }}</h3>
-      <div class="leadership-report__intro-text">
-        {{ leadership_report_content.introduction.body|linebreaksbr }}
+  {% if leadership_report_content.has_results %}
+    <section class="leadership-report__score-overview" aria-labelledby="leadership-score-heading">
+      <div class="leadership-report__score-overview-heading">
+        <div>
+          <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
+          <h3 id="leadership-score-heading">{{ leadership_report_content.chart_intro.title }}</h3>
+        </div>
+        <span class="leadership-report__score-count">
+          {{ leadership_report_content.scores_count }} {{ leadership_report_content.score_count_label }}
+        </span>
       </div>
-    </div>
-  </header>
 
-  <section class="leadership-report__profile-intro">
-    <div class="leadership-report__section-heading">
-      <span class="leadership-report__section-icon" aria-hidden="true">
-        <i data-feather="target"></i>
-      </span>
-      <div>
-        <h3>{{ leadership_report_content.chart_intro.title }}</h3>
-        <p>{{ leadership_report_content.chart_intro.body|linebreaksbr }}</p>
+      <div class="leadership-report__score-chart" role="img" aria-label="{{ leadership_report_content.chart_intro.title }}">
+        {% for quadrant in leadership_report_content.quadrants %}
+          {% for competency in quadrant.competencies %}
+            <div class="leadership-report__score-row">
+              <span class="leadership-report__score-name">{{ competency.title }}</span>
+              <span class="leadership-report__score-track" aria-hidden="true">
+                <span class="leadership-report__score-fill" style="width: {{ competency.score_percent }}%"></span>
+              </span>
+              <strong class="leadership-report__score-value">{{ competency.score_display }}</strong>
+            </div>
+          {% endfor %}
+        {% endfor %}
       </div>
-    </div>
-  </section>
+      <p class="leadership-report__score-scale">{{ leadership_report_content.score_scale_label }}</p>
+    </section>
 
-  {% if leadership_report_content.strengths_intro %}
-    <section class="leadership-report__strengths-intro">
-      {{ leadership_report_content.strengths_intro.title }}
-      <p>{{ leadership_report_content.strengths_intro.body|linebreaksbr }}</p>
+    <header class="leadership-report__intro">
+      <div class="leadership-report__intro-icon" aria-hidden="true"><i data-feather="compass"></i></div>
+      <div class="leadership-report__intro-copy">
+        <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
+        <h3>{{ leadership_report_content.introduction.title }}</h3>
+        <div class="leadership-report__intro-text">{{ leadership_report_content.introduction.body|linebreaksbr }}</div>
+      </div>
+    </header>
+
+    <section class="leadership-report__rankings" aria-label="{{ leadership_report_content.highest_scores_title }}">
+      <article class="leadership-report__ranking leadership-report__ranking--high">
+        <h3>{{ leadership_report_content.highest_scores_title }}</h3>
+        {% for competency in leadership_report_content.top_competencies %}
+          <div class="leadership-report__ranking-item">
+            <span>{{ competency.title }}</span>
+            <strong>{{ competency.score_display }}</strong>
+          </div>
+        {% endfor %}
+      </article>
+      <article class="leadership-report__ranking leadership-report__ranking--low">
+        <h3>{{ leadership_report_content.lowest_score_title }}</h3>
+        {% for competency in leadership_report_content.development_competencies %}
+          <div class="leadership-report__ranking-item">
+            <span>{{ competency.title }}</span>
+            <strong>{{ competency.score_display }}</strong>
+          </div>
+        {% endfor %}
+      </article>
+    </section>
+
+    <section class="leadership-report__quadrants">
+      {% for quadrant in leadership_report_content.quadrants %}
+        {% if quadrant.competencies %}
+          <section class="leadership-report__quadrant">
+            <header class="leadership-report__quadrant-heading">
+              <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
+              <h3>{{ quadrant.title }}</h3>
+            </header>
+            <div class="leadership-report__competencies">
+              {% for competency in quadrant.competencies %}
+                <article class="leadership-report__competency-card">
+                  <header class="leadership-report__competency-card-heading">
+                    <div>
+                      <h4>{{ competency.title }}</h4>
+                      <p class="leadership-report__definition">{{ competency.definition|linebreaksbr }}</p>
+                    </div>
+                    <span class="leadership-report__score-pill">{{ competency.score_display }}</span>
+                  </header>
+                  <div class="leadership-report__interpretation">
+                    <span class="leadership-report__level-label">{{ competency.level.label }}</span>
+                    <p>{{ competency.interpretation|linebreaksbr }}</p>
+                  </div>
+                  <div class="leadership-report__questions">
+                    <h5>{{ competency.level.questions_title }}</h5>
+                    <div>{{ competency.questions|linebreaksbr }}</div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="leadership-report__empty">
+      <span class="leadership-report__empty-icon" aria-hidden="true"><i data-feather="bar-chart-2"></i></span>
+      <h3>{{ leadership_report_content.empty_title }}</h3>
+      <p>{{ leadership_report_content.empty_body }}</p>
     </section>
   {% endif %}
-
-  <div class="leadership-report__quadrants">
-    {% for quadrant in leadership_report_content.quadrants %}
-      <section class="leadership-report__quadrant">
-        <header class="leadership-report__quadrant-heading">
-          <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
-          <h3>{{ quadrant.title }}</h3>
-          <span class="leadership-report__quadrant-count">
-            {{ quadrant.competencies|length }}
-            {{ leadership_report_content.competency_count_label }}
-          </span>
-        </header>
-
-        <div class="leadership-report__competencies">
-          {% for competency in quadrant.competencies %}
-            <details class="leadership-report__competency">
-              <summary class="leadership-report__competency-summary">
-                <span class="leadership-report__competency-content">
-                  <span class="leadership-report__competency-title">{{ competency.title }}</span>
-                  <span class="leadership-report__definition">{{ competency.definition }}</span>
-                </span>
-                <span class="leadership-report__chevron" aria-hidden="true"></span>
-              </summary>
-
-              <div class="leadership-report__competency-detail">
-                <div class="leadership-report__levels">
-                  {% for level in competency.levels %}
-                    <article class="leadership-report__level leadership-report__level--{{ level.key }}">
-                      <header class="leadership-report__level-heading">
-                        <span class="leadership-report__level-label">{{ level.label }}</span>
-                        <span class="leadership-report__score-label">{{ level.score_label }}</span>
-                      </header>
-
-                      <p class="leadership-report__interpretation">{{ level.interpretation }}</p>
-
-                      <div class="leadership-report__questions">
-                        <h5>{{ level.questions_title }}</h5>
-                        <div>{{ level.questions|linebreaksbr }}</div>
-                      </div>
-                    </article>
-                  {% endfor %}
-                </div>
-
-                <div class="leadership-report__takeaways">
-                  <article class="leadership-report__takeaway leadership-report__takeaway--strength">
-                    <span class="leadership-report__takeaway-label">
-                      <i data-feather="arrow-up-right" aria-hidden="true"></i>
-                      {{ leadership_report_content.strength_title }}
-                    </span>
-                    <p>{{ competency.likely_strengths }}</p>
-                  </article>
-
-                  <article class="leadership-report__takeaway leadership-report__takeaway--development">
-                    <span class="leadership-report__takeaway-label">
-                      <i data-feather="compass" aria-hidden="true"></i>
-                      {{ leadership_report_content.development_title }}
-                    </span>
-                    <p>{{ competency.development_need }}</p>
-                  </article>
-                </div>
-              </div>
-            </details>
-          {% endfor %}
-        </div>
-      </section>
-    {% endfor %}
-  </div>
 </section>
