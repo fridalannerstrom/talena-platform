@@ -250,6 +250,15 @@ def build_leadership_report_content(
                 "score": score,
                 "score_display": _display_score(float(rounded_score), language),
                 "score_percent": rounded_score * 20,
+                "score_rounded": rounded_score,
+                "scale_points": [
+                    {
+                        "value": value,
+                        "filled": value <= rounded_score,
+                        "selected": value == rounded_score,
+                    }
+                    for value in range(1, 6)
+                ],
                 "level": level,
                 "interpretation": level["interpretation"],
                 "questions": level["questions"],
@@ -259,7 +268,6 @@ def build_leadership_report_content(
 
         quadrants.append(rendered_quadrant)
 
-    ordered = sorted(all_competencies, key=lambda item: item["score"], reverse=True)
     return {
         **content,
         "quadrants": quadrants,
@@ -267,11 +275,6 @@ def build_leadership_report_content(
         "has_results": bool(all_competencies),
         "scores_count": len(all_competencies),
         "total_competencies": 8,
-        "top_competencies": ordered[:2],
-        "development_competencies": (
-            [min(all_competencies, key=lambda item: item["score"])]
-            if all_competencies else []
-        ),
         "empty_title": "Inga ledarskapspoäng tillgängliga" if language == "sv"
             else "No leadership scores available",
         "empty_body": (
@@ -283,4 +286,10 @@ def build_leadership_report_content(
         "highest_scores_title": "Högsta resultat" if language == "sv" else "Highest results",
         "lowest_score_title": "Lägsta resultat" if language == "sv" else "Lowest result",
         "score_scale_label": "Poängskala 1–5" if language == "sv" else "Score scale 1–5",
+        "guidance_title": "Praktisk vägledning" if language == "sv" else "Practical guidance",
+        "interpretation_title": "Tolkning av resultatet" if language == "sv" else "Score interpretation",
+        "reflection_title": "Frågor att reflektera över" if language == "sv" else "Questions to reflect on",
+        "least_preferred_label": "Minst föredragen" if language == "sv" else "Least preferred",
+        "average_label": "Medel" if language == "sv" else "Average",
+        "most_preferred_label": "Mest föredragen" if language == "sv" else "Most preferred",
     }
