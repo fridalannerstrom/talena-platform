@@ -4390,7 +4390,7 @@ def build_candidate_detail_context(
         "motivation_insights": motivation_insights,
 
         "team_style_profile": team_style_profile,
-        "leadership_report_content": build_leadership_report_content(language),
+        "leadership_report_content": build_leadership_report_content(language, personality_competencies),
         # Cognitive AI interpretation
         "cognitive_interpretation": (
             invitation.ai_cognitive_interpretation
@@ -10514,7 +10514,7 @@ def build_historical_candidate_detail_context(
         ),
 
         "team_style_profile": team_style_profile,
-        "leadership_report_content": build_leadership_report_content(language),
+        "leadership_report_content": build_leadership_report_content(language, normalised_personality_competencies + normalised_team_style_scores),
 
         "personality_interpretation_status": (
             historical_candidate
