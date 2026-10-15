@@ -12,7 +12,6 @@
           {{ leadership_report_content.scores_count }} {{ leadership_report_content.score_count_label }}
         </span>
       </div>
-
       <div class="leadership-report__wheel-wrap">
         {{ leadership_report_content.chart_svg|safe }}
       </div>
@@ -28,31 +27,10 @@
       </div>
     </header>
 
-    <section class="leadership-report__rankings" aria-label="{{ leadership_report_content.highest_scores_title }}">
-      <article class="leadership-report__ranking leadership-report__ranking--high">
-        <h3>{{ leadership_report_content.highest_scores_title }}</h3>
-        {% for competency in leadership_report_content.top_competencies %}
-          <div class="leadership-report__ranking-item">
-            <span>{{ competency.title }}</span>
-            <strong>{{ competency.score_display }}</strong>
-          </div>
-        {% endfor %}
-      </article>
-      <article class="leadership-report__ranking leadership-report__ranking--low">
-        <h3>{{ leadership_report_content.lowest_score_title }}</h3>
-        {% for competency in leadership_report_content.development_competencies %}
-          <div class="leadership-report__ranking-item">
-            <span>{{ competency.title }}</span>
-            <strong>{{ competency.score_display }}</strong>
-          </div>
-        {% endfor %}
-      </article>
-    </section>
-
     <section class="leadership-report__quadrants">
       {% for quadrant in leadership_report_content.quadrants %}
         {% if quadrant.competencies %}
-          <section class="leadership-report__quadrant">
+          <section class="leadership-report__quadrant leadership-report__quadrant--{{ forloop.counter }}">
             <header class="leadership-report__quadrant-heading">
               <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
               <h3>{{ quadrant.title }}</h3>
@@ -67,14 +45,33 @@
                     </div>
                     <span class="leadership-report__score-pill">{{ competency.score_display }}</span>
                   </header>
-                  <div class="leadership-report__interpretation">
-                    <span class="leadership-report__level-label">{{ competency.level.label }}</span>
-                    <p>{{ competency.interpretation|linebreaksbr }}</p>
+
+                  <div class="leadership-report__preference-scale" aria-label="{{ competency.score_display }}">
+                    <div class="leadership-report__preference-segments" aria-hidden="true">
+                      {% for point in competency.scale_points %}
+                        <span class="leadership-report__preference-segment{% if point.filled %} is-filled{% endif %}{% if point.selected %} is-selected{% endif %}"></span>
+                      {% endfor %}
+                    </div>
+                    <div class="leadership-report__preference-labels" aria-hidden="true">
+                      <span>{{ leadership_report_content.least_preferred_label }}</span>
+                      <span>{{ leadership_report_content.average_label }}</span>
+                      <span>{{ leadership_report_content.most_preferred_label }}</span>
+                    </div>
                   </div>
-                  <div class="leadership-report__questions">
-                    <h5>{{ competency.level.questions_title }}</h5>
-                    <div>{{ competency.questions|linebreaksbr }}</div>
-                  </div>
+
+                  <details class="leadership-report__guidance" open>
+                    <summary>{{ leadership_report_content.guidance_title }}</summary>
+                    <div class="leadership-report__guidance-panel">
+                      <article class="leadership-report__guidance-card">
+                        <h5>{{ leadership_report_content.interpretation_title }}</h5>
+                        <p>{{ competency.interpretation|linebreaksbr }}</p>
+                      </article>
+                      <article class="leadership-report__guidance-card">
+                        <h5>{{ leadership_report_content.reflection_title }}</h5>
+                        <div>{{ competency.questions|linebreaksbr }}</div>
+                      </article>
+                    </div>
+                  </details>
                 </article>
               {% endfor %}
             </div>
