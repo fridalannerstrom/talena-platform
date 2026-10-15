@@ -152,4 +152,3 @@ def build_leadership_report_content(
         "lowest_score_title": "Lägsta resultat" if language == "sv" else "Lowest result",
         "score_scale_label": "Poängskala 1–5" if language == "sv" else "Score scale 1–5",
     }
-}
