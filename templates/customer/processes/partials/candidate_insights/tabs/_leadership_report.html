@@ -1,12 +1,12 @@
 {% load i18n %}
 
-<section class="leadership-report" aria-label="{% trans 'Leadership report' %}">
+<section class="leadership-report" aria-label="{{ leadership_report_content.aria_label }}">
   <header class="leadership-report__intro">
     <div class="leadership-report__intro-icon" aria-hidden="true">
       <i data-feather="compass"></i>
     </div>
     <div class="leadership-report__intro-copy">
-      <span class="leadership-report__eyebrow">{% trans "Leadership profile" %}</span>
+      <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
       <h3>{{ leadership_report_content.introduction.title }}</h3>
       <div class="leadership-report__intro-text">
         {{ leadership_report_content.introduction.body|linebreaksbr }}
@@ -41,7 +41,7 @@
           <h3>{{ quadrant.title }}</h3>
           <span class="leadership-report__quadrant-count">
             {{ quadrant.competencies|length }}
-            {% trans "competencies" %}
+            {{ leadership_report_content.competency_count_label }}
           </span>
         </header>
 
