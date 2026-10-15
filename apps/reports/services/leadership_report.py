@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import math
 import re
+from html import escape
 from functools import lru_cache
 from pathlib import Path
 
@@ -64,6 +66,129 @@ def _display_score(score: float, language: str) -> str:
         rendered = rendered.replace(".", ",")
         return f"Poäng {rendered}"
     return f"Score {rendered}"
+
+
+def _wrap_svg_label(value: str, limit: int = 16) -> list[str]:
+    words = value.split()
+    lines = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if current and len(candidate) > limit:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    return lines
+
+
+def _build_leadership_chart_svg(content: dict, scores_by_key: dict, language: str) -> str:
+    width, height = 900, 780
+    cx, cy, radius = 450, 390, 250
+    source_keys = list(_SOURCE_NAMES)
+    quadrant_colors = ["#e99a91", "#dfaaa5", "#9db9ad", "#e1d1b2"]
+
+    def point(distance: float, angle: float) -> tuple[float, float]:
+        radians = math.radians(angle)
+        return cx + distance * math.cos(radians), cy + distance * math.sin(radians)
+
+    def fmt(value: float) -> str:
+        return f"{value:.2f}".rstrip("0").rstrip(".")
+
+    parts = [
+        f'<svg class="leadership-report__wheel" viewBox="0 0 {width} {height}" role="img" aria-labelledby="leadership-wheel-title leadership-wheel-desc" xmlns="http://www.w3.org/2000/svg">',
+        f'<title id="leadership-wheel-title">{escape(content["chart_intro"]["title"])}</title>',
+        f'<desc id="leadership-wheel-desc">{escape(content["chart_intro"]["body"]).replace(chr(10), " ")}</desc>',
+    ]
+
+    flattened = [
+        (quadrant_index, competency)
+        for quadrant_index, quadrant in enumerate(content["quadrants"])
+        for competency in quadrant["competencies"]
+    ]
+    for index, (quadrant_index, competency) in enumerate(flattened[:8]):
+        result = scores_by_key.get(source_keys[index])
+        if result is None:
+            continue
+        score, _rounded = result
+        sector_radius = radius * score / 5
+        start = point(sector_radius, -112.5 + index * 45)
+        end = point(sector_radius, -67.5 + index * 45)
+        parts.append(
+            f'<path d="M {cx} {cy} L {fmt(start[0])} {fmt(start[1])} '
+            f'A {fmt(sector_radius)} {fmt(sector_radius)} 0 0 1 '
+            f'{fmt(end[0])} {fmt(end[1])} Z" fill="{quadrant_colors[quadrant_index]}" '
+            f'stroke="#fff" stroke-width="3"/>'
+        )
+
+    for level in range(1, 6):
+        ring_radius = radius * level / 5
+        parts.append(
+            f'<circle cx="{cx}" cy="{cy}" r="{fmt(ring_radius)}" fill="none" '
+            f'stroke="#dedede" stroke-width="1.2"/>'
+        )
+        label_x, label_y = point(ring_radius, -112)
+        parts.append(
+            f'<text class="leadership-wheel__ring-label" x="{fmt(label_x)}" y="{fmt(label_y)}" '
+            f'text-anchor="middle">{level}</text>'
+        )
+
+    for boundary in range(8):
+        angle = -112.5 + boundary * 45
+        x, y = point(radius, angle)
+        strong = boundary % 2 == 0
+        line_color = "#b9b9b9" if strong else "#ffffff"
+        line_width = "2.6" if strong else "1.6"
+        parts.append(
+            f'<line x1="{cx}" y1="{cy}" x2="{fmt(x)}" y2="{fmt(y)}" '
+            f'stroke="{line_color}" stroke-width="{line_width}"/>'
+        )
+
+    for index, (_quadrant_index, _competency) in enumerate(flattened[:8]):
+        result = scores_by_key.get(source_keys[index])
+        if result is None:
+            continue
+        score, _rounded = result
+        score_x, score_y = point(max(29, radius * score / 5 * 0.67), -90 + index * 45)
+        score_text = fmt(score).replace(".", ",") if language == "sv" else fmt(score)
+        parts.append(
+            f'<text class="leadership-wheel__score" x="{fmt(score_x)}" y="{fmt(score_y)}" '
+            f'text-anchor="middle" dominant-baseline="central">{escape(score_text)}</text>'
+        )
+
+    for index, (_quadrant_index, competency) in enumerate(flattened[:8]):
+        angle = -90 + index * 45
+        label_x, label_y = point(radius + 45, angle)
+        cosine = math.cos(math.radians(angle))
+        anchor = "middle" if abs(cosine) < 0.26 else ("start" if cosine > 0 else "end")
+        lines = _wrap_svg_label(competency["title"])
+        line_height = 15
+        first_y = label_y - (len(lines) - 1) * line_height / 2
+        parts.append(f'<text class="leadership-wheel__trait" text-anchor="{anchor}">')
+        for line_index, line in enumerate(lines):
+            parts.append(
+                f'<tspan x="{fmt(label_x)}" y="{fmt(first_y + line_index * line_height)}">'
+                f'{escape(line)}</tspan>'
+            )
+        parts.append("</text>")
+
+    quadrant_positions = [
+        (cx, 24, "middle"),
+        (width - 8, cy, "end"),
+        (cx, height - 15, "middle"),
+        (8, cy, "start"),
+    ]
+    for index, quadrant in enumerate(content["quadrants"][:4]):
+        x, y, anchor = quadrant_positions[index]
+        parts.append(
+            f'<text class="leadership-wheel__quadrant" x="{x}" y="{y}" '
+            f'text-anchor="{anchor}" dominant-baseline="central">{escape(quadrant["title"])}</text>'
+        )
+
+    parts.append("</svg>")
+    return "".join(parts)
 
 
 def build_leadership_report_content(
@@ -138,6 +263,7 @@ def build_leadership_report_content(
     return {
         **content,
         "quadrants": quadrants,
+        "chart_svg": _build_leadership_chart_svg(content, scores_by_key, language),
         "has_results": bool(all_competencies),
         "scores_count": len(all_competencies),
         "total_competencies": 8,
