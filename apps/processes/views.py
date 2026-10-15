@@ -16,6 +16,9 @@ from apps.reports.services.candidate_insights import (
     build_general_insight_input,
     generate_general_candidate_insights,
 )
+from apps.reports.services.leadership_report import (
+    build_leadership_report_content,
+)
 
 
 from apps.core.utils.auth import is_admin
@@ -4387,6 +4390,9 @@ def build_candidate_detail_context(
         "motivation_insights": motivation_insights,
 
         "team_style_profile": team_style_profile,
+        "leadership_report_content": build_leadership_report_content(
+            getattr(request, "LANGUAGE_CODE", "en")
+        ),
         # Cognitive AI interpretation
         "cognitive_interpretation": (
             invitation.ai_cognitive_interpretation
@@ -10510,6 +10516,9 @@ def build_historical_candidate_detail_context(
         ),
 
         "team_style_profile": team_style_profile,
+        "leadership_report_content": build_leadership_report_content(
+            getattr(request, "LANGUAGE_CODE", "en")
+        ),
 
         "personality_interpretation_status": (
             historical_candidate
