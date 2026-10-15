@@ -522,3 +522,37 @@
     transition: none;
   }
 }
+
+
+/* Candidate-specific Leadership Report */
+.leadership-report__score-overview{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin:0 0 24px;box-shadow:0 8px 24px rgba(30,27,75,.05)}
+.leadership-report__score-overview-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.leadership-report__score-overview-heading h3{margin:5px 0 0;font-size:1.2rem}
+.leadership-report__score-count,.leadership-report__score-value,.leadership-report__score-pill{white-space:nowrap;font-weight:700;color:#51429a}
+.leadership-report__score-chart{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;row-gap:13px}
+.leadership-report__score-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(90px,1.2fr) auto;align-items:center;gap:10px}
+.leadership-report__score-name{font-size:.88rem;color:#34304c}
+.leadership-report__score-track{height:9px;background:repeating-linear-gradient(to right,#f0eef7 0,#f0eef7 calc(20% - 2px),#fff calc(20% - 2px),#fff 20%);border-radius:99px;overflow:hidden}
+.leadership-report__score-fill{display:block;height:100%;background:linear-gradient(90deg,#9a8ce0,#5c4caf);border-radius:99px}
+.leadership-report__score-value{font-size:.82rem}
+.leadership-report__score-scale{margin:14px 0 0;text-align:right;color:#77738b;font-size:.78rem}
+.leadership-report__rankings{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 28px}
+.leadership-report__ranking{border-radius:14px;padding:18px 20px;background:#f6f4fc}
+.leadership-report__ranking--low{background:#f8f5f2}
+.leadership-report__ranking h3{font-size:.97rem;margin:0 0 12px}
+.leadership-report__ranking-item{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid rgba(80,65,130,.12);font-size:.9rem}
+.leadership-report__ranking-item strong{white-space:nowrap}
+.leadership-report__competency-card{background:#fff;border:1px solid #e7e4ef;border-radius:16px;padding:20px 22px;margin:0 0 14px}
+.leadership-report__competency-card-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.leadership-report__competency-card-heading h4{font-size:1.05rem;margin:0 0 8px}
+.leadership-report__definition{color:#6c687d;line-height:1.55;margin:0}
+.leadership-report__score-pill{background:#f1effa;border-radius:99px;padding:7px 11px;font-size:.82rem}
+.leadership-report__interpretation{background:#f5f3fb;border-left:3px solid #796bc3;padding:15px 17px;margin:18px 0;border-radius:0 10px 10px 0}
+.leadership-report__interpretation p{margin:7px 0 0;line-height:1.65}
+.leadership-report__level-label{font-weight:700;color:#544796}
+.leadership-report__questions h5{margin:0 0 8px}
+.leadership-report__questions div{line-height:1.65}
+.leadership-report__empty{text-align:center;padding:48px 24px;background:#fff;border:1px dashed #d7d2e7;border-radius:16px}
+.leadership-report__empty h3{margin:10px 0 8px}
+.leadership-report__empty p{max-width:560px;margin:0 auto;color:#706c7f;line-height:1.6}
+@media(max-width:760px){.leadership-report__score-chart{grid-template-columns:1fr}.leadership-report__rankings{grid-template-columns:1fr}.leadership-report__score-overview{padding:18px}.leadership-report__score-row{grid-template-columns:minmax(105px,1fr) minmax(60px,1fr) auto}.leadership-report__competency-card{padding:17px}}
