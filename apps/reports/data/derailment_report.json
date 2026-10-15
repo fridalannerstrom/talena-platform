@@ -5,9 +5,9 @@
     "introduction": "Rapporten visar beteendemönster som kan bli mindre hjälpsamma under press eller när personen möter motgångar. Resultaten bygger på personens egna svar. En högre poäng innebär inte automatiskt att beteendet alltid visar sig, utan beskriver en möjlig tendens att vara uppmärksam på.",
     "score_label": "STEN",
     "scale_label": "STEN-skala 1–10",
-    "low_label": "Lägre",
-    "mid_label": "Mellan",
-    "high_label": "Högre",
+    "low_label": "Poäng 1–3",
+    "mid_label": "Poäng 3–7",
+    "high_label": "Poäng 8–10",
     "guidance_label": "Resultatbeskrivning",
     "empty_title": "Inga urspårningsresultat tillgängliga",
     "empty_body": "Det finns ännu inga STEN-resultat för kandidatens 14 urspårningsskalor.",
@@ -179,9 +179,9 @@
     "introduction": "This report describes behavioural patterns that may become less helpful under pressure or when facing setbacks. Results are based on the person’s self-reported responses. A higher score does not mean the behaviour will always occur. It indicates a possible tendency to be aware of.",
     "score_label": "STEN",
     "scale_label": "STEN scale 1–10",
-    "low_label": "Lower",
-    "mid_label": "Mid-range",
-    "high_label": "Higher",
+    "low_label": "Scores 1–3",
+    "mid_label": "Scores 3–7",
+    "high_label": "Scores 8–10",
     "guidance_label": "Score interpretation",
     "empty_title": "No derailment results available",
     "empty_body": "There are no STEN results yet for this candidate’s 14 derailment scales.",
@@ -200,7 +200,7 @@
       },
       {
         "key": "over_sensitive",
-        "title": "Over-sensitive",
+        "title": "Oversensitive",
         "left": "Tough-minded and unaffected by criticism. Handles stress and challenging situations well, taking an optimistic view of setbacks.",
         "right": "Sensitive to criticism, pessimistic and finds it hard to recover from setbacks. May find it difficult to trust others.",
         "levels": {
@@ -211,7 +211,7 @@
       },
       {
         "key": "detached",
-        "title": "Detached",
+        "title": "Isolated",
         "left": "Enjoys building relationships, communicating openly and sharing feelings. Tends to seek support from others when making decisions.",
         "right": "Works independently and tends not to seek support in difficult situations. Focuses on own activities and may not share feelings or seek advice.",
         "levels": {
@@ -266,7 +266,7 @@
       },
       {
         "key": "boldness",
-        "title": "Boldness",
+        "title": "Bold",
         "left": "Modest and reserved, may lack confidence and avoid the spotlight. Tends to avoid risks and may feel uncomfortable negotiating.",
         "right": "Bold, assertive and confident, with a tendency to take risks. Values status and recognition and may present an overly positive image.",
         "levels": {
@@ -277,7 +277,7 @@
       },
       {
         "key": "rigid",
-        "title": "Rigid",
+        "title": "Inflexible",
         "left": "Tends to rely on others’ views to find a way forward. May be so flexible that they seem to lack firm opinions.",
         "right": "Holds strong views and tends to be inflexible when faced with information that conflicts with them. May disregard dissenting voices.",
         "levels": {
@@ -288,7 +288,7 @@
       },
       {
         "key": "meticulous",
-        "title": "Meticulous",
+        "title": "Pedantic",
         "left": "Spontaneous and may lose interest in details and deadlines, tending to delegate them. May seem careless or unreliable.",
         "right": "Focused on organisation and detail, but may set unreasonable standards and micromanage others.",
         "levels": {
@@ -321,7 +321,7 @@
       },
       {
         "key": "casual",
-        "title": "Casual",
+        "title": "Volatile",
         "left": "Strives to meet commitments and enjoys a disciplined, busy environment. Focused, driven and able to brush off distractions.",
         "right": "Prefers an unpressured environment and avoids clear deadlines. May push back when expected to act urgently.",
         "levels": {
