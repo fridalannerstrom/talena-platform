@@ -77,16 +77,28 @@ def build_derailment_report_content(
         score = result_by_key.get(factor["key"])
         if score is None:
             continue
-        level_key = "low" if score <= 3 else ("high" if score >= 8 else "mid")
+        level_keys = []
+        if 1 <= score <= 3:
+            level_keys.append("low")
+        if 3 <= score <= 7:
+            level_keys.append("mid")
+        if 8 <= score <= 10:
+            level_keys.append("high")
+        interpretations = [
+            {
+                "key": level_key,
+                "label": content[f"{level_key}_label"],
+                "text": factor["levels"][level_key],
+            }
+            for level_key in level_keys
+        ]
         factors.append({
             **factor,
             "score": score,
             "score_percent": score * 10,
             "score_display": f'{content["score_label"]} {score}',
             "scale_segments": list(range(1, 11)),
-            "level_key": level_key,
-            "level_label": content[f"{level_key}_label"],
-            "interpretation": factor["levels"][level_key],
+            "interpretations": interpretations,
         })
 
     return {
