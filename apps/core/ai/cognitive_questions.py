@@ -75,7 +75,7 @@ def build_cognitive_questions_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
