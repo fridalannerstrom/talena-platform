@@ -129,11 +129,11 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
-.process-page #candidate-insights-panel-team-styles .team-styles-section {
+.process-page #candidate-insights-panel-reports .team-styles-section {
   margin: 0 !important;
 }
 
-.process-page #candidate-insights-panel-team-styles .team-styles-section > div > .team-styles-header:first-child {
+.process-page #candidate-insights-panel-reports .team-styles-section > div > .team-styles-header:first-child {
   display: none !important;
 }
 

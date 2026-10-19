@@ -1,0 +1,350 @@
+{
+  "sv": {
+    "title": "Urspårningsprofil",
+    "introduction_title": "Om urspårningsrapporten",
+    "introduction": "Rapporten visar beteendemönster som kan bli mindre hjälpsamma under press eller när personen möter motgångar. Resultaten bygger på personens egna svar. En högre poäng innebär inte automatiskt att beteendet alltid visar sig, utan beskriver en möjlig tendens att vara uppmärksam på.",
+    "score_label": "STEN",
+    "scale_label": "STEN-skala 1–10",
+    "low_label": "Poäng 1–3",
+    "mid_label": "Poäng 3–7",
+    "high_label": "Poäng 8–10",
+    "guidance_label": "Resultatbeskrivning",
+    "empty_title": "Inga urspårningsresultat tillgängliga",
+    "empty_body": "Det finns ännu inga STEN-resultat för kandidatens 14 urspårningsskalor.",
+    "score_count_suffix": "av 14 skalor",
+    "factors": [
+      {
+        "key": "dependent",
+        "title": "Beroende",
+        "left": "Undviker sannolikt att rådfråga andra och använder istället sitt eget omdöme. Hög självständighet med litet behov av stöd eller uppmuntran från andra. Kan motsätta sig att ledas eller detaljstyras.",
+        "right": "Förlitar sig på gruppen för stöd och uppmuntran. Mindre villig att fatta beslut utan synpunkter från andra. Kan sakna egna åsikter eller tro på sina egna uppfattningar.",
+        "levels": {
+          "low": "Låg poäng på denna skala tyder på att personen i fråga är överdrivet självständig och till och med kan förakta auktoriteter och överordnade. Personer med denna profil förlitar sig mycket på sitt eget omdöme och har lätt för att fatta beslut utan att behöva bry sig om andras åsikter. Således brukar de inte vara särskilt benägna att söka samråd utan håller sina känslor för sig själva.",
+          "mid": "Poäng i mitten av denna skala innebär att personen i fråga inte har några betydande urspårningstendenser som orsakas av en osjälvständig karaktär. Denna person känner sig sannolikt trygg med att mestadels fatta egna beslut, men tar stöd av andra vid särskilda utmaningar.",
+          "high": "En hög poäng på denna skala tyder på att personen har ett överdrivet behov av att vara andra till lags, i synnerhet överordnade. Personen förlitar sig mycket på andras vägledning och kan ge intryck av att sakna inflytande eller egna åsikter. Å andra sidan innebär detta att personen troligen visar mycket respekt samt är plikttrogen och mottaglig för andras åsikter. Personen arbetar troligen bäst med mycket stöd och uppmuntran från andra."
+        }
+      },
+      {
+        "key": "over_sensitive",
+        "title": "Överkänslig",
+        "left": "Härdad och påverkas inte av kritik från andra. Klarar av stress och utmannade situationer bra genom ett mer optimistiskt perspektiv vid motgångar.",
+        "right": "Känslig för kritik, pessimistisk och har svårt att hämta sig från motgångar. Har troligen svårt att lita på andra",
+        "levels": {
+          "low": "Personer som får låg poäng på denna skala brukar kunna bortse från kritik från andra eller släppa det ganska snabbt. De ser generellt sett det goda hos andra och brukar vara tillitsfulla. Därför finns det risk att de blir utnyttjade eller betraktas som naiva. De har i allmänhet bra motståndskraft vid utmanande situationer och betraktar dessa situationer som mindre motgångar eller kanske till och med som lärorika erfarenheter.",
+          "mid": "De som får poäng i mitten på denna skala brukar inte ha några starka urspårningstendenser till följd av överkänslighet. Dessa personer har sannolikt en balanserad syn på kritik och överväger vad som är konstruktiv feedback och vad man kan bortse från. De tenderar att hämta sig relativt väl från motgångar.",
+          "high": "De som får höga poäng löper risk för urspårning till följd av överkänslighet, både vad gäller hur de uppfattas av andra och hur de hanterar stressiga situationer. De kan vara misstänksamma och ibland för snabba att tvivla på andras avsikter. De kan ibland upplevas som paranoida och mycket känsliga för såväl avsiktlig som oavsiktlig kritik och de kan vara sena att förlåta oförrätter. Dessa personer har svårt för att behålla optimismen under svåra perioder och tenderar att ventilera sina känslor öppet samt ältar de svåra perioderna långt i efterhand."
+        }
+      },
+      {
+        "key": "detached",
+        "title": "Isolerad",
+        "left": "Trivs med att bygga relationer till andra, kommunicera öppet och visa känslor. Tenderar att förlita sig på andra för stöd inför beslutsfattande.",
+        "right": "Arbetar självständigt och brukar inte söka stöd från andra i svåra situationer utan fokuserar på egna aktiviteter i stället. Tenderar att inte visa känslor eller rådfråga andra.",
+        "levels": {
+          "low": "Personens svar tyder på att hen trivs bäst i grupp- eller teamaktiviteter. Personer med denna profil känner sig mycket bekväma med att kommunicera med andra och ta kontakt med personer de inte känner. De gillar att involvera andra när viktiga beslut ska fattas, visar egna känslor och söker stöd hos kollegor. Om arbetet gör det nödvändigt att tillbringa mycket tid på egen hand kan personen prestera sämre eller vantrivas.",
+          "mid": "Personens svar tyder på att hen trivs bäst i grupp- eller teamaktiviteter. Personer med denna profil känner sig mycket bekväma med att kommunicera med andra och ta kontakt med personer de inte känner. De gillar att involvera andra när viktiga beslut ska fattas, visar egna känslor och söker stöd hos kollegor. Om arbetet gör det nödvändigt att tillbringa mycket tid på egen hand kan personen prestera sämre eller vantrivas.",
+          "high": "Personens svar innebär att hen känner sig mindre bekväm i grupp- eller teamaktiviteter och föredrar att arbeta ensam. Personer med denna profil kan ha svårt att kommunicera med andra, framför allt med personer som har en helt annan personlighet eller med någon de inte känner väl. Detta kan medföra att personen uppfattas som reserverad eller likgiltig för andras känslor. Eventuellt undviker personer med denna profil därför att samspela med kollegor och isolerar sig själva samtidigt som andra slutar att anstränga sig för att göra dem delaktiga."
+        }
+      },
+      {
+        "key": "individualistic",
+        "title": "Individualistisk",
+        "left": "Tolerant och omtänksam men kan framstå som alltför passiv och regelstyrd. Kan sakna bestämdhet och är troligen överkänslig för kritik från andra.",
+        "right": "Hård och bestämd i strävan mot egna mål. Beredd att bryta mot regler för att få saker gjorda. Kan visa begränsad hänsyn till andras känslor för att övervinna hinder och leverera resultat.",
+        "levels": {
+          "low": "En låg poäng på skalan tyder på personen är medgörlig och tillmötesgående vilket kan bero på en mindre stark karaktär, framförallt i kontakt med andra som har en mer framfusig framtoning. Personen följer troligen regler och överenskommelser passivt och kan vara alltför överseende med andras svagheter när arbetet måste bli gjort.",
+          "mid": "En låg poäng på skalan tyder på personen är medgörlig och tillmötesgående vilket kan bero på en mindre stark karaktär, framförallt i kontakt med andra som har en mer framfusig framtoning. Personen följer troligen regler och överenskommelser passivt och kan vara alltför överseende med andras svagheter när arbetet måste bli gjort.",
+          "high": "En hög poäng på skalan tyder på personen är hård och okänslig mot andra, vilket kan upplevas som ganska skrämmande. Andras känslor tycks inte påverka denna person som också kan ha svårt att tolerera andras eventuella svagheter. Personen uppträder bestämt och är villiga att både tumma på regler och såra andra för att uppnå sina egna mål. Andra betraktar troligen personen som självupptagen och tyrannisk om hen går för långt."
+        }
+      },
+      {
+        "key": "unconventional",
+        "title": "Okonventionell",
+        "left": "Konservativ och taktisk, tenderar att hålla sig till majoritetens åsikter och konventionella metoder.",
+        "right": "Fokuserar på att hitta nya problemlösningsmetoder som kanske inte är grundade i praktiken. Söker efter ovanliga och kreativa lösningar, men prövar kanske inte dessa i förhållande till data eller andras input",
+        "levels": {
+          "low": "Dessa personer är mycket analytiska och föredrar att använda tillgängliga data för att utvärdera och lösa problem på ett sätt som ligger långt bortom magkänslan. De har en tendens att följa regler, konventioner och majoritetens åsikter. Eftersom de har fötterna på jorden och är taktiskt lagda är de sannolikt realistiska. Däremot kan andra med ett inte lika konventionellt tillvägagångssätt tycka att de saknar det mod eller den framsynthet som behövs för att lösa problem som kräver mer kreativa lösningar.",
+          "mid": "Dessa personer gör sannolikt en avvägning mellan att vara kreativa och praktiska. Även om de förmodligen överväger vissa av de mer uppfinningsrika lösningarna på problem finns inga urspårningstendenser.",
+          "high": "Dessa personer älskar att utmana rådande normer. Eftersom de är excentriska och kreativa gillar de att komma på underfundiga och fantastiska idéer. Deras intuitiva bedömningsstil kan dock medföra att idéerna i fråga kan vara ogenomtänkta eller opraktiska, om än mycket kreativa. Eftersom de kan vara mindre lyhörda, finns det risk att de går vidare utan att inhämta viktiga åsikter från andra."
+        }
+      },
+      {
+        "key": "unpredictable",
+        "title": "Oberäknelig",
+        "left": "Lugn och samlad, även i känslomässigt laddade situationer - kanske till den grad att de framstår som oengagerade. Är troligen pålitlig när det gäller att hålla överenskommelser.",
+        "right": "Lättretlig, ombytlig och oberäknelig. Brukar reagera känslomässigt på saker som inträffar. Kan ge stöd åt andra när det går bra men kan framstå som distanserad eller konfrontativ under press.",
+        "levels": {
+          "low": "En låg poäng på skalan innebär att personen troligen är lugn och samlad. Personer med denna profil är mer tystlåtna men ändå tillmötesgående och överraskar sannolikt ingen med hur de beter sig eller reagerar. De är troligen organiserade och respekterar deadlines och givna löften, vilket gör dem till pålitliga kollegor.",
+          "mid": "Poäng i mitten av skalan innebär att det inte finns några betydande urspåringstendenser inom detta område. Även om personen visar känslor då och då är det inte troligt att det blir på ett explosivt sätt. Personen är troligen lika organiserad och pålitlig som de flesta.",
+          "high": "En hög poäng på skalan kan innebära att personen är lättretlig och oberäknelig. Detta kan uttrycka sig i form av positiva eller negativa reaktioner som kan vara svårt att förutse. Denna person kan vara lättretlig eller ha kortlivad positiv energi när det gäller att få saker gjorda. Personen tenderar att vara oorganiserad och lättdistraherad, vilket kan försvåra samarbete med mer strukturerade personer."
+        }
+      },
+      {
+        "key": "dramatic",
+        "title": "Dramatisk",
+        "left": "Anspråkslös, tystlåten och återhållsam. Kan känna sig obekväm i sociala situationer och sakna det självförtroende som krävs för att göra sig hörd.",
+        "right": "Förväntar sig att bli uppskattad av andra och trivs med att stå i centrum för uppmärksamheten. Vill utmärka sig i gruppen och leda aktiviteter. Har ett starkt behov av att bli hörd och kan reagera negativt om det egna bidraget inte värderas högt.",
+        "levels": {
+          "low": "Personer med denna profil vill sannolikt inte stå i centrum utan är mer nöjda med att vara en del av gruppen snarare än att leda den. Personen är förmodligen ganska tystlåten och reserverad på arbetsplatsen och föredrar att uppträda på ett sätt som de anser är professionellt. Personen anstränger sig sannolikt inte för att göra sin röst hörd och kan behöva viss uppmuntran om rollen kräver det.",
+          "mid": "Personer med denna profil känner sig sannolikt bekväma i rampljuset, men utan nämnvärda urspårningstendenser. Personen överdriver sannolikt inte sina framgångar, utan föredrar att visa sina förmågor på andra sätt.",
+          "high": "En person med denna profil är ofta ”festens mittpunkt” och sannolikt karismatisk och rolig att umgås med. Personen trivs med att stå i centrum för uppmärksamheten och kan spela över eller uppföra sig illa om de tappar andras uppmärksamhet. Eftersom erkännande är viktigt för personen, kan denne överdriva egna framgångar vilket andra kan uppfatta som hotfullt eller tröttsamt i förlängningen"
+        }
+      },
+      {
+        "key": "boldness",
+        "title": "Djärv",
+        "left": "Blygsam och reserverad, saknar självförtroende och undviker rampljuset. Tenderar att undvika risker och kan vara obekväm med att förhandla med andra.",
+        "right": "Djärv, bestämd och självsäker med en tendens till risktagande. Sätter stort värde på sin egen ställning, framhäver sina egna prestationer och kräver erkännande. Kan ge ett alltför positivt intryck i syfte att få vad de vill ha.",
+        "levels": {
+          "low": "Svaren i detta frågeformulär tyder på att personen vanligtvis är blygsam och kan ha en viss brist på självförtroende. Personer med denna profil överdriver ibland sina egna brister, vilket medför att andras förtroende för deras förmåga minskar. Andra kan uppfatta dem som obeslutsamma eller något pessimistiska.",
+          "mid": "Svaren i detta frågeformulär tyder på att personen är lika bestämd och säker på sin egen förmåga som de flesta. Det finns ingen betydande risk för urspårning inom detta område, personen genomför sitt arbete med en rimlig grad av självsäkerhet. Personen accepterar troligen de flesta av sina begränsningar och är villig att ta risker om det upplevs som det bästa att göra.",
+          "high": "Svaren i detta frågeformulär tyder på att personen i fråga är djärv, bestämd och alltför självsäker när det gäller sin egen förmåga, kanske till den grad att hen tar risker med överdrivet optimistisk inställning. Personer med denna profil uppvisar sannolikt ett självhävdande beteende och erkänner ogärna sina egna brister, även när det är viktigt för att kunna slutföra uppgifter väl. Andra kan betrakta dessa personer som arroganta och egoistiska på grund av deras självsäkerhet. De kan även anse att de förtjänar större erkännande än de faktiskt får."
+        }
+      },
+      {
+        "key": "rigid",
+        "title": "Oflexibel",
+        "left": "Tenderar att förlita sig på andras åsikter för att hitta vägen framåt. Är ibland så flexibel att det kan framstå som att personen inte har några egna åsikter.",
+        "right": "Har starka åsikter om mycket och tenderar att vara oflexibel kring information som inte motsvarar den egna uppfattningen. Kan bortse från röster som inte ligger i linje med det egna perspektivet.",
+        "levels": {
+          "low": "Eftersom de har mindre tro på sin egen förmåga att analysera problem och ta fram lämpliga lösningar, kan dessa personer vara benägna att ta hjälp från teammedlemmar. Det kan framstå som att de har otydliga egna åsikter och lägre självförtroende när det gäller komplexa frågor. De lyssnar vanligtvis på andras åsikter och har ett flexibelt förhållningssätt till arbetet genom att involvera andra och få stöd som stärker deras uppfattning om bästa väg framåt.",
+          "mid": "Även om det finns en viss tilltro till den egna förmågan att analysera problem och ta fram lämpliga lösningar, är det ändå troligt att denna person involverar andra i sina beslut. Oflexibel hållning leder troligen inte till någon urspårningstendens här.",
+          "high": "Eftersom personer med denna profil betraktar problemanalys och kritiskt tänkande som en styrka, är de mycket säkra på sina egna åsikter. I likhet med vad skalan antyder kan personer med denna profil ha ett oflexiblet arbetssätt och fatta beslut med lite eller ingen input från andra. Detta kan betraktas som stelt och kontrollerat eftersom de har en tendens att stoppa beslut som inte är deras egna. Detta kan drivas av ett behov av makt och ha en negativ inverkan på andra teammedlemmar."
+        }
+      },
+      {
+        "key": "meticulous",
+        "title": "Pedantisk",
+        "left": "Har ett spontant tillvägagångssätt. Eftersom de sannolikt blir uttråkade av detaljer och av att hålla sig till deadlines, brukar de delegera sådana uppgifter. Bristen på disciplin kan ge ett nonchalant och opålitligt intryck.",
+        "right": "Fokuserad på att organisera uppgifter och att säkerställa alla detaljer, men kan sätta upp orimligt höga krav på sig själv och andra, vilket kan leda till detaljstyrning av teammedlemmar på ett pedantiskt sätt.",
+        "levels": {
+          "low": "Denna person lägger troligen mindre fokus på noggrann planering och detaljer i sitt arbete. Personen undviker byråkrati och överlåter till andra att se till att detaljerna blir rätt för deras räkning. Personen detaljstyr troligen inte sina direktrapporterande eller teammedlemmar vilket kan ge en känsla av tillit. Det finns dock en risk att personen inte har den disciplin som krävs för att göra förberedelser eller hålla tidsfrister. Om detta inte sköts kan personen uppfattas som slarvig och opålitlig.",
+          "mid": "Denna person lägger troligen mindre fokus på noggrann planering och detaljer i sitt arbete. Personen undviker byråkrati och överlåter till andra att se till att detaljerna blir rätt för deras räkning. Personen detaljstyr troligen inte sina direktrapporterande eller teammedlemmar vilket kan ge en känsla av tillit. Det finns dock en risk att personen inte har den disciplin som krävs för att göra förberedelser eller hålla tidsfrister. Om detta inte sköts kan personen uppfattas som slarvig och opålitlig.",
+          "high": "Personer med denna profil är sannolikt äkta perfektionister. Eftersom de är väldigt samvetsgranna har de en tendens att lägga mycket tid på planering och detaljkontroll. De kan även betraktas som petiga och överdrivet ordentliga. De följer regler och riktlinjer ordagrant och förväntar sig att andra också gör det. Därför kan de komma att övervaka teammedlemmar på ett pedantiskt sätt, särskilt om personerna i fråga inte är lika fokuserade på detaljer. De kan lägga ner alldeles för mycket tid på att kontrollera andras arbete, vilket kan leda till ohanterlig arbetsbelastning eller misstro i teamet."
+        }
+      },
+      {
+        "key": "stubborn",
+        "title": "Envis",
+        "left": "Lätt att komma överens med och tenderar att vara mottaglig för förändringar i takt med att de uppstår. Kan framstå som någon som följer strömmen istället för att säga ifrån när de inte håller med.",
+        "right": "Tenderar att stå fast i sina åsikter, men riskerar att fortsätta på inslagen väg på ett orubbligt sätt istället för att byta kurs när situationen kräver det. Kan vara oemottaglig för andras åsikter.",
+        "levels": {
+          "low": "De som får låga poäng på skalan tenderar att vara samarbetsvilliga och flexibla. De kan troligen anpassa sitt arbetssätt för att åstadkomma vad som efterfrågas medan arbetet fortskrider på ett vänligt sätt. De kan uppleva det som svårt att säga ifrån när andra är alltför påstridiga eller aggressiva i att föra arbetet framåt på ett sätt de inte håller med om.",
+          "mid": "Poäng i mitten av skalan innebär att det troligen inte finns någon urspårningsrisk inom detta område. Dessa personer är sannolikt ganska flexibla när saker och ting går i en annan riktning och de är tillmötesgående när de blir ombedda att göra extra insatser eller lämna ytterligare input.",
+          "high": "De som får hög poäng på denna skala föredrar sannolikt att jobba självständigt och ogillar troligtvis att bli avbruta av förfrågningar eller riktningsändringar under arbetets gång. De som har en egen agenda kan bli samarbetsovilliga, särskilt om deras synpunkter behövs för att arbetet ska kunna fortgå eller om andra beter sig på ett sätt som de uppfattar som alltför påträngande. Denna reaktion kan beskrivas som ett passivt aggressivt beteende."
+        }
+      },
+      {
+        "key": "hesitant",
+        "title": "Tveksam",
+        "left": "Driver saker framåt innan andra, eller ens de själva, är redo. Tar risker utan att helt sätta sig in i problemet eller analysera potentiella konsekvenser av sina handlingar.",
+        "right": "Försiktig inför utmanande situationer och föredrar att noggrant överväga alla möjligheter innan åtgärder vidtas. Ovillig att ta risker och tar lång tid på sig att göra förändringar om de inte har andras fulla stöd.",
+        "levels": {
+          "low": "Denna person är troligtvis vare sig särskilt analytisk eller benägen att söka samråd och kan gå vidare utan att inhämta all den information hen kanske behöver. Personen kan även lämna beslut och styrning åt andra och följa dem utan att tänka alltför mycket på om det är rätt tillvägagångssätt för alla inblandade.",
+          "mid": "Denna persons försiktiga och riskobenägna förhållningssätt leder troligtvis till uppskjutande. De lägger förmodligen ner tid på att kontrollera vad många andra personer tycker är rätt väg framåt och på att utvärdera för- och nackdelarna med ett visst tillvägagångssätt. Eftersom de lägger så mycket tid på att utvärdera leder det till obeslutsamhet och de upplever förmodligen att det är svårt att röra sig vidare när de flesta andra inte skulle göra det. Detta leder till passivitet såvida de inte backas upp helt av andra.",
+          "high": "Denna persons försiktiga och riskobenägna förhållningssätt leder troligtvis till uppskjutande. De lägger förmodligen ner tid på att kontrollera vad många andra personer tycker är rätt väg framåt och på att utvärdera för- och nackdelarna med ett visst tillvägagångssätt. Eftersom de lägger så mycket tid på att utvärdera leder det till obeslutsamhet och de upplever förmodligen att det är svårt att röra sig vidare när de flesta andra inte skulle göra det. Detta leder till passivitet såvida de inte backas upp helt av andra."
+        }
+      },
+      {
+        "key": "casual",
+        "title": "Flyktig",
+        "left": "Försöker uppfylla åtaganden gentemot andra och trivs i en disciplinerad arbetsmiljö med mycket att göra. Fokuserad, driven och tenderar skaka av sig distraktioner.",
+        "right": "Föredrar en miljö utan press och undviker situationer där de måste leverera åt andra inom tydliga deadlines. Kan slå bakut när de förväntas skynda på.",
+        "levels": {
+          "low": "Personer med denna profil känner sig sonnolikt ganska bekväma under hektiska perioder och har en förmåga att bortse från distraktioner. De kan förmodligen vidta åtgärder snabbt när de blir ombedda att göra det och kan även hantera flera arbetsuppgifter samtidigt. De levererar sannolikt inom givna tidsramar och uppfyller åtaganden gentemot andra på ett disciplinerat sätt.",
+          "mid": "Denna person upplever troligtvis sitt arbete som angeläget och har en känsla av tempo och engagemang. Personen tolererar misstag och förseningar i viss mån, men behåller rimlig kontroll över detta.",
+          "high": "Denna person har sannolikt en avslappnad och ledig inställning till sitt arbete och utför det i ett jämnt, bekvämt och försiktigt tempo. Om denna person får för mycket att göra, leder det sannolikt till stress - vilket kan medföra att de för över arbetsbördan och ansvaret på andra. Personer med denna profil har ofta överseende med misstag eller förseningar, både hos sig själva och andra. I chefsroller kan de ha starkt förtroende för teamets förmåga att själva ta fram en bra lösning utan större inblandning, vilket ibland kan uppfattas som brist på intresse eller engagemang."
+        }
+      },
+      {
+        "key": "intense",
+        "title": "Intensiv",
+        "left": "Har ett vänligt och fredligt tillvägagångssätt. Sätter troligen inte press på andra på arbetsplatsen, är känslig för andras behov och undviker att pådyvla andra sina egna åsikter och deadlines.",
+        "right": "Mycket energisk och tävligsinriktad. Tar sig an aktiviteter med stor intensitet och inlevelse. Uppvisar ständigt energi men kan pressa andra alltför hårt utan att förstå behovet av ett rimligt och hälsosamt arbetstempo.",
+        "levels": {
+          "low": "De som får låga poäng på skalan tenderar att ta sig tid att förstå andras åsikter och prioriteringar. De brukar inte kräva alltför mycket av andras tid och energi. De undviker att konkurrera med andra och behöver inte nödvändigtvis hög status för att trivas med sin roll.",
+          "mid": "Även om personen troligen har en stadig drivkraft tyder resultaten på att de förmodligen inte orsakar urspårning genom att driva andra för hårt i strävan att uppnå de egna målen.",
+          "high": "Personer som får höga poäng på skalan har troligen en mycket stark drivkraft att lyckas. I och med detta är de troligen bestämda, tävlingsinriktade och inte alltid så överseende med andra - i synnerhet om dessa andra är mindre drivna eller arbetar i lägre tempo. De anstränger sig för att nå sina mål och förväntar sig erkännande för det. Vissa kollegor kan uppfatta dessa personer som tröttsamma och känna sig alltför pressade, till och med överkörda i arbete direkt med dem. Det kan uppstå situationer där ingen vill arbeta med personen för att infria de högt uppställda mål och utfästelser som personen har gjort till organisationen."
+        }
+      }
+    ],
+    "profile_section_title": "Urspårningsprofil",
+    "details_section_title": "Tolkning per skala",
+    "lower_side_label": "Lägre poäng",
+    "higher_side_label": "Högre poäng"
+  },
+  "en": {
+    "title": "Derailment profile",
+    "introduction_title": "About the derailment report",
+    "introduction": "This report describes behavioural patterns that may become less helpful under pressure or when facing setbacks. Results are based on the person’s self-reported responses. A higher score does not mean the behaviour will always occur. It indicates a possible tendency to be aware of.",
+    "score_label": "STEN",
+    "scale_label": "STEN scale 1–10",
+    "low_label": "Scores 1–3",
+    "mid_label": "Scores 3–7",
+    "high_label": "Scores 8–10",
+    "guidance_label": "Score interpretation",
+    "empty_title": "No derailment results available",
+    "empty_body": "There are no STEN results yet for this candidate’s 14 derailment scales.",
+    "score_count_suffix": "of 14 scales",
+    "factors": [
+      {
+        "key": "dependent",
+        "title": "Dependent",
+        "left": "Likely to avoid consulting others and rely on personal judgement. Self-reliant, with little need for support or encouragement. May resist being led or closely managed.",
+        "right": "Relies on the group for support and encouragement. Less willing to decide without input and may lack confidence in personal views.",
+        "levels": {
+          "low": "A low score suggests that the person is excessively self-reliant and may even hold authority figures in contempt. They rely strongly on their own judgement and readily make decisions without considering other people’s views. They are therefore unlikely to seek advice and may keep their feelings to themselves.",
+          "mid": "A mid-range score suggests no significant derailment tendency related to dependence. The person is likely to feel comfortable making their own decisions most of the time, while seeking support when facing particular challenges.",
+          "high": "A high score suggests an excessive need to please others, especially senior people. The person relies heavily on others for guidance and may seem to lack influence or opinions of their own. They are also likely to be respectful, dutiful and receptive to others’ views, and may work best with plenty of support and encouragement."
+        }
+      },
+      {
+        "key": "over_sensitive",
+        "title": "Oversensitive",
+        "left": "Tough-minded and unaffected by criticism. Handles stress and challenging situations well, taking an optimistic view of setbacks.",
+        "right": "Sensitive to criticism, pessimistic and finds it hard to recover from setbacks. May find it difficult to trust others.",
+        "levels": {
+          "low": "People with low scores on this scale can usually disregard criticism or move on from it quickly. They tend to see the good in others and are generally trusting, which may leave them open to being taken advantage of or seen as naïve. They are usually resilient in challenging situations and may view setbacks as minor or even as learning experiences.",
+          "mid": "Mid-range scores do not suggest a strong derailment tendency related to over-sensitivity. The person is likely to take a balanced view of criticism, considering what is constructive and what can be set aside. They tend to recover reasonably well from setbacks.",
+          "high": "High scores may indicate a risk of derailment related to over-sensitivity, both in how the person is perceived and in how they handle stress. They may be suspicious or quick to doubt other people’s intentions, and can be highly sensitive to both intended and unintended criticism. They may be slow to forgive, struggle to remain optimistic during difficult periods, express their feelings openly and dwell on setbacks long afterwards."
+        }
+      },
+      {
+        "key": "detached",
+        "title": "Isolated",
+        "left": "Enjoys building relationships, communicating openly and sharing feelings. Tends to seek support from others when making decisions.",
+        "right": "Works independently and tends not to seek support in difficult situations. Focuses on own activities and may not share feelings or seek advice.",
+        "levels": {
+          "low": "The person’s responses suggest they enjoy group and team activities. They are likely to feel comfortable communicating with others and approaching people they do not know. They like involving others in important decisions, sharing their feelings and seeking support from colleagues. They may feel less satisfied or perform less well if their work requires spending a great deal of time alone.",
+          "mid": "The person’s responses suggest they enjoy group and team activities. They are likely to feel comfortable communicating with others and approaching people they do not know. They like involving others in important decisions, sharing their feelings and seeking support from colleagues. They may feel less satisfied or perform less well if their work requires spending a great deal of time alone.",
+          "high": "The person’s responses suggest they are less comfortable in group or team activities and prefer to work alone. They may find it difficult to communicate with others, especially people with very different personalities or people they do not know well. They may consequently seem reserved or indifferent to other people’s feelings. They may avoid interacting with colleagues and become isolated, while others stop trying to involve them."
+        }
+      },
+      {
+        "key": "individualistic",
+        "title": "Individualistic",
+        "left": "Tolerant and considerate, but may seem too passive and rule-bound. May lack assertiveness and be overly sensitive to criticism.",
+        "right": "Tough-minded and assertive in pursuing personal goals. May bend rules and show limited regard for others’ feelings to get results.",
+        "levels": {
+          "low": "A low score suggests that the person is accommodating and agreeable, which may reflect a less forceful style, particularly with more assertive people. They are likely to follow rules and agreements passively and may be overly tolerant of other people’s shortcomings when work needs to be done.",
+          "mid": "A low score suggests that the person is accommodating and agreeable, which may reflect a less forceful style, particularly with more assertive people. They are likely to follow rules and agreements passively and may be overly tolerant of other people’s shortcomings when work needs to be done.",
+          "high": "A high score suggests that the person may be tough and insensitive towards others, which can feel intimidating. Other people’s feelings may have little effect on them, and they may have difficulty tolerating others’ weaknesses. They may act assertively and be willing to bend rules or hurt others to achieve their own goals. If this goes too far, others may see them as self-centred or tyrannical."
+        }
+      },
+      {
+        "key": "unconventional",
+        "title": "Unconventional",
+        "left": "Conservative and tactical, tending to follow majority views and conventional methods.",
+        "right": "Looks for novel, creative approaches that may not be practical. May not test ideas against data or other people’s views.",
+        "levels": {
+          "low": "These people are highly analytical and prefer to use available data to evaluate and solve problems rather than rely on intuition. They tend to follow rules, conventions and majority views. Grounded and tactical, they are likely to be realistic. Others with a less conventional approach may feel they lack the courage or foresight to solve problems that need more creative solutions.",
+          "mid": "These people are likely to balance creativity with practicality. They may consider some more imaginative ways of solving problems, without a notable derailment tendency in this area.",
+          "high": "These people enjoy challenging established norms. They are eccentric and creative, and like coming up with clever, striking ideas. Their intuitive judgement may lead to ideas that are not fully considered or practical, even when they are highly creative. They may also move ahead without seeking important views from others."
+        }
+      },
+      {
+        "key": "unpredictable",
+        "title": "Unpredictable",
+        "left": "Calm and composed, even in emotionally charged situations. Likely to be reliable in keeping promises.",
+        "right": "Irritable, changeable and unpredictable. May react emotionally and seem distant or confrontational under pressure.",
+        "levels": {
+          "low": "A low score suggests that the person is likely to be calm and composed. They may be quiet but agreeable, and are unlikely to surprise others with their behaviour or reactions. They are likely to be organised and respect deadlines and promises, making them reliable colleagues.",
+          "mid": "A mid-range score suggests no significant derailment tendency in this area. Although the person may show emotion from time to time, their reactions are unlikely to be explosive. They are likely to be about as organised and reliable as most people.",
+          "high": "A high score may indicate that the person is irritable and unpredictable, with positive or negative reactions that can be difficult to anticipate. They may become easily irritated or show short-lived enthusiasm when getting things done. They may also be disorganised and easily distracted, which can make collaboration with more structured people difficult."
+        }
+      },
+      {
+        "key": "dramatic",
+        "title": "Dramatic",
+        "left": "Unassuming, quiet and restrained. May feel uncomfortable socially or lack confidence to speak up.",
+        "right": "Expects appreciation and enjoys being the centre of attention. Wants to stand out and may react negatively if contributions are not valued.",
+        "levels": {
+          "low": "People with this profile are unlikely to seek the spotlight and may be more comfortable being part of a group than leading it. They are likely to be quiet and reserved at work and prefer to behave in a way they consider professional. They may not make an effort to be heard and could need encouragement if their role requires it.",
+          "mid": "People with this profile are likely to feel comfortable in the spotlight without a notable derailment tendency. They are unlikely to exaggerate their achievements and may prefer to demonstrate their abilities in other ways.",
+          "high": "A person with this profile may often be the life of the party, charismatic and enjoyable to be around. They enjoy being the centre of attention and may overplay things or behave poorly if they lose the audience’s attention. Recognition matters to them, so they may exaggerate their achievements in ways others eventually find intimidating or tiring."
+        }
+      },
+      {
+        "key": "boldness",
+        "title": "Bold",
+        "left": "Modest and reserved, may lack confidence and avoid the spotlight. Tends to avoid risks and may feel uncomfortable negotiating.",
+        "right": "Bold, assertive and confident, with a tendency to take risks. Values status and recognition and may present an overly positive image.",
+        "levels": {
+          "low": "The person’s responses suggest they are usually modest and may lack some confidence. They may exaggerate their shortcomings, reducing other people’s confidence in their abilities. Others may see them as indecisive or somewhat pessimistic.",
+          "mid": "The person’s responses suggest they are about as assertive and confident in their abilities as most people. There is no notable derailment risk in this area. They are likely to work with a reasonable degree of confidence, accept most of their limitations and take risks when they consider it appropriate.",
+          "high": "The person’s responses suggest they are bold, assertive and overly confident in their abilities, perhaps to the point of taking risks with excessive optimism. They may be self-assertive and reluctant to acknowledge shortcomings, even when doing so would help them complete work well. Others may see them as arrogant or egotistical, and may feel they expect more recognition than they have earned."
+        }
+      },
+      {
+        "key": "rigid",
+        "title": "Inflexible",
+        "left": "Tends to rely on others’ views to find a way forward. May be so flexible that they seem to lack firm opinions.",
+        "right": "Holds strong views and tends to be inflexible when faced with information that conflicts with them. May disregard dissenting voices.",
+        "levels": {
+          "low": "Because they may have less confidence in their ability to analyse problems and develop solutions, these people may seek help from team members. They may seem unsure of their views and less confident about complex issues. They usually listen to others and take a flexible approach, involving people and seeking support to identify the best way forward.",
+          "mid": "Although the person has some confidence in their ability to analyse problems and find suitable solutions, they are still likely to involve others in decisions. Inflexibility is unlikely to create a notable derailment tendency in this area.",
+          "high": "People with this profile see problem analysis and critical thinking as strengths and are very confident in their own views. They may have an inflexible working style and make decisions with little or no input from others. This may seem rigid and controlling, as they may block decisions that are not their own. A need for power may drive this and negatively affect other team members."
+        }
+      },
+      {
+        "key": "meticulous",
+        "title": "Pedantic",
+        "left": "Spontaneous and may lose interest in details and deadlines, tending to delegate them. May seem careless or unreliable.",
+        "right": "Focused on organisation and detail, but may set unreasonable standards and micromanage others.",
+        "levels": {
+          "low": "This person is likely to focus less on detailed planning and accuracy at work. They avoid bureaucracy and may leave others to make sure the details are right. They are unlikely to micromanage team members, which can communicate trust. However, they may lack the discipline needed to prepare or meet deadlines. If this is not managed, they may seem careless and unreliable.",
+          "mid": "This person is likely to focus less on detailed planning and accuracy at work. They avoid bureaucracy and may leave others to make sure the details are right. They are unlikely to micromanage team members, which can communicate trust. However, they may lack the discipline needed to prepare or meet deadlines. If this is not managed, they may seem careless and unreliable.",
+          "high": "People with this profile are likely to be perfectionists. They are conscientious and tend to spend a great deal of time planning and checking details. They may seem picky or overly particular. They follow rules and guidelines closely and expect others to do the same. They may micromanage team members who are less focused on detail, spending too much time checking others’ work. This can create an unmanageable workload or mistrust in the team."
+        }
+      },
+      {
+        "key": "stubborn",
+        "title": "Stubborn",
+        "left": "Easy to get along with and receptive to change. May go along with others instead of speaking up when they disagree.",
+        "right": "Firm in own views, but may persist along one path when circumstances call for change. May be unreceptive to others’ views.",
+        "levels": {
+          "low": "People with low scores tend to be cooperative and flexible. They are likely to adapt their approach as work develops and deliver what is needed in an agreeable way. They may find it difficult to push back when others are overly forceful or move work in a direction they disagree with.",
+          "mid": "A mid-range score suggests there is unlikely to be a derailment risk in this area. The person is likely to be reasonably flexible when circumstances change and willing to make an extra effort or provide further input when asked.",
+          "high": "People with high scores are likely to prefer working independently and dislike interruptions or changes of direction while working. They may become uncooperative, especially when others need their input to move work forward or behave in ways they see as intrusive. This reaction may come across as passive-aggressive."
+        }
+      },
+      {
+        "key": "hesitant",
+        "title": "Hesitant",
+        "left": "Moves ahead before others, or even themselves, are ready. Takes risks without fully assessing the problem or consequences.",
+        "right": "Cautious in challenging situations, carefully considers all options before acting. Risk-averse and slow to change without support.",
+        "levels": {
+          "low": "This person may be neither particularly analytical nor inclined to seek advice, and may move ahead without gathering all the information they need. They may also leave decisions and direction to others and follow them without giving much thought to whether the approach is right for everyone involved.",
+          "mid": "This person’s cautious and risk-averse approach may lead to delay. They are likely to spend time checking what many people think is the right way forward and weighing the pros and cons. This extensive evaluation can lead to indecision and difficulty moving ahead when others would. It may result in inaction unless they have full support.",
+          "high": "This person’s cautious and risk-averse approach may lead to delay. They are likely to spend time checking what many people think is the right way forward and weighing the pros and cons. This extensive evaluation can lead to indecision and difficulty moving ahead when others would. It may result in inaction unless they have full support."
+        }
+      },
+      {
+        "key": "casual",
+        "title": "Volatile",
+        "left": "Strives to meet commitments and enjoys a disciplined, busy environment. Focused, driven and able to brush off distractions.",
+        "right": "Prefers an unpressured environment and avoids clear deadlines. May push back when expected to act urgently.",
+        "levels": {
+          "low": "People with this profile are likely to feel comfortable during busy periods and able to ignore distractions. They can probably act quickly when asked and handle several tasks at once. They are likely to meet deadlines and honour commitments to others in a disciplined way.",
+          "mid": "This person is likely to see their work as important and bring a sense of pace and engagement. They may tolerate mistakes and delays to some extent while retaining reasonable control.",
+          "high": "This person is likely to take a relaxed approach to work and proceed at a steady, comfortable pace. Too much work may cause stress and lead them to pass workload and responsibility to others. They may be tolerant of mistakes and delays, both their own and other people’s. As managers, they may trust their team to find good solutions without much involvement, which can sometimes seem like a lack of interest or commitment."
+        }
+      },
+      {
+        "key": "intense",
+        "title": "Intense",
+        "left": "Friendly and peaceful, sensitive to others’ needs and unlikely to impose their views or deadlines.",
+        "right": "Highly energetic and competitive. May pursue work intensely and drive others too hard without recognising the need for a healthy pace.",
+        "levels": {
+          "low": "People with low scores tend to take time to understand others’ views and priorities. They are usually not too demanding of other people’s time and energy. They avoid competing with others and do not necessarily need high status to enjoy their role.",
+          "mid": "Although the person is likely to have a steady drive, the results suggest they are unlikely to cause derailment by pushing others too hard in pursuit of their own goals.",
+          "high": "People with high scores are likely to have a strong drive to succeed. They may be assertive, competitive and less tolerant of others, especially those who are less driven or work at a slower pace. They work hard to reach their goals and expect recognition. Colleagues may find them tiring and feel pressured or even overrun when working with them. Others may avoid working with them to meet the demanding goals and commitments they have made to the organisation."
+        }
+      }
+    ],
+    "profile_section_title": "Derailment profile",
+    "details_section_title": "Interpretation by scale",
+    "lower_side_label": "Lower score",
+    "higher_side_label": "Higher score"
+  }
+}

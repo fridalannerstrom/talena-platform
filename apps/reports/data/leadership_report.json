@@ -1,0 +1,593 @@
+{
+  "sv": {
+    "introduction": {
+      "title": "Förklaring av ledarskap (inledning)",
+      "body": "Ledarskapsmodellen i denna rapport förklarar hur dina egna personlighetsegenskaper hänger ihop med din\nmest sannolika ledarskapsstil och vad du föredrar i din roll som ledare.\nModellen har utvecklats genom att undersöka och granska en stor mängd akademiska och kommersiella\nledarskapsmodeller. Granskningen har identifierat de viktigaste ledarskapsmetoderna som finns i\nlitteraturen och därefter kompletterats av omfattande arbete inom området. Tillvägagångssättet säkerställer\natt modellen är stabil, uppdaterad och verklighetsförankrad.\nDina resultat har beräknats genom att jämföra dig med andra som redan har genomfört frågeformuläret. De\nåterspeglar de beteendestilar du föredrar i ledarskapsroller och baseras på dina självrapporterade\npreferenser. Det innebär att resultaten endast är så bra som de svar du har angett. De baseras helt och\nhåller på dina svar i formuläret och beaktar således inte din förmåga, dina färdigheter eller tidigare\nerfarenheter. Det är möjligt att arbeta utanför sina preferenser, även om du kanske upplever att det kräver\nstörre medvetenhet, insats och energi. Denna rapport kan vara en värdefull utgångspunkt för att förstå dina\negna föredragna ledarskapskompetenser och den påverkan de sannolikt har på din framgång som ledare\noch de personer du leder.\nTQs ledarskapsmodell\nVår ledarskapsmodell delas in i åtta olika ledarskapskompetenser i fyra kvadranter.\nI modellen finns fyra kvadranter som är knutna till åtta bredare kompetenser som samverkar för att ledare\nska kunna leverera de resultat som krävs för att leda och upprätthålla framgångsrika organisationer eller\nteam.\n• Styrning: I denna kvadrant ligger fokus på ledarens tillvägagångssätt när det gäller att skapa och\nförmedla en vision till teamet/verksamheten samt hens metod för att förvandla denna vision till en\ngenomförbar lösning.\n• Samspel: I denna del av modellen fokuserar vi på ledarens stil när det gäller att söka stöd för sin vision\noch sina planer samt förmågan att inkludera mångfald avseende metoder och perspektiv.\n• Utveckling: Här ligger fokus på i hur stor omfattning ledaren stöttar och coachar andra så att de kan nå\nsin fulla potential och stödja den övergripande visionen samtidigt som de beaktar den uppförandekod\nsom ledaren själv följer och förväntar sig att andra följer.\n• Genomförande: Den fjärde kvadranten handlar om ledarens tillvägagångssätt när det gäller styrning\noch delegering i teamet samt sannolikheten att hen är den som avgör tempot och har höga\nförväntningar i det avseendet."
+    },
+    "chart_intro": {
+      "title": "Kompetensprofil för ledarskap",
+      "body": "Diagrammet nedan visar en grafisk översikt över dina resultat i förhållande till var och en av\nledarskapskompetenserna. Hur stark din självrapporterade preferens eller orientering är anges av hur långt\nutanför cirkeln de färgade banden når. När du granskar dina resultat, kan du fundera på ditt resultatmönster\noch områden du skulle kunna lägga mer fokus på för att maximera dina styrkor som ledare."
+    },
+    "strengths_intro": null,
+    "aria_label": "Ledarskapsrapport",
+  "profile_eyebrow": "Ledarskapsprofil",
+  "competency_count_label": "kompetenser",
+  "strength_title": "Sannolika styrkor",
+    "development_title": "Potentiellt utvecklingsbehov",
+    "quadrants": [
+      {
+        "title": "Styrning",
+        "competencies": [
+          {
+            "title": "Skapar visionen",
+            "definition": "Definierar en tydlig vision för företagets eller teamets framtid. Tar hänsyn till all relevant\ninformation och inser behovet av förändring eller innovation till följd av detta. Kommunicerar sin\nvision på ett övertygande och kraftfullt sätt och visar entusiasm och passion för att säkerställa\natt andra är engagerade.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Du gillar sannolikt att ta dig an mer konkreta eller praktiska problem och kan ofta förlita dig på bekanta lösningar\neller lösningar som visat sig vara framgångsrika. Du föredrar sannolikt att kommunicera med likasinnade\npersoner och gillar kanske inte situationer som kräver att du påverkar andra personers idéer och åsikter.\nSammantaget innebär dessa faktorer att du kanske är mindre bekväm än andra ledare med att ta dig igenom\nkomplexa eller otydliga situationer för att ta fram en tydlig framtidsvision. Du kan också tycka att det är svårt att\nförmedla denna vision på ett övertygande sätt till andra.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Vilka nya verksamhetsinriktningar eller initiativ skulle du kunna använda för att bygga upp dina kompetenser i\natt skapa en tydlig framtidsvision? Vilka alternativa perspektiv skulle du kunna beakta och vilka resurser har\ndu tillgång till som skulle hjälpa dig att komma på mer nyskapande tillvägagångssätt även om det inte känns\nnaturligt för dig?\n• Finns det tillfällen när du skulle vinna på att förmedla en framtidsvision på ett mer öppet och omfattande sätt?\nTa dig tid att fundera på vilka huvudaktörerna är och vilka som behöver veta vad. Tänk också på att dina\nbudskap kan behöva anpassas efter olika grupper eller undergrupper."
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Du gillar sannolikt att arbeta med en mängd olika problem – såväl praktiska som konceptuella – och är sannolikt\nbekväm med att ägna dig åt viss kritisk analys. Ibland letar du efter nyskapande sätt att lösa problem på men\nanvänder också beprövade metoder om det är relevant. Du är ganska bekväm med att kommunicera med och\npåverka andra. Sammantaget bör dessa faktorer bidra till att du tar dig igenom komplexa och oklara situationer\nganska väl, vilket gör att du kan ta fram en framtidsvision och förmedla den på ett ganska öppet och\növertygande sätt.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När skulle du ha tjänat på att vara mer kritisk i din utvärdering av en viss affärssituation och de olika alternativ\nsom fanns tillgängliga innan du bestämde dig för det bästa sättet att gå vidare? Vad kommer du att göra\nannorlunda i framtiden?\n• Hur säkerställer du att andra helt och hållet förstår den framtidsvision du förmedlar? Fundera på hur du kan\nstrukturera och presentera dina huvudbudskap så att de blir så enkla som möjligt för och har största möjliga\ninverkan på målgruppen?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Du gillar sannolikt att arbeta med konceptuella problem som kräver att du beaktar faktorer från en mängd olika\nperspektiv. Vidare brukar du leta efter nyskapande sätt för att lösa komplexa och organisatoriska problem.\nFörmodligen kommunicerar du öppet med andra och gillar att påverka andras idéer och åsikter. Sammantaget\nbör dessa faktorer bidra till att du tar dig igenom komplexa och oklara situationer och kan ta fram en\nframtidsvision och förmedla den på ett öppet och övertygande sätt till andra teammedlemmar och nyckelaktörer.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur ser du till att du definierar och förmedlar en framtidsvision för företaget eller teamet som är tillräckligt tydlig\noch konkret så att andra kan ta den till sig? Kom ihåg att alla inte är lika bekväma med konceptuell information\nsom du och att många behöver få huvudbudskapet presenterat på ett mer konkret sätt.\n• Tänk på hur du kan hjälpa andra att kommunicera mer öppet om det fortsatta arbetet. Vilka viktiga delar av\ninformationen behöver du få med när du förmedlar din framtidsvision? Vilka tips kan du ge om hur man bäst\nstrukturerar sina budskap?"
+              }
+            ],
+            "likely_strengths": "Eftersom du har ett konceptuellt förhållningssätt gillar du sannolikt att utforska flera perspektiv och hitta innovativa\nsätt att lösa problem på. Du är också sannolikt bekväm med att kommunicera med många olika slags människor och\ngillar att övertala och övertyga andra. Dessa faktorer kan hjälpa dig att ta fram en tydlig framtidsvision och förmedla\nden till andra på ett öppet och övertygande sätt.",
+            "development_need": "Eftersom du är pragmatiskt lagd brukar du fokusera på praktiska detaljer och löser sannolikt problem med hjälp av\nbeprövade metoder. Du föredrar att kommunicera med personer som är mer lika dig och gillar kanske inte att behöva\növertyga eller övertala andra. Dessa faktorer kan innebära att du är mindre bekväm än andra ledare med att utarbeta\nen tydlig framtidsvision och därefter förmedla den på ett öppet och övertygande sätt till andra."
+          },
+          {
+            "title": "Skapar lösningar",
+            "definition": "Identifierar grundorsaken till problem som verksamheten eller teamet står inför. Söker effektiva\noch pragmatiska lösningar för att ta itu med problemen genom att utnyttja data och sin\nförståelse av organisationens struktur och omgivande miljö. Söker nya lösningar och tillåter att\nmisstag kan göras.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Du gillar sannolikt inte att ta dig an problem som är mycket komplexa eller som kräver att du analyserar\nsituationer på djupet. Du verkar ha ett ganska intuitivt förhållningssätt till problemlösning istället för att tillbringa\nmycket tid på att samla in data eller skapa nya idéer. Överlag betyder ditt tillvägagångssätt att du varken gör\ntillräckligt för att helt förstå verksamhetsfrågornas grundorsaker eller ser bortom status quo för att identifiera\noptimala lösningar på de olika problem och utmaningar som verksamheten står inför.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Vem känner du som har ett mycket analytiskt tillvägagångssätt när det gäller problemlösning? Vad skulle du\nkunna göra för att få reda på mer om personens tillvägagångssätt och lära dig hur hen förstår nyckelfrågor i\ndjupare detalj och kritiskt utvärderar information istället för att bara godta saker som de är?\n• Tänk på en situation nyligen där ett mer kreativt tillvägagångssätt när det gäller idéskapande och\nproblemlösning skulle ha varit fördelaktigt. Med facit i hand, vad skulle du ha kunnat göra annorlunda om du\nhade övervägt alternativa eller nya tillvägagångssätt?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Det verkar som att du trivs med att analysera problem på djupet så länge du kan balansera det med enklare\nscenarion. Sannolikt är du precis lika analytisk i din problemlösningsstrategi som andra och förlitar dig på\nobjektiva data samt din intuition. Överlag tyder ditt tillvägagångssätt på att du är relativt väl lämpad att hitta\nsunda lösningar på de olika utmaningar som verksamheten står inför, även om det kan finnas tillfällen när du\nkanske tjänar på att fundera på hur man tar fram nya idéer och förslag.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När hade du kunnat hitta en bättre lösning på ett visst verksamhetsproblem om du hade använt ett mer\ndatadrivet tillvägagångssätt eller lagt tid på att försöka förstå vissa frågor på ett djupare plan? Vilka data fanns\ntillgängliga och hur skulle de ha förbättrat din lösning?\n• Tänk på ett befintligt eller kommande problem där ett kreativt tillvägagångssätt krävs. Hur kan du på bästa sätt\nanvända din stil för att hitta den mest effektiva lösningen?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Det verkar som att du är en person som gillar att analysera situationer och problem på ett omfattande sätt så att\ndu kan förstå grundorsaken till aktuella verksamhetsproblem. Ditt objektiva och faktabaserade förhållningssätt\ntill problemlösning, tillsammans med tillfredsställelsen du upplever av att komma på nya idéer och förslag\nhjälper dig sannolikt att ta dig igenom status quo och hitta optimala lösningar på de olika problem och\nutmaningar som ditt team eller verksamheten i stort står inför.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Vad kan du göra för att hjälpa andra att utveckla mer analytiska problemlösningsmetoder? Hur kan du på\nbästa sätt visa upp och använda fördelarna med noggrann analys och kritisk utvärdering före beslut kring hur\nman ska ta sig an komplexa verksamhetsproblem på ett optimalt sätt?\n• Finns det tillfällen när du tillbringar för mycket tid på att leta efter nya och kreativa lösningar? Hur kan du\nsäkerställa att du inte råkar bortse från lösningar som kan verka självklara eller ordinära på ytan, men som i\nsjälva verket är eleganta tack vare sin enkelhet och effektivitet?"
+              }
+            ],
+            "likely_strengths": "Du verkar gilla att analysera komplexa frågor i viss utsträckning och använder kanske en evidensbaserad\nproblemlösningsmetod, åtminstone ibland. Det är också ganska sannolikt att du får viss glädje av att komma på nya\nidéer och att göra en avvägning mellan för- och nackdelarna i olika alternativ för att hitta effektiva lösningar för\nverksamheten.",
+            "development_need": "Du har generellt sett en intuitiv problemlösningsmetod och gillar kanske inte att arbeta med uppgifter som kräver\nmycket kritisk analys. Du kan uppleva att det är svårt att komma på nya idéer eller lösningar och kan ha svårt för att\nidentifiera hur man bäst tar sig an behov och utmaningar i verksamheten."
+          }
+        ]
+      },
+      {
+        "title": "Samspel",
+        "competencies": [
+          {
+            "title": "Skapar samarbetsformer",
+            "definition": "Uppsöker aktivt och skapar ett stort antal användbara nätverk och positiva relationer, både\ninom och utanför organisationen. Skapar lätt kontakt med en mångfald av människor. Använder\nsin förståelse för hur verksamheten fungerar vad gäller struktur, människor och politik för att\nbilda starka stödjande allianser.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Dina resultat tyder på att du är mindre bekväm än andra ledare när det gäller att kommunicera med andra,\nsärskilt med människor som är olika dig eller i situationer där du måste använda ett övertygande\ntillvägagångssätt. Det verkar som att du föredrar att endast ha kontakt med en liten grupp betrodda kollegor och\nrådgivare och är mindre benägen att ta kontakt med personer du inte känner. Därför missar du kanske\nmöjligheter att skapa nya relationer, utvidga ditt professionella nätverk samt skapa starka och stöttande\nsamarbetsformer.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När har du skjutit upp att träffa nya människor eller utöka ditt nätverk? Fundera på varför och vilka andra\nmindre personorienterade uppgifter eller ansvarsområden som du fokuserade på istället. Vilka slutsatser kan\ndu dra från detta?\n• Skulle du tjäna på att lägga mer tid och energi på att nätverka och skapa nya relationer? Om så är fallet,\nfundera på några nyckelpersoner eller grupper som det skulle vara fördelaktigt att utveckla starka\nsamarbetsformer med."
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Dina resultat tyder på att du är ganska bekväm med att kommunicera med många olika slags människor och\nlika benägen som de flesta ledare att ta kontakt med personer du inte känner. Dessa faktorer bör ses som att du\när ganska benägen att lägga tid och energi på att skapa nya relationer samt utvidga ditt professionella nätverk,\nbåde inom och utanför organisationen. Det verkar också som att du ibland kan ha en övertygande\nkommunikationsstil och att det sannolikt hjälper dig att skapa samarbetsformer som du kan förlita dig på för att\nfå stöd samt kunskaper och insikt i hur verksamheten fungerar.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När hade du tjänat på att göra mer för att skapa starka interna eller externa samarbetsformer? Hur skulle du\noch verksamheten i stort ha dragit nytta av samarbetet? Hur kan du åtgärda detta?\n• Fundera på en aktuell utmaning där du skulle tjäna på stöd och hjälp från samarbetspartner. Utifrån\nutmaningen och den typ av stöd du behöver, fundera på personer som det kanske skulle vara bra att ta\nkontakt med."
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Dina resultat tyder på att du gillar att kommunicera med många olika slags människor och är bekväm med att ta\nkontakt med personer du inte känner. Du kommer därför sannolikt att vara proaktiv när det gäller att skapa nya\nrelationer och utvidga ditt professionella nätverk, både inom och utanför organisationen. Tillsammans med din\növertygande kommunikationsstil hjälper dessa faktorer dig sannolikt att skapa starka samarbetsformer som du\nkan förlita dig på för att få stöd och insikt i hur verksamheten fungerar.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När har du skapat ett starkt internt eller externt samarbete som hjälpte dig att uppnå ett visst mål som inte\nannars skulle ha varit möjligt? Hur kan du använda den erfarenheten för att hjälpa andra att lära sig från ditt\ntillvägagångssätt och förstå fördelarna med att skapa olika slags samarbetsformer? På vilka andra sätt skulle\ndu kunna utnyttja styrkan i dina samarbetsformer för att främja verksamheten på ett mer omfattande sätt?\n• Finns det tillfällen när du lägger ned för mycket energi på att skapa nya relationer? Finns det vissa uppgifter\neller ansvarsområden som du brukar skjuta upp för att istället träffa nya människor och utöka ditt nätverk?"
+              }
+            ],
+            "likely_strengths": "Eftersom du är ganska bekväm med att ta kontakt med andra och kommunicera med många olika slags människor\när du sannolikt ganska proaktiv med att utvidga ditt nätverk. Du skapar förmodligen nya relationer emellanåt - både i\noch utanför organisationen - vilket hjälper dig i viss mån att skapa starka och stöttande samarbetsformer.",
+            "development_need": "Eftersom du är ganska bekväm med att ta kontakt med andra och kommunicera med många olika slags människor\när du sannolikt ganska proaktiv med att utvidga ditt nätverk. Du skapar förmodligen nya relationer emellanåt - både i\noch utanför organisationen - vilket hjälper dig i viss mån att skapa starka och stöttande samarbetsformer."
+          },
+          {
+            "title": "Bejakar mångfald",
+            "definition": "Använder mångfald för att främja teamet eller verksamhetsstrategin. Bygger upp ett team eller\nen enhet som kan stödja visionen och lösningarna på effektivaste sätt. Visar intresse för att\nförstå olika perspektiv, kulturer och arbetssätt.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Det tar förmodligen lite tid innan du får kontakt och känner samhörighet med andra. Du är sannolikt inte lika\nempatisk när du har kontakt med andra och kan ha vissa svårigheter att förstå andra personers åsikter och\nperspektiv, särskilt de som skiljer sig mycket från dina egna. Överlag kan den lägre toleransen för människors\nolikheter och brister utgöra ett hinder för hur väl du lyckas använda arbetsplatsens mångfald för att förbättra\nteamet eller verksamheten.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Med facit i hand, när hade du kunnat göra mer för att förstå olika åsikter och perspektiv på ett visst problem?\nVilka hade fördelarna varit med att samla in flera olika synpunkter?\n• Fundera på mångfalden i ditt nuvarande team. Hur kan du använda denna mångfald för att förbättra hur\nteamet eller verksamheten fungerar?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Du är troligen en ganska varm och vänlig person som skapar goda relationer med andra lika snabbt som de\nflesta. Sannolikt har du även ett ganska empatiskt tillvägagångssätt och lägger oftast viss vikt vid att försöka\nförstå andra personers åsikter och perspektiv. Generellt sett hjälper sannolikt din tolerans mot andras\nperspektiv och ditt intresse för att lära dig om nya idéer och tillvägagångssätt dig att dra nytta av andras\nolikheter för att förbättra teamet eller verksamheten i viss utsträckning.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När hade du kunnat anstränga dig mer för att förstå olika perspektiv, kulturer och tillvägagångssätt på arbetet?\nVad lärde du dig av det här? Hur hade ett mångsidigt perspektiv hjälpt?\n• Hur kan du använda mångfalden i ditt team eller organisation på ett mer målmedvetet sätt? Hur kan du gå från\natt respektera mångfald till att verkligen bejaka mångfald?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Du är sannolikt en varm och vänlig person som är snabbare än de flesta på att skapa goda relationer med\nandra. Du är sannolikt också mer empatisk än de flesta och gillar att försöka förstå andra personers åsikter och\nperspektiv, även de som skiljer sig mycket från dina egna. Överlag hjälper din lyhördhet och ditt genuina\nintresse för att lära dig om nya idéer och tillvägagångssätt dig att bejaka mångfald och ta tillvara på människors\nolikheter för att förbättra teamet eller affärsstrategier.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När har du avsiktligen skapat ett team eller en enhet med stor mångfald? Varför valde du det\ntillvägagångssättet? Vilka var fördelarna för dig, teamet och verksamheten i stort? Hur kan du dela fördelarna\nmed andra i verksamheten?\n• Hur gör du vanligtvis för att främja mångfald på arbetsplatsen på ett meningsfullt sätt? Fundera på vilka tips du\nkan dela med andra för att bejaka och främja mångfald på arbetsplatsen på ett mer effektivt sätt."
+              }
+            ],
+            "likely_strengths": "Du verkar vara en ganska varm och vänlig person som lätt kan skapa goda relationer med andra i vissa situationer.\nSannolikt är du också ganska lyhörd och tycker att det är ganska intressant att lära dig mer om olika\ntillvägagångssätt och perspektiv. Den rimliga mängd empati och tolerans du visar mot andra kan i viss mån hjälpa\ndig att bejaka mångfald för att förbättra teamet eller verksamheten.",
+            "development_need": "Du verkar vara en ganska varm och vänlig person som lätt kan skapa goda relationer med andra i vissa situationer.\nSannolikt är du också ganska lyhörd och tycker att det är ganska intressant att lära dig mer om olika\ntillvägagångssätt och perspektiv. Den rimliga mängd empati och tolerans du visar mot andra kan i viss mån hjälpa\ndig att bejaka mångfald för att förbättra teamet eller verksamheten."
+          }
+        ]
+      },
+      {
+        "title": "Utveckling",
+        "competencies": [
+          {
+            "title": "Främjar talang",
+            "definition": "Erbjuder synligt stöd till de som ställs inför utmaningar och svåra situationer. Motiverar och\ncoachar andra samt uppmuntrar dem att utveckla sig själva, både personligt och yrkesmässigt\nsamt i enlighet med kraven i verksamhetens vision och strategi. Uppmärksammar enskilda\npersoners bidrag till verksamhetens/teamets framgång.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Dina svar tyder på att du är mindre benägen än vissa andra ledare att hitta sätt att utveckla andra och du\nföredrar att låta andra vara självständiga och utvecklas på egen hand. Du brukar också ha höga förväntningar\npå andra och är kanske inte särskilt tolerant mot dem som fortfarande håller på att finslipa sin yrkeskompetens.\nÖverlag främjar du kanske inte aktivt talangen i ditt team eller din organisation och skulle kanske tjäna på att\nanstränga dig mer för att stötta andras utveckling så att de kan bidra mer till företaget över tid.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När hade du kunnat ge mer stöd till någons pågående yrkesmässiga utveckling? Hur skulle du ha kunnat visa\nmer tolerans medan personen finslipade sina färdigheter under inlärningsprocessen?\n• Vem känner du som är särskilt bra på att främja talang? Hur kan du lära dig mer om den personens\ntillvägagångssätt och samtidigt be om stöd?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Det verkar som att du vanligtvis hittar en balans mellan att låta andra utvecklas självständigt och att ta en mer\naktiv roll i deras utveckling vid behov. Du är sannolikt ganska benägen att coacha dina teammedlemmar och\nhjälpa dem att utvecklas som yrkespersoner. Däremot förväntar du dig dock troligen att de investerar tid och\nenergi i sin egen utveckling så att du kan fokusera på andra saker som kräver din uppmärksamhet. Förmodligen\när du även ganska tolerant mot dem som fortfarande håller på att tillägna sig och finslipa sin yrkeskompetens.\nÖverlag är du ganska fokuserad på att främja talangen i ditt team eller din organisation och stöttar andras\nkontinuerliga utveckling så att de kan bidra mer till verksamheten över tid.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När kunde du ha lagt ned mer tid och energi på att hjälpa någon att utvecklas? Vad skulle du ha kunnat göra\nför att hjälpa dem att bidra till verksamheten på ett mer värdefullt sätt? Vad hindrade dig från att fokusera mer\npå det?\n• Hur ser du vanligtvis till att teamets utveckling ligger i linje med verksamhetens behov? Vad skulle du kunna\ngöra för att få samtliga faktorer att ligga mer i linje med varandra?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Det verkar som att du följer regler och riktlinjer noggrant samt håller dig till etablerade processer, system och\nandra relevanta parametrar på arbetsplatsen. Du brukar också göra en gedigen insats för att fullgöra åtaganden\ngentemot andra även vid förändrade eller konkurrerande prioriteringar. Dessutom tyder dina resultat på att du är\nen ärlig och öppen kommunikatör som är uppriktig mot andra och beredd att ta upp saker i mån av behov.\nSannolikt betraktas du därför som en etisk yrkesperson som är autentisk och pålitlig samt en stark förebild som\när beredd att leva som du lär.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur kan du hjälpa andra att följa regler och processer? Tänk på att vissa kommer att behöva förstå syftet med\nreglerna och processerna i fråga, medan andra kanske behöver bli påminda om vilka konsekvenserna kan bli\nav att inte följa dem. Olika strategier behövs för olika personer eller grupper.\n• Finns det tillfällen när du förlitar dig för mycket på regler och procedurer eller där andra prioriteringar\nrättfärdigar att du inte kan uppfylla ett visst åtagande? Kan det finnas tillfällen då du måste ta ett steg tillbaka\nmed ditt team och fundera på om det finns bättre sätt att uppnå uppsatta mål?"
+              }
+            ],
+            "likely_strengths": "Eftersom du är en ganska omtänksam och hänsynsfull person gillar du förmodligen att hjälpa teammedlemmar att\nutvecklas yrkesmässigt i viss grad men balanserar detta med en förväntan att de även utvecklas på egen hand. Ditt\ntillvägagångssätt innebär att du sannolikt bidrar i viss grad till att coacha och främja talang i teamet samt i\nverksamheten som helhet.",
+            "development_need": "\"Det verkar som att du föredrar att låta andra utvecklas självständigt och brukar vara mer fokuserad på den aktuella\nuppgiften istället för att stötta och vägleda andra. Du är kanske mindre tolerant mot de som fortfarande håller på att\nutveckla sin yrkeskompetens. Det kan leda till att du går miste om möjligheter att på ett aktivt sätt coacha eller främja\ntalanger i teamet eller verksamheten i stort.\""
+          },
+          {
+            "title": "Föregår med gott exempel",
+            "definition": "Föregår med gott exempel genom att leva upp till den uppförandekod som andra också\nförväntas följa. Styrs av etiska principer och arbetar på ett autentiskt och ärligt sätt. Reagerar\nmed integritet på etiska konflikter och skapar därmed förtroende hos andra.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Det verkar som att du föredrar ett flexibelt tillvägagångssätt där du inte hindras av regler, processer och andra\nrelevanta parametrar samt att du är beredd att bryta mot eller tumma på regler i mån av behov för att uppnå\ndina mål eller snabbt få saker gjorda. Du lägger sannolikt mindre vikt än de flesta vid att fullgöra åtaganden\ngentemot andra, särskilt om dina prioriteringar ändras eller om andra faktorer står i vägen. Dessutom verkar det\nsom att du brukar vara mindre öppen och direkt i din kommunikation och du tänker på hur du formulerar dig och\nväljer dina ord noggrant. Överlag innebär dessa faktorer att du kan missa möjligheter att föregå med gott\nexempel och vara en stark förebild för andra.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Finns det några särskilda regler eller riktlinjer som du är mindre benägen att följa eller arbeta inom? Fundera\npå vad det innebär för dig som ledare och förebild för andra i företaget, oavsett hur du rättfärdigar det.\n• Tänk på ett tillfälle när du hade tjänat på att använda en mer direkt kommunikationsstil. Vad blev\nkonsekvenserna av ditt tillvägagångssätt?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Det verkar som att du är lika benägen som de flesta att arbeta enligt fastställda regler och procedurer även om\ndu förmodligen gillar att ha spelrum att göra vissa saker på ett mindre begränsat sätt om möjligt. På samma sätt\nförsöker du generellt sett hålla dina löften till andra samtidigt som du är ganska tolerant mot mindre misstag och\nberedd att leverera saker lite senare än planerat om prioriteringarna ändras. Dessutom försöker du generellt\nsett vara ganska ärlig mot andra även om du ibland lämnar vissa saker osagda eller har ett mindre direkt\ntillvägagångssätt under vissa omständigheter. Generellt sett betraktas du av andra som ganska etisk och\nautentisk, även om det kan finnas utrymme att vara en starkare förebild för andra när det gäller att exemplifiera\nuppförandekodens mer utmanande inslag.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• När skulle du ha tjänat på att göra mer för att säkerställa att du slutförde ett visst arbetsrelaterat åtagande i\ntid? Hur skulle du kunna använda denna erfarenhet för att förmedla uppförandekoden inom teamet?\n• Under vilka omständigheter brukar du ha en mindre direkt kommunikationsstil? Hur kan det påverka andras\nuppfattning om dig? Skulle ett mer uppriktigt tillvägagångssätt ge ett bättre intryck i det avseendet?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Det verkar som att du följer regler och riktlinjer noggrant samt håller dig till etablerade processer, system och\nandra relevanta parametrar på arbetsplatsen. Du brukar också göra en gedigen insats för att fullgöra åtaganden\ngentemot andra även vid förändrade eller konkurrerande prioriteringar. Dessutom tyder dina resultat på att du är\nen ärlig och öppen kommunikatör som är uppriktig mot andra och beredd att ta upp saker i mån av behov.\nSannolikt betraktas du därför som en etisk yrkesperson som är autentisk och pålitlig samt en stark förebild som\när beredd att leva som du lär.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur kan du hjälpa andra att följa regler och processer? Tänk på att vissa kommer att behöva förstå syftet med\nreglerna och processerna i fråga, medan andra kanske behöver bli påminda om vilka konsekvenserna kan bli\nav att inte följa dem. Olika strategier behövs för olika personer eller grupper.\n• Finns det tillfällen när du förlitar dig för mycket på regler och procedurer eller där andra prioriteringar\nrättfärdigar att du inte kan uppfylla ett visst åtagande? Kan det finnas tillfällen då du måste ta ett steg tillbaka\nmed ditt team och fundera på om det finns bättre sätt att uppnå uppsatta mål?"
+              }
+            ],
+            "likely_strengths": "Du verkar lägga en del vikt vid att uppfylla löften och åtaganden gentemot andra samt att följa regler och riktlinjer. Du\när också ofta ganska uppriktig och rak när du förmedlar dina åsikter till andra. Därför betraktas du som något av en\nförebild för andra när det gäller uppriktighet och att följa uppförandekoden.",
+            "development_need": "Du verkar lägga en del vikt vid att uppfylla löften och åtaganden gentemot andra samt att följa regler och riktlinjer. Du\när också ofta ganska uppriktig och rak när du förmedlar dina åsikter till andra. Därför betraktas du som något av en\nförebild för andra när det gäller uppriktighet och att följa uppförandekoden."
+          }
+        ]
+      },
+      {
+        "title": "Genomförande",
+        "competencies": [
+          {
+            "title": "Klargör förväntningar",
+            "definition": "Ger tydliga anvisningar och uppmuntrar andra starkt för att säkerställa att de lyckas uppnå både\nsina egna och verksamhetens mål. Delegerar arbete på ett lämpligt sätt genom att beakta\nfärdigheter, erfarenhet och tillgänglighet. Ger andra rätt nivå av självständighet och befogenhet.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Du är inte lika styrande som andra ledare och brukar vara försiktig så att du inte blir alltför dominant eller\npådyvlar dina egna åsikter på andra. Du verkar även föredra att ledas av andra snarare än att leda själv och\nberätta för andra vad de ska göra. Du förmedlar inte alltid vad du har för förväntningar på andra eller berättar för\ndem när de inte har levererat det som krävs, vilket leder till att du går miste om möjligheter att hålla andra\nansvariga, ge korrigerande feedback och bidra till andras kontinuerliga professionella utveckling. Överlag kan\ndenna stil påverka hur väl uppsatta mål uppfylls, framför allt sådana som är mer utmanande och som kräver\ntydlig styrning och fokuserat genomförande.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Vem känner du som har hittat en bra balans mellan att ge teammedlemmar tydlig information om vad de\nförväntas uppnå och självständighet när det gäller att uppfylla kraven? Vad kan du lära dig från den personen?\n• När har du haft problem med att hålla någon ansvarig för att inte ha uppnått uppsatta mål? Hur kommer du att\nhantera liknande situationer i framtiden? Vem känner du som hanterar sådana situationer väldigt bra?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Det verkar som att du är en ganska självsäker person som gillar att leda andra lika mycket som de flesta. Du är\nganska bestämd när det gäller att uttrycka dina synpunkter och åsikter och ger sannolikt ganska tydliga riktlinjer\ntill andra kring vad som krävs. Du verkar också vara lika beredd som de flesta på att berätta när någon inte har\nlevt upp till dina förväntningar. På detta sätt bidrar du sannolikt till andras professionella tillväxt och utveckling\nsamtidigt som du också säkerställer att teamets mål uppnås, även om du kanske drar nytta av att ha ett lite mer\nstyrande tillvägagångssätt när det finns mer utmanande mål att uppnå.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Finns det tillfällen när du skulle tjäna på att ge teammedlemmarna tydligare eller utförligare vägledning om vad\ndu har för förväntningar? Hur ska du se till att alla relevanta personer förstår dina förväntningar? Vad har\nhindrat dig från att göra det tidigare?\n• Tänk på ett tillfälle när du skulle ha kunnat vara mer bestämd i hanteringen av ett problem som handlade om\narbetsinsatser. Vad kommer du att göra annorlunda i framtiden? Hur kan du övervinna eventuella svårigheter\nsom har hindrat dig från att göra det tidigare?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Det verkar som att du är en självsäker person som gillar att leda andra. Du är bestämd när du uttrycker dina\nåsikter och synpunkter och ger sannolikt tydliga anvisningar till teammedlemmar. Dessutom är du troligtvis\nberedd på att säga ifrån och berätta för andra när de inte har uppfyllt dina förväntningar eller behöver göra\nsaker på ett annat sätt. På detta sätt bidrar du sannolikt till människors professionella tillväxt och utveckling\nsamtidigt som du också säkerställer att teamets mål uppnås och utmaningar hanteras.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur ser du till att dina teammedlemmar har tillräckligt med tydlighet i vad som krävs av dem? Vilka råd kan du\nge till andra som har svårt att ge tydliga anvisningar till sina team?\n• Vad har du vanligtvis för tillvägagångssätt när du delegerar? Hur balanserar du behovet av att ge personer\nåtkomst till utvecklande uppgifter som utmanar dem samtidigt som du ser till att teamet fungerar bra och kan\nleverera det som krävs?"
+              }
+            ],
+            "likely_strengths": "Du är ganska självsäker och bestämd vid kontakten med andra och är sannolikt ganska bekväm i en ledande roll där\ndu måste ge tydliga anvisningar till dina teammedlemmar. Eftersom du har angett att du har visst intresse för att\nbidra till andras utveckling och uppnå utmanande mål tyder det på att det kommer att finnas tillfällen där du är\nbekväm med att berätta för andra när korrigerande åtgärder behövs för att uppfylla teamets eller verksamhetens\nuppsatta mål.",
+            "development_need": "Du är ganska självsäker och bestämd vid kontakten med andra och är sannolikt ganska bekväm i en ledande roll där\ndu måste ge tydliga anvisningar till dina teammedlemmar. Eftersom du har angett att du har visst intresse för att\nbidra till andras utveckling och uppnå utmanande mål tyder det på att det kommer att finnas tillfällen där du är\nbekväm med att berätta för andra när korrigerande åtgärder behövs för att uppfylla teamets eller verksamhetens\nuppsatta mål."
+          },
+          {
+            "title": "Främjar drivkraft",
+            "definition": "Mycket motiverad och driven, tar sig an utmanande mål och situationer med energi och\nentusiasm. Förväntar sig högt tempo och har nolltolerans mot självbelåtenhet i teamet. Får\nteamet att behålla drivkraften även under utmanande perioder.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Låg",
+                "score_label": "Poäng 1",
+                "interpretation": "Eftersom du är mindre driven och motiverad än de flesta av att arbeta mot utmanande mål söker du sannolikt\ninte aktivt nya spännande utmaningar eller mål. Istället föredrar du ett tillvägagångssätt där du kan arbeta i en\njämnt tempo och inte känner att du blir dragen åt olika håll. Du är också mer benägen än andra att oroa dig när\nsaker och ting går snett eller att fokusera på det negativa i situationer. Generellt sett kan denna stil påverka i\nvilken grad du lyckas dela entusiasmen och dynamiken som krävs för att motivera teammedlemmarna och\nfortsätta arbeta framåt under utmanande perioder.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Brukar du vara alltför självbelåten eller eftergiven mot dig själv och ditt team? Tänk på tillfällen när du hade\nkunnat ta dig an mycket mer utmanande och krävande mål. Vad skulle ha krävts för att uppnå dem?\n• Finns det tillfällen när du skulle tjäna på att hålla ett högre tempo i teamet och göra mer för att främja\nmotivationen att uppnå uppsatta mål? Hur kan du uppnå det på bästa sätt? Vilka faktorer har gjort detta svårt\nför dig tidigare?"
+              },
+              {
+                "key": "mid",
+                "label": "Mellan",
+                "score_label": "Poäng 2–4",
+                "interpretation": "Du är lika driven och motiverad som de flesta av att arbeta mot krävande mål och söker sannolikt nya\nutmaningar så länge du kan balansera dem med lättare eller mindre krävande förpliktelser. Du tillför sannolikt\nen rimlig mängd energi till ditt arbete och föredrar ett måttligt arbetstempo där du har tillräckligt med uppgifter\nför att hålla dig sysselsatt utan att utsätta dig för alltför stor belastning. Tillsammans med ditt relativt optimistiska\nsynsätt tyder dessa faktorer på att du tillför viss motivation och entusiasm till teamet även om du kan behöva\ngöra mer för att tillföra det driv som behövs för att uppfylla de svårare målen eller vid mer utmanande\nomständigheter.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur vet du när du borde driva teamet lite hårdare och när du bör ta ett steg tillbaka och hålla ett jämnare\ntempo? Vem känner du som lyckats hitta balans i det avseendet och vad kan du lära dig från den personen?\n• Finns det tillfällen när du skulle tjäna på att tillföra mer energi och optimism i rollen för att motivera teamet och\ninspirera dem om vad som är möjligt? Hur skulle du kunna gå tillväga?"
+              },
+              {
+                "key": "high",
+                "label": "Hög",
+                "score_label": "Poäng 5",
+                "interpretation": "Eftersom du är mycket driven och motiveras av utmanande mål är du mer benägen än andra att uppsöka\nspännande och nya utmaningar samt tillföra en stor mängd energi i ditt arbete. Du trivs förmodligen också i en\nroll där du har mycket att göra och flera ansvarsområden. Din optimistiska personlighet leder förmodligen till att\ndu behåller en positiv syn även under mer utmanande omständigheter. Överlag är du sannolikt en\nmotivationskälla för andra och tillför teamet den entusiasm och drivkraft som krävs för att uppfylla målen.",
+                "questions_title": "Frågor att ställa till dig själv",
+                "questions": "• Hur ser du vanligtvis till att skapa en känsla av energi och entusiasm bland teammedlemmarna? Kom ihåg att\nalla inte arbetar i ditt tempo eller har samma utökade mål som du. Vissa behöver hjälp med att behålla fokus\noch optimism, framför allt vid motgångar.\n• Finns det tillfällen när du helt enkelt pressar andra för hårt? Vilka strategier använder du eller kan du använda\nför att förebygga detta? Vilka varningstecken bör du hålla ögonen på i det avseendet?"
+              }
+            ],
+            "likely_strengths": "Du verkar vara lika driven som de flesta och anstränger dig sannolikt för att ta dig an nya utmaningar samt att arbeta\nmot utökade mål. Det finns troligtvis tillfällen när du gillar att arbeta i ett snabbt tempo och du fokuserar regelbundet\npå det positiva i olika situationer. Överlag bidrar du sannolikt till drivkraften i teamet och hjälper andra att fokusera på\ndet som går att uppnå.",
+            "development_need": "Du verkar vara mindre driven än de flesta och anstränger dig vanligtvis inte för att ta dig an nya utmaningar eller att\narbeta mot utökade mål. Dessutom gillar du sannolikt att arbeta i ett stadigt tempo där du inte behöver hantera flera\nuppgifter samtidigt och har ibland svårt att fokusera på det positiva i olika situationer. Generellt sett innebär det att du\nkan uppleva det som utmanande att främja entusiasm och motivation i teamet samt att få medlemmarna att fokusera\npå vad som går att uppnå."
+          }
+        ]
+      }
+    ]
+  },
+  "en": {
+    "introduction": {
+      "title": "Understanding leadership",
+      "body": "The Leadership model in this report provides you with an understanding of how your own personality\npreferences are related to your likely style and preferences as a leader.\nThe model has been developed by researching and reviewing a broad range of academic and commercial\nmodels of leadership. This review has identified the key approaches to leading others that have been\nshared in the leadership literature and has been complemented by Sova’s extensive work in this area. This\napproach ensures that the model is robust, up-to-date and real-world focused.\nYour results have been calculated by comparing you to others who have already completed the\nquestionnaire. They reflect your preferred behavioural style when operating in leadership roles, and are\nbased on your self-reported preferences and therefore, are only as good as the responses you have\nprovided. They are based purely on your responses to the questionnaire and as such, do not take into\naccount your ability, skills or previous experiences. It is possible to operate outside of your preferences,\nalthough you may find this takes more conscious awareness, effort and energy. This report can be a useful\nstarting point for understanding your own preferred leadership competencies and the impact they are likely\nto have on your success as a leader and those you are leading.\nThe Sova Leadership Model\nThe Sova Leadership model is split into eight different Leadership competencies across four quadrants.\nWithin the model the four quadrants relate to eight broad competencies that work together to allow a leader\nto successfully deliver the outcomes needed to lead and sustain a successful organisation or team.\n• Direction: In this quadrant the focus is very much on the leader’s approach to creating and\ncommunicating a vision to their team/business, and also their approach to turning this vision into a\nworkable solution.\n• Connection: In this part of the model we spotlight the leader’s style in relation to successfully seeking\nsupport for their vision and plans and doing so in a way that ensures they have a diversity of\napproaches and perspectives within that.\n• Cultivation: Here the focus is on the extent to which the leader will support and coach others, to allow\nthem to fulfil their potential and support the broader vision, and also considering the behavioural\nstandards the leader expects and displays.\n• Execution: The fourth quadrant considers the leader’s approach to directing and delegating to the\nteam, alongside their likelihood for being a leader who drives the pace and has high expectations in this\nregard."
+    },
+    "chart_intro": {
+      "title": "Leadership Competencies Profile",
+      "body": "The chart below provides a graphical summary of your results in relation to each of the eight leadership\ncompetencies. The strength of your self-reported preference or orientation is indicated by the extent to\nwhich the coloured bands extend to the outside of the circle. When reviewing your results, consider your\npattern of outputs and where you would benefit from placing more focus to maximise your strengths as a\nleader."
+    },
+    "strengths_intro": {
+      "title": "Your Leadership Competencies",
+      "body": "In this section your likely strengths and development needs are outlined based on your\nself-reported behavioural style.\nYour likely strengths are based on the two scales which you indicated the strongest preference for. Your\npossible development need reflects the scale which you indicated was least aligned with your preferences.\nPlease note that these are solely based on the rank order of your personal preferences. This means that\neven the competency deemed a possible development need may still be an area which you show some\npreference and strength for, it is simply the lowest of the eight competencies for you.\nIn reviewing the below, consider how each of these scales influences how you approach, and respond to,\nyour responsibilities as a leader and perhaps the difficult situations that you face. Think about the strengths\nyou can leverage in this context and where you could benefit from adapting your preferred leadership style."
+    },
+    "aria_label": "Leadership report",
+  "profile_eyebrow": "Leadership profile",
+  "competency_count_label": "competencies",
+  "strength_title": "Likely strengths",
+    "development_title": "Potential development need",
+    "quadrants": [
+      {
+        "title": "Direction",
+        "competencies": [
+          {
+            "title": "Creates the vision",
+            "definition": "Defines a clear vision for the future of the business or team. Takes account of all relevant\ninformation and recognizes the need for change or innovation resulting from this.\nCommunicates their vision in a compelling and powerful way demonstrating enthusiasm and\npassion to ensure others are engaged.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "You are likely to enjoy tackling more tangible or practical problems, and may tend to rely on solutions that are\nfamiliar to you or have a track record of known success. You are also likely to prefer communicating with those\nwho are similar to you and may not enjoy situations that require you to influence other people's ideas and\nopinions. Together, these factors may mean that you are less comfortable than other leaders when required to\nnavigate through complexity and ambiguity in order to define a clear vision for the future. You may also find it a\nchallenge to communicate this vision in a compelling manner with others.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• What new business directions or initiatives could you capitalise on to help you to build your skills in\nestablishing a clear vision for the future? What alternative perspectives could you review and what resources\ndo you have access to that would allow you to consider more innovative approaches, even if this doesn't come\nnaturally to you?\n• Are there times when you might benefit from communicating a vision for the future more openly or more\nwidely? Take time out to consider who your key stakeholders are and who needs to know what. Also consider\nthat your messages might need to be tailored for different group or subgroups."
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "You are likely to enjoy working on a variety of problems - some practical and others more conceptual - and are\nlikely to be comfortable undertaking some critical analysis. You sometimes look for innovative ways to solve\nproblems but will also utilise tried and tested approaches if relevant. You are fairly comfortable when\ncommunicating with, and influencing others. Together, these factors are likely to help you to navigate through\ncomplexity and ambiguity reasonably well in order to define a vision for the future, and to communicate this\nvision in a reasonably open and compelling manner with others.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When would you have benefited from undertaking a more critical evaluation of a business situation and the\nvarious options that were available before determining how best to move forward? What will you do differently\nin future?\n• How do you ensure that others fully understand the vision for the future that you communicate? Consider how\nto structure and deliver your key messages for maximum simplicity and impact on your audience"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "You are likely to enjoy working on conceptually based problems that require you to consider issues from a\nnumber of different perspectives, and tend to look for innovative ways to solve complex organisational\nproblems. You are also likely to communicate openly with others and enjoy exerting your influence over other\npeople's idea and opinions. Together, these factors should help you to navigate through complexity and\nambiguity to define a clear vision for the future, and to communicate this openly and compellingly with team\nmembers and other key stakeholders.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• How do you make sure that you define and communicate a vision for the future of the business or team that is\nsufficiently clear and tangible for others to digest? Bear in mind that not everyone is as comfortable with\nconceptually based information as you are, and that many people will need key messages to be expressed in\nquite concrete, tangible terms.\n• Think about how you can help others to communicate more openly about what lies ahead. What are the key\npieces of information that you make sure you include when you are communicating your vision for the future?\nWhat tips can you share for how best to structure your messaging?"
+              }
+            ],
+            "likely_strengths": "You are likely to enjoy working with a mix of problems, some more practical in nature and others more conceptual.\nYou are also likely to be fairly comfortable communicating with a range of people, and enjoy persuading and\nconvincing others, at least to some extent or in some situations. These factors can go some way towards helping you\ndefine a vision for the future and communicating this in a reasonably open and compelling way with others.",
+            "development_need": "You are likely to enjoy working with a mix of problems, some more practical in nature and others more conceptual.\nYou are also likely to be fairly comfortable communicating with a range of people, and enjoy persuading and\nconvincing others, at least to some extent or in some situations. These factors can go some way towards helping you\ndefine a vision for the future and communicating this in a reasonably open and compelling way with others."
+          },
+          {
+            "title": "Generates Solutions",
+            "definition": "Identifies the root cause of issues the business or team faces; looks for effective and pragmatic\nsolutions to address them, harnessing the power of data and their own understanding of the\nfabric of the organisation and the environment in which is exists. Seeks new solutions and\nallows for mistakes to be made.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "You are unlikely to enjoy tackling problems that are highly complex or require you to analyse in-depth situations.\nYou tend to take a fairly intuitive approach to problem-solving rather than spending a lot of time gathering data\nor generating new ideas. Overall, your approach may mean that you do not do enough to ensure that you fully\nunderstand the root causes of business issues or look beyond the status quo to identify optimal solutions to the\nvarious problems and challenges the business faces.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• Who do you know that is highly analytical in their approach to problem solving? What could you do to find out\nmore about their approach and gain insight into how they go about understanding key issues in depth and\ncritically evaluating information rather than accepting things at face value?\n• Think about a recent situation where a more creative approach to idea generation and problem solving would\nhave been beneficial. With hindsight, what could you have done differently had you considered alternative or\nnew approaches?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "It seems you derive some degree of enjoyment from analysing problems in considerable depth, so long as you\ncan balance this with more straightforward scenarios. You are likely to be just as analytical in your\nproblem-solving approach as others, relying on objective data and your intuition. Overall, your approach\nsuggests that you will be reasonably well-placed to identify sound solutions to the various challenges the\nbusiness faces, although there could be times when you might benefit from considering how to generate fresh\nideas and suggestions.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When could you have identified a better solution to a business problem had you undertaken a more\ndata-driven approach or spent time trying to understand certain issues in a greater degree of depth? What\ndata was available to you and how would it have improved your solution?\n• Think about a current or emerging business problem where a creative approach is needed. How can you best\nleverage your style so that the most effective solution is identified?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "It seems you are someone who enjoys analysing situations and problems in considerable depth so as to\nunderstand the root causes of the business issues you face. Your objective, facts-based approach to problem\nsolving, along with the enjoyment you derive from generating new ideas and suggestions, is likely to assist you\nto think beyond the status quo and identify optimal solutions to the various problems and challenges faced by\nyour team or the business more broadly.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• What can you do to help others to develop a more analytical approach to problem solving? How can you best\nshowcase and leverage the benefits of careful analysis and critical evaluation prior to deciding how best to\naddress complex business problems?\n• Are there ever times when you spend too much time searching for solutions that are new and creative? How\ncan you make sure that you do not overlook solutions that might seem obvious or unremarkable on the\nsurface, yet are elegant in their simplicity and effectiveness?"
+              }
+            ],
+            "likely_strengths": "You appear to enjoy analysing complex issues to some extent and perhaps applying an evidence-based approach to\nproblem solving at least some of the time. You are also reasonably likely to take some enjoyment from generating\nnew ideas and weighing up the pros and cons of different options in order to come up with effective solutions for the\nbusiness.",
+            "development_need": "You generally take an intuitive approach to problem-solving and perhaps do not enjoy working on tasks that require a\nlot of critical analysis. You may also find it challenging to generate new ideas or solutions and may have difficulty\nidentifying how best to meet business needs and challenges."
+          }
+        ]
+      },
+      {
+        "title": "Connection",
+        "competencies": [
+          {
+            "title": "Builds Alliances",
+            "definition": "Actively seeks out and build a wide range of useful networks and positive relationships, both\ninside and outside of the organisation; relates well to a diverse range of people. Uses their\nunderstanding of how the business operates in terms of structure, people and politics to form\nstrong supportive alliances.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "Your results suggest that you are less comfortable than other leaders when communicating with others,\nparticularly those who are very different to you or in situations where you need to be persuasive in your\napproach. It also seems that you prefer to interact with a close group of trusted colleagues and advisors, and\nare less inclined to initiate contact with people you don't know. As a result, you may miss opportunities to build\nnew relationships, widen your professional network, and form strong supportive alliances.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When have you put off meeting new people or growing your network? Think about why this was the case, and\nwhat other less people-focused tasks or responsibilities you focused on instead. What insights can you draw\nfrom this?\n• Would you benefit from investing more time and effort into networking and forming new relationships? If so,\nthink about some key individuals or groups with whom the development of solid alliances might be\nadvantageous."
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "Your results suggest that you are reasonably comfortable when communicating with a wide range of individuals,\nand just as likely as most other leaders to initiate contact with people you don't yet know. These factors should\nsee that you are moderately inclined to invest time and energy into building new relationships and widening your\nprofessional network, both inside and outside of the organisation. It also seems that at times, you can be\npersuasive in your communication style, and this is also likely to help you form alliances which you can rely\nupon for support, as well as knowledge and insights of how the business operates.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When would you have benefited from doing more to build a strong internal or external alliance? How would\nthis alliance have been of benefit to you and the business more broadly? How could you rectify this ongoing?\n• Think about a current challenge you are facing where you would benefit from the help and support of a key ally\nor allies. Given the nature of the challenge and the type of support you need, try to think of the people that it\nmight be beneficial to approach and connect with."
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "Your results suggest that you enjoy communicating with a wide range of individuals and are comfortable\ninitiating contact with people you don't yet know. It is therefore likely that you will be proactive in building new\nrelationships and widening your professional network, both inside and outside of the organisation. Together with\nyour persuasive communication style, these factors are likely to help you form strong alliances which you can\nrely upon for support, as well as knowledge and insights of how the business operates.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When have you built a strong internal or external alliance that assisted you to achieve a goal or objective that\nwould not otherwise have been possible? How can you use this experience to help others learn from your\napproach and understand the benefits of building alliances? How else could you harness the power in your\nalliances to strengthen the business more broadly?\n• Are there ever times when you invest too heavily in forming new relationships? Are there certain tasks or\nresponsibilities that you tend to put off in favour of meeting new people and growing your network?"
+              }
+            ],
+            "likely_strengths": "Comfortable initiating contact with others and communicating with a wide range of people, it is likely that you will be\nproactive in broadening your network. You are also likely to readily build new relationships, both inside and outside of\nthe organisation, and form strong supportive alliances.",
+            "development_need": "Preferring to interact with a close group of trusted colleagues and advisors, you are likely to be less inclined than\nmany other leaders to initiate contact with others. As a result, you may be less proactive when it comes to\nbroadening your professional network and forming strong supportive alliances."
+          },
+          {
+            "title": "Embraces Diversity",
+            "definition": "Draws on the diversity of others to enhance the team or the business approach. Builds a team or\nunit who can support the vision and solutions in the most effective way possible. Demonstrates\ninterest in understanding different perspectives and cultures and ways of working.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "You are likely to take some time to warm to others and build a sense of shared connection. You are also likely\nto be less empathetic in your dealings with others and may have some difficulty trying to understand other\npeople's views and perspectives, particularly those that are very different from your own. Overall, your lower\ntolerance for tolerance for people's differences and shortcomings may hinder the degree to which you\nsuccessfully leverage diversity in the workplace to enhance the team or business.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• In hindsight, when could you have done more to understand diverse views and perspectives about a particular\nissue? What advantage or benefit would have been gained from gathering a diversity of viewpoints?\n• Think about the diversity in your current team. How could you use this diversity to enhance the way in which\nthe team or business operates?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "You are likely to be a reasonably warm and friendly individual who establishes rapport with others as quickly as\nmost. You are also likely to be fairly empathetic in your approach and will typically place a moderate degree of\nimportance on trying to understand other people's views and perspectives. Overall, your level of tolerance for\ndifferent perspectives and level of interest in learning about new ideas and approaches is likely to help you to\ndraw on the diversity of others to enhance the team or business at least to some extent.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When could you have made more effort to understand different perspectives, cultures and approaches at\nwork? What was your key learning here? How would a more diverse perspective have helped?\n• How can you use the diversity within your team or organisation in a more purposeful manner? How can you\nmove from respecting diversity to truly embracing it?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "You are likely to be a warm and friendly individual who is quicker than most to establish rapport with others. You\nare also likely to be more empathetic than most and enjoy trying to understand other people's views and\nperspectives, even those that are very different from your own. Overall, your willingness to listen and your\ngenuine interest in learning about new ideas and approaches is likely help you to embrace diversity and make\nthe most of people's differences to enhance the team or business approach.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When have you deliberately built a diverse team or unit? Why did you take the approach that you did? What\nwas the benefit gained by you, the team itself, and the organisation more broadly? How can you share the\npositive benefits with others in the business?\n• How do you typically go about leveraging workplace diversity in a meaningful manner? Think about what tips\ncan you share to help others to embrace and draw on workplace diversity more effectively."
+              }
+            ],
+            "likely_strengths": "ou appear to be a reasonably warm and affable person who easily builds rapport with others in some situations.\nYou are also fairly likely to enjoy listening to people and probably find it somewhat interesting to learn more about\ndifferent approaches and perspectives. The reasonable degree of empathy and tolerance you show to others can go\nsome way towards helping you to embrace diversity in order to enhance the team or business.",
+            "development_need": "You tend to take some time to build rapport and connection with others, and may not have a great deal of interest in\nlistening to views and perspectives that differ from your own. Consequently, you may not readily seek out different\nways of working or draw on the diversity of others to enhance the team or business."
+          }
+        ]
+      },
+      {
+        "title": "Cultivation",
+        "competencies": [
+          {
+            "title": "Nutures Talent",
+            "definition": "Offers visible support to those faced with challenges and difficult situations. Motivates and\ncoaches others, encouraging them to develop themselves both personally and professionally,\nand in line with the needs of the business vision and strategy. Recognises the contribution of\nindividuals to the success of the business/team.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "Your assessment responses suggest that you are less inclined than some other leaders to look for ways to\ndevelop others, preferring instead to allow people to be more self-directed and develop independently. You also\ntend to hold firm expectations of people, and may not always be particularly tolerant of those who are still\ncrafting their professional skills. Overall, you may not proactively nurture the talent within your team or\norganisation and may benefit from doing more to support people's ongoing development so that they can make\nmore positive contributions to the business over time.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When could you have been more supportive of someone's ongoing professional development? How could you\nhave shown more tolerance whilst they mounted the learning curve and honed their skills?\n• Who do you know that is particularly strong at nurturing talent? How could you learn more about their\napproach and ask for their support in doing so?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "It seems you typically strike a balance between letting people develop independently, and playing a more active\nrole in their development when required. You are therefore likely to be reasonably inclined to coach your team\nmembers and help them to develop as professionals, but will probably expect them to invest time and effort into\ntheir own development so that you can focus on other things that require your attention. You are also likely to be\nmoderately tolerant of those who are still learning and crafting their professional skills. Overall, you are likely to\nbe reasonably focused on nurturing the talent within your team or organisation and supporting people's ongoing\ndevelopment so that they can make more positive contributions to the business over time.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When could you have invested more time and effort into helping someone develop? What steps could you\nhave taken to support them in making a more valuable contribution to the business? What barriers prevented\nyou from having more focus on this?\n• How do you typically ensure that there is alignment between the development of your team members and the\nneeds of the business? What steps could you take to improve the level of alignment between all of these\nfactors?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "Your assessment responses suggest that you are a caring and empathetic individual who enjoys supporting\nothers. It is therefore likely that you will invest a good deal of time and energy into guiding and coaching your\nteam members and helping them to develop as professionals. You are also likely to demonstrate patience and\ntolerance as individuals test their skills and try new things. Overall, you are likely to proactively nurture the talent\nwithin your team or organisation and support people's ongoing development so that they can make more\npositive contributions to the business over time.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• What strategies do you typically employ to help nurture talent within your business? How do you ensure that\nyou help others to develop in a manner that is appropriately aligned with the vision, strategic direction and\nemerging needs of the business?\n• How can you help others become more active nurturers of talent within the business? What can you do to help\nshowcase the organisational benefits that can be gained from helping individuals to develop over time? How\ncan you share the return on investment from your own perspective?"
+              }
+            ],
+            "likely_strengths": "A somewhat caring and considerate individual, you are likely to enjoy helping team members develop professionally\nto some extent but will balance this with an expectation of self-directed development too. Your approach means you\nare likely to make some level of contribution to the coaching and nurturing of talent within the team or broader\nbusiness.",
+            "development_need": "A somewhat caring and considerate individual, you are likely to enjoy helping team members develop professionally\nto some extent but will balance this with an expectation of self-directed development too. Your approach means you\nare likely to make some level of contribution to the coaching and nurturing of talent within the team or broader\nbusiness."
+          },
+          {
+            "title": "Leads by Exapmle",
+            "definition": "Sets an example by setting the behavioural standards they expect of others and then\nexemplifying them. Demonstrates high ethical principles and works in an authentic and honest\nmanner. Responds to ethical conflicts with integrity and builds trust from others as a result.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "It seems you prefer a flexible approach to work where you are not constrained by rules, processes and other\nrelevant parameters, and you may be prepared to bend or break rules as required in order to achieve your goals\nor get things done in a more expedient manner. You are also likely to place less emphasis than most on\ndelivering on the commitments you make to others, particularly if your priorities change or other factors get in\nthe way. Additionally, it seems you tend to be less open and direct in your communications, thinking about the\nconsequences of your words and metering what you say accordingly. Overall, these factors may mean that you\nmiss opportunities to lead by example and be a strong role model for others.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• Are there particular rules or guidelines that you are less inclined to follow or work within? Consider the\nimplications of this for you as a leader and as a role model for others in the business regardless of how you\nmight justify bending them.\n• Think of a time when you would have benefited from being more direct in your communication style? What\nwere the consequences of your approach?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "It seems that you are as inclined as most people to work within set rules and procedures, although you will\nprobably like to have some latitude to do certain things in a less constrained manner where possible. Similarly,\nyou will generally seek to deliver on the commitments you make to others, whilst also being reasonably tolerant\nof small mistakes or willing to deliver things a little late if priorities change. Additionally, you generally try to be\nreasonably candid with others, but may sometimes leave certain things unsaid or be less direct in your\napproach under certain circumstances. Overall, you are generally likely to be seen by others as a reasonably\nethical and authentic operator, although there may be scope for you to be a stronger role model for others with\nrespect to exemplifying the more difficult behaviour standards that need to be met.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• When would you have benefited from doing more to ensure that you followed through on a work commitment\nin a timely manner? How could you use this experience to communicate the behavioural standards expected\nby others within your team?\n• Under what types of circumstances do you tend to be less direct in your communication style? What impact\nmight this have on how you are perceived by others? Would a more candid approach create an enhanced\nperception in this regard?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "It seems that you follow rules and guidelines closely and adhere to set processes, systems and other relevant\nparameters in the workplace. You also tend to make a concerted effort to deliver on the commitments you make\nto others, even in the face of changing or competing priorities. Additionally, your results suggest that you are an\nhonest and transparent communicator who is candid with others and prepared to call things out as required.\nYou are therefore likely to be seen by others as an ethical operator who is authentic and trustworthy, and a\nstrong role model who is prepared to 'walk the talk'.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• How you can help others comply with set rules and procedures? Consider that some people will need to\nunderstand the purpose or rationale of the rules and procedures that are in place, whilst others might need to\nbe reminded of the consequences of non-compliance; different strategies will be needed for different\nindividuals or groups.\n• Are there times when you can be too dependent on set rules and procedures or where other priorities mean\nyou can justify failing to deliver on something? Might there be times when you need to stand back with your\nteam and reconsider whether there are better ways of achieving targeted results?"
+              }
+            ],
+            "likely_strengths": "You appear to place a moderate degree of emphasis on delivering on the promises and commitments you make to\nothers, and following rules and guidelines. You also tend to be reasonably candid and frank in communicating your\nviews to others. You are therefore likely to be regarded as somewhat of a role model by others with regards\nauthenticity and meeting expected behavioural standards.",
+            "development_need": "You appear to place a moderate degree of emphasis on delivering on the promises and commitments you make to\nothers, and following rules and guidelines. You also tend to be reasonably candid and frank in communicating your\nviews to others. You are therefore likely to be regarded as somewhat of a role model by others with regards\nauthenticity and meeting expected behavioural standards."
+          }
+        ]
+      },
+      {
+        "title": "Execution",
+        "competencies": [
+          {
+            "title": "Clarifies Expectations",
+            "definition": "Provides clear and explicit direction and strong encouragement to ensure others are successful\nin achieving their own goals and those of the broader business. Delegates work appropriately,\ntaking account of skills, experience and availability; assigns others the right level of autonomy\nand authority.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "Less directive in style than many other leaders, you tend to be careful not to be overly dominant or to push your\nviews and opinions on others. You also seem to prefer to follow the lead of others rather leading from the front\nand telling others what to do. However, you may not always make your expectations of others clear, or let\nindividuals know when they have not delivered what is required, thereby missing opportunities to hold people to\naccount, provide corrective feedback, and contribute to people's ongoing professional development. Overall,\nthis style may impact the successful completion of targeted goals and objectives, particularly those that are\nmore challenging and require clear direction and focused execution.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• Who do you know who strikes a good balance between giving team members a high degree of clarity about\nwhat they need to achieve as well as a high degree of autonomy to deliver against those requirements? What\ncan you learn from them?\n• When have you struggled to hold someone to account for a failure to achieve targeted goals? How will you\naddress similar situations in future? Who do you know who does this really well?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "It seems you are a reasonably confident individual who enjoys leading others as much as most people.\nModerately assertive when it comes to expressing your views and opinions, you are likely to provide team\nmembers with reasonably clear and explicit guidance regarding what is required. You also appear to be as\nprepared as most to speak up and let individuals know when they have fallen short of your expectations. In this\nway, you will likely contribute to people's professional growth and development whilst also ensuring that team\ngoals and objectives are met, although you may benefit from being a little more directive in your approach when\nthere are more challenging goals to attain.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• Are there times when you would benefit from providing team members with clearer or more explicit direction\nregarding what you need from them? How will you go about making sure your expectations are clearly\nunderstood by all concerned? What has prevented you from doing so in the past?\n• Think of a time when you could have been more assertive in the way in which you dealt with a performance\nissue within your team? What will you do differently in future? How can you overcome any barriers that have\nprevented you doing so previously?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "It seems you are a confident individual who enjoys leading others. Assertive when it comes to expressing your\nviews and opinions, you are likely to provide clear and explicit direction to team members, and should also be\nprepared to speak up and let individuals know when they have fallen short of your expectations or need to do\nthings differently. In this way, you will likely contribute to people's professional growth and development whilst\nalso ensuring that team goals and challenges are met.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• How do you go about ensuring that your team members have a sufficient degree of clarity regarding what is\nrequired of them? What advice can you give others who struggle to provide clear and explicit direction to their\nteams?\n• What is your typical approach to delegation? How do you balance the need to provide individuals with access\nto developmental tasks and assignments that will stretch them, whilst also ensuing that the team works\nefficiently and delivers what it needs to?"
+              }
+            ],
+            "likely_strengths": "Reasonably confident and assertive in your dealings with others, you are likely to be fairly comfortable in a leading\nrole where you are required to provide clear and explicit direction to team members. Reporting some interest in\ncontributing to the development of others and achieving challenging goals, this suggests that there will be times\nwhen you are comfortable letting others know when corrective action is required in order to successfully meet the\ngoals of the team and broader business.",
+            "development_need": "Careful not to push your views and opinions on others, you are unlikely to enjoy leading from the front and telling\nothers what to do. Instead, it seems you prefer to adopt a less directive style that often sees you following the lead of\nothers. You are also less likely than other leaders to clarify what you require from team members or inform them\nwhen your expectations have not been met. Overall, this style may impact on the degree to which you are able to\ndrive the successful completion of targeted goals and objectives."
+          },
+          {
+            "title": "Drives Momentum",
+            "definition": "Highly motivated and driven, tackles challenging goals and situations with energy and\nenthusiasm. Sets expectations of high pace and zero complacency amongst the team. Pushes\nthe team to keep momentum going, even in trying times.",
+            "levels": [
+              {
+                "key": "low",
+                "label": "Low",
+                "score_label": "Score 1",
+                "interpretation": "Less driven and motivated by working towards demanding goals than most, it is unlikely that you will proactively\nseek out exciting new challenges or goals. Instead, you are likely to prefer an approach where you can work at\na steady pace and do not feel like you are being pulled in different directions. You are also more likely than most\nto worry when things go wrong or focus on the negative aspects of a situation. Overall, this style may impact the\ndegree to which you are able to share the enthusiasm and dynamism required to energise your team members\nand keep momentum going through trying times.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• Do you tend to be overly complacent or accept too little from yourself and your team? Think about those times\nwhen you could have taken on much more challenging or demanding goals. What would it have taken to\nachieve them?\n• Are there times when you would benefit from setting a faster pace for your team and doing more to drive\nmomentum towards targeted goals and objectives? How can you best achieve this? What factors have made\nthis hard for you previously?"
+              },
+              {
+                "key": "mid",
+                "label": "Mid",
+                "score_label": "Score 2–4",
+                "interpretation": "Just as driven and motivated by working towards demanding goals as most, you are reasonably likely to seek\nout some new challenges so long as you can balance this with easier or less demanding responsibilities. It is\nlikely that you will bring a reasonable degree of energy to your work, and prefer a moderate work pace where\nyou have enough to keep you busy without being too stretched. Together with your reasonably optimistic\noutlook, these factors suggest that you will bring some motivation and enthusiasm to your team, although you\nmay need to do more to inject the momentum required to successfully deliver against more difficult goals and\ntargets, or in the face of more challenging circumstances.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• How do you know when to push your team harder and when to pull back and set a steadier pace? Who do you\nknow who gets this balance right and what can you learn from them?\n• Are there times when you might benefit from bringing a greater degree of energy and optimism to the role in\nan effort to motivate your team and inspire them about what is possible? How might you go about doing this?"
+              },
+              {
+                "key": "high",
+                "label": "High",
+                "score_label": "Score 5",
+                "interpretation": "Highly driven and motivated by working towards demanding goals, you are more likely than most to seek out\nexciting new challenges and bring a high degree of energy to your work. You are also likely to thrive in a busy\nrole where you have a lot to do and multiple responsibilities to fulfil, and your optimistic nature is likely to see\nyou maintaining a positive outlook, even in more challenging circumstances. Overall, it is likely that you will be a\nsource of motivation for those around you and will likely provide the enthusiasm and momentum the team needs\nto deliver against its' goals and targets.",
+                "questions_title": "Questions to Ask Yourself",
+                "questions": "• How do you typically go about instilling a sense of energy and enthusiasm amongst team members? Bear in\nmind that not everyone is operating at your pace nor naturally pursuing the same stretch goals as you, and\nthat some will need help to maintain their focus and optimism particularly in the face of adversity.\n• Are there times when you can simply drive others too hard? What strategies do you or can you put in place to\nguard against this? What are the warning signs you can look out for in this regard?"
+              }
+            ],
+            "likely_strengths": "You appear to be as driven as most and are reasonably likely to push yourself to take on new challenges and work\ntowards stretch goals. There are likely to be some occasions when you enjoy working at pace and will regularly focus\non the positive aspects of situations. Overall, you are likely to drive some degree of momentum within the team and\nto help maintain people's sights on what is possible.",
+            "development_need": "You appear to be as driven as most and are reasonably likely to push yourself to take on new challenges and work\ntowards stretch goals. There are likely to be some occasions when you enjoy working at pace and will regularly focus\non the positive aspects of situations. Overall, you are likely to drive some degree of momentum within the team and\nto help maintain people's sights on what is possible."
+          }
+        ]
+      }
+    ]
+  }
+}

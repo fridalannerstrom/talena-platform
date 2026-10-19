@@ -1,0 +1,105 @@
+{% load i18n %}
+
+<section class="leadership-report" aria-label="{{ leadership_report_content.aria_label }}">
+  {% if leadership_report_content.has_results %}
+    <section class="leadership-report__score-overview" aria-labelledby="leadership-score-heading">
+      <div class="leadership-report__score-overview-heading">
+        <div>
+          <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
+          <h3 id="leadership-score-heading">{{ leadership_report_content.chart_intro.title }}</h3>
+        </div>
+        <span class="leadership-report__score-count">
+          {{ leadership_report_content.scores_count }} {{ leadership_report_content.score_count_label }}
+        </span>
+      </div>
+      <div class="leadership-report__wheel-wrap">
+        {{ leadership_report_content.chart_svg|safe }}
+      </div>
+      <p class="leadership-report__score-scale">{{ leadership_report_content.score_scale_label }}</p>
+    </section>
+
+    <header class="leadership-report__intro">
+      <div class="leadership-report__intro-icon" aria-hidden="true"><i data-feather="compass"></i></div>
+      <div class="leadership-report__intro-copy">
+        <span class="leadership-report__eyebrow">{{ leadership_report_content.profile_eyebrow }}</span>
+        <h3>{{ leadership_report_content.introduction.title }}</h3>
+        <div class="leadership-report__intro-text">{{ leadership_report_content.introduction.body|linebreaksbr }}</div>
+      </div>
+    </header>
+
+    <div class="leadership-report__quadrants">
+      {% for quadrant in leadership_report_content.quadrants %}
+        {% if quadrant.competencies %}
+          <section class="leadership-report__quadrant leadership-report__quadrant--{{ forloop.counter }}">
+            <header class="leadership-report__quadrant-heading">
+              <span class="leadership-report__quadrant-index">0{{ forloop.counter }}</span>
+              <h3>{{ quadrant.title }}</h3>
+            </header>
+            <div class="team-style-ranked-list">
+              {% for competency in quadrant.competencies %}
+                <article class="insight-summary-content mb-4 team-style-profile-card leadership-report__competency-card">
+                  <div class="team-style-profile-card__intro">
+                    <h4 class="response-style-item__title team-style-profile-card__title">
+                      {{ competency.title }}
+                    </h4>
+                    <p class="team-style-profile-card__definition">{{ competency.definition_display }}</p>
+                  </div>
+
+                  <div
+                    class="response-style-scale response-style-scale--linear team-style-result__scale team-style-profile-card__scale"
+                    role="meter"
+                    aria-label="{{ competency.title }}: {{ competency.score_display }}"
+                    aria-valuemin="1"
+                    aria-valuemax="5"
+                    aria-valuenow="{{ competency.score_rounded }}"
+                  >
+                    <div class="response-style-scale__segments">
+                      {% for segment in competency.scale_segments %}
+                        <span class="response-style-scale__segment{% if segment == competency.score_rounded %} response-style-scale__segment--marker{% endif %}{% if segment <= competency.score_rounded %} response-style-scale__segment--filled{% endif %}"></span>
+                      {% endfor %}
+                    </div>
+                    <div class="response-style-scale__labels">
+                      <span>{{ leadership_report_content.least_preferred_label }}</span>
+                      <span>{{ leadership_report_content.average_label }}</span>
+                      <span>{{ leadership_report_content.most_preferred_label }}</span>
+                    </div>
+                  </div>
+
+                  <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
+                    <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
+                      {{ leadership_report_content.guidance_title }}
+                    </summary>
+                    <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+                      <div class="team-style-guidance">
+                        <div class="team-style-guidance__header">
+                          <p>{{ competency.interpretation_display }}</p>
+                        </div>
+                        <div class="team-style-guidance__grid">
+                          {% for question in competency.question_items %}
+                            <div class="team-style-guidance__item">
+                              <div class="team-style-guidance__item-header">
+                                <i data-feather="message-circle" aria-hidden="true"></i>
+                                <span>{{ leadership_report_content.reflection_question_label }} {{ forloop.counter }}</span>
+                              </div>
+                              <p>{{ question }}</p>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="leadership-report__empty">
+      <span class="leadership-report__empty-icon" aria-hidden="true"><i data-feather="bar-chart-2"></i></span>
+      <h3>{{ leadership_report_content.empty_title }}</h3>
+      <p>{{ leadership_report_content.empty_body }}</p>
+    </section>
+  {% endif %}
+</section>

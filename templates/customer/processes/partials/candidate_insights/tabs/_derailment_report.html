@@ -1,0 +1,91 @@
+{% load i18n %}
+{% get_current_language as reports_language %}
+
+<section class="derailment-report" aria-label="{{ derailment_report_content.title }}">
+  {% if derailment_report_content.has_results %}
+    <section class="derailment-report__overview" aria-labelledby="derailment-profile-title">
+      <header class="derailment-report__overview-heading">
+        <div>
+          <span class="derailment-report__eyebrow">{{ derailment_report_content.title }}</span>
+          <h3 id="derailment-profile-title">{{ derailment_report_content.profile_section_title }}</h3>
+        </div>
+        <span class="derailment-report__score-count">
+          {{ derailment_report_content.scores_count }} / {{ derailment_report_content.total_factors }}
+        </span>
+      </header>
+
+      <div class="derailment-report__profile-list">
+        {% for factor in derailment_report_content.factors %}
+          <article class="derailment-report__profile-row">
+            <div class="derailment-report__profile-copy derailment-report__profile-copy--lower">
+              <span>{{ derailment_report_content.lower_side_label }}</span>
+              <p>{{ factor.left }}</p>
+            </div>
+            <div class="derailment-report__profile-result">
+              <div class="derailment-report__profile-result-heading">
+                <strong>{{ factor.title }}</strong>
+                <span>{{ factor.score_display }}</span>
+              </div>
+              <div
+                class="derailment-report__scale"
+                role="meter"
+                aria-label="{{ factor.title }}: {{ factor.score_display }}"
+                aria-valuemin="1"
+                aria-valuemax="10"
+                aria-valuenow="{{ factor.score }}"
+              >
+                <div class="derailment-report__scale-segments">
+                  {% for segment in factor.scale_segments %}
+                    <span class="derailment-report__scale-segment{% if segment == factor.score %} is-marker{% endif %}{% if segment <= factor.score %} is-filled{% endif %}"></span>
+                  {% endfor %}
+                </div>
+                <div class="derailment-report__scale-labels"><span>1</span><span>5</span><span>10</span></div>
+              </div>
+            </div>
+            <div class="derailment-report__profile-copy derailment-report__profile-copy--higher">
+              <span>{{ derailment_report_content.higher_side_label }}</span>
+              <p>{{ factor.right }}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+      <p class="derailment-report__scale-note">{{ derailment_report_content.scale_label }}</p>
+    </section>
+
+    <header class="derailment-report__intro">
+      <div class="derailment-report__intro-icon" aria-hidden="true"><i data-feather="info"></i></div>
+      <div>
+        <h3>{{ derailment_report_content.introduction_title }}</h3>
+        <p>{{ derailment_report_content.introduction }}</p>
+      </div>
+    </header>
+
+    <section class="derailment-report__interpretations" aria-labelledby="derailment-interpretations-title">
+      <header class="derailment-report__section-heading">
+        <h3 id="derailment-interpretations-title">{{ derailment_report_content.details_section_title }}</h3>
+      </header>
+      {% for factor in derailment_report_content.factors %}
+        <article class="derailment-report__factor-card">
+          <div class="derailment-report__factor-heading">
+            <h4>{{ factor.title }}</h4>
+            <span class="derailment-report__score-pill">{{ factor.score_display }}</span>
+          </div>
+          <details class="purpose-fit-explainer team-style-guidance-explainer mb-0">
+            <summary class="purpose-fit-explainer__title team-style-guidance-explainer__title">
+              {{ derailment_report_content.guidance_label }} · {% for interpretation in factor.interpretations %}{{ interpretation.label }}{% if not forloop.last %} / {% endif %}{% endfor %}
+            </summary>
+            <div class="purpose-fit-explainer__content team-style-guidance-explainer__content mt-3">
+              {% for interpretation in factor.interpretations %}<div class="team-style-guidance__header"><p>{{ interpretation.text }}</p></div>{% endfor %}
+            </div>
+          </details>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="derailment-report__empty">
+      <span class="derailment-report__empty-icon" aria-hidden="true"><i data-feather="activity"></i></span>
+      <h3>{{ derailment_report_content.empty_title }}</h3>
+      <p>{{ derailment_report_content.empty_body }}</p>
+    </section>
+  {% endif %}
+</section>
