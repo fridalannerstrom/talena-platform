@@ -44,6 +44,23 @@ class CandidateNamePrivacyTests(SimpleTestCase):
         self.assertIn("Mirabelle", clean)
         self.assert_no_candidate_identifiers(clean)
 
+    def test_generic_candidate_label_does_not_corrupt_prompt_schema(self):
+        synthetic_candidate = SimpleNamespace(
+            first_name="Test",
+            last_name="Candidate",
+            email="test.candidate@example.invalid",
+        )
+        prompt = (
+            'CANDIDATE DATA: {"candidate": {"reference": "CANDIDATE_A"}}. '
+            "Test Candidate completed an interview. "
+            "Send to test.candidate@example.invalid."
+        )
+        cleaned = redact_candidate_name(prompt, synthetic_candidate)
+        self.assertIn('"candidate":', cleaned)
+        self.assertIn("CANDIDATE DATA", cleaned)
+        self.assertNotIn("Test Candidate", cleaned)
+        self.assertNotIn("test.candidate@example.invalid", cleaned)
+
     def test_shared_context_never_exposes_candidate_name_or_email_in_name_fields(self):
         context = build_shared_ai_context(self.owner)
         self.assertEqual(context["candidate_name"], "CANDIDATE_A")
