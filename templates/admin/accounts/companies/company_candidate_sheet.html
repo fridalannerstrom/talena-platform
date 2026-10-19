@@ -1572,6 +1572,7 @@
                 rows="4"
                 placeholder="E.g. What risks or strengths do you see in the candidate’s profile?"
               ></textarea>
+              {% include "shared/ai_pii_notice.html" with kind="interview" notice_id="admin-candidate-ai-pii-notice" %}
 
               <button
                 type="submit"
