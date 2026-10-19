@@ -59,6 +59,7 @@
         placeholder="{% trans 'Type your message...' %}"
         aria-label="{% trans 'Message to Talena AI' %}"
         autocomplete="off"
+        aria-describedby="general-chat-pii-notice"
       >
 
       <button
@@ -70,6 +71,7 @@
         <span>{% trans "Send" %}</span>
       </button>
     </div>
+    {% include "shared/ai_pii_notice.html" with kind="general" notice_id="general-chat-pii-notice" %}
   </section>
 </div>
 
