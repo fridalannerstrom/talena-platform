@@ -1766,29 +1766,6 @@ if (candidateIdToOpen) {
 sheetEl.addEventListener("hidden.bs.offcanvas", () => {
   currentIndex = -1;
   updateCandidateSheetNav();
-
-  const widget = sheetBody.querySelector(
-    "[data-candidate-ai-widget]"
-  );
-
-  const panel = widget?.querySelector(
-    "[data-candidate-ai-panel]"
-  );
-
-  const launcher = widget?.querySelector(
-    "[data-candidate-ai-launcher]"
-  );
-
-  widget?.classList.remove("is-open");
-
-  if (panel) {
-    panel.hidden = true;
-  }
-
-  launcher?.setAttribute(
-    "aria-expanded",
-    "false"
-  );
 });
   }
 
