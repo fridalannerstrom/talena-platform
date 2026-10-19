@@ -47,6 +47,14 @@ class LocalPIISanitizerTests(SimpleTestCase):
         self.assertNotIn("+1 415 555 2671", clean)
         self.assertIn("Customer Service STIVE 4 of 5", clean)
 
+    def test_email_with_sentence_punctuation_is_still_masked(self):
+        text = "Email john@example.org. Mail anna.svensson@example.se!"
+        sanitized = sanitize_ai_text(text)
+        self.assertNotIn("john@example.org", sanitized)
+        self.assertNotIn("anna.svensson@example.se", sanitized)
+        self.assertIn("[EMAIL].", sanitized)
+        self.assertIn("[EMAIL]!", sanitized)
+
     def test_preserves_psychometric_terms_context_and_scores(self):
         source = (
             "Social Desirability: 8. Customer Service: STIVE 4 of 5. "
