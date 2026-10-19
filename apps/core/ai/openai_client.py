@@ -14,7 +14,7 @@ from .pii_sanitizer import PrivacySanitizationError, sanitize_ai_payload
 
 class _Completions:
     def __init__(self, raw_client):
-        self._raw = raw_client
+        self._send = raw_client.chat.completions.create
 
     def create(self, **kwargs):
         if "messages" not in kwargs:
@@ -22,7 +22,7 @@ class _Completions:
                 "OpenAI chat request without messages is not permitted."
             )
         kwargs["messages"] = sanitize_ai_payload(kwargs["messages"])
-        return self._raw.chat.completions.create(**kwargs)
+        return self._send(**kwargs)
 
 
 class _Chat:
@@ -32,7 +32,7 @@ class _Chat:
 
 class _Embeddings:
     def __init__(self, raw_client):
-        self._raw = raw_client
+        self._send = raw_client.embeddings.create
 
     def create(self, **kwargs):
         if "input" not in kwargs:
@@ -40,12 +40,12 @@ class _Embeddings:
                 "OpenAI embedding request without input is not permitted."
             )
         kwargs["input"] = sanitize_ai_payload(kwargs["input"])
-        return self._raw.embeddings.create(**kwargs)
+        return self._send(**kwargs)
 
 
 class _Responses:
     def __init__(self, raw_client):
-        self._raw = raw_client
+        self._send = raw_client.responses.create
 
     def create(self, **kwargs):
         if "input" not in kwargs:
@@ -55,7 +55,7 @@ class _Responses:
         kwargs["input"] = sanitize_ai_payload(kwargs["input"])
         if "instructions" in kwargs:
             kwargs["instructions"] = sanitize_ai_payload(kwargs["instructions"])
-        return self._raw.responses.create(**kwargs)
+        return self._send(**kwargs)
 
 
 class PrivacySafeOpenAI:
