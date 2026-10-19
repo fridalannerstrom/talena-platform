@@ -1,0 +1,24 @@
+name: AI candidate-name privacy
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  candidate-name-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify candidate names do not reach OpenAI
+        env:
+          DJANGO_DEBUG: 'True'
+          DJANGO_SECRET_KEY: local-qa-only
+          USE_AZURE_STORAGE: '0'
+        run: python manage.py test apps.core.test_ai_candidate_name_privacy --noinput
