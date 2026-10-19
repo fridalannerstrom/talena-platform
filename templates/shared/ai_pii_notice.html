@@ -1,0 +1,10 @@
+{# Reusable inline notice for free text that may be included in an AI request. #}
+{# Usage: {% include "shared/ai_pii_notice.html" with kind="interview" notice_id="..." %} #}
+{% get_current_language as ai_pii_language %}
+<p class="small text-muted mt-2 mb-0 talena-ai-pii-notice" role="note"{% if notice_id %} id="{{ notice_id }}"{% endif %} data-ai-pii-notice data-ai-pii-kind="{{ kind|default:'general' }}">
+  {% if kind == "interview" %}
+    {% if ai_pii_language|slice:":2" == "sv" %}Obs: Skriv inte kandidatens namn eller andra personuppgifter i detta fält.{% else %}Note: Do not enter the candidate's name or other personal data in this field.{% endif %}
+  {% else %}
+    {% if ai_pii_language|slice:":2" == "sv" %}Obs: Ange inte namn, kontaktuppgifter eller andra personuppgifter i detta fält.{% else %}Note: Do not enter names, contact details or other personal data in this field.{% endif %}
+  {% endif %}
+</p>
