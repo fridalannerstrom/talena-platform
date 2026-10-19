@@ -1,3 +1,4 @@
+from .candidate_name_privacy import redact_candidate_name
 from __future__ import annotations
 
 import json
@@ -604,6 +605,8 @@ def stream_cognitive_questions(
         "including required JSON field names and event structure. "
         f"{system_language_instruction}"
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
