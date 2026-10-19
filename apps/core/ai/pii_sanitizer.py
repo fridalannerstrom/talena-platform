@@ -19,7 +19,7 @@ class PrivacySanitizationError(ValueError):
 
 
 EMAIL_RE = re.compile(
-    r"(?<![\w.+-])[\w.+-]+@(?:[\w-]+\.)+[A-Za-z]{2,63}(?![\w.-])",
+    r"(?<![\w.+-])[\w.+-]+@(?:[\w-]+\.)+[A-Za-z]{2,63}(?![\w-])",
     re.UNICODE,
 )
 SWEDISH_PERSONAL_ID_RE = re.compile(
