@@ -1,3 +1,4 @@
+from .candidate_name_privacy import redact_candidate_name
 from typing import Iterable
 from django.utils import timezone
 
@@ -518,6 +519,8 @@ def stream_candidate_summary(
             owner=owner,
         )}"
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
