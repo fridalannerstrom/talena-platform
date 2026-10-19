@@ -307,22 +307,27 @@ class PostInterviewQuestionEvidenceTests(TestCase):
                 "wellbeing_tips",
             )
         }
-        events = [
-            {
-                "type": "content_blocks",
-                "blocks": {
-                    **content_blocks,
-                    "test_results_candidate": "Legacy block should be ignored.",
-                },
-            },
-            {
-                "type": "done",
-            },
-        ]
+        # The After interview UI now generates each tab independently. The
+        # previous test mocked the retired combined stream, so Django attempted
+        # real OpenAI requests and incorrectly reported a failed generation.
+        # Return deterministic content from the *current* four-block stream.
+        def stream_section(*, owner, block_key, language_code):
+            yield {
+                "type": "content_block_delta",
+                "block": block_key,
+                "text": content_blocks[block_key],
+            }
+            yield {"type": "content_block_done", "block": block_key}
 
-        with patch(
-            "apps.core.ai.decision_support.stream_post_interview_decision_support",
-            return_value=events,
+        with (
+            patch(
+                "apps.core.ai.decision_support.stream_post_interview_content_block",
+                side_effect=stream_section,
+            ) as generate_section,
+            patch(
+                "apps.processes.interview_question_notes._manager_report_personality_events",
+                return_value=iter(()),
+            ),
         ):
             response = self.client.get(
                 self._post_stream_url() + "?force=1",
@@ -331,6 +336,12 @@ class PostInterviewQuestionEvidenceTests(TestCase):
             body = b"".join(response.streaming_content).decode("utf-8")
 
         self.assertNotIn('"type": "error"', body)
+        self.assertNotIn('"type": "content_block_error"', body)
+        self.assertEqual(generate_section.call_count, len(content_blocks))
+        self.assertCountEqual(
+            [call.kwargs["block_key"] for call in generate_section.call_args_list],
+            content_blocks.keys(),
+        )
         self.owner.refresh_from_db()
         self.assertEqual(
             self.owner.ai_post_interview_decision_support_status,
