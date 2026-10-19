@@ -70,25 +70,8 @@ def build_chat_assessment_activities(activities):
     return compact_activities
 
 def get_candidate_display_name(candidate):
-    """
-    Return a safe display name for a candidate.
-
-    Falls back to email and finally "Candidate" when no name exists.
-    """
-    first_name = (candidate.first_name or "").strip()
-    last_name = (candidate.last_name or "").strip()
-
-    full_name = " ".join(
-        part
-        for part in (first_name, last_name)
-        if part
-    )
-
-    return (
-        full_name
-        or candidate.email
-        or "Candidate"
-    )
+    """Return the non-identifying reference used only inside AI prompts."""
+    return "CANDIDATE_A"
 
 
 def build_live_candidate_profile(invitation):
@@ -96,15 +79,9 @@ def build_live_candidate_profile(invitation):
     Convert live SOVA assessment data into a compact structure
     that can be included in the AI chat context.
     """
-    candidate = invitation.candidate
-
     return {
         "source": "live_sova_api",
-        "candidate": {
-            "id": candidate.id,
-            "name": get_candidate_display_name(candidate),
-            "email": candidate.email or "",
-        },
+        "candidate": {"reference": "CANDIDATE_A"},
         "assessment_activities": (
             build_chat_assessment_activities(
                 invitation.sova_activities or []
@@ -122,19 +99,13 @@ def build_historical_chat_profile(historical_candidate):
     Convert imported historical assessment data into a compact
     structure matching the live candidate chat context.
     """
-    candidate = historical_candidate.candidate
-
     profile = build_historical_candidate_profile(
         historical_candidate
     )
 
     return {
         "source": "historical_import",
-        "candidate": {
-            "id": candidate.id,
-            "name": get_candidate_display_name(candidate),
-            "email": candidate.email or "",
-        },
+        "candidate": {"reference": "CANDIDATE_A"},
         "motivation_competencies": profile.get(
             "motivation_competencies",
             [],
@@ -253,8 +224,6 @@ def build_candidate_chat_context(
     return {
         "mode": mode,
         "process": {
-            "id": process.id,
-            "name": process.name or "",
             "purpose": process.purpose or "",
             "is_historical": process.is_historical,
         },
