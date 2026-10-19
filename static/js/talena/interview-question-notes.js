@@ -3,6 +3,7 @@
 
   const notesCache = new Map();
   const pendingLoads = new Map();
+  let privacyNoticeCounter = 0;
 
   const isSwedish = () =>
     (document.documentElement.lang || "").toLowerCase().startsWith("sv");
@@ -11,6 +12,7 @@
     const sv = {
       answerNotes: "Svar / anteckningar",
       hint: "Skriv din anteckning och klicka på Spara. Sparade svar finns tillgängliga i hela kandidatvyn.",
+      privacyNotice: "Obs: Skriv inte kandidatens namn eller andra personuppgifter i detta fält.",
       placeholder: "Lägg till kandidatens svar, exempel eller dina intervjuanteckningar…",
       save: "Spara",
       saving: "Sparar…",
@@ -34,6 +36,7 @@
     const en = {
       answerNotes: "Answer / notes",
       hint: "Write your note and click Save. Saved answers are available across the candidate view.",
+      privacyNotice: "Note: Do not enter the candidate's name or other personal data in this field.",
       placeholder: "Add the candidate's answer, examples or your interview notes…",
       save: "Save",
       saving: "Saving…",
@@ -261,6 +264,15 @@
     field.dataset.updateUrl = context.updateUrl;
     field.dataset.savedValue = "";
 
+    const privacyNotice = document.createElement("p");
+    privacyNotice.className = "interview-question-note__privacy";
+    privacyNotice.id = `interview-question-note-pii-${++privacyNoticeCounter}`;
+    privacyNotice.setAttribute("role", "note");
+    privacyNotice.dataset.aiPiiNotice = "";
+    privacyNotice.dataset.aiPiiKind = "interview";
+    privacyNotice.textContent = text("privacyNotice");
+    field.setAttribute("aria-describedby", privacyNotice.id);
+
     const footer = document.createElement("div");
     footer.className = "interview-question-note__footer";
 
@@ -276,7 +288,7 @@
     saveButton.disabled = true;
 
     footer.append(hint, saveButton);
-    wrapper.append(header, field, footer);
+    wrapper.append(header, field, privacyNotice, footer);
     return wrapper;
   };
 
