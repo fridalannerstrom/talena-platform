@@ -435,7 +435,7 @@ def build_personality_interpretation_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
