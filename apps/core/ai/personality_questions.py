@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .candidate_name_privacy import redact_candidate_name
+
 import json
 from typing import Any, Iterable
 
@@ -1199,6 +1201,8 @@ def stream_personality_questions(
         invitation=owner,
         personality_results=personality_results,
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
