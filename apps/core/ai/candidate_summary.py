@@ -385,7 +385,7 @@ assessment report in Talena.
 
 CANDIDATE
 
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 
 PROCESS PURPOSE
@@ -590,7 +590,7 @@ INTERPRETATION RULES
 - Write in clear professional English.
 
 CANDIDATE
-{candidate_name}
+CANDIDATE_A
 
 ASSESSMENT EVIDENCE
 {assessment_json}
