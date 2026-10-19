@@ -223,6 +223,7 @@
                 min-height: 500px;
               "
             >{{ editing_text }}</textarea>
+            {% include "shared/ai_pii_notice.html" with kind="general" notice_id="admin-ai-prompt-pii-notice" %}
 
 
             <div
@@ -1172,6 +1173,7 @@
       min-height: 180px;
     "
   >{{ playground_sample_data.context }}</textarea>
+  {% include "shared/ai_pii_notice.html" with kind="general" notice_id="playground-context-pii-notice" %}
 
   <div class="small text-muted mt-2">
     {% trans "Change or remove the context to test how the same assessment results are interpreted in different situations." %}
