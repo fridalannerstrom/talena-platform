@@ -740,7 +740,7 @@ def build_pre_interview_decision_support_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -1854,7 +1854,7 @@ You organise the available evidence and explain uncertainty.
 You do not make the final decision.
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
@@ -1963,7 +1963,7 @@ gave a positive interview example.
 LANGUAGE AND TONE
 
 - Write in professional, clear English.
-- Refer to {candidate.first_name} by first name where natural.
+- Refer to the candidate without using any personal name.
 - Use cautious language.
 - Avoid absolute statements.
 - Avoid technical psychometric jargon where plain language works.
@@ -2860,7 +2860,7 @@ def build_post_interview_decision_support_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -3327,7 +3327,7 @@ def build_post_interview_content_block_prompt(
 You are writing only the After interview section: {block_title}.
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 PROCESS PURPOSE AND CONTEXT
 Purpose: {shared_context["purpose_label"]}
