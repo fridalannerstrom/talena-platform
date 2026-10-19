@@ -1,5 +1,6 @@
-from .candidate_name_privacy import redact_candidate_name
 from __future__ import annotations
+
+from .candidate_name_privacy import redact_candidate_name
 
 import json
 from typing import Any, Iterable
