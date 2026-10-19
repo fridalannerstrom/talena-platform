@@ -77,6 +77,7 @@
             {% trans "Short description" %}
           </label>
           {{ form.description }}
+          {% include "shared/ai_pii_notice.html" with kind="general" notice_id="team-description-pii-notice" %}
 
           {% if form.description.errors %}
             <div class="text-danger small mt-1">{{ form.description.errors }}</div>
@@ -102,6 +103,7 @@
             {% trans "Tell us more about the team" %}
           </label>
           {{ form.context }}
+          {% include "shared/ai_pii_notice.html" with kind="general" notice_id="team-context-pii-notice" %}
           <div class="form-text">{% trans "Optional. Share the team’s situation or what you would like to explore." %}</div>
           {% if form.context.errors %}<div class="text-danger small mt-1">{{ form.context.errors }}</div>{% endif %}
         </div>

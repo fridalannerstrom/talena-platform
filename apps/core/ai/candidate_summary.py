@@ -1,3 +1,4 @@
+from .candidate_name_privacy import redact_candidate_name
 from typing import Iterable
 from django.utils import timezone
 
@@ -385,7 +386,7 @@ assessment report in Talena.
 
 CANDIDATE
 
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 
 PROCESS PURPOSE
@@ -519,6 +520,8 @@ def stream_candidate_summary(
         )}"
     )
 
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
     stream = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
@@ -590,7 +593,7 @@ INTERPRETATION RULES
 - Write in clear professional English.
 
 CANDIDATE
-{candidate_name}
+CANDIDATE_A
 
 ASSESSMENT EVIDENCE
 {assessment_json}

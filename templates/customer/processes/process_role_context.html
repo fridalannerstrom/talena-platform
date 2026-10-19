@@ -206,6 +206,7 @@
             </label>
 
             {{ form.context_text }}
+            {% include "shared/ai_pii_notice.html" with kind="general" notice_id="process-context-pii-notice" %}
 
             {% if form.context_text.help_text %}
               <div class="form-text">

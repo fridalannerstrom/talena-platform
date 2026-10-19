@@ -183,25 +183,10 @@ def build_shared_ai_context(
         get_process_context(process)
     )
 
-    candidate_name = " ".join(
-        part.strip()
-        for part in (
-            candidate.first_name or "",
-            candidate.last_name or "",
-        )
-        if part and part.strip()
-    )
-
     return {
         "candidate": candidate,
-        "candidate_name": (
-            candidate_name
-            or candidate.email
-        ),
-        "candidate_first_name": (
-            candidate.first_name
-            or "The candidate"
-        ),
+        "candidate_name": "CANDIDATE_A",
+        "candidate_first_name": "CANDIDATE_A",
 
         "process": process,
         "purpose_key": (

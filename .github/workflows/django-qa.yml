@@ -35,4 +35,4 @@ jobs:
           DJANGO_DEBUG: 'True'
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
-        run: python manage.py test apps.ai_chat.tests apps.accounts.tests apps.accounts.test_usage_billing_export apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests.test_stream_saves_complete_content_blocks_without_legacy_fields apps.processes.test_pinned_projects apps.processes.test_process_create_accounts apps.reports.test_profile_contrasts apps.teams --noinput
+        run: python manage.py test apps.ai_chat.tests apps.accounts.tests apps.accounts.test_usage_billing_export apps.candidate_results apps.processes.test_interview_question_notes apps.core.tests.PostInterviewContentBlockTests apps.core.test_ai_pii_notices apps.core.test_post_interview_question_evidence.PostInterviewQuestionEvidenceTests.test_stream_saves_complete_content_blocks_without_legacy_fields apps.processes.test_pinned_projects apps.processes.test_process_create_accounts apps.reports.test_profile_contrasts apps.teams --noinput

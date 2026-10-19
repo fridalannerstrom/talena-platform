@@ -277,6 +277,7 @@ class ProcessRoleContextForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 18,
+                    "aria-describedby": "process-context-pii-notice",
                     "placeholder": _(
                         "Describe the role, situation or development context.\n\n"
                         "You can include:\n"
