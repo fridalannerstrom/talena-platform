@@ -400,7 +400,7 @@ def build_personality_questions_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -822,7 +822,7 @@ You are repairing a missing or malformed personality questions event
 for Talena.
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -1593,7 +1593,7 @@ The previous personality questions response did not contain a
 technically valid questions event.
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
