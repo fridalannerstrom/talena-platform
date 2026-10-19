@@ -1522,8 +1522,8 @@ def build_candidate_detail_context(process, invitation):
             print("AI INSIGHTS GENERATED SUCCESSFULLY")
 
         except Exception as exc:
-            print("GENERAL CANDIDATE INSIGHTS ERROR")
-            print(repr(exc))
+            # Never write provider exception bodies or prompt text to logs.
+            print("GENERAL CANDIDATE INSIGHTS ERROR:", type(exc).__name__)
 
     print("AFTER FLEXIBLE AI BLOCK")
 
