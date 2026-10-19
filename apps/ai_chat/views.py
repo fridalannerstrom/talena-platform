@@ -21,7 +21,8 @@ import os
 from django.shortcuts import get_object_or_404
 from openai import OpenAI
 
-from apps.processes.models import TestProcess
+from apps.processes.models import TestProcess, Candidate
+from apps.core.ai.candidate_name_privacy import redact_candidate_name
 from apps.ai_chat.services.candidate_chat_context import (
     build_candidate_chat_context,
     serialize_candidate_chat_context,
@@ -172,6 +173,7 @@ def chat_stream_api(request):
     # Candidate and process data
     # ---------------------------------------------------------
 
+    candidate = get_object_or_404(Candidate, pk=candidate_id)
     candidate_context_json = (
         serialize_candidate_chat_context(
             chat_context
@@ -290,8 +292,8 @@ Do not use code fences.
                     "OPENAI_CHAT_MODEL",
                     "gpt-5-mini",
                 ),
-                instructions=system_prompt,
-                input=user_prompt,
+                instructions=redact_candidate_name(system_prompt, candidate),
+                input=redact_candidate_name(user_prompt, candidate),
                 stream=True,
             )
 
@@ -303,11 +305,8 @@ Do not use code fences.
                     yield event.delta
 
         except Exception as error:
-            print(
-                "CANDIDATE CHAT STREAM ERROR:",
-                repr(error),
-                flush=True,
-            )
+            # Provider exception text may echo request content. Log the type only.
+            print("CANDIDATE CHAT STREAM ERROR:", type(error).__name__, flush=True)
 
             yield (
                 "\n\nThe AI response could not be "

@@ -22,7 +22,7 @@ from .prompt_templates import (
 # Fixed playground candidate
 # ============================================================
 
-SAMPLE_CANDIDATE_NAME = "Alex Andersson"
+SAMPLE_CANDIDATE_NAME = "CANDIDATE_A"
 
 
 PERSONALITY_EVIDENCE = """

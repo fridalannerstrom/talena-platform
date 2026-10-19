@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .candidate_name_privacy import redact_candidate_name
+
 import json
 from typing import Any, Iterable
 
@@ -400,7 +402,7 @@ def build_personality_questions_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -822,7 +824,7 @@ You are repairing a missing or malformed personality questions event
 for Talena.
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -1122,6 +1124,14 @@ def _generate_repaired_personality_questions_event(
     try:
         client = get_openai_client()
 
+        repair_prompt = redact_candidate_name(
+            _build_personality_questions_repair_prompt(
+                owner=owner,
+                personality_results=personality_results,
+                selected_traits=selected_traits,
+            ),
+            owner.candidate,
+        )
         response = client.chat.completions.create(
             model=get_chat_model(),
             messages=[
@@ -1141,13 +1151,7 @@ def _generate_repaired_personality_questions_event(
                 },
                 {
                     "role": "user",
-                    "content": (
-                        _build_personality_questions_repair_prompt(
-                            owner=owner,
-                            personality_results=personality_results,
-                            selected_traits=selected_traits,
-                        )
-                    ),
+                    "content": repair_prompt,
                 },
             ],
             temperature=0.1,
@@ -1199,6 +1203,8 @@ def stream_personality_questions(
         invitation=owner,
         personality_results=personality_results,
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
@@ -1593,7 +1599,7 @@ The previous personality questions response did not contain a
 technically valid questions event.
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
