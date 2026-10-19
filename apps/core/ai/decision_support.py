@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .candidate_name_privacy import redact_candidate_name
+
 import json
 from typing import Any, Iterable
 
@@ -1352,6 +1354,8 @@ def stream_pre_interview_decision_support(
         )
     )
 
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
     stream = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
@@ -2232,6 +2236,8 @@ def stream_post_interview_decision_support(
             owner
         )
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
@@ -3115,6 +3121,8 @@ def stream_post_interview_decision_support(
     }
 
     model = get_chat_model()
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
     stream = client.chat.completions.create(
         model=model,
         messages=[
@@ -3390,6 +3398,8 @@ def stream_post_interview_content_block(
     }
 
     client = get_openai_client()
+    prompt = redact_candidate_name(prompt, owner.candidate)
+
     stream = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
