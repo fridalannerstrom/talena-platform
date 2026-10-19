@@ -11,6 +11,15 @@ from typing import Any
 
 CANDIDATE_AI_REFERENCE = "CANDIDATE_A"
 
+# Generic Talena terms are not person-identifying in isolation. Redacting
+# "candidate" everywhere would corrupt JSON keys and technical prompt labels
+# for test profiles whose surname is literally "Candidate".
+NON_IDENTIFYING_TERMS = frozenset({
+    "candidate", "test", "person", "team", "project", "process",
+    "assessment", "interview", "personality", "motivation",
+    "skill", "skills", "result", "results", "role",
+})
+
 
 def redact_candidate_name(text: str, candidate: Any) -> str:
     """Replace the candidate's known name and email in prompt text.
@@ -32,7 +41,12 @@ def redact_candidate_name(text: str, candidate: Any) -> str:
         email,
     ]
     # Longest first to avoid replacing components before the full name.
+    # An isolated generic word is not identifying; the full name and email
+    # are still removed even when they contain those words.
+    full_name = candidates[0].casefold()
     for identifier in sorted(set(filter(None, candidates)), key=len, reverse=True):
+        if identifier.casefold() in NON_IDENTIFYING_TERMS and identifier.casefold() != full_name:
+            continue
         text = re.sub(
             rf"(?<!\w){re.escape(identifier)}(?!\w)",
             CANDIDATE_AI_REFERENCE,
