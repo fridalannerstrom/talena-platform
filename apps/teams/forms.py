@@ -44,6 +44,7 @@ class TeamForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 4,
+                    "aria-describedby": "team-description-pii-notice",
                     "placeholder": _(
                         "Optional description of this team."
                     ),
@@ -53,6 +54,7 @@ class TeamForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 5,
+                    "aria-describedby": "team-context-pii-notice",
                     "placeholder": _(
                         "Describe the team, its current situation or what you would like Talena to take into account."
                     ),

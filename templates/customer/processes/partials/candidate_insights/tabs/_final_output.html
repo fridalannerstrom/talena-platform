@@ -462,7 +462,9 @@
           maxlength="30000"
           placeholder="{% trans 'Paste interview notes, candidate examples and relevant observations here…' %}"
           data-interview-notes-input
+          aria-describedby="interview-notes-pii-notice"
         >{{ interview_notes }}</textarea>
+        {% include "shared/ai_pii_notice.html" with kind="interview" notice_id="interview-notes-pii-notice" %}
 
 
         <div

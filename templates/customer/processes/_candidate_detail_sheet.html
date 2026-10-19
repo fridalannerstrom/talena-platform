@@ -677,6 +677,7 @@
                   id="candidateAiInput-{{ candidate.id }}"
                   class="form-control js-candidate-ai-input"
                   rows="3"
+                  aria-describedby="candidate-ai-pii-notice"
                   placeholder="{% trans 'Ask a question about this candidate...' %}"
                 ></textarea>
 
@@ -688,6 +689,7 @@
                   <i data-feather="arrow-up"></i>
                 </button>
               </div>
+              {% include "shared/ai_pii_notice.html" with kind="interview" notice_id="candidate-ai-pii-notice" %}
             </form>
           </div>
         </div>

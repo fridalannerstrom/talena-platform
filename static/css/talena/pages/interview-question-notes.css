@@ -86,6 +86,13 @@
   box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.09);
 }
 
+.interview-question-note__privacy {
+  margin: 0.45rem 0 0;
+  color: var(--talena-text-muted, #756d68);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
 .interview-question-note__footer {
   display: flex;
   align-items: center;
