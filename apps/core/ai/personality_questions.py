@@ -1124,6 +1124,14 @@ def _generate_repaired_personality_questions_event(
     try:
         client = get_openai_client()
 
+        repair_prompt = redact_candidate_name(
+            _build_personality_questions_repair_prompt(
+                owner=owner,
+                personality_results=personality_results,
+                selected_traits=selected_traits,
+            ),
+            owner.candidate,
+        )
         response = client.chat.completions.create(
             model=get_chat_model(),
             messages=[
@@ -1143,13 +1151,7 @@ def _generate_repaired_personality_questions_event(
                 },
                 {
                     "role": "user",
-                    "content": (
-                        _build_personality_questions_repair_prompt(
-                            owner=owner,
-                            personality_results=personality_results,
-                            selected_traits=selected_traits,
-                        )
-                    ),
+                    "content": repair_prompt,
                 },
             ],
             temperature=0.1,
