@@ -42,7 +42,9 @@ class CandidateNamePrivacyTests(SimpleTestCase):
         clean = redact_candidate_name(prompt, self.candidate)
         self.assertIn("CANDIDATE_A", clean)
         self.assertIn("Mirabelle", clean)
-        self.assert_no_candidate_identifiers(clean)
+        self.assertNotRegex(clean, r"(?i)(?<!\w)mira(?!\w)")
+        self.assertNotIn("nordberg", clean.casefold())
+        self.assertNotIn("mira.nordberg@example.invalid", clean.casefold())
 
     def test_generic_candidate_label_does_not_corrupt_prompt_schema(self):
         synthetic_candidate = SimpleNamespace(
