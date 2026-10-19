@@ -3,7 +3,7 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 from apps.core.ai.candidate_name_privacy import redact_candidate_name
 from apps.core.ai.shared_context import build_shared_ai_context
@@ -13,7 +13,7 @@ from apps.ai_chat.services.candidate_chat_context import (
 )
 
 
-class CandidateNamePrivacyTests(SimpleTestCase):
+class CandidateNamePrivacyTests(TestCase):
     def setUp(self):
         self.candidate = SimpleNamespace(
             id=319,
