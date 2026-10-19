@@ -524,7 +524,10 @@ def generate_candidate_result_content(
         invitation,
         language_code=language_code,
     )
+    from apps.core.ai.candidate_name_privacy import redact_candidate_name
+
     client = get_openai_client()
+    prompt = redact_candidate_name(prompt, invitation.candidate)
     response = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
