@@ -171,11 +171,22 @@ def get_ai_system_language_instruction(
         language_instruction,
     ])
 
-    return "\n\n".join(
+    combined_guidance = "\n\n".join(
         part.strip()
         for part in parts
         if str(part or "").strip()
     )
+
+    # Admin-written guidance can contain the current candidate's name too.
+    # Apply the same backend redaction to system instructions as to user prompts.
+    if owner is not None:
+        from .candidate_name_privacy import redact_candidate_name
+
+        combined_guidance = redact_candidate_name(
+            combined_guidance,
+            getattr(owner, "candidate", None),
+        )
+    return combined_guidance
 
 
 def get_purpose_fit_output_examples(

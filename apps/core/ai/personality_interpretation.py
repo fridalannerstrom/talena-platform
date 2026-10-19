@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .candidate_name_privacy import redact_candidate_name
+
 import json
 import math
 from typing import Any, Iterable
@@ -435,7 +437,7 @@ def build_personality_interpretation_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {shared_context["candidate_name"]}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {shared_context["purpose_label"]}
@@ -923,6 +925,8 @@ def stream_personality_interpretation(
             owner=owner,
         )
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),

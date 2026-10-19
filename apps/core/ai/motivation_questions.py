@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .candidate_name_privacy import redact_candidate_name
+
 import json
 from typing import Any, Iterable
 
@@ -73,7 +75,7 @@ def build_motivation_questions_prompt(
 TALENA INPUT DATA
 
 CANDIDATE
-Name: {candidate.first_name} {candidate.last_name}
+Reference: CANDIDATE_A
 
 SELECTED PROCESS PURPOSE
 Purpose: {purpose_label}
@@ -479,6 +481,8 @@ def stream_motivation_questions(
         "including required JSON structure and field names. "
         f"{system_language_instruction}"
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
