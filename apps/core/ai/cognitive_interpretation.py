@@ -1,3 +1,4 @@
+from .candidate_name_privacy import redact_candidate_name
 from __future__ import annotations
 
 import json
@@ -528,6 +529,8 @@ def stream_cognitive_interpretation(
         cognitive_results=cognitive_results,
         language_code=language_code,
     )
+
+    prompt = redact_candidate_name(prompt, owner.candidate)
 
     stream = client.chat.completions.create(
         model=get_chat_model(),
