@@ -1497,8 +1497,6 @@ def build_candidate_detail_context(process, invitation):
     print("=== FLEXIBLE INSIGHTS DEBUG ===")
     print("PROCESS PURPOSE:", process.purpose)
     print("HAS ANY RESULTS:", has_any_results)
-    print("CANDIDATE:", candidate.id, candidate.email)
-    print("GENERAL INPUT:", general_insight_input)
 
     # ------------------------------------------------------------
     # Flexible process: generate real general AI insights
@@ -1512,9 +1510,7 @@ def build_candidate_detail_context(process, invitation):
 
         try:
             generated_insights = generate_general_candidate_insights(
-                candidate_name=(
-                    f"{candidate.first_name} {candidate.last_name}"
-                ).strip(),
+                candidate_name="CANDIDATE_A",
                 insight_input=general_insight_input,
                 language_code=get_request_ai_language(
                     request
@@ -1524,12 +1520,6 @@ def build_candidate_detail_context(process, invitation):
             candidate_insights = generated_insights
 
             print("AI INSIGHTS GENERATED SUCCESSFULLY")
-            print(json.dumps(
-                generated_insights,
-                indent=2,
-                ensure_ascii=False,
-                default=str,
-            ))
 
         except Exception as exc:
             print("GENERAL CANDIDATE INSIGHTS ERROR")
