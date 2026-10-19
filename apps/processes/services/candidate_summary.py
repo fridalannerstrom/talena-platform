@@ -18,11 +18,7 @@ def build_historical_summary_input(
 
     return {
         "mode": "general",
-        "candidate": {
-            "name": (
-                f"{candidate.first_name} {candidate.last_name}"
-            ).strip(),
-        },
+        "candidate": {"reference": "CANDIDATE_A"},
         "process": {
             "name": process.name,
             "is_historical": True,
