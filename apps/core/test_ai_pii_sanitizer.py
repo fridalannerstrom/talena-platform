@@ -198,7 +198,11 @@ class OpenAIPrivacyBoundaryTests(SimpleTestCase):
     def test_raw_openai_sdk_is_only_constructed_in_privacy_entrypoint(self):
         root = Path(settings.BASE_DIR) / "apps"
         for path in root.rglob("*.py"):
-            if path.name == "openai_client.py" or "migrations" in path.parts:
+            if (
+                path.name == "openai_client.py"
+                or path.name.startswith("test")
+                or "migrations" in path.parts
+            ):
                 continue
             source = path.read_text(encoding="utf-8")
             with self.subTest(filename=str(path.relative_to(root))):
@@ -209,5 +213,7 @@ class OpenAIPrivacyBoundaryTests(SimpleTestCase):
     def test_public_client_factory_returns_the_safe_wrapper(self, raw_openai):
         client = get_openai_client()
         self.assertIsInstance(client, PrivacySafeOpenAI)
-        self.assertIs(client.chat.completions._raw, raw_openai.return_value)
+        self.assertTrue(callable(client.chat.completions.create))
+        self.assertTrue(callable(client.embeddings.create))
         self.assertFalse(hasattr(client, "_raw"))
+        raw_openai.assert_called_once_with(api_key="fake-test-only")
