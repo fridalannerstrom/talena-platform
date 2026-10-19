@@ -63,6 +63,13 @@ class LocalPIISanitizerTests(SimpleTestCase):
         )
         self.assertEqual(sanitize_ai_text(source), source)
 
+    def test_name_match_never_consumes_new_prompt_heading(self):
+        text = "Intervju med Anna Svensson\nCandidate Context\nSTEN 8."
+        result = sanitize_ai_text(text)
+        self.assertNotIn("Anna Svensson", result)
+        self.assertIn("Candidate Context", result)
+        self.assertIn("STEN 8", result)
+
     def test_structured_json_keeps_keys_types_and_technical_metadata(self):
         payload = {
             "candidate": {
