@@ -305,11 +305,8 @@ Do not use code fences.
                     yield event.delta
 
         except Exception as error:
-            print(
-                "CANDIDATE CHAT STREAM ERROR:",
-                repr(error),
-                flush=True,
-            )
+            # Provider exception text may echo request content. Log the type only.
+            print("CANDIDATE CHAT STREAM ERROR:", type(error).__name__, flush=True)
 
             yield (
                 "\n\nThe AI response could not be "
