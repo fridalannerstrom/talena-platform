@@ -69,6 +69,16 @@ class CandidateNamePrivacyTests(SimpleTestCase):
         self.assertEqual(context["candidate_first_name"], "CANDIDATE_A")
         self.assertIs(context["candidate"], self.candidate)  # Internal use only.
 
+    @patch("apps.core.ai.prompt_templates.get_purpose_ai_guidance", return_value="")
+    @patch("apps.core.ai.prompt_templates.get_global_ai_guidance")
+    def test_system_admin_guidance_redacts_candidate_name(self, global_guidance, _purpose):
+        from apps.core.ai.language import get_ai_system_language_instruction
+
+        global_guidance.return_value = "Mira Nordberg asked for Mira's report."
+        system_prompt = get_ai_system_language_instruction("sv", owner=self.owner)
+        self.assert_no_candidate_identifiers(system_prompt)
+        self.assertIn("CANDIDATE_A", system_prompt)
+
     def test_live_candidate_chat_context_omits_identifiers(self):
         invitation = SimpleNamespace(
             candidate=self.candidate,
