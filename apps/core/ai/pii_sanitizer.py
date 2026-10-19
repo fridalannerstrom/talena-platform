@@ -40,7 +40,7 @@ INTERNATIONAL_PHONE_RE = re.compile(
 # arbitrary single capitalised words, because this destroys trait labels.
 PERSON_NAME_RE = re.compile(
     r"(?<![\w])([A-ZÅÄÖ][a-zåäöéèüöåæøíó\-]{1,30}"
-    r"(?:\s+[A-ZÅÄÖ][a-zåäöéèüöåæøíó\-]{1,35}){1,2})(?![\w])",
+    r"(?:[ \t]+[A-ZÅÄÖ][a-zåäöéèüöåæøíó\-]{1,35}){1,2})(?![\w])",
     re.UNICODE,
 )
 NOT_PERSON_FIRST_WORDS = frozenset(
