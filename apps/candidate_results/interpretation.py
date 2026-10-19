@@ -221,10 +221,7 @@ def build_candidate_result_source(
     }
 
     return {
-        "candidate": {
-            "first_name": invitation.candidate.first_name,
-            "last_name": invitation.candidate.last_name,
-        },
+        "candidate": {"reference": "CANDIDATE_A"},
         "process": {
             "purpose": invitation.process.purpose or "",
             "job_title": invitation.process.job_title or "",
@@ -346,7 +343,7 @@ PROTECTED RULES
   improve or train a skill. Where supported by the evidence, describe instead
   that certain task types may require more time, focus or support.
 - If evidence is missing, say less rather than inventing content.
-- Use the candidate's first name naturally where appropriate.
+- Address the candidate without using any personal name.
 - Return valid JSON only, with exactly the four top-level keys shown below.
 
 OUTPUT LANGUAGE
