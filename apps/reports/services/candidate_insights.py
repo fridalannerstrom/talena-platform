@@ -219,7 +219,7 @@ OUTPUT LANGUAGE
 {language_instruction}
 
 Candidate:
-{candidate_name}
+CANDIDATE_A
 
 Assessment evidence:
 {assessment_data}
