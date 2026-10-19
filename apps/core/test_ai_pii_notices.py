@@ -49,8 +49,8 @@ class AIPersonalDataNoticesTests(SimpleTestCase):
             "templates/customer/processes/process_role_context.html": 1,
             "templates/customer/teams/team_form.html": 2,
             "templates/admin/core/ai_prompts/prompt_edit.html": 2,
-            "templates/customer/processes/_candidate_detail_sheet.html": 1,
-            "templates/admin/accounts/companies/company_candidate_sheet.html": 1,
+            # Candidate-chat fields were removed for launch (#302). Do not
+            # require warning markup in UI that is intentionally absent.
             "templates/customer/chat/chat.html": 1,
         }
         for filename, expected_count in templates.items():
@@ -60,6 +60,17 @@ class AIPersonalDataNoticesTests(SimpleTestCase):
                     source.count('{% include "shared/ai_pii_notice.html"'),
                     expected_count,
                 )
+
+    def test_removed_candidate_chat_fields_do_not_reappear(self):
+        root = Path(settings.BASE_DIR)
+        for filename in (
+            "templates/customer/processes/_candidate_detail_sheet.html",
+            "templates/admin/accounts/companies/company_candidate_sheet.html",
+        ):
+            with self.subTest(filename=filename):
+                content = (root / filename).read_text(encoding="utf-8")
+                self.assertNotIn("js-candidate-ai-form", content)
+                self.assertNotIn("data-chat-stream-url", content)
 
     def test_interview_notes_warnings_are_explicit(self):
         root = Path(settings.BASE_DIR)
