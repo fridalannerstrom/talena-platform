@@ -85,8 +85,26 @@ def _local_ner(model_name: str) -> Any:
     """Load a model already present on disk. Never download it here."""
     try:
         import spacy  # Optional deployment dependency.
-        return spacy.load(model_name)
-    except Exception as exc:
+        model = spacy.load(model_name)
+        # A successfully loaded generic language pipeline is NOT a PII
+        # recognizer. Refuse to transmit text if NER is unavailable or the
+        # installed model exposes no compatible person label.
+        if "ner" not in model.pipe_names:
+            raise PrivacySanitizationError(
+                "Configured local PII recognizer has no NER component."
+            )
+        person_labels = {"PERSON", "PER", "PRS"}
+        available_labels = {
+            str(label).upper() for label in model.get_pipe("ner").labels
+        }
+        if not person_labels.intersection(available_labels):
+            raise PrivacySanitizationError(
+                "Configured local PII recognizer has no person labels."
+            )
+        return model
+    except PrivacySanitizationError:
+        raise
+    except Exception:
         # Do not include exception text: model paths may reveal deployment info.
         raise PrivacySanitizationError(
             "Configured local PII recognizer is unavailable."
@@ -126,7 +144,9 @@ def _mask_local_ner(text: str) -> str:
         for ent in doc.ents:
             label = str(ent.label_).upper()
             placeholder = None
-            if label in {"PERSON", "PER"}:
+            # Swedish spaCy pipelines label people PRS, while English uses
+            # PERSON. PER is kept for other supported local recognizers.
+            if label in {"PERSON", "PER", "PRS"}:
                 placeholder = "[PERSON]"
             elif label in {"ORG", "ORGANIZATION"} and os.environ.get(
                 "TALENA_PII_MASK_ORGANIZATIONS"
