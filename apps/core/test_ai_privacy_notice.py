@@ -119,7 +119,7 @@ class AIPiiMaskingNoticeTests(SimpleTestCase):
             [event["type"] for event in events],
             ["started", "ai_privacy_masked", "completed"],
         )
-        self.assertNotIn("Anna Svensson", "".join(chunks))
+        self.assertNotIn("Anna Svensson", b"".join(chunks).decode("utf-8"))
 
     def test_no_stream_notice_without_actual_masking(self):
         def stream():
