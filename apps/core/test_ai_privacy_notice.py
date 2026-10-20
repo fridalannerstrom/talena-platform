@@ -68,6 +68,28 @@ class AIPiiMaskingNoticeTests(SimpleTestCase):
         response = AIPiiMaskingNoticeMiddleware(view)(self.factory.get("/test/"))
         self.assertNotIn("X-Talena-AI-PII-Masked", response)
 
+    def test_known_candidate_name_redacted_upstream_also_triggers_notice(self):
+        from types import SimpleNamespace
+        from apps.core.ai.candidate_name_privacy import redact_candidate_name
+
+        candidate = SimpleNamespace(
+            first_name="Anna", last_name="Svensson", email="anna@example.se",
+        )
+
+        def view(request):
+            prompt = redact_candidate_name(
+                "Anna Svensson received STEN 8.", candidate
+            )
+            self._send(prompt)
+            return JsonResponse({"ok": True})
+
+        response = AIPiiMaskingNoticeMiddleware(view)(self.factory.get("/test/"))
+        self.assertEqual(response["X-Talena-AI-PII-Masked"], "1")
+        self.assertNotIn(
+            "Anna Svensson",
+            str(self.raw.chat.completions.create.call_args.kwargs["messages"]),
+        )
+
     def test_multiple_calls_send_only_boolean_and_no_raw_data(self):
         def view(request):
             self._send("Anna Svensson sent an email.")
