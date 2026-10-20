@@ -80,13 +80,55 @@ KNOWN_NON_PERSON_PAIRS = frozenset(
 )
 
 
+# These are product vocabulary, assessment labels, branding and headings,
+# not candidate identity. A model may incorrectly label a subword inside
+# one of these phrases as PERSON (e.g. Qode in Talent Qode).
+# Protect the full phrase range rather than only exact entity text.
+NER_PROTECTED_PHRASES = KNOWN_NON_PERSON_PAIRS | frozenset({
+    "sova", "qode", "talena", "openai", "resultat", "result",
+    "sten", "stive", "percentile", "percentilen", "adaptability",
+    "personlighet", "motivation", "färdighet", "intervju",
+    "intervjusammanfattning", "kandidatens", "arbetsmiljö",
+})
+NER_PROTECTED_RE = re.compile(
+    r"(?<!\w)(?:" +
+    "|".join(
+        re.escape(term) for term in sorted(
+            NER_PROTECTED_PHRASES, key=len, reverse=True
+        )
+    ) + r")(?!\w)",
+    re.IGNORECASE,
+)
+# Never treat JSON schema key names as person data. This matters for
+# serialized JSON embedded inside an otherwise plain-language prompt.
+JSON_KEY_RE = re.compile(r'"[^"\n]+"[ \t]*:')
+
+
 @lru_cache(maxsize=8)
 def _local_ner(model_name: str) -> Any:
     """Load a model already present on disk. Never download it here."""
     try:
         import spacy  # Optional deployment dependency.
-        return spacy.load(model_name)
-    except Exception as exc:
+        model = spacy.load(model_name)
+        # A successfully loaded generic language pipeline is NOT a PII
+        # recognizer. Refuse to transmit text if NER is unavailable or the
+        # installed model exposes no compatible person label.
+        if "ner" not in model.pipe_names:
+            raise PrivacySanitizationError(
+                "Configured local PII recognizer has no NER component."
+            )
+        person_labels = {"PERSON", "PER", "PRS"}
+        available_labels = {
+            str(label).upper() for label in model.get_pipe("ner").labels
+        }
+        if not person_labels.intersection(available_labels):
+            raise PrivacySanitizationError(
+                "Configured local PII recognizer has no person labels."
+            )
+        return model
+    except PrivacySanitizationError:
+        raise
+    except Exception:
         # Do not include exception text: model paths may reveal deployment info.
         raise PrivacySanitizationError(
             "Configured local PII recognizer is unavailable."
@@ -121,12 +163,23 @@ def _mask_local_ner(text: str) -> str:
         return text
 
     spans: list[tuple[int, int, str]] = []
+    protected_spans = [
+        (m.start(), m.end())
+        for pattern in (NER_PROTECTED_RE, JSON_KEY_RE)
+        for m in pattern.finditer(text)
+    ]
+
+    def touches_protected_text(start: int, end: int) -> bool:
+        return any(start < stop and end > begin for begin, stop in protected_spans)
+
     for model_name in configured_models:
         doc = _local_ner(model_name)(text)
         for ent in doc.ents:
             label = str(ent.label_).upper()
             placeholder = None
-            if label in {"PERSON", "PER"}:
+            # Swedish spaCy pipelines label people PRS, while English uses
+            # PERSON. PER is kept for other supported local recognizers.
+            if label in {"PERSON", "PER", "PRS"}:
                 placeholder = "[PERSON]"
             elif label in {"ORG", "ORGANIZATION"} and os.environ.get(
                 "TALENA_PII_MASK_ORGANIZATIONS"
@@ -136,7 +189,9 @@ def _mask_local_ner(text: str) -> str:
                 "TALENA_PII_MASK_LOCATIONS"
             ) == "1":
                 placeholder = "[LOCATION]"
-            if placeholder:
+            if placeholder and not touches_protected_text(
+                ent.start_char, ent.end_char
+            ):
                 spans.append((ent.start_char, ent.end_char, placeholder))
     # Do not mutate offsets while reading entities. Ignore overlapping spans.
     selected = []
