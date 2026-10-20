@@ -2,6 +2,7 @@
 
 import json
 import os
+import difflib
 import statistics
 import sys
 import time
@@ -103,6 +104,26 @@ def main():
             for index, phrase in enumerate(PRESERVE[language])
         ]
         preserved = sum(single for _, single, _ in preservation_results)
+        changed_spans = []
+        for index, phrase in enumerate(PRESERVE[language], start=1):
+            for setup, result in (
+                ("single", sanitized(
+                    phrase, name if language == "sv" else "",
+                    name if language == "en" else "",
+                )),
+                ("both", sanitized(phrase, sv, en)),
+            ):
+                if phrase == result:
+                    continue
+                changes = [
+                    {"original": phrase[a:b], "sanitized": result[c:d]}
+                    for op, a, b, c, d in
+                    difflib.SequenceMatcher(None, phrase, result).get_opcodes()
+                    if op != "equal"
+                ]
+                changed_spans.append({
+                    "case": index, "model_setup": setup, "changes": changes
+                })
         preserved_with_both = sum(both for _, _, both in preservation_results)
         report[language] = {
             "model": name,
@@ -119,6 +140,7 @@ def main():
             "both_models_changed_case_numbers": [
                 index for index, _, both in preservation_results if not both
             ],
+            "synthetic_only_changed_spans": changed_spans,
             "context_cases": len(PRESERVE[language]),
             "median_latency_ms": round(statistics.median(times), 1),
         }
