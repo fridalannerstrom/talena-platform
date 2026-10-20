@@ -17,6 +17,7 @@ class MaskingAttempt:
 @dataclass
 class PrivacyRequestState:
     masked_sent: bool = False
+    upstream_masked: bool = False
 
 
 _current_attempt: ContextVar[MaskingAttempt | None] = ContextVar(
@@ -43,11 +44,20 @@ def record_masked_text() -> None:
         attempt.changed = True
 
 
+def record_upstream_masking() -> None:
+    """Known candidate names sometimes are masked before building the SDK call."""
+    state = _current_request.get()
+    if state is not None:
+        state.upstream_masked = True
+
+
 def record_sent_masking(attempt: MaskingAttempt) -> None:
     """Only mark after the sanitized SDK call was accepted."""
     state = _current_request.get()
-    if attempt.changed and state is not None:
-        state.masked_sent = True
+    if state is not None:
+        if attempt.changed or state.upstream_masked:
+            state.masked_sent = True
+        state.upstream_masked = False
 
 
 @contextmanager
