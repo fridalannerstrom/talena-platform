@@ -13,6 +13,8 @@ import re
 from functools import lru_cache
 from typing import Any
 
+from .privacy_notice import record_masked_text
+
 
 class PrivacySanitizationError(ValueError):
     """Refuse to send an AI request whose text could not be sanitized."""
@@ -209,6 +211,7 @@ def sanitize_ai_text(text: str) -> str:
     """Preserve interpretation context while masking obvious identifiers."""
     if not isinstance(text, str):
         raise PrivacySanitizationError("AI text must be a string.")
+    original_text = text
     try:
         if len(text) > 2_000_000:
             raise PrivacySanitizationError("AI text exceeds sanitization limit.")
@@ -218,6 +221,8 @@ def sanitize_ai_text(text: str) -> str:
         text = PHONE_RE.sub("[PHONE]", text)
         text = _mask_local_ner(text)
         text = _mask_person_names(text)
+        if text != original_text:
+            record_masked_text()
         return text
     except PrivacySanitizationError:
         raise
