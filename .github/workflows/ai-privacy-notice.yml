@@ -22,3 +22,5 @@ jobs:
           DJANGO_SECRET_KEY: local-qa-only
           USE_AZURE_STORAGE: '0'
         run: python manage.py test apps.core.test_ai_privacy_notice --noinput
+      - name: Verify customer notification and stream passthrough
+        run: node scripts/test_ai_privacy_notice.js
