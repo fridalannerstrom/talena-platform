@@ -90,12 +90,20 @@ def main():
                 and e.start_char < end and e.end_char > begin
                 for e in doc.ents
             )
-        preserved = sum(
-            phrase == sanitized(phrase,
-                                name if language == "sv" else "",
-                                name if language == "en" else "")
-            for phrase in PRESERVE[language]
-        )
+        preservation_results = [
+            (
+                index + 1,
+                phrase == sanitized(
+                    phrase,
+                    name if language == "sv" else "",
+                    name if language == "en" else "",
+                ),
+                phrase == sanitized(phrase, sv, en),
+            )
+            for index, phrase in enumerate(PRESERVE[language])
+        ]
+        preserved = sum(single for _, single, _ in preservation_results)
+        preserved_with_both = sum(both for _, _, both in preservation_results)
         report[language] = {
             "model": name,
             "version": model.meta.get("version", "unknown"),
@@ -104,6 +112,13 @@ def main():
             "person_hits_regex_only": regex_hits,
             "person_hits_combined": total_hits,
             "unmodified_context_cases": preserved,
+            "single_model_changed_case_numbers": [
+                index for index, single, _ in preservation_results if not single
+            ],
+            "both_models_unmodified_context_cases": preserved_with_both,
+            "both_models_changed_case_numbers": [
+                index for index, _, both in preservation_results if not both
+            ],
             "context_cases": len(PRESERVE[language]),
             "median_latency_ms": round(statistics.median(times), 1),
         }
