@@ -1,0 +1,50 @@
+name: Local NER model evaluation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/core/ai/pii_sanitizer.py"
+      - "apps/core/test_ai_local_ner_contract.py"
+      - "scripts/benchmark_ner.py"
+      - ".github/workflows/ner-model-evaluation.yml"
+  workflow_dispatch:
+
+jobs:
+  evaluate-synthetic-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install local CPU-only spaCy and pinned NER model releases
+        run: |
+          python -m pip install "spacy==3.8.11"
+          python -m pip install --no-deps \
+            "https://github.com/explosion/spacy-models/releases/download/sv_core_news_sm-3.8.0/sv_core_news_sm-3.8.0-py3-none-any.whl" \
+            "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+      - name: Assert installed model versions and person NER labels
+        run: |
+          python - <<'PY'
+          import spacy
+          for name, labels in [
+              ("sv_core_news_sm", {"PRS", "PER"}),
+              ("en_core_web_sm", {"PERSON"}),
+          ]:
+              model = spacy.load(name)
+              assert model.meta["version"] == "3.8.0", name
+              assert "ner" in model.pipe_names, name
+              assert set(model.get_pipe("ner").labels).intersection(labels), name
+              print(name, model.meta["version"], "ner ready")
+          PY
+      - name: Evaluate synthetic Swedish and English recruitment examples
+        env:
+          TALENA_PII_NER_SV_MODEL: sv_core_news_sm
+          TALENA_PII_NER_EN_MODEL: en_core_web_sm
+          TALENA_PII_MASK_ORGANIZATIONS: "0"
+          TALENA_PII_MASK_LOCATIONS: "0"
+        run: python scripts/benchmark_ner.py
