@@ -9,6 +9,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .privacy_notice import record_upstream_masking
+
 CANDIDATE_AI_REFERENCE = "CANDIDATE_A"
 
 # Generic Talena terms are not person-identifying in isolation. Redacting
@@ -30,6 +32,7 @@ def redact_candidate_name(text: str, candidate: Any) -> str:
     if not isinstance(text, str) or candidate is None:
         return text
 
+    original_text = text
     first_name = str(getattr(candidate, "first_name", "") or "").strip()
     last_name = str(getattr(candidate, "last_name", "") or "").strip()
     email = str(getattr(candidate, "email", "") or "").strip()
@@ -53,4 +56,6 @@ def redact_candidate_name(text: str, candidate: Any) -> str:
             text,
             flags=re.IGNORECASE,
         )
+    if text != original_text:
+        record_upstream_masking()
     return text
