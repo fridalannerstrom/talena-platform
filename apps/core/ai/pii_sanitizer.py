@@ -91,17 +91,17 @@ NER_PROTECTED_PHRASES = KNOWN_NON_PERSON_PAIRS | frozenset({
     "intervjusammanfattning", "kandidatens", "arbetsmiljö",
 })
 NER_PROTECTED_RE = re.compile(
-    r"(?<!\\w)(?:" +
+    r"(?<!\w)(?:" +
     "|".join(
         re.escape(term) for term in sorted(
             NER_PROTECTED_PHRASES, key=len, reverse=True
         )
-    ) + r")(?!\\w)",
+    ) + r")(?!\w)",
     re.IGNORECASE,
 )
 # Never treat JSON schema key names as person data. This matters for
 # serialized JSON embedded inside an otherwise plain-language prompt.
-JSON_KEY_RE = re.compile(r'"[^"\\n]+"[ \\t]*:')
+JSON_KEY_RE = re.compile(r'"[^"\n]+"[ \t]*:')
 
 
 @lru_cache(maxsize=8)
