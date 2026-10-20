@@ -10,6 +10,7 @@ import os
 from openai import OpenAI
 
 from .pii_sanitizer import PrivacySanitizationError, sanitize_ai_payload
+from .privacy_notice import outbound_masking_attempt, record_sent_masking
 
 
 class _Completions:
@@ -21,8 +22,11 @@ class _Completions:
             raise PrivacySanitizationError(
                 "OpenAI chat request without messages is not permitted."
             )
-        kwargs["messages"] = sanitize_ai_payload(kwargs["messages"])
-        return self._send(**kwargs)
+        with outbound_masking_attempt() as attempt:
+            kwargs["messages"] = sanitize_ai_payload(kwargs["messages"])
+            result = self._send(**kwargs)
+        record_sent_masking(attempt)
+        return result
 
 
 class _Chat:
@@ -39,8 +43,11 @@ class _Embeddings:
             raise PrivacySanitizationError(
                 "OpenAI embedding request without input is not permitted."
             )
-        kwargs["input"] = sanitize_ai_payload(kwargs["input"])
-        return self._send(**kwargs)
+        with outbound_masking_attempt() as attempt:
+            kwargs["input"] = sanitize_ai_payload(kwargs["input"])
+            result = self._send(**kwargs)
+        record_sent_masking(attempt)
+        return result
 
 
 class _Responses:
@@ -52,10 +59,13 @@ class _Responses:
             raise PrivacySanitizationError(
                 "OpenAI Responses request without input is not permitted."
             )
-        kwargs["input"] = sanitize_ai_payload(kwargs["input"])
-        if "instructions" in kwargs:
-            kwargs["instructions"] = sanitize_ai_payload(kwargs["instructions"])
-        return self._send(**kwargs)
+        with outbound_masking_attempt() as attempt:
+            kwargs["input"] = sanitize_ai_payload(kwargs["input"])
+            if "instructions" in kwargs:
+                kwargs["instructions"] = sanitize_ai_payload(kwargs["instructions"])
+            result = self._send(**kwargs)
+        record_sent_masking(attempt)
+        return result
 
 
 class PrivacySafeOpenAI:
