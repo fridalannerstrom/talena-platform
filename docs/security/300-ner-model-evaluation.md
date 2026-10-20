@@ -35,6 +35,26 @@ Workflow: \`.github/workflows/ner-model-evaluation.yml\`. Båda modellernas hjul
 
 Därutöver finns \`apps/core/test_ai_local_ner_contract.py\` med deterministiska, modellfria tester för personetiketter och *fail-closed* beteende i ordinarie Django QA.
 
+## Första verkliga modellkörningen (GitHub Actions, 2026-10-20)
+
+Jobb: https://github.com/fridalannerstrom/talena-platform/actions/runs/39431301460
+
+Båda *riktiga* modellerna installerades på en tillfällig CI-runner och användes på enbart påhittade exempel. Resultat efter fix för modellernas falska träffar på SOVA-/Talena-terminologi:
+
+| Mätpunkt | Svenska | Engelska |
+|---|---:|---:|
+| Syntetiska namn | 10 | 10 |
+| NER-fångade namn | 10 | 9 |
+| Endast regex (jämförelse) | 4 | 4 |
+| Sammanlagt maskerade namn (regler + NER) | 10 | 9 |
+| Avsiktligt oförändrad kontext med modellen | 4/4 | 4/4 |
+| Samma kontext när både sv+en körs samtidigt | 4/4 | 4/4 |
+| Medianlatens för kort text med en modell | 5,2 ms | 5,5 ms |
+
+Vi hittade och åtgärdade faktiska falska träffar: modellen misstolkade **Social Desirability**, **Qode** och den tekniska rubriken **Resultat** som personer. Kodskyddet undantar nu områden i känd psykometrisk terminologi, varumärken, rubriker och JSON-fältnamn från NER-masking. Dessa skydd är avvägningar som också kan skapa falska negativa för ovanliga personnamn.
+
+**Tolkning:** Mycket liten, specialkonstruerad testmängd. 10/10 eller 9/10 är *inte* generaliserbar recall och 4/4 är *inte* bevis på att modellerna aldrig skadar rapportunderlag. Mät verklig minnesåtgång, kontextändringar, modell-precision/recall och latenstid på representativt men syntetiskt, längre Talena-material före produktion. Engelskan missade minst ett personnamn redan i denna begränsade körning.
+
 ## Kriterier före produktionsaktivering
 
 1. **Kör benchmark och läs faktiskt utfall.** Resultaten på uppdiktade meningar är bara en första indikator, inte ett precision/recall-bevis i produktion.
