@@ -167,6 +167,51 @@ class HistoricalReportDownloadAuthorizationTests(TestCase):
                 ))
                 self.assertEqual(response.status_code, 404)
 
+    def test_customer_cannot_open_historical_admin_endpoints(self):
+        self.client.force_login(self.viewer)
+        routes = (
+            ("accounts:company_process_candidate_detail", {
+                "company_pk": self.company_a.pk,
+                "process_pk": self.process.pk,
+                "candidate_pk": self.candidate.pk,
+            }),
+            ("accounts:company_historical_candidate_edit", {
+                "company_pk": self.company_a.pk,
+                "process_pk": self.process.pk,
+                "candidate_pk": self.candidate.pk,
+            }),
+            ("accounts:company_historical_assessment_import_upload", {
+                "company_pk": self.company_a.pk,
+                "process_pk": self.process.pk,
+            }),
+        )
+        for name, kwargs in routes:
+            with self.subTest(route=name):
+                response = self.client.get(reverse(name, kwargs=kwargs))
+                self.assertEqual(response.status_code, 403)
+
+    def test_admin_historical_routes_cannot_mix_company_and_process_ids(self):
+        self.client.force_login(self.admin)
+        for name, kwargs in (
+            ("accounts:company_process_candidate_detail", {
+                "company_pk": self.company_b.pk,
+                "process_pk": self.process.pk,
+                "candidate_pk": self.candidate.pk,
+            }),
+            ("accounts:company_historical_candidate_edit", {
+                "company_pk": self.company_b.pk,
+                "process_pk": self.process.pk,
+                "candidate_pk": self.candidate.pk,
+            }),
+            ("accounts:company_historical_assessment_import_upload", {
+                "company_pk": self.company_b.pk,
+                "process_pk": self.process.pk,
+            }),
+        ):
+            with self.subTest(route=name):
+                response = self.client.get(reverse(name, kwargs=kwargs))
+                self.assertEqual(response.status_code, 404)
+
     def test_raw_storage_urls_are_not_exposed_in_historical_report_links(self):
         root = Path(__file__).resolve().parents[2]
         for path in (
