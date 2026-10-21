@@ -86,34 +86,61 @@
   box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.09);
 }
 
-/* Calm privacy guidance shown after a successful save, never an error. */
+/* Soft, compact informational note. It does not block the saved answer. */
 .interview-question-note__pii-notice {
-  margin-top: 0.65rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(100, 120, 113, 0.19);
-  border-left: 3px solid #70877d;
-  border-radius: 10px;
-  background: #f5f8f6;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(93, 120, 105, 0.2);
+  border-radius: 11px;
+  background: #f6f9f7;
   color: #34483e;
-  line-height: 1.45;
 }
 
 .interview-question-note__pii-notice[hidden] {
   display: none !important;
 }
 
+.interview-question-note__pii-notice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9px;
+  background: #e8f0eb;
+  color: #5b7868;
+}
+
+.interview-question-note__pii-notice-icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.9;
+}
+
+.interview-question-note__pii-notice-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-top: 0.05rem;
+}
+
 .interview-question-note__pii-notice-title {
   display: block;
-  font-size: 0.77rem;
+  font-size: 0.8rem;
   line-height: 1.4;
   font-weight: 720;
 }
 
 .interview-question-note__pii-notice-body {
-  margin: 0.28rem 0 0;
-  color: #52665b;
-  font-size: 0.7rem;
-  line-height: 1.55;
+  margin: 0.2rem 0 0;
+  max-width: 110ch;
+  color: #54665c;
+  font-size: 0.72rem;
+  line-height: 1.5;
 }
 
 .interview-question-note__privacy {
