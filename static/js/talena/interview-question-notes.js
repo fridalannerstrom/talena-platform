@@ -13,6 +13,8 @@
       answerNotes: "Svar / anteckningar",
       hint: "Skriv din anteckning och klicka på Spara. Sparade svar finns tillgängliga i hela kandidatvyn.",
       privacyNotice: "Obs: Skriv inte kandidatens namn eller andra personuppgifter i detta fält.",
+      piiBlockedTitle: "Vi hittade möjliga personuppgifter",
+      piiBlockedBody: "Anteckningen sparades inte. Ta bort namn, telefonnummer och andra kontaktuppgifter och försök igen.",
       placeholder: "Lägg till kandidatens svar, exempel eller dina intervjuanteckningar…",
       save: "Spara",
       saving: "Sparar…",
@@ -37,6 +39,8 @@
       answerNotes: "Answer / notes",
       hint: "Write your note and click Save. Saved answers are available across the candidate view.",
       privacyNotice: "Note: Do not enter the candidate's name or other personal data in this field.",
+      piiBlockedTitle: "Possible personal data detected",
+      piiBlockedBody: "The note was not saved. Remove names, phone numbers and other contact details, then try again.",
       placeholder: "Add the candidate's answer, examples or your interview notes…",
       save: "Save",
       saving: "Saving…",
@@ -226,6 +230,20 @@
     }
   };
 
+  const hidePiiSaveWarning = (field) => {
+    const warning = field.closest("[data-interview-question-note-field]")
+      ?.querySelector("[data-interview-question-note-pii-warning]");
+    if (warning) warning.hidden = true;
+    field.removeAttribute("aria-invalid");
+  };
+
+  const showPiiSaveWarning = (field) => {
+    const warning = field.closest("[data-interview-question-note-field]")
+      ?.querySelector("[data-interview-question-note-pii-warning]");
+    if (warning) warning.hidden = false;
+    field.setAttribute("aria-invalid", "true");
+  };
+
   const createQuestionNoteField = (context) => {
     const wrapper = document.createElement("div");
     wrapper.className = "interview-question-note";
@@ -271,7 +289,18 @@
     privacyNotice.dataset.aiPiiNotice = "";
     privacyNotice.dataset.aiPiiKind = "interview";
     privacyNotice.textContent = text("privacyNotice");
-    field.setAttribute("aria-describedby", privacyNotice.id);
+    const piiWarning = document.createElement("div");
+    piiWarning.className = "interview-question-note__pii-warning";
+    piiWarning.dataset.interviewQuestionNotePiiWarning = "";
+    piiWarning.id = `interview-question-note-pii-warning-${++privacyNoticeCounter}`;
+    piiWarning.setAttribute("role", "alert");
+    piiWarning.hidden = true;
+    const warningTitle = document.createElement("strong");
+    warningTitle.textContent = text("piiBlockedTitle");
+    const warningBody = document.createElement("p");
+    warningBody.textContent = text("piiBlockedBody");
+    piiWarning.append(warningTitle, warningBody);
+    field.setAttribute("aria-describedby", `${privacyNotice.id} ${piiWarning.id}`);
 
     const footer = document.createElement("div");
     footer.className = "interview-question-note__footer";
@@ -288,7 +317,7 @@
     saveButton.disabled = true;
 
     footer.append(hint, saveButton);
-    wrapper.append(header, field, privacyNotice, footer);
+    wrapper.append(header, field, piiWarning, privacyNotice, footer);
     return wrapper;
   };
 
@@ -417,7 +446,7 @@
       if (!field || saveButton.disabled) return;
 
       const result = await saveField(field);
-      if (!result.ok && article?.isConnected) {
+      if (!result.ok && result.reason !== "pii" && article?.isConnected) {
         showSummaryError(article, result.error || text("error"));
       }
     });
@@ -706,6 +735,12 @@
       });
 
       const payload = await response.json();
+      if (!response.ok && response.status === 422 &&
+          payload.code === "personal_data_detected") {
+        showPiiSaveWarning(field);
+        setStatus(field, "");
+        return { ok: false, reason: "pii", error: text("piiBlockedBody") };
+      }
       if (!response.ok) throw new Error(payload.error || "Could not save note.");
 
       const savedNote = {
@@ -760,6 +795,7 @@
     const field = event.target.closest?.("[data-interview-question-note]");
     if (!field) return;
 
+    hidePiiSaveWarning(field);
     setStatus(field, "");
     setDirtyState(field);
   });
