@@ -86,11 +86,13 @@ class ReportAndTeamTenantAccessTests(TestCase):
             invitation=self.invitation_a, candidate=self.candidate_a,
             process=self.process, locale="sv",
             content={"introduction": "Synthetic candidate summary A"},
+            prompt_versions={"candidate_summary": {"version": "test"}},
         )
         self.snapshot_owned = CandidateResultSnapshot.objects.create(
             invitation=self.invitation_owned, candidate=self.candidate_a,
             process=self.owned_process, locale="sv",
             content={"introduction": "Synthetic candidate summary owned"},
+            prompt_versions={"candidate_summary": {"version": "test"}},
         )
 
         self.shared_team = Team.objects.create(
