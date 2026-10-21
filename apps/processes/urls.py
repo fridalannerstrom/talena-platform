@@ -298,6 +298,10 @@ urlpatterns = [
 # parts of views.py. Wrap them centrally so direct URLs and AI endpoints always
 # respect the same org-unit Viewer/Editor/Own scope as the process list.
 _PROCESS_VIEW_ROUTE_NAMES = {
+    # These legacy endpoints had company-only checks; guard against access
+    # to other org units and other users' own-only processes as well.
+    "process_invitation_statuses",
+    "process_role_context",
     "process_candidate_detail",
     "process_candidate_combined_questions",
     "process_candidate_final_output",
