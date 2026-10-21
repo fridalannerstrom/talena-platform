@@ -100,9 +100,9 @@ class InterviewNotePrivacyDetectorTests(TestCase):
             "CandidateStub", (), {"first_name": "Taylor", "last_name": "Candidate"},
         )()
         for value in (
-            "Frida Lannerström har telefonnummer 0705347805",
-            "Contact anna@example.se for details.",
-            "Call +46705347805 instead.",
+            "Anna Exempelson har telefonnummer 0701234567",
+            "Contact name@example.org for details.",
+            "Call +46701234567 instead.",
             "Personnummer 19900101-1234",
             "The interviewer was John Smith.",
             "I spoke with Taylor.",
@@ -315,54 +315,68 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         self.assertEqual(delete_response.status_code, 200)
         self.assertFalse(InterviewQuestionNote.objects.exists())
 
-    def test_rejects_clear_personal_data_without_saving_or_echoing_it(self):
+    def test_personal_data_is_saved_with_privacy_advisory(self):
         for value in (
-            "Frida Lannerström har telefonnummer 0705347805",
-            "Email anna@example.se after the interview.",
-            "Call 0705347805.",
-            "Contact +46705347805.",
+            "Anna Exempelson har telefonnummer 0701234567",
+            "Email name@example.org after the interview.",
+            "Call 0701234567.",
+            "Contact +46701234567.",
             "Swedish personal ID: 19900101-1234",
             "Met John Smith during the interview.",
             "Taylor is available for work.",
         ):
             with self.subTest(value=value):
                 response = self.post_note(note=value)
-                self.assertEqual(response.status_code, 422)
-                self.assertEqual(
-                    response.json()["code"], "personal_data_detected"
-                )
-                self.assertNotIn(value, response.content.decode("utf-8"))
-                self.assertNotIn("0705347805", response.content.decode("utf-8"))
-                self.assertFalse(InterviewQuestionNote.objects.exists())
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertTrue(data["ok"])
+                self.assertIs(data["possible_personal_data"], True)
+                self.assertEqual(InterviewQuestionNote.objects.get().note, value)
                 self.invitation.refresh_from_db()
                 self.assertEqual(
                     self.invitation.ai_post_interview_decision_support_status,
-                    "completed",
+                    "outdated",
                 )
+                InterviewQuestionNote.objects.all().delete()
 
-    def test_blocked_edit_keeps_previously_saved_note_and_report_state(self):
-        response = self.post_note(note="Worked well in a new team.")
+    def test_normal_notes_save_without_privacy_advisory(self):
+        response = self.post_note(note="Described a concrete example from work.")
         self.assertEqual(response.status_code, 200)
-        note = InterviewQuestionNote.objects.get()
-        original_time = note.updated_at
-        self.invitation.refresh_from_db()
-        original_status = self.invitation.ai_post_interview_decision_support_status
-
-        blocked = self.post_note(note="Met Anna Svensson in the new team.")
-        self.assertEqual(blocked.status_code, 422)
-        note.refresh_from_db()
-        self.assertEqual(note.note, "Worked well in a new team.")
-        self.assertEqual(note.updated_at, original_time)
-        self.invitation.refresh_from_db()
+        self.assertIs(response.json()["possible_personal_data"], False)
         self.assertEqual(
-            self.invitation.ai_post_interview_decision_support_status,
-            original_status,
+            InterviewQuestionNote.objects.get().note,
+            "Described a concrete example from work.",
+        )
+
+    def test_empty_note_removal_does_not_trigger_privacy_advisory(self):
+        self.post_note(note="Met Anna Exempelson in the new team.")
+        response = self.post_note(note="  ")
+        self.assertEqual(response.status_code, 200)
+        self.assertIs(response.json()["possible_personal_data"], False)
+        self.assertFalse(InterviewQuestionNote.objects.exists())
+
+    def test_flagged_edits_save_normally_and_can_be_corrected(self):
+        first = self.post_note(note="Worked well in a new team.")
+        self.assertEqual(first.status_code, 200)
+        self.assertIs(first.json()["possible_personal_data"], False)
+
+        changed = self.post_note(note="Met Anna Exempelson in the new team.")
+        self.assertEqual(changed.status_code, 200)
+        self.assertIs(changed.json()["possible_personal_data"], True)
+        self.assertEqual(
+            InterviewQuestionNote.objects.get().note,
+            "Met Anna Exempelson in the new team.",
         )
 
         fixed = self.post_note(note="Met a colleague in the new team.")
         self.assertEqual(fixed.status_code, 200)
-        note.refresh_from_db()
-        self.assertEqual(note.note, "Met a colleague in the new team.")
+        self.assertIs(fixed.json()["possible_personal_data"], False)
+        self.assertEqual(
+            InterviewQuestionNote.objects.get().note,
+            "Met a colleague in the new team.",
+        )
+
         removed = self.post_note(note="   ")
         self.assertEqual(removed.status_code, 200)
+        self.assertIs(removed.json()["possible_personal_data"], False)
         self.assertFalse(InterviewQuestionNote.objects.exists())
