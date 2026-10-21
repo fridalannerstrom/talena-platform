@@ -9,7 +9,7 @@ const vm = require("node:vm");
 const source = fs.readFileSync("static/js/talena/interview-question-notes.js", "utf8");
 const css = fs.readFileSync("static/css/talena/pages/interview-question-notes.css", "utf8");
 assert.match(source, /Vi hjälper dig att skydda personuppgifter/);
-assert.match(source, /Possible personal data detected/);
+assert.match(source, /We help you protect personal data/);
 assert.match(source, /piiNotice\.setAttribute\("role", "status"\)/);
 assert.match(source, /setPiiSaveInfo\(field, payload.possible_personal_data === true\)/);
 assert.match(css, /interview-question-note__pii-notice-title/);
