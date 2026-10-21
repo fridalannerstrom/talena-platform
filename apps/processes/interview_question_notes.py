@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from .interview_note_privacy import contains_interview_note_personal_data
 from .interview_question_models import InterviewQuestionNote
 from .models import (
     HistoricalProcessCandidate,
@@ -241,6 +242,23 @@ def process_candidate_interview_question_note_update(
                 )
             },
             status=409,
+        )
+
+    # Never persist newly submitted identifiers. Reject without modifying a
+    # previous note or marking an existing AI report as outdated. Do not echo
+    # personal data back in the response, logs, or validation error.
+    if note_text and contains_interview_note_personal_data(
+        note_text, owner.candidate
+    ):
+        return JsonResponse(
+            {
+                "code": "personal_data_detected",
+                "error": (
+                    "The note appears to contain personal data. "
+                    "Remove names or contact details before saving."
+                ),
+            },
+            status=422,
         )
 
     if note_text:
