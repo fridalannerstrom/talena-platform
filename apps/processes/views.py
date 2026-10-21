@@ -7022,6 +7022,16 @@ def process_role_context(request, pk):
             "You do not have access to this process."
         )
 
+    # Company/org-unit scope is also enforced by the URL guard. Viewing
+    # context is allowed for viewers, but modifying it requires Editor or
+    # ownership permission. Check *before* creating a context record.
+    if request.method == "POST" and not user_can_edit_process(
+        request.user, process.company, process
+    ):
+        return HttpResponseForbidden(
+            "You do not have permission to edit this process."
+        )
+
     context_config = get_purpose_context_config(process.purpose)
     purpose_key = normalize_purpose_key(process.purpose)
 
