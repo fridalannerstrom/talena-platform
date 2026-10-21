@@ -94,4 +94,4 @@ class AIPersonalDataNoticesTests(SimpleTestCase):
             question_notes,
         )
         self.assertIn('piiNotice.setAttribute("role", "status")', question_notes)
-        self.assertIn('piiInfoTitle: "Möjliga personuppgifter upptäckta"', question_notes)
+        self.assertIn('piiInfoTitle: "Vi hjälper dig att skydda personuppgifter"', question_notes)
