@@ -244,22 +244,13 @@ def process_candidate_interview_question_note_update(
             status=409,
         )
 
-    # Never persist newly submitted identifiers. Reject without modifying a
-    # previous note or marking an existing AI report as outdated. Do not echo
-    # personal data back in the response, logs, or validation error.
-    if note_text and contains_interview_note_personal_data(
-        note_text, owner.candidate
-    ):
-        return JsonResponse(
-            {
-                "code": "personal_data_detected",
-                "error": (
-                    "The note appears to contain personal data. "
-                    "Remove names or contact details before saving."
-                ),
-            },
-            status=422,
-        )
+    # Inform the customer without blocking legitimate interview documentation.
+    # Detection is conservative and only the boolean flag is returned: the
+    # user's original note is stored as entered and remains subject to Talena's
+    # separate sanitization at the outbound AI boundary.
+    possible_personal_data = bool(note_text) and (
+        contains_interview_note_personal_data(note_text, owner.candidate)
+    )
 
     if note_text:
         note, _created = InterviewQuestionNote.objects.update_or_create(
@@ -307,6 +298,7 @@ def process_candidate_interview_question_note_update(
             "ok": True,
             "note": saved_note,
             "has_note": bool(note_text),
+            "possible_personal_data": possible_personal_data,
             "post_interview_status": post_interview_status,
         }
     )
