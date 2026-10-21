@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Company, OrgUnit, User
 from apps.processes.interview_question_models import InterviewQuestionNote
+from apps.processes.interview_note_privacy import contains_interview_note_personal_data
 from apps.processes.interview_question_notes import (
     _question_texts_from_result,
     get_current_question_texts,
@@ -91,6 +92,42 @@ class InterviewQuestionNoteHelperTests(TestCase):
             apps.get_model("processes", "InterviewQuestionNote"),
             InterviewQuestionNote,
         )
+
+
+class InterviewNotePrivacyDetectorTests(TestCase):
+    def test_identifies_pii_without_remote_ner_or_network(self):
+        candidate = type(
+            "CandidateStub", (), {"first_name": "Taylor", "last_name": "Candidate"},
+        )()
+        for value in (
+            "Frida Lannerström har telefonnummer 0705347805",
+            "Contact anna@example.se for details.",
+            "Call +46705347805 instead.",
+            "Personnummer 19900101-1234",
+            "The interviewer was John Smith.",
+            "I spoke with Taylor.",
+            "taylor candidate completed the interview.",
+        ):
+            with self.subTest(value=value):
+                self.assertTrue(
+                    contains_interview_note_personal_data(value, candidate)
+                )
+
+    def test_allows_non_identifying_interview_content(self):
+        candidate = type(
+            "CandidateStub", (), {"first_name": "Taylor", "last_name": "Candidate"},
+        )()
+        for value in (
+            "Used a concrete stakeholder example.",
+            "Customer Service and Talent Qode are team contexts.",
+            "STEN 8 and score 71 are assessment results.",
+            "The candidate may need clear instructions.",
+            "",
+        ):
+            with self.subTest(value=value):
+                self.assertFalse(
+                    contains_interview_note_personal_data(value, candidate)
+                )
 
 
 class InterviewQuestionNoteEndpointTests(TestCase):
@@ -276,4 +313,56 @@ class InterviewQuestionNoteEndpointTests(TestCase):
 
         delete_response = self.post_note(note="   ")
         self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(InterviewQuestionNote.objects.exists())
+
+    def test_rejects_clear_personal_data_without_saving_or_echoing_it(self):
+        for value in (
+            "Frida Lannerström har telefonnummer 0705347805",
+            "Email anna@example.se after the interview.",
+            "Call 0705347805.",
+            "Contact +46705347805.",
+            "Swedish personal ID: 19900101-1234",
+            "Met John Smith during the interview.",
+            "Taylor is available for work.",
+        ):
+            with self.subTest(value=value):
+                response = self.post_note(note=value)
+                self.assertEqual(response.status_code, 422)
+                self.assertEqual(
+                    response.json()["code"], "personal_data_detected"
+                )
+                self.assertNotIn(value, response.content.decode("utf-8"))
+                self.assertNotIn("0705347805", response.content.decode("utf-8"))
+                self.assertFalse(InterviewQuestionNote.objects.exists())
+                self.invitation.refresh_from_db()
+                self.assertEqual(
+                    self.invitation.ai_post_interview_decision_support_status,
+                    "completed",
+                )
+
+    def test_blocked_edit_keeps_previously_saved_note_and_report_state(self):
+        response = self.post_note(note="Worked well in a new team.")
+        self.assertEqual(response.status_code, 200)
+        note = InterviewQuestionNote.objects.get()
+        original_time = note.updated_at
+        self.invitation.refresh_from_db()
+        original_status = self.invitation.ai_post_interview_decision_support_status
+
+        blocked = self.post_note(note="Met Anna Svensson in the new team.")
+        self.assertEqual(blocked.status_code, 422)
+        note.refresh_from_db()
+        self.assertEqual(note.note, "Worked well in a new team.")
+        self.assertEqual(note.updated_at, original_time)
+        self.invitation.refresh_from_db()
+        self.assertEqual(
+            self.invitation.ai_post_interview_decision_support_status,
+            original_status,
+        )
+
+        fixed = self.post_note(note="Met a colleague in the new team.")
+        self.assertEqual(fixed.status_code, 200)
+        note.refresh_from_db()
+        self.assertEqual(note.note, "Met a colleague in the new team.")
+        removed = self.post_note(note="   ")
+        self.assertEqual(removed.status_code, 200)
         self.assertFalse(InterviewQuestionNote.objects.exists())
