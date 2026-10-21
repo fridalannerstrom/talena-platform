@@ -85,5 +85,12 @@ class AIPersonalDataNoticesTests(SimpleTestCase):
         self.assertIn('aria-describedby="interview-notes-pii-notice"', interview)
         self.assertIn("Skriv inte kandidatens namn", question_notes)
         self.assertIn("Do not enter the candidate's name", question_notes)
-        self.assertIn('wrapper.append(header, field, privacyNotice, footer)', question_notes)
-        self.assertIn('field.setAttribute("aria-describedby", privacyNotice.id)', question_notes)
+        self.assertIn(
+            'wrapper.append(header, field, piiWarning, privacyNotice, footer)',
+            question_notes,
+        )
+        self.assertIn(
+            'field.setAttribute("aria-describedby", `${privacyNotice.id} ${piiWarning.id}`)',
+            question_notes,
+        )
+        self.assertIn('piiWarning.setAttribute("role", "alert")', question_notes)
