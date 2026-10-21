@@ -279,7 +279,7 @@
                     </div>
                   </div>
 
-                  <a href="{{ report.file.url }}"
+                  <a href="{% url 'processes:historical_candidate_report_download' process.id candidate.id report.id %}"
                      target="_blank"
                      class="btn btn-sm btn-outline-dark">
                     Open PDF
