@@ -14,7 +14,7 @@
       hint: "Skriv din anteckning och klicka på Spara. Sparade svar finns tillgängliga i hela kandidatvyn.",
       privacyNotice: "Obs: Skriv inte kandidatens namn eller andra personuppgifter i detta fält.",
       piiInfoTitle: "Vi hjälper dig att skydda personuppgifter",
-      piiInfoBody: "Din anteckning är sparad! Vi har upptäckt information som kan vara personlig. Talena försöker automatiskt maskera namn, telefonnummer och e-postadresser innan innehållet skickas till AI. Ta gärna en extra titt på din text och ta bort uppgifter som inte behövs, eftersom vi inte alltid kan upptäcka allt.",
+      piiInfoBody: "Din anteckning är sparad! Talena försöker maskera namn och kontaktuppgifter innan texten skickas till AI. Granska den gärna en extra gång, eftersom vi inte alltid upptäcker allt.",
       placeholder: "Lägg till kandidatens svar, exempel eller dina intervjuanteckningar…",
       save: "Spara",
       saving: "Sparar…",
@@ -40,7 +40,7 @@
       hint: "Write your note and click Save. Saved answers are available across the candidate view.",
       privacyNotice: "Note: Do not enter the candidate's name or other personal data in this field.",
       piiInfoTitle: "We help you protect personal data",
-      piiInfoBody: "Your note has been saved! We noticed some information that may be personal. Talena automatically attempts to mask names, phone numbers and email addresses before sending content to AI. Please take another look at your note and remove any details that aren’t needed, as we can’t always detect everything.",
+      piiInfoBody: "Your note is saved! Talena attempts to mask names and contact details before sending text to AI. Please review it once more, as we may not catch everything.",
       placeholder: "Add the candidate's answer, examples or your interview notes…",
       save: "Save",
       saving: "Saving…",
@@ -288,13 +288,23 @@
     piiNotice.setAttribute("role", "status");
     piiNotice.setAttribute("aria-live", "polite");
     piiNotice.hidden = true;
+    // Feather uses the same icon pipeline as the rest of the customer view.
+    const noticeIcon = document.createElement("span");
+    noticeIcon.className = "interview-question-note__pii-notice-icon";
+    noticeIcon.setAttribute("aria-hidden", "true");
+    const shieldIcon = document.createElement("i");
+    shieldIcon.dataset.feather = "shield";
+    noticeIcon.appendChild(shieldIcon);
+    const noticeCopy = document.createElement("div");
+    noticeCopy.className = "interview-question-note__pii-notice-copy";
     const noticeTitle = document.createElement("strong");
     noticeTitle.className = "interview-question-note__pii-notice-title";
     noticeTitle.textContent = text("piiInfoTitle");
     const noticeBody = document.createElement("p");
     noticeBody.className = "interview-question-note__pii-notice-body";
     noticeBody.textContent = text("piiInfoBody");
-    piiNotice.append(noticeTitle, noticeBody);
+    noticeCopy.append(noticeTitle, noticeBody);
+    piiNotice.append(noticeIcon, noticeCopy);
     field.setAttribute("aria-describedby", `${privacyNotice.id} ${piiNotice.id}`);
 
     const footer = document.createElement("div");
@@ -573,6 +583,8 @@
     }
 
     note.replaceWith(editor);
+    // The summary editor is inserted dynamically after initial Feather setup.
+    if (window.feather) window.feather.replace();
     article.dataset.editing = "true";
     article.classList.add("interview-question-notes-summary__item--editing");
 
