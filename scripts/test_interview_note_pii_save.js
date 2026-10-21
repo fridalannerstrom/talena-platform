@@ -8,7 +8,7 @@ const vm = require("node:vm");
 
 const source = fs.readFileSync("static/js/talena/interview-question-notes.js", "utf8");
 const css = fs.readFileSync("static/css/talena/pages/interview-question-notes.css", "utf8");
-assert.match(source, /Möjliga personuppgifter upptäckta/);
+assert.match(source, /Vi hjälper dig att skydda personuppgifter/);
 assert.match(source, /Possible personal data detected/);
 assert.match(source, /piiNotice\.setAttribute\("role", "status"\)/);
 assert.match(source, /setPiiSaveInfo\(field, payload.possible_personal_data === true\)/);
