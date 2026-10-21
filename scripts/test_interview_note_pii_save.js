@@ -10,6 +10,14 @@ const source = fs.readFileSync("static/js/talena/interview-question-notes.js", "
 const css = fs.readFileSync("static/css/talena/pages/interview-question-notes.css", "utf8");
 assert.match(source, /Vi hjälper dig att skydda personuppgifter/);
 assert.match(source, /We help you protect personal data/);
+assert.match(source, /Din anteckning är sparad! Talena försöker maskera namn och kontaktuppgifter/);
+assert.match(source, /Your note is saved! Talena attempts to mask names and contact details/);
+assert.match(source, /shieldIcon\.dataset\.feather = "shield"/);
+assert.match(source, /noticeIcon\.setAttribute\("aria-hidden", "true"\)/);
+assert.match(source, /piiNotice\.append\(noticeIcon, noticeCopy\)/);
+assert.match(css, /interview-question-note__pii-notice-icon svg/);
+assert.match(css, /\.interview-question-note__pii-notice \{\s*display: flex;/);
+assert.doesNotMatch(source, /masking is guaranteed|maskerar alltid allt/i);
 assert.match(source, /piiNotice\.setAttribute\("role", "status"\)/);
 assert.match(source, /setPiiSaveInfo\(field, payload.possible_personal_data === true\)/);
 assert.match(css, /interview-question-note__pii-notice-title/);
