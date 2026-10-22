@@ -65,6 +65,7 @@ class CandidateDataAuditTests(TestCase):
             invitation=self.invitation_a,
             process=self.process_a, candidate=self.candidate,
             content={"private_sample": "synthetic secret"},
+            prompt_versions={"synthetic_prompt": "v1"},
         )
         CandidateResultAccess.objects.create(
             snapshot=self.snapshot_a,
