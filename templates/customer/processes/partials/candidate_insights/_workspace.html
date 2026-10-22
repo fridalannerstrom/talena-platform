@@ -200,172 +200,47 @@
 
 
   <!-- ================================================== -->
-  <!-- ASSESSMENT REPORTS -->
+  <!-- LIVE SOVA ASSESSMENT REPORTS ONLY -->
+  <!-- Historical candidates use structured imported data, not PDFs. -->
   <!-- ================================================== -->
-
-  {% if is_historical and historical_reports or not is_historical and sova_reports_for_ui %}
-
+  {% if not is_historical and sova_reports_for_ui %}
     <section class="card mb-4">
-
-      <button
-        type="button"
-        class="card-header reports-toggle collapsed"
-        data-bs-toggle="collapse"
-        data-bs-target="#candidateAssessmentReports"
-        aria-expanded="false"
-        aria-controls="candidateAssessmentReports"
-      >
-
+      <button type="button" class="card-header reports-toggle collapsed"
+              data-bs-toggle="collapse" data-bs-target="#candidateAssessmentReports"
+              aria-expanded="false" aria-controls="candidateAssessmentReports">
         <span class="fw-semibold">
           {% if LANGUAGE_CODE|slice:":2" == "sv" %}Testrapporter{% else %}Assessment report files{% endif %}
         </span>
-
         <span class="reports-toggle__right">
-
-          {% if is_historical %}
-
-            {% if historical_reports %}
-              <span class="badge rounded-pill text-bg-light border">
-                {{ historical_reports|length }} {% trans "available" %}
-              </span>
-            {% endif %}
-
-          {% else %}
-
-            {% if sova_reports_for_ui %}
-              <span class="badge rounded-pill text-bg-light border">
-                {{ sova_reports_for_ui|length }} {% trans "available" %}
-              </span>
-            {% endif %}
-
-          {% endif %}
-
+          <span class="badge rounded-pill text-bg-light border">
+            {{ sova_reports_for_ui|length }} {% trans "available" %}
+          </span>
           <span class="reports-toggle__chevron" aria-hidden="true"></span>
-
         </span>
-
       </button>
-
-      <div
-        id="candidateAssessmentReports"
-        class="collapse"
-      >
+      <div id="candidateAssessmentReports" class="collapse">
         <div class="card-body">
-
           <div class="list-group list-group-flush">
-
-            {% if is_historical %}
-
-              <!-- HISTORICAL REPORTS -->
-
-              {% for report in historical_reports %}
-
-                <div
-                  class="
-                    list-group-item
-                    px-0
-                    d-flex
-                    justify-content-between
-                    align-items-center
-                    gap-3
-                  "
-                >
-
-                  <div class="min-w-0">
-
-                    <div class="fw-semibold">
-                      {{ report.title|default:report.original_filename }}
-                    </div>
-
-                    <div class="small text-muted">
-                      {% trans "Uploaded historical assessment report" %}
-                    </div>
-
-                  </div>
-
-
-                  {% if report.file %}
-
-                    <a
-                      href="{% url 'processes:historical_candidate_report_download' process.id candidate.id report.id %}"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="btn btn-sm btn-outline-dark flex-shrink-0"
-                    >
-                      {% trans "Open report" %}
-                    </a>
-
-                  {% endif %}
-
+            {% for report in sova_reports_for_ui %}
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                <div class="min-w-0">
+                  <div class="fw-semibold">{{ report.title }}</div>
+                  <div class="small text-muted">{{ report.category }} · {{ report.audience }}</div>
                 </div>
-
-              {% empty %}
-
-                <div class="text-muted small py-3">
-                  {% trans "No historical reports have been uploaded." %}
-                </div>
-
-              {% endfor %}
-
-
-            {% else %}
-
-              <!-- LIVE SOVA REPORTS -->
-
-              {% for report in sova_reports_for_ui %}
-
-                <div
-                  class="
-                    list-group-item
-                    px-0
-                    d-flex
-                    justify-content-between
-                    align-items-center
-                    gap-3
-                  "
-                >
-
-                  <div class="min-w-0">
-
-                    <div class="fw-semibold">
-                      {{ report.title }}
-                    </div>
-
-                    <div class="small text-muted">
-                      {{ report.category }} · {{ report.audience }}
-                    </div>
-
-                  </div>
-
-
-                  <a
-                    href="{{ report.url }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="btn btn-sm btn-outline-dark flex-shrink-0"
-                  >
-                    {% trans "Open report" %}
-                  </a>
-
-                </div>
-
-              {% empty %}
-
-                <div class="text-muted small py-3">
-                  {% trans "No assessment reports are currently available." %}
-                </div>
-
-              {% endfor %}
-
-            {% endif %}
-
+                <a href="{{ report.url }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-sm btn-outline-dark flex-shrink-0">
+                  {% trans "Open report" %}
+                </a>
+              </div>
+            {% empty %}
+              <div class="text-muted small py-3">
+                {% trans "No assessment reports are currently available." %}
+              </div>
+            {% endfor %}
           </div>
-
         </div>
       </div>
-
     </section>
-
   {% endif %}
 
 {% endif %}
