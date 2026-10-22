@@ -1,8 +1,9 @@
-# Talena – förslag till lagrings- och gallringspolicy v0.1
+# Talena – förslag till lagrings- och gallringspolicy v0.2
 
-**Status:** BESLUTSUNDERLAG, INTE GODKÄND ELLER AKTIVERAD POLICY  
+**Status:** BESLUTSUNDERLAG v0.2, INTE JURIDISKT GODKÄND ELLER AKTIVERAD POLICY  
 **Datum:** 2026-10-22  
 **Ägare för tekniskt förslag:** Talena / Talent Qode  
+**Produktbeslut 2026-10-22:** Föreslagen privat rekryteringsmall med **0–90 dagar normal åtkomst**, därefter **begränsad åtkomst endast för motiverat bevarande**, och **12 månader som föreslagen yttersta standardgräns**. Detta är ett produkt- och dokumentationsbeslut, **inte ett godkännande av rättslig grund för att lagra samtliga uppgifter i 12 månader**.  
 **För godkännande:** behörig verksamhetsansvarig, ansvarig för personuppgiftsbehandling, respektive kunds personuppgiftsansvariga och jurist/dataskyddskompetens vid behov.  
 **Ärenden:** [#310](https://github.com/fridalannerstrom/talena-platform/issues/310), [#307](https://github.com/fridalannerstrom/talena-platform/issues/307), [#308](https://github.com/fridalannerstrom/talena-platform/issues/308), [#311](https://github.com/fridalannerstrom/talena-platform/issues/311).
 
@@ -12,7 +13,7 @@
 
 1. **Ändamålet bestämmer tiden.** Arkivering i Talenas UI är inte samma sak som att avsluta rekrytering, och inaktivitet i sig är inte ett juridiskt skäl för omedelbar radering.
 2. **Kunden styr sina personuppgifter** när Talent Qode/Talena agerar personuppgiftsbiträde. En kund kan vara privat arbetsgivare, offentlig arbetsgivare eller annan personuppgiftsansvarig; det går inte att hårdkoda exakt samma lagringstid för samtliga. Talena ska föreslå rimliga standardvärden och dokumentera godkända undantag.
-3. **Ingen automatisk tvåårsregel.** IMY säger att rekryteringsuppgifter som huvudregel ska tas bort efter behovet upphört, men att visst underlag kan få sparas för rättsliga anspråk. Ungefär 24 månader används av vissa svenska arbetsgivare, men är inte ett generellt krav eller ett frikort att spara samtliga tester, fritextfält och AI-rapporter i 24 månader.
+3. **Ingen generell ett- eller tvåårsregel.** IMY säger att rekryteringsuppgifter som huvudregel ska raderas eller avidentifieras när de inte längre behövs, men att nödvändigt underlag ibland får sparas för rättsliga anspråk. Talenas **12-månadersstandard är ett föreslaget yttertak för prövat bevarande**, inte en generell lagringstid som automatiskt berättigar lagring i ett år eller ett frikort att behålla hela testprofiler.
 4. **Minsta möjliga kvarvarande underlag.** Rättsliga anspråk, bokföring, revision och säkerhet kan ha skilda rättsliga ändamål. Behåll då bara vad som behövs, med separat åtkomst och slutdatum. Pseudonymiserade data är fortfarande personuppgifter om återidentifiering är möjlig.
 5. **Fysiska kopior ingår.** Databas, Azure Blob, äldre importer/PDF:er, resultatdelningslänkar, Sova, eventuell Pinecone, driftloggar och säkerhetskopior ska inventeras och hanteras med dokumenterade instruktioner. Radering i Talena innebär inte automatiskt radering hos Sova.
 6. **DPIA före lansering.** Rekrytering, profilering och AI-stöd kan medföra hög risk; resultat och datakategorier ska ingå i konsekvensbedömning, registerförteckning och kundinformation.
@@ -25,8 +26,8 @@ Dessa tidsperioder är **produktförslag**, inte föreskrivna GDPR-tidsfrister.
 |---|---|---|---|
 | Aktiv kandidat i aktiv rekrytering | Så länge ändamålet faktiskt pågår; granska långvarigt öppna processer | När kandidat går in i processen | Kundåtkomst enligt behörighet. Öppet projekt får inte ge oändlig retention; påminn om avslut efter 12 månaders inaktivitet och begär aktivt beslut |
 | Operativ åtkomst efter avslutad rekrytering | **90 dagar** | Dokumenterat `closed_at` för aktuell process/kandidat (inte `archived_at`) | Under en kort avslutsperiod kan behöriga användare färdigställa dokumentation eller export. En begäran om radering ska behandlas enligt rättighetsrutinen, inte automatiskt vänta 90 dagar |
-| Intervjuanteckningar, råtestdata, AI-genererade tolkningar, kandidatfeedback och tillfälliga resultatdelningsuppgifter | **Gallra eller anonymisera efter 90 dagar** från avslut, om inget särskilt dokumenterat lagligt bevarandeändamål finns | `closed_at` | Återkalla åtkomstlänkar. Särskilt integritetskänsliga underlag ska inte behållas bara av bekvämlighet. Separat granskningsbeslut krävs om något behöver bevaras |
-| Minimerat bevisunderlag för ett faktiskt motiverat behov att försvara rättsligt anspråk | Föreslagen **övre produktstandard 24 månader**, endast efter dokumenterat beslut och med åtkomstbegränsning | Relevant rekryteringsbeslut/avslut, enligt kundens beslut | Endast nödvändiga fakta och motiveringar, inte automatiskt fulla personlighetsprofiler, rådata och alla AI-texter. Legal hold vid faktisk tvist hanteras separat med beslutsägare och omprövningsdatum |
+| Intervjuanteckningar, råtestdata, AI-genererade tolkningar, kandidatfeedback och resultatdelningsuppgifter | **Efter 90 dagar: granska och gallra/avidentifiera allt som inte längre behövs.** För återstående uppgifter krävs separat dokumenterat giltigt bevarandeändamål, snäva behörigheter och ett granskningsdatum; **föreslagen övre produktstandard 12 månader** efter avslut | Dokumenterat `closed_at` | Vid 90 dagar avslutas normal åtkomst och kvarvarande uppgifter skiljs från dagligt rekryteringsarbete. Återkalla länkar senast vid respektive datakategoris gallring. Hela testprofiler och AI-texter får inte automatiskt följa 12-månadersfönstret |
+| Minimerat bevisunderlag för ett faktiskt motiverat behov att försvara rättsligt anspråk | **Högst 12 månader som föreslagen produktstandard**, *endast om rättslig grund, nödvändighet och kundinstruktion har dokumenterats*. Längre lagkrav/aktiv tvist kräver en särskilt beslutad avvikelse | Relevant dokumenterat avslut/beslut | Endast nödvändiga fakta och motiveringar, inte fulla personlighetsprofiler, rådata eller samtliga AI-texter som standard. Tidsbegränsad åtkomst, motivering, ansvarig och omprövningsdatum krävs |
 | Kandidatpool/framtida rekryteringar | **Inte automatiskt inkluderat** | Separat dokumenterat och tillåtet ändamål | Kräver egen laglig grund och information; IMY anger att samtycke kan behövas för framtida rekrytering, men samtycke i arbetslivet är ofta problematiskt. Ingen tyst återanvändning av testresultat i nya processer |
 | Kandidatens egna resultatsida och åtkomstkoder/tokens | Åtkomst under aktiva ändamålet och enligt avtal; **senast vid gallring återkallas den** | Utfärdande och/eller avslut | Resultatfilerna/snapshots följer relevant retention; tokens ska kunna återkallas tidigare och inte återaktiveras från backup |
 | E-postlogg för drift/felsökning | **30 dagar efter utskick** för detaljsnapshot som föreslagen driftstandard, om inget legitimt behov av annat | `sent_at` | Undvik full `body_snapshot` för längre retention; minimera leveransmetadata. Avtalad incident- eller rättslig logg bevaras endast vid uttryckligt ändamål |
@@ -36,9 +37,19 @@ Dessa tidsperioder är **produktförslag**, inte föreskrivna GDPR-tidsfrister.
 | Fakturaunderlag / räkenskapsinformation | **Lagstadgat bevarande för faktisk räkenskapsinformation: till och med sjunde året efter utgången av kalenderåret då räkenskapsåret avslutades** | Enligt bokföringslagen, inte `closed_at` | Detta gäller **inte automatiskt varje `AssessmentUsage`-fält**. Bevara minimum för redovisning, skilj från kandidatnamn/mejl, och utred PROTECT-relationerna före implementering |
 | Azure Blob soft delete / PostgreSQL backup | **7 dagar** enligt nu verifierade Azure-inställningar | När objekt raderats / respektive återställningsfönster | Backupfönstret är inte tillstånd att lagra aktiva kandidatdata i sju extra dagar. Efter restore ska tidigare godkända raderingar återtillämpas och återställda tokens fortsätta vara spärrade |
 
-### Varför 90 dagar + separat 24-månadersprövning?
+### Beslutad produktriktning: 90 dagar normal åtkomst + upp till 12 månader prövat bevarande
 
-Det ger ett tydligt operativt avslut och undviker att **alla** personlighets- och motivationsresultat, intervjucitat eller AI-texter lagras i två år av slentrian. Samtidigt kan en kund med dokumenterat behov bevara ett relevant och minimerat underlag för rättsliga anspråk. Om kunden faktiskt måste bevara mer kan det kräva andra regler, åtkomstkontroller och proportionalitetsbedömning. `24 månader` är en föreslagen övre standardkonfiguration, **inte automatisk lagringsrätt**.
+**Talenas föreslagna standard för vanliga privata rekryteringar, version 0.2:**
+
+| Tid efter dokumenterat rekryteringsavslut | Standardbeteende | Vad måste vara kontrollerat? |
+|---|---|---|
+| **Dag 0–90** | Normal åtkomst för slutförande av processen, men bara så länge uppgifterna faktiskt behövs. Tidigare gallring vid upphört ändamål eller giltig raderingsbegäran. | Kundens ändamål och dokumenterade instruktion; ingen generell rätt till 90 dagars extra lagring. |
+| **Efter dag 90 till högst 12 månader** | Ordinarie åtkomst avslutas. **Enbart de specifika uppgifter** som fortfarande får och måste bevaras hålls separat med begränsad åtkomst. Övriga uppgifter gallras/avidentifieras. | Rättslig grund, proportionalitetsbedömning, dataminimering, ansvarig, angivet slutdatum och kundinstruktion. Ingen automatisk förlängning för alla resultat. |
+| **Senast 12 månader** | Granska och gallra/avidentifiera återstående personuppgifter enligt godkänd policy. Undantag får bara tillämpas när annat lagkrav, arkivregel, aktivt rättsligt anspråk eller särskilt ändamål faktiskt är dokumenterat. | Separat beslut, åtkomstkontroll och omprövning för varje undantag. |
+
+**Viktigt:** Ett år är här en **föreslagen maximal normalperiod för prövat bevarande**, inte ett löfte om att kundens kandidatuppgifter lagras exakt ett år. Om ett enskilt underlag inte längre behövs ska det gallras tidigare. GDPR kräver nödvändighet per ändamål, inte ett fast antal månader. Offentliga arbetsgivare kan ha avvikande skyldigheter enligt arkivregler.
+
+**Tidigare förslag ersatt:** Version 0.1 föreslog generell gallring efter 90 dagar och prövat begränsat anspråksunderlag upp till 24 månader. **Version 0.2 ersätter dessa två föreslagna standardgränser**; 90 dagar är nu en gräns för normal åtkomst och manuell granskning, och 12 månader är den föreslagna övre gränsen för minimerat och berättigat bevarande. Det är fortfarande ett förslag som ska granskas juridiskt.
 
 ## 3. Andra processer får inte ärva rekryteringens klocka
 
@@ -51,18 +62,22 @@ Det ger ett tydligt operativt avslut och undviker att **alla** personlighets- oc
 
 ```text
 ACTIVE
-  ├─ dokumenterat rekryteringsavslut → CLOSED_GRACE (90 dagar föreslaget)
+  ├─ dokumenterat rekryteringsavslut → CLOSED_GRACE (max 90 dagars normal åtkomst, om nödvändigt)
   ├─ dataskyddsbegäran → PRIVACY_REVIEW (omedelbar triage)
   └─ lång inaktivitet → REVIEW_REQUIRED (ingen oövervakad evig lagring)
 
 CLOSED_GRACE
-  ├─ dokumenterat, begränsat bevarandeändamål → RESTRICTED_RETENTION
+  ├─ dag 90 (eller tidigare om behovet upphör) → REVIEW_AND_MINIMISE
   ├─ myndighets-/arkivinstruktion → CONTROLLER_SPECIFIC_HOLD
-  └─ förfallen, godkänd åtgärd → PURGE_QUEUED → PURGED
+  └─ ingen giltig grund för fortsatt lagring → PURGE_QUEUED
+
+REVIEW_AND_MINIMISE
+  ├─ godkänt, dokumenterat bevarande → RESTRICTED_RETENTION (max 12 mån som förslag)
+  └─ onödiga personuppgifter → PURGE_QUEUED
 
 RESTRICTED_RETENTION
-  ├─ bevarandebehov slut/frist passerad → PURGE_QUEUED
-  └─ aktiv tvist → LEGAL_HOLD (orsak, beslutsfattare, omprövningsdatum)
+  ├─ nödvändighet upphör/senast föreslaget 12-månadersdatum → PURGE_QUEUED
+  └─ separat styrkt lagkrav/aktiv tvist → LEGAL_HOLD (ansvarig + omprövning)
 
 PURGE_QUEUED → REVOKE_ACCESS → DELETE_OR_MINIMISE_DB →
 DELETE_OR_DETACH_BLOBS → SUBPROCESSOR_FOLLOWUP → VERIFIED
@@ -76,7 +91,7 @@ DELETE_OR_DETACH_BLOBS → SUBPROCESSOR_FOLLOWUP → VERIFIED
 - Hantera `AssessmentUsage.candidate` och `.invitation` (`PROTECT`) genom godkänd design för fakturaunderlag och avidentifiering innan fysisk kandidat-/inbjudningsradering.
 - Radera fysiska Azure Blob-objekt via separat säker, återupptagbar process (Django `FileField`-relation räcker inte). Historisk importfil kan innehålla flera kandidater.
 - Revoke/resultatlänkar och sessioner tidigt. Vid backup-restore ska `tombstones`/minimal raderingsjournal kunna återspela raderingsbeslut utan att återintroducera personuppgifter eller gamla åtkomster.
-- Visa kundanvändaren `Avsluta rekrytering`, `Lagring och gallring`, `Planerat gallringsdatum`, `Bevaras för annat ändamål` och `Begär export/radering`. Förklara att **arkivering inte stoppar klockan och radering inte gäller hos Sova automatiskt**.
+- Visa kundanvändaren `Avsluta kandidatprocess` (rekrytering kan ha flera kandidater), `Lagring och gallring`, `Planerat granskningsdatum`, `Begränsad åtkomst/undantag` och `Begär export/radering`. Ett projekt kan få separat `Avsluta rekrytering` när alla är färdiga. Förklara att **arkivering inte fastställer avslutsdatum och Talena-radering inte automatiskt gäller hos Sova**. Visa 90 dagar som åtkomstgranskning och 12 månader som föreslaget yttersta granskningsdatum, inte en automatisk raderingsrätt.
 - Skapa notifiering när avsluts-/retentionperiod närmar sig slutet, men **ingen klick-knapp som utan utredning förlänger retention**.
 
 ## 5. Registerutdrag och begärd radering
@@ -94,7 +109,7 @@ DELETE_OR_DETACH_BLOBS → SUBPROCESSOR_FOLLOWUP → VERIFIED
 - [ ] Syntetiska tester för delad `Candidate` över flera kunder, PROTECT, borttagna kandidatportallänkar, teaminsikter, uppladdad gemensam Excel, äldre PDF och filtrerad export.
 - [ ] Restore-test med återtillämpning av raderingsjournal och spärr av återställda åtkomsttokens.
 - [ ] Manuell förhandsgranskning av berörda objekt och aggregerade antal; no-PII auditlog.
-- [ ] Juridiskt signerad policyversion och eventuella kundspecifika instruktioner.
+- [ ] Juridiskt signerad policyversion och eventuella kundspecifika instruktioner. **Särskilt: pröva om den föreslagna 12-månadersgränsen är motiverad för respektive datakategori**, och skilj den från arkiv- och preskriptionsregler.
 - [ ] Explicit produktionsflagga för automatisk exekvering, **avstängd tills allt ovan är godkänt**.
 
 ## 7. Källor och avgränsningar
