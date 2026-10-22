@@ -287,7 +287,7 @@
                   {% if report.file %}
 
                     <a
-                      href="{{ report.file.url }}"
+                      href="{% url 'processes:historical_candidate_report_download' process.id candidate.id report.id %}"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="btn btn-sm btn-outline-dark flex-shrink-0"
