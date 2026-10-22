@@ -2,7 +2,7 @@
 
 **Ärende:** [#299](https://github.com/fridalannerstrom/talena-platform/issues/299)  
 **Datum:** 2026-10-19  
-**Status:** Implementerad på feature-branch, inväntar testning och granskning.
+**Status:** Implementerad i `main`, kod- och CI-verifierad; [#299 avslutad](https://github.com/fridalannerstrom/talena-platform/issues/299). Visuellt sluttest på mobil och i båda språken ingår fortfarande i lanseringskontrollen (#311).
 
 ## Syfte
 
