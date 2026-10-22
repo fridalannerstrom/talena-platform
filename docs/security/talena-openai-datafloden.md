@@ -6,6 +6,11 @@
 **Ärende:** [#301 – Audit all OpenAI payloads and block personal-data regressions](https://github.com/fridalannerstrom/talena-platform/issues/301)  
 **Dokumentägare:** Talena / Talent Qode; slutligt godkännande krävs av utsedd ansvarig.
 
+
+> **Ny läsguide för promptansvariga (2026-10-22):** Se [Talena – underlag till AI per funktion och synlig text](talena-ai-prompt-underlag-per-funktion.md). Den går igenom datafälten bakom respektive text, vilka förhands-/efterintervju-delar som får intervjuanteckningar och särskilt vad **Kommunikationsstrategi i Före intervju** faktiskt bygger på. Den innehåller även en **senare kodstatus** för central PII-sanerare och avstängda chattar.
+>
+> **Versionsavgränsning:** Tabellerna nedan avser den angivna main-commiten från **2026-10-19** och är inte ett nulägesintyg för produktion. Särskilt äldre rader om omaskerade namn och aktiva chattvägar måste läsas tillsammans med den nyare guiden. Varken detta dokument eller guiden bekräftar de faktiska utgående HTTP-payloadsen efter alla runtime-policyer och saneringssteg.
+
 > **Viktigt:** Detta dokument beskriver kodens möjliga dataöverföringar, inte uppmätta produktionsanrop. Slutligt utgående innehåll kan ändras av adminredigerade promptar, dynamiska indata och runtime-installerade promptpolicies. Dokumentet ska kompletteras med automatiska tester som fångar de exakta argumenten precis innan HTTP-anrop skickas. Ingen faktisk kandidatinformation behövs eller har använts i denna inventering.
 
 ## 1. Sammanfattning
