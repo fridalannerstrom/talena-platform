@@ -18,6 +18,8 @@ Funktionen `apps.core.ai.decision_support.build_pre_interview_evidence(owner)` s
 | `ai_response_style_guidance` | `summary`, `how_to_interpret`, `recommended_approach`, `combination_note`, `context_note` | Tidigare svarsstilsvägledning |
 | Sparade frågebanker | `questions[].question`, `why`, `listen_for` för personlighet, motivation, färdighet och svarsstilar | Returneras i `question_text`; **inkludering i ett specifikt OpenAI-anrop måste kontrolleras separat**, eftersom en prompt kan använda enbart `evidence_text` |
 
+**Ytterligare runtime-lager:** I Talenas startkonfiguration kan `apps/core/ai/pre_interview_raw_evidence_policy.py` *wrappa* `build_pre_interview_evidence` och lägga **normaliserade råa Sova-testresultat** från `apps/core/ai/purpose_fit.build_assessment_evidence(owner)` *före* de sparade AI-tolkningarna i `evidence_text`, med rubriken `Assessment results`. Detta gäller även när råa assessment-resultat inte ser ut att läsas i den ursprungliga funktionens kod. Därför måste en slutlig payloadinventering ta hänsyn till installerade runtime-policys, inte bara själva promptbyggaren. Regressionstestet simulerar uttryckligen det här lagret.
+
 **Viktig gräns:** `build_pre_interview_evidence` returnerar både `evidence_text` och `question_text`. I vissa Efter intervju-promptar används *bara* `evidence_text`, medan frågor och svar också kan komma via ett separat frågespecifikt källflöde. Lista därför inte en sparad frågebank som automatiskt skickad i alla anrop.
 
 ### Efter intervju: separat sektion (`stream_post_interview_content_block`)
