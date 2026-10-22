@@ -8,9 +8,9 @@ Kommandot `preview_candidate_retention` utgår från:
 - En **uttryckligen angiven** kund och kandidat.
 - Ett **hypotetiskt** rekryteringsavslutsdatum som operatören matar in. Talena har ännu inget verifierat `closed_at`-fält för detta.
 - Ett datum att jämföra med (eller dagens datum).
-- Det **icke godkända** policyförslaget för privat rekrytering med 90 dagars operativ avslutsperiod.
+- Det **icke godkända** policyförslaget v0.2 för privat rekrytering med **90 dagar som gräns för normal åtkomst/manuell granskning**, och **12 månader som föreslagen yttersta standardgräns för särskilt motiverat, åtkomstbegränsat bevarande**. Detta kommando beräknar **bara 90-dagarsgranskningen**, inte 12-månadersgränsen och inte ett raderingsdatum.
 
-Det räknar ut **när en manuell granskning skulle bli aktuell**. Det räknar **inte** ut ett juridiskt fastställt raderingsdatum och tillåter aldrig radering.
+Det räknar ut **när en första manuell granskning skulle bli aktuell (90 dagar)**. Det räknar **inte** ut ett juridiskt fastställt raderingsdatum, en slutlig 12-månadersfrist eller rätt att lagra data. En separat granskning av nödvändighet, rättslig grund, begränsad åtkomst och kundinstruktion behövs innan några uppgifter kan bevaras efter dag 90. Det tillåter aldrig radering.
 
 Den återanvänder datakartan i `audit_candidate_data` och visar bara antal poster inom det angivna företaget samt riskflaggor som `AssessmentUsage`/`PROTECT`, globala kandidatkopplingar och delade underlag. Den läser inte eller visar kandidatnamn, e-postadresser eller testinnehåll.
 
@@ -73,9 +73,10 @@ Exemplet visar **endast ett förenklat schema** och är inte verkliga kandidatda
 ## Nästa steg för #336
 
 1. Besluta faktisk lagringspolicy och registrera instruktioner per kund och ändamål.
-2. Inför separat `closed_at`-händelse för en avslutad rekrytering. **Förväxla inte** med `archived_at` eller `TestInvitation.completed_at` (test klart betyder inte rekrytering klar).
-3. Utred per modell/fält juridiskt bevarande, faktureringsuppgifter och eventuella legala spärrar.
-4. Bygg en versionerad policy med strikt godkännandekedja och preview på konkreta poster.
-5. Först därefter: planera separat idempotent radering, inklusive Sova, Azure Blob, loggar och backuper, som förblir AV i produktion tills verifierad.
+2. Utöka den read-only beräkningen med ett **separat hypotetiskt 12-månaders granskningsdatum**, baserat på kalenderår och kundens godkända bevarandeändamål, utan att markera någon kandidat som raderingsklar.
+3. Inför separat `closed_at`-händelse för en avslutad rekrytering. **Förväxla inte** med `archived_at` eller `TestInvitation.completed_at` (test klart betyder inte rekrytering klar).
+4. Utred per modell/fält juridiskt bevarande, faktureringsuppgifter och eventuella legala spärrar.
+5. Bygg en versionerad policy med strikt godkännandekedja och preview på konkreta poster.
+6. Först därefter: planera separat idempotent radering, inklusive Sova, Azure Blob, loggar och backuper, som förblir AV i produktion tills verifierad.
 
 **Relaterat:** [Policyförslag v0.1](./310-lagrings-och-gallringspolicy-forslag.md), [Datakarta](./310-kandidatdata-register-och-radering.md) och [Read-only-inventering](./310-readonly-kandidatinventering.md).
