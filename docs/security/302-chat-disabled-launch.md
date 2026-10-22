@@ -63,14 +63,11 @@ kandidat-chatthandlern som genväg.
 - [x] Båda API-endpoints och chattsidan returnerar 404.
 - [x] Regressionstester för direkt åtkomst, chatt-payloads och synligt UI.
 - [x] Testerna inkluderade i Django QA.
-- [ ] Django QA-resultat godkänt.
+- [x] Django QA-resultat godkänt (inklusive avstängda chat-endpoints).
 - [ ] Visuell kontroll i kundvy och adminvy.
 - [ ] Bekräftat på deployad miljö innan lansering.
 
 **Obs:** #298 och #300 hanterar sanering av personuppgifter vid andra AI-anrop.
 Att chattfunktionen stängs av löser inte dessa separata dataskyddskrav.
 
-**Sammanslagning med pågående PR #299:** den PR:n innehåller tidigare hjälprader
-inne i chattfälten. Om #302 mergas först kan konflikt uppstå i samma
-HTML-templates; behåll hjälprader för kvarvarande fritextfält och låt
-chattfälten vara borttagna när konflikten löses.
+**Merge-status:** #299 och #302 är nu båda slutlevererade i `main`. Chatten är borttagen/avstängd, medan hjälprader finns kvar i de fritextfält som fortfarande används.
