@@ -79,4 +79,4 @@ Exemplet visar **endast ett förenklat schema** och är inte verkliga kandidatda
 5. Bygg en versionerad policy med strikt godkännandekedja och preview på konkreta poster.
 6. Först därefter: planera separat idempotent radering, inklusive Sova, Azure Blob, loggar och backuper, som förblir AV i produktion tills verifierad.
 
-**Relaterat:** [Policyförslag v0.1](./310-lagrings-och-gallringspolicy-forslag.md), [Datakarta](./310-kandidatdata-register-och-radering.md) och [Read-only-inventering](./310-readonly-kandidatinventering.md).
+**Relaterat:** [Policyförslag v0.2](./310-lagrings-och-gallringspolicy-forslag.md), [Datakarta](./310-kandidatdata-register-och-radering.md) och [Read-only-inventering](./310-readonly-kandidatinventering.md).
