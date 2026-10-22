@@ -43,7 +43,7 @@
 
 Alla framtida nya Pythonanrop ska läggas in i `301-openai-callsites.json` **och få sitt specifika payloadtest granskat**. Manifestet är en förändringsspärr, inte en garanti mot nya bibliotek eller obevakade datakällor.
 
-## 4. Tydliga kvarvarande arbetsuppgifter innan #301 stängs
+**Ny delkartläggning:** [Efter intervju, Chefsrapport och Teaminsikter](./301-efter-intervju-chefsrapport-team-ai-underlag.md) beskriver exakt vilka tidigare AI-tolkningsfält som återanvänds, skillnaden mellan intervjusammanfattning och helhetsbild, de sex chefspromptarna och vilka team-aggregat kontra lokala ID:n som används. Syntetiska SDK-slutpayloadtester finns i `apps/core/test_ai_payload_interview_team.py`.\n\n## 4. Tydliga kvarvarande arbetsuppgifter innan #301 stängs
 
 - [ ] Bygg en **fält-för-fält-matris per aktiv funktion**: användarklick, serverfunktion, råa fält/JSON-nycklar, backendfiltrering, känd namnredaktion, slutlig SDK-payload, eventuell sparning, kund/tenant och legalt ändamål.
 - [ ] Mock-baserade final-payload-tester för **alla aktiva generatorer**, även strömmar, svenska/engelska, adminpromptöverskrivningar, regeneration, cache och JSON-repair paths. Dagens automatiska tester täcker **tre representativa vägar**.
