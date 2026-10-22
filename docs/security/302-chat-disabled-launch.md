@@ -1,6 +1,6 @@
 # Talena: legacy AI-chatt avstängd inför lansering (#302)
 
-**Status:** Implementerad på en separat branch, inväntar CI och granskning  
+**Status:** Implementerad i `main`, regressionstestad med grön Django QA; [#302 avslutad](https://github.com/fridalannerstrom/talena-platform/issues/302). Visuell produktionskontroll återstår som del av lanseringskontrollen (#311).  
 **Ärende:** [#302](https://github.com/fridalannerstrom/talena-platform/issues/302)
 
 ## Beslut
