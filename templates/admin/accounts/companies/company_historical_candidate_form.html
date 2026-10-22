@@ -193,50 +193,6 @@
         {# Right column #}
         <div class="col-12 col-xl-5">
           <div class="talena-form-section bg-light rounded-4 p-4 h-100">
-            <div class="fw-semibold mb-2">Historical reports</div>
-
-            <div class="text-muted small mb-4">
-              {% if is_edit %}
-  Upload additional original SOVA PDF reports for this candidate.
-{% else %}
-  Upload one or more original SOVA PDF reports for this candidate.
-{% endif %}
-              Talena will save each PDF as a separate report and use the filename as the report name.
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label" for="{{ form.historical_reports.id_for_label }}">
-                SOVA report PDFs
-              </label>
-
-              {% if is_edit and historical_reports %}
-  <div class="mb-4">
-    <div class="fw-semibold small mb-2">Existing reports</div>
-
-    <div class="list-group list-group-flush rounded-3 overflow-hidden">
-      {% for report in historical_reports %}
-        <div class="list-group-item px-0 bg-transparent">
-          <div class="fw-semibold small">{{ report.title }}</div>
-          <div class="text-muted small">{{ report.original_filename }}</div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-{% endif %}
-
-              {{ form.historical_reports }}
-
-              {% if form.historical_reports.errors %}
-                <div class="text-danger small mt-1">
-                  {{ form.historical_reports.errors }}
-                </div>
-              {% endif %}
-
-              <div class="form-text">
-                You can select several PDF files at once.
-              </div>
-            </div>
-
             <div class="mb-0">
               <label class="form-label" for="{{ form.historical_notes.id_for_label }}">
                 Notes
@@ -251,7 +207,7 @@
               {% endif %}
 
               <div class="form-text">
-                Optional internal notes about this historical candidate or the uploaded reports.
+                Optional internal notes about this historical candidate.
               </div>
             </div>
           </div>

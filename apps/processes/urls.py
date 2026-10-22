@@ -1,7 +1,6 @@
 from django.urls import path
 
 from . import views
-from .historical_report_downloads import historical_candidate_report_download
 from .pinned_projects import toggle_pinned_project
 from .access_control import (
     process_edit_access_required,
@@ -47,15 +46,6 @@ urlpatterns = [
         name="process_automatic_invitation_setting",
     ),
     path("<int:process_id>/candidate/<int:candidate_id>/", views.process_candidate_detail, name="process_candidate_detail"),
-
-    # Historical PDFs must be fetched through permission-checked routes,
-    # not direct storage URLs. The view checks tenant/org unit and report owner.
-    path(
-        "<int:process_id>/candidates/<int:candidate_id>/"
-        "historical-reports/<int:report_id>/download/",
-        historical_candidate_report_download,
-        name="historical_candidate_report_download",
-    ),
 
     # Public self-registration route.
     path("r/<uuid:token>/", views.self_register, name="self_register"),

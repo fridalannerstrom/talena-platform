@@ -1,8 +1,6 @@
 from django.contrib import admin
 from .models import TestInvitation
 
-from .models import HistoricalProcessCandidate, HistoricalCandidateReport
-
 from django.contrib import admin
 
 from .models import (
@@ -10,7 +8,6 @@ from .models import (
     Candidate,
     TestInvitation,
     HistoricalProcessCandidate,
-    HistoricalCandidateReport,
     HistoricalAssessmentImport,
     HistoricalAssessmentResult,
     HistoricalAssessmentScore,
@@ -217,36 +214,6 @@ class HistoricalProcessCandidateAdmin(admin.ModelAdmin):
 
     inlines = (
         HistoricalAssessmentResultInline,
-    )
-
-
-@admin.register(HistoricalCandidateReport)
-class HistoricalCandidateReportAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "historical_candidate",
-        "uploaded_by",
-        "uploaded_at",
-    )
-    list_filter = (
-        "uploaded_at",
-        "historical_candidate__process__company",
-        "historical_candidate__process",
-    )
-    search_fields = (
-        "title",
-        "original_filename",
-        "historical_candidate__candidate__first_name",
-        "historical_candidate__candidate__last_name",
-        "historical_candidate__candidate__email",
-        "historical_candidate__process__name",
-    )
-    autocomplete_fields = (
-        "historical_candidate",
-        "uploaded_by",
-    )
-    readonly_fields = (
-        "uploaded_at",
     )
 
 

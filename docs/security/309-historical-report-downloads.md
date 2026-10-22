@@ -1,3 +1,21 @@
+# Historiska PDF-rapporter avvecklade 2026-10-22
+
+Produktbeslut: historiska kandidater ska använda strukturerad importerad
+testdata, **inte** separata uppladdade PDF-rapporter.
+
+- PDF-upload och visning tas bort från admin- och kundvyerna.
+- Den tidigare skyddade download-endpointen i #326 tas bort; gamla
+  Talena-URL:er ska inte längre kunna användas.
+- Django admin registrerar inte längre den gamla PDF-modellen.
+- Vanliga Sova-kandidaters rapporter och historiskt importerade Excel-data
+  behålls.
+- **Inga befintliga Blob-filer eller databasposter raderas i denna ändring.**
+  Radering av lagrade filer måste först inventeras och beslutas inom #310,
+  inklusive säkra backuper, loggar och verifierad datakoppling.
+- Tidigare utgivna SAS-URL:er kan finnas kvar till utgångstid.
+
+## Tidigare säkerhetsgranskning (#326)
+
 # #309 – Historiska rapporter: skyddad PDF-åtkomst
 
 Datum: 2026-10-21. Kodgranskning + automatiska tester (syntetiska filer).
