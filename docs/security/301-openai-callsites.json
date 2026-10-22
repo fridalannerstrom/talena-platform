@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "status": "code_source_callsite_inventory_not_verified_network_payloads",
+  "scope": "Only Python OpenAI SDK callsites under apps/. No actual candidate data inspected.",
+  "sdk_client": "apps/core/ai/openai_client.py",
+  "channels": [
+    "chat.completions.create",
+    "embeddings.create",
+    "responses.create"
+  ],
+  "entries": [
+    {
+      "path": "apps/core/ai/chat.py",
+      "calls": 1,
+      "functions": [
+        "ask_ai"
+      ],
+      "status": "inactive_chat_route_disabled",
+      "data": [
+        "legacy free-form user message",
+        "optional retrieved RAG context"
+      ],
+      "freetext": true,
+      "comment": "Unreachable through disabled HTTP chat routes in #302; module kept for reference."
+    },
+    {
+      "path": "apps/core/ai/rag.py",
+      "calls": 1,
+      "functions": [
+        "embed_text"
+      ],
+      "status": "integration_helper",
+      "data": [
+        "caller-provided query or text for embeddings"
+      ],
+      "freetext": true,
+      "comment": "Separately inspect downstream Pinecone query/upsert and provenance of embedding text."
+    },
+    {
+      "path": "apps/core/ai/candidate_summary.py",
+      "calls": 1,
+      "functions": [
+        "stream_candidate_summary"
+      ],
+      "status": "active",
+      "data": [
+        "Sova or historical personality/motivation/ability assessment evidence",
+        "process context",
+        "optional prior interpretation"
+      ],
+      "freetext": true,
+      "comment": "Owner candidate name redacted at source; inspect exact builder fields per process."
+    },
+    {
+      "path": "apps/core/ai/cognitive_interpretation.py",
+      "calls": 1,
+      "functions": [
+        "stream_cognitive_interpretation"
+      ],
+      "status": "active",
+      "data": [
+        "cognitive results and benchmark interpretation",
+        "available process/role context",
+        "admin prompt guidance"
+      ],
+      "freetext": true,
+      "comment": "Streaming Chat Completions."
+    },
+    {
+      "path": "apps/core/ai/cognitive_questions.py",
+      "calls": 2,
+      "functions": [
+        "stream_cognitive_questions",
+        "stream_cognitive_questions"
+      ],
+      "status": "active",
+      "data": [
+        "cognitive scores and test definitions",
+        "candidate/process/role context",
+        "generated interview questions",
+        "JSON repair prompt on malformed output"
+      ],
+      "freetext": true,
+      "comment": "Normal generation and non-streaming repair attempt."
+    },
+    {
+      "path": "apps/core/ai/decision_support.py",
+      "calls": 4,
+      "functions": [
+        "stream_pre_interview_decision_support",
+        "stream_post_interview_decision_support",
+        "stream_post_interview_decision_support",
+        "stream_post_interview_content_block"
+      ],
+      "status": "active_plus_shadowed_legacy_definition",
+      "data": [
+        "assessment results and prior interpretations",
+        "process and role context",
+        "interview answers and notes",
+        "admin guidance",
+        "post-interview reports and per-section evidence"
+      ],
+      "freetext": true,
+      "comment": "File defines post-interview function twice; first is shadowed at runtime. Account for all source calls; separately verify active version."
+    },
+    {
+      "path": "apps/core/ai/motivation_interpretation.py",
+      "calls": 1,
+      "functions": [
+        "stream_motivation_interpretation"
+      ],
+      "status": "active",
+      "data": [
+        "motivation factor results and descriptions",
+        "process or role context",
+        "admin prompt guidance"
+      ],
+      "freetext": true,
+      "comment": "Streaming."
+    },
+    {
+      "path": "apps/core/ai/motivation_questions.py",
+      "calls": 2,
+      "functions": [
+        "stream_motivation_questions",
+        "stream_motivation_questions"
+      ],
+      "status": "active",
+      "data": [
+        "motivation results and definitions",
+        "selected interview question context",
+        "JSON repair prompt on malformed output"
+      ],
+      "freetext": true,
+      "comment": "Normal generation and JSON repair retry."
+    },
+    {
+      "path": "apps/core/ai/personality_interpretation.py",
+      "calls": 1,
+      "functions": [
+        "stream_personality_interpretation"
+      ],
+      "status": "active",
+      "data": [
+        "personality results and interpretations",
+        "optional motivation results",
+        "role/process context",
+        "admin guidance"
+      ],
+      "freetext": true,
+      "comment": "Streaming."
+    },
+    {
+      "path": "apps/core/ai/personality_questions.py",
+      "calls": 2,
+      "functions": [
+        "_generate_repaired_personality_questions_event",
+        "stream_personality_questions"
+      ],
+      "status": "active",
+      "data": [
+        "personality results and selected traits",
+        "question generation constraints",
+        "JSON repair prompt on malformed output"
+      ],
+      "freetext": true,
+      "comment": "Streaming plus repair helper."
+    },
+    {
+      "path": "apps/core/ai/prompt_playground.py",
+      "calls": 1,
+      "functions": [
+        "run_prompt_playground"
+      ],
+      "status": "admin_only",
+      "data": [
+        "admin-authored unsaved prompt text",
+        "synthetic sample assessment evidence",
+        "optional free-text process context"
+      ],
+      "freetext": true,
+      "comment": "Prompt text/context may include PII if admin pastes it; UI warning and privacy wrapper apply."
+    },
+    {
+      "path": "apps/core/ai/purpose_fit.py",
+      "calls": 1,
+      "functions": [
+        "stream_candidate_purpose_fit"
+      ],
+      "status": "active",
+      "data": [
+        "personality/motivation/cognitive assessment evidence",
+        "role/process purpose or requirements",
+        "admin prompt guidance"
+      ],
+      "freetext": true,
+      "comment": "Streaming."
+    },
+    {
+      "path": "apps/core/ai/response_style_guidance.py",
+      "calls": 1,
+      "functions": [
+        "stream_response_style_guidance"
+      ],
+      "status": "active",
+      "data": [
+        "response-style indicators",
+        "personality profile contrasts",
+        "admin prompt guidance"
+      ],
+      "freetext": true,
+      "comment": "Streaming."
+    },
+    {
+      "path": "apps/candidate_results/interpretation.py",
+      "calls": 1,
+      "functions": [
+        "generate_candidate_result_content"
+      ],
+      "status": "active",
+      "data": [
+        "canonical candidate-visible source and assessment evidence",
+        "customer interpretation",
+        "section-specific prompt rules",
+        "global admin guidance"
+      ],
+      "freetext": true,
+      "comment": "Non-streaming candidate-facing JSON generation."
+    },
+    {
+      "path": "apps/reports/services/candidate_insights.py",
+      "calls": 1,
+      "functions": [
+        "generate_general_candidate_insights"
+      ],
+      "status": "active",
+      "data": [
+        "Flexible-process assessment evidence",
+        "generic report instructions",
+        "AI language guidance"
+      ],
+      "freetext": true,
+      "comment": "Builder uses CANDIDATE_A rather than candidate_name; input dict could contain free text and is screened by wrapper."
+    },
+    {
+      "path": "apps/teams/ai_insights.py",
+      "calls": 1,
+      "functions": [
+        "generate_team_insight"
+      ],
+      "status": "active",
+      "data": [
+        "aggregated team assessment style scores/counts",
+        "team goals, description, context",
+        "admin prompt guidance"
+      ],
+      "freetext": true,
+      "comment": "IDs appear in local signature, not the outgoing prompt_context by current source code."
+    }
+  ]
+}
