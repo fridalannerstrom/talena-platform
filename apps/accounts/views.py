@@ -45,7 +45,6 @@ from apps.processes.services.historical_assessment_import import (
     import_historical_assessment_file,
 )
 
-from apps.processes.models import HistoricalCandidateReport
 
 from django.views.decorators.http import require_POST
 
@@ -3252,7 +3251,6 @@ def company_process_detail(request, company_pk, process_pk):
         HistoricalProcessCandidate.objects
         .filter(process=process)
         .select_related("candidate", "created_by")
-        .prefetch_related("reports")
         .order_by("-created_at")
     )
 
@@ -3346,7 +3344,6 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             HistoricalProcessCandidate.objects
             .select_related("candidate", "process", "created_by")
             .prefetch_related(
-                "reports",
                 "assessment_results__scores",
                 "assessment_results__import_file",
             ),
@@ -3365,7 +3362,6 @@ def company_process_candidate_detail(request, company_pk, process_pk, candidate_
             "process": process,
             "candidate": candidate,
             "historical_candidate": historical_candidate,
-            "historical_reports": historical_candidate.reports.all(),
             "is_historical": True,
             "active": "processes",
             "show_invite_button": True,
@@ -3539,17 +3535,6 @@ def company_historical_candidate_add(request, company_pk, process_pk):
             historical_candidate.status = form.cleaned_data["status"]
             historical_candidate.notes = form.cleaned_data.get("historical_notes") or ""
             historical_candidate.save(update_fields=["status", "notes"])
-
-            uploaded_reports = form.cleaned_data.get("historical_reports") or []
-
-            for uploaded_file in uploaded_reports:
-                HistoricalCandidateReport.objects.create(
-                    historical_candidate=historical_candidate,
-                    title=uploaded_file.name,
-                    original_filename=uploaded_file.name,
-                    file=uploaded_file,
-                    uploaded_by=request.user,
-                )
 
             selected_teams = list(form.cleaned_data.get("teams") or [])
             new_team_name = (form.cleaned_data.get("new_team_name") or "").strip()
@@ -4165,8 +4150,7 @@ def company_historical_candidate_edit(request, company_pk, process_pk, candidate
 
     historical_candidate = get_object_or_404(
         HistoricalProcessCandidate.objects
-        .select_related("candidate", "process", "created_by")
-        .prefetch_related("reports"),
+        .select_related("candidate", "process", "created_by"),
         process=process,
         candidate_id=candidate_pk,
     )
@@ -4192,17 +4176,6 @@ def company_historical_candidate_edit(request, company_pk, process_pk, candidate
             historical_candidate.status = form.cleaned_data["status"]
             historical_candidate.notes = form.cleaned_data.get("historical_notes") or ""
             historical_candidate.save(update_fields=["status", "notes"])
-
-            uploaded_reports = form.cleaned_data.get("historical_reports") or []
-
-            for uploaded_file in uploaded_reports:
-                HistoricalCandidateReport.objects.create(
-                    historical_candidate=historical_candidate,
-                    title=uploaded_file.name,
-                    original_filename=uploaded_file.name,
-                    file=uploaded_file,
-                    uploaded_by=request.user,
-                )
 
             selected_teams = list(form.cleaned_data.get("teams") or [])
             new_team_name = (form.cleaned_data.get("new_team_name") or "").strip()
@@ -4274,7 +4247,6 @@ def company_historical_candidate_edit(request, company_pk, process_pk, candidate
         "process": process,
         "candidate": candidate,
         "historical_candidate": historical_candidate,
-        "historical_reports": historical_candidate.reports.all(),
         "form": form,
         "is_edit": True,
         "active": "processes",
