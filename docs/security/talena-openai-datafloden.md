@@ -8,6 +8,12 @@
 
 > **Viktigt:** Detta dokument beskriver kodens möjliga dataöverföringar, inte uppmätta produktionsanrop. Slutligt utgående innehåll kan ändras av adminredigerade promptar, dynamiska indata och runtime-installerade promptpolicies. Dokumentet ska kompletteras med automatiska tester som fångar de exakta argumenten precis innan HTTP-anrop skickas. Ingen faktisk kandidatinformation behövs eller har använts i denna inventering.
 
+### Viktig aktualitetsnotering 2026-10-22
+
+**Läs inte de äldre raderna `Namn: JA` eller beskrivningar av kandidat-chatten som en beskrivning av Talenas nuvarande slutliga utgående API-payloads.** Dokumentet kartlägger *ursprungliga indata till promptbyggare* vid en äldre commit. Sedan dess har [#298](https://github.com/fridalannerstrom/talena-platform/issues/298) infört kandidatnamnsredaktion, [#300](https://github.com/fridalannerstrom/talena-platform/issues/300) en gemensam, lokal skyddsadapter före OpenAI SDK-anrop, och [#302](https://github.com/fridalannerstrom/talena-platform/issues/302) har avaktiverat chatten med 404 på dess endpoints. Dessa kontroller är kod-/regressionstestade, men **stängd chatt och en sanerare garanterar inte att all persondata saknas i varje enskild payload**.
+
+Det krävs en **ny feature-för-feature-inventering av råpromptar och slutligt sanerade SDK-argument, syntetiska end-to-end-tester och produktionens faktiska OpenAI-konfiguration** innan detta kan användas som kundintyg. Se [#301](https://github.com/fridalannerstrom/talena-platform/issues/301), [#303](https://github.com/fridalannerstrom/talena-platform/issues/303) och [#304](https://github.com/fridalannerstrom/talena-platform/issues/304). De detaljerade tabellerna nedan bevaras för spårbarhet, inte som aktuellt sändningskontrakt.
+
 ## 1. Sammanfattning
 
 Talena använder OpenAI för kandidatbaserade tolkningar, intervjufrågor, rapporttexter, AI-chattar, teaminsikter, en administrativ prompttestfunktion och embeddings till sökindex. Tre API-ytor identifierades i den granskade Python-koden: **Chat Completions**, **Responses** och **Embeddings**. Sova levererar underlagsdata, Talena bygger promptarna i Django och lagrar i flera fall resultaten i sin egen databas. **Pinecone är en separat mottagare** vid kunskapsindexering och RAG-sökningar.
