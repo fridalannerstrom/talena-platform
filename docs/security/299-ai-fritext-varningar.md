@@ -57,8 +57,8 @@ Befintliga fält för kandidatens egna namn och kontaktuppgifter ingår **inte**
 - [x] Process- och teamkontext samt allmän chatt/promptverktyg inkluderade.
 - [x] Svenska och engelska texter.
 - [x] Automatiska Django-tester tillagda (templaterendering och omfattningskontroller).
-- [ ] GitHub Actions-tester godkända.
+- [x] GitHub Actions-tester godkända (Django QA / privata fritextnotiser).
 - [ ] Snabb UI-kontroll i både svenska och engelska i riktig browser.
-- [ ] PR granskad och mergad.
+- [x] Kodgranskad och mergad i `main`.
 
-**Viktigt:** Den kandidatanknutna AI-chatten ska fortfarande stängas av i backend enligt [#302](https://github.com/fridalannerstrom/talena-platform/issues/302). Att visa varning där ersätter inte spärren. Eventuella framtida AI-anknutna fritextfält behöver följa samma mönster.
+**Viktigt:** Den kandidatanknutna AI-chatten och dess backend är nu **avstängda** enligt avslutade [#302](https://github.com/fridalannerstrom/talena-platform/issues/302). De äldre chattraderna ovan dokumenterar den ursprungliga fältinventeringen, inte aktiva inmatningsfält. Nya AI-anknutna fritextfält måste fortfarande följa samma mönster.
