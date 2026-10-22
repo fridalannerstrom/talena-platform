@@ -14,7 +14,7 @@
 
 Det krävs en **ny feature-för-feature-inventering av råpromptar och slutligt sanerade SDK-argument, syntetiska end-to-end-tester och produktionens faktiska OpenAI-konfiguration** innan detta kan användas som kundintyg. Se [#301](https://github.com/fridalannerstrom/talena-platform/issues/301), [#303](https://github.com/fridalannerstrom/talena-platform/issues/303) och [#304](https://github.com/fridalannerstrom/talena-platform/issues/304). De detaljerade tabellerna nedan bevaras för spårbarhet, inte som aktuellt sändningskontrakt.
 
-## 1. Sammanfattning
+**Nyare granskning (2026-10-22):** [AI-dataflöden v0.2](./301-ai-datafloden-v02.md) och [maskinläsbar lista över SDK-anrop](./301-openai-callsites.json) med syntetiska slut-payloadtester. V0.2 är en **delleverans** och ger inte heller rätt att påstå att alla produktionsanrop är fältverifierade.\n\n## 1. Sammanfattning
 
 Talena använder OpenAI för kandidatbaserade tolkningar, intervjufrågor, rapporttexter, AI-chattar, teaminsikter, en administrativ prompttestfunktion och embeddings till sökindex. Tre API-ytor identifierades i den granskade Python-koden: **Chat Completions**, **Responses** och **Embeddings**. Sova levererar underlagsdata, Talena bygger promptarna i Django och lagrar i flera fall resultaten i sin egen databas. **Pinecone är en separat mottagare** vid kunskapsindexering och RAG-sökningar.
 
