@@ -42,7 +42,7 @@
 - `AssessmentUsage` innehåller personidentifierande snapshots.
 - `ActivityEvent.meta`, e-post-`body_snapshot`, `ProcessRoleContext`, teaminsikter och JSON-kolumner kan innehålla fler uppgifter än deras direkta FK-relationer visar.
 - Sova, OpenAI, e-posttjänst, Pinecone samt Azure-loggar och backuper ska hanteras utifrån faktisk konfiguration och leverantörsavtal. Se [AI-dataflöden](./talena-openai-datafloden.md), som är en **äldre v0.1-kodgranskning** och måste uppdateras för senare anonymiseringsfixar.
-- Django `FileField` bör inte antas ta bort den fysiska filen i Azure när databaspoten tas bort. Ingen central filstädning har verifierats i kodgranskningen; definiera kontrollerad blob-gallring och kontrollera kvarvarande filer.
+- Django `FileField` bör inte antas ta bort den fysiska filen i Azure när databasposten tas bort. Ingen central filstädning har verifierats i kodgranskningen; definiera kontrollerad blob-gallring och kontrollera kvarvarande filer.
 
 ## 3. Infrastruktur: tidigare verifierad Azure-konfiguration
 
