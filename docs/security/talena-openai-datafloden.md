@@ -1,6 +1,6 @@
 # Talena – inventering av AI-anrop och dataflöden
 
-**Dokumentstatus:** Kodgranskad inventering v0.1, EJ slutligt verifierad i drift  
+**Dokumentstatus:** HISTORISK kodgranskad inventering v0.1 från 2026-10-19, **INTE aktuell slutlig payloadinventering eller verifierad i drift**. Uppdatering krävs i [#301](https://github.com/fridalannerstrom/talena-platform/issues/301).  
 **Datum:** 2026-10-19  
 **Källa:** `fridalannerstrom/talena-platform`, gren `main`, commit `57a6c9f3f79de481ff729719eec0eada36b63b02`  
 **Ärende:** [#301 – Audit all OpenAI payloads and block personal-data regressions](https://github.com/fridalannerstrom/talena-platform/issues/301)  
