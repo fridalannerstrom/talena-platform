@@ -47,9 +47,15 @@ class SavedAIInterpretationSourcesTests(SimpleTestCase):
             ai_motivation_questions={"questions": []},
             ai_cognitive_questions={"questions": []},
         )
-        with patch(
-            "apps.core.ai.decision_support._build_motivation_assessment_evidence",
-            return_value="SYNTHETIC TOP THREE MOTIVATORS",
+        with (
+            patch(
+                "apps.core.ai.decision_support._build_motivation_assessment_evidence",
+                return_value="SYNTHETIC TOP THREE MOTIVATORS",
+            ),
+            patch(
+                "apps.core.ai.purpose_fit.build_assessment_evidence",
+                return_value=("SYNTHETIC RAW SOVA ASSESSMENT STEN 8", 1),
+            ),
         ):
             result = build_pre_interview_evidence(owner, language_code="sv")
 
@@ -61,6 +67,7 @@ class SavedAIInterpretationSourcesTests(SimpleTestCase):
             "SYNTHETIC PERSONALITY DYNAMICS",
             "SYNTHETIC SUPPORTIVE PATTERN",
             "SYNTHETIC TOP THREE MOTIVATORS",
+            "SYNTHETIC RAW SOVA ASSESSMENT STEN 8",
             "SYNTHETIC MOTIVATION SUMMARY",
             "SYNTHETIC ENGAGEMENT CONDITION",
             "SYNTHETIC COGNITIVE SUMMARY",
@@ -72,7 +79,7 @@ class SavedAIInterpretationSourcesTests(SimpleTestCase):
         self.assertEqual(
             set(result["source_names"]),
             {
-                "AI Overview", "Personality interpretation",
+                "Assessment results", "AI Overview", "Personality interpretation",
                 "Motivation assessment results", "Motivation interpretation",
                 "Cognitive interpretation", "Response-style guidance",
             },
