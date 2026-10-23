@@ -20,7 +20,7 @@ def sova_projects(request):
         debug["has_user"] = bool(os.getenv("SOVA_USERNAME"))
         debug["has_pass"] = bool(os.getenv("SOVA_PASSWORD"))
 
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
         debug["accounts_len"] = len(accounts)
         for a in accounts:
             a["projects_len"] = len(a.get("projects", []))
