@@ -330,25 +330,19 @@ def import_historical_assessment_file(process, uploaded_file, user=None):
     # Remove completely empty rows
     df = df.dropna(how="all")
 
-    print("IMPORT START:", original_filename)
 
     uploaded_file.seek(0)
-    print("FINDING HEADER...")
     header_row = find_header_row(uploaded_file)
-    print("HEADER ROW:", header_row)
 
     uploaded_file.seek(0)
-    print("READING EXCEL...")
     df = pd.read_excel(
         uploaded_file,
         header=header_row,
         engine="openpyxl",
     )
-    print("EXCEL READ DONE:", df.shape)
 
     df = df.where(pd.notnull(df), None)
     df = df.dropna(how="all")
-    print("ROWS AFTER DROP EMPTY:", len(df))
 
     rows_processed = 0
     candidates_created = 0
