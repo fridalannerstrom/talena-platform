@@ -87,3 +87,29 @@ Dessa test använder **ingen OpenAI-trafik och inga personuppgifter från drift*
 Admininstruktioner simuleras genom mock, så verkliga sparade adminpromptversioner,
 annan JSON-reparationskod (personlighet), indirekta identifierare och framtida
 genereringsvägar behöver fortsatt granskas innan #301 kan stängas.
+
+
+### SDK-argumentgräns: osanerade sidokanaler (#301, 2026-10-23)
+
+`apps/core/ai/openai_client.py` accepterar nu bara granskade SDK-argument. Tidigare maskerade
+`PrivacySafeOpenAI` promptens `messages`, embedding-`input` samt Responses-`input`/`instructions`,
+men skickade **andra** `**kwargs` direkt vidare. Ett framtida anrop med exempelvis
+`user`, `metadata`, `extra_body`, `extra_headers`, `extra_query` eller dynamiska verktygsdefinitioner
+hade därför kunnat bära personuppgifter utanför textmaskeringen.
+
+Tillåtet efter ändringen:
+
+- **Chat Completions:** `model`, `messages`, `temperature`, `stream`, `max_tokens`, `max_completion_tokens`, samt `response_format` **endast** som `{"type":"json_object"}`.
+- **Embeddings:** `model`, `input`.
+- **Responses (framtida kanal):** `model`, `input`, `instructions`, `temperature`, `max_output_tokens`, `stream`.
+
+Övriga nycklar ger `PrivacySanitizationError` **innan** SDK-anrop. Undantaget
+innehåller inte förbjudna nycklars värden. En ny SDK-funktion måste granskas och
+medvetet tillåtas, särskilt metadata, verktyg, `user` och JSON-schema.
+
+Syntetiska regressionstester i `apps/core/test_ai_pii_sanitizer.py` provar
+samtliga tre API-kanaler, förbjuden metadata och extrafält, samt att befintlig
+JSON-formatinställning fortfarande fungerar. Den befintliga Django QA-listan
+kör redan denna testmodul. Detta är **ett tekniskt förhindrande av otillåten
+SDK-parameteröverföring**, inte garanti att tillåten prompt-/processkontext
+saknar indirekta personuppgifter eller att OpenAI:s produktionsregion är verifierad.
