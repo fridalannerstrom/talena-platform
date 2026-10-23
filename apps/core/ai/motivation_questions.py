@@ -555,11 +555,6 @@ def stream_motivation_questions(
         )
 
     if result is None:
-        print(
-            "[MOTIVATION QUESTIONS RAW RESPONSE]",
-            raw_content,
-        )
-
         raise ValueError(
             "The AI response did not contain "
             "valid motivation questions."
