@@ -91,6 +91,9 @@ NER_PROTECTED_PHRASES = KNOWN_NON_PERSON_PAIRS | frozenset({
     "sten", "stive", "percentile", "percentilen", "adaptability",
     "personlighet", "motivation", "färdighet", "intervju",
     "intervjusammanfattning", "kandidatens", "arbetsmiljö",
+    # Fixed Talena assessment theme headings: protect complete phrase spans.
+    "leda och samarbeta med andra", "organisering och tankestil",
+    "samspel och känslomässig hantering",
 })
 NER_PROTECTED_RE = re.compile(
     r"(?<!\w)(?:" +
