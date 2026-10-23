@@ -104,6 +104,35 @@ class LocalNERModelContractTests(SimpleTestCase):
         self.assertNotIn("Helena", clean)
         self.assertIn("[PERSON]", clean)
 
+    def test_assessment_theme_headings_are_not_masked_as_people(self):
+        sentence = (
+            "Leda och samarbeta med andra. Organisering och tankestil. "
+            "Samspel och känslomässig hantering. "
+            "Helena berättade om arbetsuppgifterna."
+        )
+        labels = ("Leda", "Organisering", "Samspel", "Helena")
+        model = Mock()
+        model.pipe_names = ["ner"]
+        model.get_pipe.return_value.labels = ("PRS", "ORG")
+        model.return_value = SimpleNamespace(ents=[
+            SimpleNamespace(
+                label_="PRS",
+                start_char=sentence.index(token),
+                end_char=sentence.index(token) + len(token),
+            )
+            for token in labels
+        ])
+        with (
+            self.fake_spacy(model),
+            patch.dict("os.environ", {
+                "TALENA_PII_NER_SV_MODEL": "sv_core_news_sm",
+                "TALENA_PII_NER_EN_MODEL": "",
+            }),
+        ):
+            clean = sanitize_ai_text(sentence)
+
+        self.assertEqual(clean, sentence.replace("Helena", "[PERSON]"))
+
     def test_model_with_no_ner_fails_closed(self):
         model = Mock()
         model.pipe_names = ["tagger", "parser"]
