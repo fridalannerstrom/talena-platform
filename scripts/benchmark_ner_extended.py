@@ -31,7 +31,7 @@ PEOPLE = {
         ("sv09", "Josefin Lundström fick STEN 8 på Adaptability.", "Josefin Lundström"),
         ("sv10", "Märta förklarade att tydlighet var viktigt.", "Märta"),
         ("sv11", "Enligt Farah är teamets trivsel viktig.", "Farah"),
-        ("sv12", "Jag följde upp Joakims svar med Joakim.", "Joakim"),
+        ("sv12", "Jag följde upp ett tidigare svar med Joakim.", "Joakim"),
         ("sv13", "Samira talade om förväntningar på rollen.", "Samira"),
         ("sv14", "Nils fick STIVE 4 på Customer Service.", "Nils"),
         ("sv15", "Helena beskrev hur hon organiserar arbetet.", "Helena"),
