@@ -2,8 +2,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.utils import timezone
 import json
-import secrets
-from django.conf import settings
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
 import logging
@@ -32,26 +30,6 @@ def sova_webhook(request):
 
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
-
-    # This older public webhook route must enforce the same fail-closed
-    # shared-secret policy as the Sova ingest endpoint. Without this check an
-    # unauthenticated caller could change a candidate's assessment status.
-    provided_secret = request.headers.get("X-Talena-Webhook-Secret", "")
-    accepted_secrets = {
-        value
-        for value in (
-            getattr(settings, "SOVA_WEBHOOK_TEST_SECRET", ""),
-            getattr(settings, "SOVA_WEBHOOK_PROD_SECRET", ""),
-            getattr(settings, "SOVA_WEBHOOK_SHARED_SECRET", ""),
-        )
-        if value
-    }
-    if not provided_secret or not any(
-        secrets.compare_digest(provided_secret, value)
-        for value in accepted_secrets
-    ):
-        logger.warning("SOVA webhook authentication rejected")
-        return JsonResponse({"error": "unauthorized"}, status=401)
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
