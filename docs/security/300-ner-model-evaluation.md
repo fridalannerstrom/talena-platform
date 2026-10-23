@@ -55,6 +55,21 @@ Vi hittade och åtgärdade faktiska falska träffar: modellen misstolkade **Soci
 
 **Tolkning:** Mycket liten, specialkonstruerad testmängd. 10/10 eller 9/10 är *inte* generaliserbar recall och 4/4 är *inte* bevis på att modellerna aldrig skadar rapportunderlag. Mät verklig minnesåtgång, kontextändringar, modell-precision/recall och latenstid på representativt men syntetiskt, längre Talena-material före produktion. Engelskan missade minst ett personnamn redan i denna begränsade körning.
 
+## Utökad syntetisk testplan (2026-10-23, väntar på CI-utfall)
+
+`scripts/benchmark_ner_extended.py` kompletterar ursprungstestet och körs efter det i `.github/workflows/ner-model-evaluation.yml`. Inga personuppgifter från riktiga kandidater ska förekomma i testkod eller utdata.
+
+Testet täcker:
+- 16 extra syntetiska namnsituationer per språk (enbart förnamn, sammansatta och bindestrecksnamn, olika förnamn och rekryteringskontext), plus fyra språkblandade meningar med båda modellerna aktiverade.
+- 10 separata exempel som **ska förbli oförändrade** (STEN/STIVE, områdesnamn, psykometriska begrepp, JSON-fält och produktnamn).
+- Två långa, helt syntetiska promptar med avsiktligt insatta namn, telefonnummer, e-post och svenskt personnummer, för att mäta saneringslatens och kontrollera direkta identifierare samt viktiga bedömningstermer.
+- CI-processens maximala minne, laddningstid för båda modellerna samt median/p95 för korta meningar. Dessa värden kommer från GitHub-runner och **ersätter inte Azure App Service-mätningar**.
+- Detektorns råa personträffar, regex-baslinjen och resultatet av kombinationen redovisas separat. Eventuella misses rapporteras som case-ID, inte som rå kandidattext. Säkerhets-/kontextregressioner ska göra att CI blir röd.
+
+**För tolkning:** Det här är avsiktligt svårare men fortfarande handgjorda tester. Antal träffar får inte rapporteras som statistiskt generaliserbar recall. Om tester faller ska vi analysera om maskering uteblir eller om relevant testkontext förstörs, inte bara lossa skydd och acceptera grönt CI.
+
+**För att stänga #300:** granska faktiskt CI-resultat, besluta om modell/attribution med jurist, testa installerade versionlåsta modeller i Azure dev/stage och dokumentera riskacceptans. Ingen produktion ändras av test-PR:n.
+
 ## Kriterier före produktionsaktivering
 
 1. **Kör benchmark och läs faktiskt utfall.** Resultaten på uppdiktade meningar är bara en första indikator, inte ett precision/recall-bevis i produktion.
