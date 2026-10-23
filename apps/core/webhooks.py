@@ -77,7 +77,7 @@ def sova_webhook(request):
         ).first()
 
     if not invitation:
-        print("⚠️ No matching invitation found.")
+        pass  # Never print candidate or provider data.
         return JsonResponse({"status": "ignored", "reason": "invitation not found"})
     
     old_status = invitation.status
@@ -141,7 +141,7 @@ def sova_webhook(request):
 
     if overall_raw:
         invitation.sova_overall_status = overall_raw.strip()
-        print(f"✅ Saving overall_status: '{overall_raw}' to invitation {invitation.id}")
+        pass  # Never print candidate or provider data.
 
     invitation.sova_current_phase_code = current_phase_code
     invitation.sova_current_phase_idx = current_phase_idx
@@ -166,14 +166,7 @@ def sova_webhook(request):
         "overall_score",
     ])
 
-    print("✅ Saved SOVA fields:", {
-        "sova_overall_status": invitation.sova_overall_status,
-        "sova_current_phase_code": invitation.sova_current_phase_code,
-        "sova_current_phase_idx": invitation.sova_current_phase_idx,
-        "activities_count": len(invitation.sova_activities or []),
-        "phases_count": len(invitation.sova_phases or []),
-        "reports_count": len(invitation.sova_reports or []),
-    })
+    pass  # Never print candidate or provider data.
 
     OVERALL_COMPLETED = {"completed", "pass", "fail", "refer"}
     OVERALL_STARTED = {"in progress"}
@@ -190,7 +183,7 @@ def sova_webhook(request):
     else:
         reason = f"no mapping hit (overall={overall}, status={status})"
 
-    print("🧠 Normalized status:", normalized, "| reason:", reason)
+    pass  # Never print candidate or provider data.
 
     old_status = invitation.status
 
@@ -214,7 +207,7 @@ def sova_webhook(request):
                 meta={"old_status": old_status, "new_status": "started", "reason": reason},
             )
 
-            print("✅ Updated invitation to STARTED:", invitation.id)
+            pass  # Never print candidate or provider data.
 
     elif normalized == "completed":
         if invitation.status != "completed":
@@ -233,10 +226,10 @@ def sova_webhook(request):
                 meta={"old_status": old_status, "new_status": "completed", "reason": reason},
             )
 
-            print("✅ Updated invitation to COMPLETED:", invitation.id)
+            pass  # Never print candidate or provider data.
 
     else:
-        print("ℹ️ Nothing to update for status.")
+        pass  # Never print candidate or provider data.
 
     if normalized == "completed" and not invitation.overall_score and invitation.process.sova_project_id and invitation.request_id:
         try:
@@ -249,10 +242,10 @@ def sova_webhook(request):
             if match:
                 invitation.overall_score = match.get("overall_score")
                 invitation.save(update_fields=["overall_score"])
-                print("✅ Saved overall_score from API:", invitation.overall_score)
+                pass  # Never print candidate or provider data.
             else:
-                print("⚠️ No matching request_id in project-candidates:", invitation.request_id)
+                pass  # Never print candidate or provider data.
         except Exception as e:
-            print("❌ Error fetching project candidates:", str(e))
+            pass  # Never print candidate or provider data.
 
     return JsonResponse({"status": "ok"})
