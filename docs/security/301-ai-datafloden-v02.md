@@ -72,9 +72,12 @@ Alla framtida nya Pythonanrop ska läggas in i `301-openai-callsites.json` **och
 
 ### Extra SDK-regression: JSON-reparation av intervjufrågor (2026-10-23)
 
-`apps/core/test_ai_payload_question_repair.py` kör de faktiska generatorerna
-`stream_motivation_questions` och `stream_cognitive_questions` med **syntetiska**
-kandidat-/processfält, poäng och ersatta admininstruktioner på både svenska och engelska.
+`apps/core/test_ai_payload_question_repair.py` kör de faktiska strömnings-
+och reparationsfunktionerna `stream_motivation_questions` och
+`stream_cognitive_questions` med **syntetiska** promptfält på både svenska
+och engelska. Promptbyggaren ersätts med en syntetisk, kontrollerad prompt
+som motsvarar ett underlag med processkontext, testresultat och admininstruktioner,
+eftersom Talenas runtime-policys kräver en komplett ägar-/processmodell.
 Mocken ger ett felaktigt eller ofullständigt första strömsvar och ett giltigt JSON-svar
 vid andra försöket. Testet verifierar att **både första och andra anropets slutliga
 `messages` efter `PrivacySafeOpenAI`** saknar påhittade namn, e-post och
