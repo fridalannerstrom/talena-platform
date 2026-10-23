@@ -50,6 +50,43 @@ class SovaClient:
                 a["projects"] = []
         return accounts
     
+    def get_template_accounts_with_projects(self) -> list[dict]:
+        """
+        Only the configured Sova account supplies templates for *new* Talena
+        processes. Existing processes keep their stored account/project codes
+        and must still be resolvable via get_accounts_with_projects().
+        """
+        account_name = os.getenv(
+            "SOVA_TEMPLATE_ACCOUNT_NAME", "Talena Modern Projects"
+        ).strip()
+        if not account_name:
+            raise ValueError("SOVA_TEMPLATE_ACCOUNT_NAME must not be empty.")
+
+        accounts = self.get_accounts()
+        matches = [
+            account for account in accounts
+            if str(account.get("name") or "").strip().casefold()
+            == account_name.casefold()
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                f"Expected exactly one Sova account named {account_name!r}; "
+                f"found {len(matches)}. No template fallback is allowed."
+            )
+
+        account = dict(matches[0])
+        code = str(account.get("code") or "").strip()
+        if not code:
+            raise ValueError(f"Sova account {account_name!r} has no code.")
+
+        # Exclude the visual test project from all new process choices.
+        account["projects"] = [
+            project for project in self.get_projects_for_account(code)
+            if str(project.get("name") or "").strip().casefold()
+            != "test pictures"
+        ]
+        return [account]
+
     def order_assessment(self, project_code: str, payload: dict) -> dict:
         """
         Orders an assessment in SOVA for a given project_code.

@@ -6376,7 +6376,7 @@ def process_create(request):
     error = None
 
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -6710,7 +6710,7 @@ def process_update(request, pk):
     # 1. Hämta Sova-projekt från API
     # --------------------------------------------------
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -6749,6 +6749,9 @@ def process_update(request, pk):
                 languages_raw = (getattr(meta_item, "languages", None) or "").strip()
                 if languages_raw:
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
 
             template_cards.append({
                 "value": value,
@@ -6880,7 +6883,13 @@ def process_update(request, pk):
                 # Innan tester har skickats får testpaketet fortfarande ändras.
                 obj.selected_tests = selected_tests
 
-                resolved_template = resolve_dev_sova_template(selected_tests)
+                try:
+                    resolved_template = resolve_sova_template(
+                        selected_tests, template_cards
+                    )
+                except ValueError as exc:
+                    form.add_error("selected_tests", str(exc))
+                    return render_edit(form)
 
                 if not resolved_template:
                     form.add_error(
@@ -8991,7 +9000,7 @@ def process_create_v2(request):
     # 1. Hämta Sova-projekt från API
     # --------------------------------------------------
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)

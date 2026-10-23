@@ -25,7 +25,8 @@ class ProcessCreateAccountTests(TestCase):
         self.url = reverse("processes:process_create")
         sova = patch("apps.processes.views.SovaClient")
         self.addCleanup(sova.stop)
-        sova.start().return_value.get_accounts_with_projects.return_value = [{
+        sova.start().return_value.get_template_accounts_with_projects.return_value = [{
+            "name": "Talena Modern Projects",
             "code": "SOVA",
             "projects": [{"code": "PERSONALITY", "name": "Personality", "id": 12}],
         }]

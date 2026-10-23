@@ -100,7 +100,7 @@ def post_login_redirect(request):
 
 def _get_sova_accounts():
     try:
-        return SovaClient().get_accounts_with_projects(), None
+        return SovaClient().get_template_accounts_with_projects(), None
     except Exception as e:
         return [], str(e)
 

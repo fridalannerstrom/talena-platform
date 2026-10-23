@@ -59,6 +59,7 @@ from apps.processes.services.process_recommendations import (
     AVAILABLE_TESTS,
     PURPOSE_RECOMMENDED_TESTS,
     resolve_sova_template,
+    extract_tests_from_project_name,
     build_default_process_name,
 )
 
@@ -2616,7 +2617,7 @@ def admin_process_create_for_user(request, user_pk):
     error = None
 
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -2774,7 +2775,7 @@ def admin_process_update(request, pk):
     error = None
 
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -2810,6 +2811,21 @@ def admin_process_update(request, pk):
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
     current_value = f"{old_acc}|{old_proj}" if old_acc and old_proj else None
+    # An existing, locked process may still point to Main Account. Preserve
+    # that choice for edits to labels/name without offering it for new processes.
+    if locked and current_value and current_value not in dict(choices):
+        legacy_title = obj.project_name_snapshot or old_proj
+        choices.append((current_value, legacy_title))
+        template_cards.append({
+            "value": current_value,
+            "title": legacy_title,
+            "subtitle": f"{old_acc} · {old_proj}",
+            "icon": "layers",
+            "account_code": old_acc,
+            "project_code": old_proj,
+            "sova_name": legacy_title,
+        })
+
 
     # ✅ Förifyll labels_text från M2M
     existing_labels_text = ", ".join(obj.labels.values_list("name", flat=True))
@@ -3677,7 +3693,7 @@ def company_process_create(request, company_pk):
     # 1. Hämta SOVA-projekt från API
     # --------------------------------------------------
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -3718,6 +3734,9 @@ def company_process_create(request, company_pk):
                 languages_raw = (getattr(meta, "languages", None) or "").strip()
                 if languages_raw:
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
 
             template_cards.append({
                 "value": value,
@@ -3801,7 +3820,15 @@ def company_process_create(request, company_pk):
                     selected_tests=selected_tests,
                 )
 
-            resolved_template = resolve_dev_sova_template(selected_tests)
+            try:
+                resolved_template = resolve_sova_template(selected_tests, template_cards)
+            except ValueError as exc:
+                form.add_error("selected_tests", str(exc))
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {**context_base, "form": form},
+                )
 
             if not resolved_template:
                 form.add_error(
