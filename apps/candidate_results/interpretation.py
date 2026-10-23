@@ -25,9 +25,6 @@ from apps.core.ai.prompt_templates import (
     get_global_ai_guidance,
 )
 from apps.processes.models import AIPromptTemplate
-from apps.processes.services.candidate_profile import (
-    build_historical_candidate_profile,
-)
 
 from .models import CandidateResultSnapshot
 
@@ -59,19 +56,6 @@ def _process_context(invitation) -> str:
         return (role_context.get_current_context_text() or "").strip()
     except Exception:
         return ""
-
-
-def _assessment_evidence(invitation) -> dict[str, Any]:
-    """Use the same stored assessment evidence that feeds the customer view."""
-    process = invitation.process
-    if getattr(process, "is_historical", False):
-        return _json_safe(build_historical_candidate_profile(invitation))
-
-    return {
-        "activities": _json_safe(invitation.sova_activities or []),
-        "project_results": _json_safe(invitation.project_results or {}),
-        "reports": _json_safe(invitation.sova_reports or []),
-    }
 
 
 def _has_result_value(competency: dict[str, Any]) -> bool:
@@ -235,7 +219,6 @@ def build_candidate_result_source(
             for area, details in areas.items()
         },
         "personality_result_evidence": areas["personality"]["evidence"],
-        "assessment_evidence": _assessment_evidence(invitation),
         "customer_result_evidence": customer_evidence,
     }
 
@@ -321,10 +304,11 @@ TALENA CANDIDATE RESULT GENERATION
 Create a supportive candidate-facing result from the supplied canonical
 assessment source.
 
-The customer_result_evidence and assessment_evidence are the same evidence
-used by Talena's customer-facing interpretation. Preserve their substantive
-meaning. You may simplify, shorten and phrase the result more warmly, but
-never reverse, exaggerate or contradict the customer interpretation.
+The available_result_areas and customer_result_evidence contain selected
+assessment evidence and earlier customer-facing interpretations. Preserve
+their substantive meaning. You may simplify, shorten and phrase the result
+more warmly, but never reverse, exaggerate or contradict the interpretation.
+Do not infer or request full Sova activities, projects, report objects or URLs.
 
 PROTECTED RULES
 
