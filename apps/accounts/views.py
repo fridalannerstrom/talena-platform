@@ -2616,7 +2616,7 @@ def admin_process_create_for_user(request, user_pk):
     error = None
 
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -2774,7 +2774,7 @@ def admin_process_update(request, pk):
     error = None
 
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -2810,6 +2810,11 @@ def admin_process_update(request, pk):
     template_cards.sort(key=lambda x: (x["title"] or "").lower())
 
     current_value = f"{old_acc}|{old_proj}" if old_acc and old_proj else None
+    # An existing, locked process may still point to Main Account. Preserve
+    # that choice for edits to labels/name without offering it for new processes.
+    if locked and current_value and current_value not in dict(choices):
+        choices.append((current_value, obj.project_name_snapshot or old_proj))
+
 
     # ✅ Förifyll labels_text från M2M
     existing_labels_text = ", ".join(obj.labels.values_list("name", flat=True))
@@ -3677,7 +3682,7 @@ def company_process_create(request, company_pk):
     # 1. Hämta SOVA-projekt från API
     # --------------------------------------------------
     try:
-        accounts = client.get_accounts_with_projects()
+        accounts = client.get_template_accounts_with_projects()
     except Exception as e:
         accounts = []
         error = str(e)
@@ -3801,7 +3806,15 @@ def company_process_create(request, company_pk):
                     selected_tests=selected_tests,
                 )
 
-            resolved_template = resolve_dev_sova_template(selected_tests)
+            try:
+                resolved_template = resolve_sova_template(selected_tests, template_cards)
+            except ValueError as exc:
+                form.add_error("selected_tests", str(exc))
+                return render(
+                    request,
+                    "admin/accounts/companies/company_process_create.html",
+                    {**context_base, "form": form},
+                )
 
             if not resolved_template:
                 form.add_error(
