@@ -26,6 +26,7 @@ class ProcessCreateAccountTests(TestCase):
         sova = patch("apps.processes.views.SovaClient")
         self.addCleanup(sova.stop)
         sova.start().return_value.get_accounts_with_projects.return_value = [{
+            "name": "Talena Modern Projects",
             "code": "SOVA",
             "projects": [{"code": "PERSONALITY", "name": "Personality", "id": 12}],
         }]
