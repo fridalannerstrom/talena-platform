@@ -7,8 +7,6 @@ from apps.core.integrations.sova import SovaClient
 import logging
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
-import os
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,76 +20,25 @@ def _norm(s: str) -> str:
 
 @csrf_exempt
 def sova_webhook(request):
-    print("🔥🔥🔥 CORE WEBHOOK HIT 🔥🔥🔥", request.path)
-    raw = request.body.decode("utf-8", errors="ignore")
-    print("🔎 RAW BODY:", raw)
-
-    logger.warning("WEBHOOK headers(relevant): %s", {
-        "Content-Type": request.headers.get("Content-Type"),
-        "User-Agent": request.headers.get("User-Agent"),
-        "X-Talena-Webhook-Secret": (request.headers.get("X-Talena-Webhook-Secret") or "")[:6] + "...",
-        "X-Request-Id": request.headers.get("X-Request-Id"),
-        "X-Event-Type": request.headers.get("X-Event-Type"),
-    })
-
-    logger.warning(
-        "WEBHOOK method=%s path=%s content_type=%s len=%s",
+    # Only operational metadata belongs in standard logs. No raw payloads,
+    # auth headers, query strings or identifiers.
+    logger.info(
+        "SOVA webhook received: method=%s body_bytes=%s",
         request.method,
-        request.path,
-        request.headers.get("Content-Type"),
         len(request.body or b""),
     )
-
-    logger.warning("WEBHOOK RAW FULL (first 2000): %s", raw[:2000])
-    logger.warning("WEBHOOK RAW REPR (first 2000): %r", raw[:2000])
-
-    try:
-        _debug_payload = json.loads(raw)
-        _pretty = json.dumps(_debug_payload, ensure_ascii=False, indent=2)
-        logger.warning("WEBHOOK JSON PRETTY (first 4000): %s", _pretty[:4000])
-        logger.warning("WEBHOOK JSON KEYS: %s", list(_debug_payload.keys()))
-    except Exception as _e:
-        logger.warning("WEBHOOK JSON PRETTY failed: %s", str(_e))
 
     if request.method != "POST":
         return JsonResponse({"error": "method not allowed"}, status=405)
 
     try:
-        payload = json.loads(raw)
-    except Exception as e:
-        print("❌ WEBHOOK invalid JSON:", str(e))
+        payload = json.loads(request.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        logger.warning("SOVA webhook rejected malformed JSON")
         return JsonResponse({"error": "invalid json"}, status=400)
     
-    if settings.SOVA_WEBHOOK_DEBUG_TO_FILE:
-        debug_dir = os.path.join(settings.BASE_DIR, "debug_webhooks")
-        os.makedirs(debug_dir, exist_ok=True)
-
-        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S_%f")
-        request_id_for_file = (
-            payload.get("request_id")
-            or payload.get("requestId")
-            or "no_request_id"
-        )
-        safe_request_id = str(request_id_for_file).replace("/", "_").replace("\\", "_").replace(":", "_")
-
-        raw_filepath = os.path.join(debug_dir, f"sova_raw_{timestamp}_{safe_request_id}.txt")
-        json_filepath = os.path.join(debug_dir, f"sova_{timestamp}_{safe_request_id}.json")
-        headers_filepath = os.path.join(debug_dir, f"sova_headers_{timestamp}_{safe_request_id}.json")
-
-        with open(raw_filepath, "w", encoding="utf-8") as f:
-            f.write(raw)
-
-        with open(json_filepath, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-
-        with open(headers_filepath, "w", encoding="utf-8") as f:
-            json.dump(dict(request.headers), f, ensure_ascii=False, indent=2)
-
-        print(f"✅ Saved raw webhook body to: {raw_filepath}")
-        print(f"✅ Saved parsed webhook JSON to: {json_filepath}")
-        print(f"✅ Saved webhook headers to: {headers_filepath}")
-
-    print("🔔 SOVA WEBHOOK RECEIVED (parsed):", payload)
+    # Legacy file-based webhook debugging intentionally disabled: it stored
+    # complete callback bodies and authorization headers on the app server.
 
     request_id = payload.get("request_id") or payload.get("requestId")
     sova_inv_id = (
@@ -117,22 +64,6 @@ def sova_webhook(request):
 
     status_raw = payload.get("status") or payload.get("current_phase_status") or payload.get("currentPhaseStatus") or ""
     status = _norm(status_raw)
-
-    print("🧠 Incoming status fields:", {
-        "overall_status_raw": overall_raw,
-        "overall_status_norm": overall,
-        "status_raw": status_raw,
-        "status_norm": status,
-        "current_phase_code": current_phase_code,
-        "current_phase_idx": current_phase_idx,
-    })
-
-    print("🧩 Parsed identifiers:", {
-        "request_id": request_id,
-        "sova_invitation_id": sova_inv_id,
-        "talena_process_id": talena_process_id,
-        "talena_candidate_id": talena_candidate_id,
-    })
 
     invitation = None
     if request_id:
