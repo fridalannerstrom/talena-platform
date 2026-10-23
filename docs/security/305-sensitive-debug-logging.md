@@ -18,13 +18,9 @@ Den här PR:en stoppar ovanstående råa debugutskrifter och tar bort webhookens
 
 Regressionskontrollen `apps/core/test_sensitive_debug_logging.py` förbjuder `print()` i dessa sex kritiska kodfiler samt några kända osäkra felsökningsmönster. Den exekverar inga externa API-anrop och använder inga riktiga kandidatdata.
 
-## Separat fynd under granskning: äldre webhook utan auth (#309)
+## Separat fynd: äldre Sova-webhook behöver autentisering (#309)
 
-Den äldre, publikt routade `core:sova_webhook` (`/webhooks/sova/` under core-urlprefixet) hade en `@csrf_exempt`-funktion som behandlade kandidatstatus utan att verifiera `X-Talena-Webhook-Secret`. Detta är **en separat säkerhetsrisk** utöver loggningen: en obehörig avsändare kunde försöka uppdatera resultatstatus för kända interna/Sova-request-ID:n.
-
-PR #345 lägger därför till en fail-closed, timing-safe sekretkontroll som använder konfigurerade `SOVA_WEBHOOK_TEST_SECRET`, `SOVA_WEBHOOK_PROD_SECRET` och tillfälligt `SOVA_WEBHOOK_SHARED_SECRET`, precis som den andra Sova-ingest-vägen. Saknat, felaktigt eller okonfigurerat sekret returnerar HTTP 401 innan någon teststatus hanteras. Syntetiska HTTP-tester finns i `apps/core/test_sova_webhook_security.py` och körs i Django QA.
-
-**Driftskrav:** före produktionsgodkännande måste ansvarig kontrollera vilken callback-URL Sova faktiskt använder och att den konfigurerade avsändaren skickar rätt hemliga headern. En gammal webhook utan header kommer med rätta att nekas efter ändringen. Dela aldrig hemligheten i issue/chat/loggar. Efter deploy, testa ett syntetiskt matchande callback-flöde och kontrollera 401 för obehöriga anrop.
+Under säkerhetsgranskningen hittades en äldre Sova-webhook utan en verifierad delad hemlighet. Skyddet behandlas i **en separat PR** för att kunna kontrollera leverantörens callback-URL och headerkonfiguration **innan** driftsättning. Den här logg-PR:en ändrar inte webhookautentiseringen. Ingen säkerhet kan antas för äldre routen förrän separat fix är mergad och verifierad.
 
 ## Viktig begränsning
 
