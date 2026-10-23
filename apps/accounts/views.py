@@ -2814,7 +2814,17 @@ def admin_process_update(request, pk):
     # An existing, locked process may still point to Main Account. Preserve
     # that choice for edits to labels/name without offering it for new processes.
     if locked and current_value and current_value not in dict(choices):
-        choices.append((current_value, obj.project_name_snapshot or old_proj))
+        legacy_title = obj.project_name_snapshot or old_proj
+        choices.append((current_value, legacy_title))
+        template_cards.append({
+            "value": current_value,
+            "title": legacy_title,
+            "subtitle": f"{old_acc} · {old_proj}",
+            "icon": "layers",
+            "account_code": old_acc,
+            "project_code": old_proj,
+            "sova_name": legacy_title,
+        })
 
 
     # ✅ Förifyll labels_text från M2M
