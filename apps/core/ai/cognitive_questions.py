@@ -834,16 +834,6 @@ ORIGINAL REQUEST
                 break
 
     if questions_event is None:
-        print(
-            "[COGNITIVE QUESTIONS RAW RESPONSE]",
-            full_response,
-        )
-
-        print(
-            "[COGNITIVE QUESTIONS PARSED EVENTS]",
-            events,
-        )
-
         raise ValueError(
             "The AI response did not contain "
             "valid cognitive questions."
