@@ -68,3 +68,19 @@ Alla framtida nya Pythonanrop ska läggas in i `301-openai-callsites.json` **och
 - [#301](https://github.com/fridalannerstrom/talena-platform/issues/301) – komplett AI-payloadinventering (öppen)
 - [#302](https://github.com/fridalannerstrom/talena-platform/issues/302) – personchatt avstängd (stängd)
 - [#303](https://github.com/fridalannerstrom/talena-platform/issues/303), [#304](https://github.com/fridalannerstrom/talena-platform/issues/304) – OpenAI region, DPA och retention (väntar på konto-/avtalsbeslut)
+
+
+### Extra SDK-regression: JSON-reparation av intervjufrågor (2026-10-23)
+
+`apps/core/test_ai_payload_question_repair.py` kör de faktiska generatorerna
+`stream_motivation_questions` och `stream_cognitive_questions` med **syntetiska**
+kandidat-/processfält, poäng och ersatta admininstruktioner på både svenska och engelska.
+Mocken ger ett felaktigt eller ofullständigt första strömsvar och ett giltigt JSON-svar
+vid andra försöket. Testet verifierar att **både första och andra anropets slutliga
+`messages` efter `PrivacySafeOpenAI`** saknar påhittade namn, e-post och
+telefonnummer, medan STEN och relevant testterminologi bevaras.
+
+Dessa test använder **ingen OpenAI-trafik och inga personuppgifter från drift**.
+Admininstruktioner simuleras genom mock, så verkliga sparade adminpromptversioner,
+annan JSON-reparationskod (personlighet), indirekta identifierare och framtida
+genereringsvägar behöver fortsatt granskas innan #301 kan stängas.
