@@ -56,13 +56,22 @@ class QuestionRepairPayloadPrivacyTests(SimpleTestCase):
                 with (
                     patch.object(feature, "get_openai_client",
                                  return_value=PrivacySafeOpenAI(raw)),
-                    patch.object(feature, "build_shared_ai_context",
-                                 return_value=context),
-                    patch.object(feature, "get_ai_prompt_instructions",
-                                 return_value=(
-                                     "ADMIN GUIDANCE from Eva Andersson: "
-                                     "Use the supplied assessment evidence."
-                                 )),
+                    # Runtime policies wrap the prompt builders and may
+                    # require a complete ORM owner. Keep this test scoped
+                    # to the final SDK boundary, including the JSON retry.
+                    patch.object(
+                        feature,
+                        ("build_motivation_questions_prompt"
+                         if "motivation" in module
+                         else "build_cognitive_questions_prompt"),
+                        return_value=(
+                            "ADMIN GUIDANCE from Eva Andersson. "
+                            "Interview with Anna Svensson. "
+                            "anna.svensson@example.test. "
+                            "Contact 070-123 45 67. "
+                            "STEN 8, Customer Service."
+                        ),
+                    ),
                     patch.object(feature, "get_ai_language_instruction",
                                  return_value="Use the requested language."),
                     patch.object(feature, "get_ai_system_language_instruction",
@@ -110,10 +119,10 @@ class QuestionRepairPayloadPrivacyTests(SimpleTestCase):
             "title": "Motivation",
             "label": "Questions",
             "questions": [{
-                "question": "What motivates you?",
+                "question": f"What motivates you in example {i}?",
                 "why": "Follow up the evidence.",
                 "listen_for": "A concrete example.",
-            }],
+            } for i in range(3)],
             "context_note": "",
         })
         self._test_repair(
@@ -128,10 +137,10 @@ class QuestionRepairPayloadPrivacyTests(SimpleTestCase):
         response = json.dumps({
             "type": "questions",
             "items": [{
-                "question": "How do you evaluate a complex task?",
+                "question": f"How do you evaluate complex task {i}?",
                 "why": "Understand the reasoning approach.",
                 "listen_for": "A practical example.",
-            }],
+            } for i in range(3)],
         })
         self._test_repair(
             module="apps.core.ai.cognitive_questions",
