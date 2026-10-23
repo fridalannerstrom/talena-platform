@@ -59,6 +59,7 @@ from apps.processes.services.process_recommendations import (
     AVAILABLE_TESTS,
     PURPOSE_RECOMMENDED_TESTS,
     resolve_sova_template,
+    extract_tests_from_project_name,
     build_default_process_name,
 )
 
@@ -3723,6 +3724,9 @@ def company_process_create(request, company_pk):
                 languages_raw = (getattr(meta, "languages", None) or "").strip()
                 if languages_raw:
                     languages = [l.strip() for l in languages_raw.split(",") if l.strip()]
+
+            if not tests:
+                tests = extract_tests_from_project_name(sova_name)
 
             template_cards.append({
                 "value": value,
