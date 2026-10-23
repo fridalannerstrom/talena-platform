@@ -3196,16 +3196,6 @@ def build_candidate_insights(
         )
     )
 
-    print(
-        "PROCESS PURPOSE:",
-        {
-            "raw": process_purpose,
-            "normalized": normalize_process_purpose_key(
-                process_purpose
-            ),
-        },
-        flush=True,
-    )
 
     evidence_strengths, evidence_explore_areas = (
         build_evidence_themes(
@@ -3783,11 +3773,6 @@ def build_candidate_insights(
 
         }
 
-    print(
-        "AREAS TO EXPLORE:",
-        candidate_insights.get("areas_to_explore"),
-        flush=True,
-    )
 
 
     return candidate_insights

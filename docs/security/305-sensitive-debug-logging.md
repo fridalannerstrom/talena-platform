@@ -33,3 +33,9 @@ Under säkerhetsgranskningen hittades en äldre Sova-webhook utan en verifierad 
 5. Produktionens drift, telemetri och hur undantag hos OpenAI/Sova/Azure eventuellt serialiseras i loggar måste granskas separat.
 
 Detta är **riskreduktion**, inte en slutattestering av GDPR eller AI Act.
+
+## Ytterligare dataminimering i efterföljande PR, 2026-10-23
+
+En separat uppföljning tar bort `print()` i `apps/accounts/views.py`, `apps/reports/services/candidate_insights.py`, `apps/processes/services/candidate_insights.py`, `apps/processes/services/historical_assessment_import.py` och `apps/core/ai/ingest.py`. Tidigare kunde felsökningsutskrifter innehålla processkontext, AI-genererade områdestexter, uppladdade filnamn och Pinecone-ID/metadata. Ersatt med tyst hantering där loggningen inte är nödvändig; fel i flexible-insights behåller sitt tidigare fallbackbeteende utan rå undantagslogg. `apps/core/test_candidate_debug_logging.py` gör detta till en CI-spärr.
+
+Även efter detta återstår en fullständig granskning av alla externa loggmottagare, provider-headers, molntelemetri, exception traces och hela AI-auditschemat enligt #305. Äldre logginnehåll raderas inte automatiskt.

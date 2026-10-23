@@ -75,15 +75,12 @@ def upsert_document(
         return []
 
     # ✅ Debug: så du ser i terminalen var den upsertar
-    print(f"[PINECONE] Upserting {len(vectors)} vectors -> kind={kind}, namespace='{namespace or ''}', first_id={vectors[0]['id']}")
 
     # ✅ Upsert och logga svar
     if namespace:
         resp = index.upsert(vectors=vectors, namespace=namespace or "")
-        print("PINECONE UPSERT RESPONSE:", resp)
     else:
         resp = index.upsert(vectors=vectors)
 
-    print("[PINECONE] Upsert response:", resp)
 
     return ids
