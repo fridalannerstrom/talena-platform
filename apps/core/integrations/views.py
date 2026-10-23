@@ -133,11 +133,9 @@ def sova_ingest(request):
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
-    except Exception as e:
-        print(f"❌ JSON parsing error: {e}")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        logger.warning("SOVA webhook rejected malformed JSON")
         return JsonResponse({"error": "invalid json"}, status=400)
-
-    print("🔔 Payload received:", payload)
 
     # ✅ Identifiers
     request_id = payload.get("request_id") or payload.get("requestId")
@@ -496,9 +494,9 @@ def sova_ingest(request):
                 invitation.save(update_fields=["overall_score"])
                 print(f"✅ Saved overall_score from API: {invitation.overall_score}")
             else:
-                print(f"⚠️ No matching request_id in project-candidates: {invitation.request_id}")
+                logger.warning("SOVA project-candidates had no matching request")
         except Exception as e:
-            print(f"❌ Error fetching project candidates: {str(e)}")
+            logger.warning("SOVA candidate status refresh failed: %s", type(e).__name__)
 
     # A project-level completed callback means all required SOVA
     # assessments for this invitation are complete. Create/send once; a
