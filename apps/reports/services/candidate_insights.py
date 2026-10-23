@@ -520,7 +520,6 @@ def generate_general_candidate_insights(
     Generate AI candidate insights for a Flexible process.
     """
 
-    print("=== GENERATE GENERAL CANDIDATE INSIGHTS STARTED ===")
 
     client = get_openai_client()
 
@@ -557,7 +556,6 @@ def generate_general_candidate_insights(
 
     content = response.choices[0].message.content or "{}"
 
-    print("=== OPENAI RESPONSE RECEIVED ===")
 
     try:
         parsed = json.loads(content)
@@ -573,7 +571,6 @@ def generate_general_candidate_insights(
         + result["summary"]["headline"]
     )
 
-    print("=== GENERAL CANDIDATE INSIGHTS COMPLETED ===")
 
     return result
 
