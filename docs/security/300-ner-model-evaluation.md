@@ -70,6 +70,26 @@ Testet täcker:
 
 **För att stänga #300:** granska faktiskt CI-resultat, besluta om modell/attribution med jurist, testa installerade versionlåsta modeller i Azure dev/stage och dokumentera riskacceptans. Ingen produktion ändras av test-PR:n.
 
+## Första utökade testutfallet, GitHub Actions 2026-10-23
+
+[Verifierad körning #39940583749](https://github.com/fridalannerstrom/talena-platform/actions/runs/39940583749) är **grön** efter att en faktiskt upptäckt falsk personträff i Talenas egna tema-rubriker korrigerats och regressionstest lagts till. Detta gäller en **tillfällig GitHub-runner med syntetiska exempel**, inte driftsatta modeller i Azure.
+
+| Syntetisk mätpunkt | Svenska | Engelska |
+|---|---:|---:|
+| Svårare namnsituationer | 16 | 16 |
+| Namn fångade av NER-modell ensam | 12 | 11 |
+| Namn fångade av enbart regex | 4 | 2 |
+| Namn maskerade av regex + språkets NER-modell | **13** | **11** |
+| Namn som fortfarande missas av kombinationen | **3** | **5** |
+
+- Vid fyra språkblandade meningar med **båda** modellerna på missades namn i **2/4** fall.
+- Samtliga **10/10** separata testkontexter (psykometri, produkt-/områdesrubriker, JSON) lämnades oförändrade efter den riktade fixen.
+- Båda syntetiska långtexterna (5 884 respektive 23 104 tecken) saknade efter sanering de avsiktligt insatta direkta e-post-/telefon-/personnummersträngarna, medan alla utvalda obligatoriska testtermer fanns kvar.
+- På CI-runnern: båda modellernas första laddning cirka **1,65 sekunder**, median för korta meningar cirka **10 ms**, 5 884 tecken cirka **266 ms**, 23 104 tecken cirka **942 ms**, observerad process-peak-RSS cirka **242 MiB**. Detta **är inte uppmätt i Talenas Azure-plan**, och ska inte användas som produktions-SLA.
+- Missade namntestfall identifieras i CI-resultatet med syntetiska case-ID:n. **Inga riktiga kandidater användes**.
+
+**Beslut vid denna mätning:** Modellparet ger extra skydd jämfört med enbart regex men missar namn även i de här korta och enkla rekryteringsexemplen. Grönt CI betyder bara att kontrollerade direkta identifierare och testkontexten klarade regressionstesten, **inte att fullständig persondetektion är uppnådd**. Aktivera inte modellparet i produktion förrän bristerna/riskerna bedömts, licensfrågan formellt hanterats och Azure dev/stage är verifierad. Mer representativa syntetiska testfall och eventuell bättre svensk/engelsk modell kan krävas.
+
 ## Kriterier före produktionsaktivering
 
 1. **Kör benchmark och läs faktiskt utfall.** Resultaten på uppdiktade meningar är bara en första indikator, inte ett precision/recall-bevis i produktion.
