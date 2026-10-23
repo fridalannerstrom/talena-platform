@@ -13,11 +13,41 @@ from .pii_sanitizer import PrivacySanitizationError, sanitize_ai_payload
 from .privacy_notice import outbound_masking_attempt, record_sent_masking
 
 
+# No unreviewed SDK kwargs may bypass the screened prompt/input fields.
+# This list intentionally matches Talena's currently audited callsites (#301).
+_CHAT_ALLOWED_KWARGS = frozenset({
+    "model", "messages", "temperature", "stream",
+    "max_tokens", "max_completion_tokens", "response_format",
+})
+_EMBEDDING_ALLOWED_KWARGS = frozenset({"model", "input"})
+_RESPONSES_ALLOWED_KWARGS = frozenset({
+    "model", "input", "instructions", "temperature",
+    "max_output_tokens", "stream",
+})
+
+
+def _reject_unreviewed_sdk_fields(kwargs, allowed):
+    """Fail closed before the SDK can send identifiers in metadata or extras.
+
+    Do not include the rejected field names/values in exception text or logs.
+    A new SDK argument must be security-reviewed before it is allowlisted.
+    """
+    if kwargs.keys() - allowed:
+        raise PrivacySanitizationError(
+            "OpenAI request contains unreviewed fields; outbound call blocked."
+        )
+
+
 class _Completions:
     def __init__(self, raw_client):
         self._send = raw_client.chat.completions.create
 
     def create(self, **kwargs):
+        _reject_unreviewed_sdk_fields(kwargs, _CHAT_ALLOWED_KWARGS)
+        if "response_format" in kwargs and kwargs["response_format"] != {"type": "json_object"}:
+            raise PrivacySanitizationError(
+                "OpenAI response format requires review; outbound call blocked."
+            )
         if "messages" not in kwargs:
             raise PrivacySanitizationError(
                 "OpenAI chat request without messages is not permitted."
@@ -39,6 +69,7 @@ class _Embeddings:
         self._send = raw_client.embeddings.create
 
     def create(self, **kwargs):
+        _reject_unreviewed_sdk_fields(kwargs, _EMBEDDING_ALLOWED_KWARGS)
         if "input" not in kwargs:
             raise PrivacySanitizationError(
                 "OpenAI embedding request without input is not permitted."
@@ -55,6 +86,7 @@ class _Responses:
         self._send = raw_client.responses.create
 
     def create(self, **kwargs):
+        _reject_unreviewed_sdk_fields(kwargs, _RESPONSES_ALLOWED_KWARGS)
         if "input" not in kwargs:
             raise PrivacySanitizationError(
                 "OpenAI Responses request without input is not permitted."

@@ -191,6 +191,95 @@ class OpenAIPrivacyBoundaryTests(SimpleTestCase):
         self.assertNotIn("John Smith", kwargs["instructions"])
         self.assertNotIn("john@example.org", str(kwargs["input"]))
 
+    def test_unreviewed_sdk_kwargs_fail_closed_for_all_apis(self):
+        """Secrets/PII cannot bypass sanitization through metadata or SDK extras."""
+        messages = [{"role": "user", "content": "STEN 8"}]
+        attempts = [
+            (
+                "chat_user",
+                self.client.chat.completions.create,
+                {"model": "gpt-test", "messages": messages,
+                 "user": "anna.svensson@example.se"},
+            ),
+            (
+                "chat_metadata",
+                self.client.chat.completions.create,
+                {"model": "gpt-test", "messages": messages,
+                 "metadata": {"candidate": "Anna Svensson"}},
+            ),
+            (
+                "chat_extra_body",
+                self.client.chat.completions.create,
+                {"model": "gpt-test", "messages": messages,
+                 "extra_body": {"candidate_name": "John Smith"}},
+            ),
+            (
+                "chat_tools",
+                self.client.chat.completions.create,
+                {"model": "gpt-test", "messages": messages,
+                 "tools": [{"description": "John Smith"}]},
+            ),
+            (
+                "embedding_user",
+                self.client.embeddings.create,
+                {"model": "text-embedding-3-large", "input": "STEN 8",
+                 "user": "anna@example.se"},
+            ),
+            (
+                "embedding_extra_headers",
+                self.client.embeddings.create,
+                {"model": "text-embedding-3-large", "input": "STEN 8",
+                 "extra_headers": {"X-Name": "Anna Svensson"}},
+            ),
+            (
+                "responses_metadata",
+                self.client.responses.create,
+                {"model": "gpt-test", "input": "STEN 8",
+                 "metadata": {"candidate": "John Smith"}},
+            ),
+            (
+                "responses_extra_query",
+                self.client.responses.create,
+                {"model": "gpt-test", "input": "STEN 8",
+                 "extra_query": {"candidate": "Anna Svensson"}},
+            ),
+        ]
+        for label, create, kwargs in attempts:
+            with self.subTest(label=label):
+                with self.assertRaises(PrivacySanitizationError) as caught:
+                    create(**kwargs)
+                self.assertNotIn("Anna Svensson", str(caught.exception))
+                self.assertNotIn("John Smith", str(caught.exception))
+                self.assertNotIn("anna@example.se", str(caught.exception))
+        self.raw_client.chat.completions.create.assert_not_called()
+        self.raw_client.embeddings.create.assert_not_called()
+        self.raw_client.responses.create.assert_not_called()
+
+    def test_chat_allows_currently_reviewed_response_options(self):
+        self.client.chat.completions.create(
+            model="gpt-test",
+            messages=[{"role": "user", "content": "STEN 8"}],
+            temperature=0.2,
+            stream=False,
+            max_completion_tokens=200,
+            response_format={"type": "json_object"},
+        )
+        kwargs = self.raw_client.chat.completions.create.call_args.kwargs
+        self.assertEqual(kwargs["response_format"], {"type": "json_object"})
+        self.assertEqual(kwargs["max_completion_tokens"], 200)
+
+    def test_schema_response_format_requires_separate_security_review(self):
+        with self.assertRaises(PrivacySanitizationError):
+            self.client.chat.completions.create(
+                model="gpt-test",
+                messages=[{"role": "user", "content": "STEN 8"}],
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {"description": "Anna Svensson"},
+                },
+            )
+        self.raw_client.chat.completions.create.assert_not_called()
+
     def test_sanitizer_failure_never_reaches_any_api(self):
         with patch(
             "apps.core.ai.openai_client.sanitize_ai_payload",
