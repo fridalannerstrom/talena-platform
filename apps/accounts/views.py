@@ -1494,19 +1494,12 @@ def build_candidate_detail_context(process, invitation):
     candidate_insights_mode = "general"
     report_mode = "general"
 
-    print("=== FLEXIBLE INSIGHTS DEBUG ===")
-    print("PROCESS PURPOSE:", process.purpose)
-    print("HAS ANY RESULTS:", has_any_results)
 
     # ------------------------------------------------------------
     # Flexible process: generate real general AI insights
     # ------------------------------------------------------------
-    print("BEFORE FLEXIBLE AI BLOCK")
-    print("PURPOSE:", process.purpose)
-    print("HAS RESULTS:", has_any_results)
 
     if process.purpose == "flexible" and has_any_results:
-        print("ENTERED FLEXIBLE AI BLOCK")
 
         try:
             generated_insights = generate_general_candidate_insights(
@@ -1519,13 +1512,11 @@ def build_candidate_detail_context(process, invitation):
 
             candidate_insights = generated_insights
 
-            print("AI INSIGHTS GENERATED SUCCESSFULLY")
 
         except Exception as exc:
             # Never write provider exception bodies or prompt text to logs.
-            print("GENERAL CANDIDATE INSIGHTS ERROR:", type(exc).__name__)
+            pass  # Preserve the existing safe fallback without logging provider details.
 
-    print("AFTER FLEXIBLE AI BLOCK")
 
     from apps.candidate_results.models import CandidateResultSnapshot
 
