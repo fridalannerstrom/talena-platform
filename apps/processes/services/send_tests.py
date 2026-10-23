@@ -11,6 +11,7 @@ from apps.emails.models import EmailLog, EmailTemplate
 from apps.emails.utils import (
     format_assessment_names,
     get_default_invitation_template,
+    upgrade_legacy_default_invitation_template,
     render_placeholders,
 )
 from apps.processes.services.assessment_usage import (
@@ -194,6 +195,9 @@ def send_assessments_and_emails(*, process, invitations, actor_user, context="cu
                 )
                 .first()
             )
+
+            if template:
+                upgrade_legacy_default_invitation_template(template)
 
             default_template = get_default_invitation_template(lang)
 

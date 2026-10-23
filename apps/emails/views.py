@@ -2,11 +2,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.utils.translation import gettext as _
-from django.utils.translation import override
 
 from apps.processes.models import TestProcess
 from .models import EmailTemplate
 from .forms import EmailTemplateForm
+from .utils import (
+    get_default_invitation_template,
+    upgrade_legacy_default_invitation_template,
+)
 
 from urllib.parse import urlparse
 from django.http import HttpResponseRedirect
@@ -21,83 +24,6 @@ from apps.accounts.utils.org_access import get_company_for_user
 from apps.accounts.utils.org_access import user_can_edit_process
 
 from apps.processes.purpose_context_config import get_purpose_context_config
-
-
-# Talena invitation email template i18n batch 1
-LEGACY_DEFAULT_INVITATION_TEMPLATES = (
-    {
-        "subject": "Invitation to assessment process",
-        "body": (
-            "Hi {first_name},\n\n"
-            "You have been invited to complete assessments for "
-            "{process_name}.\n\n"
-            "Click the link below to start:\n"
-            "{assessment_url}\n\n"
-            "Best regards,\n"
-            "{sender_full_name}"
-        ),
-    },
-    {
-        "subject": "Inbjudan till testprocess",
-        "body": (
-            "Hej {first_name},\n\n"
-            "Du har blivit inbjuden att genomföra tester för "
-            "{process_name}.\n\n"
-            "Klicka på länken nedan för att börja:\n"
-            "{assessment_url}\n\n"
-            "Vänliga hälsningar,\n"
-            "{sender_full_name}"
-        ),
-    },
-)
-
-def get_default_invitation_template(
-    language_code="sv",
-):
-    with override(language_code):
-        return {
-            "subject": _(
-                "Invitation to assessment process"
-            ),
-            "body": _(
-                "Hi {first_name},\n\n"
-                "You have been invited to complete assessments.\n\n"
-                "Click the link below to start:\n"
-                "{assessment_url}\n\n"
-                "Best regards,\n"
-                "{sender_full_name}"
-            ),
-        }
-
-
-def upgrade_legacy_default_invitation_template(
-    template,
-):
-    is_legacy_default = any(
-        template.subject == legacy["subject"]
-        and template.body == legacy["body"]
-        for legacy in LEGACY_DEFAULT_INVITATION_TEMPLATES
-    )
-
-    if not is_legacy_default:
-        return False
-
-    defaults = get_default_invitation_template(
-        template.language or "sv"
-    )
-
-    template.subject = defaults["subject"]
-    template.body = defaults["body"]
-
-    template.save(
-        update_fields=[
-            "subject",
-            "body",
-            "updated_at",
-        ]
-    )
-
-    return True
 
 
 @login_required
