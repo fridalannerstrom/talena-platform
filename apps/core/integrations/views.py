@@ -79,10 +79,10 @@ def _extract_sova_reports(payload):
 
 @csrf_exempt
 def sova_ingest(request):
-    print("🚨🚨🚨 INGEST HIT 🚨🚨🚨", request.path)
-    print("=" * 80)
-    print("🚨 sova_ingest CALLED!")
-    print("=" * 80)
+    pass  # Never print candidate or provider data.
+    pass  # Never print candidate or provider data.
+    pass  # Never print candidate or provider data.
+    pass  # Never print candidate or provider data.
 
     logger.info(
         "SOVA webhook received: path=%s secret_present=%s",
@@ -161,12 +161,7 @@ def sova_ingest(request):
     
     has_phase_hint = bool(current_phase_code) or (current_phase_idx is not None)
 
-    print("🧠 Status fields:", {
-        "overall_status_raw": overall_raw,
-        "overall_status_norm": overall,
-        "current_phase_code": current_phase_code,
-        "current_phase_idx": current_phase_idx,
-    })
+    pass  # Never print candidate or provider data.
     
     # ✅ Hitta invitation
     invitation = None
@@ -188,7 +183,7 @@ def sova_ingest(request):
         ).first()
 
     if not invitation:
-        print("⚠️ No matching invitation found")
+        pass  # Never print candidate or provider data.
         return JsonResponse(
             {
                 "status": "ignored",
@@ -197,7 +192,7 @@ def sova_ingest(request):
             status=200,
         )
 
-    print(f"✅ Found invitation: {invitation.id}")
+    pass  # Never print candidate or provider data.
 
     old_status = invitation.status
     observed_at = timezone.now()
@@ -324,7 +319,7 @@ def sova_ingest(request):
     # ✅ Spara overall_status och andra SOVA-fält
     if overall_raw:
         invitation.sova_overall_status = overall_raw.strip()
-        print(f"✅ Saving overall_status: '{overall_raw}' to invitation {invitation.id}")
+        pass  # Never print candidate or provider data.
     
     invitation.sova_current_phase_code = current_phase_code
     invitation.sova_current_phase_idx = current_phase_idx
@@ -334,11 +329,7 @@ def sova_ingest(request):
         "sova_current_phase_idx"
     ])
     
-    print("✅ Saved SOVA fields:", {
-        "sova_overall_status": invitation.sova_overall_status,
-        "sova_current_phase_code": invitation.sova_current_phase_code,
-        "sova_current_phase_idx": invitation.sova_current_phase_idx,
-    })
+    pass  # Never print candidate or provider data.
 
     # ✅ Talena status mapping
     OVERALL_COMPLETED = {"completed", "pass", "fail", "refer"}
@@ -357,7 +348,7 @@ def sova_ingest(request):
         normalized = ""
         reason = f"no mapping hit (overall={overall})"
     
-    print("🧠 Normalized status:", normalized, "| reason:", reason)
+    pass  # Never print candidate or provider data.
     
     # ✅ Update invitation lifecycle status
 
@@ -388,10 +379,7 @@ def sova_ingest(request):
             )
 
         if status_changed:
-            print(
-                "✅ Updated invitation to STARTED: "
-                f"{invitation.id}"
-            )
+            pass  # Never print candidate or provider data.
 
             log_event(
                 company=invitation.process.company,
@@ -407,10 +395,7 @@ def sova_ingest(request):
                 },
             )
         else:
-            print(
-                "ℹ️ Skip STARTED status update "
-                f"(already {invitation.status})"
-            )
+            pass  # Never print candidate or provider data.
 
     elif normalized == "completed":
         update_fields = []
@@ -444,10 +429,7 @@ def sova_ingest(request):
             )
 
         if status_changed:
-            print(
-                "✅ Updated invitation to COMPLETED: "
-                f"{invitation.id}"
-            )
+            pass  # Never print candidate or provider data.
 
             log_event(
                 company=invitation.process.company,
@@ -463,22 +445,16 @@ def sova_ingest(request):
                 },
             )
         else:
-            print(
-                "ℹ️ Skip COMPLETED status update "
-                "(already completed)"
-            )
+            pass  # Never print candidate or provider data.
 
     else:
-        print(
-            "ℹ️ Nothing to update for "
-            "invitation status."
-        )
+        pass  # Never print candidate or provider data.
 
     # ✅ Results: spara om payload har project_results
     if isinstance(payload.get("project_results"), dict):
         invitation.project_results = payload.get("project_results")
         invitation.save(update_fields=["project_results"])
-        print("✅ Saved project_results")
+        pass  # Never print candidate or provider data.
 
     # ✅ Hämta overall_score från API (bara om completed)
     if normalized == "completed" and invitation.sova_project_id and invitation.request_id:
@@ -492,7 +468,7 @@ def sova_ingest(request):
             if match:
                 invitation.overall_score = match.get("overall_score")
                 invitation.save(update_fields=["overall_score"])
-                print(f"✅ Saved overall_score from API: {invitation.overall_score}")
+                pass  # Never print candidate or provider data.
             else:
                 logger.warning("SOVA project-candidates had no matching request")
         except Exception as e:
