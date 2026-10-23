@@ -118,8 +118,12 @@ def extract_tests_from_project_name(project_name):
     Supports:
     - English names
     - Swedish names
-    - PQ and MQ abbreviations
+    - Sova's exact PQ / MQ / V / L / N abbreviations
     - Common separators such as +, /, -, _ and |
+
+    A one-letter abbreviation is matched as a whole token, never within
+    longer words (e.g. N in "Numerical"). This is important for Sova's
+    31 Modern Projects combinations.
     """
     name = str(project_name or "").strip().lower()
 
@@ -176,9 +180,14 @@ TEST_ALIASES = {
     "numerisk": "numerical",
     "numerisk förmåga": "numerical",
 
-    # Possible abbreviations
+    # Sova Modern Projects uses these exact shortcodes in project names:
+    # PQ + MQ + V + L + N (any subset, any order).
+    # extract_tests_from_project_name uses word boundaries for these aliases.
     "pq": "personality",
     "mq": "motivation",
+    "v": "verbal",
+    "l": "logical",
+    "n": "numerical",
 }
 
 
