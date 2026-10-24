@@ -8,6 +8,7 @@ on:
       - "apps/core/ai/pii_sanitizer.py"
       - "apps/core/test_ai_local_ner_contract.py"
       - "scripts/benchmark_ner.py"
+      - "scripts/benchmark_ner_extended.py"
       - ".github/workflows/ner-model-evaluation.yml"
   workflow_dispatch:
 
@@ -48,3 +49,10 @@ jobs:
           TALENA_PII_MASK_ORGANIZATIONS: "0"
           TALENA_PII_MASK_LOCATIONS: "0"
         run: python scripts/benchmark_ner.py
+      - name: Expanded synthetic Swedish/English and long-prompt QA
+        env:
+          TALENA_PII_NER_SV_MODEL: sv_core_news_sm
+          TALENA_PII_NER_EN_MODEL: en_core_web_sm
+          TALENA_PII_MASK_ORGANIZATIONS: "0"
+          TALENA_PII_MASK_LOCATIONS: "0"
+        run: python scripts/benchmark_ner_extended.py
