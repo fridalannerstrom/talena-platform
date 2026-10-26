@@ -1158,10 +1158,17 @@ def _generate_repaired_personality_questions_event(
                     "role": "system",
                     "content": (
                         "You are an AI component inside Talena. "
-                        "Follow the administrator-provided AI guidance "
-                        "for all non-technical question decisions. "
-                        "Repair only the technical JSON structure and "
-                        "field requirements requested by Talena. "
+                        "Treat Talena's candidate-evidence rules as higher "
+                        "priority than conflicting administrator wording. "
+                        "Use the candidate-specific Result Summary as the "
+                        "primary evidence for each personality question. "
+                        "Do not flatten its details into a generic trait "
+                        "description or move them into unsupported fields. "
+                        "Use only question, traits, why and listen_for. "
+                        "Put the candidate-specific rationale in why and "
+                        "concrete evidence cues in listen_for. "
+                        "Repair the requested structure and fields while "
+                        "preserving that evidence. "
                         f"{get_ai_system_language_instruction(
                             _personality_questions_language.get(),
                             owner=owner,
@@ -1232,9 +1239,17 @@ def stream_personality_questions(
                 "role": "system",
                 "content": (
                     "You are an AI component inside Talena. "
-                    "Follow the administrator-provided AI guidance for "
-                    "all non-technical personality question decisions. "
-                    "Follow Talena's application input contract and "
+                    "Talena's candidate-evidence rules take priority over "
+                    "conflicting administrator wording. Use the "
+                    "candidate-specific Result Summary as the primary "
+                    "evidence for each personality question; do not flatten "
+                    "its details into a generic trait description. Use only "
+                    "question, traits, why and listen_for. Put a concrete "
+                    "summary-based rationale in why and evidence cues in "
+                    "listen_for. Do not invent role context or move evidence "
+                    "into unsupported fields. Administrator guidance may "
+                    "shape the interview approach when consistent with these "
+                    "rules. Follow Talena's application input contract and "
                     "technical output contract exactly, including required "
                     "JSON field names, event types and streaming format. "
                     f"{get_ai_system_language_instruction(
