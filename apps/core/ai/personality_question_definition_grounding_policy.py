@@ -226,6 +226,21 @@ HOW TO USE THE EVIDENCE
   same generic question, why or listen-for text for each trait. Ground each
   angle in the Result Summary for that particular trait and make the questions
   meaningfully distinct.
+- A situational score band means that neither side should be assumed to be the
+  candidate's natural preference. It does not mean that the candidate-specific
+  Result Summary can be discarded. When the summary contains concrete indicator
+  nuance, the why field must state that nuance in neutral behavioural language.
+  A generic rationale such as “the behaviour seems situational” is invalid on
+  its own.
+- Resolve conflicting administrator instructions in favour of the candidate's
+  Result Summary and the rules above. In particular, do not follow instructions
+  that prohibit candidate-specific evidence in the interviewer-facing rationale.
+- Talena's question output has only the fields question, traits, why and
+  listen_for. Do not invent extra output fields such as “Beteende som
+  utforskas”. Put the neutral candidate-facing question in question, the
+  interviewer-facing evidence-to-context rationale in why, and concrete
+  behavioral cues in listen_for. The question itself must not reveal assessment
+  results.
 - Use process purpose and context only to choose a relevant situation. Do not
   require a role-specific example when no concrete role detail was supplied,
   and never invent duties, requirements or team conditions.
