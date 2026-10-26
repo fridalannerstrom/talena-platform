@@ -16,7 +16,7 @@ assert.notEqual(end, -1, "final output refresh function ends before its script t
 const functionSource = template.slice(start, end + 2);
 
 function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewPanel = true, language = "sv" } = {}) {
-  const calls = { errors: [] };
+  const calls = { errors: [], order: [] };
   const actionButton = {};
   const currentSelectedTab = {
     dataset: { afterInterviewTab: "managerReport" },
@@ -28,13 +28,35 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
   };
   const refreshedSelectedTab = {
     dataset: { afterInterviewTab: "managerReport" },
-    focus(options) { calls.focus = options; },
+    focus(options) { calls.focus = options; calls.order.push("focus"); },
   };
   const currentAfterInterviewPanel = {};
   const refreshedAfterInterviewPanel = {};
+  const insightsTab = {
+    dataset: { insightsTab: "after-interview" },
+    click() {
+      calls.outerTabReactivated = Boolean(calls.replacedWith);
+      calls.order.push("outer-tab");
+    },
+  };
+  const insightsWorkspace = {
+    querySelector(selector) {
+      return selector.includes(".candidate-profile-tabs")
+        && selector.includes(".is-active")
+        ? insightsTab
+        : null;
+    },
+    querySelectorAll(selector) {
+      return selector.includes(".candidate-profile-tabs")
+        ? [insightsTab]
+        : [];
+    },
+  };
 
   const currentRoot = {
     dataset: { refreshUrl: "/candidate/final-output/refresh/" },
+    closest: selector =>
+      selector === "[data-candidate-insights-workspace]" ? insightsWorkspace : null,
     querySelector(selector) {
       if (selector.includes("data-after-interview-tab")) return currentSelectedTab;
       if (selector.includes("data-insights-panel")) return currentAfterInterviewPanel;
@@ -75,6 +97,7 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
     initAfterInterviewTabs(root) {
       calls.initialized = root;
       calls.activeTabAtInitialization = new URL(window.location.href).searchParams.get("afterTab");
+      calls.order.push("inner-init");
     },
   };
   const context = {
@@ -101,8 +124,10 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
     const { refresh, currentRoot, refreshedRoot, calls } = createHarness({ language });
     await refresh({ querySelector: () => currentRoot });
     assert.equal(calls.replacedWith, refreshedRoot, "replace the old root with the validated response");
-    assert.equal(calls.initialized, refreshedRoot, "initialize the replacement before paint");
+    assert.equal(calls.outerTabReactivated, true, "reapply the active outer After interview tab after replacement");
+    assert.equal(calls.initialized, refreshedRoot, "initialize the inner interview tabs before paint");
     assert.equal(calls.activeTabAtInitialization, "managerReport", "rebuild the same active report tab");
+    assert.equal(calls.order.join(","), "outer-tab,inner-init,focus", "restore the outer panel before the inner tab and focus");
     assert.equal(new URL(calls.url).searchParams.get("language"), language, "preserve other URL state");
     assert.equal(new URL(calls.url).searchParams.get("afterTab"), "managerReport");
     assert.equal(calls.focus?.preventScroll, true, "restore focus to the active report tab");
@@ -117,6 +142,7 @@ function createHarness({ responseOk = true, validRoot = true, hasAfterInterviewP
     const bad = createHarness(options);
     await bad.refresh({ querySelector: () => bad.currentRoot });
     assert.equal(bad.calls.replacedWith, undefined, "keep the current report when the refresh response is invalid or incomplete");
+    assert.equal(bad.calls.outerTabReactivated, undefined, "do not switch tabs when refresh failed");
     assert.equal(bad.calls.initialized, undefined, "do not initialize a failed refresh");
     assert.equal(bad.calls.errors.length, 1, "record the failed refresh for diagnostics");
   }
