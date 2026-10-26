@@ -206,14 +206,27 @@ HOW TO USE THE EVIDENCE
 - The Result Summary determines the candidate-specific behavioural hypothesis.
 - Process context determines the concrete situation in which that hypothesis is
   useful to explore.
-- Administrator guidance remains authoritative for question style, wording,
-  interview method, tone, question count, why/listen-for content and other
-  non-technical behaviour.
+- Administrator guidance controls the interview method, tone, output
+  structure and question count, as long as it does not conflict with the
+  evidence and neutrality requirements in this section.
+- The Result Summary is the primary evidence for the personality angle of each
+  question. Generic trait definitions, low/high poles and the role prompt must
+  not replace or reinterpret its candidate-specific nuance.
+- Do not assume that the opposite side of a trait is less natural or must be
+  explored. Use that angle only when the candidate's Result Summary and supplied
+  context support it. For a nuanced or situational result, explore what changes
+  the candidate's approach across situations without inventing a fixed
+  preference.
+- Use process purpose and context only to choose a relevant situation. Do not
+  require a role-specific example when no concrete role detail was supplied,
+  and never invent duties, requirements or team conditions.
 - Do not mechanically repeat the Result Summary. Translate its specific nuance
   into a neutral behavioural question that can confirm, nuance or contradict
   the assessment indication.
-- Do not expose raw assessment values or explain scale mechanics to the
-  candidate.
+- Keep the candidate-facing question free of test scores and assessment
+  language. The interviewer-facing why/listen-for fields may explain the
+  candidate-specific hypothesis and why it is useful to explore, in neutral
+  terms; do not omit that evidence in a way that makes the rationale generic.
 - If level terminology is needed, STEN 4–7 is described as situational, but do
   not reduce a richer candidate description to the single word situational.
 - Trait labels in technical output must still follow Talena's technical label
