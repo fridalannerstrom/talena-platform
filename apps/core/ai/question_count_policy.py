@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from functools import wraps
 from inspect import signature
 from typing import Any, Callable, Iterable
 
+
+logger = logging.getLogger(__name__)
 
 _INSTALLED = False
 _MAX_GENERATION_ATTEMPTS = 3
@@ -210,6 +213,17 @@ def _personality_fallback(
     if language_context is not None:
         token = language_context.set(language_code)
 
+    target_count = _target_question_count("personality")
+    initial_questions = _question_items(events)
+    initial_count = len(initial_questions)
+    initial_labels_valid = _personality_questions_have_valid_labels(
+        initial_questions,
+        selected_traits,
+    )
+    repair_count: int | None = None
+    repair_labels_valid: bool | None = None
+    repair_error_type: str | None = None
+
     try:
         # A valid question event can still contain the wrong number of items.
         # Give the model one focused repair opportunity with the selected traits
@@ -234,28 +248,60 @@ def _personality_fallback(
                     if isinstance(item, dict)
                     and str(item.get("question") or "").strip()
                 ]
+                repair_count = len(repaired_questions)
+                repair_labels_valid = _personality_questions_have_valid_labels(
+                    repaired_questions,
+                    selected_traits,
+                )
                 if (
                     repaired_event.get("type") == "questions"
-                    and len(repaired_questions)
-                    == _target_question_count("personality")
-                    and _personality_questions_have_valid_labels(
-                        repaired_questions,
-                        selected_traits,
-                    )
+                    and repair_count == target_count
+                    and repair_labels_valid
                 ):
                     return repaired_questions
-            except Exception:
-                # Keep the existing deterministic fallback as the last resort.
-                pass
+            except Exception as exc:
+                repair_error_type = type(exc).__name__
 
         is_competency_selection = any(
             str(item or "").strip().casefold().startswith("competency::")
             for item in selected_traits
         )
         if not is_competency_selection:
+            logger.warning(
+                "Personality question generation failed validation after "
+                "focused repair: target_count=%s initial_count=%s "
+                "initial_labels_valid=%s repair_count=%s "
+                "repair_labels_valid=%s selected_trait_count=%s "
+                "repair_error_type=%s",
+                target_count,
+                initial_count,
+                initial_labels_valid,
+                repair_count,
+                repair_labels_valid,
+                len(selected_traits),
+                repair_error_type,
+            )
+            initial_label_status = (
+                "valid" if initial_labels_valid else "invalid"
+            )
+            repair_count_status = (
+                str(repair_count)
+                if repair_count is not None
+                else "no valid response"
+            )
+            repair_label_status = (
+                "valid"
+                if repair_labels_valid
+                else "invalid"
+                if repair_labels_valid is False
+                else "not checked"
+            )
             raise ValueError(
-                "Personality question generation did not produce the required "
-                "question count and valid focus labels after focused repair. "
+                "Personality question generation failed validation. "
+                f"Initial output: {initial_count}/{target_count} questions, "
+                f"focus labels {initial_label_status}. "
+                f"Focused repair: {repair_count_status}/{target_count} "
+                f"questions, focus labels {repair_label_status}. "
                 "Generic parent-trait fallback questions are disabled."
             )
 
