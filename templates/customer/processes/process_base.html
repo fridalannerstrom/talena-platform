@@ -4752,6 +4752,15 @@ async function refreshCandidateFinalOutput(
     return;
   }
 
+  const insightsWorkspace = currentRoot.closest(
+    "[data-candidate-insights-workspace]"
+  );
+  const selectedInsightsTab = insightsWorkspace?.querySelector(
+    ".candidate-profile-tabs [data-insights-tab].is-active"
+  );
+  const selectedInsightsTabKey =
+    selectedInsightsTab?.dataset.insightsTab || "";
+
   const selectedTabButton = currentRoot.querySelector(
     '#candidate-insights-panel-after-interview [data-after-interview-tab][aria-selected="true"]'
   );
@@ -4832,6 +4841,19 @@ async function refreshCandidateFinalOutput(
     currentRoot.replaceWith(
       newRoot
     );
+
+    // Reapply the selected outer insights tab so the new nested panel receives
+    // its visible/hidden state before the browser paints the replacement.
+    if (selectedInsightsTabKey && insightsWorkspace) {
+      const refreshedInsightsTab = [
+        ...insightsWorkspace.querySelectorAll(
+          ".candidate-profile-tabs [data-insights-tab]"
+        ),
+      ].find(
+        (tab) => tab.dataset.insightsTab === selectedInsightsTabKey
+      );
+      refreshedInsightsTab?.click();
+    }
 
     // Build dynamic tabs synchronously before the browser paints the replacement.
     // The mutation observer remains a fallback for older or mirrored views.
