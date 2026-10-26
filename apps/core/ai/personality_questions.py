@@ -625,11 +625,22 @@ def _normalise_personality_questions(
     if not isinstance(items, list):
         return []
 
-    trait_lookup = {
-        str(trait).strip().lower(): str(trait).strip()
-        for trait in selected_traits or []
-        if str(trait).strip()
-    }
+    from .personality_ai_evidence import canonical_parent_trait_name
+
+    trait_lookup = {}
+    canonical_trait_lookup = {}
+
+    for raw_trait in selected_traits or []:
+        selected_trait = str(raw_trait or "").strip()
+        if not selected_trait:
+            continue
+
+        trait_lookup[_normalise_trait_key(selected_trait)] = selected_trait
+        canonical_name = canonical_parent_trait_name(selected_trait)
+        if canonical_name:
+            canonical_trait_lookup[
+                _normalise_trait_key(canonical_name)
+            ] = selected_trait
 
     questions = []
 
@@ -660,14 +671,16 @@ def _normalise_personality_questions(
 
         if isinstance(raw_traits, list):
             for raw_trait in raw_traits:
-                trait_key = str(
-                    raw_trait
-                    or ""
-                ).strip().lower()
+                raw_trait_name = str(raw_trait or "").strip()
+                trait_key = _normalise_trait_key(raw_trait_name)
 
-                canonical_trait = trait_lookup.get(
-                    trait_key
-                )
+                canonical_trait = trait_lookup.get(trait_key)
+                if not canonical_trait:
+                    canonical_name = canonical_parent_trait_name(raw_trait_name)
+                    if canonical_name:
+                        canonical_trait = canonical_trait_lookup.get(
+                            _normalise_trait_key(canonical_name)
+                        )
 
                 if (
                     canonical_trait
