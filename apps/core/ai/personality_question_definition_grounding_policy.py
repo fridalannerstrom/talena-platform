@@ -217,6 +217,15 @@ HOW TO USE THE EVIDENCE
   context support it. For a nuanced or situational result, explore what changes
   the candidate's approach across situations without inventing a fixed
   preference.
+- Treat “situational” as a short description of a score band, not as a
+  replacement for the candidate's Result Summary. If that summary contains
+  specific indicator nuance, use that nuance to shape the question and explain
+  its relevance in the interviewer-facing why field. A why that only says the
+  behaviour is situational is too generic.
+- When several selected traits fall in the situational band, do not reuse the
+  same generic question, why or listen-for text for each trait. Ground each
+  angle in the Result Summary for that particular trait and make the questions
+  meaningfully distinct.
 - Use process purpose and context only to choose a relevant situation. Do not
   require a role-specific example when no concrete role detail was supplied,
   and never invent duties, requirements or team conditions.
