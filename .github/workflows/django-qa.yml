@@ -32,6 +32,8 @@ jobs:
         run: python manage.py makemigrations processes candidate_results --check --dry-run
       - name: Verify privacy warning for blocked interview note saves
         run: node scripts/test_interview_note_pii_save.js
+      - name: Verify After interview final output refresh state
+        run: node scripts/test_after_interview_final_output_refresh.js
       - name: Run focused candidate result, interview, project pin, and account invite tests
         env:
           DJANGO_DEBUG: 'True'
