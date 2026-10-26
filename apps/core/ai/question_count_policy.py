@@ -183,6 +183,39 @@ def _personality_fallback(
         token = language_context.set(language_code)
 
     try:
+        # A valid question event can still contain the wrong number of items.
+        # Give the model one focused repair opportunity with the selected traits
+        # and the same admin guidance before silently replacing its work with
+        # deterministic fallback questions.
+        repair_builder = getattr(
+            module,
+            "_generate_repaired_personality_questions_event",
+            None,
+        )
+        if callable(repair_builder) and owner is not None:
+            try:
+                repaired_event = repair_builder(
+                    owner=owner,
+                    personality_results=personality_results,
+                    selected_traits=selected_traits,
+                )
+                repaired_items = repaired_event.get("items")
+                repaired_questions = [
+                    item
+                    for item in repaired_items or []
+                    if isinstance(item, dict)
+                    and str(item.get("question") or "").strip()
+                ]
+                if (
+                    repaired_event.get("type") == "questions"
+                    and len(repaired_questions)
+                    == _target_question_count("personality")
+                ):
+                    return repaired_questions
+            except Exception:
+                # Keep the existing deterministic fallback as the last resort.
+                pass
+
         fallback_builder = module._build_safe_personality_questions_event
         fallback_kwargs = {
             "selected_traits": selected_traits,
@@ -229,7 +262,16 @@ def _install_stream_rule(
         last_events: list[dict[str, Any]] = []
         last_error: Exception | None = None
 
-        for _attempt in range(_MAX_GENERATION_ATTEMPTS):
+        # Reserve one request for a focused exact-count repair on personality
+        # questions. This keeps the total request budget the same while giving a
+        # count-mismatch response a chance to retain candidate-specific content.
+        max_attempts = (
+            max(1, _MAX_GENERATION_ATTEMPTS - 1)
+            if feature == "personality"
+            else _MAX_GENERATION_ATTEMPTS
+        )
+
+        for _attempt in range(max_attempts):
             try:
                 events = _generate_events(
                     original_stream,
