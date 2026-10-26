@@ -19,6 +19,9 @@ This is a protected product requirement.
 - Every generated personality question must contain at least one valid item in
   its traits array.
 - Every value in traits must exactly match one of the selected_traits values.
+- The traits field is machine-readable metadata. Copy the selected_traits value
+  exactly; do not translate, paraphrase or localize it, even when the output
+  language differs.
 - The traits array must identify the personality trait or competency the actual
   question is primarily exploring. Never leave traits empty for a substantive
   question.
