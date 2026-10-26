@@ -148,6 +148,34 @@ def _generate_events(
     ]
 
 
+def _personality_questions_have_valid_labels(
+    questions: list[dict[str, Any]],
+    selected_traits: list[str],
+) -> bool:
+    """Require every repaired question to reference a selected focus label."""
+
+    selected_keys = {
+        str(item or "").strip().casefold()
+        for item in selected_traits or []
+        if str(item or "").strip()
+    }
+    if not selected_keys or not questions:
+        return False
+
+    for question in questions:
+        traits = question.get("traits")
+        if not isinstance(traits, list):
+            return False
+        if not any(
+            str(item or "").strip().casefold() in selected_keys
+            for item in traits
+            if str(item or "").strip()
+        ):
+            return False
+
+    return True
+
+
 def _personality_fallback(
     module,
     events: list[dict[str, Any]],
@@ -210,6 +238,10 @@ def _personality_fallback(
                     repaired_event.get("type") == "questions"
                     and len(repaired_questions)
                     == _target_question_count("personality")
+                    and _personality_questions_have_valid_labels(
+                        repaired_questions,
+                        selected_traits,
+                    )
                 ):
                     return repaired_questions
             except Exception:
