@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from functools import wraps
 from inspect import signature
 from typing import Any, Callable, Iterable
 
+
+logger = logging.getLogger(__name__)
 
 _INSTALLED = False
 _MAX_GENERATION_ATTEMPTS = 3
@@ -148,6 +151,34 @@ def _generate_events(
     ]
 
 
+def _personality_questions_have_valid_labels(
+    questions: list[dict[str, Any]],
+    selected_traits: list[str],
+) -> bool:
+    """Require every repaired question to reference a selected focus label."""
+
+    selected_keys = {
+        str(item or "").strip().casefold()
+        for item in selected_traits or []
+        if str(item or "").strip()
+    }
+    if not selected_keys or not questions:
+        return False
+
+    for question in questions:
+        traits = question.get("traits")
+        if not isinstance(traits, list):
+            return False
+        if not any(
+            str(item or "").strip().casefold() in selected_keys
+            for item in traits
+            if str(item or "").strip()
+        ):
+            return False
+
+    return True
+
+
 def _personality_fallback(
     module,
     events: list[dict[str, Any]],
@@ -182,7 +213,90 @@ def _personality_fallback(
     if language_context is not None:
         token = language_context.set(language_code)
 
+    target_count = _target_question_count("personality")
+    initial_questions = _question_items(events)
+    initial_count = len(initial_questions)
+    initial_labels_valid = _personality_questions_have_valid_labels(
+        initial_questions,
+        selected_traits,
+    )
+    repair_count: int | None = None
+    repair_labels_valid: bool | None = None
+    repair_error_type: str | None = None
+
     try:
+        # A valid question event can still contain the wrong number of items.
+        # Give the model one focused repair opportunity with the selected traits
+        # and the same admin guidance before silently replacing its work with
+        # deterministic fallback questions.
+        repair_builder = getattr(
+            module,
+            "_generate_repaired_personality_questions_event",
+            None,
+        )
+        if callable(repair_builder) and owner is not None:
+            try:
+                repaired_event = repair_builder(
+                    owner=owner,
+                    personality_results=personality_results,
+                    selected_traits=selected_traits,
+                )
+                repaired_items = repaired_event.get("items")
+                repaired_questions = [
+                    item
+                    for item in repaired_items or []
+                    if isinstance(item, dict)
+                    and str(item.get("question") or "").strip()
+                ]
+                repair_count = len(repaired_questions)
+                repair_labels_valid = _personality_questions_have_valid_labels(
+                    repaired_questions,
+                    selected_traits,
+                )
+                if (
+                    repaired_event.get("type") == "questions"
+                    and repair_count == target_count
+                ):
+                    # A missing or unusable focus label is metadata debt, not a
+                    # reason to discard otherwise complete candidate-grounded
+                    # questions. Keep exact-count output; valid labels are
+                    # preserved by the normalizer when available.
+                    return repaired_questions
+            except Exception as exc:
+                repair_error_type = type(exc).__name__
+
+        is_competency_selection = any(
+            str(item or "").strip().casefold().startswith("competency::")
+            for item in selected_traits
+        )
+        if not is_competency_selection:
+            logger.warning(
+                "Personality question generation failed validation after "
+                "focused repair: target_count=%s initial_count=%s "
+                "initial_labels_valid=%s repair_count=%s "
+                "repair_labels_valid=%s selected_trait_count=%s "
+                "repair_error_type=%s",
+                target_count,
+                initial_count,
+                initial_labels_valid,
+                repair_count,
+                repair_labels_valid,
+                len(selected_traits),
+                repair_error_type,
+            )
+            repair_count_status = (
+                str(repair_count)
+                if repair_count is not None
+                else "no valid response"
+            )
+            raise ValueError(
+                "Personality question generation failed to produce the "
+                "required number of questions. "
+                f"Initial output: {initial_count}/{target_count} questions. "
+                f"Focused repair: {repair_count_status}/{target_count} "
+                "questions. Generic parent-trait fallback questions are disabled."
+            )
+
         fallback_builder = module._build_safe_personality_questions_event
         fallback_kwargs = {
             "selected_traits": selected_traits,
@@ -229,7 +343,16 @@ def _install_stream_rule(
         last_events: list[dict[str, Any]] = []
         last_error: Exception | None = None
 
-        for _attempt in range(_MAX_GENERATION_ATTEMPTS):
+        # Reserve one request for a focused exact-count repair on personality
+        # questions. This keeps the total request budget the same while giving a
+        # count-mismatch response a chance to retain candidate-specific content.
+        max_attempts = (
+            max(1, _MAX_GENERATION_ATTEMPTS - 1)
+            if feature == "personality"
+            else _MAX_GENERATION_ATTEMPTS
+        )
+
+        for _attempt in range(max_attempts):
             try:
                 events = _generate_events(
                     original_stream,

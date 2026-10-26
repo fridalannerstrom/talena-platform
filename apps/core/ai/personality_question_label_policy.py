@@ -16,19 +16,19 @@ TALENA PERSONALITY QUESTION LABEL CONTRACT
 This is a protected product requirement.
 
 - The application supports up to {MAX_PERSONALITY_TRAITS} selected personality traits.
-- Every generated personality question must contain at least one valid item in
-  its traits array.
-- Every value in traits must exactly match one of the selected_traits values.
-- The traits array must identify the personality trait or competency the actual
-  question is primarily exploring. Never leave traits empty for a substantive
-  question.
-- If fewer traits than questions are selected, selected traits may be reused
-  across questions when different behavioural aspects are explored.
+- Every generated personality question must contain a traits array.
+- When a question clearly explores one or more selected traits, copy the
+  selected_traits value exactly; do not translate, paraphrase or localize it,
+  even when the output language differs.
+- If the question cannot be mapped reliably to a selected trait, use an empty
+  array rather than guessing.
+- Missing or unusable trait labels are metadata gaps. They must never invalidate
+  or replace an otherwise complete candidate-grounded question.
+- When the mapping is clear and fewer traits than questions are selected, a
+  selected trait may be reused for a distinct behavioural angle.
 - If eight traits are selected and eight questions are generated, normally give
-  every selected trait coverage before repeating a trait unless administrator
-  guidance explicitly requires a different substantive prioritisation.
-- Trait labels are application metadata and must be present even when
-  administrator guidance does not request visible trait tagging.
+  every selected trait coverage before repeating a trait when the questions
+  support that mapping.
 """.strip()
 
 
@@ -59,9 +59,9 @@ def _normalise_prompt_limits(prompt: str) -> str:
     required_metadata = (
         "If administrator guidance does not require substantive why or\n"
         "listen_for content, preserve those technical fields using an empty\n"
-        "string as appropriate. The traits array is never optional for a\n"
-        "substantive personality question and must contain at least one valid\n"
-        "selected trait."
+        "string as appropriate. Always include traits as an array, using exact\n"
+        "selected trait labels where the mapping is clear and an empty array\n"
+        "when it is not reliable to assign a label."
     )
     text = text.replace(legacy_optional, required_metadata)
 
@@ -253,8 +253,6 @@ def install_personality_question_label_policy() -> None:
         return
 
     from apps.core.ai import personality_questions
-    from apps.core.ai.question_count_policy import _personality_fallback
-
     original_prompt = personality_questions.build_personality_questions_prompt
 
     @wraps(original_prompt)
@@ -356,35 +354,11 @@ def install_personality_question_label_policy() -> None:
             if isinstance(event, dict)
         ]
 
-        if _questions_have_valid_labels(events):
-            yield from events
-            return
-
-        # Do not guess which trait a model meant. Fall back to Talena's
-        # evidence-aware deterministic question builder, where question text
-        # and trait metadata are created from the same focus.
-        fallback_questions = _personality_fallback(
-            personality_questions,
-            events,
-            kwargs,
-        )
-
-        if not fallback_questions:
-            raise ValueError(
-                "Talena could not create personality questions with valid focus labels."
-            )
-
-        replacement_events = _replace_selected_traits_and_questions(
-            events,
-            fallback_questions,
-        )
-
-        if not _questions_have_valid_labels(replacement_events):
-            raise ValueError(
-                "Talena could not create personality questions with valid focus labels."
-            )
-
-        yield from replacement_events
+        # Trait labels are optional metadata. Keep the generated questions
+        # even when a label is missing or cannot be matched safely; the
+        # personality normalizer already preserves exact selected labels and
+        # discards unrecognized values.
+        yield from events
 
     personality_questions.stream_personality_questions = (
         stream_personality_questions

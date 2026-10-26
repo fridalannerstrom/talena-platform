@@ -323,17 +323,9 @@ def process_candidate_personality_questions_stream(
                     "valid personality questions."
                 )
 
-            if any(
-                not (
-                    isinstance(question.get("traits"), list)
-                    and question.get("traits")
-                )
-                for question in questions
-                if isinstance(question, dict)
-            ):
-                raise ValueError(
-                    "Every personality question must include a valid focus label."
-                )
+            # Focus labels are supplemental metadata. The AI normalizer
+            # keeps recognized selected-trait labels and drops unknown ones;
+            # missing labels must not block complete generated questions.
 
             if not received_done_event:
                 yield json.dumps(

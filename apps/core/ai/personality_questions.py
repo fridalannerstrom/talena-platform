@@ -560,6 +560,10 @@ Return one questions event.
 
 The administrator guidance determines the number of question objects.
 
+The example below illustrates the JSON shape only. Its number of sample items
+does not set the question count; follow Talena's fixed question-count
+instruction appended to this prompt.
+
 Every question object must contain these exact fields:
 
 - question
@@ -621,11 +625,22 @@ def _normalise_personality_questions(
     if not isinstance(items, list):
         return []
 
-    trait_lookup = {
-        str(trait).strip().lower(): str(trait).strip()
-        for trait in selected_traits or []
-        if str(trait).strip()
-    }
+    from .personality_ai_evidence import canonical_parent_trait_name
+
+    trait_lookup = {}
+    canonical_trait_lookup = {}
+
+    for raw_trait in selected_traits or []:
+        selected_trait = str(raw_trait or "").strip()
+        if not selected_trait:
+            continue
+
+        trait_lookup[_normalise_trait_key(selected_trait)] = selected_trait
+        canonical_name = canonical_parent_trait_name(selected_trait)
+        if canonical_name:
+            canonical_trait_lookup[
+                _normalise_trait_key(canonical_name)
+            ] = selected_trait
 
     questions = []
 
@@ -656,14 +671,16 @@ def _normalise_personality_questions(
 
         if isinstance(raw_traits, list):
             for raw_trait in raw_traits:
-                trait_key = str(
-                    raw_trait
-                    or ""
-                ).strip().lower()
+                raw_trait_name = str(raw_trait or "").strip()
+                trait_key = _normalise_trait_key(raw_trait_name)
 
-                canonical_trait = trait_lookup.get(
-                    trait_key
-                )
+                canonical_trait = trait_lookup.get(trait_key)
+                if not canonical_trait:
+                    canonical_name = canonical_parent_trait_name(raw_trait_name)
+                    if canonical_name:
+                        canonical_trait = canonical_trait_lookup.get(
+                            _normalise_trait_key(canonical_name)
+                        )
 
                 if (
                     canonical_trait
@@ -872,11 +889,13 @@ selected personality traits above.
 
 OUTPUT FORMAT
 Return exactly one JSON object on one single line.
+The sample below illustrates the JSON shape only; return exactly
+{question_count} complete questions.
 Do not use Markdown.
 Do not use code fences.
 Do not add any other text.
 
-{{"type":"questions","items":[{{"question":"Question one","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
+{{"type":"questions","items":[{{"question":"Question text","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
 """.strip()
 
 
@@ -1139,10 +1158,17 @@ def _generate_repaired_personality_questions_event(
                     "role": "system",
                     "content": (
                         "You are an AI component inside Talena. "
-                        "Follow the administrator-provided AI guidance "
-                        "for all non-technical question decisions. "
-                        "Repair only the technical JSON structure and "
-                        "field requirements requested by Talena. "
+                        "Treat Talena's candidate-evidence rules as higher "
+                        "priority than conflicting administrator wording. "
+                        "Use the candidate-specific Result Summary as the "
+                        "primary evidence for each personality question. "
+                        "Do not flatten its details into a generic trait "
+                        "description or move them into unsupported fields. "
+                        "Use only question, traits, why and listen_for. "
+                        "Put the candidate-specific rationale in why and "
+                        "concrete evidence cues in listen_for. "
+                        "Repair the requested structure and fields while "
+                        "preserving that evidence. "
                         f"{get_ai_system_language_instruction(
                             _personality_questions_language.get(),
                             owner=owner,
@@ -1213,9 +1239,17 @@ def stream_personality_questions(
                 "role": "system",
                 "content": (
                     "You are an AI component inside Talena. "
-                    "Follow the administrator-provided AI guidance for "
-                    "all non-technical personality question decisions. "
-                    "Follow Talena's application input contract and "
+                    "Talena's candidate-evidence rules take priority over "
+                    "conflicting administrator wording. Use the "
+                    "candidate-specific Result Summary as the primary "
+                    "evidence for each personality question; do not flatten "
+                    "its details into a generic trait description. Use only "
+                    "question, traits, why and listen_for. Put a concrete "
+                    "summary-based rationale in why and evidence cues in "
+                    "listen_for. Do not invent role context or move evidence "
+                    "into unsupported fields. Administrator guidance may "
+                    "shape the interview approach when consistent with these "
+                    "rules. Follow Talena's application input contract and "
                     "technical output contract exactly, including required "
                     "JSON field names, event types and streaming format. "
                     f"{get_ai_system_language_instruction(
