@@ -560,6 +560,10 @@ Return one questions event.
 
 The administrator guidance determines the number of question objects.
 
+The example below illustrates the JSON shape only. Its number of sample items
+does not set the question count; follow Talena's fixed question-count
+instruction appended to this prompt.
+
 Every question object must contain these exact fields:
 
 - question
@@ -872,11 +876,13 @@ selected personality traits above.
 
 OUTPUT FORMAT
 Return exactly one JSON object on one single line.
+The sample below illustrates the JSON shape only; return exactly
+{question_count} complete questions.
 Do not use Markdown.
 Do not use code fences.
 Do not add any other text.
 
-{{"type":"questions","items":[{{"question":"Question one","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question two","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}},{{"question":"Question three","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
+{{"type":"questions","items":[{{"question":"Question text","traits":["Trait name"],"why":"Why it matters","listen_for":"What to listen for"}}]}}
 """.strip()
 
 
