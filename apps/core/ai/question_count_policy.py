@@ -256,8 +256,11 @@ def _personality_fallback(
                 if (
                     repaired_event.get("type") == "questions"
                     and repair_count == target_count
-                    and repair_labels_valid
                 ):
+                    # A missing or unusable focus label is metadata debt, not a
+                    # reason to discard otherwise complete candidate-grounded
+                    # questions. Keep exact-count output; valid labels are
+                    # preserved by the normalizer when available.
                     return repaired_questions
             except Exception as exc:
                 repair_error_type = type(exc).__name__
@@ -281,28 +284,17 @@ def _personality_fallback(
                 len(selected_traits),
                 repair_error_type,
             )
-            initial_label_status = (
-                "valid" if initial_labels_valid else "invalid"
-            )
             repair_count_status = (
                 str(repair_count)
                 if repair_count is not None
                 else "no valid response"
             )
-            repair_label_status = (
-                "valid"
-                if repair_labels_valid
-                else "invalid"
-                if repair_labels_valid is False
-                else "not checked"
-            )
             raise ValueError(
-                "Personality question generation failed validation. "
-                f"Initial output: {initial_count}/{target_count} questions, "
-                f"focus labels {initial_label_status}. "
+                "Personality question generation failed to produce the "
+                "required number of questions. "
+                f"Initial output: {initial_count}/{target_count} questions. "
                 f"Focused repair: {repair_count_status}/{target_count} "
-                f"questions, focus labels {repair_label_status}. "
-                "Generic parent-trait fallback questions are disabled."
+                "questions. Generic parent-trait fallback questions are disabled."
             )
 
         fallback_builder = module._build_safe_personality_questions_event
