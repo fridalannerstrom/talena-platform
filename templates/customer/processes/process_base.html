@@ -4752,6 +4752,32 @@ async function refreshCandidateFinalOutput(
     return;
   }
 
+  const insightsWorkspace = currentRoot.closest(
+    "[data-candidate-insights-workspace]"
+  );
+  const selectedInsightsTab = insightsWorkspace?.querySelector(
+    ".candidate-profile-tabs [data-insights-tab].is-active"
+  );
+  const selectedInsightsTabKey =
+    selectedInsightsTab?.dataset.insightsTab || "";
+
+  const selectedTabButton = currentRoot.querySelector(
+    '#candidate-insights-panel-after-interview [data-after-interview-tab][aria-selected="true"]'
+  );
+  const selectedTabKey =
+    selectedTabButton?.dataset.afterInterviewTab || "";
+  const selectedTabPanel = selectedTabKey
+    ? [...currentRoot.querySelectorAll("[data-after-interview-tab-panel]")]
+        .find((tabPanel) => tabPanel.dataset.afterInterviewTabPanel === selectedTabKey)
+    : null;
+  const shouldRestoreTabFocus = Boolean(
+    document.activeElement &&
+    (
+      selectedTabButton?.contains(document.activeElement) ||
+      selectedTabPanel?.contains(document.activeElement)
+    )
+  );
+
   try {
     const response = await fetch(
       refreshUrl,
@@ -4786,15 +4812,62 @@ async function refreshCandidateFinalOutput(
     const newRoot =
       template.content.firstElementChild;
 
-    if (!newRoot) {
+    if (!newRoot?.matches?.("[data-final-output-root]")) {
       throw new Error(
-        "The final output response was empty."
+        "The final output refresh response did not contain the expected root."
       );
+    }
+
+    const currentAfterInterviewPanel = currentRoot.querySelector(
+      '[data-insights-panel="after-interview"]'
+    );
+    const refreshedAfterInterviewPanel = newRoot.querySelector(
+      '[data-insights-panel="after-interview"]'
+    );
+
+    if (currentAfterInterviewPanel && !refreshedAfterInterviewPanel) {
+      throw new Error(
+        "The final output refresh response did not contain the After interview panel."
+      );
+    }
+
+    // Preserve the selected subtab while replacing this server-rendered fragment.
+    if (selectedTabKey) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("afterTab", selectedTabKey);
+      window.history.replaceState({}, "", url);
     }
 
     currentRoot.replaceWith(
       newRoot
     );
+
+    // Reapply the selected outer insights tab so the new nested panel receives
+    // its visible/hidden state before the browser paints the replacement.
+    if (selectedInsightsTabKey && insightsWorkspace) {
+      const refreshedInsightsTab = [
+        ...insightsWorkspace.querySelectorAll(
+          ".candidate-profile-tabs [data-insights-tab]"
+        ),
+      ].find(
+        (tab) => tab.dataset.insightsTab === selectedInsightsTabKey
+      );
+      refreshedInsightsTab?.click();
+    }
+
+    // Build dynamic tabs synchronously before the browser paints the replacement.
+    // The mutation observer remains a fallback for older or mirrored views.
+    if (typeof window.initAfterInterviewTabs === "function") {
+      window.initAfterInterviewTabs(newRoot);
+    }
+
+    if (shouldRestoreTabFocus && selectedTabKey) {
+      const refreshedSelectedTab = [
+        ...newRoot.querySelectorAll("[data-after-interview-tab]"),
+      ].find((button) => button.dataset.afterInterviewTab === selectedTabKey);
+
+      refreshedSelectedTab?.focus({ preventScroll: true });
+    }
 
     if (window.feather) {
       window.feather.replace();
