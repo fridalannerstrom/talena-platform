@@ -216,6 +216,29 @@ def _personality_fallback(
                 # Keep the existing deterministic fallback as the last resort.
                 pass
 
+        is_competency_selection = any(
+            str(item or "").strip().casefold().startswith("competency::")
+            for item in selected_traits
+        )
+        if not is_competency_selection:
+            from .personality_ai_evidence import build_personality_ai_evidence
+
+            summary_evidence = build_personality_ai_evidence(
+                personality_results,
+                language_code=language_code,
+                include_traits=selected_traits or None,
+            )
+            if any(
+                str(item.get("summary") or "").strip()
+                for item in summary_evidence
+            ):
+                raise ValueError(
+                    "Personality question generation did not produce the "
+                    "required question count after focused repair. Generic "
+                    "fallback questions are disabled when candidate-specific "
+                    "Result Summary evidence is available."
+                )
+
         fallback_builder = module._build_safe_personality_questions_event
         fallback_kwargs = {
             "selected_traits": selected_traits,
