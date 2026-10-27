@@ -574,6 +574,35 @@ sections, the dedicated section guidance below takes precedence.
 {admin_instructions}
 
 
+OVERALL INTERPRETATION COVERAGE
+
+The administrator guidance above remains authoritative for the
+interpretation. For summary_delta events, do not silently omit an
+assessment domain when its evidence is available:
+
+- Begin with the evidenced personality preferences and use the
+  approved personality interpretations.
+- When TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
+  lists factors, name every listed factor and weave its approved
+  interpretation into the personality themes. Explain supported
+  ways the factors reinforce or nuance those preferences; do not
+  present them as a detached list.
+- When COGNITIVE RESULTS AND APPROVED INTERPRETATIONS lists results,
+  include a concise statement about each ability result it contains.
+  Explain only what the approved interpretation suggests about
+  processing new or complex information, and keep it complementary
+  to the personality and motivation themes.
+- Use the approved interpretation wording rather than reproducing
+  raw STEN, STIVE, or percentile values. Do not infer job performance,
+  communication ability, or role suitability from cognitive results.
+- Weave the available domains into 2–3 connected themes. When
+  personality, motivation, and cognitive results are all available,
+  write 2–3 substantive paragraphs; a two-sentence personality-only
+  overview is incomplete.
+- Do not invent or imply results for domains whose evidence says
+  they are unavailable.
+
+
 WHAT SUPPORTS THE PURPOSE GUIDANCE
 
 The following administrator guidance applies only to the

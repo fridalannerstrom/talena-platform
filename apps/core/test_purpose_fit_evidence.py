@@ -215,6 +215,12 @@ class PurposeFitAssessmentPromptTests(SimpleTestCase):
 
         self.assertIn("ADMIN_SENTINEL_358", first_prompt)
         self.assertIn("PERSONALITY_INDICATOR_STEN_SENTINEL", first_prompt)
+        self.assertIn("OVERALL INTERPRETATION COVERAGE", first_prompt)
+        self.assertIn("name every listed factor", first_prompt)
+        self.assertIn("statement about each ability result", first_prompt)
+        self.assertIn("a two-sentence personality-only", first_prompt)
+        self.assertIn("overview is incomplete.", first_prompt)
+        self.assertIn("raw STEN, STIVE, or percentile values", first_prompt)
         self.assertIn("INTERVIEW EVIDENCE LIMIT", first_prompt)
         self.assertIn("No interview notes or interview examples are supplied", first_prompt)
         self.assertIn("Risk — STIVE 4.9", first_prompt)
