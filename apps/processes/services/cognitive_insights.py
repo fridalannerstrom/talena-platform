@@ -278,15 +278,16 @@ def _owner_cognitive_percentiles(owner) -> dict[str, Any]:
             if value is not None:
                 percentiles[key] = value
     else:
-        from apps.core.ai.cognitive_interpretation import (
-            extract_cognitive_results,
-        )
+        if getattr(owner, "sova_activities", None):
+            from apps.core.ai.cognitive_interpretation import (
+                extract_cognitive_results,
+            )
 
-        for result in extract_cognitive_results(owner):
-            key = result.get("key")
-            value = result.get("percentile")
-            if key in {"verbal", "logical", "numerical"} and value is not None:
-                percentiles.setdefault(key, value)
+            for result in extract_cognitive_results(owner):
+                key = result.get("key")
+                value = result.get("percentile")
+                if key in {"verbal", "logical", "numerical"} and value is not None:
+                    percentiles.setdefault(key, value)
 
     return percentiles
 
