@@ -9,14 +9,12 @@ from typing import Any
 from apps.core.ai.cognitive_interpretation import extract_cognitive_results
 from apps.core.ai.language import normalize_ai_language
 from apps.core.ai.motivation_interpretation import (
-    MOTIVATION_DEFINITIONS,
     _owner_motivation_results,
     get_motivation_factor_display_name,
 )
 from apps.processes.services.cognitive_insights import (
     build_cognitive_insight_results,
 )
-from apps.processes.templatetags.motivation_i18n import FACTOR_CONTENT
 from apps.reports.libraries.personality.content import (
     INDICATOR_PROFILE_CONTENT,
     TRAIT_PROFILE_CONTENT,
@@ -29,7 +27,7 @@ from apps.reports.libraries.personality.builder import get_score_band, normalize
 from .models import CandidateResultSnapshot
 
 
-CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v1"
+CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v2"
 _PERSONALITY_LIBRARY_PATH = Path(__file__).parents[1] / "reports" / "libraries" / "personality" / "candidate_content_sv.json"
 with _PERSONALITY_LIBRARY_PATH.open(encoding="utf-8") as _personality_library_file:
     CANDIDATE_PERSONALITY_CONTENT_SV = json.load(_personality_library_file)
@@ -57,6 +55,83 @@ _FIXED_COPY = {
         "skills_title": "Skills",
         "motivation_title": "Motivation",
         "top_motivators_title": "Your Top 3 Motivators",
+    },
+}
+
+_CANDIDATE_SKILL_ABILITIES = {
+    "sv": {
+        "logical": "se mönster och dra logiska slutsatser",
+        "numerical": "förstå och arbeta med numerisk information",
+        "verbal": "förstå och utvärdera skriftlig information",
+    },
+    "en": {
+        "logical": "identify patterns and reach logical conclusions",
+        "numerical": "understand and work with numerical information",
+        "verbal": "understand and evaluate written information",
+    },
+}
+
+_CANDIDATE_SKILL_COPY = {
+    "sv": {
+        "very-low": "Du kan uppleva det som betydligt svårare än för de flesta i referensgruppen att {ability}.",
+        "low": "Du kan uppleva det som svårare än för många andra i referensgruppen att {ability}.",
+        "average": "Du kan förvänta dig att det är ungefär lika lätt för dig som för de flesta i referensgruppen att {ability}.",
+        "high": "Du kan ha lättare än många andra i referensgruppen att {ability}.",
+        "very-high": "Du kan ha betydligt lättare än de flesta i referensgruppen att {ability}.",
+    },
+    "en": {
+        "very-low": "You may find it considerably more difficult than most people in the reference group to {ability}.",
+        "low": "You may find it more difficult than many others in the reference group to {ability}.",
+        "average": "You are likely to find it about as easy as most people in the reference group to {ability}.",
+        "high": "You may find it easier than many others in the reference group to {ability}.",
+        "very-high": "You may find it considerably easier than most people in the reference group to {ability}.",
+    },
+}
+
+_CANDIDATE_MOTIVATION_COPY = {
+    "sv": {
+        "attachment": "Du värdesätter social kontakt i arbetet. Det verkar vara en viktig drivkraft för dig. Du trivs med känslan av att höra till ett team och uppskattar nära, goda arbetsrelationer.",
+        "customer_service": "Du trivs sannolikt i en kundorienterad roll där du får hjälpa och stötta andra. Du tycker om att bygga relationer med kunder och förstå deras behov, och det motiverar dig att möta och gärna överträffa deras förväntningar.",
+        "work_life_balance": "Du värdesätter en balans mellan arbete och privatliv som gör att du kan ta hand om dina åtaganden både på jobbet och utanför. Tydliga gränser kan hjälpa dig att koppla av efter arbetsdagen och ge tid åt annat som är viktigt för dig.",
+        "people_development": "Du får energi av att hjälpa och stötta andra i deras utveckling. Du trivs med att vägleda människor genom utmaningar och uppmuntra dem att växa.",
+        "stability": "Trygghet och stabilitet på jobbet verkar vara viktigt för dig. Du föredrar troligen en bransch eller organisation som känns stabil och en roll där du kan känna dig säker på din position.",
+        "authority": "Du värdesätter möjligheten att ta ledande ansvar och utvecklas mot befordran. Du uppskattar roller där du får ange riktning, organisera arbetet och bidra till att det genomförs väl.",
+        "acquisition": "Ekonomisk belöning verkar motivera dig. En välbetald roll och attraktiva löne- och förmånsnivåer kan ge dig möjlighet att göra sådant du värdesätter utan att behöva oroa dig för kostnader.",
+        "independence": "Du värdesätter friheten att fatta egna beslut om hur du planerar din tid och organiserar ditt arbete. Du får goda förutsättningar när du får förtroende att sätta riktning och välja hur du genomför dina uppgifter.",
+        "recognition": "Du motiveras av erkännande, beröm och uppskattning. Du uppskattar när ditt arbete och det värde du bidrar med blir synligt, och positiv återkoppling kan ge dig energi.",
+        "making_a_difference": "Du vill gärna känna att ditt arbete gör positiv skillnad för andra. Det kan vara viktigt för dig att arbeta i en organisation med mål och syfte som känns meningsfulla och där du ser hur ditt arbete bidrar till samhället.",
+        "achievement": "Du får energi av tydliga och utmanande mål. Professionella utmaningar och konkurrens kan motivera dig, särskilt när du får möjlighet att jämföra dina resultat med andra.",
+        "quality": "Du motiveras av att leverera jämnt hög kvalitet. Du är stolt när ditt arbete håller vad du lovat och motsvarar förväntningarna, och du strävar efter att göra ett så genomarbetat arbete som möjligt.",
+        "learning": "Du drivs av möjligheten att lära dig och utveckla din expertis. Du trivs sannolikt när du får tillgång till fortlöpande utbildning, utveckling och nya färdigheter att bemästra.",
+        "ethics": "Du värdesätter höga etiska standarder, både hos dig själv och i organisationen. Du följer gärna riktlinjer och god praxis, känner stolthet över din professionella integritet och trivs när organisationens värderingar stämmer med dina egna.",
+        "commercial_focus": "Du trivs sannolikt i en roll med kommersiellt fokus där du bidrar till organisationens ekonomiska resultat. Du får energi av att se sambandet mellan ditt arbete och verksamhetens framgång.",
+        "curiosity": "Du drivs av att utforska och upptäcka nytt. Du söker kunskap och erfarenheter, tar gärna vara på möjligheter att möta nya perspektiv och fördjupar dig i sådant som fångar ditt intresse.",
+        "creativity": "Du uppskattar att använda din kreativitet, tänka i nya banor och hitta lösningar. Du bidrar gärna med idéer som både är nyskapande och användbara.",
+        "enjoyment": "Du värdesätter en arbetsmiljö där du trivs och kan ha roligt med kollegorna. Du uppskattar en lättsam stämning där du kan visa din lekfulla sida, dela humor och känna dig accepterad som du är.",
+        "variety": "Du motiveras av variation och möjligheten att arbeta med olika saker. Du trivs sannolikt med en mångsidig roll där du växlar mellan uppgifter och projekt och får använda flera av dina färdigheter.",
+        "risk": "Du motiveras av att möta situationer där utfallet är osäkert. Du är bekväm med att fatta riskfyllda beslut och trivs sannolikt i roller där det finns utrymme att ta initiativ och se vad det leder till.",
+    },
+    "en": {
+        "attachment": "You value social interaction at work. It seems to be an important source of motivation for you. You enjoy feeling part of a team and building close, positive working relationships.",
+        "customer_service": "You are likely to enjoy a customer-focused role where you can help and support others. You value building relationships with customers and understanding their needs, and you are motivated by meeting and exceeding their expectations.",
+        "work_life_balance": "You value a balance between work and life outside work that lets you meet your commitments in both. Clear boundaries can help you switch off at the end of the workday and make time for other things that matter to you.",
+        "people_development": "You get energy from helping and supporting others as they develop. You enjoy guiding people through challenges and encouraging them to grow.",
+        "stability": "Feeling secure and having stability at work seem important to you. You are likely to prefer an industry or organisation that feels stable and a role where you can feel secure in your position.",
+        "authority": "You value opportunities to take on leadership responsibility and progress in your career. You appreciate roles where you can set direction, organise work and help ensure it is done well.",
+        "acquisition": "Financial reward seems to motivate you. A well-paid role and attractive salary and benefits can help you afford the things you value without worrying about costs.",
+        "independence": "You value the freedom to make your own decisions about how you plan your time and organise your work. You are likely to do your best when you are trusted to set direction and decide how to complete your tasks.",
+        "recognition": "Recognition, praise and appreciation motivate you. You value it when your work and contribution are visible, and positive feedback can give you energy.",
+        "making_a_difference": "You want to feel that your work makes a positive difference to others. It may be important to you to work for an organisation with meaningful goals and to see how your work can benefit society.",
+        "achievement": "You get energy from clear, challenging goals. Professional challenges and competition can motivate you, especially when you have the opportunity to compare your results with others.",
+        "quality": "You are motivated by consistently delivering high-quality work. You take pride in meeting your commitments and expectations, and you aim to produce work that is as thorough as possible.",
+        "learning": "You are driven by opportunities to learn and develop your expertise. You are likely to enjoy an environment with ongoing training, development and new skills to master.",
+        "ethics": "You value high ethical standards in yourself and in the organisation. You take pride in your professional integrity, follow guidelines and good practice, and enjoy working where the organisation's values align with your own.",
+        "commercial_focus": "You are likely to enjoy a commercially focused role where you contribute to the organisation's financial results. You get energy from seeing the connection between your work and the organisation's success.",
+        "curiosity": "You are driven to explore and discover new things. You seek knowledge and experience, welcome opportunities for new perspectives and explore what captures your interest.",
+        "creativity": "You enjoy using your creativity, thinking in new ways and finding solutions. You like contributing ideas that are both original and useful.",
+        "enjoyment": "You value a work environment where you enjoy your work and have fun with colleagues. You appreciate an easy-going atmosphere where you can express your playful side, share humour and feel accepted as you are.",
+        "variety": "You are motivated by variety and the opportunity to work on different things. You are likely to enjoy a diverse role with a mix of tasks and projects that lets you use several of your skills.",
+        "risk": "You are motivated by facing situations where the outcome is uncertain. You are comfortable making risky decisions and are likely to enjoy roles that give you room to take a chance and see what happens.",
     },
 }
 
@@ -218,20 +293,21 @@ def _candidate_skills_groups(
         numerical_percentile=percentiles.get("numerical"),
         language_code=language_code,
     )
-    results_by_key = {
-        result["key"]: result
-        for result in localised_results
-        if result.get("completed")
-    }
-
     groups = []
-    for localized in results_by_key.values():
-        interpretation = str(localized.get("interpretation") or "").strip()
-        if not interpretation:
+    for localized in localised_results:
+        if not localized.get("completed"):
             continue
+        key = localized["key"]
+        ability = _CANDIDATE_SKILL_ABILITIES[language_code].get(key)
+        template = _CANDIDATE_SKILL_COPY[language_code].get(
+            localized.get("level_key")
+        )
+        if not ability or not template:
+            continue
+        interpretation = template.format(ability=ability)
         groups.append(
             {
-                "title": localized.get("title") or localized["key"],
+                "title": localized.get("title") or key,
                 "items": [{"label": "", "text": interpretation}],
             }
         )
@@ -251,13 +327,7 @@ def _candidate_motivation_groups(
     items = []
     for result in results:
         key = result["key"]
-        if language_code == "sv":
-            text = FACTOR_CONTENT.get(key, {}).get("top_text", "")
-            if not text:
-                text = MOTIVATION_DEFINITIONS.get(key, "")
-        else:
-            text = MOTIVATION_DEFINITIONS.get(key, "")
-        text = str(text or "").strip()
+        text = _CANDIDATE_MOTIVATION_COPY.get(language_code, {}).get(key, "")
         if not text:
             continue
 
@@ -292,7 +362,7 @@ def build_static_candidate_result_content(
     copy = _FIXED_COPY[language_code]
 
     content: dict[str, Any] = {
-        "library_version": CANDIDATE_RESULT_CONTENT_VERSION,
+    "library_version": CANDIDATE_RESULT_CONTENT_VERSION,
         "personality_library_version": CANDIDATE_PERSONALITY_CONTENT_SV.get(
             "library_version", ""
         ),
@@ -354,7 +424,7 @@ def generate_candidate_result_content(
 def ensure_candidate_result_snapshot_current(
     snapshot: CandidateResultSnapshot | None,
 ) -> tuple[CandidateResultSnapshot | None, bool]:
-    """Replace a legacy AI snapshot once while preserving its archived copy."""
+    """Refresh changed static copy or replace a legacy AI snapshot."""
     if snapshot is None:
         return None, False
     if snapshot.content_version == CANDIDATE_RESULT_CONTENT_VERSION:
@@ -364,6 +434,7 @@ def ensure_candidate_result_snapshot_current(
         snapshot.invitation,
         language_code=snapshot.locale,
     )
+
     old_content = snapshot.content if isinstance(snapshot.content, dict) else {}
     old_prompt_versions = (
         snapshot.prompt_versions
