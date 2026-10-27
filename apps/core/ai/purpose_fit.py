@@ -936,7 +936,7 @@ def generate_candidate_purpose_fit_events(
 
         def print_prompt_section(label, start_marker, end_marker):
             section_start = user_message.find(start_marker)
-            print(f"\\n[AI OVERVIEW DEBUG] {label}")
+            print(f"\n[AI OVERVIEW DEBUG] {label}")
             if section_start < 0:
                 print("Section not found.")
                 return
@@ -946,32 +946,32 @@ def generate_candidate_purpose_fit_events(
                 section_start + len(start_marker),
             )
             if section_end < 0:
-                print(user_message[section_start:])
+                print("Section end marker not found; omitted from debug output.")
             else:
                 print(user_message[section_start:section_end])
 
         print_prompt_section(
             "MOTIVATION EVIDENCE",
             "TOP THREE MOTIVATION INTERPRETATION TEXTS",
-            "\\n\\nCOGNITIVE INTERPRETATION TEXTS",
+            "\n\nCOGNITIVE INTERPRETATION TEXTS",
         )
         print_prompt_section(
             "COGNITIVE EVIDENCE",
             "COGNITIVE INTERPRETATION TEXTS",
-            "\\n\\nINTERVIEW NOTES",
+            "\n\nINTERVIEW NOTES",
         )
         print_prompt_section(
             "PERSONALITY EVIDENCE",
             "APPROVED PERSONALITY AND INDICATOR INTERPRETATION TEXTS",
-            "\\n\\nADMINISTRATOR AI GUIDANCE",
+            "\n\nADMINISTRATOR AI GUIDANCE",
         )
         print_prompt_section(
             "ADMINISTRATOR GUIDANCE",
             "OVERALL INTERPRETATION GUIDANCE",
-            "\\n\\nWHAT SUPPORTS THE PURPOSE GUIDANCE",
+            "\n\nWHAT SUPPORTS THE PURPOSE GUIDANCE",
         )
 
-        print("\\n[AI OVERVIEW DEBUG] SYSTEM GUIDANCE")
+        print("\n[AI OVERVIEW DEBUG] SYSTEM GUIDANCE")
         print(messages[0]["content"])
 
     completion = client.chat.completions.create(
