@@ -8743,7 +8743,7 @@ def process_candidate_purpose_fit_regenerate(
     return JsonResponse(
         {
             "ok": True,
-            "stream_url": reverse(
+            "generation_url": reverse(
                 "processes:process_candidate_purpose_fit_stream",
                 kwargs={
                     "process_id": process.id,
