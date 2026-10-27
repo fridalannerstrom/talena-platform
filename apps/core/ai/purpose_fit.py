@@ -27,6 +27,10 @@ from .prompt_templates import (
 
 from .motivation_interpretation import (
     get_motivation_factor_display_name,
+    build_motivation_top_three_evidence,
+)
+from apps.processes.services.cognitive_insights import (
+    build_owner_cognitive_ai_evidence,
 )
 from .personality_ai_evidence import (
     build_owner_personality_ai_evidence_text,
@@ -493,6 +497,14 @@ def build_purpose_fit_prompt(
         invitation,
         language_code=language_code,
     )
+    motivation_top_three_text = build_motivation_top_three_evidence(
+        invitation,
+        language_code=language_code,
+    )
+    cognitive_interpretation_text = build_owner_cognitive_ai_evidence(
+        invitation,
+        language_code=language_code,
+    )
     # Use Talena's canonical personality evidence builder for this section.
     # The general evidence string may also contain appended grounding under a
     # separate heading, so extracting by section title can accidentally omit
@@ -500,7 +512,7 @@ def build_purpose_fit_prompt(
     personality_assessment_text = build_owner_personality_ai_evidence_text(
         invitation,
         language_code=language_code,
-        include_indicator_details=False,
+        include_indicator_details=True,
     )
 
     if not personality_assessment_text:
@@ -530,6 +542,15 @@ PROCESS CONTEXT
 
 AVAILABLE ASSESSMENT EVIDENCE
 {assessment_text}
+
+TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
+{motivation_top_three_text}
+
+COGNITIVE RESULTS AND APPROVED INTERPRETATIONS
+{cognitive_interpretation_text}
+
+INTERVIEW EVIDENCE LIMIT
+No interview notes or interview examples are supplied to AI Overview. Do not claim that interview information confirms or contradicts assessment results. If administrator guidance refers to interviews, make no comparison with interview evidence.
 
 PERSONALITY ASSESSMENT EVIDENCE FOR THE THREE AREA SUMMARIES
 {personality_assessment_text}
