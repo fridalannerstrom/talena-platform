@@ -364,6 +364,13 @@ def build_motivation_top_three_evidence(
 ) -> str:
     """Render the three highest STIVE factors with Talena's approved text."""
     language = normalize_ai_language(language_code)
+    process = getattr(owner, "process", None)
+    if (
+        not getattr(process, "is_historical", False)
+        and not getattr(owner, "sova_activities", None)
+    ):
+        return ""
+
     results = sorted(
         _owner_motivation_results(owner),
         key=lambda item: (-item["score"], item["key"]),
@@ -408,6 +415,76 @@ def build_motivation_top_three_evidence(
             )
 
     return "\n".join(lines)
+
+
+def build_motivation_summary_supplement(
+    owner,
+    summary: str,
+    *,
+    language_code: str = "en",
+) -> str:
+    """Add approved descriptions for top motivation factors omitted by AI Overview."""
+    language = normalize_ai_language(language_code)
+    process = getattr(owner, "process", None)
+    if (
+        not getattr(process, "is_historical", False)
+        and not getattr(owner, "sova_activities", None)
+    ):
+        return ""
+
+    results = sorted(
+        _owner_motivation_results(owner),
+        key=lambda item: (-item["score"], item["key"]),
+    )[:3]
+    if not results:
+        return ""
+
+    summary_text = str(summary or "").casefold()
+    missing = []
+    for result in results:
+        label = get_motivation_factor_display_name(
+            result["name"],
+            language_code=language,
+        )
+        if label.casefold() in summary_text:
+            continue
+
+        key = result["key"]
+        if language == "sv":
+            interpretation = (
+                FACTOR_CONTENT.get(key, {}).get("top_text")
+                or MOTIVATION_DEFINITIONS.get(key, "")
+            )
+        else:
+            interpretation = MOTIVATION_DEFINITIONS.get(key, "")
+
+        if interpretation:
+            missing.append((label, interpretation))
+
+    if not missing:
+        return ""
+
+    if language == "sv":
+        if len(missing) == 1:
+            label, interpretation = missing[0]
+            return (
+                f"Ytterligare en framträdande drivkraft är {label}: "
+                f"{interpretation}"
+            )
+        lead_in = "Ytterligare framträdande drivkrafter är: "
+    else:
+        if len(missing) == 1:
+            label, interpretation = missing[0]
+            return (
+                f"Another prominent driver is {label}: "
+                f"{interpretation}"
+            )
+        lead_in = "Other prominent drivers include: "
+
+    return lead_in + " ".join(
+        f"{label}: {interpretation}"
+        for label, interpretation in missing
+    )
 
 
 def build_motivation_evidence_text(
