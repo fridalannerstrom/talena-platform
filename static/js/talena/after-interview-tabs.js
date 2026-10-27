@@ -813,6 +813,7 @@
       ready: false,
       statusElement: null,
       dialog: null,
+      managerReportGenerating: false,
     };
 
     const announce = (message) => {
@@ -1093,6 +1094,7 @@
             "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
           );
           if (!trigger || !currentState) return;
+          if (currentState.managerReportGenerating) return;
           if (!currentState.ready) {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -1127,8 +1129,8 @@
     };
   };
 
-  const generateContentBlock = async (panel, blockKey, body, error, button) => {
-    if (button.disabled) return;
+  const generateContentBlock = async (panel, blockKey, body, error, button = null) => {
+    if (button?.disabled) return;
     const root = panel.closest("[data-final-output-root]");
     const regenerateUrl = root?.dataset.postInterviewRegenerateUrl || "";
     if (!regenerateUrl) {
@@ -1147,9 +1149,11 @@
       ?? body.textContent
       ?? "";
     error.classList.add("d-none");
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    if (button) {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    }
     if (!preserveManualEdit) {
       body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
       delete body.dataset.markdownRendered;
@@ -1217,8 +1221,10 @@
         delete body.dataset.markdownRendered;
         renderGeneratedMarkdown(body);
       }
-      button.title = copy().regenerateSection;
-      button.setAttribute("aria-label", copy().regenerateSection);
+      if (button) {
+        button.title = copy().regenerateSection;
+        button.setAttribute("aria-label", copy().regenerateSection);
+      }
     } catch (generationError) {
       if (!preserveManualEdit) {
         body.textContent = previousText;
@@ -1233,9 +1239,11 @@
       error.textContent = generationError.message || copy().sectionGenerationFailed;
       error.classList.remove("d-none");
     } finally {
-      button.disabled = false;
-      button.removeAttribute("aria-busy");
-      button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      if (button) {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      }
       if (window.feather) window.feather.replace();
     }
   };
@@ -1363,21 +1371,30 @@
         display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; flex-wrap: wrap;
       }
       __PANEL__ .after-interview-manager-report__personality-part-header {
-        display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem;
+        display: block; padding-right: 1.45rem;
       }
+      __PANEL__ .after-interview-manager-report__personality-part { position: relative; }
       __PANEL__ .after-interview-manager-report__edit-controls {
-        display: inline-flex; align-items: center; justify-content: flex-end; gap: .4rem;
-        flex: 0 0 auto;
+        position: absolute; top: 0; right: 0; display: inline-flex;
+        align-items: center; justify-content: flex-end; gap: .3rem;
       }
       __PANEL__ .after-interview-manager-report__edit-controls[hidden],
       __PANEL__ .after-interview-manager-report__edit-button[hidden] { display: none !important; }
       __PANEL__ .after-interview-manager-report__edit-button {
-        width: 2rem; height: 2rem; min-width: 2rem; padding: 0;
-        color: var(--talena-text-muted, #766e68);
+        display: grid; place-items: center; width: 1.5rem !important;
+        height: 1.5rem !important; min-width: 1.5rem !important; padding: 0 !important;
+        border: 0 !important; border-radius: 6px !important;
+        background: transparent !important; color: var(--talena-text-muted, #766e68) !important;
+        box-shadow: none !important;
+      }
+      __PANEL__ .after-interview-manager-report__edit-button svg {
+        width: .82rem; height: .82rem; stroke-width: 1.8;
       }
       __PANEL__ .after-interview-manager-report__edit-button:hover,
       __PANEL__ .after-interview-manager-report__edit-button:focus-visible {
-        color: var(--talena-ink, #191817); border-color: var(--talena-coral, #ff6f61);
+        background: var(--talena-coral-soft, #fff2ee) !important;
+        color: var(--talena-coral-strong, #ed7468) !important;
+        outline: 2px solid var(--talena-coral, #ff6f61); outline-offset: 2px;
       }
       __PANEL__ .after-interview-manager-report__edited-badge {
         padding: .2rem .48rem; border: 1px solid #ead6c5; border-radius: 999px;
@@ -1564,11 +1581,14 @@
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
       __PANEL__ .after-interview-manager-report__personality-advice {
-        margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        position: relative; margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 12px; background: #fff;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-header {
-        display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+        display: block; padding-right: 1.45rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-advice-header .after-interview-manager-report__edit-controls {
+        top: 0; right: 0;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-title {
         margin: 0; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
@@ -2002,6 +2022,9 @@
         .join("");
       return "managerPersonality" + pascal(theme) + pascal(part);
     };
+    let managerAdviceHasGeneratedText = Boolean(
+      sourceBlock(panel, "wellbeing_tips")?.textContent?.trim()
+    );
     let managerReportGenerateButton = null;
     let managerReportGenerateError = null;
 
@@ -2011,7 +2034,7 @@
         !personalityRoot ||
         managerReportGenerateButton.getAttribute("aria-busy") === "true"
       ) return;
-      const hasGeneratedText = copy().managerPersonalityThemes.some((theme) =>
+      const hasGeneratedText = managerAdviceHasGeneratedText || copy().managerPersonalityThemes.some((theme) =>
         ["testbild", "candidate_describes"].some((part) =>
           String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
         )
@@ -2027,6 +2050,7 @@
       managerReportGenerateButton = document.createElement("button");
       managerReportGenerateButton.type = "button";
       managerReportGenerateButton.className = "btn btn-icon btn-light after-interview-tab-card__regenerate after-interview-manager-report__generate";
+      managerReportGenerateButton.dataset.postInterviewGenerate = "";
       managerReportGenerateButton.innerHTML = '<i data-feather="refresh-cw" aria-hidden="true"></i>';
       managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
 
@@ -2081,12 +2105,17 @@
 
         try {
           const failures = [];
-          for (const task of managerReportAiTasks) {
-            try {
-              await task();
-            } catch (taskError) {
-              failures.push(taskError.message || copy().sectionGenerationFailed);
+          managerReportEditController.state.managerReportGenerating = true;
+          try {
+            for (const task of managerReportAiTasks) {
+              try {
+                await task();
+              } catch (taskError) {
+                failures.push(taskError.message || copy().sectionGenerationFailed);
+              }
             }
+          } finally {
+            managerReportEditController.state.managerReportGenerating = false;
           }
           if (failures.length) throw new Error(failures.join(" "));
           updateManagerReportGenerateLabel();
@@ -2175,15 +2204,6 @@
     const managerAdviceError = document.createElement("div");
     managerAdviceError.className = "alert alert-danger d-none mt-3 mb-0";
     managerAdviceError.setAttribute("role", "alert");
-    const managerAdviceRegenerate = document.createElement("button");
-    managerAdviceRegenerate.type = "button";
-    managerAdviceRegenerate.className = "btn btn-icon btn-light after-interview-tab-card__regenerate";
-    managerAdviceRegenerate.title = hasManagerAdviceText
-      ? copy().regenerateSection
-      : copy().generateSection;
-    managerAdviceRegenerate.setAttribute("aria-label", managerAdviceRegenerate.title);
-    managerAdviceRegenerate.dataset.afterInterviewRegenerate = "wellbeing_tips";
-    managerAdviceRegenerate.innerHTML = '<i data-feather="refresh-cw"></i>';
     const managerAdviceEditControls = managerReportEditController.register(
       managerAdviceBody,
       "wellbeing_tips",
@@ -2196,16 +2216,24 @@
         markdown: true,
       },
     );
-    managerAdviceHeader.append(
-      managerAdviceTitle,
-      managerAdviceRegenerate,
-      managerAdviceEditControls,
-    );
+    managerAdviceHeader.append(managerAdviceTitle, managerAdviceEditControls);
     managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
     managerPersonality.appendChild(managerAdvice);
-    managerAdviceRegenerate.addEventListener("click", () =>
-      generateContentBlock(panel, "wellbeing_tips", managerAdviceBody, managerAdviceError, managerAdviceRegenerate),
-    );
+    managerReportAiTasks.push(async () => {
+      await generateContentBlock(
+        panel,
+        "wellbeing_tips",
+        managerAdviceBody,
+        managerAdviceError,
+      );
+      if (!managerAdviceError.classList.contains("d-none")) {
+        throw new Error(
+          managerAdviceError.textContent?.trim() || copy().sectionGenerationFailed,
+        );
+      }
+      managerAdviceHasGeneratedText = true;
+      updateManagerReportGenerateLabel();
+    });
 
     document.addEventListener("talena:manager-personality-updated", (event) => {
       const detail = event.detail || {};
