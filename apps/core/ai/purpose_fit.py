@@ -896,7 +896,7 @@ def _summary_word_count(events: list[dict[str, Any]]) -> int:
         for event in events
         if event.get("type") == "summary_delta"
     )
-    return len(re.findall(r"\\b[\\w]+(?:[-’'][\\w]+)*\\b", summary_text))
+    return len(re.findall(r"\b[\w]+(?:[-’'][\w]+)*\b", summary_text))
 
 
 def _replace_summary_events(
