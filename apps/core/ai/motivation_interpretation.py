@@ -7,6 +7,7 @@ import math
 from typing import Any, Iterable
 
 from apps.core.motivation_factor_names import MOTIVATION_FACTOR_NAMES_SV
+from apps.processes.templatetags.motivation_i18n import FACTOR_CONTENT
 from django.utils import timezone
 
 from .openai_client import (
@@ -309,6 +310,104 @@ def extract_motivation_results(
     return list(
         results_by_name.values()
     )
+
+
+
+def _owner_motivation_results(owner) -> list[dict[str, Any]]:
+    """Return canonical motivation factors and precise STIVE values."""
+    process = getattr(owner, "process", None)
+    if getattr(process, "is_historical", False):
+        from apps.processes.services.candidate_profile import (
+            build_historical_candidate_profile,
+        )
+
+        profile = build_historical_candidate_profile(owner)
+        raw_results = profile.get("motivation_competencies") or []
+    else:
+        raw_results = extract_motivation_results(owner)
+
+    results_by_key: dict[str, dict[str, Any]] = {}
+    for item in raw_results:
+        name = _normalise_name(
+            item.get("name")
+            or item.get("competency")
+            or item.get("label")
+        )
+        if not name:
+            continue
+
+        key = _motivation_definition_key(name)
+        if key not in MOTIVATION_DEFINITIONS:
+            continue
+
+        score = normalise_motivation_score(item.get("stive"))
+        if score is None:
+            score = normalise_motivation_score(item.get("stive_rounded"))
+        if score is None:
+            score = normalise_motivation_score(item.get("score"))
+        if score is None:
+            continue
+
+        results_by_key[key] = {
+            "key": key,
+            "name": name,
+            "score": score,
+        }
+
+    return list(results_by_key.values())
+
+
+def build_motivation_top_three_evidence(
+    owner,
+    *,
+    language_code: str = "en",
+) -> str:
+    """Render the three highest STIVE factors with Talena's approved text."""
+    language = normalize_ai_language(language_code)
+    results = sorted(
+        _owner_motivation_results(owner),
+        key=lambda item: (-item["score"], item["key"]),
+    )[:3]
+
+    if not results:
+        if language == "sv":
+            return "Inga motivationsresultat finns tillgängliga."
+        return "No motivation assessment results are available."
+
+    if language == "sv":
+        lines = [
+            "De tre främsta motivationsfaktorerna är rangordnade efter kandidatens exakta STIVE-värde.",
+            "Vid lika värde används faktorernas kanoniska nyckel som en stabil skiljeregel.",
+        ]
+    else:
+        lines = [
+            "The three most prominent motivation factors are ranked by the candidate's exact STIVE value.",
+            "Tied values use the canonical factor key as a stable tie-breaker.",
+        ]
+
+    for rank, result in enumerate(results, start=1):
+        key = result["key"]
+        label = get_motivation_factor_display_name(
+            result["name"],
+            language_code=language,
+        )
+        if language == "sv":
+            interpretation = (
+                FACTOR_CONTENT.get(key, {}).get("top_text")
+                or MOTIVATION_DEFINITIONS.get(key, "")
+            )
+            lines.append(
+                f"{rank}. {label} — STIVE {_format_motivation_score(result['score'])}. "
+                f"{interpretation}"
+            )
+        else:
+            interpretation = MOTIVATION_DEFINITIONS.get(key, "")
+            lines.append(
+                f"{rank}. {label} — STIVE {_format_motivation_score(result['score'])}. "
+                f"{interpretation}"
+            )
+
+    return "\n".join(lines)
 
 
 def build_motivation_evidence_text(
