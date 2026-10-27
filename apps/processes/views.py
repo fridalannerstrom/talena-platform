@@ -106,6 +106,9 @@ from apps.processes.services.candidate_insights import (
 from apps.processes.services.candidate_profile import (
     build_historical_candidate_profile,
 )
+from apps.processes.services.cognitive_insights import (
+    build_cognitive_insight_results as _build_cognitive_insight_results,
+)
 
 from apps.processes.models import (
     HistoricalProcessCandidate,
@@ -423,196 +426,12 @@ def build_cognitive_insight_results(
     logical_percentile=None,
     numerical_percentile=None,
 ):
-    """
-    Build the three cognitive result cards used in Candidate Insights.
-
-    All three assessment types are always returned so the template can show
-    a grey placeholder when an assessment has not been completed.
-
-    Percentile calculations and thresholds are intentionally unchanged.
-    """
-
-    def normalise_percentile(value):
-        if value is None:
-            return None
-
-        try:
-            return int(round(float(value)))
-        except (TypeError, ValueError):
-            return None
-
-    def get_level(percentile):
-        """
-        Translate a percentile result into a display level and interpretation.
-        Adjust the thresholds later if Sova uses different norm bands.
-        """
-
-        if percentile is None:
-            return {
-                "completed": False,
-                "level_key": "missing",
-                "level_label": _("Not completed"),
-            }
-
-        if percentile <= 9:
-            return {
-                "completed": True,
-                "level_key": "very-low",
-                "level_label": _("Very low"),
-            }
-
-        if percentile <= 24:
-            return {
-                "completed": True,
-                "level_key": "low",
-                "level_label": _("Low"),
-            }
-
-        if percentile <= 74:
-            return {
-                "completed": True,
-                "level_key": "average",
-                "level_label": _("Typical range"),
-            }
-
-        if percentile <= 90:
-            return {
-                "completed": True,
-                "level_key": "high",
-                "level_label": _("High"),
-            }
-
-        return {
-            "completed": True,
-            "level_key": "very-high",
-            "level_label": _("Very high"),
-        }
-
-    def get_interpretation(test_key, percentile):
-        if percentile is None:
-            return _(
-                "This candidate has not completed this assessment."
-            )
-
-        ability_labels = {
-            "verbal": _(
-                "understand and evaluate written information"
-            ),
-            "logical": _(
-                "identify patterns and reach logical conclusions"
-            ),
-            "numerical": _(
-                "understand and work with numerical information"
-            ),
-        }
-
-        ability_text = ability_labels[test_key]
-
-        if percentile <= 9:
-            return _(
-                "The candidate may find it considerably more difficult "
-                "than most people in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
-
-        if percentile <= 24:
-            return _(
-                "The candidate may find it more difficult than many "
-                "others in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
-
-        if percentile <= 74:
-            return _(
-                "The candidate is likely to find it about as easy as "
-                "most people in the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
-
-        if percentile <= 90:
-            return _(
-                "The candidate may find it easier than many others in "
-                "the reference group to %(ability)s."
-            ) % {
-                "ability": ability_text,
-            }
-
-        return _(
-            "The candidate may find it considerably easier than most "
-            "people in the reference group to %(ability)s."
-        ) % {
-            "ability": ability_text,
-        }
-
-    test_config = [
-        {
-            "key": "logical",
-            "title": _("Logical reasoning"),
-            "measure_label": _("Logical reasoning ability"),
-            "percentile": normalise_percentile(
-                logical_percentile
-            ),
-        },
-        {
-            "key": "numerical",
-            "title": _("Numerical reasoning"),
-            "measure_label": _("Numerical reasoning ability"),
-            "percentile": normalise_percentile(
-                numerical_percentile
-            ),
-        },
-        {
-            "key": "verbal",
-            "title": _("Verbal reasoning"),
-            "measure_label": _("Verbal reasoning ability"),
-            "percentile": normalise_percentile(
-                verbal_percentile
-            ),
-        },
-    ]
-
-    results = []
-
-    for test in test_config:
-        percentile = test["percentile"]
-        level = get_level(percentile)
-
-        if percentile is None:
-            percentile_aria_label = ""
-            missing_aria_label = _(
-                "%(title)s assessment not completed"
-            ) % {
-                "title": test["title"],
-            }
-        else:
-            percentile_aria_label = _(
-                "%(title)s percentile %(percentile)s"
-            ) % {
-                "title": test["title"],
-                "percentile": percentile,
-            }
-            missing_aria_label = ""
-
-        results.append({
-            "key": test["key"],
-            "title": test["title"],
-            "measure_label": test["measure_label"],
-            "percentile": percentile,
-            "completed": level["completed"],
-            "level_key": level["level_key"],
-            "level_label": level["level_label"],
-            "interpretation": get_interpretation(
-                test_key=test["key"],
-                percentile=percentile,
-            ),
-            "percentile_aria_label": percentile_aria_label,
-            "missing_aria_label": missing_aria_label,
-        })
-
-    return results
+    """Keep the existing Candidate Insights API over the shared service."""
+    return _build_cognitive_insight_results(
+        verbal_percentile=verbal_percentile,
+        logical_percentile=logical_percentile,
+        numerical_percentile=numerical_percentile,
+    )
 
 
 def build_response_style_results(
@@ -8829,12 +8648,6 @@ def process_candidate_purpose_fit_stream(
                 owner,
                 language_code=language_code,
             ):
-                print(
-                    "[PURPOSE FIT] Event received:",
-                    event,
-                    flush=True,
-                )
-
                 purpose_fit = (
                     apply_purpose_fit_event(
                         purpose_fit,
