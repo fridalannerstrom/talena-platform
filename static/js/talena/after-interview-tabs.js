@@ -1966,6 +1966,8 @@
         ".after-interview-manager-report__confirm-dialog, " +
         ".alert, [role='status'][aria-live='polite']"
       ).forEach((element) => element.remove());
+      printableReport.querySelectorAll(".after-interview-manager-report__guide")
+        .forEach((guide) => { guide.open = true; });
       printRoot.appendChild(printableReport);
       printShell.appendChild(printRoot);
       document.body.appendChild(printShell);
