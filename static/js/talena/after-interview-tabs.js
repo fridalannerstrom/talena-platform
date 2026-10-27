@@ -1155,8 +1155,14 @@
         activeTrigger = null;
         close();
         if (!trigger?.isConnected || trigger.disabled) return;
-        state.confirmedRegenerationTrigger = trigger;
-        trigger.click();
+        // Let the browser finish removing the modal from the top layer before
+        // replaying the original click. Otherwise the underlying button can
+        // remain inert for the rest of this event turn in some browsers.
+        window.setTimeout(() => {
+          if (!trigger.isConnected || trigger.disabled) return;
+          state.confirmedRegenerationTrigger = trigger;
+          trigger.click();
+        }, 0);
       });
 
       state.regenerationConfirmation = {
