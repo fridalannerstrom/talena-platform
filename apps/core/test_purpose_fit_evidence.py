@@ -224,9 +224,9 @@ class CognitiveSummaryCoverageTests(SimpleTestCase):
         self.assertEqual("", supplement)
 
 
-class PurposeFitSummaryStreamTests(SimpleTestCase):
+class PurposeFitSummaryGenerationTests(SimpleTestCase):
     def test_model_summary_is_not_supplemented_after_generation(self):
-        from apps.core.ai.purpose_fit import stream_candidate_purpose_fit
+        from apps.core.ai.purpose_fit import generate_candidate_purpose_fit_events
 
         owner = SimpleNamespace(
             candidate=SimpleNamespace(
@@ -269,13 +269,11 @@ class PurposeFitSummaryStreamTests(SimpleTestCase):
             + json.dumps({"type": "done"})
             + "\n"
         )
-        raw.chat.completions.create.return_value = iter([
-            SimpleNamespace(
-                choices=[SimpleNamespace(
-                    delta=SimpleNamespace(content=model_text)
-                )]
-            )
-        ])
+        raw.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(
+                message=SimpleNamespace(content=model_text)
+            )]
+        )
 
         with (
             patch(
@@ -296,7 +294,7 @@ class PurposeFitSummaryStreamTests(SimpleTestCase):
             ),
         ):
             events = list(
-                stream_candidate_purpose_fit(owner, language_code="sv")
+                generate_candidate_purpose_fit_events(owner, language_code="sv")
             )
 
         summaries = [event for event in events if event["type"] == "summary_delta"]
@@ -412,7 +410,7 @@ class PurposeFitAssessmentPromptTests(SimpleTestCase):
 
 class PurposeFitFinalPayloadTests(SimpleTestCase):
     def test_final_sdk_payload_contains_admin_sentinel_and_redacts_candidate_pii(self):
-        from apps.core.ai.purpose_fit import stream_candidate_purpose_fit
+        from apps.core.ai.purpose_fit import generate_candidate_purpose_fit_events
 
         owner = SimpleNamespace(
             candidate=SimpleNamespace(
@@ -423,7 +421,11 @@ class PurposeFitFinalPayloadTests(SimpleTestCase):
             process=SimpleNamespace(is_historical=False, purpose="development"),
         )
         raw = Mock()
-        raw.chat.completions.create.return_value = iter([])
+        raw.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(
+                message=SimpleNamespace(content="")
+            )]
+        )
 
         with (
             patch(
@@ -447,7 +449,7 @@ class PurposeFitFinalPayloadTests(SimpleTestCase):
                 ),
             ),
         ):
-            list(stream_candidate_purpose_fit(owner, language_code="en"))
+            list(generate_candidate_purpose_fit_events(owner, language_code="en"))
 
         call = raw.chat.completions.create.call_args.kwargs
         payload = json.dumps(call["messages"], ensure_ascii=False)
@@ -458,4 +460,4 @@ class PurposeFitFinalPayloadTests(SimpleTestCase):
         self.assertIn("PERSONALITY indicator STEN 8", payload)
         self.assertNotIn("Anna Example", payload)
         self.assertNotIn("anna@example.test", payload)
-        self.assertTrue(call["stream"])
+        self.assertFalse(call["stream"])
