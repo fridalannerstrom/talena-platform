@@ -186,7 +186,7 @@
       "path": "apps/core/ai/purpose_fit.py",
       "calls": 1,
       "functions": [
-        "stream_candidate_purpose_fit"
+        "generate_candidate_purpose_fit_events"
       ],
       "status": "active",
       "data": [
