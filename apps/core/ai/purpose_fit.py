@@ -549,8 +549,8 @@ TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
 COGNITIVE RESULTS AND APPROVED INTERPRETATIONS
 {cognitive_interpretation_text}
 
-INTERVIEW EVIDENCE LIMIT
-No interview notes or interview examples are supplied to AI Overview. Do not claim that interview information confirms or contradicts assessment results. If administrator guidance refers to interviews, make no comparison with interview evidence.
+INTERVIEW NOTES
+No interview notes or examples are provided for this overview.
 
 PERSONALITY ASSESSMENT EVIDENCE FOR THE THREE AREA SUMMARIES
 {personality_assessment_text}
