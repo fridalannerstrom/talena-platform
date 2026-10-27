@@ -4,6 +4,7 @@
   const PANEL_SELECTOR = "#candidate-insights-panel-after-interview";
   const STYLE_ID = "talena-after-interview-tabs-v1";
   const URL_PARAM = "afterTab";
+  let pdfLibrariesPromise = null;
 
   const COPY = {
     sv: {
@@ -24,6 +25,8 @@
       managerReportTitle: "Chefsrapport",
       managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
       savePdf: "Spara som PDF",
+      creatingPdf: "Skapar PDF…",
+      pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
       managerSkillsTitle: "Färdighet",
       managerMotivationTitle: "Motivation",
       managerMotivationPracticalTitle: "Led i praktiken",
@@ -138,6 +141,8 @@
       managerReportTitle: "Manager report",
       managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
       savePdf: "Save as PDF",
+      creatingPdf: "Creating PDF…",
+      pdfGenerationFailed: "The PDF could not be created. Please try again.",
       managerSkillsTitle: "Skills",
       managerMotivationTitle: "Motivation",
       managerMotivationPracticalTitle: "In practice",
@@ -234,6 +239,144 @@
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
     },
+  };
+
+  const ensurePdfLibraries = () => {
+    const isReady = () =>
+      typeof window.html2canvas === "function" &&
+      typeof window.jspdf?.jsPDF === "function";
+    if (isReady()) return Promise.resolve();
+
+    if (!pdfLibrariesPromise) {
+      const loadScript = ({ id, src, integrity }, isLoaded) => new Promise((resolve, reject) => {
+        if (isLoaded()) {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.id = id;
+        script.src = src;
+        script.integrity = integrity;
+        script.crossOrigin = "anonymous";
+        script.referrerPolicy = "no-referrer";
+        script.onload = () => isLoaded()
+          ? resolve()
+          : reject(new Error("The PDF library did not initialize."));
+        script.onerror = () => {
+          script.remove();
+          reject(new Error("The PDF library could not be loaded."));
+        };
+        document.head.appendChild(script);
+      });
+
+      pdfLibrariesPromise = Promise.all([
+        loadScript({
+          id: "talena-html2canvas-library",
+          src: "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+          integrity: "sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==",
+        }, () => typeof window.html2canvas === "function"),
+        loadScript({
+          id: "talena-jspdf-library",
+          src: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js",
+          integrity: "sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=",
+        }, () => typeof window.jspdf?.jsPDF === "function"),
+      ]).then(() => {
+        if (!isReady()) throw new Error("The PDF libraries did not initialize.");
+      }).catch((error) => {
+        pdfLibrariesPromise = null;
+        throw error;
+      });
+    }
+
+    return pdfLibrariesPromise;
+  };
+
+  const renderElementAsPdf = async (element, filename) => {
+    await ensurePdfLibraries();
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    const canvas = await window.html2canvas(element, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+    });
+    if (!canvas.width || !canvas.height) throw new Error("The report is empty.");
+
+    const PdfDocument = window.jspdf.jsPDF;
+    const pdf = new PdfDocument({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const contentWidth = pageWidth - (margin * 2);
+    const contentHeight = pageHeight - (margin * 2);
+    const pixelsPerMillimeter = canvas.width / contentWidth;
+    const maxPageHeight = Math.floor(contentHeight * pixelsPerMillimeter);
+    const reportTop = element.getBoundingClientRect().top;
+    const renderScale = canvas.width / Math.max(element.getBoundingClientRect().width, 1);
+    const pageBreaks = Array.from(element.querySelectorAll(
+      ".after-interview-manager-report__skill, " +
+      ".after-interview-manager-report__guide-level, " +
+      ".after-interview-manager-report__motivator, " +
+      ".after-interview-manager-report__personality-theme, " +
+      ".after-interview-manager-report__personality-advice"
+    )).map((block) => Math.round(
+      (block.getBoundingClientRect().top - reportTop) * renderScale
+    )).filter((position) => position > 0 && position < canvas.height).sort((a, b) => a - b);
+
+    const slices = [];
+    let sliceStart = 0;
+    while (sliceStart < canvas.height) {
+      const targetEnd = Math.min(sliceStart + maxPageHeight, canvas.height);
+      let sliceEnd = targetEnd;
+      if (targetEnd < canvas.height) {
+        const earliestBreak = sliceStart + Math.floor(maxPageHeight * 0.68);
+        const safeBreak = pageBreaks.filter((position) =>
+          position >= earliestBreak && position <= targetEnd
+        ).pop();
+        if (safeBreak && safeBreak > sliceStart) sliceEnd = safeBreak;
+      }
+      if (sliceEnd <= sliceStart) throw new Error("The report could not be split into pages.");
+      slices.push({ start: sliceStart, end: sliceEnd });
+      sliceStart = sliceEnd;
+    }
+
+    slices.forEach((slice, index) => {
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = slice.end - slice.start;
+      const context = sliceCanvas.getContext("2d");
+      if (!context) throw new Error("A PDF page could not be rendered.");
+      context.drawImage(
+        canvas,
+        0, slice.start, canvas.width, sliceCanvas.height,
+        0, 0, sliceCanvas.width, sliceCanvas.height,
+      );
+      if (index > 0) pdf.addPage();
+      const imageHeight = sliceCanvas.height / pixelsPerMillimeter;
+      pdf.addImage(
+        sliceCanvas.toDataURL("image/jpeg", 0.98),
+        "JPEG",
+        margin,
+        margin,
+        contentWidth,
+        imageHeight,
+        undefined,
+        "FAST",
+      );
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(130);
+      pdf.text(`${index + 1} / ${slices.length}`, pageWidth - margin, pageHeight - 4, { align: "right" });
+      sliceCanvas.width = 0;
+      sliceCanvas.height = 0;
+    });
+
+    pdf.save(filename);
+    canvas.width = 0;
+    canvas.height = 0;
   };
 
   const MOTIVATION_PRACTICAL_ADVICE = {
@@ -1462,32 +1605,8 @@
       __PANEL__ [data-post-interview-content].after-interview-content-source {
         display: none !important;
       }
-      .after-interview-manager-report__print-shell { display: none; }
-      @media print {
-        @page { size: A4; margin: 0; }
-        body.manager-report-printing { background: #fff !important; }
-        body.manager-report-printing > *:not(.after-interview-manager-report__print-shell) {
-          display: none !important;
-        }
-        body.manager-report-printing > .after-interview-manager-report__print-shell {
-          display: block !important; position: static !important; width: 100% !important;
-          min-height: 0 !important; height: auto !important; margin: 0 !important;
-          padding: 12mm 14mm !important; overflow: visible !important;
-          background: #fff !important; box-sizing: border-box !important;
-          -webkit-box-decoration-break: clone; box-decoration-break: clone;
-        }
-        body.manager-report-printing .after-interview-manager-report__print-root {
-          display: block !important; position: static !important; width: 100%; margin: 0 !important;
-        }
-        body.manager-report-printing .after-interview-manager-report__guide { display: block; }
-        body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
-        body.manager-report-printing .after-interview-manager-report {
-          display: block !important; width: 100% !important; max-width: none !important;
-          margin: 0 !important; padding: 0 !important; border: 0 !important;
-          box-shadow: none !important; background: #fff !important;
-        }
-      }
-      __PANEL__ .after-interview-manager-report__print-root { display: none; }
+      .after-interview-manager-report__pdf-export-shell { display: none; }
+      __PANEL__ .after-interview-manager-report__pdf-export-root { display: none; }
       __PANEL__ .after-interview-manager-report__header {
         display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
       }
@@ -1950,15 +2069,35 @@
     const pdfLabel = document.createElement("span");
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
+    const managerReportPdfError = document.createElement("div");
+    managerReportPdfError.className = "alert alert-danger d-none mt-3 mb-0";
+    managerReportPdfError.setAttribute("role", "alert");
     pdfButton.addEventListener("click", () => {
-      const printShell = panel.cloneNode(false);
-      printShell.classList.add("after-interview-manager-report__print-shell");
-      printShell.hidden = false;
-      const printRoot = document.createElement("div");
-      printRoot.className = "after-interview-manager-report__print-root";
-      printRoot.hidden = true;
+      if (pdfButton.disabled) return;
+      managerReportPdfError.classList.add("d-none");
+      pdfButton.disabled = true;
+      pdfButton.setAttribute("aria-busy", "true");
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("aria-hidden", "true");
+      pdfLabel.textContent = copy().creatingPdf;
+      pdfButton.replaceChildren(spinner, pdfLabel);
+
+      const exportShell = panel.cloneNode(false);
+      exportShell.classList.add("after-interview-manager-report__pdf-export-shell");
+      exportShell.hidden = false;
+      exportShell.style.cssText =
+        "display:block;position:fixed;top:0;left:-10000px;width:186mm;margin:0;padding:0;" +
+        "border:0;z-index:-1;background:#fff;pointer-events:none;";
+      const exportRoot = document.createElement("div");
+      exportRoot.className = "after-interview-manager-report__pdf-export-root";
+      exportRoot.hidden = false;
+      exportRoot.style.cssText = "display:block;width:100%;margin:0;padding:0;";
       const printableReport = managerReportCard.cloneNode(true);
       printableReport.hidden = false;
+      printableReport.style.cssText =
+        "display:block;width:100%;max-width:none;margin:0;padding:0;border:0;" +
+        "box-shadow:none;background:#fff;";
       printableReport.querySelectorAll(
         ".after-interview-manager-report__actions, " +
         ".after-interview-manager-report__edit-controls, " +
@@ -1968,36 +2107,41 @@
       ).forEach((element) => element.remove());
       printableReport.querySelectorAll(".after-interview-manager-report__guide")
         .forEach((guide) => { guide.open = true; });
-      printRoot.appendChild(printableReport);
-      printShell.appendChild(printRoot);
-      document.body.appendChild(printShell);
+      [
+        ".after-interview-manager-report__levels",
+        ".after-interview-manager-report__guide-levels",
+        ".after-interview-manager-report__motivation-grid",
+        ".after-interview-manager-report__personality-parts",
+      ].forEach((selector) => printableReport.querySelectorAll(selector).forEach((grid) => {
+        grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+      }));
+      exportRoot.appendChild(printableReport);
+      exportShell.appendChild(exportRoot);
+      document.body.appendChild(exportShell);
 
-      const originalTitle = document.title;
-      let printStarted = false;
-      const printMedia = window.matchMedia?.("print");
-      const cleanup = () => {
-        printMedia?.removeEventListener?.("change", handlePrintChange);
-        window.removeEventListener("afterprint", cleanup);
-        document.body.classList.remove("manager-report-printing");
-        document.title = originalTitle;
-        printShell.remove();
-      };
-      const handlePrintChange = (event) => {
-        if (event.matches) printStarted = true;
-        else if (printStarted) cleanup();
-      };
-      document.title = copy().managerReportTitle;
-      document.body.classList.add("manager-report-printing");
-      window.addEventListener("afterprint", cleanup, { once: true });
-      printMedia?.addEventListener?.("change", handlePrintChange);
-      window.print();
+      const filename = (copy().managerReportTitle.replace(/[\\/:*?"<>|]+/g, " ").trim() || "Manager report") + ".pdf";
+      window.requestAnimationFrame(async () => {
+        try {
+          await renderElementAsPdf(printableReport, filename);
+        } catch (_error) {
+          managerReportPdfError.textContent = copy().pdfGenerationFailed;
+          managerReportPdfError.classList.remove("d-none");
+        } finally {
+          exportShell.remove();
+          pdfButton.disabled = false;
+          pdfButton.removeAttribute("aria-busy");
+          pdfLabel.textContent = copy().savePdf;
+          pdfButton.replaceChildren(pdfIcon, pdfLabel);
+          if (window.feather) window.feather.replace();
+        }
+      });
     });
     managerReportActions.appendChild(pdfButton);
     managerReportHeader.append(managerReportHeading, managerReportActions);
     const managerReportIntro = document.createElement("p");
     managerReportIntro.className = "after-interview-manager-report__intro";
     managerReportIntro.textContent = copy().managerReportIntro;
-    managerReportCard.append(managerReportHeader, managerReportIntro);
+    managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
