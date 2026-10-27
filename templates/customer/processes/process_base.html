@@ -7874,432 +7874,220 @@ async function initCandidateCognitiveQuestions(
 
 <script>
 async function initCandidatePurposeFitStream(container = document) {
-    const card = container.querySelector("#purposeFitCard");
-    const result = container.querySelector("#purposeFitResult");
+  const card = container.querySelector("#purposeFitCard");
+  const result = container.querySelector("#purposeFitResult");
+  if (!card || !result) return;
 
-    if (!card || !result) {
-        console.log("[PURPOSE FIT] No purpose fit card found");
-        return;
+  if (card.dataset.purposeFitInitialized === "true") return;
+  card.dataset.purposeFitInitialized = "true";
+
+  const loading = container.querySelector("#purposeFitLoading");
+  const loadingText = container.querySelector("#purposeFitLoadingText");
+  const errorBox = container.querySelector("#purposeFitError");
+  const statusBadge = container.querySelector("#purposeFitStatusBadge");
+  const title = container.querySelector("#purposeFitTitle");
+  const summary = container.querySelector("#purposeFitSummary");
+  const alignmentList = container.querySelector("#purposeFitAlignment");
+  const verifyList = container.querySelector("#purposeFitVerify");
+  const nextStep = container.querySelector("#purposeFitNextStep");
+  const contextNote = container.querySelector("#purposeFitContextNote");
+  const refreshButton = card.querySelector(".js-regenerate-purpose-fit");
+  const generationUrl = result.dataset.generationUrl;
+  let isGenerating = false;
+
+  function setHidden(element, hidden) {
+    if (element) element.classList.toggle("d-none", hidden);
+  }
+
+  function refreshIcons() {
+    if (window.feather) window.feather.replace();
+  }
+
+  function getCookie(name) {
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith(`${name}=`));
+    return cookieValue
+      ? decodeURIComponent(cookieValue.split("=")[1])
+      : null;
+  }
+
+  function setStatus(text, type = "neutral") {
+    if (!statusBadge) return;
+    statusBadge.textContent = text || "";
+    statusBadge.className = "badge rounded-pill";
+    if (type === "warning") {
+      statusBadge.classList.add("bg-warning-subtle", "text-warning-emphasis");
+    } else if (type === "danger") {
+      statusBadge.classList.add("bg-danger-subtle", "text-danger-emphasis");
+    } else {
+      statusBadge.classList.add("bg-light", "text-muted");
     }
+  }
 
-    if (card.dataset.purposeFitInitialized === "true") {
-        return;
+  function renderList(element, items, iconName) {
+    if (!element) return;
+    element.replaceChildren();
+    (Array.isArray(items) ? items : []).filter(Boolean).forEach((item) => {
+      const listItem = document.createElement("li");
+      const icon = document.createElement("span");
+      icon.className = "purpose-fit-list-icon";
+      icon.innerHTML = `<i data-feather="${iconName}"></i>`;
+      const text = document.createElement("span");
+      text.textContent = String(item);
+      listItem.append(icon, text);
+      element.appendChild(listItem);
+    });
+    refreshIcons();
+  }
+
+  function applyResult(data) {
+    if (title) {
+      title.textContent = data.title || window.TALENA_PROCESS_I18N.aiOverview;
     }
-
-    card.dataset.purposeFitInitialized = "true";
-
-    console.log("[PURPOSE FIT] Initialising");
-    console.log(
-        "[PURPOSE FIT] Stream URL:",
-        result.dataset.streamUrl
-    );
-
-    const loading = container.querySelector(
-        "#purposeFitLoading"
-    );
-
-    const loadingText = container.querySelector(
-        "#purposeFitLoadingText"
-    );
-
-    const errorBox = container.querySelector(
-        "#purposeFitError"
-    );
-
-    const statusBadge = container.querySelector(
-        "#purposeFitStatusBadge"
-    );
-
-    const outdatedWarning = container.querySelector(
-        "#purposeFitOutdatedWarning"
-    );
-
-    const title = container.querySelector(
-        "#purposeFitTitle"
-    );
-
-    const summary = container.querySelector(
-        "#purposeFitSummary"
-    );
-
-    const alignmentList = container.querySelector(
-        "#purposeFitAlignment"
-    );
-
-    const verifyList = container.querySelector(
-        "#purposeFitVerify"
-    );
-
-    const nextStep = container.querySelector(
-        "#purposeFitNextStep"
-    );
-
-    const contextNote = container.querySelector(
-        "#purposeFitContextNote"
-    );
-
-    const refreshButton = card.querySelector(
-        ".js-regenerate-purpose-fit"
-    );
-
-    let isStreaming = false;
-
-    function getCookie(name) {
-        const cookieValue = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith(`${name}=`));
-
-        return cookieValue
-            ? decodeURIComponent(cookieValue.split("=")[1])
-            : null;
-    }
-
-    function refreshIcons() {
-        if (window.feather) {
-            window.feather.replace();
-        }
-    }
-
-    function setStatus(text, type = "neutral") {
-        statusBadge.textContent = text;
-
-        statusBadge.className = "badge rounded-pill";
-
-        if (type === "success") {
-            statusBadge.classList.add(
-                "bg-success-subtle",
-                "text-success-emphasis"
-            );
-        } else if (type === "warning") {
-            statusBadge.classList.add(
-                "bg-warning-subtle",
-                "text-warning-emphasis"
-            );
-        } else if (type === "danger") {
-            statusBadge.classList.add(
-                "bg-danger-subtle",
-                "text-danger-emphasis"
-            );
-        } else {
-            statusBadge.classList.add(
-                "bg-light",
-                "text-muted"
-            );
-        }
-    }
-
-function resetPurposeFit() {
-  if (title) {
-    title.textContent = window.TALENA_PROCESS_I18N.aiOverview;
-  }
-
-  if (summary) {
-    summary.textContent = "";
-  }
-
-  if (alignmentList) {
-    alignmentList.replaceChildren();
-  }
-
-  if (verifyList) {
-    verifyList.replaceChildren();
-  }
-
-  /*
-   * The Recommended next step section is currently
-   * commented out in the template.
-   */
-  if (nextStep) {
-    nextStep.textContent = "";
-  }
-
-  if (contextNote) {
-    contextNote.textContent = "";
-  }
-
-  if (result) {
-    result.classList.add("d-none");
-  }
-
-  if (errorBox) {
-    errorBox.classList.add("d-none");
-  }
-
-  if (outdatedWarning) {
-    outdatedWarning.classList.add("d-none");
-  }
-}
-
-    function renderList(listElement, items, iconName) {
-        listElement.innerHTML = "";
-
-        items.forEach((item) => {
-            const listItem = document.createElement("li");
-
-            const iconWrapper = document.createElement("span");
-            iconWrapper.className = "purpose-fit-list-icon";
-            iconWrapper.innerHTML = `<i data-feather="${iconName}"></i>`;
-
-            const text = document.createElement("span");
-            text.textContent = item;
-
-            listItem.appendChild(iconWrapper);
-            listItem.appendChild(text);
-            listElement.appendChild(listItem);
-        });
-
-        refreshIcons();
-    }
-
-    function applySavedResult(data) {
-        title.textContent = data.title || window.TALENA_PROCESS_I18N.aiOverview;
-        summary.textContent = data.summary || "";
-
-        renderList(
-            alignmentList,
-            data.key_alignment || [],
-            "check"
-        );
-
-        renderList(
-            verifyList,
-            data.areas_to_verify || [],
-            "search"
-        );
-
-if (nextStep) {
-  nextStep.textContent =
-    data.suggested_next_step || "";
-}
-
-        contextNote.textContent =
-            data.context_note || "";
-
-        loading.classList.add("d-none");
-        result.classList.remove("d-none");
-    }
-
-    function applyStreamEvent(event) {
-        switch (event.type) {
-case "saved_result":
-    applySavedResult(event.data || {});
-
-    if (event.status === "outdated") {
-        setStatus(window.TALENA_PROCESS_I18N.needsUpdate, "warning");
-    } else if (statusBadge) {
-        statusBadge.classList.add("d-none");
-    }
-    break;
-
-            case "meta":
-                title.textContent =
-                    title.textContent = window.TALENA_PROCESS_I18N.aiOverview;
-
-                loading.classList.add("d-none");
-                result.classList.remove("d-none");
-                break;
-
-            case "summary_delta":
-                summary.textContent += event.text || "";
-                break;
-
-            case "key_alignment":
-                renderList(
-                    alignmentList,
-                    event.items || [],
-                    "check"
-                );
-                break;
-
-            case "areas_to_verify":
-                renderList(
-                    verifyList,
-                    event.items || [],
-                    "search"
-                );
-                break;
-
-case "suggested_next_step":
-  if (nextStep) {
-    nextStep.textContent =
-      event.text || "";
-  }
-  break;
-
-            case "context_note":
-                contextNote.textContent = event.text || "";
-                break;
-
-case "done":
-  if (statusBadge) {
-    statusBadge.classList.add("d-none");
-  }
-
-  loading.classList.add("d-none");
-  result.classList.remove("d-none");
-
-  notifyCandidateAiContentUpdated(
-    card
-  );
-
-  break;
-
-            case "error":
-                throw new Error(
-                    event.message ||
-                    "Purpose-fit generation failed."
-                );
-        }
-    }
-
-    async function streamPurposeFit(streamUrl) {
-        if (isStreaming) {
-            return;
-        }
-
-        isStreaming = true;
-
-        resetPurposeFit();
-
-        loading.classList.remove("d-none");
-loadingText.textContent =
-    window.TALENA_PROCESS_I18N.creatingAiOverview;
-
-if (statusBadge) {
-    statusBadge.classList.add("d-none");
-}
-
-refreshButton.disabled = true;
-
-        try {
-            const response = await fetch(streamUrl, {
-                method: "GET",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-
-              throw new Error(
-                  errorData.error ||
-                  errorData.message ||
-                  window.TALENA_PROCESS_I18N.couldNotGenerateAiOverview
-              );
-            }
-
-            if (!response.body) {
-                throw new Error(
-                    window.TALENA_PROCESS_I18N.streamingNotSupported
-                );
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-
-            let buffer = "";
-
-            while (true) {
-                const { value, done } = await reader.read();
-
-                if (done) {
-                    break;
-                }
-
-                buffer += decoder.decode(value, {
-                    stream: true,
-                });
-
-                const lines = buffer.split("\n");
-                buffer = lines.pop() || "";
-
-                for (const line of lines) {
-                    const trimmedLine = line.trim();
-
-                    if (!trimmedLine) {
-                        continue;
-                    }
-
-                    const event = JSON.parse(trimmedLine);
-                    applyStreamEvent(event);
-                }
-            }
-
-            if (buffer.trim()) {
-                const finalEvent = JSON.parse(buffer.trim());
-                applyStreamEvent(finalEvent);
-            }
-
-        } catch (error) {
-            console.error("AI overview error:", error);
-
-            loading.classList.add("d-none");
-            errorBox.classList.remove("d-none");
-
-            setStatus(window.TALENA_PROCESS_I18N.failed, "danger");
-        } finally {
-            isStreaming = false;
-            refreshButton.disabled = false;
-            refreshIcons();
-        }
-    }
-
-    refreshButton.addEventListener("click", async () => {
-        if (isStreaming) {
-            return;
-        }
-
-        const regenerateUrl =
-            refreshButton.dataset.regenerateUrl;
-
-        refreshButton.disabled = true;
-
-        try {
-            const response = await fetch(regenerateUrl, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.error ||
-                    window.TALENA_PROCESS_I18N.couldNotRegenerateAiOverview
-                );
-            }
-
-            await streamPurposeFit(data.stream_url);
-
-        } catch (error) {
-            console.error(
-                "Purpose fit regeneration error:",
-                error
-            );
-
-            errorBox.classList.remove("d-none");
-            setStatus(window.TALENA_PROCESS_I18N.failed, "danger");
-        } finally {
-            refreshButton.disabled = false;
-        }
+    if (summary) summary.textContent = data.summary || "";
+
+    const areaSummaries = data.personality_area_summaries || {};
+    ["leadership", "organisation", "interaction"].forEach((area) => {
+      const element = container.querySelector(
+        `[data-personality-area-summary="${area}"]`
+      );
+      if (element) {
+        const text = String(areaSummaries[area] || "").trim();
+        element.textContent = text;
+        element.classList.toggle("d-none", !text);
+        const placeholder = element
+          .closest(".personality-overview-summary")
+          ?.querySelector(".personality-overview-summary__placeholder");
+        placeholder?.classList.toggle("d-none", Boolean(text));
+      }
     });
 
-    const hasFit =
-        result.dataset.hasFit === "true";
+    renderList(alignmentList, data.key_alignment || [], "check");
+    renderList(verifyList, data.areas_to_verify || [], "search");
+    if (nextStep) nextStep.textContent = data.suggested_next_step || "";
+    if (contextNote) contextNote.textContent = data.context_note || "";
+    setHidden(loading, true);
+    setHidden(result, false);
+  }
 
-    if (!hasFit) {
-        streamPurposeFit(
-            result.dataset.streamUrl
-        );
+  function showError(message) {
+    setHidden(loading, true);
+    setHidden(errorBox, false);
+    if (errorBox) {
+      errorBox.textContent = message
+        || window.TALENA_PROCESS_I18N.couldNotGenerateAiOverview;
     }
+    setStatus(window.TALENA_PROCESS_I18N.failed, "danger");
+  }
 
-    refreshIcons();
+  async function generatePurposeFit(url) {
+    if (!url || isGenerating) return;
+    isGenerating = true;
+
+    setHidden(result, true);
+    setHidden(errorBox, true);
+    setHidden(loading, false);
+    if (summary) summary.textContent = "";
+    alignmentList?.replaceChildren();
+    verifyList?.replaceChildren();
+    if (nextStep) nextStep.textContent = "";
+    if (contextNote) contextNote.textContent = "";
+
+    if (loadingText) {
+      loadingText.textContent =
+        window.TALENA_PROCESS_I18N.creatingAiOverview;
+    }
+    if (refreshButton) refreshButton.disabled = true;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (error) {
+        // A plain-text error response will use the localized fallback below.
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.error
+          || data.message
+          || window.TALENA_PROCESS_I18N.couldNotGenerateAiOverview
+        );
+      }
+      if (!data.data || typeof data.data !== "object") {
+        throw new Error(
+          window.TALENA_PROCESS_I18N.couldNotGenerateAiOverview
+        );
+      }
+
+      applyResult(data.data);
+      if (data.status === "outdated") {
+        setStatus(window.TALENA_PROCESS_I18N.needsUpdate, "warning");
+      } else {
+        setHidden(statusBadge, true);
+      }
+      if (
+        data.generated
+        && typeof window.notifyCandidateAiContentUpdated === "function"
+      ) {
+        window.notifyCandidateAiContentUpdated(card);
+      }
+    } catch (error) {
+      console.error("[PURPOSE FIT] Error:", error);
+      showError(error.message);
+    } finally {
+      isGenerating = false;
+      if (refreshButton) refreshButton.disabled = false;
+      refreshIcons();
+    }
+  }
+
+  refreshButton?.addEventListener("click", async () => {
+    if (isGenerating) return;
+    const regenerateUrl = refreshButton.dataset.regenerateUrl;
+    if (!regenerateUrl) return;
+    refreshButton.disabled = true;
+
+    try {
+      const response = await fetch(regenerateUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data.error
+          || window.TALENA_PROCESS_I18N.couldNotRegenerateAiOverview
+        );
+      }
+      await generatePurposeFit(data.generation_url || generationUrl);
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      if (refreshButton) refreshButton.disabled = false;
+      refreshIcons();
+    }
+  });
+
+  if (result.dataset.hasFit !== "true") {
+    await generatePurposeFit(generationUrl);
+  }
+  refreshIcons();
 }
-
 </script>
 
 <script>

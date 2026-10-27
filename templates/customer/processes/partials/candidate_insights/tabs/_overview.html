@@ -180,7 +180,7 @@
       <div
         id="purposeFitResult"
         class="{% if not overview_owner.ai_purpose_fit %}d-none{% endif %}"
-        data-stream-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
+        data-generation-url="{% url 'processes:process_candidate_purpose_fit_stream' process.id candidate.id %}"
         data-has-fit="{% if overview_owner.ai_purpose_fit %}true{% else %}false{% endif %}"
         data-fit-status="{{ overview_owner.ai_purpose_fit_status|default:'not_started' }}"
       >

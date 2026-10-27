@@ -121,7 +121,7 @@ from apps.core.ai.purpose_fit import (
     build_assessment_evidence,
     create_empty_purpose_fit,
     apply_purpose_fit_event,
-    stream_candidate_purpose_fit,
+    generate_candidate_purpose_fit_events,
     save_candidate_purpose_fit,
 )
 
@@ -8569,30 +8569,13 @@ def process_candidate_purpose_fit_stream(
             flush=True,
         )
 
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": owner.ai_purpose_fit,
-                    "status": (
-                        owner.ai_purpose_fit_status
-                    ),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; "
-                "charset=utf-8"
-            ),
+        return JsonResponse(
+            {
+                "data": owner.ai_purpose_fit,
+                "status": owner.ai_purpose_fit_status,
+                "generated": False,
+            }
         )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
 
     # ---------------------------------------------------------
     # PREVENT DUPLICATE GENERATION
@@ -8628,109 +8611,75 @@ def process_candidate_purpose_fit_stream(
     )
 
     # ---------------------------------------------------------
-    # STREAM GENERATION
+    # GENERATE THE COMPLETE RESULT
     # ---------------------------------------------------------
 
-    def generator():
-        purpose_fit = create_empty_purpose_fit(
-            owner
+    purpose_fit = create_empty_purpose_fit(
+        owner
+    )
+
+    try:
+        print(
+            "[PURPOSE FIT] Starting complete OpenAI response",
+            flush=True,
         )
 
-        received_done_event = False
-
-        try:
-            print(
-                "[PURPOSE FIT] Starting OpenAI stream",
-                flush=True,
-            )
-
-            for event in stream_candidate_purpose_fit(
-                owner,
-                language_code=language_code,
-            ):
-                purpose_fit = (
-                    apply_purpose_fit_event(
-                        purpose_fit,
-                        event,
-                    )
+        for event in generate_candidate_purpose_fit_events(
+            owner,
+            language_code=language_code,
+        ):
+            if event.get("type") == "error":
+                raise ValueError(
+                    event.get("message")
+                    or "AI Overview generation failed."
                 )
 
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            print(
-                "[PURPOSE FIT] OpenAI stream finished",
-                flush=True,
-            )
-
-            if not received_done_event:
-                print(
-                    "[PURPOSE FIT] Adding missing done event",
-                    flush=True,
-                )
-
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_candidate_purpose_fit(
-                owner,
+            purpose_fit = apply_purpose_fit_event(
                 purpose_fit,
-                language_code=language_code,
+                event,
             )
 
-            print(
-                "[PURPOSE FIT] Result saved successfully",
-                flush=True,
-            )
+        save_candidate_purpose_fit(
+            owner,
+            purpose_fit,
+            language_code=language_code,
+        )
 
-        except Exception as exc:
-            print(
-                "[PURPOSE FIT] ERROR:",
-                repr(exc),
-                flush=True,
-            )
+        print(
+            "[PURPOSE FIT] Result saved successfully",
+            flush=True,
+        )
 
-            owner.ai_purpose_fit_status = "failed"
+        return JsonResponse(
+            {
+                "data": purpose_fit,
+                "status": "completed",
+                "generated": True,
+            }
+        )
 
-            owner.save(
-                update_fields=[
-                    "ai_purpose_fit_status",
-                ]
-            )
+    except Exception as exc:
+        print(
+            "[PURPOSE FIT] ERROR:",
+            repr(exc),
+            flush=True,
+        )
 
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(exc),
-                },
-                ensure_ascii=False,
-            ) + "\n"
+        owner.ai_purpose_fit_status = "failed"
 
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
+        owner.save(
+            update_fields=[
+                "ai_purpose_fit_status",
+            ]
+        )
 
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    print(
-        "[PURPOSE FIT] Streaming response created",
-        flush=True,
-    )
-
-    return response
+        return JsonResponse(
+            {
+                "error": str(exc)
+                or "AI Overview generation failed."
+            },
+            status=500,
+        )
 
 @login_required
 @require_POST
@@ -8794,7 +8743,7 @@ def process_candidate_purpose_fit_regenerate(
     return JsonResponse(
         {
             "ok": True,
-            "stream_url": reverse(
+            "generation_url": reverse(
                 "processes:process_candidate_purpose_fit_stream",
                 kwargs={
                     "process_id": process.id,

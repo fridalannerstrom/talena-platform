@@ -325,6 +325,7 @@ def render_personality_ai_evidence(
     *,
     language_code: str = "en",
     include_indicator_details: bool = False,
+    include_raw_scores: bool = True,
 ) -> str:
     """Render the same candidate-specific meaning used by Result Summary."""
 
@@ -334,7 +335,7 @@ def render_personality_ai_evidence(
     if not rows:
         return ""
 
-    if language_code == "sv":
+    if include_raw_scores and language_code == "sv":
         intro = (
             "Detta är kandidatens resultatspecifika personlighetsevidens. "
             "Sammanfattningarna byggs av samma godkända indikatortexter och "
@@ -351,7 +352,7 @@ def render_personality_ai_evidence(
         summary_label = "KANDIDATENS RESULTATSAMMANFATTNING"
         indicator_label = "UNDERLIGGANDE INDIKATORNYANSER"
         no_summary = "Ingen resultatsammanfattning kunde byggas från indikatorerna."
-    else:
+    elif include_raw_scores:
         intro = (
             "This is candidate-specific personality evidence. The summaries are "
             "built from the same approved indicator texts and STEN bands used in "
@@ -367,6 +368,16 @@ def render_personality_ai_evidence(
         summary_label = "CANDIDATE-SPECIFIC RESULT SUMMARY"
         indicator_label = "UNDERLYING INDICATOR NUANCE"
         no_summary = "No result summary could be built from the indicators."
+    elif language_code == "sv":
+        intro = "Godkända, kandidatspecifika tolkningstexter från personlighetstestet."
+        summary_label = "KANDIDATENS RESULTATTOLKNING"
+        indicator_label = "INDIKATORTOLKNINGAR"
+        no_summary = "Ingen resultattolkning finns tillgänglig."
+    else:
+        intro = "Approved, candidate-specific interpretation texts from the personality assessment."
+        summary_label = "CANDIDATE RESULT INTERPRETATION"
+        indicator_label = "INDICATOR INTERPRETATIONS"
+        no_summary = "No result interpretation is available."
 
     blocks = []
 
@@ -383,9 +394,10 @@ def render_personality_ai_evidence(
         lines = [
             f"TRAIT: {heading}",
             f"SOURCE NAME: {source_name}",
-            f"CANDIDATE RESULT: STEN {sten} of 10",
             f"{summary_label}: {row.get('summary') or no_summary}",
         ]
+        if include_raw_scores:
+            lines.insert(2, f"CANDIDATE RESULT: STEN {sten} of 10")
 
         if include_indicator_details and row.get("indicators"):
             lines.append(f"{indicator_label}:")
@@ -405,10 +417,14 @@ def render_personality_ai_evidence(
                         f"{indicator_name} / {indicator_display}"
                     )
 
-                lines.append(
-                    f"- {indicator_heading}: STEN {indicator.get('sten')} of 10. "
-                    f"{indicator.get('text') or ''}"
-                )
+                indicator_text = str(indicator.get("text") or "").strip()
+                if include_raw_scores:
+                    lines.append(
+                        f"- {indicator_heading}: STEN {indicator.get('sten')} of 10. "
+                        f"{indicator_text}"
+                    )
+                else:
+                    lines.append(f"- {indicator_heading}: {indicator_text}")
 
         blocks.append("\n".join(lines))
 
@@ -426,6 +442,7 @@ def build_personality_ai_evidence_text(
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
     include_indicator_details: bool = False,
+    include_raw_scores: bool = True,
 ) -> str:
     return render_personality_ai_evidence(
         build_personality_ai_evidence(
@@ -435,6 +452,7 @@ def build_personality_ai_evidence_text(
         ),
         language_code=language_code,
         include_indicator_details=include_indicator_details,
+        include_raw_scores=include_raw_scores,
     )
 
 
@@ -444,6 +462,7 @@ def build_owner_personality_ai_evidence_text(
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
     include_indicator_details: bool = False,
+    include_raw_scores: bool = True,
 ) -> str:
     return render_personality_ai_evidence(
         build_owner_personality_ai_evidence(
@@ -453,4 +472,5 @@ def build_owner_personality_ai_evidence_text(
         ),
         language_code=language_code,
         include_indicator_details=include_indicator_details,
+        include_raw_scores=include_raw_scores,
     )

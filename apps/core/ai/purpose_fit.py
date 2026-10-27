@@ -28,11 +28,9 @@ from .prompt_templates import (
 from .motivation_interpretation import (
     get_motivation_factor_display_name,
     build_motivation_top_three_evidence,
-    build_motivation_summary_supplement,
 )
 from apps.processes.services.cognitive_insights import (
     build_owner_cognitive_ai_evidence,
-    build_owner_cognitive_summary_supplement,
 )
 from .personality_ai_evidence import (
     build_owner_personality_ai_evidence_text,
@@ -444,7 +442,7 @@ def build_purpose_fit_prompt(
     synthesis, interpretation and communication decisions.
 
     Talena protects only input plumbing and the technical
-    streaming/output contract.
+    response/output contract.
     """
 
     language_code = normalize_ai_language(
@@ -495,17 +493,15 @@ def build_purpose_fit_prompt(
 
     candidate = shared_context["candidate"]
 
-    assessment_text, _ = build_assessment_evidence(
-        invitation,
-        language_code=language_code,
-    )
     motivation_top_three_text = build_motivation_top_three_evidence(
         invitation,
         language_code=language_code,
+        include_raw_scores=False,
     )
     cognitive_interpretation_text = build_owner_cognitive_ai_evidence(
         invitation,
         language_code=language_code,
+        include_raw_scores=False,
     )
     # Use Talena's canonical personality evidence builder for this section.
     # The general evidence string may also contain appended grounding under a
@@ -515,18 +511,14 @@ def build_purpose_fit_prompt(
         invitation,
         language_code=language_code,
         include_indicator_details=True,
+        include_raw_scores=False,
     )
 
     if not personality_assessment_text:
-        personality_assessment_text = next(
-            (
-                section
-                for section in assessment_text.split("\n\n")
-                if section.splitlines()
-                and section.splitlines()[0].rstrip(":").strip().casefold()
-                in {"personality", "personlighet"}
-            ),
-            "No completed personality assessment scores were available.",
+        personality_assessment_text = (
+            "Inga godkända personlighetstolkningar finns tillgängliga."
+            if language_code == "sv"
+            else "No approved personality interpretation texts are available."
         )
 
     return f"""
@@ -542,19 +534,16 @@ Purpose key: {shared_context["purpose_key"] or "No specific purpose"}
 PROCESS CONTEXT
 {shared_context["context_text"] or "No additional process context supplied."}
 
-AVAILABLE ASSESSMENT EVIDENCE
-{assessment_text}
-
-TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
+TOP THREE MOTIVATION INTERPRETATION TEXTS
 {motivation_top_three_text}
 
-COGNITIVE RESULTS AND APPROVED INTERPRETATIONS
+COGNITIVE INTERPRETATION TEXTS
 {cognitive_interpretation_text}
 
-INTERVIEW EVIDENCE LIMIT
-No interview notes or interview examples are supplied to AI Overview. Do not claim that interview information confirms or contradicts assessment results. If administrator guidance refers to interviews, make no comparison with interview evidence.
+INTERVIEW NOTES
+No interview notes or examples are provided for this overview.
 
-PERSONALITY ASSESSMENT EVIDENCE FOR THE THREE AREA SUMMARIES
+APPROVED PERSONALITY AND INDICATOR INTERPRETATION TEXTS
 {personality_assessment_text}
 
 
@@ -574,35 +563,6 @@ If this guidance contains older instructions relating to those
 sections, the dedicated section guidance below takes precedence.
 
 {admin_instructions}
-
-
-OVERALL INTERPRETATION COVERAGE
-
-The administrator guidance above remains authoritative for the
-interpretation. For summary_delta events, do not silently omit an
-assessment domain when its evidence is available:
-
-- Begin with the evidenced personality preferences and use the
-  approved personality interpretations.
-- When TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
-  lists factors, name every listed factor and weave its approved
-  interpretation into the personality themes. Explain supported
-  ways the factors reinforce or nuance those preferences; do not
-  present them as a detached list.
-- When COGNITIVE RESULTS AND APPROVED INTERPRETATIONS lists results,
-  include a concise statement about each ability result it contains.
-  Explain only what the approved interpretation suggests about
-  processing new or complex information, and keep it complementary
-  to the personality and motivation themes.
-- Use the approved interpretation wording rather than reproducing
-  raw STEN, STIVE, or percentile values. Do not infer job performance,
-  communication ability, or role suitability from cognitive results.
-- Weave the available domains into 2–3 connected themes. When
-  personality, motivation, and cognitive results are all available,
-  write 2–3 substantive paragraphs; a two-sentence personality-only
-  overview is incomplete.
-- Do not invent or imply results for domains whose evidence says
-  they are unavailable.
 
 
 WHAT SUPPORTS THE PURPOSE GUIDANCE
@@ -661,13 +621,13 @@ The context_note and suggested_next_step events remain governed
 by Talena's existing overall guidance and technical contract.
 
 Do not allow administrator guidance to change Talena's technical
-event structure, required JSON fields or streaming format.
+event structure, required JSON fields or response format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT
 
 The following requirements exist only so Talena can process,
-stream, save and display the AI Overview.
+save and display the completed AI Overview.
 
 Administrator guidance controls the substantive content inside
 these fields.
@@ -684,7 +644,7 @@ All user-facing text inside the JSON response must use the
 configured output language.
 
 
-STREAMING FORMAT
+RESPONSE FORMAT
 
 Return newline-delimited JSON, also called NDJSON.
 
@@ -912,17 +872,14 @@ def _parse_event_line(
     return event
 
 
-def stream_candidate_purpose_fit(
+def generate_candidate_purpose_fit_events(
     invitation,
     *,
     language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
-    Stream purpose-fit events from OpenAI.
-
-    Each yielded value is a parsed event dictionary.
-    The view will later convert these dictionaries to NDJSON
-    and send them to the browser.
+    Request the complete AI Overview from OpenAI and yield its parsed events
+    only after the full response has been generated.
     """
 
     if not purpose_supports_fit(invitation.process):
@@ -949,7 +906,7 @@ def stream_candidate_purpose_fit(
 
     prompt = redact_candidate_name(prompt, invitation.candidate)
 
-    stream = client.chat.completions.create(
+    completion = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
             {
@@ -961,7 +918,7 @@ def stream_candidate_purpose_fit(
                     "interpretation and communication decisions. "
                     "Follow Talena's technical output contract exactly, "
                     "including required JSON field names, event types "
-                    "and streaming format. "
+                    "and response format. "
                     f"{system_language_instruction}"
                 ),
             },
@@ -971,93 +928,18 @@ def stream_candidate_purpose_fit(
             },
         ],
         temperature=0.2,
-        stream=True,
+        stream=False,
     )
 
-    buffer = ""
-    summary_text = ""
-    assessment_coverage_checked = False
+    response_text = (
+        completion.choices[0].message.content or ""
+    )
 
-    def assessment_coverage_event():
-        nonlocal assessment_coverage_checked
+    for raw_line in response_text.splitlines():
+        parsed_event = _parse_event_line(raw_line)
 
-        if assessment_coverage_checked:
-            return None
-
-        assessment_coverage_checked = True
-        supplements = []
-
-        motivation_supplement = build_motivation_summary_supplement(
-            invitation,
-            summary_text,
-            language_code=language_code,
-        )
-        if motivation_supplement:
-            supplements.append(motivation_supplement)
-
-        cognitive_supplement = build_owner_cognitive_summary_supplement(
-            invitation,
-            summary_text,
-            language_code=language_code,
-        )
-        if cognitive_supplement:
-            supplements.append(cognitive_supplement)
-
-        if not supplements:
-            return None
-
-        return {
-            "type": "summary_delta",
-            "text": "\n\n".join(supplements),
-        }
-
-    for response_event in stream:
-        delta = response_event.choices[0].delta
-
-        if not delta or not delta.content:
-            continue
-
-        buffer += delta.content
-
-        while "\n" in buffer:
-            raw_line, buffer = buffer.split(
-                "\n",
-                1,
-            )
-
-            parsed_event = _parse_event_line(
-                raw_line
-            )
-
-            if not parsed_event:
-                continue
-
-            if parsed_event.get("type") == "summary_delta":
-                summary_text += str(parsed_event.get("text") or "")
-            elif parsed_event.get("type") == "done":
-                supplement_event = assessment_coverage_event()
-                if supplement_event:
-                    yield supplement_event
-
+        if parsed_event:
             yield parsed_event
-
-    # Parse the final line if the model did not end with newline.
-    final_event = _parse_event_line(buffer)
-
-    if final_event:
-        if final_event.get("type") == "summary_delta":
-            summary_text += str(final_event.get("text") or "")
-        elif final_event.get("type") == "done":
-            supplement_event = assessment_coverage_event()
-            if supplement_event:
-                yield supplement_event
-
-        yield final_event
-
-    if not assessment_coverage_checked:
-        supplement_event = assessment_coverage_event()
-        if supplement_event:
-            yield supplement_event
 
 
 def save_candidate_purpose_fit(
