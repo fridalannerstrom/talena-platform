@@ -224,8 +224,8 @@ class CognitiveSummaryCoverageTests(SimpleTestCase):
         self.assertEqual("", supplement)
 
 
-class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
-    def test_omitted_cognitive_results_are_supplemented_before_done(self):
+class PurposeFitSummaryStreamTests(SimpleTestCase):
+    def test_model_summary_is_not_supplemented_after_generation(self):
         from apps.core.ai.purpose_fit import stream_candidate_purpose_fit
 
         owner = SimpleNamespace(
@@ -259,10 +259,11 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
             ],
         )
         raw = Mock()
+        summary_text = "Personen uppskattar variation och erkännande."
         model_text = (
             json.dumps({
                 "type": "summary_delta",
-                "text": "Personen uppskattar variation och erkännande.",
+                "text": summary_text,
             })
             + "\n"
             + json.dumps({"type": "done"})
@@ -299,12 +300,9 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
             )
 
         summaries = [event for event in events if event["type"] == "summary_delta"]
-        self.assertEqual(len(summaries), 2)
-        self.assertIn("Auktoritet", summaries[1]["text"])
-        self.assertIn("Färdighetsresultaten kompletterar bilden", summaries[1]["text"])
-        self.assertIn("förstå och arbeta med numerisk information", summaries[1]["text"])
+        self.assertEqual(len(summaries), 1)
+        self.assertEqual(summaries[0]["text"], summary_text)
         self.assertEqual(events[-1]["type"], "done")
-
 
 class PurposeFitAssessmentPromptTests(SimpleTestCase):
     def _owner(self, motivation, percentile):
@@ -339,7 +337,7 @@ class PurposeFitAssessmentPromptTests(SimpleTestCase):
             ],
         )
 
-    def test_prompt_combines_distinct_motivation_and_skill_evidence(self):
+    def test_prompt_uses_interpretations_without_raw_assessment_scores(self):
         from apps.core.ai.purpose_fit import build_purpose_fit_prompt
 
         first = self._owner(
@@ -383,33 +381,32 @@ class PurposeFitAssessmentPromptTests(SimpleTestCase):
             ),
             patch(
                 "apps.core.ai.purpose_fit.build_owner_personality_ai_evidence_text",
-                return_value="PERSONALITY_INDICATOR_STEN_SENTINEL",
+                return_value="PERSONALITY_INDICATOR_INTERPRETATION_SENTINEL",
             ) as personality_builder,
         ):
             first_prompt = build_purpose_fit_prompt(first, language_code="en")
             second_prompt = build_purpose_fit_prompt(second, language_code="en")
 
         self.assertIn("ADMIN_SENTINEL_358", first_prompt)
-        self.assertIn("PERSONALITY_INDICATOR_STEN_SENTINEL", first_prompt)
-        self.assertIn("OVERALL INTERPRETATION COVERAGE", first_prompt)
-        self.assertIn("name every listed factor", first_prompt)
-        self.assertIn("statement about each ability result", first_prompt)
-        self.assertIn("a two-sentence personality-only", first_prompt)
-        self.assertIn("overview is incomplete.", first_prompt)
-        self.assertIn("raw STEN, STIVE, or percentile values", first_prompt)
-        self.assertIn("INTERVIEW EVIDENCE LIMIT", first_prompt)
-        self.assertIn("No interview notes or interview examples are supplied", first_prompt)
-        self.assertIn("Risk — STIVE 4.9", first_prompt)
-        self.assertIn("percentile 5", first_prompt)
+        self.assertIn("PERSONALITY_INDICATOR_INTERPRETATION_SENTINEL", first_prompt)
+        self.assertIn("TOP THREE MOTIVATION INTERPRETATION TEXTS", first_prompt)
+        self.assertIn("COGNITIVE INTERPRETATION TEXTS", first_prompt)
+        self.assertIn("INTERVIEW NOTES", first_prompt)
+        self.assertIn("Risk:", first_prompt)
         self.assertIn("considerably more difficult", first_prompt)
-        self.assertIn("Learning — STIVE 4.9", second_prompt)
-        self.assertIn("percentile 95", second_prompt)
+        self.assertIn("Learning:", second_prompt)
         self.assertIn("considerably easier", second_prompt)
+        self.assertNotIn("AVAILABLE ASSESSMENT EVIDENCE", first_prompt)
+        self.assertNotIn("STEN", first_prompt)
+        self.assertNotIn("STIVE", first_prompt)
+        self.assertNotIn("percentile 5", first_prompt)
+        self.assertNotIn("percentile 95", second_prompt)
         self.assertNotEqual(first_prompt, second_prompt)
         personality_builder.assert_any_call(
             first,
             language_code="en",
             include_indicator_details=True,
+            include_raw_scores=False,
         )
 
 
