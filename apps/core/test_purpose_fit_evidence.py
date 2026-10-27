@@ -229,9 +229,9 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
                 "type": "summary_delta",
                 "text": "Personen är samarbetsvillig och uppskattar variation.",
             })
-            + "\\n"
+            + "\n"
             + json.dumps({"type": "done"})
-            + "\\n"
+            + "\n"
         )
         raw.chat.completions.create.return_value = iter([
             SimpleNamespace(
