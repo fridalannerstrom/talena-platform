@@ -425,6 +425,13 @@ def build_motivation_summary_supplement(
 ) -> str:
     """Add approved descriptions for top motivation factors omitted by AI Overview."""
     language = normalize_ai_language(language_code)
+    process = getattr(owner, "process", None)
+    if (
+        not getattr(process, "is_historical", False)
+        and not getattr(owner, "sova_activities", None)
+    ):
+        return ""
+
     results = sorted(
         _owner_motivation_results(owner),
         key=lambda item: (-item["score"], item["key"]),
