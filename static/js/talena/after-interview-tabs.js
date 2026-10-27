@@ -1371,12 +1371,15 @@
         display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; flex-wrap: wrap;
       }
       __PANEL__ .after-interview-manager-report__personality-part-header {
-        display: block; padding-right: 1.45rem;
+        display: flex; align-items: center; justify-content: flex-start;
+        flex-wrap: wrap; gap: .1rem .35rem;
       }
-      __PANEL__ .after-interview-manager-report__personality-part { position: relative; }
+      __PANEL__ .after-interview-manager-report__personality-part-title {
+        flex: 0 1 auto; margin-bottom: .35rem;
+      }
       __PANEL__ .after-interview-manager-report__edit-controls {
-        position: absolute; top: 0; right: 0; display: inline-flex;
-        align-items: center; justify-content: flex-end; gap: .3rem;
+        position: static; display: inline-flex; align-items: center;
+        justify-content: flex-start; gap: .25rem; flex: 0 0 auto;
       }
       __PANEL__ .after-interview-manager-report__edit-controls[hidden],
       __PANEL__ .after-interview-manager-report__edit-button[hidden] { display: none !important; }
@@ -1581,14 +1584,12 @@
         margin: 0 0 .85rem; color: var(--talena-ink, #191817); font-size: 1.15rem; font-weight: 750;
       }
       __PANEL__ .after-interview-manager-report__personality-advice {
-        position: relative; margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
+        margin-top: 1rem; padding: 1rem; border: 1px solid var(--talena-border, #e5dfd8);
         border-radius: 12px; background: #fff;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-header {
-        display: block; padding-right: 1.45rem;
-      }
-      __PANEL__ .after-interview-manager-report__personality-advice-header .after-interview-manager-report__edit-controls {
-        top: 0; right: 0;
+        display: flex; align-items: center; justify-content: flex-start;
+        flex-wrap: wrap; gap: .1rem .35rem;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-title {
         margin: 0; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
