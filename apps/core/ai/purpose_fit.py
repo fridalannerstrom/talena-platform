@@ -493,17 +493,15 @@ def build_purpose_fit_prompt(
 
     candidate = shared_context["candidate"]
 
-    assessment_text, _ = build_assessment_evidence(
-        invitation,
-        language_code=language_code,
-    )
     motivation_top_three_text = build_motivation_top_three_evidence(
         invitation,
         language_code=language_code,
+        include_raw_scores=False,
     )
     cognitive_interpretation_text = build_owner_cognitive_ai_evidence(
         invitation,
         language_code=language_code,
+        include_raw_scores=False,
     )
     # Use Talena's canonical personality evidence builder for this section.
     # The general evidence string may also contain appended grounding under a
@@ -513,18 +511,14 @@ def build_purpose_fit_prompt(
         invitation,
         language_code=language_code,
         include_indicator_details=True,
+        include_raw_scores=False,
     )
 
     if not personality_assessment_text:
-        personality_assessment_text = next(
-            (
-                section
-                for section in assessment_text.split("\n\n")
-                if section.splitlines()
-                and section.splitlines()[0].rstrip(":").strip().casefold()
-                in {"personality", "personlighet"}
-            ),
-            "No completed personality assessment scores were available.",
+        personality_assessment_text = (
+            "Inga godkända personlighetstolkningar finns tillgängliga."
+            if language_code == "sv"
+            else "No approved personality interpretation texts are available."
         )
 
     return f"""
@@ -540,19 +534,16 @@ Purpose key: {shared_context["purpose_key"] or "No specific purpose"}
 PROCESS CONTEXT
 {shared_context["context_text"] or "No additional process context supplied."}
 
-AVAILABLE ASSESSMENT EVIDENCE
-{assessment_text}
-
-TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
+TOP THREE MOTIVATION INTERPRETATION TEXTS
 {motivation_top_three_text}
 
-COGNITIVE RESULTS AND APPROVED INTERPRETATIONS
+COGNITIVE INTERPRETATION TEXTS
 {cognitive_interpretation_text}
 
 INTERVIEW NOTES
 No interview notes or examples are provided for this overview.
 
-PERSONALITY ASSESSMENT EVIDENCE FOR THE THREE AREA SUMMARIES
+APPROVED PERSONALITY AND INDICATOR INTERPRETATION TEXTS
 {personality_assessment_text}
 
 
