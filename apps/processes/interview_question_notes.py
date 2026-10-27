@@ -973,7 +973,7 @@ def process_candidate_post_interview_decision_support_stream_with_evidence(
                     elif event.get("type") == "manager_report_personality_error":
                         manager_personality_status = "failed"
                         errors.append(("manager_report_personality", event.get("message") or ""))
-                    yield json.dumps(event, ensure_ascii=False) + "\\n"
+                    yield json.dumps(event, ensure_ascii=False) + "\n"
 
             stored_owner = type(owner).objects.get(pk=owner.pk)
             final_result = stored_owner.ai_post_interview_decision_support or {}
