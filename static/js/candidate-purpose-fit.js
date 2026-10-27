@@ -519,7 +519,7 @@
               }
 
               await generatePurposeFit(
-                data.stream_url
+                data.generation_url
                 || generationUrl
               );
 
@@ -610,7 +610,7 @@
               );
             }
             await generatePurposeFit(
-              data.stream_url || generationUrl
+              data.generation_url || generationUrl
             );
           } catch (error) {
             console.error(
