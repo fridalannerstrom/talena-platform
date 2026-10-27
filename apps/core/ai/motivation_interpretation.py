@@ -361,8 +361,9 @@ def build_motivation_top_three_evidence(
     owner,
     *,
     language_code: str = "en",
+    include_raw_scores: bool = True,
 ) -> str:
-    """Render the three highest STIVE factors with Talena's approved text."""
+    """Render the three most prominent motivation factors with approved text."""
     language = normalize_ai_language(language_code)
     process = getattr(owner, "process", None)
     if (
@@ -381,16 +382,19 @@ def build_motivation_top_three_evidence(
             return "Inga motivationsresultat finns tillgängliga."
         return "No motivation assessment results are available."
 
-    if language == "sv":
-        lines = [
-            "De tre främsta motivationsfaktorerna är rangordnade efter kandidatens exakta STIVE-värde.",
-            "Vid lika värde används faktorernas kanoniska nyckel som en stabil skiljeregel.",
-        ]
+    if include_raw_scores:
+        if language == "sv":
+            lines = [
+                "De tre främsta motivationsfaktorerna är rangordnade efter kandidatens exakta STIVE-värde.",
+                "Vid lika värde används faktorernas kanoniska nyckel som en stabil skiljeregel.",
+            ]
+        else:
+            lines = [
+                "The three most prominent motivation factors are ranked by the candidate's exact STIVE value.",
+                "Tied values use the canonical factor key as a stable tie-breaker.",
+            ]
     else:
-        lines = [
-            "The three most prominent motivation factors are ranked by the candidate's exact STIVE value.",
-            "Tied values use the canonical factor key as a stable tie-breaker.",
-        ]
+        lines = []
 
     for rank, result in enumerate(results, start=1):
         key = result["key"]
@@ -403,16 +407,17 @@ def build_motivation_top_three_evidence(
                 FACTOR_CONTENT.get(key, {}).get("top_text")
                 or MOTIVATION_DEFINITIONS.get(key, "")
             )
+        else:
+            interpretation = MOTIVATION_DEFINITIONS.get(key, "")
+
+        if include_raw_scores:
             lines.append(
-                f"{rank}. {label} — STIVE {_format_motivation_score(result['score'])}. "
+                f"{rank}. {label} — STIVE "
+                f"{_format_motivation_score(result['score'])}. "
                 f"{interpretation}"
             )
         else:
-            interpretation = MOTIVATION_DEFINITIONS.get(key, "")
-            lines.append(
-                f"{rank}. {label} — STIVE {_format_motivation_score(result['score'])}. "
-                f"{interpretation}"
-            )
+            lines.append(f"- {label}: {interpretation}")
 
     return "\n".join(lines)
 
