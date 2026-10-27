@@ -34,7 +34,7 @@
       regenerateSection: "Generera igen",
       generateManagerReport: "Generera chefsrapport",
       regenerateManagerReport: "Generera chefsrapport igen",
-      generatingManagerReport: "Genererar chefsrapport...",
+      generatingManagerReport: "Skapar chefsrapport...",
       sectionGenerationFailed: "Det gick inte att generera innehållet. Försök igen.",
       managerPersonalityTitle: "Personlighet",
       managerPersonalityThemes: [
@@ -148,7 +148,7 @@
       regenerateSection: "Generate again",
       generateManagerReport: "Generate manager report",
       regenerateManagerReport: "Generate manager report again",
-      generatingManagerReport: "Generating manager report...",
+      generatingManagerReport: "Creating manager report...",
       sectionGenerationFailed: "The content could not be generated. Please try again.",
       managerPersonalityTitle: "Personality",
       managerPersonalityThemes: [
@@ -1160,7 +1160,9 @@
         // remain inert for the rest of this event turn in some browsers.
         window.setTimeout(() => {
           if (!trigger.isConnected || trigger.disabled) return;
-          state.confirmedRegenerationTrigger = trigger;
+          const currentState = workspace?._talenaManagerReportEditController?.state;
+          if (!currentState) return;
+          currentState.confirmedRegenerationTrigger = trigger;
           trigger.click();
         }, 0);
       });
@@ -1188,6 +1190,8 @@
       workspace._talenaManagerReportEditController = {
         state,
         setAiText,
+        openRegenerationConfirmation: (trigger) =>
+          ensureRegenerationConfirmation().open(trigger),
       };
       if (workspace.dataset.managerReportEditConfirmationBound !== "true") {
         workspace.dataset.managerReportEditConfirmationBound = "true";
@@ -1221,7 +1225,7 @@
           ) {
             event.preventDefault();
             event.stopImmediatePropagation();
-            ensureRegenerationConfirmation().open(trigger);
+            controller.openRegenerationConfirmation?.(trigger);
           }
         }, true);
       }
@@ -2173,38 +2177,46 @@
     );
     let managerReportGenerateButton = null;
     let managerReportGenerateError = null;
+    let managerReportGenerateLabel = null;
+    let managerReportGenerateIcon = null;
 
     const updateManagerReportGenerateLabel = () => {
       if (
         !managerReportGenerateButton ||
-        !personalityRoot ||
+        !managerReportGenerateLabel ||
         managerReportGenerateButton.getAttribute("aria-busy") === "true"
       ) return;
-      const hasGeneratedText = managerAdviceHasGeneratedText || copy().managerPersonalityThemes.some((theme) =>
+      const hasPersonalityText = personalityRoot && copy().managerPersonalityThemes.some((theme) =>
         ["testbild", "candidate_describes"].some((part) =>
           String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
         )
       );
+      const hasGeneratedText = managerAdviceHasGeneratedText || hasPersonalityText;
       const label = hasGeneratedText
         ? copy().regenerateManagerReport
         : copy().generateManagerReport;
+      managerReportGenerateLabel.textContent = label;
       managerReportGenerateButton.title = label;
       managerReportGenerateButton.setAttribute("aria-label", label);
     };
 
+    managerReportGenerateButton = document.createElement("button");
+    managerReportGenerateButton.type = "button";
+    managerReportGenerateButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2 after-interview-manager-report__generate";
+    managerReportGenerateButton.dataset.postInterviewGenerate = "";
+    managerReportGenerateIcon = document.createElement("i");
+    managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
+    managerReportGenerateIcon.setAttribute("aria-hidden", "true");
+    managerReportGenerateLabel = document.createElement("span");
+    managerReportGenerateButton.append(managerReportGenerateIcon, managerReportGenerateLabel);
+    managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
+
+    managerReportGenerateError = document.createElement("div");
+    managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
+    managerReportGenerateError.setAttribute("role", "alert");
+    managerReportIntro.insertAdjacentElement("afterend", managerReportGenerateError);
+
     if (personalityRoot) {
-      managerReportGenerateButton = document.createElement("button");
-      managerReportGenerateButton.type = "button";
-      managerReportGenerateButton.className = "btn btn-icon btn-light after-interview-tab-card__regenerate after-interview-manager-report__generate";
-      managerReportGenerateButton.dataset.postInterviewGenerate = "";
-      managerReportGenerateButton.innerHTML = '<i data-feather="refresh-cw" aria-hidden="true"></i>';
-      managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
-
-      managerReportGenerateError = document.createElement("div");
-      managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
-      managerReportGenerateError.setAttribute("role", "alert");
-      managerReportIntro.insertAdjacentElement("afterend", managerReportGenerateError);
-
       managerReportAiTasks.push(async () => {
         const regenerateButton = personalityRoot.querySelector("[data-personality-ai-regenerate]");
         if (
@@ -2240,47 +2252,56 @@
           throw new Error(currentError?.textContent?.trim() || copy().sectionGenerationFailed);
         }
       });
-
-      managerReportGenerateButton.addEventListener("click", async () => {
-        if (managerReportGenerateButton.disabled) return;
-        managerReportGenerateError.classList.add("d-none");
-        managerReportGenerateButton.disabled = true;
-        managerReportGenerateButton.setAttribute("aria-busy", "true");
-        managerReportGenerateButton.innerHTML =
-          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-
-        try {
-          const failures = [];
-          managerReportEditController.state.managerReportGenerating = true;
-          try {
-            for (const task of managerReportAiTasks) {
-              try {
-                await task();
-              } catch (taskError) {
-                failures.push(taskError.message || copy().sectionGenerationFailed);
-              }
-            }
-          } finally {
-            managerReportEditController.state.managerReportGenerating = false;
-          }
-          if (failures.length) throw new Error(failures.join(" "));
-          updateManagerReportGenerateLabel();
-        } catch (generationError) {
-          managerReportGenerateError.textContent =
-            generationError.message || copy().sectionGenerationFailed;
-          managerReportGenerateError.classList.remove("d-none");
-        } finally {
-          managerReportGenerateButton.disabled = false;
-          managerReportGenerateButton.removeAttribute("aria-busy");
-          managerReportGenerateButton.innerHTML =
-            '<i data-feather="refresh-cw" aria-hidden="true"></i>';
-          updateManagerReportGenerateLabel();
-          if (window.feather) window.feather.replace();
-        }
-      });
-
-      updateManagerReportGenerateLabel();
     }
+
+    managerReportGenerateButton.addEventListener("click", async () => {
+      if (managerReportGenerateButton.disabled) return;
+      managerReportGenerateError.classList.add("d-none");
+      managerReportGenerateButton.disabled = true;
+      managerReportGenerateButton.setAttribute("aria-busy", "true");
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-hidden", "true");
+      const generatingLabel = copy().generatingManagerReport;
+      managerReportGenerateLabel.textContent = generatingLabel;
+      managerReportGenerateButton.title = generatingLabel;
+      managerReportGenerateButton.setAttribute("aria-label", generatingLabel);
+      managerReportGenerateButton.replaceChildren(spinner, managerReportGenerateLabel);
+
+      try {
+        const failures = [];
+        managerReportEditController.state.managerReportGenerating = true;
+        try {
+          for (const task of managerReportAiTasks) {
+            try {
+              await task();
+            } catch (taskError) {
+              failures.push(taskError.message || copy().sectionGenerationFailed);
+            }
+          }
+        } finally {
+          managerReportEditController.state.managerReportGenerating = false;
+        }
+        if (failures.length) throw new Error(failures.join(" "));
+        managerAdviceHasGeneratedText = true;
+      } catch (generationError) {
+        managerReportGenerateError.textContent =
+          generationError.message || copy().sectionGenerationFailed;
+        managerReportGenerateError.classList.remove("d-none");
+      } finally {
+        managerReportGenerateButton.disabled = false;
+        managerReportGenerateButton.removeAttribute("aria-busy");
+        managerReportGenerateButton.replaceChildren(
+          managerReportGenerateIcon,
+          managerReportGenerateLabel,
+        );
+        updateManagerReportGenerateLabel();
+        if (window.feather) window.feather.replace();
+      }
+    });
+
+    updateManagerReportGenerateLabel();
     managerPersonality.appendChild(managerPersonalityTitle);
     const renderPersonalityText = (theme, part, text) => {
       const key = "personality:" + theme + ":" + part;
