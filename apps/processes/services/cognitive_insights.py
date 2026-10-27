@@ -255,12 +255,8 @@ def build_cognitive_ai_evidence(
     return "\n".join(lines)
 
 
-def build_owner_cognitive_ai_evidence(
-    owner,
-    *,
-    language_code: str = "en",
-) -> str:
-    """Build cognitive evidence for active and historical candidates."""
+def _owner_cognitive_percentiles(owner) -> dict[str, Any]:
+    """Read available percentiles for active and historical candidates."""
     process = getattr(owner, "process", None)
     percentiles: dict[str, Any] = {}
 
@@ -282,17 +278,83 @@ def build_owner_cognitive_ai_evidence(
             if value is not None:
                 percentiles[key] = value
     else:
-        from apps.core.ai.cognitive_interpretation import (
-            extract_cognitive_results,
-        )
+        if getattr(owner, "sova_activities", None):
+            from apps.core.ai.cognitive_interpretation import (
+                extract_cognitive_results,
+            )
 
-        for result in extract_cognitive_results(owner):
-            key = result.get("key")
-            value = result.get("percentile")
-            if key in {"verbal", "logical", "numerical"} and value is not None:
-                percentiles.setdefault(key, value)
+            for result in extract_cognitive_results(owner):
+                key = result.get("key")
+                value = result.get("percentile")
+                if key in {"verbal", "logical", "numerical"} and value is not None:
+                    percentiles.setdefault(key, value)
 
+    return percentiles
+
+
+def build_owner_cognitive_ai_evidence(
+    owner,
+    *,
+    language_code: str = "en",
+) -> str:
+    """Build cognitive evidence for active and historical candidates."""
     return build_cognitive_ai_evidence(
-        percentiles,
+        _owner_cognitive_percentiles(owner),
         language_code=language_code,
+    )
+
+
+def build_owner_cognitive_summary_supplement(
+    owner,
+    summary: str,
+    *,
+    language_code: str = "en",
+) -> str:
+    """Supply approved interpretations for cognitive results omitted by the model."""
+    percentiles = _owner_cognitive_percentiles(owner)
+    results = build_cognitive_insight_results(
+        verbal_percentile=percentiles.get("verbal"),
+        logical_percentile=percentiles.get("logical"),
+        numerical_percentile=percentiles.get("numerical"),
+        language_code=language_code,
+    )
+    available = [result for result in results if result["completed"]]
+    if not available:
+        return ""
+
+    summary_text = str(summary or "").casefold()
+    markers = {
+        "logical": (
+            ("logisk", "logik", "mönster", "slutsats")
+            if language_code == "sv"
+            else ("logical", "pattern", "conclusion")
+        ),
+        "numerical": (
+            ("numerisk", "siffer", "matem")
+            if language_code == "sv"
+            else ("numerical", "number", "math")
+        ),
+        "verbal": (
+            ("verbal", "skrift", "text", "läs")
+            if language_code == "sv"
+            else ("verbal", "written", "text", "read")
+        ),
+    }
+    missing = [
+        result for result in available
+        if not any(
+            marker in summary_text
+            for marker in markers[result["key"]]
+        )
+    ]
+    if not missing:
+        return ""
+
+    if language_code == "sv":
+        lead_in = "Färdighetsresultaten kompletterar bilden: "
+    else:
+        lead_in = "The cognitive results add a complementary perspective: "
+
+    return lead_in + " ".join(
+        result["interpretation"] for result in missing
     )

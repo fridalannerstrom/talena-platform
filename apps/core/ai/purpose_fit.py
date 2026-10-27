@@ -31,6 +31,7 @@ from .motivation_interpretation import (
 )
 from apps.processes.services.cognitive_insights import (
     build_owner_cognitive_ai_evidence,
+    build_owner_cognitive_summary_supplement,
 )
 from .personality_ai_evidence import (
     build_owner_personality_ai_evidence_text,
@@ -973,6 +974,28 @@ def stream_candidate_purpose_fit(
     )
 
     buffer = ""
+    summary_text = ""
+    cognitive_coverage_checked = False
+
+    def cognitive_supplement_event():
+        nonlocal cognitive_coverage_checked
+
+        if cognitive_coverage_checked:
+            return None
+
+        cognitive_coverage_checked = True
+        supplement = build_owner_cognitive_summary_supplement(
+            invitation,
+            summary_text,
+            language_code=language_code,
+        )
+        if not supplement:
+            return None
+
+        return {
+            "type": "summary_delta",
+            "text": supplement,
+        }
 
     for response_event in stream:
         delta = response_event.choices[0].delta
@@ -992,14 +1015,35 @@ def stream_candidate_purpose_fit(
                 raw_line
             )
 
-            if parsed_event:
-                yield parsed_event
+            if not parsed_event:
+                continue
+
+            if parsed_event.get("type") == "summary_delta":
+                summary_text += str(parsed_event.get("text") or "")
+            elif parsed_event.get("type") == "done":
+                supplement_event = cognitive_supplement_event()
+                if supplement_event:
+                    yield supplement_event
+
+            yield parsed_event
 
     # Parse the final line if the model did not end with newline.
     final_event = _parse_event_line(buffer)
 
     if final_event:
+        if final_event.get("type") == "summary_delta":
+            summary_text += str(final_event.get("text") or "")
+        elif final_event.get("type") == "done":
+            supplement_event = cognitive_supplement_event()
+            if supplement_event:
+                yield supplement_event
+
         yield final_event
+
+    if not cognitive_coverage_checked:
+        supplement_event = cognitive_supplement_event()
+        if supplement_event:
+            yield supplement_event
 
 
 def save_candidate_purpose_fit(

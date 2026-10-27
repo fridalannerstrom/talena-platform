@@ -12,6 +12,7 @@ from apps.core.ai.openai_client import PrivacySafeOpenAI
 from apps.processes.services.cognitive_insights import (
     build_cognitive_ai_evidence,
     build_owner_cognitive_ai_evidence,
+    build_owner_cognitive_summary_supplement,
 )
 from apps.processes.templatetags.motivation_i18n import FACTOR_CONTENT
 
@@ -128,6 +129,145 @@ class CognitiveEvidenceTests(SimpleTestCase):
 
         self.assertIn("percentile 19", evidence)
         self.assertIn("find it more difficult than many others", evidence)
+
+
+class CognitiveSummaryCoverageTests(SimpleTestCase):
+    def _owner(self, *, activities=None):
+        return SimpleNamespace(
+            process=SimpleNamespace(is_historical=False),
+            sova_activities=activities or [],
+        )
+
+    def test_missing_swedish_cognitive_results_get_approved_text_without_scores(self):
+        owner = self._owner(activities=[
+            {
+                "activity": "Sova Logical Reasoning Assessment",
+                "competencies": [{"percentile": 10}],
+            },
+            {
+                "activity": "Sova Numerical Reasoning Assessment",
+                "competencies": [{"percentile": 2}],
+            },
+            {
+                "activity": "Sova Verbal Reasoning Assessment",
+                "competencies": [{"percentile": 3}],
+            },
+        ])
+
+        supplement = build_owner_cognitive_summary_supplement(
+            owner,
+            "Personen verkar samarbetsvillig och uppskattar variation.",
+            language_code="sv",
+        )
+
+        self.assertIn("Färdighetsresultaten kompletterar bilden", supplement)
+        self.assertIn("identifiera mönster och dra logiska slutsatser", supplement)
+        self.assertIn("förstå och arbeta med numerisk information", supplement)
+        self.assertIn("förstå och utvärdera skriftlig information", supplement)
+        self.assertNotIn("percentil", supplement.casefold())
+        self.assertNotIn("STEN", supplement)
+        self.assertNotIn("STIVE", supplement)
+
+    def test_covered_cognitive_domains_are_not_duplicated(self):
+        owner = self._owner(activities=[
+            {
+                "activity": "Sova Logical Reasoning Assessment",
+                "competencies": [{"percentile": 10}],
+            },
+            {
+                "activity": "Sova Numerical Reasoning Assessment",
+                "competencies": [{"percentile": 2}],
+            },
+            {
+                "activity": "Sova Verbal Reasoning Assessment",
+                "competencies": [{"percentile": 3}],
+            },
+        ])
+
+        supplement = build_owner_cognitive_summary_supplement(
+            owner,
+            (
+                "Kandidaten kan ha en preferens för att dra logiska slutsatser. "
+                "Numerisk information kan upplevas utmanande och skriftlig "
+                "information kan ta längre tid att bearbeta."
+            ),
+            language_code="sv",
+        )
+
+        self.assertEqual("", supplement)
+
+
+class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
+    def test_omitted_cognitive_results_are_supplemented_before_done(self):
+        from apps.core.ai.purpose_fit import stream_candidate_purpose_fit
+
+        owner = SimpleNamespace(
+            candidate=SimpleNamespace(
+                first_name="Anna",
+                last_name="Example",
+                email="anna@example.test",
+            ),
+            process=SimpleNamespace(is_historical=False, purpose="development"),
+            sova_activities=[
+                {
+                    "activity": "Sova Logical Reasoning Assessment",
+                    "competencies": [{"percentile": 10}],
+                },
+                {
+                    "activity": "Sova Numerical Reasoning Assessment",
+                    "competencies": [{"percentile": 2}],
+                },
+                {
+                    "activity": "Sova Verbal Reasoning Assessment",
+                    "competencies": [{"percentile": 3}],
+                },
+            ],
+        )
+        raw = Mock()
+        model_text = (
+            json.dumps({
+                "type": "summary_delta",
+                "text": "Personen är samarbetsvillig och uppskattar variation.",
+            })
+            + "\n"
+            + json.dumps({"type": "done"})
+            + "\n"
+        )
+        raw.chat.completions.create.return_value = iter([
+            SimpleNamespace(
+                choices=[SimpleNamespace(
+                    delta=SimpleNamespace(content=model_text)
+                )]
+            )
+        ])
+
+        with (
+            patch(
+                "apps.core.ai.purpose_fit.get_openai_client",
+                return_value=PrivacySafeOpenAI(raw),
+            ),
+            patch(
+                "apps.core.ai.purpose_fit.get_chat_model",
+                return_value="mock-model",
+            ),
+            patch(
+                "apps.core.ai.purpose_fit.get_ai_system_language_instruction",
+                return_value="Use only supplied evidence.",
+            ),
+            patch(
+                "apps.core.ai.purpose_fit.build_purpose_fit_prompt",
+                return_value="Synthetic prompt.",
+            ),
+        ):
+            events = list(
+                stream_candidate_purpose_fit(owner, language_code="sv")
+            )
+
+        summaries = [event for event in events if event["type"] == "summary_delta"]
+        self.assertEqual(len(summaries), 2)
+        self.assertIn("Färdighetsresultaten kompletterar bilden", summaries[1]["text"])
+        self.assertIn("förstå och arbeta med numerisk information", summaries[1]["text"])
+        self.assertEqual(events[-1]["type"], "done")
 
 
 class PurposeFitAssessmentPromptTests(SimpleTestCase):
