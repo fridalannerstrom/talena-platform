@@ -1462,27 +1462,30 @@
       __PANEL__ [data-post-interview-content].after-interview-content-source {
         display: none !important;
       }
+      .after-interview-manager-report__print-shell { display: none; }
       @media print {
-        body.manager-report-printing * { visibility: hidden !important; }
-        body.manager-report-printing #candidate-insights-panel-after-interview,
-        body.manager-report-printing #candidate-insights-panel-after-interview .after-interview-manager-report__print-root,
-        body.manager-report-printing #candidate-insights-panel-after-interview .after-interview-manager-report__print-root * {
-          visibility: visible !important;
-        }
-        body.manager-report-printing #candidate-insights-panel-after-interview .candidate-insights-subnavigation { display: none !important; }
-        body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
-        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] {
-          display: block !important; position: absolute; inset: 0; width: 100%;
-        }
-        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] > *:not(.after-interview-manager-report__print-root) {
+        @page { size: A4; margin: 0; }
+        body.manager-report-printing { background: #fff !important; }
+        body.manager-report-printing > *:not(.after-interview-manager-report__print-shell) {
           display: none !important;
         }
+        body.manager-report-printing > .after-interview-manager-report__print-shell {
+          display: block !important; position: static !important; width: 100% !important;
+          min-height: 0 !important; height: auto !important; margin: 0 !important;
+          padding: 12mm 14mm !important; overflow: visible !important;
+          background: #fff !important; box-sizing: border-box !important;
+          -webkit-box-decoration-break: clone; box-decoration-break: clone;
+        }
         body.manager-report-printing .after-interview-manager-report__print-root {
-          display: block !important; position: static !important; width: 100%; margin: 0;
+          display: block !important; position: static !important; width: 100%; margin: 0 !important;
         }
         body.manager-report-printing .after-interview-manager-report__guide { display: block; }
         body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
-        body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
+        body.manager-report-printing .after-interview-manager-report {
+          display: block !important; width: 100% !important; max-width: none !important;
+          margin: 0 !important; padding: 0 !important; border: 0 !important;
+          box-shadow: none !important; background: #fff !important;
+        }
       }
       __PANEL__ .after-interview-manager-report__print-root { display: none; }
       __PANEL__ .after-interview-manager-report__header {
@@ -1948,6 +1951,9 @@
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
     pdfButton.addEventListener("click", () => {
+      const printShell = panel.cloneNode(false);
+      printShell.classList.add("after-interview-manager-report__print-shell");
+      printShell.hidden = false;
       const printRoot = document.createElement("div");
       printRoot.className = "after-interview-manager-report__print-root";
       printRoot.hidden = true;
@@ -1961,7 +1967,8 @@
         ".alert, [role='status'][aria-live='polite']"
       ).forEach((element) => element.remove());
       printRoot.appendChild(printableReport);
-      panels.get("managerReport").appendChild(printRoot);
+      printShell.appendChild(printRoot);
+      document.body.appendChild(printShell);
 
       const originalTitle = document.title;
       let printStarted = false;
@@ -1971,7 +1978,7 @@
         window.removeEventListener("afterprint", cleanup);
         document.body.classList.remove("manager-report-printing");
         document.title = originalTitle;
-        printRoot.remove();
+        printShell.remove();
       };
       const handlePrintChange = (event) => {
         if (event.matches) printStarted = true;
