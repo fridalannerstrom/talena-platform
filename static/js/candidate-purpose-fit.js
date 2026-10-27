@@ -117,15 +117,15 @@
           ".js-regenerate-purpose-fit"
         );
 
-      const streamUrl =
-        result.dataset.streamUrl;
+      const generationUrl =
+        result.dataset.generationUrl;
 
-      let isStreaming = false;
+      let isGenerating = false;
 
       console.log(
         "[PURPOSE FIT] Initialised",
         {
-          streamUrl,
+          generationUrl,
         }
       );
 
@@ -338,297 +338,96 @@
         );
       }
 
-      function applyStreamEvent(event) {
-        if (!event) {
-          return;
+      function applyCompletedResponse(responseData) {
+        applySavedResult(
+          responseData.data || {}
+        );
+
+        if (responseData.status === "outdated") {
+          setStatus(
+            getI18n(
+              "needsUpdate",
+              "Needs update"
+            ),
+            "warning"
+          );
+        } else {
+          setHidden(statusBadge, true);
         }
 
-        switch (event.type) {
-          case "saved_result":
-            applySavedResult(
-              event.data || {}
-            );
-
-            if (
-              event.status === "outdated"
-            ) {
-              setStatus(
-                getI18n(
-                  "needsUpdate",
-                  "Needs update"
-                ),
-                "warning"
-              );
-            } else {
-              setHidden(
-                statusBadge,
-                true
-              );
-            }
-
-            break;
-
-          case "meta":
-            setHidden(
-              loading,
-              true
-            );
-
-            setHidden(
-              result,
-              false
-            );
-
-            break;
-
-          case "summary_delta":
-            if (summary) {
-              summary.textContent +=
-                event.text || "";
-            }
-
-            break;
-
-          case "personality_area_summary":
-            if (
-              ["leadership", "organisation", "interaction"]
-                .includes(event.area)
-            ) {
-              setPersonalityAreaSummary(event.area, event.text);
-            }
-            break;
-
-          case "key_alignment":
-            renderList(
-              alignmentList,
-              event.items || [],
-              "check"
-            );
-
-            break;
-
-          case "areas_to_verify":
-            renderList(
-              verifyList,
-              event.items || [],
-              "search"
-            );
-
-            break;
-
-          case "suggested_next_step":
-            if (nextStep) {
-              nextStep.textContent =
-                event.text || "";
-            }
-
-            break;
-
-          case "context_note":
-            if (contextNote) {
-              contextNote.textContent =
-                event.text || "";
-            }
-
-            break;
-
-          case "done":
-            setHidden(
-              loading,
-              true
-            );
-
-            setHidden(
-              result,
-              false
-            );
-
-            setHidden(
-              statusBadge,
-              true
-            );
-
-            if (
-              typeof window
-                .notifyCandidateAiContentUpdated
-              === "function"
-            ) {
-              window
-                .notifyCandidateAiContentUpdated(
-                  card
-                );
-            }
-
-            break;
-
-          case "error":
-            throw new Error(
-              event.message
-              || "AI Overview generation failed."
-            );
-
-          default:
-            break;
+        if (
+          responseData.generated
+          && typeof window.notifyCandidateAiContentUpdated === "function"
+        ) {
+          window.notifyCandidateAiContentUpdated(card);
         }
       }
 
-      async function streamPurposeFit(
-        url
-      ) {
-        if (
-          !url
-          || isStreaming
-        ) {
+      async function generatePurposeFit(url) {
+        if (!url || isGenerating) {
           return;
         }
 
-        isStreaming = true;
-
+        isGenerating = true;
         resetPurposeFit();
 
-        setHidden(
-          loading,
-          false
-        );
+        setHidden(loading, false);
 
         if (loadingText) {
-          loadingText.textContent =
-            getI18n(
-              "creatingAiOverview",
-              "Creating an overview from the available assessment results…"
-            );
+          loadingText.textContent = getI18n(
+            "creatingAiOverview",
+            "Creating an overview from the available assessment results…"
+          );
         }
 
         if (refreshButton) {
-          refreshButton.disabled =
-            true;
+          refreshButton.disabled = true;
         }
 
         try {
-          console.log(
-            "[PURPOSE FIT] Fetching:",
-            url
+          const response = await fetch(
+            url,
+            {
+              method: "GET",
+              headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+              },
+              credentials: "same-origin",
+            }
           );
 
-          const response =
-            await fetch(
-              url,
-              {
-                method: "GET",
-
-                headers: {
-                  "Accept":
-                    "application/x-ndjson",
-
-                  "X-Requested-With":
-                    "XMLHttpRequest",
-                },
-
-                credentials:
-                  "same-origin",
-              }
-            );
+          let responseData = {};
+          try {
+            responseData = await response.json();
+          } catch (parseError) {
+            // The response may be a plain-text access or server error.
+          }
 
           if (!response.ok) {
-            let message =
+            throw new Error(
+              responseData.error
+              || responseData.message
+              || getI18n(
+                "couldNotGenerateAiOverview",
+                "Could not generate AI overview."
+              )
+            );
+          }
+
+          if (
+            !responseData.data
+            || typeof responseData.data !== "object"
+          ) {
+            throw new Error(
               getI18n(
                 "couldNotGenerateAiOverview",
                 "Could not generate AI overview."
-              );
-
-            try {
-              const data =
-                await response.json();
-
-              message =
-                data.error
-                || data.message
-                || message;
-            } catch (
-              parseError
-            ) {
-              // Use fallback message.
-            }
-
-            throw new Error(
-              message
+              )
             );
           }
 
-          if (!response.body) {
-            throw new Error(
-              "The browser did not receive a response stream."
-            );
-          }
-
-          const reader =
-            response.body.getReader();
-
-          const decoder =
-            new TextDecoder(
-              "utf-8"
-            );
-
-          let buffer = "";
-
-          while (true) {
-            const {
-              value,
-              done,
-            } =
-              await reader.read();
-
-            if (done) {
-              break;
-            }
-
-            buffer +=
-              decoder.decode(
-                value,
-                {
-                  stream: true,
-                }
-              );
-
-            const lines =
-              buffer.split("\n");
-
-            buffer =
-              lines.pop() || "";
-
-            for (
-              const rawLine
-              of lines
-            ) {
-              const line =
-                rawLine.trim();
-
-              if (!line) {
-                continue;
-              }
-
-              const event =
-                JSON.parse(line);
-
-              applyStreamEvent(
-                event
-              );
-            }
-          }
-
-          buffer +=
-            decoder.decode();
-
-          if (buffer.trim()) {
-            const event =
-              JSON.parse(
-                buffer.trim()
-              );
-
-            applyStreamEvent(
-              event
-            );
-          }
+          applyCompletedResponse(responseData);
 
         } catch (error) {
           console.error(
@@ -636,15 +435,8 @@
             error
           );
 
-          setHidden(
-            loading,
-            true
-          );
-
-          setHidden(
-            errorBox,
-            false
-          );
+          setHidden(loading, true);
+          setHidden(errorBox, false);
 
           if (errorBox) {
             errorBox.textContent =
@@ -661,11 +453,10 @@
           );
 
         } finally {
-          isStreaming = false;
+          isGenerating = false;
 
           if (refreshButton) {
-            refreshButton.disabled =
-              false;
+            refreshButton.disabled = false;
           }
 
           refreshIcons();
@@ -676,7 +467,7 @@
         refreshButton.addEventListener(
           "click",
           async () => {
-            if (isStreaming) {
+            if (isGenerating) {
               return;
             }
 
@@ -727,9 +518,9 @@
                 );
               }
 
-              await streamPurposeFit(
+              await generatePurposeFit(
                 data.stream_url
-                || streamUrl
+                || generationUrl
               );
 
             } catch (error) {
@@ -788,8 +579,8 @@
         );
 
       if (!hasFit) {
-        await streamPurposeFit(
-          streamUrl
+        await generatePurposeFit(
+          generationUrl
         );
       } else if (needsPersonalityAreaSummaries) {
         const regenerateUrl =
@@ -818,8 +609,8 @@
                 )
               );
             }
-            await streamPurposeFit(
-              data.stream_url || streamUrl
+            await generatePurposeFit(
+              data.stream_url || generationUrl
             );
           } catch (error) {
             console.error(
