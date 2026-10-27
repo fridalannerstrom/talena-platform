@@ -9,6 +9,7 @@ from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
 )
+from django.conf import settings
 from django.utils import timezone
 
 from .openai_client import get_openai_client, get_chat_model
@@ -905,6 +906,32 @@ def generate_candidate_purpose_fit_events(
     )
 
     prompt = redact_candidate_name(prompt, invitation.candidate)
+
+    # TEMP LOCAL DEBUG ONLY: remove after inspecting the generated prompt.
+    # This is guarded by DEBUG and prints only assessment evidence and guidance,
+    # never candidate identity or process context.
+    if settings.DEBUG:
+        cognitive_start = prompt.find("COGNITIVE INTERPRETATION TEXTS")
+        cognitive_end = prompt.find("\n\nINTERVIEW NOTES", cognitive_start)
+        print("\n[AI OVERVIEW DEBUG] COGNITIVE EVIDENCE")
+        if cognitive_start >= 0 and cognitive_end > cognitive_start:
+            print(prompt[cognitive_start:cognitive_end])
+        else:
+            print("Cognitive interpretation section not found.")
+
+        guidance_start = prompt.find("OVERALL INTERPRETATION GUIDANCE")
+        guidance_end = prompt.find(
+            "\n\nWHAT SUPPORTS THE PURPOSE GUIDANCE",
+            guidance_start,
+        )
+        print("\n[AI OVERVIEW DEBUG] ADMINISTRATOR GUIDANCE")
+        if guidance_start >= 0 and guidance_end > guidance_start:
+            print(prompt[guidance_start:guidance_end])
+        else:
+            print("Overall administrator guidance section not found.")
+
+        print("\n[AI OVERVIEW DEBUG] SYSTEM GUIDANCE")
+        print(system_language_instruction)
 
     completion = client.chat.completions.create(
         model=get_chat_model(),
