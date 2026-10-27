@@ -28,11 +28,9 @@ from .prompt_templates import (
 from .motivation_interpretation import (
     get_motivation_factor_display_name,
     build_motivation_top_three_evidence,
-    build_motivation_summary_supplement,
 )
 from apps.processes.services.cognitive_insights import (
     build_owner_cognitive_ai_evidence,
-    build_owner_cognitive_summary_supplement,
 )
 from .personality_ai_evidence import (
     build_owner_personality_ai_evidence_text,
@@ -576,35 +574,6 @@ sections, the dedicated section guidance below takes precedence.
 {admin_instructions}
 
 
-OVERALL INTERPRETATION COVERAGE
-
-The administrator guidance above remains authoritative for the
-interpretation. For summary_delta events, do not silently omit an
-assessment domain when its evidence is available:
-
-- Begin with the evidenced personality preferences and use the
-  approved personality interpretations.
-- When TOP THREE MOTIVATION FACTORS AND APPROVED INTERPRETATIONS
-  lists factors, name every listed factor and weave its approved
-  interpretation into the personality themes. Explain supported
-  ways the factors reinforce or nuance those preferences; do not
-  present them as a detached list.
-- When COGNITIVE RESULTS AND APPROVED INTERPRETATIONS lists results,
-  include a concise statement about each ability result it contains.
-  Explain only what the approved interpretation suggests about
-  processing new or complex information, and keep it complementary
-  to the personality and motivation themes.
-- Use the approved interpretation wording rather than reproducing
-  raw STEN, STIVE, or percentile values. Do not infer job performance,
-  communication ability, or role suitability from cognitive results.
-- Weave the available domains into 2–3 connected themes. When
-  personality, motivation, and cognitive results are all available,
-  write 2–3 substantive paragraphs; a two-sentence personality-only
-  overview is incomplete.
-- Do not invent or imply results for domains whose evidence says
-  they are unavailable.
-
-
 WHAT SUPPORTS THE PURPOSE GUIDANCE
 
 The following administrator guidance applies only to the
@@ -975,41 +944,6 @@ def stream_candidate_purpose_fit(
     )
 
     buffer = ""
-    summary_text = ""
-    assessment_coverage_checked = False
-
-    def assessment_coverage_event():
-        nonlocal assessment_coverage_checked
-
-        if assessment_coverage_checked:
-            return None
-
-        assessment_coverage_checked = True
-        supplements = []
-
-        motivation_supplement = build_motivation_summary_supplement(
-            invitation,
-            summary_text,
-            language_code=language_code,
-        )
-        if motivation_supplement:
-            supplements.append(motivation_supplement)
-
-        cognitive_supplement = build_owner_cognitive_summary_supplement(
-            invitation,
-            summary_text,
-            language_code=language_code,
-        )
-        if cognitive_supplement:
-            supplements.append(cognitive_supplement)
-
-        if not supplements:
-            return None
-
-        return {
-            "type": "summary_delta",
-            "text": "\n\n".join(supplements),
-        }
 
     for response_event in stream:
         delta = response_event.choices[0].delta
@@ -1019,9 +953,9 @@ def stream_candidate_purpose_fit(
 
         buffer += delta.content
 
-        while "\n" in buffer:
+        while "\\n" in buffer:
             raw_line, buffer = buffer.split(
-                "\n",
+                "\\n",
                 1,
             )
 
@@ -1029,35 +963,14 @@ def stream_candidate_purpose_fit(
                 raw_line
             )
 
-            if not parsed_event:
-                continue
-
-            if parsed_event.get("type") == "summary_delta":
-                summary_text += str(parsed_event.get("text") or "")
-            elif parsed_event.get("type") == "done":
-                supplement_event = assessment_coverage_event()
-                if supplement_event:
-                    yield supplement_event
-
-            yield parsed_event
+            if parsed_event:
+                yield parsed_event
 
     # Parse the final line if the model did not end with newline.
     final_event = _parse_event_line(buffer)
 
     if final_event:
-        if final_event.get("type") == "summary_delta":
-            summary_text += str(final_event.get("text") or "")
-        elif final_event.get("type") == "done":
-            supplement_event = assessment_coverage_event()
-            if supplement_event:
-                yield supplement_event
-
         yield final_event
-
-    if not assessment_coverage_checked:
-        supplement_event = assessment_coverage_event()
-        if supplement_event:
-            yield supplement_event
 
 
 def save_candidate_purpose_fit(
