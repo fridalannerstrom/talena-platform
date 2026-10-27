@@ -16,9 +16,10 @@ class CandidateResultSnapshotAdmin(admin.ModelAdmin):
         "process",
         "invitation",
         "locale",
+        "content_version",
         "created_at",
     )
-    list_filter = ("locale", "created_at")
+    list_filter = ("locale", "content_version", "created_at")
     search_fields = (
         "candidate__email",
         "candidate__first_name",
@@ -31,7 +32,10 @@ class CandidateResultSnapshotAdmin(admin.ModelAdmin):
         "process",
         "locale",
         "content",
+        "content_version",
+        "legacy_content",
         "prompt_versions",
+        "legacy_prompt_versions",
         "source_fingerprint",
         "created_at",
     )

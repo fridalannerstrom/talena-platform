@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from apps.core.utils.auth import is_admin
 from apps.processes.services.access import get_accessible_processes_for_user
 
+from .interpretation import ensure_candidate_result_snapshot_current
 from .models import (
     CandidateResultAccess,
     CandidateResultFeedback,
@@ -153,13 +154,30 @@ def _result_context(
             for point in points
             if str(point).strip()
         ]
-        if body or points:
+        groups = []
+        for group in section.get("groups") or []:
+            if not isinstance(group, dict):
+                continue
+            items = []
+            for item in group.get("items") or []:
+                if not isinstance(item, dict):
+                    continue
+                label = str(item.get("label") or "").strip()
+                text = str(item.get("text") or "").strip()
+                if label or text:
+                    items.append({"label": label, "text": text})
+            title = str(group.get("title") or "").strip()
+            if title or items:
+                groups.append({"title": title, "items": items})
+
+        if body or points or groups:
             sections.append(
                 {
                     "key": key,
                     "title": section.get("title") or key.title(),
                     "body": body,
                     "points": points,
+                    "groups": groups,
                     "feedback": feedback_by_area.get(key),
                 }
             )
@@ -289,19 +307,23 @@ def candidate_result(request, token: str):
             },
         )
 
+    snapshot, _upgraded = ensure_candidate_result_snapshot_current(
+        access.snapshot
+    )
+
     if request.method == "POST" and request.POST.get("action") == "save_feedback":
-        error_response = _save_candidate_feedback(request, access.snapshot)
+        error_response = _save_candidate_feedback(request, snapshot)
         if error_response is not None:
             return error_response
         return redirect(f"{request.path}?feedback_saved=1")
 
     if request.method == "POST" and request.POST.get("action") == "save_experience":
-        error_response = _save_test_experience(request, access.snapshot)
+        error_response = _save_test_experience(request, snapshot)
         if error_response is not None:
             return error_response
         return redirect(f"{request.path}?experience_saved=1#test-experience")
 
-    context = _result_context(access.snapshot)
+    context = _result_context(snapshot)
     context["feedback_saved"] = request.GET.get("feedback_saved") == "1"
     context["experience_saved"] = request.GET.get("experience_saved") == "1"
     return render(
@@ -328,6 +350,8 @@ def candidate_result_preview(request, snapshot_id: int):
         )
         if not accessible_processes.filter(pk=snapshot.process_id).exists():
             raise Http404
+
+    snapshot, _upgraded = ensure_candidate_result_snapshot_current(snapshot)
 
     return render(
         request,

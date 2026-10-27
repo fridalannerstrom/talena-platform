@@ -2,552 +2,391 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+from pathlib import Path
 from typing import Any
 
 from apps.core.ai.cognitive_interpretation import extract_cognitive_results
-from apps.core.ai.motivation_interpretation import extract_motivation_results
-from apps.core.ai.personality_ai_evidence import (
-    build_owner_personality_ai_evidence_text,
+from apps.core.ai.language import normalize_ai_language
+from apps.core.ai.motivation_interpretation import (
+    MOTIVATION_DEFINITIONS,
+    _owner_motivation_results,
+    get_motivation_factor_display_name,
 )
-
-from apps.core.ai.language import (
-    get_ai_language_instruction,
-    get_ai_system_language_instruction,
-    normalize_ai_language,
+from apps.processes.services.cognitive_insights import (
+    build_cognitive_insight_results,
 )
-from apps.core.ai.openai_client import (
-    get_chat_model,
-    get_openai_client,
+from apps.processes.templatetags.motivation_i18n import FACTOR_CONTENT
+from apps.reports.libraries.personality.content import (
+    INDICATOR_PROFILE_CONTENT,
+    TRAIT_PROFILE_CONTENT,
 )
-from apps.core.ai.prompt_templates import (
-    get_ai_feature_prompt_instructions,
-    get_default_ai_prompt,
-    get_global_ai_guidance,
+from apps.reports.libraries.personality.definitions import (
+    TRAIT_AND_INDICATOR_PROFILE,
 )
-from apps.processes.models import AIPromptTemplate
+from apps.reports.libraries.personality.builder import get_score_band, normalize_sten
 
 from .models import CandidateResultSnapshot
 
 
-CANDIDATE_RESULT_PROMPT_KEYS = {
-    "introduction": "candidate_result_introduction",
-    "personality": "candidate_result_personality",
-    "skills": "candidate_result_skills",
-    "motivation": "candidate_result_motivation",
+CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v1"
+_PERSONALITY_LIBRARY_PATH = Path(__file__).parents[1] / "reports" / "libraries" / "personality" / "candidate_content_sv.json"
+with _PERSONALITY_LIBRARY_PATH.open(encoding="utf-8") as _personality_library_file:
+    CANDIDATE_PERSONALITY_CONTENT_SV = json.load(_personality_library_file)
+
+
+_FIXED_COPY = {
+    "sv": {
+        "introduction_title": "Ditt resultat",
+        "introduction_body": (
+            "Resultatet beskriver möjliga preferenser och tendenser utifrån dina svar. "
+            "Det är inte en absolut sanning eller ett betyg, utan ett underlag för en vidare dialog."
+        ),
+        "personality_title": "Personlighet",
+        "skills_title": "Färdigheter",
+        "motivation_title": "Motivation",
+        "top_motivators_title": "Dina tre främsta drivkrafter",
+    },
+    "en": {
+        "introduction_title": "Your result",
+        "introduction_body": (
+            "The result describes possible preferences and tendencies based on your responses. "
+            "It is not an absolute truth or a grade, but a basis for further conversation."
+        ),
+        "personality_title": "Personality",
+        "skills_title": "Skills",
+        "motivation_title": "Motivation",
+        "top_motivators_title": "Your Top 3 Motivators",
+    },
 }
 
 
-def _json_safe(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {str(key): _json_safe(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_json_safe(item) for item in value]
-    if hasattr(value, "isoformat"):
-        try:
-            return value.isoformat()
-        except (AttributeError, TypeError, ValueError):
-            pass
-    return value
+def _normalise_name(value: Any) -> str:
+    value = str(value or "").strip().casefold().replace("&", "and")
+    return re.sub(r"[^\w]+", " ", value, flags=re.UNICODE).strip()
 
 
-def _process_context(invitation) -> str:
-    try:
-        role_context = invitation.process.role_context
-        return (role_context.get_current_context_text() or "").strip()
-    except Exception:
-        return ""
+def _personality_indicator_lookup() -> dict[str, str]:
+    lookup: dict[str, str] = {}
+    for indicator_key, content in INDICATOR_PROFILE_CONTENT.items():
+        for alias in (
+            indicator_key,
+            content.get("label_sv"),
+            content.get("label_en"),
+        ):
+            normalized = _normalise_name(alias)
+            if normalized:
+                lookup[normalized] = indicator_key
+    return lookup
 
 
-def _has_result_value(competency: dict[str, Any]) -> bool:
-    return any(
-        competency.get(field_name) is not None
-        for field_name in (
-            "score",
-            "stive",
-            "stive_rounded",
-            "sten",
-            "sten_rounded",
-            "percentile",
-        )
-    )
+_PERSONALITY_INDICATOR_LOOKUP = _personality_indicator_lookup()
 
 
-def _personality_evidence(invitation, *, language_code: str) -> str:
-    try:
-        return build_owner_personality_ai_evidence_text(
-            invitation,
-            language_code=language_code,
-            include_indicator_details=True,
-        )
-    except (AttributeError, TypeError, ValueError, KeyError):
-        return ""
+def _personality_results(invitation) -> dict[str, int]:
+    """Return available personality indicator STEN values by library key."""
+    results: dict[str, int] = {}
+    for activity in invitation.sova_activities or []:
+        if not isinstance(activity, dict):
+            continue
+        activity_name = _normalise_name(activity.get("activity"))
+        if not any(
+            marker in activity_name
+            for marker in ("personality", "personality questionnaire", "personlighet", "trait")
+        ):
+            continue
+
+        for competency in activity.get("competencies") or []:
+            if not isinstance(competency, dict):
+                continue
+            competency_name = competency.get("competency") or competency.get("name")
+            key = _PERSONALITY_INDICATOR_LOOKUP.get(_normalise_name(competency_name))
+            if not key:
+                continue
+
+            sten = normalize_sten(competency.get("sten_rounded"))
+            if sten is None:
+                sten = normalize_sten(competency.get("sten"))
+            if sten is not None:
+                results[key] = sten
+    return results
 
 
-def _candidate_result_areas(
+def _candidate_personality_groups(
     invitation,
     *,
     language_code: str,
-) -> dict[str, dict[str, Any]]:
-    """Identify only the assessment areas supported by real evidence."""
-    personality_evidence = _personality_evidence(
-        invitation,
-        language_code=language_code,
-    )
-    motivation_results = extract_motivation_results(invitation)
-    cognitive_results = extract_cognitive_results(invitation)
+) -> list[dict[str, Any]]:
+    scores = _personality_results(invitation)
+    if not scores:
+        return []
 
-    has_personality_evidence = bool(personality_evidence)
-    if not has_personality_evidence:
-        for activity in invitation.sova_activities or []:
-            activity_name = str(activity.get("activity") or "").lower()
-            if not any(
-                keyword in activity_name
-                for keyword in (
-                    "personality",
-                    "personlighet",
-                    "trait",
-                    "karaktär",
-                )
-            ):
-                continue
-            if any(
-                _has_result_value(competency)
-                for competency in activity.get("competencies") or []
-                if isinstance(competency, dict)
-            ):
-                has_personality_evidence = True
-                break
-
-    has_skills_evidence = bool(cognitive_results)
-    if not has_skills_evidence:
-        for activity in invitation.sova_activities or []:
-            activity_name = str(activity.get("activity") or "").lower()
-            if not any(
-                keyword in activity_name
-                for keyword in (
-                    "skill",
-                    "färdighet",
-                    "numer",
-                    "logical",
-                    "logisk",
-                    "verbal",
-                    "reasoning",
-                    "förmåga",
-                )
-            ):
-                continue
-            if any(
-                _has_result_value(competency)
-                for competency in activity.get("competencies") or []
-                if isinstance(competency, dict)
-            ):
-                has_skills_evidence = True
-                break
-
-    customer_personality = (
-        invitation.ai_personality_interpretation or {}
-    )
-    customer_motivation = (
-        invitation.ai_motivation_interpretation or {}
-    )
-    customer_cognitive = (
-        invitation.ai_cognitive_interpretation or {}
-    )
-
-    return {
-        "personality": {
-            "available": has_personality_evidence,
-            "evidence": personality_evidence,
-        },
-        "skills": {
-            "available": has_skills_evidence,
-            "evidence": {
-                "cognitive_results": _json_safe(cognitive_results),
-            },
-        },
-        "motivation": {
-            "available": bool(motivation_results),
-            "evidence": {
-                "motivation_results": _json_safe(motivation_results),
-            },
-        },
+    workbook_traits = {
+        trait["key"]: trait
+        for trait in CANDIDATE_PERSONALITY_CONTENT_SV.get("traits", [])
     }
-
-
-def build_candidate_result_source(
-    invitation,
-    *,
-    language_code: str = "sv",
-) -> dict[str, Any]:
-    """Build one canonical source and mark unavailable areas explicitly."""
-    areas = _candidate_result_areas(
-        invitation,
-        language_code=language_code,
-    )
-
-    customer_evidence = {
-        "summary": invitation.ai_summary or "",
-        "personality": (
-            _json_safe(invitation.ai_personality_interpretation or {})
-            if areas["personality"]["available"]
-            else {}
-        ),
-        "motivation": (
-            _json_safe(invitation.ai_motivation_interpretation or {})
-            if areas["motivation"]["available"]
-            else {}
-        ),
-        "cognitive": (
-            _json_safe(invitation.ai_cognitive_interpretation or {})
-            if areas["skills"]["available"]
-            else {}
-        ),
-    }
-
-    return {
-        "candidate": {"reference": "CANDIDATE_A"},
-        "process": {
-            "purpose": invitation.process.purpose or "",
-            "job_title": invitation.process.job_title or "",
-            "context": _process_context(invitation),
-        },
-        "available_result_areas": {
-            area: {
-                "available": details["available"],
-                "evidence": details["evidence"],
+    groups = []
+    for section in TRAIT_AND_INDICATOR_PROFILE["sections"]:
+        for trait_definition in section["traits"]:
+            trait_key = trait_definition["trait_name"]
+            workbook_trait = workbook_traits.get(trait_key, {})
+            indicator_definitions = {
+                item["key"]: item
+                for item in workbook_trait.get("indicators", [])
             }
-            for area, details in areas.items()
-        },
-        "personality_result_evidence": areas["personality"]["evidence"],
-        "customer_result_evidence": customer_evidence,
+            trait_content = TRAIT_PROFILE_CONTENT.get(trait_key, {})
+            items = []
+
+            for indicator_key in trait_definition.get("indicators", []):
+                sten = scores.get(indicator_key)
+                score_band = get_score_band(sten)
+                if score_band is None:
+                    continue
+
+                indicator_content = INDICATOR_PROFILE_CONTENT.get(indicator_key, {})
+                if language_code == "sv":
+                    candidate_text = indicator_definitions.get(indicator_key, {})
+                    label = candidate_text.get("label_sv") or indicator_content.get("label_sv") or indicator_key
+                    text = candidate_text.get("score_texts", {}).get(score_band, "")
+                else:
+                    label = indicator_content.get("label_en") or indicator_key
+                    text = (
+                        indicator_content.get("score_texts", {})
+                        .get(score_band, {})
+                        .get("en", "")
+                    )
+
+                if text:
+                    items.append({"label": label, "text": text})
+
+            if not items:
+                continue
+
+            if language_code == "sv":
+                title = workbook_trait.get("label_sv") or trait_content.get("label_sv") or trait_key
+            else:
+                title = trait_content.get("label_en") or trait_key
+            groups.append({"title": title, "items": items})
+    return groups
+
+
+def _candidate_skills_groups(
+    invitation,
+    *,
+    language_code: str,
+) -> list[dict[str, Any]]:
+    cognitive_results = extract_cognitive_results(invitation)
+    percentiles = {}
+    for result in cognitive_results:
+        percentiles.setdefault(result["key"], result["percentile"])
+
+    # Some Sova payloads label the activity generically (for example,
+    # "Skills") while naming the actual ability in each competency.
+    for activity in invitation.sova_activities or []:
+        if not isinstance(activity, dict):
+            continue
+        activity_name = _normalise_name(activity.get("activity"))
+        for competency in activity.get("competencies") or []:
+            if not isinstance(competency, dict):
+                continue
+            competency_name = _normalise_name(
+                competency.get("competency") or competency.get("name")
+            )
+            source_name = f"{activity_name} {competency_name}"
+            key = next(
+                (
+                    result_key
+                    for result_key, keywords in (
+                        ("logical", ("logical", "logisk")),
+                        ("numerical", ("numerical", "numeric", "numerisk")),
+                        ("verbal", ("verbal",)),
+                    )
+                    if any(keyword in source_name for keyword in keywords)
+                ),
+                None,
+            )
+            percentile = competency.get("percentile")
+            if key and percentile is not None:
+                percentiles.setdefault(key, percentile)
+
+    if not percentiles:
+        return []
+
+    localised_results = build_cognitive_insight_results(
+        verbal_percentile=percentiles.get("verbal"),
+        logical_percentile=percentiles.get("logical"),
+        numerical_percentile=percentiles.get("numerical"),
+        language_code=language_code,
+    )
+    results_by_key = {
+        result["key"]: result
+        for result in localised_results
+        if result.get("completed")
     }
 
-
-def _prompt_metadata(*, key: str, language_code: str) -> dict[str, Any]:
-    language_code = normalize_ai_language(language_code)
-    default_prompt = get_default_ai_prompt(key=key, language=language_code)
-    override = (
-        AIPromptTemplate.objects.filter(
-            key=key,
-            language=language_code,
-            is_active=True,
-        ).first()
-    )
-    effective_prompt = (
-        override.prompt_text.strip()
-        if override and override.prompt_text
-        else default_prompt
-    )
-    latest_version = (
-        override.versions.order_by("-saved_at", "-id").first()
-        if override
-        else None
-    )
-    metadata = {
-        "key": key,
-        "language": language_code,
-        "source": "override" if override else "default",
-        "prompt_hash": hashlib.sha256(
-            effective_prompt.encode("utf-8")
-        ).hexdigest(),
-    }
-    if override:
-        metadata["template_id"] = override.pk
-        metadata["updated_at"] = override.updated_at.isoformat()
-    if latest_version:
-        metadata["version_id"] = latest_version.pk
-        metadata["version_saved_at"] = latest_version.saved_at.isoformat()
-    return metadata
+    groups = []
+    for localized in results_by_key.values():
+        interpretation = str(localized.get("interpretation") or "").strip()
+        if not interpretation:
+            continue
+        groups.append(
+            {
+                "title": localized.get("title") or localized["key"],
+                "items": [{"label": "", "text": interpretation}],
+            }
+        )
+    return groups
 
 
-def get_candidate_result_prompt_metadata(
-    *, language_code: str,
-) -> dict[str, dict[str, Any]]:
-    language_code = normalize_ai_language(language_code)
-    return {
-        section: _prompt_metadata(key=key, language_code=language_code)
-        for section, key in CANDIDATE_RESULT_PROMPT_KEYS.items()
-    }
+def _candidate_motivation_groups(
+    invitation,
+    *,
+    language_code: str,
+) -> list[dict[str, Any]]:
+    results = sorted(
+        _owner_motivation_results(invitation),
+        key=lambda item: (-float(item["score"]), item["key"]),
+    )[:3]
+
+    items = []
+    for result in results:
+        key = result["key"]
+        if language_code == "sv":
+            text = FACTOR_CONTENT.get(key, {}).get("top_text", "")
+            if not text:
+                text = MOTIVATION_DEFINITIONS.get(key, "")
+        else:
+            text = MOTIVATION_DEFINITIONS.get(key, "")
+        text = str(text or "").strip()
+        if not text:
+            continue
+
+        label = get_motivation_factor_display_name(
+            result.get("name") or key,
+            language_code=language_code,
+        )
+        items.append({"label": label, "text": text})
+
+    if not items:
+        return []
+    return [{
+        "title": _FIXED_COPY[language_code]["top_motivators_title"],
+        "items": items,
+    }]
 
 
-def build_candidate_result_prompt(
+def _area_content(title: str, groups: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not groups:
+        return None
+    return {"title": title, "body": "", "points": [], "groups": groups}
+
+
+def build_static_candidate_result_content(
     invitation,
     *,
     language_code: str = "sv",
-) -> tuple[str, dict[str, dict[str, Any]]]:
-    """Build one candidate-result prompt from one canonical source."""
-    language_code = normalize_ai_language(language_code)
-    source = build_candidate_result_source(
-        invitation,
-        language_code=language_code,
-    )
-    available_areas = source["available_result_areas"]
-    available_area_lines = "\n".join(
-        f"- {section}: {'AVAILABLE' if details['available'] else 'NOT AVAILABLE'}"
-        for section, details in available_areas.items()
-    )
-    prompt_metadata = get_candidate_result_prompt_metadata(
-        language_code=language_code
-    )
-    feature_guidance = {
-        section: get_ai_feature_prompt_instructions(
-            key=key,
-            language=language_code,
-        )
-        for section, key in CANDIDATE_RESULT_PROMPT_KEYS.items()
-    }
-    source_json = json.dumps(source, ensure_ascii=False, indent=2, default=str)
-
-    prompt = f"""
-TALENA CANDIDATE RESULT GENERATION
-
-Create a supportive candidate-facing result from the supplied canonical
-assessment source.
-
-The available_result_areas and customer_result_evidence contain selected
-assessment evidence and earlier customer-facing interpretations. Preserve
-their substantive meaning. You may simplify, shorten and phrase the result
-more warmly, but never reverse, exaggerate or contradict the interpretation.
-Do not infer or request full Sova activities, projects, report objects or URLs.
-
-PROTECTED RULES
-
-- Write for the candidate, not for a recruiter or administrator.
-- Use positive, respectful and non-judgemental language.
-- Do not use good/bad, strong/weak, pass/fail, suitable/unsuitable or hiring
-  language.
-- Do not expose raw scores, STEN values, percentiles, internal codes,
-  recommendations or private process notes.
-- Treat assessment results as indications or hypotheses, never absolute truths.
-- Do not diagnose the candidate or introduce unsupported psychological claims.
-- Skills/färdighet must remain descriptive. Do not turn skills into personality,
-  motivation or guaranteed job performance.
-- Do not frame lower skills results as deficits, weaknesses or personal
-  shortcomings. Avoid telling the candidate that they need to develop,
-  improve or train a skill. Where supported by the evidence, describe instead
-  that certain task types may require more time, focus or support.
-- If evidence is missing, say less rather than inventing content.
-- Address the candidate without using any personal name.
-- Return valid JSON only, with exactly the four top-level keys shown below.
-
-OUTPUT LANGUAGE
-
-{get_ai_language_instruction(language_code)}
-
-GLOBAL ADMINISTRATOR GUIDANCE
-
-{get_global_ai_guidance(language=language_code)}
-
-AVAILABLE RESULT AREAS
-
-{available_area_lines}
-
-Only write substantive content for areas marked AVAILABLE. For every area
-marked NOT AVAILABLE, return an empty body and an empty points array. Never
-infer that a test was taken from the process name, job title or another
-assessment area.
-
-SECTION PROMPTS
-
-INTRODUCTION
-{feature_guidance['introduction']}
-
-PERSONALITY
-{feature_guidance['personality']}
-
-SKILLS / FÄRDIGHET
-{feature_guidance['skills']}
-
-MOTIVATION
-{feature_guidance['motivation']}
-
-CANONICAL SOURCE
-
-{source_json}
-
-JSON STRUCTURE
-
-{{
-  "introduction": {{
-    "title": "A welcoming result title",
-    "body": "A short, reassuring introduction to the result."
-  }},
-  "personality": {{
-    "title": "Personality",
-    "body": "A concise, nuanced candidate-facing interpretation.",
-    "points": ["Optional practical points"]
-  }},
-  "skills": {{
-    "title": "Skills",
-    "body": "A strictly descriptive interpretation of available skills results.",
-    "points": ["Optional practical points"]
-  }},
-  "motivation": {{
-    "title": "Motivation",
-    "body": "A concise, supportive interpretation of available motivation results.",
-    "points": ["Optional practical points"]
-  }}
-}}
-""".strip()
-    return prompt, prompt_metadata
-
-
-def _parse_json_content(raw_content: str) -> dict[str, Any]:
-    text = (raw_content or "").strip()
-    if text.startswith("```"):
-        text = text.strip("`").strip()
-        if text.lower().startswith("json"):
-            text = text[4:].strip()
-    try:
-        payload = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise ValueError(
-            "Candidate result generation did not return valid JSON."
-        ) from exc
-    if not isinstance(payload, dict):
-        raise ValueError("Candidate result generation must return a JSON object.")
-    return payload
-
-
-def _normalise_section(
-    value: Any,
-    fallback_title: str,
-    *,
-    available: bool = True,
 ) -> dict[str, Any]:
-    if isinstance(value, dict):
-        title = str(value.get("title") or fallback_title).strip()
-        body = str(value.get("body") or "").strip()
-        points = value.get("points") or []
-    else:
-        title = fallback_title
-        body = str(value or "").strip()
-        points = []
+    """Build the candidate report from approved static libraries only."""
+    language_code = normalize_ai_language(language_code)
+    language_code = language_code if language_code in {"sv", "en"} else "sv"
+    copy = _FIXED_COPY[language_code]
 
-    if not available:
-        body = ""
-        points = []
-    if not isinstance(points, list):
-        points = [points]
-    return {
-        "title": title,
-        "body": body,
-        "points": [str(point).strip() for point in points if str(point).strip()],
-    }
-
-
-def normalise_candidate_result_content(
-    payload: dict[str, Any],
-    *,
-    available_areas: dict[str, dict[str, Any]] | None = None,
-    language_code: str = "sv",
-) -> dict[str, dict[str, Any]]:
-    available_areas = available_areas or {
-        "personality": {"available": True},
-        "skills": {"available": True},
-        "motivation": {"available": True},
-    }
-    titles = {
-        "sv": {
-            "introduction": "Ditt resultat",
-            "personality": "Personlighet",
-            "skills": "Färdigheter",
-            "motivation": "Motivation",
+    content: dict[str, Any] = {
+        "library_version": CANDIDATE_RESULT_CONTENT_VERSION,
+        "personality_library_version": CANDIDATE_PERSONALITY_CONTENT_SV.get(
+            "library_version", ""
+        ),
+        "introduction": {
+            "title": copy["introduction_title"],
+            "body": copy["introduction_body"],
         },
-        "en": {
-            "introduction": "Your result",
-            "personality": "Personality",
-            "skills": "Skills",
-            "motivation": "Motivation",
-        },
-    }.get(language_code, {})
-    return {
-        "introduction": _normalise_section(
-            payload.get("introduction"),
-            titles.get("introduction", "Your result"),
-        ),
-        "personality": _normalise_section(
-            payload.get("personality"),
-            titles.get("personality", "Personality"),
-            available=available_areas.get("personality", {}).get(
-                "available",
-                False,
+        "personality": _area_content(
+            copy["personality_title"],
+            _candidate_personality_groups(
+                invitation,
+                language_code=language_code,
             ),
         ),
-        "skills": _normalise_section(
-            payload.get("skills"),
-            titles.get("skills", "Skills"),
-            available=available_areas.get("skills", {}).get(
-                "available",
-                False,
+        "skills": _area_content(
+            copy["skills_title"],
+            _candidate_skills_groups(
+                invitation,
+                language_code=language_code,
             ),
         ),
-        "motivation": _normalise_section(
-            payload.get("motivation"),
-            titles.get("motivation", "Motivation"),
-            available=available_areas.get("motivation", {}).get(
-                "available",
-                False,
+        "motivation": _area_content(
+            copy["motivation_title"],
+            _candidate_motivation_groups(
+                invitation,
+                language_code=language_code,
             ),
         ),
     }
+    return {key: value for key, value in content.items() if value is not None}
 
 
 def generate_candidate_result_content(
     invitation,
     *,
     language_code: str = "sv",
-) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], str]:
-    """Generate candidate-facing content without mutating the invitation."""
-    language_code = normalize_ai_language(language_code)
-    source = build_candidate_result_source(
+) -> tuple[dict[str, Any], dict[str, Any], str]:
+    """Compatibility entry point that now returns static content, never AI text."""
+    content = build_static_candidate_result_content(
         invitation,
         language_code=language_code,
     )
-    prompt, prompt_metadata = build_candidate_result_prompt(
-        invitation,
-        language_code=language_code,
-    )
-    from apps.core.ai.candidate_name_privacy import redact_candidate_name
-
-    client = get_openai_client()
-    prompt = redact_candidate_name(prompt, invitation.candidate)
-    response = client.chat.completions.create(
-        model=get_chat_model(),
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are Talena's candidate-result AI component. "
-                    "Follow the protected candidate-result rules and the "
-                    "administrator guidance. "
-                    f"{get_ai_system_language_instruction(language_code)}"
-                ),
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        response_format={"type": "json_object"},
-    )
-    content = normalise_candidate_result_content(
-        _parse_json_content(response.choices[0].message.content),
-        available_areas=source["available_result_areas"],
-        language_code=language_code,
-    )
-    fingerprint_payload = {
-        "source": source,
-        "prompt_versions": prompt_metadata,
-        "locale": language_code,
-    }
     source_fingerprint = hashlib.sha256(
         json.dumps(
-            fingerprint_payload,
+            content,
             ensure_ascii=False,
             sort_keys=True,
-            default=str,
+            separators=(",", ":"),
         ).encode("utf-8")
     ).hexdigest()
-    return content, prompt_metadata, source_fingerprint
+    library_metadata = {
+        "content_version": CANDIDATE_RESULT_CONTENT_VERSION,
+        "personality_library_version": content.get("personality_library_version", ""),
+        "locale": normalize_ai_language(language_code),
+    }
+    return content, library_metadata, source_fingerprint
+
+
+def ensure_candidate_result_snapshot_current(
+    snapshot: CandidateResultSnapshot | None,
+) -> tuple[CandidateResultSnapshot | None, bool]:
+    """Replace a legacy AI snapshot once while preserving its archived copy."""
+    if snapshot is None:
+        return None, False
+    if snapshot.content_version == CANDIDATE_RESULT_CONTENT_VERSION:
+        return snapshot, False
+
+    content, _library_metadata, fingerprint = generate_candidate_result_content(
+        snapshot.invitation,
+        language_code=snapshot.locale,
+    )
+    old_content = snapshot.content if isinstance(snapshot.content, dict) else {}
+    old_prompt_versions = (
+        snapshot.prompt_versions
+        if isinstance(snapshot.prompt_versions, dict)
+        else {}
+    )
+
+    updated = CandidateResultSnapshot.objects.filter(
+        pk=snapshot.pk,
+    ).exclude(
+        content_version=CANDIDATE_RESULT_CONTENT_VERSION,
+    ).update(
+        content=content,
+        content_version=CANDIDATE_RESULT_CONTENT_VERSION,
+        legacy_content=snapshot.legacy_content or old_content,
+        legacy_prompt_versions=(
+            snapshot.legacy_prompt_versions or old_prompt_versions
+        ),
+        prompt_versions={},
+        source_fingerprint=fingerprint,
+    )
+    snapshot.refresh_from_db()
+    return snapshot, bool(updated)
 
 
 def create_candidate_result_snapshot(
@@ -555,7 +394,7 @@ def create_candidate_result_snapshot(
     *,
     language_code: str = "sv",
 ) -> tuple[CandidateResultSnapshot, bool]:
-    """Generate and persist one immutable candidate result snapshot."""
+    """Create a static snapshot, or safely upgrade an earlier AI snapshot."""
     if not invitation.process.candidate_results_enabled:
         raise ValueError("Candidate results are not enabled for this process.")
     if invitation.status != "completed":
@@ -563,8 +402,10 @@ def create_candidate_result_snapshot(
 
     existing = CandidateResultSnapshot.objects.filter(invitation=invitation).first()
     if existing:
-        return existing, False
-    content, prompt_metadata, source_fingerprint = generate_candidate_result_content(
+        current, upgraded = ensure_candidate_result_snapshot_current(existing)
+        return current, upgraded
+
+    content, _library_metadata, source_fingerprint = generate_candidate_result_content(
         invitation,
         language_code=language_code,
     )
@@ -574,7 +415,8 @@ def create_candidate_result_snapshot(
         process=invitation.process,
         locale=normalize_ai_language(language_code),
         content=content,
-        prompt_versions=prompt_metadata,
+        content_version=CANDIDATE_RESULT_CONTENT_VERSION,
+        prompt_versions={},
         source_fingerprint=source_fingerprint,
     )
     return snapshot, True

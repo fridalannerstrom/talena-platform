@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "review_date": "2026-10-22",
+  "review_date": "2026-10-27",
   "status": "code_source_callsite_inventory_not_verified_network_payloads",
   "scope": "Only Python OpenAI SDK callsites under apps/. No actual candidate data inspected.",
   "sdk_client": "apps/core/ai/openai_client.py",
@@ -214,22 +214,6 @@
       ],
       "freetext": true,
       "comment": "Streaming."
-    },
-    {
-      "path": "apps/candidate_results/interpretation.py",
-      "calls": 1,
-      "functions": [
-        "generate_candidate_result_content"
-      ],
-      "status": "active",
-      "data": [
-        "canonical candidate-visible source and assessment evidence",
-        "customer interpretation",
-        "section-specific prompt rules",
-        "global admin guidance"
-      ],
-      "freetext": true,
-      "comment": "Non-streaming candidate-facing JSON generation."
     },
     {
       "path": "apps/reports/services/candidate_insights.py",

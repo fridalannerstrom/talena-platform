@@ -1,0 +1,716 @@
+{
+  "library_version": "candidate-personality-2026-10-27",
+  "source_workbook": "Talena_rapporttexter_kandidatversion_du 1.xlsx",
+  "source_sheet": "Blad1",
+  "score_bands": [
+    "1_2",
+    "3",
+    "4_7",
+    "8",
+    "9_10"
+  ],
+  "traits": [
+    {
+      "key": "Cooperative",
+      "label_sv": "Samverkande",
+      "indicators": [
+        {
+          "key": "Sensitivity",
+          "label_sv": "Känslighet",
+          "score_texts": {
+            "1_2": "Du låter sannolikt inte andras känslor påverka dina handlingar och beslut.",
+            "3": "Du är troligen mindre benägen att låta andras känslor påverka dina handlingar och beslut.",
+            "4_7": "Vid handlingar och beslut borde du kunna göra en god avvägning i att vara lyhörd mot dina egna och andras känslor och behov.",
+            "8": "Du är troligen lyhörd gentemot andras behov och känslor vid beslutsfattande och agerande.",
+            "9_10": "Du är mycket lyhörd gentemot andras behov och känslor vid beslutsfattande och agerande."
+          }
+        },
+        {
+          "key": "Teamwork",
+          "label_sv": "Grupparbete",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen att arbeta på egen hand framför samarbete i grupp.",
+            "3": "Du trivs antagligen att arbeta på egen hand, snarare än att samarbeta i grupp.",
+            "4_7": "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
+            "8": "Du trivs med att samarbeta med andra och jobba som del av ett team eller grupp.",
+            "9_10": "Du föredrar att samarbeta med andra och jobba som del av ett team eller grupp."
+          }
+        },
+        {
+          "key": "Agreeableness",
+          "label_sv": "Tillmötesgående",
+          "score_texts": {
+            "1_2": "Du är sannolikt bekväm att uttrycka dina åsikter om du inte håller med omgivningen.",
+            "3": "Du kommer troligtvis vara bekväm med att uttrycka dina åsikter om du inte håller med omgivningen.",
+            "4_7": "Du är samarbetsvillig men också bekväm att uttrycka din åsikt när det krävs.",
+            "8": "Du är vänlig och tillmötesgående och kommer sannolikt lätt överens med andra.",
+            "9_10": "Du är vänlig och tillmötesgående och kommer utan ansträngning lätt överens med andra."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Empathy",
+      "label_sv": "Empati",
+      "indicators": [
+        {
+          "key": "Tolerance",
+          "label_sv": "Tolerans",
+          "score_texts": {
+            "1_2": "Du upplever det sannolikt utmanande att vara tolerant när det gäller andras brister.",
+            "3": "Ibland kan du troligtvis uppleva att det är utmanande att vara tolerant när det gäller andras brister.",
+            "4_7": "Du är förmodligen ganska tolerant när det gäller andras brister.",
+            "8": "Du har sannolikt lätt för att förstå andras perspektiv och är tolerant mot andra människor.",
+            "9_10": "Du har lätt för att förstå andras perspektiv och är mycket tolerant mot andra människor."
+          }
+        },
+        {
+          "key": "Listening",
+          "label_sv": "Lyhördhet",
+          "score_texts": {
+            "1_2": "Du blir förmodligen uttråkad av att aktivt behöva lyssna allt för mycket på när andra pratar om sina problem.",
+            "3": "Du blir antagligen uttråkad av att aktivt behöva lyssna allt för mycket på när andra pratar om sina problem.",
+            "4_7": "När det behövs lyssnar du aktivt på andras perspektiv och problem.",
+            "8": "Du gillar att lyssna på andras perspektiv och problem.",
+            "9_10": "Du tar dig aktivt tid för att lyssna på andras perspektiv och problem."
+          }
+        },
+        {
+          "key": "Warmth",
+          "label_sv": "Värme",
+          "score_texts": {
+            "1_2": "Det tar sannolikt energi att empatisera med andra, vilket förmodligen kan göra att det tar längre tid för dig att öppna upp och släppa in andra på djupet.",
+            "3": "Det tar troligen energi att empatisera med andra, vilket antagligen kan göra att det tar längre tid för dig att öppna upp och släppa in andra på djupet.",
+            "4_7": "Du har lika lätt som de flesta att skapa djupa relationer samt visar värme och öppenhet mot andra när det behövs.",
+            "8": "Du visar sannolikt värme och öppenhet mot andra, och har troligtvis lätt för att skapa djupa relationer.",
+            "9_10": "Du har mycket lätt för att visa värme och öppenhet mot andra, att skapa djupa relationer med andra kommer naturligt."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Supporting",
+      "label_sv": "Stödjande",
+      "indicators": [
+        {
+          "key": "Developing Others",
+          "label_sv": "Andras utveckling",
+          "score_texts": {
+            "1_2": "Du upplever det sannolikt energikrävande att fokusera på andras utveckling, och låter därför förmodligen andra utvecklas självständigt.",
+            "3": "Troligen föredrar du att låta andra utvecklas självständigt.",
+            "4_7": "Du kan känna dig bekväm med att hjälpa andra att utvecklas när det behövs.",
+            "8": "Du är sannolikt intresserad av att stötta andra och trivs troligtvis med att hjälpa andra att utvecklas.",
+            "9_10": "Du är genuint intresserad av att stötta andra och trivs med att hjälpa andra att utvecklas."
+          }
+        },
+        {
+          "key": "Helpfulness",
+          "label_sv": "Hjälpsamhet",
+          "score_texts": {
+            "1_2": "Du förväntar dig sannolikt att andra klarar sig själva och lägger förmodligen därför tid på dina egna prioriteringar, framför att stötta andra med deras arbetsuppgifter.",
+            "3": "Du förväntar dig antagligen att andra klarar sig själva och lägger troligtvis därför tid på dina egna prioriteringar, framför att stötta andra med deras arbetsuppgifter.",
+            "4_7": "Du är förmodligen lika stöttande och hjälpsam mot andra som de flesta.",
+            "8": "Du hjälper sannolikt andra och anstränger dig troligen för att uppfylla allas behov.",
+            "9_10": "Du hjälper andra och anstränger dig för att uppfylla allas behov."
+          }
+        },
+        {
+          "key": "Considerate",
+          "label_sv": "Omtänksam",
+          "score_texts": {
+            "1_2": "Du fokuserar sannolikt mer på dina egna uppgifter och blir förmodligen inte distraherad av andra människors problem.",
+            "3": "Du fokuserar troligtvis mer på dina uppgifter och blir antagligen inte lätt distraherad av andra människors problem.",
+            "4_7": "Du växlar förmodligen mellan att fokusera på dina egna uppgifter och att tänka på hur andra kan behöva hjälp och stöd.",
+            "8": "Du lägger troligtvis tid på att fundera på hur andra kan bli stöttade och få hjälp på bästa sätt.",
+            "9_10": "Du lägger mycket tid på att fundera på hur andra kan bli stöttade och få hjälp på bästa sätt."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Connecting",
+      "label_sv": "Nätverkande",
+      "indicators": [
+        {
+          "key": "Open Communication",
+          "label_sv": "Öppen kommunikation",
+          "score_texts": {
+            "1_2": "Sannolikt är du är mer bekväm att kommunicera med likasinnade personer.",
+            "3": "Du föredrar troligtvis att kommunicera med likasinnade personer.",
+            "4_7": "Huruvida du nätverkar med din betrodda grupp och nya människor är sannolikt situationsbaserat",
+            "8": "Det kommer troligtvis naturligt för dig att kommunicera med olika typer av personer.",
+            "9_10": "Det är lätt för dig att kommunicera med många olika typer av personer."
+          }
+        },
+        {
+          "key": "Building Networks",
+          "label_sv": "Skapa nätverk",
+          "score_texts": {
+            "1_2": "Du fokuserar förmodligen främst på att vårda kontakten med en nära och betrodd grupp människor.",
+            "3": "Du fokuserar antagligen på att vårda kontakten med en nära och betrodd grupp människor, framför att utöka ditt nätverk.",
+            "4_7": "Du vårdar troligen kontakten med en nära och betrodd grupp människor, och kan sannolikt nätverka strategiskt när det behövs.",
+            "8": "du nätverkar sannolikt strategiskt och vårdar troligtvis dessa kontakter kontinuerligt.",
+            "9_10": "Det kommer naturligt för dig att nätverka strategiskt och att kontinuerligt vårda befintliga kontakter."
+          }
+        },
+        {
+          "key": "Initiating Contact",
+          "label_sv": "Ta kontakt",
+          "score_texts": {
+            "1_2": "Du upplever det sannolikt utmanande att ta kontakt med nya personer.",
+            "3": "Du känner dig troligtvis mindre bekväm med att ta kontakt med nya personer, men kan förmodligen göra det om det verkligen behövs.",
+            "4_7": "Det är troligtvis situationsbaserat hur bekväm du känner dig med att ta kontakt med nya personer.",
+            "8": "Du känner dig sannolikt bekväm med att ta kontakt med nya personer.",
+            "9_10": "Du tenderar att ta kontakt med nya personer kommer mycket naturligt."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Dynamic",
+      "label_sv": "Driftighet",
+      "indicators": [
+        {
+          "key": "Energetic",
+          "label_sv": "Energisk",
+          "score_texts": {
+            "1_2": "Du föredrar sannolikt ett lugnt tempo och upplever det energikrävande att ta på dig många uppgifter på en och samma gång.",
+            "3": "Du föredrar troligtvis ett lugnare tempo där möjlighet att fokusera på en sak i taget ges.",
+            "4_7": "Du föredrar troligtvis en balans mellan ett jämnare tempo och att aktivt söka nya uppgiifter och utmaningar.",
+            "8": "Du trivs sannolikt i miljöer med högt tempo och söker troligen aktivt efter nya utmaningar och uppgifter att ta på dig.",
+            "9_10": "Du trivs i miljöer med högt tempo och söker aktivt efter nya utmaningar och uppgifter att ta på dig."
+          }
+        },
+        {
+          "key": "Enthusiastic",
+          "label_sv": "Entusiastisk",
+          "score_texts": {
+            "1_2": "Förmodligen är du mycket eftertänksam innan du agerar och har en mer hänsynsfull inställning.",
+            "3": "Du är antagligen eftertänksam innan du agerar och har troligen en mer hänsynsfyll inställning.",
+            "4_7": "Det är situationsberoende hur entusiastisk eller hänsynsfull du är innan du agerar.",
+            "8": "du är sannolikt entustiastisk och snabb i att agera.",
+            "9_10": "du är entustiastisk och snabb i att agera."
+          }
+        },
+        {
+          "key": "Risk Appetite",
+          "label_sv": "Riskaptit",
+          "score_texts": {
+            "1_2": "Du tar sannolikt noga hänsyn till olika alternativ inför beslut och undviker risk om det inte är absolut nödvändigt.",
+            "3": "Du föredrar troligen att ta hänsyn till olika alternativ inför beslut.",
+            "4_7": "Du gör en avvägning mellan att snabbt fatta beslut och att överväga olika alternativ inför mer avgörande beslut.",
+            "8": "du fattar förmodligen beslut snabbt utan att veta utfallet och troligen bekväm med att ta risker.",
+            "9_10": "du fattar beslut snabbt utan att veta utfallet och tar gärna risker."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Influential",
+      "label_sv": "Inflytelserik",
+      "indicators": [
+        {
+          "key": "Persuading",
+          "label_sv": "Övertygande",
+          "score_texts": {
+            "1_2": "Du är förmodligen obekväm med att behöva övertyga andra för att få dem att hålla med om din åsikt eller perspektiv.",
+            "3": "Du kan antagligen vara obekväm med att behöva övertyga andra för att få dem att hålla med om din åsikt eller perspektiv.",
+            "4_7": "Det är situationsberoende hur bekväm du är med att övertyga andra om din åsikt eller perspektiv.",
+            "8": "du gillar troligen att övertyga andra och är sannolikt bekväm med att påverka andra.",
+            "9_10": "Du gillar att övertyga andra och är mycket bekväm med att påverka andra."
+          }
+        },
+        {
+          "key": "Desire to Lead",
+          "label_sv": "Viljan att leda andra",
+          "score_texts": {
+            "1_2": "Du föredrar  sannolikt att följa instruktioner istället för att ta ledningen i en grupp.",
+            "3": "Du föredrar troligen att följa instruktioner istället för att ta ledningen i en grupp.",
+            "4_7": "Du är bekväm att ta ledningen i situationer där du känner dig säker eller trygg.",
+            "8": "Du gillar sannolikt att ta befälet och är bekväm med att ta ledningen i de flesta situationer.",
+            "9_10": "Du föredrar att ta befälet och att leda andra."
+          }
+        },
+        {
+          "key": "Assertive",
+          "label_sv": "Bestämd",
+          "score_texts": {
+            "1_2": "Du kan förmodligen känna dig obekväm att framhäva din åsikt eller perspektiv.",
+            "3": "Du kommer troligtvis vara mer obekväm att framhäva din åsikt, särskilt om du inte har blivit ombedd att ge ditt perspektiv.",
+            "4_7": "Du kan vara bekväm att uttrycka din åsikt, men anstränger dig förmodligen inte för att lägga fram åsikter som skiljer dig från andras.",
+            "8": "Du har sannolikt ett självsäkert och bestämt tillvägagångssätt, särskilt när det gäller att uttrycka dina åsikter.",
+            "9_10": "Du har ett självsäkert och bestämt tillvägagångssätt, särskilt när det gäller att uttrycka dina åsikter."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Goal-focused",
+      "label_sv": "Måldriven",
+      "indicators": [
+        {
+          "key": "Competitive",
+          "label_sv": "Tävlingsinriktad",
+          "score_texts": {
+            "1_2": "Sannolikt ogillar du att konkurrera med andra och undviker helst situationer som innefattar tävling.",
+            "3": "Du ogillar troligen att konkurrera med andra och är sannolikt ointresserad av situationer som innefattar tävling.",
+            "4_7": "Du kan vara bekväm att konkurrera med andra och finner intresse i vissa tävlingssituationer.",
+            "8": "Du har troligen en viss segervilja och trivs sannolikt i tävlingssammanhang.",
+            "9_10": "Du har en tydlig segervilja och trivs i tävlingssammanhang."
+          }
+        },
+        {
+          "key": "Challenge",
+          "label_sv": "Utmaning",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen att ta det som det kommer istället för att vara överdrivet angelägen om att uppnå särskilda mål.",
+            "3": "Du föredrar antagligen att ta det som det kommer istället för att vara överdrivet angelägen om att\nuppnå särskilda mål.",
+            "4_7": "Du har förmågan att hitta en bra balans mellan att vilja uppnå mål och ta saker som de kommer.",
+            "8": "du motiveras troligen av att lyckas och har sannolikt fokus på dina mål även när motgångar uppstår.",
+            "9_10": "du motiveras av att lyckas och behåller därför fokus på dina mål även när motgångar uppstår."
+          }
+        },
+        {
+          "key": "Self-Discipline",
+          "label_sv": "Självdisciplin",
+          "score_texts": {
+            "1_2": "Du blir sannolikt lätt distraherad från vad du har för avsikt att uppnå, särskilt om intresse för målet saknas.",
+            "3": "Du blir troligen lätt distraherad från vad du har för avsikt att uppnå, särskilt om intresse för målet saknas.",
+            "4_7": "Du kommer sannolikt ha disciplin att uppnå ett begränsat antal prioriterade mål.",
+            "8": "Du blir sannolikt inte distraherad oavsett uppgift, utan är troligen disciplinerad när det kommer till att uppnå uppsatta mål.",
+            "9_10": "Du blir inte distraherad oavsett uppgift, utan är disciplinerad när det kommer till att uppnå uppsatta mål."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Structured",
+      "label_sv": "Strukturerad & disciplinerad",
+      "indicators": [
+        {
+          "key": "Planning and Organising",
+          "label_sv": "Planering och organisering",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen ett flexibelt förhållningsssätt framför att planera uppgifter i förväg.",
+            "3": "Du föredrar troligen ett mer flexibelt förhällningssätt framför att planera uppgifter i förväg.",
+            "4_7": "Du gör en avvägning mellan att noga planera dina uppgifter och att ha ett flexibelt förhållningssätt.",
+            "8": "du är sannolikt noggrann med att planera och strukturera dina uppgifter.",
+            "9_10": "Du planerar och strukturerar dina uppgifter noggrant."
+          }
+        },
+        {
+          "key": "Attention to Detail",
+          "label_sv": "Känsla för detaljer",
+          "score_texts": {
+            "1_2": "Sannolikt upplever du det energikrävande att fokusera på detaljer.",
+            "3": "Du upplever det troligtvis mer energikrävande att fokusera på detaljer.",
+            "4_7": "Du har en balans för när det krävs att noga fokusera på detaljer och inte.",
+            "8": "Du har sannolikt sinne för detaljer och föredrar att arbetet blir utfört med hög noggrannhet och kvalitet.",
+            "9_10": "Du har sinne för detaljer och ser till att arbetet blir utfört med hög noggrannhet och kvalitet."
+          }
+        },
+        {
+          "key": "Keeping Promises",
+          "label_sv": "Hålla löften",
+          "score_texts": {
+            "1_2": "Du är förmodligen tolerant när det gäller mindre misstag eller ändringar i tidsplaner.",
+            "3": "Du är antagligen tolerant när det gäller mindre misstag eller ändringar i tidsplaner.",
+            "4_7": "Du försöker hålla det du lovar när det är möjligt och kan godta mindre misstag eller förändringar i tidsplaner beroende på uppgiften.",
+            "8": "Du anstränger dig sannolikt för att hålla det du lovar och är mindre tolerant mot misstag och förändrade tidsplaner.",
+            "9_10": "Du gör ditt yttersta för att hålla det du lovar och har låg tolerans mot misstag och förändrade tidsplaner."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Analytical",
+      "label_sv": "Analytisk",
+      "indicators": [
+        {
+          "key": "Data Focus",
+          "label_sv": "Datafokus",
+          "score_texts": {
+            "1_2": "Du är sannolikt mindre intresserad av data och statistik och finner det energikrävande att ha stort fokus på detta.",
+            "3": "Du är troligen mindre intresserad av data och statistik och kan finna det energikrävande att ha stort fokus på detta.",
+            "4_7": "Du gör en avvägning mellan att använda ett intuitivt eller datadrivet tillvägagångssätt för att lösa problem.",
+            "8": "Du har troligen ett datadrivet förhållningssätt, och ser sannolikt statistik och data som nyckeln till att lösa problem.",
+            "9_10": "Du har ett datadrivet förhållningssätt, och ser statistik och data som nyckeln till att lösa problem."
+          }
+        },
+        {
+          "key": "Evaluating",
+          "label_sv": "Utvärderar",
+          "score_texts": {
+            "1_2": "Du är förmodligen mindre intresserad av uppgifter som kräver kritisk utvärdering och granskning.",
+            "3": "Du är antagligen mindre intresserad av uppgifter som kräver kritisk utvärding och granskning.",
+            "4_7": "Du är relativt intresserad av att utvärdera situationer på ett kritiskt granskande sätt.",
+            "8": "Du föredrar sannolikt att utvärdera situationer på ett kritiskt granskande sätt.",
+            "9_10": "Du föredrar att utvärdera situationer på ett kritiskt granskande sätt."
+          }
+        },
+        {
+          "key": "Analysing Problems",
+          "label_sv": "Problemanalys",
+          "score_texts": {
+            "1_2": "Du har sannolikt ett mer intuitivt tillvägagångssätt för att lösa problem, snarare än att fokusera på statistik eller data.",
+            "3": "Du har troligtvis ett mer intuitivt tillvägagångssätt för att lösa problem, snarare än att fokusera på statistik eller data.",
+            "4_7": "Du gör en avvägning mellan att använda ett intuitivt eller datadrivet tillvägagångssätt för att lösa problem.",
+            "8": "Du använder sannolikt olika informationskällor och ett analytiskt tillvägagångssätt för att lösa problem.",
+            "9_10": "Du använder olika informationskällor och ett analytiskt tillvägagångssätt för att lösa problem."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Complex Thinking",
+      "label_sv": "Konceptuell",
+      "indicators": [
+        {
+          "key": "Strategic Thinking",
+          "label_sv": "strategiskt tänkande",
+          "score_texts": {
+            "1_2": "Du föredrar sannolikt att ha ett operativa fokus framför att arbeta med komplexa problem.",
+            "3": "Du föredrar troligen att arbeta att ha ett operativt fokus framför att arbeta med komplexa problem.",
+            "4_7": "Du kan växla mellan att fokusera på komplexa problem och att fokusera på operativa detaljer beroende på situation.",
+            "8": "Du gillar sannolikt att hitta lösningar på komplexa problem.",
+            "9_10": "Du gillar verkligen att hitta lösningar på komplexa problem."
+          }
+        },
+        {
+          "key": "Conceptual",
+          "label_sv": "konceptuell",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen att arbeta med praktiska detaljer i en situation, snarare än att utforska de konceptuella aspekterna.",
+            "3": "Du föredrar antagligen att arbeta med praktiska detaljer i en situation, snarare än att utforska de konceptuella aspekterna.",
+            "4_7": "Du är bekväm att utforska både konceptuella aspekter eller operativa detaljer, beroende på situation.",
+            "8": "Du gillar sannolikt ett konceptuellt tillvägagångssätt och helhetsperspektiv vid komplex problemlösning, snarare än att fokusera på operativa detaljer.",
+            "9_10": "Du föredrar ett konceptuellt tillvägagångssätt och helhetsperspektiv vid komplex problemlösning, snarare än att fokusera på operativa detaljer."
+          }
+        },
+        {
+          "key": "Curiosity",
+          "label_sv": "nyfikenhet",
+          "score_texts": {
+            "1_2": "Du upplever det sannolikt energikrävande att behöva lära dig om nya arbetssätt och metoder.",
+            "3": "Du upplever det troligen energikrävande att behöva lära dig om nya arbetssätt och metoder.",
+            "4_7": "Du är relativt öppen och nyfiken på att lära dig nya arbetssätt och metoder.",
+            "8": "Du är nyfiken och söker sannolikt upp möjligheter att lära dig om nya arbetssätt och metoder.",
+            "9_10": "Du är nyfiken och söker aktivt upp möjligheter att lära dig om nya arbetssätt och metoder."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Creativity",
+      "label_sv": "Kreativitet",
+      "indicators": [
+        {
+          "key": "Innovating",
+          "label_sv": "Innovation",
+          "score_texts": {
+            "1_2": "Sannolikt föredrar du beprövade och bekanta metoder för att lösa problem, snarare än att utforska nya eller innovativa tillvägagångssätt.",
+            "3": "Du föredrar troligen beprövade och bekanta metoder för att lösa problem, snarare än att utforska nya eller innovativa tillvägagångssätt.",
+            "4_7": "Du har troligtvis en balans mellan att använda beprövande metoder eller innovativa tillvägagångssätt vid problemlösning.",
+            "8": "Du gillar sannolikt att hitta innovativa lösningar, och är troligen bekväm att använda nya tillvägagångssätt vid problemlösning.",
+            "9_10": "Du föredrar att hitta innovativa lösningar, framför att använda befintliga metoder, och är bekväm att använda helt nya tillvägagångssätt vid problemlösning."
+          }
+        },
+        {
+          "key": "Generating Ideas",
+          "label_sv": "Idéskapande",
+          "score_texts": {
+            "1_2": "Du upplever förmodligen det utmanande att komma på nya idéer eller lösningar, och undviker helst situationer som kräver idégenerering.",
+            "3": "Du kan antagligen uppleva det utmanande att komma på nya idéer eller lösningar, och undviker troligen situationer som kräver idégenerering.",
+            "4_7": "Du kan vara bekväm att generera nya idéer eller lösningar, men söker dig nödvändigtvis inte aktivt till sådana situationer.",
+            "8": "Du gillar sannolikt att generera idéer och komma på kreativa lösningar till problem.",
+            "9_10": "Du gillar att generera idéer och komma på kreativa lösningar till problem."
+          }
+        },
+        {
+          "key": "Experimenting",
+          "label_sv": "Experimentförmåga",
+          "score_texts": {
+            "1_2": "Du använder sannolikt hellre beprövade och befintliga metoder, snarare än att experimentera med nya arbetssätt.",
+            "3": "Du använder troligen hellre beprövade och befintliga metoder, snarare än att experimentera med nya arbetssätt.",
+            "4_7": "Du är troligen lika bekväm med att använda befintliga metoder, som att testa nya arbetssätt - beroende på situation.",
+            "8": "Du gillar troligen att experimentera och testa nya sätt att arbeta på.",
+            "9_10": "Du gillar att experimentera och testa nya sätt att arbeta på."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Adaptability",
+      "label_sv": "Anpassningsbarhet",
+      "indicators": [
+        {
+          "key": "Adapting to Change",
+          "label_sv": "Förändingsanpassning",
+          "score_texts": {
+            "1_2": "Du upplever förmodligen förändringar som utmanande och det kan ta tid att anpassa dig till nya situationer.",
+            "3": "Du upplever troligen förändringar som utmanande och det kan eventuellt ta tid att anpassa dig till nya situationer.",
+            "4_7": "Du anpassar dig till nya situationer och förändringar lika väl som de flesta andra.",
+            "8": "Du gillar sannolikt förändringar och anpassar dig troligen snabbare till nya situationer.",
+            "9_10": "Du gillar förändringar och anpassar dig snabbt till nya situationer."
+          }
+        },
+        {
+          "key": "Flexible",
+          "label_sv": "Flexibel",
+          "score_texts": {
+            "1_2": "Du har sannolikt en bestämd uppfattning och synsätt i de flesta situationer, och visar ointresse för andra perspektiv.",
+            "3": "Du har antagligen. en bestämd uppfattning och synsätt i flera situationer, och kan troligen vara ointresserad för andra perspektiv.",
+            "4_7": "Huruvida du har ett öppet eller bestämt synsätt beror på situationen.",
+            "8": "Du har sannolikt ett flexibelt förhållningssätt vid nya situationer och ändrar förmodligen enkelt ditt synsätt vid ny information och perspektiv.",
+            "9_10": "Du har ett flexibelt förhållningssätt vid nya situationer och ändrar enkelt ditt synsätt vid ny information och perspektiv."
+          }
+        },
+        {
+          "key": "Variety",
+          "label_sv": "variation",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen ett förutsägbart och rutinmässigt arbetssätt, och kan uppleva oförutsägbarhet som energikrävande.",
+            "3": "Du föredrar troligen ett mer förutsägbart och rutinmässigt arbetssätt, och kan troligen uppleva oförutsägbarhet som energikrävande.",
+            "4_7": "du uppskattar troligen en balans mellan rutinartade arbetsuppgifter och variation.",
+            "8": "Du föredrar troligen variation och kan uppleva rutinmässiga uppgifter som energikrävande.",
+            "9_10": "Du föredrar stor variation och upplever rutinmässiga uppgifter som energikrävande."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Straightforward",
+      "label_sv": "Uppriktighet och regelstryrd",
+      "indicators": [
+        {
+          "key": "Adhering to Rules",
+          "label_sv": "Regelefterlevnad",
+          "score_texts": {
+            "1_2": "Du känner dig sannolikt bekväm med att tumma på och bryta mot regler i rimlig utsträckning när det behövs för att få saker gjorda.",
+            "3": "Du känner dig troligen bekväm med att tumma på och bryta mot regler i rimlig utsträckning när det behövs för att få saker gjorda.",
+            "4_7": "Du har troligtvis en balans mellan att följa regler och riktlinjer, och att tumma på dessa i rimlig utsträckning.",
+            "8": "Du följer sannolikt regler och riktlinjer noggrant med minimalt ifrågasättande, och troligen ovillig att tumma på dessa.",
+            "9_10": "Du följer regler och riktlinjer mycket noggrant utan ifrågasättande, och ovillig att tumma på dessa oavsett omständighet."
+          }
+        },
+        {
+          "key": "Candid",
+          "label_sv": "Uppriktig",
+          "score_texts": {
+            "1_2": "Du föredrar förmodligen att vara indirekt och mindre rättfram i din kommunikation när du framför din åsikt.",
+            "3": "Du är antagligen mer indirekt och mindre rättfram i din kommunikation när du framför din åsikt.",
+            "4_7": "Om du är direkt eller indirekt i din kommunikation kring dina åsikter beror på situationen.",
+            "8": "Du kommer sannolikt vara direkt och rättfram i din kommunikation, och rak med dina åsikter.",
+            "9_10": "Oberoende av situation kommer du vara direkt och rättfram i din kommunikation, och rak med dina åsikter."
+          }
+        },
+        {
+          "key": "Earnest",
+          "label_sv": "Äkta",
+          "score_texts": {
+            "1_2": "Du är förmodligen bekväm med att ge komplimanger eller visa uppskattning, även när det inte helt speglar din egen uppfattningen, om det hjälper att nå ett mål. Du håller sannolikt tillbaka din egentliga åsikt om andra när det bedöms vara mer ändamålsenligt.",
+            "3": "Du är troligen bekväm med att ge komplimanger eller visa uppskattning, även när det inte helt speglar din egen uppfattningen, om det hjälper att nå ett mål. Du håller antagligen tillbaka din egentliga åsikt om andra när det bedöms vara mer ändamålsenligt.",
+            "4_7": "Du anpassar troligen hur öppet din uppfattning om andra kommer fram i olika situationer. Uttrycker uppskattning när den känns befogad, men kan också välja att hålla tillbaka eller nyansera dina åsikter när situationen kräver det.",
+            "8": "Du har troligen en tydlig uppfattning om andra och kan ha svårt att uttrycka uppskattning om den inte känns genuint förankrad. Förmodligen mer rak med dina åsikter och kan ha begränsat behov av att dölja vad du faktiskt tycker.",
+            "9_10": "Du har en tydlig uppfattning om andra och kan ha svårt att uttrycka uppskattning om den inte känns genuint förankrad. Rak med dina åsikter och kan ha begränsat behov av att dölja vad du faktiskt tycker."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Status Avoidance",
+      "label_sv": "Prestigelöshet",
+      "indicators": [
+        {
+          "key": "Egalitarian",
+          "label_sv": "Jämlik",
+          "score_texts": {
+            "1_2": "Sannolikt förväntar du dig att andra bekräftar din status genom att visa respekt, och att din roll i organisationen kommer med en viss särbehandling.",
+            "3": "Du uppskattar sannolikt att andra bekräftar din status genom att visa respekt, och att din roll i organisationen kommer med en viss särbehandling.",
+            "4_7": "Du gillar antagligen att få bekräftelse emellanåt för din status, men kommer troligen inte anstränga dig för att få det.",
+            "8": "Du föredrar att bli behandlad på samma sätt som andra oavsett din roll, och kan därför undvika att framhäva din status.",
+            "9_10": "Du vill bli behandlad på samma sätt som andra oavsett din roll, och undviker därför att framhäva din status."
+          }
+        },
+        {
+          "key": "Collective",
+          "label_sv": "Kollektiv",
+          "score_texts": {
+            "1_2": "Du vill förmodligen få uppmärksamhet och erkännande för dina unika egenskaper och färdigheter.",
+            "3": "Du önskar sannolikt få uppmärksamhet och erkännande för dina unika egenskaper och färdigheter.",
+            "4_7": "Du kan troligtvis uppskatta uppmärksamhet för dina egenskaper och färdigheter, däremot anstränger dig du troligen inte aktivt för att få det.",
+            "8": "Du föredrar att smälta in i gruppen framför att få särskild uppmärksamhet och vill helst inte att andra ska känna att de måste visa dig uppskattning.",
+            "9_10": "Du smälter helst in i gruppen framför att få särskild uppmärksamhet och vill inte att andra ska känna att de måste visa dig uppskattning."
+          }
+        },
+        {
+          "key": "Avoiding Status",
+          "label_sv": "Undvika status",
+          "score_texts": {
+            "1_2": "Du förväntar dig sannolikt att din status och roll erkänns och bekräftas av andra och i organisationen.",
+            "3": "Du är förmodligen bekväm med att din status och roll erkänns och bekräftas av andra och i organisationen.",
+            "4_7": "Du gillar antagligen att din status erkänns av andra och i organisationen, men kommer troligen inte anstränga dig extra för att få det.",
+            "8": "Du har litet behov av att din status uppmärksammas och anser troligen att respekt ska förtjänas, inte att det kommer automatiskt med en titel.",
+            "9_10": "Du har inget behov av att din status uppmärksammas och anser att respekt ska förtjänas, inte att det kommer automatiskt med en titel."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Modesty",
+      "label_sv": "Ödmjukhet",
+      "indicators": [
+        {
+          "key": "Humble",
+          "label_sv": "Ödmjuk",
+          "score_texts": {
+            "1_2": "Du kan sannolikt uppleva det frustrerande om din insats går obemärkt förbi och förväntar dig att andra visar uppskattning.",
+            "3": "Du kan troligen uppleva det frustrerande om din insats går obemärkt förbi och förväntar dig förmodligen att andra visar uppskattning.",
+            "4_7": "Du anstränger dig inte nödvändigtvis för att få uppskattning, men känner dig inte obekväm att få detta från andra.",
+            "8": "Du anser dig sannolikt inte vara bättre än någon annan och förväntar dig troligen inte heller uppskattning eller specialbehandling.",
+            "9_10": "Du anser dig inte vara bättre än någon annan och förväntar dig inte uppskattning eller specialbehandling."
+          }
+        },
+        {
+          "key": "Modest",
+          "label_sv": "Anspråkslös",
+          "score_texts": {
+            "1_2": "Du pratar förmodligen gärna om dina framgångar och mår bra när du får uppmärksamhet för dina prestationer.",
+            "3": "Troligtvis är du bekväm att prata om dina framgångar och att få uppmärksamhet för dina prestationer.",
+            "4_7": "Du är relativt ödmjuk när det gäller dina framgångar och vad Du har uppnått.",
+            "8": "Du undviker helst att prata om dina framgångar, och blir troligen obekväm när du får uppmärksamhet för dina prestationer.",
+            "9_10": "Du är blygsam och undviker att prata om dina framgångar, och obekväm när du får uppmärksamhet för dina prestationer."
+          }
+        },
+        {
+          "key": "Avoiding Attention",
+          "label_sv": "Undvika uppmärksamhet",
+          "score_texts": {
+            "1_2": "Sannolikt trivs du med att stå i centrum och föredrar att få uppmärksamhet i gruppsammahang, snarare än att vara en i mängden.",
+            "3": "Du är antagligen bekväm med att stå i centrum och att få uppmärksamhet i gruppsammahang, snarare än att vara en i mängden.",
+            "4_7": "Du är lika bekväm att vara i centrum som att vara en i mängden.",
+            "8": "Du undviker helst att stå i centrum och håller dig hellre i bakgrunden, för att undgå uppmärksamhet.",
+            "9_10": "Du undviker att stå i centrum och håller dig gärna i bakgrunden, för att undgå uppmärksamhet."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Resilience",
+      "label_sv": "Tålighet",
+      "indicators": [
+        {
+          "key": "Tough Minded",
+          "label_sv": "Härdad",
+          "score_texts": {
+            "1_2": "Du är sannolikt känslig för kritik från andra och det kan förmodligen ta tid att släppa det.",
+            "3": "Du är troligen känslig för kritik från andra och det kan troligtvis ta tid att släppa det.",
+            "4_7": "Hur länge du påverkas av kritik kan variera beroende på situation.",
+            "8": "Du påverkas förmodligen inte så lätt av kritik, och oroar dig troligen inte för hur andra uppfattar dig.",
+            "9_10": "Du påverkas inte så lätt av kritik, och oroar dig inte för hur andra uppfattar dig."
+          }
+        },
+        {
+          "key": "Recovering",
+          "label_sv": "Återhämtningsförmåga",
+          "score_texts": {
+            "1_2": "Det kan förmodligen ta tid för dig att komma över misstag och du kan sannolikt ha svårare att gå vidare efter en motgång.",
+            "3": "Det tar troligtvis något mer tid för dig att komma över misstag och du kan antagligen ha något svårarre att gå vidare efter en motgång.",
+            "4_7": "Du återhämtar dig lika snabbt från motgångar och bakslag som de flesta andra.",
+            "8": "Du svarar troligen väl på bakslag och motgångar, och går vidare utan att övertänka.",
+            "9_10": "Du svarar väl på bakslag och motgångar, och går vidare snabbt utan att övertänka."
+          }
+        },
+        {
+          "key": "Optimistic",
+          "label_sv": "Optimistisk",
+          "score_texts": {
+            "1_2": "Du har sannolikt en pessimistisk syn när saker och ting går snett och kan förmodligen oroa dig för tänkbara konsekvenser.",
+            "3": "Du kan antagligen ha en pessimistisk syn när saker och ting går snett och benägen att oroa dig för tänkbara konsekvenser.",
+            "4_7": "Du kan ofta se positiva aspekter i utmanande situationer, men väger också in möjliga hinder och konsekvenser.",
+            "8": "Du är förmodligen optimistisk med fokus på de positiva aspekterna vid de flesta situationer, snarare än att fokusera på hinder eller det negativa.",
+            "9_10": "Du är optimistisk och väljer att fokusera på de positiva aspekterna vid utmanande situationer, snarare än att fokusera på hinder eller det negativa."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Emotional Control",
+      "label_sv": "Emotionell stabilitet",
+      "indicators": [
+        {
+          "key": "Controlling Stress",
+          "label_sv": "Stresshantering",
+          "score_texts": {
+            "1_2": "Du kan sannolikt ha lätt för att visa känslor i påfrestande och utmanande situationer.",
+            "3": "Du tenderar antagligen att visa känslor i påfrestande och utmanande situationer.",
+            "4_7": "Du kan behärska dina känslor i påfrestande situationer lika bra som de flesta.",
+            "8": "Du har sannolikt god känsloreglering och kan troligen dölja negativa känslor under press.",
+            "9_10": "Du har god känsloreglering och kan dölja negativa känslor under press."
+          }
+        },
+        {
+          "key": "Calm",
+          "label_sv": "Lugn",
+          "score_texts": {
+            "1_2": "Du kan förmodligen oroa dig för situationer som känns utmanande och uppvisar sannolikt regelbundet ängslan för andra.",
+            "3": "Du kan troligen oroa dig för situationer som känns utmanande och uppvisar ängslan för andra.",
+            "4_7": "Du kan förmodligen hålla dig lugn många situationer, men även uppvisa känslor i situationer som känns utmanande.",
+            "8": "Du känner troligen inte oro så ofta och har en lugn framtoning i de flesta situationer.",
+            "9_10": "Du känner sällan oro och har en mycket lugn framtoning i de flesta situationer."
+          }
+        },
+        {
+          "key": "Composed",
+          "label_sv": "Samlad",
+          "score_texts": {
+            "1_2": "Vid mycket utmanande eller känslomässigt påfrestande situationer är självbehärskning sannolikt svårare och du kan förmodligen ha svårare att behålla fattningen.",
+            "3": "Vid mycket utmanande eller känslomässigt påfrestande situationer kan självbehärskning troligtvis vara svårare och du kan därmed antagligen ha svårare att behålla fattningen.",
+            "4_7": "Du har lika god självbehärskning som de flesta andra i känslomässigt påfrestande och utmanande situationer.",
+            "8": "Du har sannolikt självbehärskning, bibehåller troligen lugnet och håller dig samlad i utmanande och känslomässigt påfrestande situationer.",
+            "9_10": "Du har god självbehärskning, bibehåller lugnet och håller dig samlad i utmanande och känslomässigt påfrestande situationer."
+          }
+        }
+      ]
+    },
+    {
+      "key": "Independence",
+      "label_sv": "Självständighet",
+      "indicators": [
+        {
+          "key": "Self-Reliant",
+          "label_sv": "Självgående",
+          "score_texts": {
+            "1_2": "Du föredrar sannolikt att bli vägledd och att få mycket stöd från omgivningen.",
+            "3": "Du gillar troligen att bli vägledd och att få stöd från omgivningen.",
+            "4_7": "I vissa situationer kommer du sannolikt vara bekväm att agera självgående, medan andra situationer kommer kräver mer vägledning.",
+            "8": "Du är bekväm att ta dig an uppgifter på egen hand och behöver sannolikt inte stöd och vägledning från andra.",
+            "9_10": "Du föredrar att ta dig an uppgifter på egen hand och är inte i behov av stöd och vägledning från andra."
+          }
+        },
+        {
+          "key": "Self-Contained",
+          "label_sv": "Självständig",
+          "score_texts": {
+            "1_2": "Du arbetar förmodligen som allra bäst när du får emotionellt stöd och uppmuntran från andra, och delar sannolikt gärna med dig av dina känslor öppet.",
+            "3": "Du arbetar antagligen bättre när du får emotionellt stöd och uppmuntran från andra, och delar troligtvis med dig av dina känslor öppet.",
+            "4_7": "Du kan troligen vara både självständig och söka stöd och uppmuntran från omgivningen - beroende på situation.",
+            "8": "Du föredrar troligen att arbeta självständigt och sannolikt i litet behov av emotionellt stöd och uppmuntran från omgivningen.",
+            "9_10": "Du föredrar att arbeta självständigt och har inte behov av emotionellt stöd och uppmuntran från omgivningen."
+          }
+        },
+        {
+          "key": "Thinking Independently",
+          "label_sv": "Tänker självständigt",
+          "score_texts": {
+            "1_2": "Du söker förmodligen råd inför beslut och lägger sannolikt stor vikt vid andras åsikter innan du agerar.",
+            "3": "Du tenderar troligen att fråga andra om råd inför beslut och lägger troligtvis vikt vid andras åsikter när du agerar.",
+            "4_7": "Du är relativt bekväm att fatta beslut självständigt, men kan också söka råd inför mer avgörande beslut.",
+            "8": "Du föredrar sannolikt att fatta beslut självständigt utan att söka råd från andra, och förmodligen bekväm att fatta beslut utan att oroa dig för vad andra ska tycka.",
+            "9_10": "Du föredrar att fatta beslut självständigt utan att söka råd från andra, och bekväm att fatta beslut utan att oroa dig för vad andra ska tycka."
+          }
+        }
+      ]
+    }
+  ]
+}

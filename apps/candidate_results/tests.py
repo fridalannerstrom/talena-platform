@@ -203,7 +203,7 @@ class CandidateResultInterpretationTests(TestCase):
                 {
                     "activity": "Personality",
                     "competencies": [
-                        {"competency": "Structure", "sten": 7},
+                        {"competency": "Teamwork", "sten": 7},
                     ],
                 },
                 {
@@ -215,60 +215,15 @@ class CandidateResultInterpretationTests(TestCase):
             ],
         )
 
-    def test_prompt_uses_customer_evidence_and_candidate_rules(self):
-        from apps.candidate_results.interpretation import (
-            build_candidate_result_prompt,
-        )
-
-        prompt, metadata = build_candidate_result_prompt(
-            self.invitation,
-            language_code="en",
-        )
-
-        self.assertIn("The customer-facing summary.", prompt)
-        self.assertIn("The customer personality meaning.", prompt)
-        self.assertIn("Do not expose raw scores", prompt)
-        self.assertIn("Do not frame lower skills results as deficits", prompt)
-        self.assertIn('candidate "needs to develop"', prompt)
-        self.assertEqual(
-            set(metadata),
-            {"introduction", "personality", "skills", "motivation"},
-        )
-        self.assertEqual(metadata["personality"]["language"], "en")
-
-    @patch("apps.candidate_results.interpretation.get_openai_client")
-    def test_generation_normalises_exact_candidate_sections(self, get_client):
-        from types import SimpleNamespace
-
+    @patch(
+        "apps.core.ai.openai_client.get_openai_client",
+        side_effect=AssertionError("Candidate results must not call OpenAI."),
+    )
+    def test_generation_uses_static_workbook_copy_without_scores_or_ai(
+        self, get_client
+    ):
         from apps.candidate_results.interpretation import (
             generate_candidate_result_content,
-        )
-
-        get_client.return_value.chat.completions.create.return_value = (
-            SimpleNamespace(
-                choices=[
-                    SimpleNamespace(
-                        message=SimpleNamespace(
-                            content=json.dumps({
-                                "introduction": {
-                                    "title": "Välkommen",
-                                    "body": "Ett reflektionsunderlag.",
-                                },
-                                "personality": {
-                                    "title": "Personlighet",
-                                    "body": "Möjliga preferenser.",
-                                    "points": ["Punkt 1"],
-                                },
-                                "skills": "Beskrivande färdighetstext.",
-                                "motivation": {
-                                    "title": "Motivation",
-                                    "body": "Möjliga drivkrafter.",
-                                },
-                            })
-                        )
-                    )
-                ]
-            )
         )
 
         content, metadata, fingerprint = generate_candidate_result_content(
@@ -276,16 +231,16 @@ class CandidateResultInterpretationTests(TestCase):
             language_code="sv",
         )
 
-        self.assertEqual(
-            set(content),
-            {"introduction", "personality", "skills", "motivation"},
+        serialised_content = json.dumps(content, ensure_ascii=False)
+        self.assertIn(
+            "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
+            serialised_content,
         )
-        self.assertEqual(
-            content["skills"]["body"],
-            "Beskrivande färdighetstext.",
-        )
+        self.assertEqual(metadata["content_version"], "candidate-static-v1")
         self.assertTrue(fingerprint)
-        self.assertEqual(metadata["introduction"]["language"], "sv")
+        self.assertNotIn("sten", serialised_content.casefold())
+        self.assertNotIn("percentile", serialised_content.casefold())
+        get_client.assert_not_called()
 
 
     @patch("apps.candidate_results.interpretation.generate_candidate_result_content")
@@ -340,11 +295,37 @@ class CandidateResultInterpretationTests(TestCase):
         self.assertEqual(first.pk, second.pk)
         generate.assert_called_once()
 
+    def test_legacy_ai_snapshot_is_archived_when_replaced(self):
+        from apps.candidate_results.interpretation import (
+            CANDIDATE_RESULT_CONTENT_VERSION,
+            ensure_candidate_result_snapshot_current,
+        )
 
-    @patch("apps.candidate_results.interpretation.get_openai_client")
-    def test_generation_omits_unavailable_result_areas(self, get_client):
-        from types import SimpleNamespace
+        old_content = {
+            "introduction": {"body": "Old generated text."},
+        }
+        old_prompts = {"personality": {"version_id": 3}}
+        snapshot = CandidateResultSnapshot.objects.create(
+            invitation=self.invitation,
+            candidate=self.candidate,
+            process=self.process,
+            locale="sv",
+            content=old_content,
+            content_version="ai-v1",
+            prompt_versions=old_prompts,
+        )
 
+        current, upgraded = ensure_candidate_result_snapshot_current(snapshot)
+
+        self.assertTrue(upgraded)
+        self.assertEqual(current.content_version, CANDIDATE_RESULT_CONTENT_VERSION)
+        self.assertEqual(current.legacy_content, old_content)
+        self.assertEqual(current.legacy_prompt_versions, old_prompts)
+        self.assertEqual(current.prompt_versions, {})
+        self.assertNotEqual(current.content, old_content)
+
+
+    def test_generation_omits_unavailable_result_areas(self):
         from apps.candidate_results.interpretation import (
             generate_candidate_result_content,
         )
@@ -357,48 +338,14 @@ class CandidateResultInterpretationTests(TestCase):
                 ],
             },
         ]
-        get_client.return_value.chat.completions.create.return_value = (
-            SimpleNamespace(
-                choices=[
-                    SimpleNamespace(
-                        message=SimpleNamespace(
-                            content=json.dumps({
-                                "introduction": {
-                                    "title": "Välkommen",
-                                    "body": "Ett reflektionsunderlag.",
-                                },
-                                "personality": {
-                                    "title": "Personlighet",
-                                    "body": "Ska inte visas.",
-                                    "points": ["Inte heller denna punkt."],
-                                },
-                                "skills": {
-                                    "title": "Färdigheter",
-                                    "body": "Numerisk information kan vara en del av ditt sätt att ta dig an uppgifter.",
-                                    "points": [],
-                                },
-                                "motivation": {
-                                    "title": "Motivation",
-                                    "body": "Ska inte visas.",
-                                    "points": [],
-                                },
-                            })
-                        )
-                    )
-                ]
-            )
-        )
-
         content, _, _ = generate_candidate_result_content(
             self.invitation,
             language_code="sv",
         )
 
-        self.assertTrue(content["skills"]["body"])
-        self.assertEqual(content["personality"]["body"], "")
-        self.assertEqual(content["personality"]["points"], [])
-        self.assertEqual(content["motivation"]["body"], "")
-        self.assertEqual(content["motivation"]["points"], [])
+        self.assertIn("skills", content)
+        self.assertNotIn("personality", content)
+        self.assertNotIn("motivation", content)
 
 
 class CandidateResultAccessViewTests(TestCase):

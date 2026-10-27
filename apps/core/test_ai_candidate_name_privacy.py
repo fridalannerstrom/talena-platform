@@ -170,27 +170,18 @@ class CandidateNamePrivacyTests(TestCase):
         self.assert_no_candidate_identifiers(kwargs["messages"])
         self.assertIn("CANDIDATE_A", str(kwargs["messages"]))
 
-    @patch("apps.candidate_results.interpretation.normalise_candidate_result_content", return_value={})
-    @patch("apps.candidate_results.interpretation._parse_json_content", return_value={})
-    @patch("apps.candidate_results.interpretation.build_candidate_result_prompt")
-    @patch("apps.candidate_results.interpretation.build_candidate_result_source")
-    @patch("apps.candidate_results.interpretation.get_openai_client")
-    def test_candidate_result_outbound_messages_omit_name(
-        self, get_client, build_source, build_prompt, _parse, _normalise
-    ):
+    def test_static_candidate_result_content_omits_candidate_identifiers(self):
         from apps.candidate_results.interpretation import generate_candidate_result_content
 
-        build_source.return_value = {"available_result_areas": {}}
-        build_prompt.return_value = (
-            "Name: Mira Nordberg. Email: mira.nordberg@example.invalid.",
-            {},
+        invitation = SimpleNamespace(
+            candidate=self.candidate,
+            process=self.process,
+            sova_activities=[],
         )
-        get_client.return_value.chat.completions.create.return_value = SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content="{}"))]
+        content, _, _ = generate_candidate_result_content(
+            invitation, language_code="en"
         )
-        generate_candidate_result_content(self.owner, language_code="en")
-        kwargs = get_client.return_value.chat.completions.create.call_args.kwargs
-        self.assert_no_candidate_identifiers(kwargs["messages"])
+        self.assert_no_candidate_identifiers(content)
 
     def test_no_direct_name_interpolation_remains_in_ai_prompt_sources(self):
         """Prevent accidental reintroduction of the old inline name template."""

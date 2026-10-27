@@ -329,6 +329,25 @@
 
     li + li { margin-top: 8px; }
 
+    .result-group + .result-group { margin-top: 22px; }
+    .result-group h3 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: .94rem;
+      line-height: 1.35;
+    }
+    .result-group-item + .result-group-item { margin-top: 12px; }
+    .result-group-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-size: .84rem;
+    }
+    .result-group-item p {
+      font-size: .9rem;
+      line-height: 1.65;
+    }
+
     .empty {
       grid-column: 1 / -1;
       padding: 28px;
@@ -686,8 +705,11 @@
       <h2 class="intro-heading">
         {% if introduction.title %}{{ introduction.title }}{% else %}{{ copy.discussion_title }}{% endif %}
       </h2>
-      {% if introduction.body %}<p>{{ introduction.body }}</p>{% endif %}
-      <p>{{ copy.discussion_body }}</p>
+      {% if introduction.body %}
+        <p>{{ introduction.body }}</p>
+      {% else %}
+        <p>{{ copy.discussion_body }}</p>
+      {% endif %}
     </section>
 
     <div class="section-grid">
@@ -700,6 +722,17 @@
               {% for point in section.points %}<li>{{ point }}</li>{% endfor %}
             </ul>
           {% endif %}
+          {% for group in section.groups %}
+            <div class="result-group">
+              {% if group.title %}<h3>{{ group.title }}</h3>{% endif %}
+              {% for item in group.items %}
+                <div class="result-group-item">
+                  {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
+                  {% if item.text %}<p>{{ item.text }}</p>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
 
           {% if not preview %}
             <div class="feedback-block">

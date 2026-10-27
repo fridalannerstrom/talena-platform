@@ -11,11 +11,11 @@ from django.utils import timezone
 
 class CandidateResultSnapshot(models.Model):
     """
-    Immutable candidate-facing result content for one project invitation.
+    Immutable current candidate-facing result content for one invitation.
 
-    The snapshot deliberately stores presentation-ready content instead of
-    reading the current AI fields at request time. Later prompt or AI changes
-    must not rewrite a result a candidate has already received.
+    The snapshot stores presentation-ready content instead of reading current
+    assessment or AI fields at request time. Older AI snapshots are archived
+    in ``legacy_content`` when the candidate report is upgraded to static text.
     """
 
     invitation = models.OneToOneField(
@@ -39,9 +39,24 @@ class CandidateResultSnapshot(models.Model):
         default=dict,
         help_text="Frozen candidate-facing content.",
     )
+    content_version = models.CharField(
+        max_length=32,
+        default="candidate-static-v1",
+        help_text="Version of the approved candidate-facing content library.",
+    )
+    legacy_content = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Archived candidate-facing content from a replaced legacy snapshot.",
+    )
     prompt_versions = models.JSONField(
         default=dict,
-        help_text="Prompt/version metadata used to create the content.",
+        help_text="Legacy prompt metadata; empty for static candidate reports.",
+    )
+    legacy_prompt_versions = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Archived prompt metadata associated with legacy candidate content.",
     )
     source_fingerprint = models.CharField(
         max_length=64,

@@ -81,5 +81,16 @@
         {% endfor %}
       </ul>
     {% endif %}
+    {% for group in candidate_reflection.groups %}
+      <div class="candidate-reflection__group">
+        {% if group.title %}<div class="candidate-reflection__source-title">{{ group.title }}</div>{% endif %}
+        {% for item in group.items %}
+          <div class="candidate-reflection__source-item">
+            {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
+            {% if item.text %}<p class="candidate-reflection__source-body">{{ item.text }}</p>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
   </div>
 </section>
