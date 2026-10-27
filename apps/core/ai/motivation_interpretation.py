@@ -364,6 +364,13 @@ def build_motivation_top_three_evidence(
 ) -> str:
     """Render the three highest STIVE factors with Talena's approved text."""
     language = normalize_ai_language(language_code)
+    process = getattr(owner, "process", None)
+    if (
+        not getattr(process, "is_historical", False)
+        and not getattr(owner, "sova_activities", None)
+    ):
+        return ""
+
     results = sorted(
         _owner_motivation_results(owner),
         key=lambda item: (-item["score"], item["key"]),
