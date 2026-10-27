@@ -928,9 +928,9 @@ def generate_candidate_purpose_fit_events(
         },
     ]
 
-    # TEMP LOCAL DEBUG ONLY: remove after inspecting the generated prompt.
-    # Print only evidence blocks from the exact messages sent to OpenAI.
-    # Candidate identity and process context are deliberately omitted.
+    # TEMPORARY AI OVERVIEW PROMPT DIAGNOSTIC. Remove after inspection.
+    # Requires explicit opt-in and exact candidate/process ID matches.
+    # Prints evidence sections only; never candidate name or process context.
     debug_candidate_id = settings.AI_OVERVIEW_PROMPT_DEBUG_CANDIDATE_ID
     debug_process_id = settings.AI_OVERVIEW_PROMPT_DEBUG_PROCESS_ID
     should_log_prompt = (
