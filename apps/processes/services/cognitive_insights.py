@@ -324,7 +324,7 @@ def build_owner_cognitive_summary_supplement(
     summary_text = str(summary or "").casefold()
     markers = {
         "logical": (
-            ("logisk", "mönster", "slutsats")
+            ("logisk", "logik", "mönster", "slutsats")
             if language_code == "sv"
             else ("logical", "pattern", "conclusion")
         ),
