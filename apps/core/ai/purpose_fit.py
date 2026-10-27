@@ -9,6 +9,7 @@ from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
 )
+from django.conf import settings
 from django.utils import timezone
 
 from .openai_client import get_openai_client, get_chat_model
@@ -906,27 +907,76 @@ def generate_candidate_purpose_fit_events(
 
     prompt = redact_candidate_name(prompt, invitation.candidate)
 
+    system_message = (
+        "You are an AI component inside Talena. "
+        "Follow the administrator-provided AI guidance for "
+        "all non-technical assessment analysis, synthesis, "
+        "interpretation and communication decisions. "
+        "Follow Talena's technical output contract exactly, "
+        "including required JSON field names, event types "
+        "and response format. "
+        f"{system_language_instruction}"
+    )
+    messages = [
+        {
+            "role": "system",
+            "content": system_message,
+        },
+        {
+            "role": "user",
+            "content": prompt,
+        },
+    ]
+
+    # TEMP LOCAL DEBUG ONLY: remove after inspecting the generated prompt.
+    # Print only evidence blocks from the exact messages sent to OpenAI.
+    # Candidate identity and process context are deliberately omitted.
+    if settings.DEBUG and settings.AI_OVERVIEW_PROMPT_DEBUG:
+        user_message = messages[1]["content"]
+
+        def print_prompt_section(label, start_marker, end_marker):
+            section_start = user_message.find(start_marker)
+            print(f"\n[AI OVERVIEW DEBUG] {label}")
+            if section_start < 0:
+                print("Section not found.")
+                return
+
+            section_end = user_message.find(
+                end_marker,
+                section_start + len(start_marker),
+            )
+            if section_end < 0:
+                print("Section end marker not found; omitted from debug output.")
+            else:
+                print(user_message[section_start:section_end])
+
+        print_prompt_section(
+            "MOTIVATION EVIDENCE",
+            "TOP THREE MOTIVATION INTERPRETATION TEXTS",
+            "\n\nCOGNITIVE INTERPRETATION TEXTS",
+        )
+        print_prompt_section(
+            "COGNITIVE EVIDENCE",
+            "COGNITIVE INTERPRETATION TEXTS",
+            "\n\nINTERVIEW NOTES",
+        )
+        print_prompt_section(
+            "PERSONALITY EVIDENCE",
+            "APPROVED PERSONALITY AND INDICATOR INTERPRETATION TEXTS",
+            "\n\nADMINISTRATOR AI GUIDANCE",
+        )
+        print_prompt_section(
+            "ADMINISTRATOR GUIDANCE",
+            "OVERALL INTERPRETATION GUIDANCE",
+            "\n\nWHAT SUPPORTS THE PURPOSE GUIDANCE",
+        )
+
+        print("\n[AI OVERVIEW DEBUG] SYSTEM GUIDANCE")
+        print(messages[0]["content"])
+
     completion = client.chat.completions.create(
         model=get_chat_model(),
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an AI component inside Talena. "
-                    "Follow the administrator-provided AI guidance for "
-                    "all non-technical assessment analysis, synthesis, "
-                    "interpretation and communication decisions. "
-                    "Follow Talena's technical output contract exactly, "
-                    "including required JSON field names, event types "
-                    "and response format. "
-                    f"{system_language_instruction}"
-                ),
-            },
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
+        messages=messages,
         temperature=0.2,
         stream=False,
     )

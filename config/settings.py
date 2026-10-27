@@ -30,6 +30,7 @@ def env_bool(name: str, default: str = "False") -> bool:
 ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
 DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "True")).lower() == "true"
+AI_OVERVIEW_PROMPT_DEBUG = env_bool("AI_OVERVIEW_PROMPT_DEBUG", "False")
 
 SOVA_SYNC_ENABLED = env_bool("SOVA_SYNC_ENABLED", "False")
 EMAIL_SENDING_ENABLED = env_bool("EMAIL_SENDING_ENABLED", "False")
