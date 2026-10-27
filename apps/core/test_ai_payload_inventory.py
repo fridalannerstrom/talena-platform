@@ -89,7 +89,7 @@ class OpenAICallsiteManifestTests(SimpleTestCase):
             self.assertGreater(visitor.factory_count, 0, path)
             self.assertTrue(item["data"], path + " is missing data categories")
             self.assertTrue(item["status"], path + " is missing reachability status")
-        self.assertEqual(sum(len(v.calls) for v in observed.values()), 22)
+        self.assertEqual(sum(len(v.calls) for v in observed.values()), 23)
         self.assertEqual(len(observed), 16)
 
     def test_manifest_distinguishes_inactive_chat_and_shadowed_code(self):
