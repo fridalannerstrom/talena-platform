@@ -111,7 +111,11 @@
       editSaveFailed: "Det gick inte att spara ändringen. Försök igen.",
       editRestoreFailed: "Det gick inte att återställa AI-texten. Försök igen.",
       editVersionConflict: "Texten har ändrats i en annan session. Stäng och öppna redigeraren igen.",
-      confirmRegenerationWithEdits: "Det här innehållsblocket har manuella ändringar. Om du genererar igen uppdateras AI-texten, men dina sparade ändringar bevaras och fortsätter visas i rapporten. Du kan välja Återställ AI-text i redigeraren för att visa den nya AI-texten. Vill du fortsätta?",
+      confirmRegenerationTitle: "Uppdatera AI-texten?",
+      confirmRegenerationBody: "AI-texten genereras på nytt. Dina manuella ändringar sparas och fortsätter visas i chefsrapporten.",
+      confirmRegenerationNote: "Du kan visa den nya AI-texten senare genom att välja Återställ AI-text i redigeraren.",
+      confirmRegenerationCancel: "Avbryt",
+      confirmRegenerationContinue: "Fortsätt",
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
@@ -221,7 +225,11 @@
       editSaveFailed: "The change could not be saved. Please try again.",
       editRestoreFailed: "The AI text could not be restored. Please try again.",
       editVersionConflict: "This text changed in another session. Close and reopen the editor.",
-      confirmRegenerationWithEdits: "This block has manual edits. Regeneration updates the AI text, while your saved edits stay visible in the report. Choose Restore AI text in the editor to show the new AI text. Continue?",
+      confirmRegenerationTitle: "Update the AI text?",
+      confirmRegenerationBody: "The AI text will be generated again. Your manual edits will remain saved and visible in the manager report.",
+      confirmRegenerationNote: "You can view the new AI text later by choosing Restore AI text in the editor.",
+      confirmRegenerationCancel: "Cancel",
+      confirmRegenerationContinue: "Continue",
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
@@ -1080,6 +1088,96 @@
       return data;
     };
 
+    const ensureRegenerationConfirmation = () => {
+      if (state.regenerationConfirmation) return state.regenerationConfirmation;
+
+      const dialog = document.createElement("dialog");
+      dialog.className = "after-interview-manager-report__confirm-dialog";
+      dialog.setAttribute("aria-labelledby", "manager-report-regeneration-title");
+      dialog.setAttribute("aria-describedby", "manager-report-regeneration-description");
+
+      const header = document.createElement("div");
+      header.className = "after-interview-manager-report__confirm-header";
+      const iconWrap = document.createElement("div");
+      iconWrap.className = "after-interview-manager-report__confirm-icon";
+      const icon = document.createElement("i");
+      icon.setAttribute("data-feather", "refresh-cw");
+      icon.setAttribute("aria-hidden", "true");
+      iconWrap.appendChild(icon);
+
+      const heading = document.createElement("h2");
+      heading.id = "manager-report-regeneration-title";
+      heading.className = "after-interview-manager-report__confirm-title";
+      heading.textContent = copy().confirmRegenerationTitle;
+      header.append(iconWrap, heading);
+
+      const description = document.createElement("p");
+      description.id = "manager-report-regeneration-description";
+      description.className = "after-interview-manager-report__confirm-description";
+      description.textContent = copy().confirmRegenerationBody;
+
+      const note = document.createElement("p");
+      note.className = "after-interview-manager-report__confirm-note";
+      note.textContent = copy().confirmRegenerationNote;
+
+      const actions = document.createElement("div");
+      actions.className = "after-interview-manager-report__confirm-actions";
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "btn btn-light";
+      cancelButton.textContent = copy().confirmRegenerationCancel;
+      cancelButton.setAttribute("autofocus", "");
+      const continueButton = document.createElement("button");
+      continueButton.type = "button";
+      continueButton.className = "btn btn-primary";
+      continueButton.textContent = copy().confirmRegenerationContinue;
+      actions.append(cancelButton, continueButton);
+      dialog.append(header, description, note, actions);
+      panel.appendChild(dialog);
+
+      let activeTrigger = null;
+      let opener = null;
+      const close = () => {
+        if (dialog.open) dialog.close();
+      };
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        close();
+      });
+      dialog.addEventListener("close", () => {
+        activeTrigger = null;
+        if (opener?.isConnected) opener.focus();
+        opener = null;
+      });
+      cancelButton.addEventListener("click", close);
+      continueButton.addEventListener("click", () => {
+        const trigger = activeTrigger;
+        activeTrigger = null;
+        close();
+        if (!trigger?.isConnected || trigger.disabled) return;
+        state.confirmedRegenerationTrigger = trigger;
+        trigger.click();
+      });
+
+      state.regenerationConfirmation = {
+        element: dialog,
+        open(trigger) {
+          if (dialog.open) return;
+          activeTrigger = trigger;
+          opener = trigger;
+          heading.textContent = copy().confirmRegenerationTitle;
+          description.textContent = copy().confirmRegenerationBody;
+          note.textContent = copy().confirmRegenerationNote;
+          cancelButton.textContent = copy().confirmRegenerationCancel;
+          continueButton.textContent = copy().confirmRegenerationContinue;
+          dialog.showModal();
+          cancelButton.focus();
+          if (window.feather) window.feather.replace();
+        },
+      };
+      return state.regenerationConfirmation;
+    };
+
     if (workspace) {
       workspace._talenaManagerReportEditController = {
         state,
@@ -1094,6 +1192,10 @@
             "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
           );
           if (!trigger || !currentState) return;
+          if (currentState.confirmedRegenerationTrigger === trigger) {
+            currentState.confirmedRegenerationTrigger = null;
+            return;
+          }
           if (currentState.managerReportGenerating) return;
           if (!currentState.ready) {
             event.preventDefault();
@@ -1109,11 +1211,11 @@
             trigger.hasAttribute("data-post-interview-generate")
             && currentState.edits.size > 0;
           if (
-            (hasEditedBlock || isPersonalityRegeneration || isFullRegeneration)
-            && !window.confirm(copy().confirmRegenerationWithEdits)
+            hasEditedBlock || isPersonalityRegeneration || isFullRegeneration
           ) {
             event.preventDefault();
             event.stopImmediatePropagation();
+            ensureRegenerationConfirmation().open(trigger);
           }
         }, true);
       }
@@ -1413,6 +1515,41 @@
       __PANEL__ .after-interview-manager-report__edit-dialog::backdrop {
         background: rgba(25, 24, 23, .48);
       }
+      __PANEL__ .after-interview-manager-report__confirm-dialog {
+        width: min(480px, calc(100vw - 2rem)); max-height: min(85vh, 720px);
+        margin: auto; padding: 1.5rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 20px; background: #fff; color: var(--talena-ink, #191817);
+        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
+      }
+      __PANEL__ .after-interview-manager-report__confirm-dialog::backdrop {
+        background: rgba(25, 24, 23, .48); backdrop-filter: blur(3px);
+      }
+      __PANEL__ .after-interview-manager-report__confirm-header {
+        display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-icon {
+        display: grid; place-items: center; width: 2.65rem; height: 2.65rem;
+        flex: 0 0 2.65rem; border-radius: 14px;
+        background: #fff3e5; color: #a36b35;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-icon svg {
+        width: 1.1rem; height: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-title {
+        margin: 0; font-size: 1.12rem; font-weight: 750; letter-spacing: -.02em;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-description {
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .88rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-note {
+        margin: 1rem 0 0; padding: .8rem .9rem; border: 1px solid #f0e4d3;
+        border-radius: 11px; background: #fffaf4; color: #735036;
+        font-size: .76rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-actions {
+        display: flex; justify-content: flex-end; gap: .55rem; margin-top: 1.3rem;
+      }
       __PANEL__ .after-interview-manager-report__edit-title {
         margin: 0 0 .5rem; font-size: 1.15rem; font-weight: 750;
       }
@@ -1431,6 +1568,8 @@
       }
       @media (max-width: 575px) {
         __PANEL__ .after-interview-manager-report__edit-dialog { padding: 1rem; }
+        __PANEL__ .after-interview-manager-report__confirm-dialog { padding: 1.1rem; }
+        __PANEL__ .after-interview-manager-report__confirm-actions { flex-wrap: wrap; }
         __PANEL__ .after-interview-manager-report__edit-actions { flex-wrap: wrap; }
         __PANEL__ .after-interview-manager-report__edit-actions .me-auto { margin-right: 0 !important; }
       }
