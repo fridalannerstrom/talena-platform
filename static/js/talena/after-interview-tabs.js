@@ -1465,17 +1465,26 @@
       @media print {
         body.manager-report-printing * { visibility: hidden !important; }
         body.manager-report-printing #candidate-insights-panel-after-interview,
-        body.manager-report-printing #candidate-insights-panel-after-interview * { visibility: visible !important; }
+        body.manager-report-printing #candidate-insights-panel-after-interview .after-interview-manager-report__print-root,
+        body.manager-report-printing #candidate-insights-panel-after-interview .after-interview-manager-report__print-root * {
+          visibility: visible !important;
+        }
         body.manager-report-printing #candidate-insights-panel-after-interview .candidate-insights-subnavigation { display: none !important; }
         body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
-        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] { display: block !important; position: absolute; inset: 0; width: 100%; }
-        body.manager-report-printing .after-interview-manager-report__actions { display: none !important; }
-        body.manager-report-printing .after-interview-manager-report__edit-button,
-        body.manager-report-printing .after-interview-manager-report__edit-dialog { display: none !important; }
+        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] {
+          display: block !important; position: absolute; inset: 0; width: 100%;
+        }
+        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] > *:not(.after-interview-manager-report__print-root) {
+          display: none !important;
+        }
+        body.manager-report-printing .after-interview-manager-report__print-root {
+          display: block !important; position: static !important; width: 100%; margin: 0;
+        }
         body.manager-report-printing .after-interview-manager-report__guide { display: block; }
         body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
         body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
       }
+      __PANEL__ .after-interview-manager-report__print-root { display: none; }
       __PANEL__ .after-interview-manager-report__header {
         display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
       }
@@ -1939,16 +1948,40 @@
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
     pdfButton.addEventListener("click", () => {
+      const printRoot = document.createElement("div");
+      printRoot.className = "after-interview-manager-report__print-root";
+      printRoot.hidden = true;
+      const printableReport = managerReportCard.cloneNode(true);
+      printableReport.hidden = false;
+      printableReport.querySelectorAll(
+        ".after-interview-manager-report__actions, " +
+        ".after-interview-manager-report__edit-controls, " +
+        ".after-interview-manager-report__edit-dialog, " +
+        ".after-interview-manager-report__confirm-dialog, " +
+        ".alert, [role='status'][aria-live='polite']"
+      ).forEach((element) => element.remove());
+      printRoot.appendChild(printableReport);
+      panels.get("managerReport").appendChild(printRoot);
+
       const originalTitle = document.title;
+      let printStarted = false;
+      const printMedia = window.matchMedia?.("print");
       const cleanup = () => {
+        printMedia?.removeEventListener?.("change", handlePrintChange);
+        window.removeEventListener("afterprint", cleanup);
         document.body.classList.remove("manager-report-printing");
         document.title = originalTitle;
+        printRoot.remove();
+      };
+      const handlePrintChange = (event) => {
+        if (event.matches) printStarted = true;
+        else if (printStarted) cleanup();
       };
       document.title = copy().managerReportTitle;
       document.body.classList.add("manager-report-printing");
       window.addEventListener("afterprint", cleanup, { once: true });
+      printMedia?.addEventListener?.("change", handlePrintChange);
       window.print();
-      window.setTimeout(cleanup, 1000);
     });
     managerReportActions.appendChild(pdfButton);
     managerReportHeader.append(managerReportHeading, managerReportActions);
