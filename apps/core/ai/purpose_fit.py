@@ -1008,7 +1008,7 @@ def stream_candidate_purpose_fit(
 
         return {
             "type": "summary_delta",
-            "text": "\\n\\n".join(supplements),
+            "text": "\n\n".join(supplements),
         }
 
     for response_event in stream:
