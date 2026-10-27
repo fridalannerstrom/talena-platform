@@ -7,6 +7,7 @@ from django.test import SimpleTestCase
 
 from apps.core.ai.motivation_interpretation import (
     build_motivation_top_three_evidence,
+    build_motivation_summary_supplement,
 )
 from apps.core.ai.openai_client import PrivacySafeOpenAI
 from apps.processes.services.cognitive_insights import (
@@ -82,6 +83,32 @@ class MotivationTopThreeEvidenceTests(SimpleTestCase):
         self.assertLess(evidence.index("Attachment"), evidence.index("Commercial focus"))
         self.assertLess(evidence.index("Commercial focus"), evidence.index("Risk"))
         self.assertNotIn("Stability — STIVE", evidence)
+
+
+class MotivationSummaryCoverageTests(SimpleTestCase):
+    def test_omitted_top_factor_gets_approved_text_without_stive_score(self):
+        owner = SimpleNamespace(
+            process=SimpleNamespace(is_historical=False),
+            sova_activities=[{
+                "activity": "Motivation Questionnaire",
+                "competencies": [
+                    {"competency": "Authority", "stive": 4.7},
+                    {"competency": "Variation", "stive": 4.9},
+                    {"competency": "Recognition", "stive": 4.8},
+                ],
+            }],
+        )
+
+        supplement = build_motivation_summary_supplement(
+            owner,
+            "Motivation för variation och erkännande kan öka engagemanget.",
+            language_code="sv",
+        )
+
+        self.assertIn("Auktoritet", supplement)
+        self.assertIn(FACTOR_CONTENT["authority"]["top_text"], supplement)
+        self.assertNotIn("STIVE", supplement)
+        self.assertNotIn("4.7", supplement)
 
 
 class CognitiveEvidenceTests(SimpleTestCase):
@@ -210,6 +237,14 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
             process=SimpleNamespace(is_historical=False, purpose="development"),
             sova_activities=[
                 {
+                    "activity": "Motivation Questionnaire",
+                    "competencies": [
+                        {"competency": "Authority", "stive": 4.7},
+                        {"competency": "Variation", "stive": 4.9},
+                        {"competency": "Recognition", "stive": 4.8},
+                    ],
+                },
+                {
                     "activity": "Sova Logical Reasoning Assessment",
                     "competencies": [{"percentile": 10}],
                 },
@@ -227,7 +262,7 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
         model_text = (
             json.dumps({
                 "type": "summary_delta",
-                "text": "Personen är samarbetsvillig och uppskattar variation.",
+                "text": "Personen uppskattar variation och erkännande.",
             })
             + "\n"
             + json.dumps({"type": "done"})
@@ -265,6 +300,7 @@ class PurposeFitCognitiveCoverageStreamTests(SimpleTestCase):
 
         summaries = [event for event in events if event["type"] == "summary_delta"]
         self.assertEqual(len(summaries), 2)
+        self.assertIn("Auktoritet", summaries[1]["text"])
         self.assertIn("Färdighetsresultaten kompletterar bilden", summaries[1]["text"])
         self.assertIn("förstå och arbeta med numerisk information", summaries[1]["text"])
         self.assertEqual(events[-1]["type"], "done")
