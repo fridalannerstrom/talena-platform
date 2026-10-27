@@ -28,6 +28,7 @@ from .prompt_templates import (
 from .motivation_interpretation import (
     get_motivation_factor_display_name,
     build_motivation_top_three_evidence,
+    build_motivation_summary_supplement,
 )
 from apps.processes.services.cognitive_insights import (
     build_owner_cognitive_ai_evidence,
@@ -975,26 +976,39 @@ def stream_candidate_purpose_fit(
 
     buffer = ""
     summary_text = ""
-    cognitive_coverage_checked = False
+    assessment_coverage_checked = False
 
-    def cognitive_supplement_event():
-        nonlocal cognitive_coverage_checked
+    def assessment_coverage_event():
+        nonlocal assessment_coverage_checked
 
-        if cognitive_coverage_checked:
+        if assessment_coverage_checked:
             return None
 
-        cognitive_coverage_checked = True
-        supplement = build_owner_cognitive_summary_supplement(
+        assessment_coverage_checked = True
+        supplements = []
+
+        motivation_supplement = build_motivation_summary_supplement(
             invitation,
             summary_text,
             language_code=language_code,
         )
-        if not supplement:
+        if motivation_supplement:
+            supplements.append(motivation_supplement)
+
+        cognitive_supplement = build_owner_cognitive_summary_supplement(
+            invitation,
+            summary_text,
+            language_code=language_code,
+        )
+        if cognitive_supplement:
+            supplements.append(cognitive_supplement)
+
+        if not supplements:
             return None
 
         return {
             "type": "summary_delta",
-            "text": supplement,
+            "text": "\\n\\n".join(supplements),
         }
 
     for response_event in stream:
@@ -1021,7 +1035,7 @@ def stream_candidate_purpose_fit(
             if parsed_event.get("type") == "summary_delta":
                 summary_text += str(parsed_event.get("text") or "")
             elif parsed_event.get("type") == "done":
-                supplement_event = cognitive_supplement_event()
+                supplement_event = assessment_coverage_event()
                 if supplement_event:
                     yield supplement_event
 
@@ -1034,14 +1048,14 @@ def stream_candidate_purpose_fit(
         if final_event.get("type") == "summary_delta":
             summary_text += str(final_event.get("text") or "")
         elif final_event.get("type") == "done":
-            supplement_event = cognitive_supplement_event()
+            supplement_event = assessment_coverage_event()
             if supplement_event:
                 yield supplement_event
 
         yield final_event
 
-    if not cognitive_coverage_checked:
-        supplement_event = cognitive_supplement_event()
+    if not assessment_coverage_checked:
+        supplement_event = assessment_coverage_event()
         if supplement_event:
             yield supplement_event
 
