@@ -442,6 +442,7 @@ def build_personality_ai_evidence_text(
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
     include_indicator_details: bool = False,
+    include_raw_scores: bool = True,
 ) -> str:
     return render_personality_ai_evidence(
         build_personality_ai_evidence(
@@ -461,6 +462,7 @@ def build_owner_personality_ai_evidence_text(
     language_code: str = "en",
     include_traits: Iterable[str] | None = None,
     include_indicator_details: bool = False,
+    include_raw_scores: bool = True,
 ) -> str:
     return render_personality_ai_evidence(
         build_owner_personality_ai_evidence(
@@ -470,4 +472,5 @@ def build_owner_personality_ai_evidence_text(
         ),
         language_code=language_code,
         include_indicator_details=include_indicator_details,
+        include_raw_scores=include_raw_scores,
     )
