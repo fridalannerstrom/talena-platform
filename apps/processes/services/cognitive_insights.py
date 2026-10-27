@@ -217,6 +217,7 @@ def build_cognitive_ai_evidence(
     percentiles: dict[str, Any] | None,
     *,
     language_code: str = "en",
+    include_raw_scores: bool = True,
 ) -> str:
     """Use Candidate Insights' approved interpretation for AI Overview."""
     values = percentiles or {}
@@ -229,29 +230,41 @@ def build_cognitive_ai_evidence(
     completed = [result for result in results if result["completed"]]
     if not completed:
         if language_code == "sv":
-            return "Inga färdighetstestresultat finns tillgängliga."
-        return "No cognitive assessment results are available."
+            return "Inga färdighetstolkningar finns tillgängliga."
+        return "No cognitive interpretation texts are available."
 
-    if language_code == "sv":
-        lines = [
-            "Percentilerna visar resultat i förhållande till en referensgrupp.",
-            "Tolkningstexterna är Talenas godkända resultattolkningar.",
-            "Använd dem som kompletterande information om att bearbeta ny information. Dra inte slutsatser om arbetsprestation, kommunikationsförmåga eller lämplighet för en roll.",
-        ]
-        percentile_label = "percentil"
+    if include_raw_scores:
+        if language_code == "sv":
+            lines = [
+                "Percentilerna visar resultat i förhållande till en referensgrupp.",
+                "Tolkningstexterna är Talenas godkända resultattolkningar.",
+                "Använd dem som kompletterande information om att bearbeta ny information. Dra inte slutsatser om arbetsprestation, kommunikationsförmåga eller lämplighet för en roll.",
+            ]
+            percentile_label = "percentil"
+        else:
+            lines = [
+                "Percentiles show results relative to a reference group.",
+                "The interpretation text is Talena's approved result interpretation.",
+                "Use it as complementary information about processing new information. Do not infer work performance, communication ability or role suitability.",
+            ]
+            percentile_label = "percentile"
+    elif language_code == "sv":
+        lines = ["Godkända färdighetstolkningar från Talena."]
+        percentile_label = ""
     else:
-        lines = [
-            "Percentiles show results relative to a reference group.",
-            "The interpretation text is Talena's approved result interpretation.",
-            "Use it as complementary information about processing new information. Do not infer work performance, communication ability or role suitability.",
-        ]
-        percentile_label = "percentile"
+        lines = ["Approved cognitive interpretation texts from Talena."]
+        percentile_label = ""
 
     for result in completed:
-        lines.append(
-            f"- {result['title']}: {percentile_label} "
-            f"{result['percentile']}. {result['interpretation']}"
-        )
+        if include_raw_scores:
+            lines.append(
+                f"- {result['title']}: {percentile_label} "
+                f"{result['percentile']}. {result['interpretation']}"
+            )
+        else:
+            lines.append(
+                f"- {result['title']}: {result['interpretation']}"
+            )
     return "\n".join(lines)
 
 
@@ -296,11 +309,13 @@ def build_owner_cognitive_ai_evidence(
     owner,
     *,
     language_code: str = "en",
+    include_raw_scores: bool = True,
 ) -> str:
     """Build cognitive evidence for active and historical candidates."""
     return build_cognitive_ai_evidence(
         _owner_cognitive_percentiles(owner),
         language_code=language_code,
+        include_raw_scores=include_raw_scores,
     )
 
 
