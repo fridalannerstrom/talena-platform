@@ -1001,10 +1001,12 @@ def generate_candidate_purpose_fit_events(
             {
                 "role": "user",
                 "content": (
-                    "The combined overall interpretation is below the "
-                    "required 90-word minimum. Expand only the overall "
-                    "interpretation to 90–140 words, using the assessment "
-                    "evidence and administrator guidance already provided. "
+                    "The combined overall interpretation is below "
+                    "the required length. Expand only the overall "
+                    "interpretation to 90–140 words unless the administrator "
+                    "guidance explicitly requests a different length; in that "
+                    "case, follow its length. Use the assessment evidence "
+                    "and guidance already provided. "
                     "Do not invent facts or repeat the later point lists. "
                     "Return exactly one valid NDJSON summary_delta object "
                     "and no other output."
