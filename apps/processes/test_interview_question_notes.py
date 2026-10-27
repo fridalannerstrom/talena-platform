@@ -4,8 +4,18 @@ from django.apps import apps
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.accounts.models import Company, OrgUnit, User
-from apps.processes.interview_question_models import InterviewQuestionNote
+from apps.accounts.models import (
+    Company,
+    CompanyMember,
+    OrgUnit,
+    User,
+    UserOrgUnitAccess,
+)
+from apps.processes.interview_question_models import (
+    InterviewQuestionNote,
+    ManagerReportTextEdit,
+    ManagerReportTextEditEvent,
+)
 from apps.processes.interview_note_privacy import contains_interview_note_personal_data
 from apps.processes.interview_question_notes import (
     _question_texts_from_result,
@@ -178,6 +188,9 @@ class InterviewQuestionNoteEndpointTests(TestCase):
             },
             ai_post_interview_decision_support={
                 "overall_synthesis": "Existing synthesis",
+                "content_blocks": {
+                    "wellbeing_tips": "Existing manager advice.",
+                },
             },
             ai_post_interview_decision_support_status="completed",
         )
@@ -199,6 +212,20 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         )
         self.regenerate_url = reverse(
             "processes:process_candidate_post_interview_decision_support_regenerate",
+            kwargs={
+                "process_id": self.process.id,
+                "candidate_id": self.candidate.id,
+            },
+        )
+        self.manager_report_edits_url = reverse(
+            "processes:process_candidate_manager_report_text_edits",
+            kwargs={
+                "process_id": self.process.id,
+                "candidate_id": self.candidate.id,
+            },
+        )
+        self.manager_report_edit_save_url = reverse(
+            "processes:process_candidate_manager_report_text_edit_update",
             kwargs={
                 "process_id": self.process.id,
                 "candidate_id": self.candidate.id,
@@ -294,6 +321,205 @@ class InterviewQuestionNoteEndpointTests(TestCase):
             response.json()["stream_url"].endswith("?force=1")
         )
 
+    def test_manager_report_text_edit_is_saved_per_block_language_and_version(self):
+        first_text = "Clarify the next step with the candidate."
+        response = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "action": "save",
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 0,
+                "text": first_text,
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["edit"]["version"], 1)
+        edit = ManagerReportTextEdit.objects.get()
+        self.assertEqual(edit.process, self.process)
+        self.assertEqual(edit.candidate, self.candidate)
+        self.assertEqual(edit.block_key, "wellbeing_tips")
+        self.assertEqual(edit.language_code, "en")
+        self.assertEqual(edit.text, first_text)
+        self.assertEqual(edit.updated_by, self.user)
+        self.invitation.refresh_from_db()
+        self.assertEqual(
+            self.invitation.ai_post_interview_decision_support["content_blocks"]["wellbeing_tips"],
+            "Existing manager advice.",
+        )
+
+        audit_event = ManagerReportTextEditEvent.objects.get()
+        self.assertEqual(audit_event.actor, self.user)
+        self.assertEqual(audit_event.version, 1)
+        self.assertEqual(audit_event.action, ManagerReportTextEditEvent.Action.SAVED)
+        self.assertFalse(hasattr(audit_event, "text"))
+        self.assertNotIn(first_text, str(audit_event.__dict__))
+
+        listed = self.client.get(self.manager_report_edits_url)
+        self.assertEqual(listed.status_code, 200)
+        self.assertEqual(listed.json()["language"], "en")
+        self.assertEqual(listed.json()["edits"], [response.json()["edit"]])
+
+        updated_text = "Use a specific follow-up question."
+        update = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "action": "save",
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 1,
+                "text": updated_text,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(update.status_code, 200)
+        edit.refresh_from_db()
+        self.assertEqual(edit.version, 2)
+        self.assertEqual(edit.text, updated_text)
+        self.assertEqual(ManagerReportTextEditEvent.objects.count(), 2)
+
+    def test_manager_report_text_edits_are_separate_by_language(self):
+        english = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 0,
+                "text": "English adjustment.",
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(english.status_code, 200)
+
+        swedish = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "block_key": "wellbeing_tips",
+                "language": "sv",
+                "expected_version": 0,
+                "text": "Svensk justering.",
+            }),
+            content_type="application/json",
+            HTTP_ACCEPT_LANGUAGE="sv",
+        )
+        self.assertEqual(swedish.status_code, 200)
+        self.assertEqual(
+            self.client.get(self.manager_report_edits_url).json()["edits"][0]["text"],
+            "English adjustment.",
+        )
+        self.assertEqual(
+            self.client.get(
+                self.manager_report_edits_url,
+                HTTP_ACCEPT_LANGUAGE="sv",
+            ).json()["edits"][0]["text"],
+            "Svensk justering.",
+        )
+
+    def test_manager_report_text_edit_rejects_stale_version_and_non_narrative_blocks(self):
+        save = {
+            "action": "save",
+            "block_key": "wellbeing_tips",
+            "language": "en",
+            "expected_version": 0,
+            "text": "Saved text.",
+        }
+        self.assertEqual(
+            self.client.post(
+                self.manager_report_edit_save_url,
+                data=json.dumps(save),
+                content_type="application/json",
+            ).status_code,
+            200,
+        )
+
+        stale = dict(save, text="Stale text.")
+        conflict = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps(stale),
+            content_type="application/json",
+        )
+        self.assertEqual(conflict.status_code, 409)
+        self.assertEqual(ManagerReportTextEdit.objects.get().text, "Saved text.")
+
+        invalid = dict(save, block_key="numerical_score")
+        rejected = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps(invalid),
+            content_type="application/json",
+        )
+        self.assertEqual(rejected.status_code, 400)
+
+    def test_manager_report_text_can_be_restored_to_latest_ai_text(self):
+        save = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 0,
+                "text": "Manual adjustment.",
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(save.status_code, 200)
+
+        restore = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "action": "restore_ai",
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 1,
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(restore.status_code, 200)
+        self.assertFalse(ManagerReportTextEdit.objects.exists())
+        self.assertEqual(ManagerReportTextEditEvent.objects.count(), 2)
+        self.assertEqual(
+            ManagerReportTextEditEvent.objects.order_by("created_at", "pk").last().action,
+            ManagerReportTextEditEvent.Action.RESTORED_AI,
+        )
+
+    def test_manager_report_text_edit_respects_tenant_and_editor_permissions(self):
+        other_company_user = User.objects.create_user(
+            username="other-company-member",
+            password="test-password",
+        )
+        self.client.force_login(other_company_user)
+        self.assertEqual(self.client.get(self.manager_report_edits_url).status_code, 403)
+
+        viewer = User.objects.create_user(
+            username="question-notes-viewer",
+            password="test-password",
+        )
+        CompanyMember.objects.create(
+            company=self.company,
+            user=viewer,
+            primary_org_unit=self.unit,
+            role=CompanyMember.ROLE_VIEWER,
+        )
+        UserOrgUnitAccess.objects.create(
+            user=viewer,
+            org_unit=self.unit,
+            permission=UserOrgUnitAccess.PERM_VIEWER,
+        )
+        self.client.force_login(viewer)
+        self.assertEqual(self.client.get(self.manager_report_edits_url).status_code, 200)
+        denied = self.client.post(
+            self.manager_report_edit_save_url,
+            data=json.dumps({
+                "block_key": "wellbeing_tips",
+                "language": "en",
+                "expected_version": 0,
+                "text": "Viewer should not save this.",
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(denied.status_code, 403)
+        self.assertFalse(ManagerReportTextEdit.objects.exists())
+
     def test_existing_note_can_be_edited_or_removed_after_question_regeneration(self):
         self.post_note(note="Original answer")
 
@@ -380,3 +606,4 @@ class InterviewQuestionNoteEndpointTests(TestCase):
         self.assertEqual(removed.status_code, 200)
         self.assertIs(removed.json()["possible_personal_data"], False)
         self.assertFalse(InterviewQuestionNote.objects.exists())
+

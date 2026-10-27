@@ -4,6 +4,7 @@
   const PANEL_SELECTOR = "#candidate-insights-panel-after-interview";
   const STYLE_ID = "talena-after-interview-tabs-v1";
   const URL_PARAM = "afterTab";
+  let pdfLibrariesPromise = null;
 
   const COPY = {
     sv: {
@@ -24,6 +25,8 @@
       managerReportTitle: "Chefsrapport",
       managerReportIntro: "Chefsrapporten är ett stöd för rekryteraren och ansvarig chef. Här samlas kandidatens testresultat och sådant som kan vara värdefullt att följa upp i samtal.",
       savePdf: "Spara som PDF",
+      creatingPdf: "Skapar PDF…",
+      pdfGenerationFailed: "PDF:en kunde inte skapas. Försök igen.",
       managerSkillsTitle: "Färdighet",
       managerMotivationTitle: "Motivation",
       managerMotivationPracticalTitle: "Led i praktiken",
@@ -34,7 +37,7 @@
       regenerateSection: "Generera igen",
       generateManagerReport: "Generera chefsrapport",
       regenerateManagerReport: "Generera chefsrapport igen",
-      generatingManagerReport: "Genererar chefsrapport...",
+      generatingManagerReport: "Skapar chefsrapport...",
       sectionGenerationFailed: "Det gick inte att generera innehållet. Försök igen.",
       managerPersonalityTitle: "Personlighet",
       managerPersonalityThemes: [
@@ -96,6 +99,26 @@
         },
       ],
       generated: "AI-genererat",
+      editText: "Redigera text",
+      editDialogTitle: "Redigera text i chefsrapporten",
+      editHelp: "Textändringen gäller bara rapporten och ändrar inte testresultat eller testvärden.",
+      saveEdit: "Spara",
+      cancelEdit: "Avbryt",
+      restoreAiText: "Återställ AI-text",
+      confirmRestoreAiText: "Ta bort den manuella ändringen och visa den senaste AI-texten igen?",
+      manuallyEdited: "Manuellt redigerad",
+      editSaved: "Texten har sparats.",
+      loadingReportEdits: "Hämtar sparade rapportändringar…",
+      reportEditsLoadFailed: "Kunde inte hämta sparade rapportändringar. Rapporten visas inte förrän den sparade texten har lästs in.",
+      retryReportEdits: "Försök igen",
+      editSaveFailed: "Det gick inte att spara ändringen. Försök igen.",
+      editRestoreFailed: "Det gick inte att återställa AI-texten. Försök igen.",
+      editVersionConflict: "Texten har ändrats i en annan session. Stäng och öppna redigeraren igen.",
+      confirmRegenerationTitle: "Uppdatera AI-texten?",
+      confirmRegenerationBody: "AI-texten genereras på nytt. Dina manuella ändringar sparas och fortsätter visas i chefsrapporten.",
+      confirmRegenerationNote: "Du kan visa den nya AI-texten senare genom att välja Återställ AI-text i redigeraren.",
+      confirmRegenerationCancel: "Avbryt",
+      confirmRegenerationContinue: "Fortsätt",
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
@@ -118,6 +141,8 @@
       managerReportTitle: "Manager report",
       managerReportIntro: "The manager report is a practical resource for the recruiter and hiring manager. It brings together the candidate’s assessment results and topics that may be useful to explore in conversation.",
       savePdf: "Save as PDF",
+      creatingPdf: "Creating PDF…",
+      pdfGenerationFailed: "The PDF could not be created. Please try again.",
       managerSkillsTitle: "Skills",
       managerMotivationTitle: "Motivation",
       managerMotivationPracticalTitle: "In practice",
@@ -128,7 +153,7 @@
       regenerateSection: "Generate again",
       generateManagerReport: "Generate manager report",
       regenerateManagerReport: "Generate manager report again",
-      generatingManagerReport: "Generating manager report...",
+      generatingManagerReport: "Creating manager report...",
       sectionGenerationFailed: "The content could not be generated. Please try again.",
       managerPersonalityTitle: "Personality",
       managerPersonalityThemes: [
@@ -190,10 +215,168 @@
         },
       ],
       generated: "AI-generated",
+      editText: "Edit text",
+      editDialogTitle: "Edit manager report text",
+      editHelp: "This change applies only to the report. It does not change assessment results or test values.",
+      saveEdit: "Save",
+      cancelEdit: "Cancel",
+      restoreAiText: "Restore AI text",
+      confirmRestoreAiText: "Remove the manual edit and show the latest AI text again?",
+      manuallyEdited: "Manually edited",
+      editSaved: "Text saved.",
+      loadingReportEdits: "Loading saved report edits…",
+      reportEditsLoadFailed: "Saved report edits could not be loaded. The report will remain hidden until its saved text has been loaded.",
+      retryReportEdits: "Try again",
+      editSaveFailed: "The change could not be saved. Please try again.",
+      editRestoreFailed: "The AI text could not be restored. Please try again.",
+      editVersionConflict: "This text changed in another session. Close and reopen the editor.",
+      confirmRegenerationTitle: "Update the AI text?",
+      confirmRegenerationBody: "The AI text will be generated again. Your manual edits will remain saved and visible in the manager report.",
+      confirmRegenerationNote: "You can view the new AI text later by choosing Restore AI text in the editor.",
+      confirmRegenerationCancel: "Cancel",
+      confirmRegenerationContinue: "Continue",
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
     },
+  };
+
+  const ensurePdfLibraries = () => {
+    const isReady = () =>
+      typeof window.html2canvas === "function" &&
+      typeof window.jspdf?.jsPDF === "function";
+    if (isReady()) return Promise.resolve();
+
+    if (!pdfLibrariesPromise) {
+      const loadScript = ({ id, src, integrity }, isLoaded) => new Promise((resolve, reject) => {
+        if (isLoaded()) {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.id = id;
+        script.src = src;
+        script.integrity = integrity;
+        script.crossOrigin = "anonymous";
+        script.referrerPolicy = "no-referrer";
+        script.onload = () => isLoaded()
+          ? resolve()
+          : reject(new Error("The PDF library did not initialize."));
+        script.onerror = () => {
+          script.remove();
+          reject(new Error("The PDF library could not be loaded."));
+        };
+        document.head.appendChild(script);
+      });
+
+      pdfLibrariesPromise = Promise.all([
+        loadScript({
+          id: "talena-html2canvas-library",
+          src: "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+          integrity: "sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==",
+        }, () => typeof window.html2canvas === "function"),
+        loadScript({
+          id: "talena-jspdf-library",
+          src: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js",
+          integrity: "sha256-5lUfzcMvCdaFOyxRJtGNAdlEfg2mGKQaEevu4PbCDVQ=",
+        }, () => typeof window.jspdf?.jsPDF === "function"),
+      ]).then(() => {
+        if (!isReady()) throw new Error("The PDF libraries did not initialize.");
+      }).catch((error) => {
+        pdfLibrariesPromise = null;
+        throw error;
+      });
+    }
+
+    return pdfLibrariesPromise;
+  };
+
+  const renderElementAsPdf = async (element, filename) => {
+    await ensurePdfLibraries();
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    const canvas = await window.html2canvas(element, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+    });
+    if (!canvas.width || !canvas.height) throw new Error("The report is empty.");
+
+    const PdfDocument = window.jspdf.jsPDF;
+    const pdf = new PdfDocument({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const contentWidth = pageWidth - (margin * 2);
+    const contentHeight = pageHeight - (margin * 2);
+    const pixelsPerMillimeter = canvas.width / contentWidth;
+    const maxPageHeight = Math.floor(contentHeight * pixelsPerMillimeter);
+    const reportTop = element.getBoundingClientRect().top;
+    const renderScale = canvas.width / Math.max(element.getBoundingClientRect().width, 1);
+    const pageBreaks = Array.from(element.querySelectorAll(
+      ".after-interview-manager-report__skill, " +
+      ".after-interview-manager-report__guide-level, " +
+      ".after-interview-manager-report__motivator, " +
+      ".after-interview-manager-report__personality-theme, " +
+      ".after-interview-manager-report__personality-advice"
+    )).map((block) => Math.round(
+      (block.getBoundingClientRect().top - reportTop) * renderScale
+    )).filter((position) => position > 0 && position < canvas.height).sort((a, b) => a - b);
+
+    const slices = [];
+    let sliceStart = 0;
+    while (sliceStart < canvas.height) {
+      const targetEnd = Math.min(sliceStart + maxPageHeight, canvas.height);
+      let sliceEnd = targetEnd;
+      if (targetEnd < canvas.height) {
+        const earliestBreak = sliceStart + Math.floor(maxPageHeight * 0.68);
+        const safeBreak = pageBreaks.filter((position) =>
+          position >= earliestBreak && position <= targetEnd
+        ).pop();
+        if (safeBreak && safeBreak > sliceStart) sliceEnd = safeBreak;
+      }
+      if (sliceEnd <= sliceStart) throw new Error("The report could not be split into pages.");
+      slices.push({ start: sliceStart, end: sliceEnd });
+      sliceStart = sliceEnd;
+    }
+
+    slices.forEach((slice, index) => {
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = slice.end - slice.start;
+      const context = sliceCanvas.getContext("2d");
+      if (!context) throw new Error("A PDF page could not be rendered.");
+      context.drawImage(
+        canvas,
+        0, slice.start, canvas.width, sliceCanvas.height,
+        0, 0, sliceCanvas.width, sliceCanvas.height,
+      );
+      if (index > 0) pdf.addPage();
+      const imageHeight = sliceCanvas.height / pixelsPerMillimeter;
+      pdf.addImage(
+        sliceCanvas.toDataURL("image/jpeg", 0.98),
+        "JPEG",
+        margin,
+        margin,
+        contentWidth,
+        imageHeight,
+        undefined,
+        "FAST",
+      );
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(130);
+      pdf.text(`${index + 1} / ${slices.length}`, pageWidth - margin, pageHeight - 4, { align: "right" });
+      sliceCanvas.width = 0;
+      sliceCanvas.height = 0;
+    });
+
+    pdf.save(filename);
+    canvas.width = 0;
+    canvas.height = 0;
   };
 
   const MOTIVATION_PRACTICAL_ADVICE = {
@@ -639,6 +822,7 @@
     if (container.dataset.markdownRendered === "true") return;
     const source = (container.textContent || "").replace(/\r\n?/g, "\n").trim();
     if (!source) return;
+    container.dataset.markdownSource = source;
 
     const fragment = document.createDocumentFragment();
     const lines = source.split("\n");
@@ -770,8 +954,438 @@
     return cookie ? decodeURIComponent(cookie.slice("csrftoken=".length)) : "";
   };
 
-  const generateContentBlock = async (panel, blockKey, body, error, button) => {
-    if (button.disabled) return;
+  const createManagerReportEditController = (panel, root, workspace) => {
+    const state = {
+      loadUrl: root?.dataset.managerReportEditsUrl || "",
+      saveUrl: root?.dataset.managerReportEditSaveUrl || "",
+      language: "",
+      edits: new Map(),
+      bindings: new Map(),
+      ready: false,
+      statusElement: null,
+      dialog: null,
+      managerReportGenerating: false,
+    };
+
+    const announce = (message) => {
+      if (!state.statusElement) return;
+      state.statusElement.textContent = message;
+      window.clearTimeout(state.statusTimer);
+      state.statusTimer = window.setTimeout(() => {
+        if (state.statusElement) state.statusElement.textContent = "";
+      }, 4500);
+    };
+
+    const applyBinding = (binding) => {
+      const hasManualEdit = state.edits.has(binding.key);
+      const text = hasManualEdit
+        ? state.edits.get(binding.key).text
+        : binding.aiText;
+      binding.target.classList.remove("after-interview-tab-empty");
+      if (binding.markdown) {
+        binding.target.textContent = text || "";
+        delete binding.target.dataset.markdownRendered;
+        delete binding.target.dataset.markdownSource;
+        if (text) renderGeneratedMarkdown(binding.target);
+      } else {
+        binding.target.textContent = text || "";
+      }
+      if (!hasManualEdit && !String(text || "").trim() && binding.fallback) {
+        binding.target.textContent = binding.fallback;
+        binding.target.classList.add("after-interview-tab-empty");
+      }
+
+      const { toolbar, editButton, badge } = binding.controls;
+      const canEdit = hasManualEdit || Boolean(String(binding.aiText || "").trim());
+      toolbar.hidden = !canEdit;
+      editButton.disabled = !state.ready;
+      editButton.hidden = !canEdit;
+      badge.hidden = !hasManualEdit;
+      binding.target.dataset.managerReportEditKey = binding.key;
+    };
+
+    const setAiText = (key, text) => {
+      const binding = state.bindings.get(key);
+      if (!binding) return;
+      binding.aiText = String(text || "");
+      binding.target.dataset.managerReportAiText = binding.aiText;
+      applyBinding(binding);
+    };
+
+    const postEdit = async (payload) => {
+      if (!state.saveUrl) throw new Error(copy().editSaveFailed);
+      const response = await fetch(state.saveUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          ...payload,
+          language: state.language,
+        }),
+      });
+      let data = {};
+      try { data = await response.json(); } catch (_error) {}
+      if (!response.ok || !data.ok) {
+        if (response.status === 409) throw new Error(copy().editVersionConflict);
+        throw new Error(data.error || copy().editSaveFailed);
+      }
+      return data;
+    };
+
+    const ensureDialog = () => {
+      if (state.dialog) return state.dialog;
+      const dialog = document.createElement("dialog");
+      dialog.className = "after-interview-manager-report__edit-dialog";
+      dialog.setAttribute("aria-labelledby", "manager-report-edit-title");
+      dialog.setAttribute("aria-describedby", "manager-report-edit-help");
+
+      const heading = document.createElement("h2");
+      heading.id = "manager-report-edit-title";
+      heading.className = "after-interview-manager-report__edit-title";
+      heading.textContent = copy().editDialogTitle;
+      const help = document.createElement("p");
+      help.id = "manager-report-edit-help";
+      help.className = "after-interview-manager-report__edit-help";
+      help.textContent = copy().editHelp;
+      const label = document.createElement("label");
+      label.className = "after-interview-manager-report__edit-label";
+      label.textContent = copy().editDialogTitle;
+      const textarea = document.createElement("textarea");
+      textarea.className = "form-control after-interview-manager-report__edit-textarea";
+      textarea.maxLength = 30000;
+      textarea.rows = 12;
+      textarea.autocomplete = "off";
+      textarea.setAttribute("aria-label", copy().editDialogTitle);
+      const error = document.createElement("div");
+      error.className = "alert alert-danger d-none mt-3 mb-0";
+      error.setAttribute("role", "alert");
+      const actions = document.createElement("div");
+      actions.className = "after-interview-manager-report__edit-actions";
+      const restoreButton = document.createElement("button");
+      restoreButton.type = "button";
+      restoreButton.className = "btn btn-outline-secondary me-auto";
+      restoreButton.textContent = copy().restoreAiText;
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "btn btn-light";
+      cancelButton.textContent = copy().cancelEdit;
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.className = "btn btn-primary";
+      saveButton.textContent = copy().saveEdit;
+      actions.append(restoreButton, cancelButton, saveButton);
+      dialog.append(heading, help, label, textarea, error, actions);
+      panel.appendChild(dialog);
+
+      let activeBinding = null;
+      let opener = null;
+      const closeDialog = () => {
+        if (dialog.open) dialog.close();
+      };
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeDialog();
+      });
+      dialog.addEventListener("close", () => {
+        error.textContent = "";
+        error.classList.add("d-none");
+        if (opener?.isConnected) opener.focus();
+        activeBinding = null;
+      });
+      cancelButton.addEventListener("click", closeDialog);
+      saveButton.addEventListener("click", async () => {
+        if (!activeBinding || saveButton.disabled) return;
+        const binding = activeBinding;
+        const current = state.edits.get(binding.key);
+        saveButton.disabled = true;
+        restoreButton.disabled = true;
+        cancelButton.disabled = true;
+        error.classList.add("d-none");
+        try {
+          const data = await postEdit({
+            action: "save",
+            block_key: binding.key,
+            expected_version: current?.version || 0,
+            text: textarea.value,
+          });
+          state.edits.set(binding.key, data.edit);
+          applyBinding(binding);
+          announce(copy().editSaved);
+          closeDialog();
+        } catch (saveError) {
+          error.textContent = saveError.message || copy().editSaveFailed;
+          error.classList.remove("d-none");
+        } finally {
+          saveButton.disabled = false;
+          restoreButton.disabled = false;
+          cancelButton.disabled = false;
+        }
+      });
+      restoreButton.addEventListener("click", async () => {
+        if (!activeBinding || restoreButton.disabled) return;
+        const binding = activeBinding;
+        const current = state.edits.get(binding.key);
+        if (!current || !window.confirm(copy().confirmRestoreAiText)) return;
+        saveButton.disabled = true;
+        restoreButton.disabled = true;
+        cancelButton.disabled = true;
+        error.classList.add("d-none");
+        try {
+          await postEdit({
+            action: "restore_ai",
+            block_key: binding.key,
+            expected_version: current.version,
+          });
+          state.edits.delete(binding.key);
+          applyBinding(binding);
+          announce(copy().editSaved);
+          closeDialog();
+        } catch (restoreError) {
+          error.textContent = restoreError.message || copy().editRestoreFailed;
+          error.classList.remove("d-none");
+        } finally {
+          saveButton.disabled = false;
+          restoreButton.disabled = false;
+          cancelButton.disabled = false;
+        }
+      });
+
+      state.dialog = {
+        element: dialog,
+        textarea,
+        error,
+        restoreButton,
+        open(binding) {
+          if (!state.ready) return;
+          activeBinding = binding;
+          opener = binding.controls.editButton;
+          const current = state.edits.get(binding.key);
+          const fieldLabel = binding.label || copy().editDialogTitle;
+          heading.textContent = copy().editDialogTitle + " · " + fieldLabel;
+          label.textContent = fieldLabel;
+          textarea.setAttribute("aria-label", fieldLabel);
+          textarea.value = current ? current.text : binding.aiText;
+          restoreButton.hidden = !current;
+          error.textContent = "";
+          error.classList.add("d-none");
+          dialog.showModal();
+          textarea.focus();
+        },
+      };
+      return state.dialog;
+    };
+
+    const register = (target, key, options = {}) => {
+      const binding = {
+        target,
+        key,
+        label: String(options.label || copy().editDialogTitle),
+        aiText: String(options.aiText || ""),
+        fallback: String(options.fallback || ""),
+        markdown: options.markdown === true,
+        controls: null,
+      };
+      const toolbar = document.createElement("span");
+      toolbar.className = "after-interview-manager-report__edit-controls";
+      const badge = document.createElement("span");
+      badge.className = "after-interview-manager-report__edited-badge";
+      badge.textContent = copy().manuallyEdited;
+      badge.setAttribute("role", "status");
+      badge.hidden = true;
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "btn btn-icon btn-light after-interview-manager-report__edit-button";
+      editButton.title = copy().editText;
+      editButton.setAttribute("aria-label", copy().editText + ": " + binding.label);
+      editButton.disabled = true;
+      editButton.innerHTML = '<i data-feather="edit-2" aria-hidden="true"></i>';
+      editButton.addEventListener("click", () => ensureDialog().open(binding));
+      toolbar.append(badge, editButton);
+      binding.controls = { toolbar, badge, editButton };
+      target.dataset.managerReportAiText = binding.aiText;
+      target.dataset.managerReportEditKey = key;
+      state.bindings.set(key, binding);
+      applyBinding(binding);
+      return toolbar;
+    };
+
+    const load = async () => {
+      if (!state.loadUrl) throw new Error(copy().reportEditsLoadFailed);
+      const response = await fetch(state.loadUrl, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        credentials: "same-origin",
+      });
+      let data = {};
+      try { data = await response.json(); } catch (_error) {}
+      if (!response.ok || !data.ok || !["sv", "en"].includes(data.language)) {
+        throw new Error(data.error || copy().reportEditsLoadFailed);
+      }
+      state.language = data.language;
+      state.edits = new Map((data.edits || []).map((edit) => [edit.block_key, edit]));
+      state.ready = true;
+      state.bindings.forEach(applyBinding);
+      return data;
+    };
+
+    const ensureRegenerationConfirmation = () => {
+      if (state.regenerationConfirmation) return state.regenerationConfirmation;
+
+      const dialog = document.createElement("dialog");
+      dialog.className = "after-interview-manager-report__confirm-dialog";
+      dialog.setAttribute("aria-labelledby", "manager-report-regeneration-title");
+      dialog.setAttribute("aria-describedby", "manager-report-regeneration-description");
+
+      const header = document.createElement("div");
+      header.className = "after-interview-manager-report__confirm-header";
+      const iconWrap = document.createElement("div");
+      iconWrap.className = "after-interview-manager-report__confirm-icon";
+      const icon = document.createElement("i");
+      icon.setAttribute("data-feather", "refresh-cw");
+      icon.setAttribute("aria-hidden", "true");
+      iconWrap.appendChild(icon);
+
+      const heading = document.createElement("h2");
+      heading.id = "manager-report-regeneration-title";
+      heading.className = "after-interview-manager-report__confirm-title";
+      heading.textContent = copy().confirmRegenerationTitle;
+      header.append(iconWrap, heading);
+
+      const description = document.createElement("p");
+      description.id = "manager-report-regeneration-description";
+      description.className = "after-interview-manager-report__confirm-description";
+      description.textContent = copy().confirmRegenerationBody;
+
+      const note = document.createElement("p");
+      note.className = "after-interview-manager-report__confirm-note";
+      note.textContent = copy().confirmRegenerationNote;
+
+      const actions = document.createElement("div");
+      actions.className = "after-interview-manager-report__confirm-actions";
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "btn btn-light";
+      cancelButton.textContent = copy().confirmRegenerationCancel;
+      cancelButton.setAttribute("autofocus", "");
+      const continueButton = document.createElement("button");
+      continueButton.type = "button";
+      continueButton.className = "btn btn-primary";
+      continueButton.textContent = copy().confirmRegenerationContinue;
+      actions.append(cancelButton, continueButton);
+      dialog.append(header, description, note, actions);
+      panel.appendChild(dialog);
+
+      let activeTrigger = null;
+      let opener = null;
+      const close = () => {
+        if (dialog.open) dialog.close();
+      };
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        close();
+      });
+      dialog.addEventListener("close", () => {
+        activeTrigger = null;
+        if (opener?.isConnected) opener.focus();
+        opener = null;
+      });
+      cancelButton.addEventListener("click", close);
+      continueButton.addEventListener("click", () => {
+        const trigger = activeTrigger;
+        activeTrigger = null;
+        close();
+        if (!trigger?.isConnected || trigger.disabled) return;
+        // Let the browser finish removing the modal from the top layer before
+        // replaying the original click. Otherwise the underlying button can
+        // remain inert for the rest of this event turn in some browsers.
+        window.setTimeout(() => {
+          if (!trigger.isConnected || trigger.disabled) return;
+          const currentState = workspace?._talenaManagerReportEditController?.state;
+          if (!currentState) return;
+          currentState.confirmedRegenerationTrigger = trigger;
+          trigger.click();
+        }, 0);
+      });
+
+      state.regenerationConfirmation = {
+        element: dialog,
+        open(trigger) {
+          if (dialog.open) return;
+          activeTrigger = trigger;
+          opener = trigger;
+          heading.textContent = copy().confirmRegenerationTitle;
+          description.textContent = copy().confirmRegenerationBody;
+          note.textContent = copy().confirmRegenerationNote;
+          cancelButton.textContent = copy().confirmRegenerationCancel;
+          continueButton.textContent = copy().confirmRegenerationContinue;
+          dialog.showModal();
+          cancelButton.focus();
+          if (window.feather) window.feather.replace();
+        },
+      };
+      return state.regenerationConfirmation;
+    };
+
+    if (workspace) {
+      workspace._talenaManagerReportEditController = {
+        state,
+        setAiText,
+        openRegenerationConfirmation: (trigger) =>
+          ensureRegenerationConfirmation().open(trigger),
+      };
+      if (workspace.dataset.managerReportEditConfirmationBound !== "true") {
+        workspace.dataset.managerReportEditConfirmationBound = "true";
+        workspace.addEventListener("click", (event) => {
+          const controller = workspace._talenaManagerReportEditController;
+          const currentState = controller?.state;
+          const trigger = event.target.closest?.(
+            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
+          );
+          if (!trigger || !currentState) return;
+          if (currentState.confirmedRegenerationTrigger === trigger) {
+            currentState.confirmedRegenerationTrigger = null;
+            return;
+          }
+          if (currentState.managerReportGenerating) return;
+          if (!currentState.ready) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return;
+          }
+          const blockKey = trigger.dataset.afterInterviewRegenerate || "";
+          const hasEditedBlock = blockKey && currentState.edits.has(blockKey);
+          const isPersonalityRegeneration =
+            trigger.hasAttribute("data-personality-ai-regenerate")
+            && [...currentState.edits.keys()].some((key) => key.startsWith("personality:"));
+          const isFullRegeneration =
+            trigger.hasAttribute("data-post-interview-generate")
+            && currentState.edits.size > 0;
+          if (
+            hasEditedBlock || isPersonalityRegeneration || isFullRegeneration
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            controller.openRegenerationConfirmation?.(trigger);
+          }
+        }, true);
+      }
+    }
+
+    return {
+      state,
+      register,
+      load,
+      setAiText,
+      announce,
+      applyAll: () => state.bindings.forEach(applyBinding),
+    };
+  };
+
+  const generateContentBlock = async (panel, blockKey, body, error, button = null) => {
+    if (button?.disabled) return;
     const root = panel.closest("[data-final-output-root]");
     const regenerateUrl = root?.dataset.postInterviewRegenerateUrl || "";
     if (!regenerateUrl) {
@@ -780,14 +1394,27 @@
       return;
     }
 
-    const previousText = body.textContent || "";
+    const editController = panel.closest("[data-candidate-insights-workspace]")
+      ?._talenaManagerReportEditController;
+    const editState = editController?.state;
+    const binding = editState?.bindings.get(blockKey);
+    const preserveManualEdit = editState?.edits.has(blockKey) === true;
+    const previousText = binding?.aiText
+      ?? body.dataset.markdownSource
+      ?? body.textContent
+      ?? "";
     error.classList.add("d-none");
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-    body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
-    delete body.dataset.markdownRendered;
-    body.replaceChildren();
+    if (button) {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    }
+    if (!preserveManualEdit) {
+      body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
+      delete body.dataset.markdownRendered;
+      delete body.dataset.markdownSource;
+      body.replaceChildren();
+    }
 
     try {
       const startUrl = new URL(regenerateUrl, window.location.origin);
@@ -825,7 +1452,7 @@
         const event = JSON.parse(line);
         if (event.type === "content_block_delta" && event.block === blockKey) {
           received += event.text || "";
-          body.textContent = received;
+          if (!preserveManualEdit) body.textContent = received;
         } else if (event.type === "content_block_error" && event.block === blockKey) {
           throw new Error(event.message || copy().sectionGenerationFailed);
         }
@@ -843,25 +1470,35 @@
       if (buffer.trim()) handleLine(buffer);
       if (!received.trim()) throw new Error(copy().sectionGenerationFailed);
 
-      delete body.dataset.markdownRendered;
-      renderGeneratedMarkdown(body);
-      button.title = copy().regenerateSection;
-      button.setAttribute("aria-label", copy().regenerateSection);
-    } catch (generationError) {
-      body.textContent = previousText;
-      if (!previousText.trim()) {
-        body.classList.add("after-interview-tab-empty");
-        body.textContent = copy().unavailable;
+      if (editController?.setAiText) {
+        editController.setAiText(blockKey, received);
       } else {
         delete body.dataset.markdownRendered;
         renderGeneratedMarkdown(body);
       }
+      if (button) {
+        button.title = copy().regenerateSection;
+        button.setAttribute("aria-label", copy().regenerateSection);
+      }
+    } catch (generationError) {
+      if (!preserveManualEdit) {
+        body.textContent = previousText;
+        if (!previousText.trim()) {
+          body.classList.add("after-interview-tab-empty");
+          body.textContent = copy().unavailable;
+        } else {
+          delete body.dataset.markdownRendered;
+          renderGeneratedMarkdown(body);
+        }
+      }
       error.textContent = generationError.message || copy().sectionGenerationFailed;
       error.classList.remove("d-none");
     } finally {
-      button.disabled = false;
-      button.removeAttribute("aria-busy");
-      button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      if (button) {
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+        button.innerHTML = '<i data-feather="refresh-cw"></i>';
+      }
       if (window.feather) window.feather.replace();
     }
   };
@@ -968,23 +1605,114 @@
       __PANEL__ [data-post-interview-content].after-interview-content-source {
         display: none !important;
       }
-      @media print {
-        body.manager-report-printing * { visibility: hidden !important; }
-        body.manager-report-printing #candidate-insights-panel-after-interview,
-        body.manager-report-printing #candidate-insights-panel-after-interview * { visibility: visible !important; }
-        body.manager-report-printing #candidate-insights-panel-after-interview .candidate-insights-subnavigation { display: none !important; }
-        body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
-        body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] { display: block !important; position: absolute; inset: 0; width: 100%; }
-        body.manager-report-printing .after-interview-manager-report__actions { display: none !important; }
-        body.manager-report-printing .after-interview-manager-report__guide { display: block; }
-        body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
-        body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
-      }
+      .after-interview-manager-report__pdf-export-shell { display: none; }
+      __PANEL__ .after-interview-manager-report__pdf-export-root { display: none; }
       __PANEL__ .after-interview-manager-report__header {
         display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
       }
       __PANEL__ .after-interview-manager-report__actions {
         display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; flex-wrap: wrap;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-header {
+        display: flex; align-items: center; justify-content: flex-start;
+        flex-wrap: wrap; gap: .1rem .35rem;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-title {
+        flex: 0 1 auto; margin-bottom: .35rem;
+      }
+      __PANEL__ .after-interview-manager-report__edit-controls {
+        position: static; display: inline-flex; align-items: center;
+        justify-content: flex-start; gap: .25rem; flex: 0 0 auto;
+      }
+      __PANEL__ .after-interview-manager-report__edit-controls[hidden],
+      __PANEL__ .after-interview-manager-report__edit-button[hidden] { display: none !important; }
+      __PANEL__ .after-interview-manager-report__edit-button {
+        display: grid; place-items: center; width: 1.5rem !important;
+        height: 1.5rem !important; min-width: 1.5rem !important; padding: 0 !important;
+        border: 0 !important; border-radius: 6px !important;
+        background: transparent !important; color: var(--talena-text-muted, #766e68) !important;
+        box-shadow: none !important;
+      }
+      __PANEL__ .after-interview-manager-report__edit-button svg {
+        width: .82rem; height: .82rem; stroke-width: 1.8;
+      }
+      __PANEL__ .after-interview-manager-report__edit-button:hover,
+      __PANEL__ .after-interview-manager-report__edit-button:focus-visible {
+        background: var(--talena-coral-soft, #fff2ee) !important;
+        color: var(--talena-coral-strong, #ed7468) !important;
+        outline: 2px solid var(--talena-coral, #ff6f61); outline-offset: 2px;
+      }
+      __PANEL__ .after-interview-manager-report__edited-badge {
+        padding: .2rem .48rem; border: 1px solid #ead6c5; border-radius: 999px;
+        background: #fff7ee; color: #735036; font-size: .64rem; font-weight: 700;
+        line-height: 1.4; white-space: nowrap;
+      }
+      __PANEL__ .after-interview-manager-report__edit-dialog {
+        width: min(700px, calc(100vw - 2rem)); max-height: min(90vh, 900px);
+        margin: auto; padding: 1.35rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 16px; background: #fff; color: var(--talena-ink, #191817);
+        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
+      }
+      __PANEL__ .after-interview-manager-report__edit-dialog::backdrop {
+        background: rgba(25, 24, 23, .48);
+      }
+      __PANEL__ .after-interview-manager-report__confirm-dialog {
+        width: min(480px, calc(100vw - 2rem)); max-height: min(85vh, 720px);
+        margin: auto; padding: 1.5rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 20px; background: #fff; color: var(--talena-ink, #191817);
+        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
+      }
+      __PANEL__ .after-interview-manager-report__confirm-dialog::backdrop {
+        background: rgba(25, 24, 23, .48); backdrop-filter: blur(3px);
+      }
+      __PANEL__ .after-interview-manager-report__confirm-header {
+        display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-icon {
+        display: grid; place-items: center; width: 2.65rem; height: 2.65rem;
+        flex: 0 0 2.65rem; border-radius: 14px;
+        background: #fff3e5; color: #a36b35;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-icon svg {
+        width: 1.1rem; height: 1.1rem;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-title {
+        margin: 0; font-size: 1.12rem; font-weight: 750; letter-spacing: -.02em;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-description {
+        margin: 0; color: var(--talena-text-muted, #766e68);
+        font-size: .88rem; line-height: 1.65;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-note {
+        margin: 1rem 0 0; padding: .8rem .9rem; border: 1px solid #f0e4d3;
+        border-radius: 11px; background: #fffaf4; color: #735036;
+        font-size: .76rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__confirm-actions {
+        display: flex; justify-content: flex-end; gap: .55rem; margin-top: 1.3rem;
+      }
+      __PANEL__ .after-interview-manager-report__edit-title {
+        margin: 0 0 .5rem; font-size: 1.15rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__edit-help {
+        margin: 0 0 1rem; color: var(--talena-text-muted, #766e68);
+        font-size: .82rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__edit-label {
+        display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__edit-textarea {
+        min-height: 16rem; max-height: 55vh; resize: vertical; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__edit-actions {
+        display: flex; align-items: center; justify-content: flex-end; gap: .55rem; margin-top: 1rem;
+      }
+      @media (max-width: 575px) {
+        __PANEL__ .after-interview-manager-report__edit-dialog { padding: 1rem; }
+        __PANEL__ .after-interview-manager-report__confirm-dialog { padding: 1.1rem; }
+        __PANEL__ .after-interview-manager-report__confirm-actions { flex-wrap: wrap; }
+        __PANEL__ .after-interview-manager-report__edit-actions { flex-wrap: wrap; }
+        __PANEL__ .after-interview-manager-report__edit-actions .me-auto { margin-right: 0 !important; }
       }
       __PANEL__ .after-interview-manager-report__skills { margin-top: 1.6rem; }
       __PANEL__ .after-interview-manager-report__skills-title {
@@ -1140,7 +1868,8 @@
         border-radius: 12px; background: #fff;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-header {
-        display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+        display: flex; align-items: center; justify-content: flex-start;
+        flex-wrap: wrap; gap: .1rem .35rem;
       }
       __PANEL__ .after-interview-manager-report__personality-advice-title {
         margin: 0; color: var(--talena-ink, #191817); font-size: .9rem; font-weight: 750;
@@ -1321,6 +2050,7 @@
     );
     const managerReportCard = document.createElement("section");
     managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
+    managerReportCard.hidden = true;
     const managerReportHeader = document.createElement("div");
     managerReportHeader.className = "after-interview-manager-report__header";
     const managerReportHeading = document.createElement("h3");
@@ -1332,30 +2062,86 @@
     const pdfButton = document.createElement("button");
     pdfButton.type = "button";
     pdfButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2";
+    pdfButton.disabled = true;
     pdfButton.setAttribute("aria-label", copy().savePdf);
     const pdfIcon = document.createElement("i");
     pdfIcon.setAttribute("data-feather", "download");
     const pdfLabel = document.createElement("span");
     pdfLabel.textContent = copy().savePdf;
     pdfButton.append(pdfIcon, pdfLabel);
+    const managerReportPdfError = document.createElement("div");
+    managerReportPdfError.className = "alert alert-danger d-none mt-3 mb-0";
+    managerReportPdfError.setAttribute("role", "alert");
     pdfButton.addEventListener("click", () => {
-      const originalTitle = document.title;
-      const cleanup = () => {
-        document.body.classList.remove("manager-report-printing");
-        document.title = originalTitle;
-      };
-      document.title = copy().managerReportTitle;
-      document.body.classList.add("manager-report-printing");
-      window.addEventListener("afterprint", cleanup, { once: true });
-      window.print();
-      window.setTimeout(cleanup, 1000);
+      if (pdfButton.disabled) return;
+      managerReportPdfError.classList.add("d-none");
+      pdfButton.disabled = true;
+      pdfButton.setAttribute("aria-busy", "true");
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("aria-hidden", "true");
+      pdfLabel.textContent = copy().creatingPdf;
+      pdfButton.replaceChildren(spinner, pdfLabel);
+
+      const exportShell = panel.cloneNode(false);
+      exportShell.classList.add("after-interview-manager-report__pdf-export-shell");
+      exportShell.hidden = false;
+      exportShell.style.cssText =
+        "display:block;position:fixed;top:0;left:-10000px;width:186mm;margin:0;padding:0;" +
+        "border:0;z-index:-1;background:#fff;pointer-events:none;";
+      const exportRoot = document.createElement("div");
+      exportRoot.className = "after-interview-manager-report__pdf-export-root";
+      exportRoot.hidden = false;
+      exportRoot.style.cssText = "display:block;width:100%;margin:0;padding:0;";
+      const printableReport = managerReportCard.cloneNode(true);
+      printableReport.hidden = false;
+      printableReport.style.cssText =
+        "display:block;width:100%;max-width:none;margin:0;padding:0;border:0;" +
+        "box-shadow:none;background:#fff;";
+      printableReport.querySelectorAll(
+        ".after-interview-manager-report__actions, " +
+        ".after-interview-manager-report__edit-controls, " +
+        ".after-interview-manager-report__edit-dialog, " +
+        ".after-interview-manager-report__confirm-dialog, " +
+        ".alert, [role='status'][aria-live='polite']"
+      ).forEach((element) => element.remove());
+      printableReport.querySelectorAll(".after-interview-manager-report__guide")
+        .forEach((guide) => { guide.open = true; });
+      [
+        ".after-interview-manager-report__levels",
+        ".after-interview-manager-report__guide-levels",
+        ".after-interview-manager-report__motivation-grid",
+        ".after-interview-manager-report__personality-parts",
+      ].forEach((selector) => printableReport.querySelectorAll(selector).forEach((grid) => {
+        grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+      }));
+      exportRoot.appendChild(printableReport);
+      exportShell.appendChild(exportRoot);
+      document.body.appendChild(exportShell);
+
+      const filename = (copy().managerReportTitle.replace(/[\\/:*?"<>|]+/g, " ").trim() || "Manager report") + ".pdf";
+      window.requestAnimationFrame(async () => {
+        try {
+          await renderElementAsPdf(printableReport, filename);
+        } catch (_error) {
+          managerReportPdfError.textContent = copy().pdfGenerationFailed;
+          managerReportPdfError.classList.remove("d-none");
+        } finally {
+          exportShell.remove();
+          pdfButton.disabled = false;
+          pdfButton.removeAttribute("aria-busy");
+          pdfLabel.textContent = copy().savePdf;
+          pdfButton.replaceChildren(pdfIcon, pdfLabel);
+          if (window.feather) window.feather.replace();
+        }
+      });
     });
     managerReportActions.appendChild(pdfButton);
     managerReportHeader.append(managerReportHeading, managerReportActions);
     const managerReportIntro = document.createElement("p");
     managerReportIntro.className = "after-interview-manager-report__intro";
     managerReportIntro.textContent = copy().managerReportIntro;
-    managerReportCard.append(managerReportHeader, managerReportIntro);
+    managerReportCard.append(managerReportHeader, managerReportIntro, managerReportPdfError);
 
     const managerSkills = document.createElement("section");
     managerSkills.className = "after-interview-manager-report__skills";
@@ -1365,6 +2151,20 @@
     managerSkills.appendChild(managerSkillsTitle);
 
     const workspace = panel.closest("[data-candidate-insights-workspace]");
+    const managerReportEditController = createManagerReportEditController(
+      panel,
+      outputRoot,
+      workspace,
+    );
+    const managerReportEditsReady = managerReportEditController.load()
+      .then(() => ({ ok: true }))
+      .catch((error) => ({ ok: false, error }));
+    const managerReportEditStatus = document.createElement("span");
+    managerReportEditStatus.className = "visually-hidden";
+    managerReportEditStatus.setAttribute("role", "status");
+    managerReportEditStatus.setAttribute("aria-live", "polite");
+    managerReportEditController.state.statusElement = managerReportEditStatus;
+    managerReportCard.appendChild(managerReportEditStatus);
     const skillNodes = [
       ...(workspace?.querySelectorAll(
         '#candidate-insights-panel-cognitive [data-manager-skill-key][data-manager-skill-result]'
@@ -1558,39 +2358,51 @@
         .join("");
       return "managerPersonality" + pascal(theme) + pascal(part);
     };
+    let managerAdviceHasGeneratedText = Boolean(
+      sourceBlock(panel, "wellbeing_tips")?.textContent?.trim()
+    );
     let managerReportGenerateButton = null;
     let managerReportGenerateError = null;
+    let managerReportGenerateLabel = null;
+    let managerReportGenerateIcon = null;
 
     const updateManagerReportGenerateLabel = () => {
       if (
         !managerReportGenerateButton ||
-        !personalityRoot ||
+        !managerReportGenerateLabel ||
         managerReportGenerateButton.getAttribute("aria-busy") === "true"
       ) return;
-      const hasGeneratedText = copy().managerPersonalityThemes.some((theme) =>
+      const hasPersonalityText = personalityRoot && copy().managerPersonalityThemes.some((theme) =>
         ["testbild", "candidate_describes"].some((part) =>
           String(personalityRoot.dataset[datasetKeyFor(theme.key, part)] || "").trim()
         )
       );
+      const hasGeneratedText = managerAdviceHasGeneratedText || hasPersonalityText;
       const label = hasGeneratedText
         ? copy().regenerateManagerReport
         : copy().generateManagerReport;
+      managerReportGenerateLabel.textContent = label;
       managerReportGenerateButton.title = label;
       managerReportGenerateButton.setAttribute("aria-label", label);
     };
 
+    managerReportGenerateButton = document.createElement("button");
+    managerReportGenerateButton.type = "button";
+    managerReportGenerateButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2 after-interview-manager-report__generate";
+    managerReportGenerateButton.dataset.postInterviewGenerate = "";
+    managerReportGenerateIcon = document.createElement("i");
+    managerReportGenerateIcon.setAttribute("data-feather", "refresh-cw");
+    managerReportGenerateIcon.setAttribute("aria-hidden", "true");
+    managerReportGenerateLabel = document.createElement("span");
+    managerReportGenerateButton.append(managerReportGenerateIcon, managerReportGenerateLabel);
+    managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
+
+    managerReportGenerateError = document.createElement("div");
+    managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
+    managerReportGenerateError.setAttribute("role", "alert");
+    managerReportIntro.insertAdjacentElement("afterend", managerReportGenerateError);
+
     if (personalityRoot) {
-      managerReportGenerateButton = document.createElement("button");
-      managerReportGenerateButton.type = "button";
-      managerReportGenerateButton.className = "btn btn-icon btn-light after-interview-tab-card__regenerate after-interview-manager-report__generate";
-      managerReportGenerateButton.innerHTML = '<i data-feather="refresh-cw" aria-hidden="true"></i>';
-      managerReportActions.insertBefore(managerReportGenerateButton, pdfButton);
-
-      managerReportGenerateError = document.createElement("div");
-      managerReportGenerateError.className = "alert alert-danger d-none mt-3 mb-3";
-      managerReportGenerateError.setAttribute("role", "alert");
-      managerReportIntro.insertAdjacentElement("afterend", managerReportGenerateError);
-
       managerReportAiTasks.push(async () => {
         const regenerateButton = personalityRoot.querySelector("[data-personality-ai-regenerate]");
         if (
@@ -1626,17 +2438,27 @@
           throw new Error(currentError?.textContent?.trim() || copy().sectionGenerationFailed);
         }
       });
+    }
 
-      managerReportGenerateButton.addEventListener("click", async () => {
-        if (managerReportGenerateButton.disabled) return;
-        managerReportGenerateError.classList.add("d-none");
-        managerReportGenerateButton.disabled = true;
-        managerReportGenerateButton.setAttribute("aria-busy", "true");
-        managerReportGenerateButton.innerHTML =
-          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    managerReportGenerateButton.addEventListener("click", async () => {
+      if (managerReportGenerateButton.disabled) return;
+      managerReportGenerateError.classList.add("d-none");
+      managerReportGenerateButton.disabled = true;
+      managerReportGenerateButton.setAttribute("aria-busy", "true");
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm";
+      spinner.setAttribute("role", "status");
+      spinner.setAttribute("aria-hidden", "true");
+      const generatingLabel = copy().generatingManagerReport;
+      managerReportGenerateLabel.textContent = generatingLabel;
+      managerReportGenerateButton.title = generatingLabel;
+      managerReportGenerateButton.setAttribute("aria-label", generatingLabel);
+      managerReportGenerateButton.replaceChildren(spinner, managerReportGenerateLabel);
 
+      try {
+        const failures = [];
+        managerReportEditController.state.managerReportGenerating = true;
         try {
-          const failures = [];
           for (const task of managerReportAiTasks) {
             try {
               await task();
@@ -1644,30 +2466,32 @@
               failures.push(taskError.message || copy().sectionGenerationFailed);
             }
           }
-          if (failures.length) throw new Error(failures.join(" "));
-          updateManagerReportGenerateLabel();
-        } catch (generationError) {
-          managerReportGenerateError.textContent =
-            generationError.message || copy().sectionGenerationFailed;
-          managerReportGenerateError.classList.remove("d-none");
         } finally {
-          managerReportGenerateButton.disabled = false;
-          managerReportGenerateButton.removeAttribute("aria-busy");
-          managerReportGenerateButton.innerHTML =
-            '<i data-feather="refresh-cw" aria-hidden="true"></i>';
-          updateManagerReportGenerateLabel();
-          if (window.feather) window.feather.replace();
+          managerReportEditController.state.managerReportGenerating = false;
         }
-      });
+        if (failures.length) throw new Error(failures.join(" "));
+        managerAdviceHasGeneratedText = true;
+      } catch (generationError) {
+        managerReportGenerateError.textContent =
+          generationError.message || copy().sectionGenerationFailed;
+        managerReportGenerateError.classList.remove("d-none");
+      } finally {
+        managerReportGenerateButton.disabled = false;
+        managerReportGenerateButton.removeAttribute("aria-busy");
+        managerReportGenerateButton.replaceChildren(
+          managerReportGenerateIcon,
+          managerReportGenerateLabel,
+        );
+        updateManagerReportGenerateLabel();
+        if (window.feather) window.feather.replace();
+      }
+    });
 
-      updateManagerReportGenerateLabel();
-    }
+    updateManagerReportGenerateLabel();
     managerPersonality.appendChild(managerPersonalityTitle);
     const renderPersonalityText = (theme, part, text) => {
-      const target = managerPersonality.querySelector(
-        '[data-manager-personality-text="' + theme + ':' + part + '"]'
-      );
-      if (target) target.textContent = text || personalityFallbacks[part];
+      const key = "personality:" + theme + ":" + part;
+      managerReportEditController.setAiText(key, text || "");
       updateManagerReportGenerateLabel();
     };
 
@@ -1692,9 +2516,23 @@
         const text = document.createElement("p");
         text.className = "after-interview-manager-report__personality-part-text";
         text.dataset.managerPersonalityText = theme.key + ":" + part.key;
-        text.textContent = personalityRoot?.dataset[datasetKeyFor(theme.key, part.key)]
-          || personalityFallbacks[part.key];
-        content.append(heading, text);
+        const aiText = String(
+          personalityRoot?.dataset[datasetKeyFor(theme.key, part.key)] || ""
+        );
+        text.textContent = aiText || personalityFallbacks[part.key];
+        const editControls = managerReportEditController.register(
+          text,
+          "personality:" + theme.key + ":" + part.key,
+          {
+            aiText,
+            fallback: personalityFallbacks[part.key],
+            label: theme.title + " · " + part.title,
+          },
+        );
+        const contentHeader = document.createElement("div");
+        contentHeader.className = "after-interview-manager-report__personality-part-header";
+        contentHeader.append(heading, editControls);
+        content.append(contentHeader, text);
         parts.appendChild(content);
       });
       themeCard.append(themeTitle, parts);
@@ -1719,21 +2557,36 @@
     const managerAdviceError = document.createElement("div");
     managerAdviceError.className = "alert alert-danger d-none mt-3 mb-0";
     managerAdviceError.setAttribute("role", "alert");
-    const managerAdviceRegenerate = document.createElement("button");
-    managerAdviceRegenerate.type = "button";
-    managerAdviceRegenerate.className = "btn btn-icon btn-light after-interview-tab-card__regenerate";
-    managerAdviceRegenerate.title = hasManagerAdviceText
-      ? copy().regenerateSection
-      : copy().generateSection;
-    managerAdviceRegenerate.setAttribute("aria-label", managerAdviceRegenerate.title);
-    managerAdviceRegenerate.dataset.afterInterviewRegenerate = "wellbeing_tips";
-    managerAdviceRegenerate.innerHTML = '<i data-feather="refresh-cw"></i>';
-    managerAdviceHeader.append(managerAdviceTitle, managerAdviceRegenerate);
+    const managerAdviceEditControls = managerReportEditController.register(
+      managerAdviceBody,
+      "wellbeing_tips",
+      {
+        label: copy().managerPersonalityAdviceTitle,
+        aiText: hasManagerAdviceText
+          ? String(managerAdviceBody.dataset.markdownSource || managerAdviceBody.textContent || "")
+          : "",
+        fallback: hasManagerAdviceText ? "" : copy().unavailable,
+        markdown: true,
+      },
+    );
+    managerAdviceHeader.append(managerAdviceTitle, managerAdviceEditControls);
     managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
     managerPersonality.appendChild(managerAdvice);
-    managerAdviceRegenerate.addEventListener("click", () =>
-      generateContentBlock(panel, "wellbeing_tips", managerAdviceBody, managerAdviceError, managerAdviceRegenerate),
-    );
+    managerReportAiTasks.push(async () => {
+      await generateContentBlock(
+        panel,
+        "wellbeing_tips",
+        managerAdviceBody,
+        managerAdviceError,
+      );
+      if (!managerAdviceError.classList.contains("d-none")) {
+        throw new Error(
+          managerAdviceError.textContent?.trim() || copy().sectionGenerationFailed,
+        );
+      }
+      managerAdviceHasGeneratedText = true;
+      updateManagerReportGenerateLabel();
+    });
 
     document.addEventListener("talena:manager-personality-updated", (event) => {
       const detail = event.detail || {};
@@ -1745,7 +2598,47 @@
     if (personalityRoot) {
       managerReportCard.appendChild(managerPersonality);
     }
-    panels.get("managerReport").appendChild(managerReportCard);
+    const managerReportEditsLoading = document.createElement("div");
+    managerReportEditsLoading.className = "text-center text-muted py-4";
+    managerReportEditsLoading.setAttribute("role", "status");
+    managerReportEditsLoading.setAttribute("aria-live", "polite");
+    const managerReportEditsLoadingText = document.createElement("p");
+    managerReportEditsLoadingText.className = "mb-2";
+    managerReportEditsLoadingText.textContent = copy().loadingReportEdits;
+    const managerReportEditsRetry = document.createElement("button");
+    managerReportEditsRetry.type = "button";
+    managerReportEditsRetry.className = "btn btn-outline-secondary btn-sm";
+    managerReportEditsRetry.textContent = copy().retryReportEdits;
+    managerReportEditsRetry.hidden = true;
+    managerReportEditsLoading.append(managerReportEditsLoadingText, managerReportEditsRetry);
+    panels.get("managerReport").append(managerReportEditsLoading, managerReportCard);
+
+    const revealManagerReport = () => {
+      managerReportEditController.applyAll();
+      managerReportEditsLoading.hidden = true;
+      managerReportCard.hidden = false;
+      pdfButton.disabled = false;
+      if (window.feather) window.feather.replace();
+    };
+    const showManagerReportLoadError = () => {
+      managerReportEditsLoadingText.textContent = copy().reportEditsLoadFailed;
+      managerReportEditsRetry.hidden = false;
+      managerReportEditsRetry.disabled = false;
+    };
+    managerReportEditsReady.then((result) => {
+      if (result.ok) revealManagerReport();
+      else showManagerReportLoadError();
+    });
+    managerReportEditsRetry.addEventListener("click", async () => {
+      managerReportEditsRetry.disabled = true;
+      managerReportEditsLoadingText.textContent = copy().loadingReportEdits;
+      try {
+        await managerReportEditController.load();
+        revealManagerReport();
+      } catch (_error) {
+        showManagerReportLoadError();
+      }
+    });
 
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";
