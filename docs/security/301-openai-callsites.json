@@ -184,8 +184,9 @@
     },
     {
       "path": "apps/core/ai/purpose_fit.py",
-      "calls": 1,
+      "calls": 2,
       "functions": [
+        "generate_candidate_purpose_fit_events",
         "generate_candidate_purpose_fit_events"
       ],
       "status": "active",
@@ -197,7 +198,7 @@
         "admin prompt guidance"
       ],
       "freetext": true,
-      "comment": "Streaming; no interview notes; candidate name is pseudonymised before the SDK call."
+      "comment": "The summary may trigger one repair completion call when the first result is below the minimum word count; no interview notes; candidate name is pseudonymised before SDK calls."
     },
     {
       "path": "apps/core/ai/response_style_guidance.py",
