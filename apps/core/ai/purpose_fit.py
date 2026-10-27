@@ -931,7 +931,7 @@ def generate_candidate_purpose_fit_events(
     # TEMP LOCAL DEBUG ONLY: remove after inspecting the generated prompt.
     # Print only evidence blocks from the exact messages sent to OpenAI.
     # Candidate identity and process context are deliberately omitted.
-    if settings.DEBUG:
+    if settings.DEBUG and settings.AI_OVERVIEW_PROMPT_DEBUG:
         user_message = messages[1]["content"]
 
         def print_prompt_section(label, start_marker, end_marker):
