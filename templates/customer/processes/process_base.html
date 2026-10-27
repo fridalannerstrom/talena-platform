@@ -7892,7 +7892,7 @@ async function initCandidatePurposeFitStream(container = document) {
   const nextStep = container.querySelector("#purposeFitNextStep");
   const contextNote = container.querySelector("#purposeFitContextNote");
   const refreshButton = card.querySelector(".js-regenerate-purpose-fit");
-  const generationUrl = result.dataset.streamUrl;
+  const generationUrl = result.dataset.generationUrl;
   let isGenerating = false;
 
   function setHidden(element, hidden) {
@@ -8074,7 +8074,7 @@ async function initCandidatePurposeFitStream(container = document) {
           || window.TALENA_PROCESS_I18N.couldNotRegenerateAiOverview
         );
       }
-      await generatePurposeFit(data.stream_url || generationUrl);
+      await generatePurposeFit(data.generation_url || generationUrl);
     } catch (error) {
       showError(error.message);
     } finally {
