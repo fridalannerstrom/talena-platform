@@ -953,9 +953,9 @@ def stream_candidate_purpose_fit(
 
         buffer += delta.content
 
-        while "\\n" in buffer:
+        while "\n" in buffer:
             raw_line, buffer = buffer.split(
-                "\\n",
+                "\n",
                 1,
             )
 
