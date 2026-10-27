@@ -442,7 +442,7 @@ def build_purpose_fit_prompt(
     synthesis, interpretation and communication decisions.
 
     Talena protects only input plumbing and the technical
-    streaming/output contract.
+    response/output contract.
     """
 
     language_code = normalize_ai_language(
@@ -621,13 +621,13 @@ The context_note and suggested_next_step events remain governed
 by Talena's existing overall guidance and technical contract.
 
 Do not allow administrator guidance to change Talena's technical
-event structure, required JSON fields or streaming format.
+event structure, required JSON fields or response format.
 
 
 TALENA TECHNICAL OUTPUT CONTRACT
 
 The following requirements exist only so Talena can process,
-stream, save and display the AI Overview.
+save and display the completed AI Overview.
 
 Administrator guidance controls the substantive content inside
 these fields.
@@ -644,7 +644,7 @@ All user-facing text inside the JSON response must use the
 configured output language.
 
 
-STREAMING FORMAT
+RESPONSE FORMAT
 
 Return newline-delimited JSON, also called NDJSON.
 
@@ -872,17 +872,14 @@ def _parse_event_line(
     return event
 
 
-def stream_candidate_purpose_fit(
+def generate_candidate_purpose_fit_events(
     invitation,
     *,
     language_code: str = "en",
 ) -> Iterable[dict[str, Any]]:
     """
-    Stream purpose-fit events from OpenAI.
-
-    Each yielded value is a parsed event dictionary.
-    The view will later convert these dictionaries to NDJSON
-    and send them to the browser.
+    Request the complete AI Overview from OpenAI and yield its parsed events
+    only after the full response has been generated.
     """
 
     if not purpose_supports_fit(invitation.process):
@@ -909,7 +906,7 @@ def stream_candidate_purpose_fit(
 
     prompt = redact_candidate_name(prompt, invitation.candidate)
 
-    stream = client.chat.completions.create(
+    completion = client.chat.completions.create(
         model=get_chat_model(),
         messages=[
             {
@@ -921,7 +918,7 @@ def stream_candidate_purpose_fit(
                     "interpretation and communication decisions. "
                     "Follow Talena's technical output contract exactly, "
                     "including required JSON field names, event types "
-                    "and streaming format. "
+                    "and response format. "
                     f"{system_language_instruction}"
                 ),
             },
@@ -931,37 +928,18 @@ def stream_candidate_purpose_fit(
             },
         ],
         temperature=0.2,
-        stream=True,
+        stream=False,
     )
 
-    buffer = ""
+    response_text = (
+        completion.choices[0].message.content or ""
+    )
 
-    for response_event in stream:
-        delta = response_event.choices[0].delta
+    for raw_line in response_text.splitlines():
+        parsed_event = _parse_event_line(raw_line)
 
-        if not delta or not delta.content:
-            continue
-
-        buffer += delta.content
-
-        while "\n" in buffer:
-            raw_line, buffer = buffer.split(
-                "\n",
-                1,
-            )
-
-            parsed_event = _parse_event_line(
-                raw_line
-            )
-
-            if parsed_event:
-                yield parsed_event
-
-    # Parse the final line if the model did not end with newline.
-    final_event = _parse_event_line(buffer)
-
-    if final_event:
-        yield final_event
+        if parsed_event:
+            yield parsed_event
 
 
 def save_candidate_purpose_fit(
