@@ -96,6 +96,22 @@
         },
       ],
       generated: "AI-genererat",
+      editText: "Redigera text",
+      editDialogTitle: "Redigera text i chefsrapporten",
+      editHelp: "Textändringen gäller bara rapporten och ändrar inte testresultat eller testvärden.",
+      saveEdit: "Spara",
+      cancelEdit: "Avbryt",
+      restoreAiText: "Återställ AI-text",
+      confirmRestoreAiText: "Ta bort den manuella ändringen och visa den senaste AI-texten igen?",
+      manuallyEdited: "Manuellt redigerad",
+      editSaved: "Texten har sparats.",
+      loadingReportEdits: "Hämtar sparade rapportändringar…",
+      reportEditsLoadFailed: "Kunde inte hämta sparade rapportändringar. Rapporten visas inte förrän den sparade texten har lästs in.",
+      retryReportEdits: "Försök igen",
+      editSaveFailed: "Det gick inte att spara ändringen. Försök igen.",
+      editRestoreFailed: "Det gick inte att återställa AI-texten. Försök igen.",
+      editVersionConflict: "Texten har ändrats i en annan session. Stäng och öppna redigeraren igen.",
+      confirmRegenerationWithEdits: "Det här innehållsblocket har manuella ändringar. Om du genererar igen uppdateras AI-texten, men dina sparade ändringar bevaras och fortsätter visas i rapporten. Du kan välja Återställ AI-text i redigeraren för att visa den nya AI-texten. Vill du fortsätta?",
       generatedComplete: "Sammanställning genererad",
       generatedCompleteDescription: "Sammanställningen är klar och övriga flikar är nu tillgängliga.",
       unavailable: "Det här innehållet blir tillgängligt när intervjuunderlaget har sammanställts.",
@@ -190,6 +206,22 @@
         },
       ],
       generated: "AI-generated",
+      editText: "Edit text",
+      editDialogTitle: "Edit manager report text",
+      editHelp: "This change applies only to the report. It does not change assessment results or test values.",
+      saveEdit: "Save",
+      cancelEdit: "Cancel",
+      restoreAiText: "Restore AI text",
+      confirmRestoreAiText: "Remove the manual edit and show the latest AI text again?",
+      manuallyEdited: "Manually edited",
+      editSaved: "Text saved.",
+      loadingReportEdits: "Loading saved report edits…",
+      reportEditsLoadFailed: "Saved report edits could not be loaded. The report will remain hidden until its saved text has been loaded.",
+      retryReportEdits: "Try again",
+      editSaveFailed: "The change could not be saved. Please try again.",
+      editRestoreFailed: "The AI text could not be restored. Please try again.",
+      editVersionConflict: "This text changed in another session. Close and reopen the editor.",
+      confirmRegenerationWithEdits: "This block has manual edits. Regeneration updates the AI text, while your saved edits stay visible in the report. Choose Restore AI text in the editor to show the new AI text. Continue?",
       generatedComplete: "Compilation generated",
       generatedCompleteDescription: "The compilation is ready and the other tabs are now available.",
       unavailable: "This content becomes available when the interview evidence has been compiled.",
@@ -639,6 +671,7 @@
     if (container.dataset.markdownRendered === "true") return;
     const source = (container.textContent || "").replace(/\r\n?/g, "\n").trim();
     if (!source) return;
+    container.dataset.markdownSource = source;
 
     const fragment = document.createDocumentFragment();
     const lines = source.split("\n");
@@ -770,6 +803,330 @@
     return cookie ? decodeURIComponent(cookie.slice("csrftoken=".length)) : "";
   };
 
+  const createManagerReportEditController = (panel, root, workspace) => {
+    const state = {
+      loadUrl: root?.dataset.managerReportEditsUrl || "",
+      saveUrl: root?.dataset.managerReportEditSaveUrl || "",
+      language: "",
+      edits: new Map(),
+      bindings: new Map(),
+      ready: false,
+      statusElement: null,
+      dialog: null,
+    };
+
+    const announce = (message) => {
+      if (!state.statusElement) return;
+      state.statusElement.textContent = message;
+      window.clearTimeout(state.statusTimer);
+      state.statusTimer = window.setTimeout(() => {
+        if (state.statusElement) state.statusElement.textContent = "";
+      }, 4500);
+    };
+
+    const applyBinding = (binding) => {
+      const hasManualEdit = state.edits.has(binding.key);
+      const text = hasManualEdit
+        ? state.edits.get(binding.key).text
+        : binding.aiText;
+      binding.target.classList.remove("after-interview-tab-empty");
+      if (binding.markdown) {
+        binding.target.textContent = text || "";
+        delete binding.target.dataset.markdownRendered;
+        delete binding.target.dataset.markdownSource;
+        if (text) renderGeneratedMarkdown(binding.target);
+      } else {
+        binding.target.textContent = text || "";
+      }
+      if (!hasManualEdit && !String(text || "").trim() && binding.fallback) {
+        binding.target.textContent = binding.fallback;
+        binding.target.classList.add("after-interview-tab-empty");
+      }
+
+      const { toolbar, editButton, badge } = binding.controls;
+      const canEdit = hasManualEdit || Boolean(String(binding.aiText || "").trim());
+      toolbar.hidden = !canEdit;
+      editButton.disabled = !state.ready;
+      editButton.hidden = !canEdit;
+      badge.hidden = !hasManualEdit;
+      binding.target.dataset.managerReportEditKey = binding.key;
+    };
+
+    const setAiText = (key, text) => {
+      const binding = state.bindings.get(key);
+      if (!binding) return;
+      binding.aiText = String(text || "");
+      binding.target.dataset.managerReportAiText = binding.aiText;
+      applyBinding(binding);
+    };
+
+    const postEdit = async (payload) => {
+      if (!state.saveUrl) throw new Error(copy().editSaveFailed);
+      const response = await fetch(state.saveUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          ...payload,
+          language: state.language,
+        }),
+      });
+      let data = {};
+      try { data = await response.json(); } catch (_error) {}
+      if (!response.ok || !data.ok) {
+        if (response.status === 409) throw new Error(copy().editVersionConflict);
+        throw new Error(data.error || copy().editSaveFailed);
+      }
+      return data;
+    };
+
+    const ensureDialog = () => {
+      if (state.dialog) return state.dialog;
+      const dialog = document.createElement("dialog");
+      dialog.className = "after-interview-manager-report__edit-dialog";
+      dialog.setAttribute("aria-labelledby", "manager-report-edit-title");
+      dialog.setAttribute("aria-describedby", "manager-report-edit-help");
+
+      const heading = document.createElement("h2");
+      heading.id = "manager-report-edit-title";
+      heading.className = "after-interview-manager-report__edit-title";
+      heading.textContent = copy().editDialogTitle;
+      const help = document.createElement("p");
+      help.id = "manager-report-edit-help";
+      help.className = "after-interview-manager-report__edit-help";
+      help.textContent = copy().editHelp;
+      const label = document.createElement("label");
+      label.className = "after-interview-manager-report__edit-label";
+      label.textContent = copy().editDialogTitle;
+      const textarea = document.createElement("textarea");
+      textarea.className = "form-control after-interview-manager-report__edit-textarea";
+      textarea.maxLength = 30000;
+      textarea.rows = 12;
+      textarea.autocomplete = "off";
+      textarea.setAttribute("aria-label", copy().editDialogTitle);
+      const error = document.createElement("div");
+      error.className = "alert alert-danger d-none mt-3 mb-0";
+      error.setAttribute("role", "alert");
+      const actions = document.createElement("div");
+      actions.className = "after-interview-manager-report__edit-actions";
+      const restoreButton = document.createElement("button");
+      restoreButton.type = "button";
+      restoreButton.className = "btn btn-outline-secondary me-auto";
+      restoreButton.textContent = copy().restoreAiText;
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "btn btn-light";
+      cancelButton.textContent = copy().cancelEdit;
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.className = "btn btn-primary";
+      saveButton.textContent = copy().saveEdit;
+      actions.append(restoreButton, cancelButton, saveButton);
+      dialog.append(heading, help, label, textarea, error, actions);
+      panel.appendChild(dialog);
+
+      let activeBinding = null;
+      let opener = null;
+      const closeDialog = () => {
+        if (dialog.open) dialog.close();
+      };
+      dialog.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        closeDialog();
+      });
+      dialog.addEventListener("close", () => {
+        error.textContent = "";
+        error.classList.add("d-none");
+        if (opener?.isConnected) opener.focus();
+        activeBinding = null;
+      });
+      cancelButton.addEventListener("click", closeDialog);
+      saveButton.addEventListener("click", async () => {
+        if (!activeBinding || saveButton.disabled) return;
+        const binding = activeBinding;
+        const current = state.edits.get(binding.key);
+        saveButton.disabled = true;
+        restoreButton.disabled = true;
+        cancelButton.disabled = true;
+        error.classList.add("d-none");
+        try {
+          const data = await postEdit({
+            action: "save",
+            block_key: binding.key,
+            expected_version: current?.version || 0,
+            text: textarea.value,
+          });
+          state.edits.set(binding.key, data.edit);
+          applyBinding(binding);
+          announce(copy().editSaved);
+          closeDialog();
+        } catch (saveError) {
+          error.textContent = saveError.message || copy().editSaveFailed;
+          error.classList.remove("d-none");
+        } finally {
+          saveButton.disabled = false;
+          restoreButton.disabled = false;
+          cancelButton.disabled = false;
+        }
+      });
+      restoreButton.addEventListener("click", async () => {
+        if (!activeBinding || restoreButton.disabled) return;
+        const binding = activeBinding;
+        const current = state.edits.get(binding.key);
+        if (!current || !window.confirm(copy().confirmRestoreAiText)) return;
+        saveButton.disabled = true;
+        restoreButton.disabled = true;
+        cancelButton.disabled = true;
+        error.classList.add("d-none");
+        try {
+          await postEdit({
+            action: "restore_ai",
+            block_key: binding.key,
+            expected_version: current.version,
+          });
+          state.edits.delete(binding.key);
+          applyBinding(binding);
+          announce(copy().editSaved);
+          closeDialog();
+        } catch (restoreError) {
+          error.textContent = restoreError.message || copy().editRestoreFailed;
+          error.classList.remove("d-none");
+        } finally {
+          saveButton.disabled = false;
+          restoreButton.disabled = false;
+          cancelButton.disabled = false;
+        }
+      });
+
+      state.dialog = {
+        element: dialog,
+        textarea,
+        error,
+        restoreButton,
+        open(binding) {
+          if (!state.ready) return;
+          activeBinding = binding;
+          opener = binding.controls.editButton;
+          const current = state.edits.get(binding.key);
+          const fieldLabel = binding.label || copy().editDialogTitle;
+          heading.textContent = copy().editDialogTitle + " · " + fieldLabel;
+          label.textContent = fieldLabel;
+          textarea.setAttribute("aria-label", fieldLabel);
+          textarea.value = current ? current.text : binding.aiText;
+          restoreButton.hidden = !current;
+          error.textContent = "";
+          error.classList.add("d-none");
+          dialog.showModal();
+          textarea.focus();
+        },
+      };
+      return state.dialog;
+    };
+
+    const register = (target, key, options = {}) => {
+      const binding = {
+        target,
+        key,
+        label: String(options.label || copy().editDialogTitle),
+        aiText: String(options.aiText || ""),
+        fallback: String(options.fallback || ""),
+        markdown: options.markdown === true,
+        controls: null,
+      };
+      const toolbar = document.createElement("span");
+      toolbar.className = "after-interview-manager-report__edit-controls";
+      const badge = document.createElement("span");
+      badge.className = "after-interview-manager-report__edited-badge";
+      badge.textContent = copy().manuallyEdited;
+      badge.setAttribute("role", "status");
+      badge.hidden = true;
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "btn btn-icon btn-light after-interview-manager-report__edit-button";
+      editButton.title = copy().editText;
+      editButton.setAttribute("aria-label", copy().editText + ": " + binding.label);
+      editButton.disabled = true;
+      editButton.innerHTML = '<i data-feather="edit-2" aria-hidden="true"></i>';
+      editButton.addEventListener("click", () => ensureDialog().open(binding));
+      toolbar.append(badge, editButton);
+      binding.controls = { toolbar, badge, editButton };
+      target.dataset.managerReportAiText = binding.aiText;
+      target.dataset.managerReportEditKey = key;
+      state.bindings.set(key, binding);
+      applyBinding(binding);
+      return toolbar;
+    };
+
+    const load = async () => {
+      if (!state.loadUrl) throw new Error(copy().reportEditsLoadFailed);
+      const response = await fetch(state.loadUrl, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        credentials: "same-origin",
+      });
+      let data = {};
+      try { data = await response.json(); } catch (_error) {}
+      if (!response.ok || !data.ok || !["sv", "en"].includes(data.language)) {
+        throw new Error(data.error || copy().reportEditsLoadFailed);
+      }
+      state.language = data.language;
+      state.edits = new Map((data.edits || []).map((edit) => [edit.block_key, edit]));
+      state.ready = true;
+      state.bindings.forEach(applyBinding);
+      return data;
+    };
+
+    if (workspace) {
+      workspace._talenaManagerReportEditController = {
+        state,
+        setAiText,
+      };
+      if (workspace.dataset.managerReportEditConfirmationBound !== "true") {
+        workspace.dataset.managerReportEditConfirmationBound = "true";
+        workspace.addEventListener("click", (event) => {
+          const controller = workspace._talenaManagerReportEditController;
+          const currentState = controller?.state;
+          const trigger = event.target.closest?.(
+            "[data-after-interview-regenerate], [data-personality-ai-regenerate], [data-post-interview-generate]"
+          );
+          if (!trigger || !currentState) return;
+          if (!currentState.ready) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return;
+          }
+          const blockKey = trigger.dataset.afterInterviewRegenerate || "";
+          const hasEditedBlock = blockKey && currentState.edits.has(blockKey);
+          const isPersonalityRegeneration =
+            trigger.hasAttribute("data-personality-ai-regenerate")
+            && [...currentState.edits.keys()].some((key) => key.startsWith("personality:"));
+          const isFullRegeneration =
+            trigger.hasAttribute("data-post-interview-generate")
+            && currentState.edits.size > 0;
+          if (
+            (hasEditedBlock || isPersonalityRegeneration || isFullRegeneration)
+            && !window.confirm(copy().confirmRegenerationWithEdits)
+          ) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+      }
+    }
+
+    return {
+      state,
+      register,
+      load,
+      setAiText,
+      announce,
+      applyAll: () => state.bindings.forEach(applyBinding),
+    };
+  };
+
   const generateContentBlock = async (panel, blockKey, body, error, button) => {
     if (button.disabled) return;
     const root = panel.closest("[data-final-output-root]");
@@ -780,14 +1137,25 @@
       return;
     }
 
-    const previousText = body.textContent || "";
+    const editController = panel.closest("[data-candidate-insights-workspace]")
+      ?._talenaManagerReportEditController;
+    const editState = editController?.state;
+    const binding = editState?.bindings.get(blockKey);
+    const preserveManualEdit = editState?.edits.has(blockKey) === true;
+    const previousText = binding?.aiText
+      ?? body.dataset.markdownSource
+      ?? body.textContent
+      ?? "";
     error.classList.add("d-none");
     button.disabled = true;
     button.setAttribute("aria-busy", "true");
     button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-    body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
-    delete body.dataset.markdownRendered;
-    body.replaceChildren();
+    if (!preserveManualEdit) {
+      body.classList.remove("after-interview-tab-empty", "after-interview-rich-text");
+      delete body.dataset.markdownRendered;
+      delete body.dataset.markdownSource;
+      body.replaceChildren();
+    }
 
     try {
       const startUrl = new URL(regenerateUrl, window.location.origin);
@@ -825,7 +1193,7 @@
         const event = JSON.parse(line);
         if (event.type === "content_block_delta" && event.block === blockKey) {
           received += event.text || "";
-          body.textContent = received;
+          if (!preserveManualEdit) body.textContent = received;
         } else if (event.type === "content_block_error" && event.block === blockKey) {
           throw new Error(event.message || copy().sectionGenerationFailed);
         }
@@ -843,18 +1211,24 @@
       if (buffer.trim()) handleLine(buffer);
       if (!received.trim()) throw new Error(copy().sectionGenerationFailed);
 
-      delete body.dataset.markdownRendered;
-      renderGeneratedMarkdown(body);
-      button.title = copy().regenerateSection;
-      button.setAttribute("aria-label", copy().regenerateSection);
-    } catch (generationError) {
-      body.textContent = previousText;
-      if (!previousText.trim()) {
-        body.classList.add("after-interview-tab-empty");
-        body.textContent = copy().unavailable;
+      if (editController?.setAiText) {
+        editController.setAiText(blockKey, received);
       } else {
         delete body.dataset.markdownRendered;
         renderGeneratedMarkdown(body);
+      }
+      button.title = copy().regenerateSection;
+      button.setAttribute("aria-label", copy().regenerateSection);
+    } catch (generationError) {
+      if (!preserveManualEdit) {
+        body.textContent = previousText;
+        if (!previousText.trim()) {
+          body.classList.add("after-interview-tab-empty");
+          body.textContent = copy().unavailable;
+        } else {
+          delete body.dataset.markdownRendered;
+          renderGeneratedMarkdown(body);
+        }
       }
       error.textContent = generationError.message || copy().sectionGenerationFailed;
       error.classList.remove("d-none");
@@ -976,6 +1350,8 @@
         body.manager-report-printing .after-interview-tab-panel:not([data-after-interview-tab-panel="managerReport"]) { display: none !important; }
         body.manager-report-printing .after-interview-tab-panel[data-after-interview-tab-panel="managerReport"] { display: block !important; position: absolute; inset: 0; width: 100%; }
         body.manager-report-printing .after-interview-manager-report__actions { display: none !important; }
+        body.manager-report-printing .after-interview-manager-report__edit-button,
+        body.manager-report-printing .after-interview-manager-report__edit-dialog { display: none !important; }
         body.manager-report-printing .after-interview-manager-report__guide { display: block; }
         body.manager-report-printing .after-interview-manager-report__guide > * { display: block !important; }
         body.manager-report-printing .after-interview-manager-report { border: 0 !important; padding: 0 !important; }
@@ -985,6 +1361,58 @@
       }
       __PANEL__ .after-interview-manager-report__actions {
         display: flex; align-items: center; gap: .6rem; flex: 0 0 auto; flex-wrap: wrap;
+      }
+      __PANEL__ .after-interview-manager-report__personality-part-header {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem;
+      }
+      __PANEL__ .after-interview-manager-report__edit-controls {
+        display: inline-flex; align-items: center; justify-content: flex-end; gap: .4rem;
+        flex: 0 0 auto;
+      }
+      __PANEL__ .after-interview-manager-report__edit-controls[hidden],
+      __PANEL__ .after-interview-manager-report__edit-button[hidden] { display: none !important; }
+      __PANEL__ .after-interview-manager-report__edit-button {
+        width: 2rem; height: 2rem; min-width: 2rem; padding: 0;
+        color: var(--talena-text-muted, #766e68);
+      }
+      __PANEL__ .after-interview-manager-report__edit-button:hover,
+      __PANEL__ .after-interview-manager-report__edit-button:focus-visible {
+        color: var(--talena-ink, #191817); border-color: var(--talena-coral, #ff6f61);
+      }
+      __PANEL__ .after-interview-manager-report__edited-badge {
+        padding: .2rem .48rem; border: 1px solid #ead6c5; border-radius: 999px;
+        background: #fff7ee; color: #735036; font-size: .64rem; font-weight: 700;
+        line-height: 1.4; white-space: nowrap;
+      }
+      __PANEL__ .after-interview-manager-report__edit-dialog {
+        width: min(700px, calc(100vw - 2rem)); max-height: min(90vh, 900px);
+        margin: auto; padding: 1.35rem; border: 1px solid var(--talena-border, #e5dfd8);
+        border-radius: 16px; background: #fff; color: var(--talena-ink, #191817);
+        box-shadow: 0 1.5rem 4rem rgba(25, 24, 23, .2);
+      }
+      __PANEL__ .after-interview-manager-report__edit-dialog::backdrop {
+        background: rgba(25, 24, 23, .48);
+      }
+      __PANEL__ .after-interview-manager-report__edit-title {
+        margin: 0 0 .5rem; font-size: 1.15rem; font-weight: 750;
+      }
+      __PANEL__ .after-interview-manager-report__edit-help {
+        margin: 0 0 1rem; color: var(--talena-text-muted, #766e68);
+        font-size: .82rem; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__edit-label {
+        display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700;
+      }
+      __PANEL__ .after-interview-manager-report__edit-textarea {
+        min-height: 16rem; max-height: 55vh; resize: vertical; line-height: 1.55;
+      }
+      __PANEL__ .after-interview-manager-report__edit-actions {
+        display: flex; align-items: center; justify-content: flex-end; gap: .55rem; margin-top: 1rem;
+      }
+      @media (max-width: 575px) {
+        __PANEL__ .after-interview-manager-report__edit-dialog { padding: 1rem; }
+        __PANEL__ .after-interview-manager-report__edit-actions { flex-wrap: wrap; }
+        __PANEL__ .after-interview-manager-report__edit-actions .me-auto { margin-right: 0 !important; }
       }
       __PANEL__ .after-interview-manager-report__skills { margin-top: 1.6rem; }
       __PANEL__ .after-interview-manager-report__skills-title {
@@ -1321,6 +1749,7 @@
     );
     const managerReportCard = document.createElement("section");
     managerReportCard.className = "after-interview-tab-card after-interview-manager-report";
+    managerReportCard.hidden = true;
     const managerReportHeader = document.createElement("div");
     managerReportHeader.className = "after-interview-manager-report__header";
     const managerReportHeading = document.createElement("h3");
@@ -1332,6 +1761,7 @@
     const pdfButton = document.createElement("button");
     pdfButton.type = "button";
     pdfButton.className = "btn btn-outline-primary d-inline-flex align-items-center gap-2";
+    pdfButton.disabled = true;
     pdfButton.setAttribute("aria-label", copy().savePdf);
     const pdfIcon = document.createElement("i");
     pdfIcon.setAttribute("data-feather", "download");
@@ -1365,6 +1795,20 @@
     managerSkills.appendChild(managerSkillsTitle);
 
     const workspace = panel.closest("[data-candidate-insights-workspace]");
+    const managerReportEditController = createManagerReportEditController(
+      panel,
+      outputRoot,
+      workspace,
+    );
+    const managerReportEditsReady = managerReportEditController.load()
+      .then(() => ({ ok: true }))
+      .catch((error) => ({ ok: false, error }));
+    const managerReportEditStatus = document.createElement("span");
+    managerReportEditStatus.className = "visually-hidden";
+    managerReportEditStatus.setAttribute("role", "status");
+    managerReportEditStatus.setAttribute("aria-live", "polite");
+    managerReportEditController.state.statusElement = managerReportEditStatus;
+    managerReportCard.appendChild(managerReportEditStatus);
     const skillNodes = [
       ...(workspace?.querySelectorAll(
         '#candidate-insights-panel-cognitive [data-manager-skill-key][data-manager-skill-result]'
@@ -1664,10 +2108,8 @@
     }
     managerPersonality.appendChild(managerPersonalityTitle);
     const renderPersonalityText = (theme, part, text) => {
-      const target = managerPersonality.querySelector(
-        '[data-manager-personality-text="' + theme + ':' + part + '"]'
-      );
-      if (target) target.textContent = text || personalityFallbacks[part];
+      const key = "personality:" + theme + ":" + part;
+      managerReportEditController.setAiText(key, text || "");
       updateManagerReportGenerateLabel();
     };
 
@@ -1692,9 +2134,23 @@
         const text = document.createElement("p");
         text.className = "after-interview-manager-report__personality-part-text";
         text.dataset.managerPersonalityText = theme.key + ":" + part.key;
-        text.textContent = personalityRoot?.dataset[datasetKeyFor(theme.key, part.key)]
-          || personalityFallbacks[part.key];
-        content.append(heading, text);
+        const aiText = String(
+          personalityRoot?.dataset[datasetKeyFor(theme.key, part.key)] || ""
+        );
+        text.textContent = aiText || personalityFallbacks[part.key];
+        const editControls = managerReportEditController.register(
+          text,
+          "personality:" + theme.key + ":" + part.key,
+          {
+            aiText,
+            fallback: personalityFallbacks[part.key],
+            label: theme.title + " · " + part.title,
+          },
+        );
+        const contentHeader = document.createElement("div");
+        contentHeader.className = "after-interview-manager-report__personality-part-header";
+        contentHeader.append(heading, editControls);
+        content.append(contentHeader, text);
         parts.appendChild(content);
       });
       themeCard.append(themeTitle, parts);
@@ -1728,7 +2184,23 @@
     managerAdviceRegenerate.setAttribute("aria-label", managerAdviceRegenerate.title);
     managerAdviceRegenerate.dataset.afterInterviewRegenerate = "wellbeing_tips";
     managerAdviceRegenerate.innerHTML = '<i data-feather="refresh-cw"></i>';
-    managerAdviceHeader.append(managerAdviceTitle, managerAdviceRegenerate);
+    const managerAdviceEditControls = managerReportEditController.register(
+      managerAdviceBody,
+      "wellbeing_tips",
+      {
+        label: copy().managerPersonalityAdviceTitle,
+        aiText: hasManagerAdviceText
+          ? String(managerAdviceBody.dataset.markdownSource || managerAdviceBody.textContent || "")
+          : "",
+        fallback: hasManagerAdviceText ? "" : copy().unavailable,
+        markdown: true,
+      },
+    );
+    managerAdviceHeader.append(
+      managerAdviceTitle,
+      managerAdviceRegenerate,
+      managerAdviceEditControls,
+    );
     managerAdvice.append(managerAdviceHeader, managerAdviceBody, managerAdviceError);
     managerPersonality.appendChild(managerAdvice);
     managerAdviceRegenerate.addEventListener("click", () =>
@@ -1745,7 +2217,47 @@
     if (personalityRoot) {
       managerReportCard.appendChild(managerPersonality);
     }
-    panels.get("managerReport").appendChild(managerReportCard);
+    const managerReportEditsLoading = document.createElement("div");
+    managerReportEditsLoading.className = "text-center text-muted py-4";
+    managerReportEditsLoading.setAttribute("role", "status");
+    managerReportEditsLoading.setAttribute("aria-live", "polite");
+    const managerReportEditsLoadingText = document.createElement("p");
+    managerReportEditsLoadingText.className = "mb-2";
+    managerReportEditsLoadingText.textContent = copy().loadingReportEdits;
+    const managerReportEditsRetry = document.createElement("button");
+    managerReportEditsRetry.type = "button";
+    managerReportEditsRetry.className = "btn btn-outline-secondary btn-sm";
+    managerReportEditsRetry.textContent = copy().retryReportEdits;
+    managerReportEditsRetry.hidden = true;
+    managerReportEditsLoading.append(managerReportEditsLoadingText, managerReportEditsRetry);
+    panels.get("managerReport").append(managerReportEditsLoading, managerReportCard);
+
+    const revealManagerReport = () => {
+      managerReportEditController.applyAll();
+      managerReportEditsLoading.hidden = true;
+      managerReportCard.hidden = false;
+      pdfButton.disabled = false;
+      if (window.feather) window.feather.replace();
+    };
+    const showManagerReportLoadError = () => {
+      managerReportEditsLoadingText.textContent = copy().reportEditsLoadFailed;
+      managerReportEditsRetry.hidden = false;
+      managerReportEditsRetry.disabled = false;
+    };
+    managerReportEditsReady.then((result) => {
+      if (result.ok) revealManagerReport();
+      else showManagerReportLoadError();
+    });
+    managerReportEditsRetry.addEventListener("click", async () => {
+      managerReportEditsRetry.disabled = true;
+      managerReportEditsLoadingText.textContent = copy().loadingReportEdits;
+      try {
+        await managerReportEditController.load();
+        revealManagerReport();
+      } catch (_error) {
+        showManagerReportLoadError();
+      }
+    });
 
     const evidenceCard = document.createElement("section");
     evidenceCard.className = "after-interview-tab-card after-interview-evidence-card";

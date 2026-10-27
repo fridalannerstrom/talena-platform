@@ -5,6 +5,7 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Max
 from django.http import (
     HttpResponseForbidden,
@@ -17,7 +18,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .interview_note_privacy import contains_interview_note_personal_data
-from .interview_question_models import InterviewQuestionNote
+from .access_control import process_edit_access_required, process_view_access_required
+from .interview_question_models import (
+    InterviewQuestionNote,
+    ManagerReportTextEdit,
+    ManagerReportTextEditEvent,
+)
 from .models import (
     HistoricalProcessCandidate,
     TestInvitation,
@@ -41,6 +47,210 @@ QUESTION_SOURCES = {
         "ai_cognitive_interpretation",
     ),
 }
+
+MANAGER_REPORT_TEXT_MAX_LENGTH = 30000
+MANAGER_REPORT_PERSONALITY_THEMES = {
+    "leading_and_working_with_others",
+    "organising_and_thinking_patterns",
+    "interaction_and_emotion_management",
+}
+MANAGER_REPORT_PERSONALITY_PARTS = {"testbild", "candidate_describes"}
+
+
+def manager_report_edit_block_is_allowed(block_key: str) -> bool:
+    if block_key == "wellbeing_tips":
+        return True
+
+    parts = str(block_key or "").split(":")
+    return (
+        len(parts) == 3
+        and parts[0] == "personality"
+        and parts[1] in MANAGER_REPORT_PERSONALITY_THEMES
+        and parts[2] in MANAGER_REPORT_PERSONALITY_PARTS
+    )
+
+
+def _manager_report_ai_text(owner, block_key: str) -> str:
+    if block_key == "wellbeing_tips":
+        result = owner.ai_post_interview_decision_support or {}
+        return str(
+            ((result.get("content_blocks") or {}).get("wellbeing_tips")) or ""
+        )
+
+    _prefix, theme, part = block_key.split(":")
+    result = owner.ai_personality_interpretation or {}
+    report = result.get("manager_report_personality") or {}
+    return str(((report.get(theme) or {}).get(part)) or "")
+
+
+def _manager_report_source_generated_at(owner, block_key: str):
+    if block_key == "wellbeing_tips":
+        return owner.ai_post_interview_decision_support_generated_at
+    return owner.ai_personality_interpretation_generated_at
+
+
+def _serialize_manager_report_text_edit(edit: ManagerReportTextEdit) -> dict:
+    return {
+        "block_key": edit.block_key,
+        "text": edit.text,
+        "version": edit.version,
+        "updated_at": edit.updated_at.isoformat(),
+    }
+
+
+@login_required
+@process_view_access_required
+@require_GET
+def process_candidate_manager_report_text_edits(request, process_id, candidate_id):
+    process = get_object_or_404(TestProcess, pk=process_id)
+    owner = get_candidate_question_owner(process, candidate_id)
+    from apps.core.ai.language import get_request_ai_language
+
+    language_code = get_request_ai_language(request)
+    edits = (
+        ManagerReportTextEdit.objects
+        .filter(
+            process=process,
+            candidate=owner.candidate,
+            language_code=language_code,
+        )
+        .order_by("block_key")
+    )
+    response = JsonResponse({
+        "ok": True,
+        "language": language_code,
+        "edits": [
+            _serialize_manager_report_text_edit(edit)
+            for edit in edits
+        ],
+    })
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+@login_required
+@process_edit_access_required
+@require_POST
+def process_candidate_manager_report_text_edit_update(
+    request,
+    process_id,
+    candidate_id,
+):
+    process = get_object_or_404(TestProcess, pk=process_id)
+    owner = get_candidate_question_owner(process, candidate_id)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "Invalid JSON payload."}, status=400)
+
+    block_key = str(payload.get("block_key") or "").strip()
+    if not manager_report_edit_block_is_allowed(block_key):
+        return JsonResponse({"error": "This report block cannot be edited."}, status=400)
+
+    from apps.core.ai.language import get_request_ai_language
+
+    language_code = str(payload.get("language") or "").strip().lower()
+    if language_code not in {"sv", "en"} or language_code != get_request_ai_language(request):
+        return JsonResponse({"error": "The report language does not match this page."}, status=400)
+
+    action = str(payload.get("action") or "save").strip().lower()
+    if action not in {"save", "restore_ai"}:
+        return JsonResponse({"error": "Unknown edit action."}, status=400)
+
+    expected_version = payload.get("expected_version")
+    if isinstance(expected_version, bool) or not isinstance(expected_version, int) or expected_version < 0:
+        return JsonResponse({"error": "A valid edit version is required."}, status=400)
+
+    text = payload.get("text", "")
+    if action == "save":
+        if not isinstance(text, str):
+            return JsonResponse({"error": "Report text must be plain text."}, status=400)
+        if len(text) > MANAGER_REPORT_TEXT_MAX_LENGTH:
+            return JsonResponse(
+                {"error": "Report text may not exceed 30,000 characters."},
+                status=400,
+            )
+
+    lookup = {
+        "process": process,
+        "candidate": owner.candidate,
+        "block_key": block_key,
+        "language_code": language_code,
+    }
+    with transaction.atomic():
+        owner = type(owner).objects.select_for_update().get(pk=owner.pk)
+        edit = ManagerReportTextEdit.objects.select_for_update().filter(**lookup).first()
+        current_version = edit.version if edit else 0
+        if expected_version != current_version:
+            response = JsonResponse(
+                {
+                    "error": "This text was changed in another session. Refresh and try again.",
+                    "edit": _serialize_manager_report_text_edit(edit) if edit else None,
+                },
+                status=409,
+            )
+            response["Cache-Control"] = "private, no-store"
+            return response
+
+        if action == "restore_ai":
+            if edit is None:
+                response = JsonResponse({"ok": True, "restored": False, "edit": None})
+            else:
+                ManagerReportTextEditEvent.objects.create(
+                    process=process,
+                    candidate=owner.candidate,
+                    actor=request.user,
+                    block_key=block_key,
+                    language_code=language_code,
+                    action=ManagerReportTextEditEvent.Action.RESTORED_AI,
+                    version=edit.version,
+                    source_generated_at=_manager_report_source_generated_at(owner, block_key),
+                )
+                edit.delete()
+                response = JsonResponse({"ok": True, "restored": True, "edit": None})
+            response["Cache-Control"] = "private, no-store"
+            return response
+
+        if edit is None and not _manager_report_ai_text(owner, block_key).strip():
+            return JsonResponse(
+                {"error": "This report block has no generated text to edit yet."},
+                status=409,
+            )
+
+        if edit is None:
+            edit = ManagerReportTextEdit.objects.create(
+                **lookup,
+                text=text,
+                version=1,
+                updated_by=request.user,
+            )
+        else:
+            edit.text = text
+            edit.version += 1
+            edit.updated_by = request.user
+            edit.save(update_fields=["text", "version", "updated_by", "updated_at"])
+
+        ManagerReportTextEditEvent.objects.create(
+            process=process,
+            candidate=owner.candidate,
+            actor=request.user,
+            block_key=block_key,
+            language_code=language_code,
+            action=ManagerReportTextEditEvent.Action.SAVED,
+            version=edit.version,
+            source_generated_at=_manager_report_source_generated_at(owner, block_key),
+        )
+
+    response = JsonResponse({
+        "ok": True,
+        "edit": _serialize_manager_report_text_edit(edit),
+    })
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 def normalize_question_text(value) -> str:
@@ -900,3 +1110,4 @@ def process_candidate_post_interview_decision_support_regenerate_with_evidence(
         stream_url += "?force=1"
 
     return JsonResponse({"ok": True, "stream_url": stream_url})
+

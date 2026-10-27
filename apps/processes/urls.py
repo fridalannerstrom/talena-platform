@@ -12,6 +12,8 @@ from .automatic_invitations import (
     process_automatic_invitation_setting,
 )
 from .interview_question_notes import (
+    process_candidate_manager_report_text_edit_update,
+    process_candidate_manager_report_text_edits,
     process_candidate_interview_question_note_update,
     process_candidate_interview_question_notes,
     process_candidate_post_interview_decision_support_regenerate_with_evidence,
@@ -250,6 +252,22 @@ urlpatterns = [
     path(
         (
             "<int:process_id>/candidates/"
+            "<int:candidate_id>/manager-report-text-edits/"
+        ),
+        process_candidate_manager_report_text_edits,
+        name="process_candidate_manager_report_text_edits",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
+            "<int:candidate_id>/manager-report-text-edits/update/"
+        ),
+        process_candidate_manager_report_text_edit_update,
+        name="process_candidate_manager_report_text_edit_update",
+    ),
+    path(
+        (
+            "<int:process_id>/candidates/"
             "<int:candidate_id>/"
             "post-interview-decision-support/stream/"
         ),
@@ -354,3 +372,4 @@ for pattern in urlpatterns:
         pattern.callback = process_edit_access_required(pattern.callback)
     elif pattern.name in _PROCESS_VIEW_ROUTE_NAMES:
         pattern.callback = process_view_access_required(pattern.callback)
+
