@@ -190,12 +190,14 @@
       ],
       "status": "active",
       "data": [
-        "personality/motivation/cognitive assessment evidence",
-        "role/process purpose or requirements",
+        "personality indicators and STEN results with approved interpretations",
+        "top-three motivation factors with precise STIVE and approved localized interpretations",
+        "cognitive percentiles with approved reference-group interpretations",
+        "process purpose/context",
         "admin prompt guidance"
       ],
       "freetext": true,
-      "comment": "Streaming."
+      "comment": "Streaming; no interview notes; candidate name is pseudonymised before the SDK call."
     },
     {
       "path": "apps/core/ai/response_style_guidance.py",

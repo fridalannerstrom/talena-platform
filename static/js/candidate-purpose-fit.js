@@ -610,11 +610,6 @@
               const event =
                 JSON.parse(line);
 
-              console.log(
-                "[PURPOSE FIT] Event:",
-                event
-              );
-
               applyStreamEvent(
                 event
               );
