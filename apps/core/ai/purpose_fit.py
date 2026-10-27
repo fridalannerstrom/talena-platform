@@ -3,13 +3,13 @@ from __future__ import annotations
 from .candidate_name_privacy import redact_candidate_name
 
 import json
+import re
 from typing import Any, Iterable
 
 from .shared_context import (
     build_shared_ai_context,
     get_process_purpose_key,
 )
-from django.conf import settings
 from django.utils import timezone
 
 from .openai_client import get_openai_client, get_chat_model
@@ -678,6 +678,12 @@ They do not control the substantive AI Overview.
 
 2. OVERALL INTERPRETATION
 
+Unless administrator guidance explicitly requests a different length,
+the combined text across all summary_delta events must contain 90 to
+140 words. Treat this length as a requirement, not a suggestion. The
+short example value below demonstrates JSON structure only; do not
+imitate its length.
+
 Return the overall interpretation using one or more
 summary_delta events:
 
@@ -873,6 +879,48 @@ def _parse_event_line(
     return event
 
 
+def _parse_event_lines(response_text: str) -> list[dict[str, Any]]:
+    events = []
+
+    for raw_line in response_text.splitlines():
+        parsed_event = _parse_event_line(raw_line)
+        if parsed_event:
+            events.append(parsed_event)
+
+    return events
+
+
+def _summary_word_count(events: list[dict[str, Any]]) -> int:
+    summary_text = "".join(
+        str(event.get("text") or "")
+        for event in events
+        if event.get("type") == "summary_delta"
+    )
+    return len(re.findall(r"\\b[\\w]+(?:[-’'][\\w]+)*\\b", summary_text))
+
+
+def _replace_summary_events(
+    events: list[dict[str, Any]],
+    summary_text: str,
+) -> list[dict[str, Any]]:
+    updated_events = []
+    replaced = False
+
+    for event in events:
+        if event.get("type") == "summary_delta":
+            if not replaced:
+                updated_events.append({
+                    "type": "summary_delta",
+                    "text": summary_text,
+                })
+                replaced = True
+            continue
+
+        updated_events.append(event)
+
+    return updated_events if replaced else events
+
+
 def generate_candidate_purpose_fit_events(
     invitation,
     *,
@@ -928,61 +976,6 @@ def generate_candidate_purpose_fit_events(
         },
     ]
 
-    # TEMPORARY AI OVERVIEW PROMPT DIAGNOSTIC. Remove after inspection.
-    # Requires explicit opt-in and exact candidate/process ID matches.
-    # Prints evidence sections only; never candidate name or process context.
-    debug_candidate_id = settings.AI_OVERVIEW_PROMPT_DEBUG_CANDIDATE_ID
-    debug_process_id = settings.AI_OVERVIEW_PROMPT_DEBUG_PROCESS_ID
-    should_log_prompt = (
-        settings.AI_OVERVIEW_PROMPT_DEBUG
-        and bool(debug_candidate_id)
-        and bool(debug_process_id)
-        and str(invitation.candidate_id) == debug_candidate_id
-        and str(invitation.process_id) == debug_process_id
-    )
-
-    if should_log_prompt:
-        user_message = messages[1]["content"]
-
-        def print_prompt_section(label, start_marker, end_marker):
-            section_start = user_message.find(start_marker)
-            print(f"\n[AI OVERVIEW DEBUG] {label}")
-            if section_start < 0:
-                print("Section not found.")
-                return
-
-            section_end = user_message.find(
-                end_marker,
-                section_start + len(start_marker),
-            )
-            if section_end < 0:
-                print("Section end marker not found; omitted from debug output.")
-            else:
-                print(user_message[section_start:section_end])
-
-        print_prompt_section(
-            "MOTIVATION EVIDENCE",
-            "TOP THREE MOTIVATION INTERPRETATION TEXTS",
-            "\n\nCOGNITIVE INTERPRETATION TEXTS",
-        )
-        print_prompt_section(
-            "COGNITIVE EVIDENCE",
-            "COGNITIVE INTERPRETATION TEXTS",
-            "\n\nINTERVIEW NOTES",
-        )
-        print_prompt_section(
-            "PERSONALITY EVIDENCE",
-            "APPROVED PERSONALITY AND INDICATOR INTERPRETATION TEXTS",
-            "\n\nADMINISTRATOR AI GUIDANCE",
-        )
-        print_prompt_section(
-            "ADMINISTRATOR GUIDANCE",
-            "OVERALL INTERPRETATION GUIDANCE",
-            "\n\nWHAT SUPPORTS THE PURPOSE GUIDANCE",
-        )
-
-        print("\n[AI OVERVIEW DEBUG] SYSTEM GUIDANCE")
-        print(messages[0]["content"])
 
     completion = client.chat.completions.create(
         model=get_chat_model(),
@@ -994,12 +987,57 @@ def generate_candidate_purpose_fit_events(
     response_text = (
         completion.choices[0].message.content or ""
     )
+    events = _parse_event_lines(response_text)
 
-    for raw_line in response_text.splitlines():
-        parsed_event = _parse_event_line(raw_line)
+    if (
+        any(event.get("type") == "summary_delta" for event in events)
+        and _summary_word_count(events) < 90
+    ):
+        repair_messages = messages + [
+            {
+                "role": "assistant",
+                "content": response_text,
+            },
+            {
+                "role": "user",
+                "content": (
+                    "The combined overall interpretation is below the "
+                    "required 90-word minimum. Expand only the overall "
+                    "interpretation to 90–140 words, using the assessment "
+                    "evidence and administrator guidance already provided. "
+                    "Do not invent facts or repeat the later point lists. "
+                    "Return exactly one valid NDJSON summary_delta object "
+                    "and no other output."
+                ),
+            },
+        ]
+        repair_completion = client.chat.completions.create(
+            model=get_chat_model(),
+            messages=repair_messages,
+            temperature=0.2,
+            stream=False,
+            max_tokens=500,
+        )
+        repair_text = (
+            repair_completion.choices[0].message.content or ""
+        )
+        repair_events = _parse_event_lines(repair_text)
+        repaired_summary = "".join(
+            str(event.get("text") or "")
+            for event in repair_events
+            if event.get("type") == "summary_delta"
+        )
 
-        if parsed_event:
-            yield parsed_event
+        if (
+            repaired_summary
+            and _summary_word_count([{
+                "type": "summary_delta",
+                "text": repaired_summary,
+            }]) > _summary_word_count(events)
+        ):
+            events = _replace_summary_events(events, repaired_summary)
+
+    yield from events
 
 
 def save_candidate_purpose_fit(
