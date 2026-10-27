@@ -121,7 +121,7 @@ from apps.core.ai.purpose_fit import (
     build_assessment_evidence,
     create_empty_purpose_fit,
     apply_purpose_fit_event,
-    stream_candidate_purpose_fit,
+    generate_candidate_purpose_fit_events,
     save_candidate_purpose_fit,
 )
 
@@ -7984,753 +7984,75 @@ def process_candidate_summary_stream(
     )
 
     # ---------------------------------------------------------
-    # STREAM GENERATION
+    # GENERATE THE COMPLETE RESULT
     # ---------------------------------------------------------
-    def generator():
-        full_text = ""
 
-        try:
-            stream = stream_candidate_summary(
-                summary_owner,
-                language_code=language_code,
-            )
-
-            for chunk in stream:
-                full_text += chunk
-                yield chunk
-
-            save_candidate_summary(
-                summary_owner,
-                full_text,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            summary_owner.ai_summary_status = "failed"
-
-            summary_owner.save(
-                update_fields=[
-                    "ai_summary_status",
-                ]
-            )
-
-            yield f"\n\n[Error: {str(error)}]"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type="text/plain; charset=utf-8",
+    purpose_fit = create_empty_purpose_fit(
+        owner
     )
 
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-def process_candidate_response_style_guidance_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Stream and save AI-supported response-style guidance.
-
-    Existing completed guidance is returned without making a new
-    OpenAI request.
-
-    Guidance is regenerated when its status is:
-    - not_started
-    - outdated
-    - failed
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this process."
-        )
-
-    # ---------------------------------------------------------
-    # FIND THE CORRECT GUIDANCE OWNER
-    # ---------------------------------------------------------
-    if process.is_historical:
-        guidance_owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    else:
-        guidance_owner = get_object_or_404(
-            TestInvitation.objects
-            .select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-    language_code = get_request_ai_language(request)
-    mark_ai_content_outdated_if_language_changed(
-        guidance_owner,
-        content_key="response_style_guidance",
-        result_field="ai_response_style_guidance",
-        status_field="ai_response_style_guidance_status",
-        language_code=language_code,
-    )
-
-    # ---------------------------------------------------------
-    # BUILD RESPONSE-STYLE RESULTS
-    # ---------------------------------------------------------
-    response_styles = (
-        build_response_styles_for_guidance_owner(
-            guidance_owner
-        )
-    )
-
-    available_response_styles = [
-        style
-        for style in response_styles
-        if style.get("available")
-        and style.get("key") == "social_desirability"
-    ]
-    profile_contrast_analysis = build_profile_contrast_analysis_for_guidance_owner(
-        guidance_owner,
-        language_code=language_code,
-    )
-    active_profile_contrasts = (
-        profile_contrast_analysis.get("activated_contrasts") or []
-    )
-
-    if not available_response_styles:
-        return JsonResponse(
-            {
-                "error": (
-                    "No response-style results are "
-                    "available for this candidate."
-                )
-            },
-            status=400,
-        )
-
-    current_status = (
-        guidance_owner
-        .ai_response_style_guidance_status
-        or "not_started"
-    )
-
-    saved_guidance = (
-        guidance_owner.ai_response_style_guidance
-        or {}
-    )
-
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and saved_guidance.get("_schema_version")
-        != RESPONSE_STYLE_GUIDANCE_SCHEMA_VERSION
-    ):
-        current_status = "outdated"
-        guidance_owner.ai_response_style_guidance_status = "outdated"
-        guidance_owner.save(update_fields=[
-            "ai_response_style_guidance_status",
-        ])
-
-    current_purpose = (
-        process.purpose
-        or ""
-    ).strip().lower()
-
-    saved_purpose = (
-        guidance_owner
-        .ai_response_style_guidance_purpose
-        or ""
-    ).strip().lower()
-
-    # ---------------------------------------------------------
-    # SAFETY CHECK FOR CHANGED PURPOSE
-    # ---------------------------------------------------------
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and saved_purpose != current_purpose
-    ):
-        current_status = "outdated"
-
-        guidance_owner.ai_response_style_guidance_status = (
-            "outdated"
-        )
-
-        guidance_owner.save(update_fields=[
-            "ai_response_style_guidance_status",
-        ])
-
-    # ---------------------------------------------------------
-    # RETURN SAVED GUIDANCE
-    # ---------------------------------------------------------
-    if (
-        saved_guidance
-        and current_status == "completed"
-        and ai_content_language_matches(
-            guidance_owner,
-            "response_style_guidance",
-            language_code,
-        )
-    ):
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": saved_guidance,
-                    "status": current_status,
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-    if current_status == "generating":
-        return JsonResponse(
-            {
-                "error": (
-                    "Response-style guidance is already "
-                    "being generated."
-                )
-            },
-            status=409,
-        )
-
-    guidance_owner.ai_response_style_guidance_status = (
-        "generating"
-    )
-
-    guidance_owner.save(update_fields=[
-        "ai_response_style_guidance_status",
-    ])
-
-    # ---------------------------------------------------------
-    # STREAM GENERATION
-    # ---------------------------------------------------------
-    def generator():
-        guidance = (
-            create_empty_response_style_guidance(
-                guidance_owner,
-                language_code=language_code,
-            )
-        )
-
-        received_done_event = False
-
-        try:
-            for event in stream_response_style_guidance(
-                guidance_owner=guidance_owner,
-                response_styles=available_response_styles,
-                language_code=language_code,
-                profile_contrast_analysis=profile_contrast_analysis,
-            ):
-                guidance = (
-                    apply_response_style_guidance_event(
-                        guidance,
-                        event,
-                        allowed_profile_contrasts=active_profile_contrasts,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            # Do not save an empty or malformed AI result.
-            if not (
-                guidance.get("summary")
-                or ""
-            ).strip():
-                raise ValueError(
-                    "The AI response did not contain "
-                    "a guidance summary."
-                )
-
-            if not received_done_event:
-                yield json.dumps({
-                    "type": "done",
-                }) + "\n"
-
-            save_response_style_guidance(
-                guidance_owner=guidance_owner,
-                guidance=guidance,
-                language_code=language_code,
-            )
-
-        except Exception as error:
-            guidance_owner.ai_response_style_guidance_status = (
-                "failed"
-            )
-
-            guidance_owner.save(update_fields=[
-                "ai_response_style_guidance_status",
-            ])
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(error),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    return response
-
-
-@login_required
-@require_POST
-def process_candidate_response_style_guidance_regenerate(
-    request,
-    process_id,
-    candidate_id,
-):
-    """
-    Prepare response-style guidance for regeneration.
-
-    The existing saved result is retained until the new
-    generation has completed successfully.
-    """
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
-        return HttpResponseForbidden(
-            "You do not have access to this process."
-        )
-
-    if process.is_historical:
-        return JsonResponse(
-            {
-                "error": (
-                    "Global response-style regeneration "
-                    "is not connected for historical "
-                    "candidates yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation = get_object_or_404(
-        TestInvitation,
-        process=process,
-        candidate_id=candidate_id,
-    )
-
-    if invitation.status != "completed":
-        return JsonResponse(
-            {
-                "error": (
-                    "The candidate has not completed "
-                    "the assessments yet."
-                )
-            },
-            status=400,
-        )
-
-    invitation.ai_response_style_guidance_status = (
-        "not_started"
-    )
-
-    invitation.ai_response_style_guidance_generated_at = (
-        None
-    )
-
-    invitation.ai_response_style_guidance_purpose = ""
-
-    invitation.save(
-        update_fields=[
-            "ai_response_style_guidance_status",
-            "ai_response_style_guidance_generated_at",
-            "ai_response_style_guidance_purpose",
-        ]
-    )
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "stream_url": reverse(
-                (
-                    "processes:"
-                    "process_candidate_"
-                    "response_style_guidance_stream"
-                ),
-                kwargs={
-                    "process_id": process.id,
-                    "candidate_id": candidate_id,
-                },
-            ),
-        }
-    )
-
-
-@login_required
-def process_candidate_purpose_fit_stream(
-    request,
-    process_id,
-    candidate_id,
-):
-    print(
-        f"[PURPOSE FIT] Stream requested "
-        f"process={process_id}, candidate={candidate_id}",
-        flush=True,
-    )
-
-    process = get_object_or_404(
-        TestProcess,
-        pk=process_id,
-    )
-
-    print(
-        f"[PURPOSE FIT] Process found: "
-        f"{process.id}, purpose={process.purpose}",
-        flush=True,
-    )
-
-    if not user_can_access_process(
-        request.user,
-        process,
-    ):
+    try:
         print(
-            "[PURPOSE FIT] Access denied",
+            "[PURPOSE FIT] Starting complete OpenAI response",
             flush=True,
         )
 
-        return HttpResponseForbidden(
-            "You do not have access to this process."
-        )
-
-    if not purpose_supports_fit(process):
-        print(
-            "[PURPOSE FIT] Purpose does not support fit",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "error": (
-                    "This process does not support "
-                    "AI Overview."
-                )
-            },
-            status=400,
-        )
-
-    # ---------------------------------------------------------
-    # FIND THE CORRECT AI OWNER
-    # ---------------------------------------------------------
-
-    if process.is_historical:
-        owner = get_object_or_404(
-            HistoricalProcessCandidate.objects
-            .select_related(
-                "candidate",
-                "process",
-            )
-            .prefetch_related(
-                "assessment_results__scores",
-                "assessment_results__import_file",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = True
-
-    else:
-        owner = get_object_or_404(
-            TestInvitation.objects.select_related(
-                "candidate",
-                "process",
-            ),
-            process=process,
-            candidate_id=candidate_id,
-        )
-
-        is_historical = False
-
-    language_code = get_request_ai_language(
-        request
-    )
-
-    mark_ai_content_outdated_if_language_changed(
-        owner,
-        content_key="purpose_fit",
-        result_field="ai_purpose_fit",
-        status_field="ai_purpose_fit_status",
-        language_code=language_code,
-    )
-
-    print(
-        f"[PURPOSE FIT] Owner found: "
-        f"id={owner.id}, "
-        f"historical={is_historical}, "
-        f"fit_status={owner.ai_purpose_fit_status}, "
-        f"has_saved_fit={bool(owner.ai_purpose_fit)}",
-        flush=True,
-    )
-
-    # ---------------------------------------------------------
-    # REQUIRE AT LEAST ONE REAL ASSESSMENT RESULT
-    # ---------------------------------------------------------
-    #
-    # AI Overview may be generated progressively as assessment
-    # results become available. The candidate does not need to
-    # have completed the entire assessment process.
-    #
-    assessment_evidence, assessment_type_count = (
-        build_assessment_evidence(
-            owner
-        )
-    )
-
-    if assessment_type_count < 1:
-        print(
-            "[PURPOSE FIT] No assessment results available",
-            flush=True,
-        )
-
-        return JsonResponse(
-            {
-                "error": (
-                    "No assessment results are "
-                    "available for this candidate yet."
-                )
-            },
-            status=400,
-        )
-
-    # ---------------------------------------------------------
-    # RETURN SAVED RESULT
-    # ---------------------------------------------------------
-
-    if (
-        ai_content_language_matches(
+        for event in generate_candidate_purpose_fit_events(
             owner,
-            "purpose_fit",
-            language_code,
+            language_code=language_code,
+        ):
+            if event.get("type") == "error":
+                raise ValueError(
+                    event.get("message")
+                    or "AI Overview generation failed."
+                )
+
+            purpose_fit = apply_purpose_fit_event(
+                purpose_fit,
+                event,
+            )
+
+        save_candidate_purpose_fit(
+            owner,
+            purpose_fit,
+            language_code=language_code,
         )
-        and should_return_saved_ai_result(
-            owner.ai_purpose_fit,
-            owner.ai_purpose_fit_status,
-        )
-    ):
+
         print(
-            "[PURPOSE FIT] Returning saved result",
-            flush=True,
-        )
-
-        def existing_generator():
-            yield json.dumps(
-                {
-                    "type": "saved_result",
-                    "data": owner.ai_purpose_fit,
-                    "status": (
-                        owner.ai_purpose_fit_status
-                    ),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-        response = StreamingHttpResponse(
-            existing_generator(),
-            content_type=(
-                "application/x-ndjson; "
-                "charset=utf-8"
-            ),
-        )
-
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-
-        return response
-
-    # ---------------------------------------------------------
-    # PREVENT DUPLICATE GENERATION
-    # ---------------------------------------------------------
-
-    if owner.ai_purpose_fit_status == "generating":
-        print(
-            "[PURPOSE FIT] Already marked as generating",
+            "[PURPOSE FIT] Result saved successfully",
             flush=True,
         )
 
         return JsonResponse(
             {
-                "error": (
-                    "AI Overview is already "
-                    "being generated."
-                )
+                "data": purpose_fit,
+                "status": "completed",
+                "generated": True,
+            }
+        )
+
+    except Exception as exc:
+        print(
+            "[PURPOSE FIT] ERROR:",
+            repr(exc),
+            flush=True,
+        )
+
+        owner.ai_purpose_fit_status = "failed"
+
+        owner.save(
+            update_fields=[
+                "ai_purpose_fit_status",
+            ]
+        )
+
+        return JsonResponse(
+            {
+                "error": str(exc)
+                or "AI Overview generation failed."
             },
-            status=409,
+            status=500,
         )
-
-    owner.ai_purpose_fit_status = "generating"
-
-    owner.save(
-        update_fields=[
-            "ai_purpose_fit_status",
-        ]
-    )
-
-    print(
-        "[PURPOSE FIT] Status changed to generating",
-        flush=True,
-    )
-
-    # ---------------------------------------------------------
-    # STREAM GENERATION
-    # ---------------------------------------------------------
-
-    def generator():
-        purpose_fit = create_empty_purpose_fit(
-            owner
-        )
-
-        received_done_event = False
-
-        try:
-            print(
-                "[PURPOSE FIT] Starting OpenAI stream",
-                flush=True,
-            )
-
-            for event in stream_candidate_purpose_fit(
-                owner,
-                language_code=language_code,
-            ):
-                purpose_fit = (
-                    apply_purpose_fit_event(
-                        purpose_fit,
-                        event,
-                    )
-                )
-
-                if event.get("type") == "done":
-                    received_done_event = True
-
-                yield json.dumps(
-                    event,
-                    ensure_ascii=False,
-                ) + "\n"
-
-            print(
-                "[PURPOSE FIT] OpenAI stream finished",
-                flush=True,
-            )
-
-            if not received_done_event:
-                print(
-                    "[PURPOSE FIT] Adding missing done event",
-                    flush=True,
-                )
-
-                yield json.dumps(
-                    {
-                        "type": "done",
-                    },
-                    ensure_ascii=False,
-                ) + "\n"
-
-            save_candidate_purpose_fit(
-                owner,
-                purpose_fit,
-                language_code=language_code,
-            )
-
-            print(
-                "[PURPOSE FIT] Result saved successfully",
-                flush=True,
-            )
-
-        except Exception as exc:
-            print(
-                "[PURPOSE FIT] ERROR:",
-                repr(exc),
-                flush=True,
-            )
-
-            owner.ai_purpose_fit_status = "failed"
-
-            owner.save(
-                update_fields=[
-                    "ai_purpose_fit_status",
-                ]
-            )
-
-            yield json.dumps(
-                {
-                    "type": "error",
-                    "message": str(exc),
-                },
-                ensure_ascii=False,
-            ) + "\n"
-
-    response = StreamingHttpResponse(
-        generator(),
-        content_type=(
-            "application/x-ndjson; charset=utf-8"
-        ),
-    )
-
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-
-    print(
-        "[PURPOSE FIT] Streaming response created",
-        flush=True,
-    )
-
-    return response
 
 @login_required
 @require_POST
