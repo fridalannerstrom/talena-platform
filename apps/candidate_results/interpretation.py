@@ -17,7 +17,6 @@ from apps.processes.services.cognitive_insights import (
 )
 from apps.reports.libraries.personality.content import (
     INDICATOR_PROFILE_CONTENT,
-    TRAIT_PROFILE_CONTENT,
 )
 from apps.reports.libraries.personality.definitions import (
     TRAIT_AND_INDICATOR_PROFILE,
@@ -249,6 +248,7 @@ def _candidate_personality_groups(
             "body": " ".join(sentences),
         })
     return groups
+
 
 def _candidate_skills_groups(
     invitation,
