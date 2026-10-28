@@ -71,9 +71,8 @@ COGNITIVE_CONTENT = {
                 "high": {
                     "result_text": (
                         "Taking into account the number of questions answered correctly, and the time taken for each "
-                        "correct answer, you scored above average on this reasoning test. An above average logical "
-                        "reasoning score indicates you are likely to perform better than most people in roles that place "
-                        "a strong emphasis on the interpretation of abstract data to draw logical conclusions.\n\n"
+                        "correct answer, you scored above average on this reasoning test. This suggests that you may "
+                        "find it easier than most to interpret abstract data quickly and accurately.\n\n"
                         "This suggests that logical reasoning is one of your key strengths; you are likely to assess and "
                         "interpret abstract data more quickly, accurately and effectively than most."
                     ),
@@ -149,9 +148,8 @@ COGNITIVE_CONTENT = {
                 "high": {
                     "result_text": (
                         "Taking into account the number of questions answered correctly, and the time taken for each correct "
-                        "answer, you scored above average on this reasoning test. An above average verbal reasoning score "
-                        "indicates you are likely to perform better than most people in roles that place a strong emphasis "
-                        "on understanding and interpreting written information.\n\n"
+                        "answer, you scored above average on this reasoning test. This suggests that you may find it easier "
+                        "than most to understand and interpret written information quickly and accurately.\n\n"
                         "This suggests that verbal reasoning is one of your key strengths; you are likely to assess and "
                         "interpret written material more quickly, accurately and effectively than most."
                     ),
@@ -227,9 +225,8 @@ COGNITIVE_CONTENT = {
                 "high": {
                     "result_text": (
                         "Taking into account the number of questions answered correctly, and the time taken for each correct "
-                        "answer, you scored above average on this reasoning test. An above average numerical reasoning score "
-                        "indicates you are likely to perform better than most people in roles that place a strong emphasis "
-                        "on understanding and interpreting numerical information.\n\n"
+                        "answer, you scored above average on this reasoning test. This suggests that you may find it easier "
+                        "than most to understand and interpret numerical information quickly and accurately.\n\n"
                         "This suggests that numerical reasoning is one of your key strengths; you are likely to assess and "
                         "interpret numerical data more quickly, accurately and effectively than most."
                     ),
