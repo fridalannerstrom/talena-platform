@@ -8,7 +8,7 @@ from django.utils import timezone
 from .models import CandidateResultAccess, CandidateResultSnapshot
 
 
-DEFAULT_ACCESS_LIFETIME = timedelta(days=30)
+DEFAULT_ACCESS_LIFETIME = timedelta(days=365)
 
 
 def revoke_candidate_result_access_for_process(process) -> int:
