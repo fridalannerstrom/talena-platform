@@ -131,13 +131,11 @@ def _values_from_historical_candidate(historical_candidate):
     )
 
 
-def build_candidate_team_style_values(candidate_id, process_ids=None):
+def build_candidate_team_style_profile(candidate_id, process_ids=None):
     """
-    Return Team Style values for one candidate on Talena's five-point scale.
-
-    Live Sova results are preferred. Historical imports are used as a fallback.
-    When process_ids is supplied, no result outside the caller's accessible
-    process scope can contribute to the team report.
+    Use the latest accessible live result, falling back to historical data.
+    The returned object is built by the same service as the candidate sheet;
+    no new AI content is generated for team profiles or PDF exports.
     """
     live_qs = TestInvitation.objects.filter(candidate_id=candidate_id)
     historical_qs = HistoricalProcessCandidate.objects.filter(
@@ -147,25 +145,35 @@ def build_candidate_team_style_values(candidate_id, process_ids=None):
     if process_ids is not None:
         process_ids = list(process_ids)
         if not process_ids:
-            return {}
+            return build_team_style_profile([])
         live_qs = live_qs.filter(process_id__in=process_ids)
         historical_qs = historical_qs.filter(process_id__in=process_ids)
 
-    live_qs = live_qs.order_by("-completed_at", "-created_at")
+    for invitation in live_qs.order_by("-completed_at", "-created_at"):
+        competencies = _collect_live_competencies(invitation)
+        if not competencies:
+            continue
+        profile = build_team_style_profile(competencies)
+        if profile["available"]:
+            return profile
 
-    for invitation in live_qs:
-        values = _values_from_live_invitation(invitation)
-        if values:
-            return values
+    for historical_candidate in historical_qs.order_by("-completed_at", "-created_at"):
+        candidate_profile = build_historical_candidate_profile(historical_candidate)
+        scores = candidate_profile.get("team_style_scores") or []
+        if not scores:
+            continue
+        profile = build_team_style_profile(scores)
+        if profile["available"]:
+            return profile
 
-    historical_qs = historical_qs.order_by("-completed_at", "-created_at")
+    return build_team_style_profile([])
 
-    for historical_candidate in historical_qs:
-        values = _values_from_historical_candidate(historical_candidate)
-        if values:
-            return values
 
-    return {}
+def build_candidate_team_style_values(candidate_id, process_ids=None):
+    """Return the same accessible STIVE values used by the candidate profile."""
+    return _values_from_profile(
+        build_candidate_team_style_profile(candidate_id, process_ids=process_ids)
+    )
 
 
 def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
@@ -187,10 +195,11 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
     member_profiles = []
 
     for candidate in candidates:
-        candidate_values = build_candidate_team_style_values(
+        candidate_profile = build_candidate_team_style_profile(
             candidate.id,
             process_ids=process_ids,
         )
+        candidate_values = _values_from_profile(candidate_profile)
         member_scores = []
 
         for style in TEAM_STYLE_ORDER:
@@ -233,6 +242,7 @@ def build_team_style_statistics(team, candidate_ids=None, process_ids=None):
                 "candidate": candidate,
                 "initials": get_initials(candidate),
                 "scores": member_scores,
+                "profile": candidate_profile,
                 "has_scores": has_scores,
             }
         )
