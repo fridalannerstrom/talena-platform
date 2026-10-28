@@ -179,8 +179,13 @@ def _result_context(
                 if label or text:
                     items.append({"label": label, "text": text})
             title = str(group.get("title") or "").strip()
-            if title or items:
-                groups.append({"title": title, "items": items})
+            body = str(group.get("body") or "").strip()
+            if title or body or items:
+                groups.append({
+                    "title": title,
+                    "body": body,
+                    "items": items,
+                })
 
         if body or points or groups:
             sections.append(
