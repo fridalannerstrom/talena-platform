@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.template.loader import render_to_string
 from django.utils import timezone
 
 from apps.accounts.models import Company, OrgUnit, User
@@ -105,6 +106,19 @@ class TeamReportTeamStyleDataTests(TestCase):
         self.assertTrue(connector["build_trust"])
         self.assertTrue(connector["possible_overuse"])
         self.assertTrue(connector["avoid"])
+
+        html = render_to_string(
+            "customer/processes/partials/_team_styles.html",
+            {
+                "team_style_profile": member_profile,
+                "team_style_embedded": True,
+                "team_style_member_id": self.candidate.id,
+            },
+        )
+        self.assertIn(f'teamStylePolarChart-{self.candidate.id}', html)
+        self.assertIn('data-team-style-chart-item', html)
+        self.assertIn('Practical guidance', html)
+        self.assertNotIn('id="team-style-chart-labels"', html)
 
         connector_average = next(
             row
