@@ -159,10 +159,8 @@ def _result_context(
         if not isinstance(section, dict):
             continue
 
-        # Personality copy is presented only through its three candidate-facing
-        # areas; ignore any legacy section-level summary stored in old snapshots.
-        body = "" if key == "personality" else (section.get("body") or "").strip()
-        points = [] if key == "personality" else (section.get("points") or [])
+        body = (section.get("body") or "").strip()
+        points = section.get("points") or []
         points = [
             str(point).strip()
             for point in points
@@ -188,6 +186,12 @@ def _result_context(
                     "body": body,
                     "items": items,
                 })
+
+        if key == "personality" and groups:
+            # Current personality content is displayed through the three areas;
+            # fall back to the section body only for snapshots without groups.
+            body = ""
+            points = []
 
         if body or points or groups:
             sections.append(
