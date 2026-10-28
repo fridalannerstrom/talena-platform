@@ -6,8 +6,8 @@
     if (!section) return;
 
     const profiles = Array.from(section.querySelectorAll("[data-team-member-profile]"));
-    const allButton = section.querySelector("[data-team-export-all]");
-    const status = section.querySelector("[data-team-export-status]");
+    const allButton = document.querySelector("[data-team-export-all]");
+    const status = document.querySelector("[data-team-export-status]");
     const swedish = (document.documentElement.lang || "").toLowerCase().startsWith("sv");
     const copy = swedish ? {
       exporting: "Skapar PDF",
@@ -246,7 +246,7 @@
         return;
       }
       busy = true;
-      const buttons = section.querySelectorAll("[data-team-export-all], [data-team-export-single]");
+      const buttons = document.querySelectorAll("[data-team-export-all], [data-team-export-single]");
       buttons.forEach(b => { b.disabled = true; });
       button.setAttribute("aria-busy", "true");
       updateStatus("");
