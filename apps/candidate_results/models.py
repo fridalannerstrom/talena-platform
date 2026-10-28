@@ -51,6 +51,7 @@ class CandidateResultSnapshot(models.Model):
     )
     prompt_versions = models.JSONField(
         default=dict,
+        blank=True,
         help_text="Legacy prompt metadata; empty for static candidate reports.",
     )
     legacy_prompt_versions = models.JSONField(

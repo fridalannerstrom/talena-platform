@@ -3898,6 +3898,11 @@ def build_candidate_detail_context(
             if latest_candidate_result_email
             else None
         ),
+        "email_created_at": (
+            latest_candidate_result_email.created_at
+            if latest_candidate_result_email
+            else None
+        ),
         "opened_at": (
             candidate_result_access.last_accessed_at
             if candidate_result_access
@@ -7804,6 +7809,12 @@ def process_candidate_detail(request, process_id, candidate_id):
         )
 
         ctx["is_historical"] = False
+
+    from apps.accounts.utils.org_access import user_can_edit_process
+    ctx["can_manage_candidate_results"] = (
+        not ctx.get("is_historical", False)
+        and user_can_edit_process(request.user, process.company, process)
+    )
 
     if is_ajax:
         return render(
