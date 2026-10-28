@@ -293,7 +293,7 @@
                           <form method="post" action="{% url 'candidate_results:manage' invitation_id=invitation.id %}">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="send">
-                            <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}">
+                            <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}?open_candidate={{ candidate.id }}">
                             <button class="btn btn-primary btn-sm" type="submit">
                               {% if candidate_result_status.email_status == "not_sent" %}
                                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skicka resultat{% else %}Send result{% endif %}
@@ -307,7 +307,7 @@
                             <form method="post" action="{% url 'candidate_results:manage' invitation_id=invitation.id %}">
                               {% csrf_token %}
                               <input type="hidden" name="action" value="revoke">
-                              <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}">
+                              <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}?open_candidate={{ candidate.id }}">
                               <button class="btn btn-outline-danger btn-sm" type="submit">
                                 {% if LANGUAGE_CODE|slice:":2" == "sv" %}Återkalla åtkomst{% else %}Revoke access{% endif %}
                               </button>
