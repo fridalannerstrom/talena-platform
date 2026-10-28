@@ -612,6 +612,29 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertContains(response, "Förhandsvisning för behörig användare")
         self.assertNotContains(response, "Visa ditt resultat")
 
+    def test_candidate_view_and_internal_preview_use_the_same_snapshot_content(self):
+        self.client.post(
+            f"/candidate-results/{self.raw_token}/",
+            {"verification_code": self.raw_code},
+        )
+        candidate_response = self.client.get(
+            f"/candidate-results/{self.raw_token}/"
+        )
+        self.assertEqual(candidate_response.status_code, 200)
+
+        self.user.role = "admin"
+        self.user.save(update_fields=["role"])
+        self.client.force_login(self.user)
+        preview_response = self.client.get(
+            f"/candidate-results/preview/{self.snapshot.pk}/"
+        )
+
+        self.assertEqual(preview_response.status_code, 200)
+        self.assertEqual(
+            candidate_response.context["sections"],
+            preview_response.context["sections"],
+        )
+
     def test_preview_is_not_public(self):
         User = get_user_model()
         other_user = User.objects.create_user(
