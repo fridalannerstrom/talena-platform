@@ -9,7 +9,7 @@ from django.utils.html import format_html
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
-from .interpretation import create_candidate_result_snapshot
+from .content import create_candidate_result_snapshot
 from .models import CandidateResultAccess
 from .services import (
     create_candidate_result_access,

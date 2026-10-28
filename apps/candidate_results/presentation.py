@@ -1,6 +1,6 @@
 from apps.emails.models import EmailLog
 
-from .interpretation import ensure_candidate_result_snapshot_current
+from .content import ensure_candidate_result_snapshot_current
 from .models import CandidateResultAccess, CandidateResultSnapshot
 
 

@@ -19,7 +19,7 @@ from apps.processes.models import TestInvitation
 from .email import send_candidate_result_email
 from apps.processes.services.access import get_accessible_processes_for_user
 
-from .interpretation import ensure_candidate_result_snapshot_current
+from .content import ensure_candidate_result_snapshot_current
 from .models import (
     CandidateResultAccess,
     CandidateResultFeedback,

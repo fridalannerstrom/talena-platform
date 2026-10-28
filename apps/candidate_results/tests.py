@@ -222,11 +222,11 @@ class CandidateResultInterpretationTests(TestCase):
     def test_generation_uses_static_workbook_copy_without_scores_or_ai(
         self, get_client
     ):
-        from apps.candidate_results.interpretation import (
-            generate_candidate_result_content,
+        from apps.candidate_results.content import (
+            build_candidate_result_content,
         )
 
-        content, metadata, fingerprint = generate_candidate_result_content(
+        content, metadata, fingerprint = build_candidate_result_content(
             self.invitation,
             language_code="sv",
         )
@@ -236,16 +236,16 @@ class CandidateResultInterpretationTests(TestCase):
             "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
             serialised_content,
         )
-        self.assertEqual(metadata["content_version"], "candidate-static-v4")
+        self.assertEqual(metadata["content_version"], "candidate-static-v5")
         self.assertTrue(fingerprint)
         self.assertNotIn("sten", serialised_content.casefold())
         self.assertNotIn("percentile", serialised_content.casefold())
         get_client.assert_not_called()
 
 
-    @patch("apps.candidate_results.interpretation.generate_candidate_result_content")
+    @patch("apps.candidate_results.content.build_candidate_result_content")
     def test_snapshot_creation_is_idempotent(self, generate):
-        from apps.candidate_results.interpretation import (
+        from apps.candidate_results.content import (
             create_candidate_result_snapshot,
         )
 
@@ -297,7 +297,7 @@ class CandidateResultInterpretationTests(TestCase):
         generate.assert_called_once()
 
     def test_legacy_ai_snapshot_is_archived_when_replaced(self):
-        from apps.candidate_results.interpretation import (
+        from apps.candidate_results.content import (
             CANDIDATE_RESULT_CONTENT_VERSION,
             ensure_candidate_result_snapshot_current,
         )
@@ -327,8 +327,8 @@ class CandidateResultInterpretationTests(TestCase):
 
 
     def test_generation_omits_unavailable_result_areas(self):
-        from apps.candidate_results.interpretation import (
-            generate_candidate_result_content,
+        from apps.candidate_results.content import (
+            build_candidate_result_content,
         )
 
         self.invitation.sova_activities = [
@@ -339,7 +339,7 @@ class CandidateResultInterpretationTests(TestCase):
                 ],
             },
         ]
-        content, _, _ = generate_candidate_result_content(
+        content, _, _ = build_candidate_result_content(
             self.invitation,
             language_code="sv",
         )

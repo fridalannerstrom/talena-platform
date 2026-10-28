@@ -1,9 +1,12 @@
+from apps.core.ai.motivation_interpretation import (
+    get_motivation_factor_display_name,
+)
+
 from apps.reports.libraries.motivation.definitions import MOTIVATION_REPORTS
 from apps.reports.libraries.motivation.content import (
     PRACTITIONER_SECTION_CONTENT,
     MANAGER_SECTION_CONTENT,
     COACHING_SECTION_CONTENT,
-    CANDIDATE_SECTION_CONTENT,
 )
 from apps.reports.libraries.motivation.resolver import (
     resolve_motivation_report_text,
@@ -11,6 +14,10 @@ from apps.reports.libraries.motivation.resolver import (
     resolve_manager_factor_content,
     resolve_coaching_factor_content,
     resolve_candidate_factor_content,
+)
+from apps.reports.libraries.motivation.candidate_result_content import (
+    CANDIDATE_RESULT_REPORT_COPY,
+    CANDIDATE_RESULT_SECTION_COPY,
 )
 
 def normalize_competency_name(name: str | None) -> str:
@@ -416,6 +423,7 @@ def build_candidate_factor_items(
     *,
     scores_by_competency: dict,
     item_definitions: list[dict],
+    language_code: str = "en",
     bands=None,
 ) -> list[dict]:
     items = []
@@ -430,12 +438,20 @@ def build_candidate_factor_items(
         resolved = resolve_candidate_factor_content(
             factor_key=factor_key,
             score=score,
+            language_code=language_code,
             bands=bands,
         )
 
         items.append({
             "key": factor_key,
-            "label": label,
+            "label": (
+                get_motivation_factor_display_name(
+                    factor_key,
+                    language_code=language_code,
+                )
+                if language_code == "sv"
+                else label
+            ),
             "aliases": aliases,
             "score": resolved["score"],
             "score_band": resolved["score_band"],
@@ -448,14 +464,20 @@ def build_candidate_factor_items(
 def build_candidate_report(
     *,
     competencies: list[dict],
+    language_code: str = "en",
     bands=None,
 ) -> dict:
+    language_code = str(language_code or "en").lower()[:2]
+    if language_code not in {"sv", "en"}:
+        language_code = "en"
+
     report_def = MOTIVATION_REPORTS["candidate_report"]
     scores_by_competency = build_scores_by_competency(competencies)
 
     all_items = build_candidate_factor_items(
         scores_by_competency=scores_by_competency,
         item_definitions=report_def["items"],
+        language_code=language_code,
         bands=bands,
     )
 
@@ -464,17 +486,20 @@ def build_candidate_report(
 
     top_n = report_def.get("top_n", 3)
     top_items = sorted_items[:top_n]
+    localized_copy = CANDIDATE_RESULT_REPORT_COPY[language_code]
 
     return {
         "key": "candidate_report",
-        "title": report_def["title"],
-        "intro": report_def["intro"],
+        "title": localized_copy["title"],
+        "intro": localized_copy["intro"],
         "domain": report_def["domain"],
         "sections": [
             {
                 "type": "top_motivators",
-                "title": CANDIDATE_SECTION_CONTENT["top_motivators"]["title"],
-                "intro": CANDIDATE_SECTION_CONTENT["top_motivators"]["intro"],
+                "title": CANDIDATE_RESULT_SECTION_COPY.get(
+                    language_code,
+                    CANDIDATE_RESULT_SECTION_COPY["en"],
+                )["title"],
                 "items": [
                     {
                         "key": item["key"],
@@ -483,19 +508,6 @@ def build_candidate_report(
                         "candidate_text": item["candidate_text"],
                     }
                     for item in top_items
-                ],
-            },
-            {
-                "type": "all_motivators",
-                "title": CANDIDATE_SECTION_CONTENT["all_motivators"]["title"],
-                "intro": CANDIDATE_SECTION_CONTENT["all_motivators"]["intro"],
-                "items": [
-                    {
-                        "key": item["key"],
-                        "label": item["label"],
-                        "candidate_text": item["candidate_text"],
-                    }
-                    for item in all_items
                 ],
             },
         ],

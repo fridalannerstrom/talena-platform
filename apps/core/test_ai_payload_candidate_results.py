@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
-from apps.candidate_results.interpretation import generate_candidate_result_content
+from apps.candidate_results.content import build_candidate_result_content
 
 
 class CandidateResultStaticContentTests(SimpleTestCase):
@@ -53,13 +53,13 @@ class CandidateResultStaticContentTests(SimpleTestCase):
     ):
         for language in ("sv", "en"):
             with self.subTest(language=language):
-                content, metadata, fingerprint = generate_candidate_result_content(
+                content, metadata, fingerprint = build_candidate_result_content(
                     self._invitation(), language_code=language
                 )
                 data = json.dumps(content, ensure_ascii=False).casefold()
 
                 self.assertIn("introduction", content)
-                self.assertEqual(metadata["content_version"], "candidate-static-v4")
+                self.assertEqual(metadata["content_version"], "candidate-static-v5")
                 self.assertTrue(fingerprint)
                 for secret in (
                     "sova-raw-id-741928",
