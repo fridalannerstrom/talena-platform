@@ -1,4 +1,10 @@
 {% extends "admin/core/layouts/admin_base.html" %}
+{% load static %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link href="{% static 'css/talena/pages/candidate-insights.css' %}" rel="stylesheet" />
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-2 px-md-4">

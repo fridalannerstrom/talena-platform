@@ -1518,23 +1518,12 @@ def build_candidate_detail_context(process, invitation):
             pass  # Preserve the existing safe fallback without logging provider details.
 
 
-    from apps.candidate_results.models import CandidateResultSnapshot
-
-    candidate_result_snapshot = (
-        CandidateResultSnapshot.objects
-        .filter(invitation=invitation)
-        .first()
+    from apps.candidate_results.presentation import (
+        build_candidate_result_panel_context,
     )
-    if candidate_result_snapshot:
-        from apps.candidate_results.interpretation import (
-            ensure_candidate_result_snapshot_current,
-        )
-
-        candidate_result_snapshot, _upgraded = (
-            ensure_candidate_result_snapshot_current(
-                candidate_result_snapshot
-            )
-        )
+    candidate_result_context = build_candidate_result_panel_context(
+        process, invitation,
+    )
 
     return {
 
@@ -1543,7 +1532,7 @@ def build_candidate_detail_context(process, invitation):
         "invitation": invitation,
         "inv": invitation,
         "candidate": candidate,
-        "candidate_result_snapshot": candidate_result_snapshot,
+        **candidate_result_context,
         "activity_events": activity_events,
 
         "activities": activities,

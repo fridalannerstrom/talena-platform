@@ -332,27 +332,6 @@
                 </div>
               </div>
 
-              <!-- RIGHT -->
-              <div class="candidate-profile-actions d-flex flex-wrap align-items-center gap-2">
-                {% if not is_historical %}
-                  {% if candidate_result_snapshot %}
-                    <a
-                      class="btn btn-outline-primary btn-sm"
-                      href="{% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id %}"
-                      target="_blank"
-                      rel="noopener">
-                      View candidate result
-                    </a>
-                  {% else %}
-                    <span
-                      class="text-muted small"
-                      title="The candidate result becomes available after the result snapshot is created.">
-                      Candidate result not available yet
-                    </span>
-                  {% endif %}
-                {% endif %}
-              </div>
-
             </div>
           </div>
 
@@ -391,6 +370,19 @@
                 onclick="switchTabs(this)">
                 Assessment link
               </button>
+
+              {% if not is_historical %}
+                <button
+                  class="candidate-tab"
+                  type="button"
+                  data-tab-group="candidate-main-tabs"
+                  data-tab-target="result"
+                  role="tab"
+                  aria-selected="false"
+                  onclick="switchTabs(this)">
+                  {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatrapport{% else %}Candidate Report{% endif %}
+                </button>
+              {% endif %}
 
               <button
                 class="candidate-tab"
@@ -536,6 +528,10 @@
                 <div class="text-muted small">No assessment link available yet.</div>
               {% endif %}
             </div>
+
+            {% if not is_historical %}
+              {% include "candidate_results/_candidate_result_tab.html" %}
+            {% endif %}
 
             <!-- ACTIVITY -->
             <div
