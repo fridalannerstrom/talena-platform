@@ -187,6 +187,12 @@ def _result_context(
                     "items": items,
                 })
 
+        if key == "personality" and groups:
+            # Current personality content is displayed through the three areas;
+            # fall back to the section body only for snapshots without groups.
+            body = ""
+            points = []
+
         if body or points or groups:
             sections.append(
                 {
