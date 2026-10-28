@@ -873,20 +873,23 @@ class CandidateResultEmailTests(TestCase):
 
         self.assertEqual(email_log.status, "sent")
         self.assertEqual(email_log.template_type, "candidate_result")
-        self.assertIn("https://talena.io/candidate-results/", email_log.body_snapshot)
-        self.assertIn(raw_code, email_log.body_snapshot)
+        sent_body = email_class.call_args.kwargs["body"]
+        self.assertIn("https://talena.io/candidate-results/", sent_body)
+        self.assertIn(raw_code, sent_body)
+        self.assertIn("[redacted candidate result link]", email_log.body_snapshot)
+        self.assertIn("[redacted verification code]", email_log.body_snapshot)
+        self.assertNotIn("https://talena.io/candidate-results/", email_log.body_snapshot)
+        self.assertNotIn(raw_code, email_log.body_snapshot)
         self.assertNotIn(self.process.name, email_log.body_snapshot)
-        self.assertNotIn(
-            raw_code,
-            email_log.body_snapshot.split(raw_code)[0].splitlines()[-1],
-        )
         self.assertEqual(CandidateResultAccess.objects.count(), 1)
-        self.assertTrue(access.matches_token(
-            email_log.body_snapshot.split(
-                "https://talena.io/candidate-results/",
-                1,
-            )[1].split("/", 1)[0]
-        ))
+        result_url = next(
+            line
+            for line in sent_body.splitlines()
+            if line.startswith("https://talena.io/candidate-results/")
+        )
+        raw_token = result_url.rstrip("/").rsplit("/", 1)[-1]
+        self.assertTrue(access.matches_token(raw_token))
+        self.assertNotIn(raw_token, email_log.body_snapshot)
 
     @patch("apps.candidate_results.email.EmailMultiAlternatives")
     @patch("apps.candidate_results.email.create_candidate_result_snapshot")

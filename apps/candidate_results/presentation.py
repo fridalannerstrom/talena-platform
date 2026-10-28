@@ -1,5 +1,10 @@
 from apps.emails.models import EmailLog
+from apps.activity.models import ActivityEvent
 
+from .audit import (
+    CANDIDATE_RESULT_ACTIVITY_VERBS,
+    log_candidate_result_access_expired,
+)
 from .content import ensure_candidate_result_snapshot_current
 from .models import CandidateResultAccess, CandidateResultSnapshot
 
@@ -107,6 +112,8 @@ def build_candidate_result_panel_context(process, invitation) -> dict:
     latest_email = None
     if snapshot:
         access = CandidateResultAccess.objects.filter(snapshot=snapshot).first()
+        if access:
+            log_candidate_result_access_expired(access)
         latest_email = (
             EmailLog.objects
             .filter(invitation=invitation, template_type="candidate_result")
@@ -138,6 +145,15 @@ def build_candidate_result_panel_context(process, invitation) -> dict:
         "feedback_status": feedback_status,
         "last_feedback_at": last_feedback_at,
     }
+    activity_events = list(
+        ActivityEvent.objects
+        .filter(
+            invitation=invitation,
+            verb__in=CANDIDATE_RESULT_ACTIVITY_VERBS,
+        )
+        .select_related("actor", "candidate", "process", "company")
+        .order_by("-created_at")[:20]
+    )
 
     return {
         "candidate_result_snapshot": snapshot,
@@ -146,4 +162,5 @@ def build_candidate_result_panel_context(process, invitation) -> dict:
             sharing_enabled and snapshot and reflections
         ),
         "candidate_result_status": status,
+        "candidate_result_activity": activity_events,
     }

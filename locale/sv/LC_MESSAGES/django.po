@@ -176,7 +176,10 @@ msgstr ""
 "\n"
 "Ta gärna dig tid att läsa igenom instruktionerna i lugn och ro innan du sätter igång.\n"
 "\n"
-"{assessment_url}"
+"{assessment_url}\n"
+"\n"
+"Vänliga hälsningar,\n"
+"{sender_full_name}"
 
 #: .\apps\emails\views.py:114
 msgid "No access."
@@ -7326,3 +7329,55 @@ msgstr "Öppna %(team_name)s"
 #, python-format
 msgid "Delete %(team_name)s permanently?"
 msgstr "Ta bort %(team_name)s permanent?"
+
+# Candidate result access activity
+#, python-format
+msgid "Candidate report content was created for %(candidate)s"
+msgstr "Kandidatrapportens innehåll skapades för %(candidate)s"
+
+#, python-format
+msgid "%(candidate)s opened the candidate report"
+msgstr "%(candidate)s öppnade kandidatrapporten"
+
+#, python-format
+msgid "%(candidate)s successfully verified the result code"
+msgstr "%(candidate)s verifierade åtkomsten till kandidatrapporten"
+
+#, python-format
+msgid "%(candidate)s entered an incorrect result code"
+msgstr "%(candidate)s angav en felaktig verifieringskod"
+
+msgid "personality"
+msgstr "personlighet"
+
+msgid "skills"
+msgstr "färdigheter"
+
+msgid "motivation"
+msgstr "motivation"
+
+msgid "the test experience"
+msgstr "testupplevelsen"
+
+msgid "the report"
+msgstr "rapporten"
+
+#, python-format
+msgid "%(candidate)s submitted feedback on %(area)s"
+msgstr "%(candidate)s lämnade feedback om %(area)s"
+
+#, python-format
+msgid "%(actor)s replaced %(candidate)s's verification code"
+msgstr "%(actor)s ersatte verifieringskoden för %(candidate)s"
+
+#, python-format
+msgid "%(actor)s revoked %(candidate)s's access when sharing was disabled"
+msgstr "%(actor)s återkallade åtkomsten för %(candidate)s när delningen stängdes av"
+
+#, python-format
+msgid "%(actor)s revoked %(candidate)s's candidate report access"
+msgstr "%(actor)s återkallade åtkomsten till kandidatrapporten för %(candidate)s"
+
+#, python-format
+msgid "Access to %(candidate)s's candidate report expired"
+msgstr "Åtkomsten till kandidatrapporten för %(candidate)s gick ut"

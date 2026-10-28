@@ -6576,7 +6576,10 @@ def process_update(request, pk):
                         revoke_candidate_result_access_for_process,
                     )
 
-                    revoke_candidate_result_access_for_process(obj)
+                    revoke_candidate_result_access_for_process(
+                        obj,
+                        actor=request.user,
+                    )
 
             if old_purpose != obj.purpose:
                 result = mark_candidate_ai_content_outdated(obj)
