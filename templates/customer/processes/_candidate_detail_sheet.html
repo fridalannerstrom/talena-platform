@@ -122,9 +122,9 @@
                   onclick="switchTabs(this)"
                 >
                   {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                    Resultatlänk
+                    Kandidatrapport
                   {% else %}
-                    Result link
+                    Candidate Report
                   {% endif %}
                 </button>
 
@@ -264,125 +264,198 @@
                 role="tabpanel"
               >
                 <div class="candidate-result-status" data-candidate-result-status>
-                  <div class="candidate-result-status__heading">
-                    <div>
-                      <div class="candidate-inline-title">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatresultat{% else %}Candidate result{% endif %}
-                      </div>
-                      <div class="candidate-inline-meta">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Status för kandidatens resultatdelning och reflektioner.
-                        {% else %}
-                          Status for the candidate result sharing and reflections.
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="candidate-result-status__grid">
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Delning{% else %}Sharing{% endif %}
-                      </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.sharing_enabled %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktiverad{% else %}Enabled{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Avstängd{% else %}Disabled{% endif %}</span>
-                        {% endif %}
-                      </div>
-                    </div>
-
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Resultat{% else %}Result{% endif %}
-                      </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.snapshot_ready %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Redo{% else %}Ready{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte skapat{% else %}Not created{% endif %}</span>
-                        {% endif %}
-                      </div>
-                    </div>
-
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}E-post{% else %}Email{% endif %}
-                      </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.email_status == "sent" %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickad{% else %}Sent{% endif %}</span>
-                          {% if candidate_result_status.email_sent_at %}
-                            <span class="candidate-result-status__meta">{{ candidate_result_status.email_sent_at|date:"Y-m-d H:i" }}</span>
+                  {% if candidate_result_status.sharing_enabled %}
+                    <div class="candidate-result-status__heading">
+                      <div>
+                        <div class="candidate-inline-title">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatrapport{% else %}Candidate Report{% endif %}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                            Delning är aktiverad. Statusen nedan bygger på faktisk e-post, åtkomst och feedback.
+                          {% else %}
+                            Sharing is enabled. The status below reflects actual email, access and feedback data.
                           {% endif %}
-                        {% elif candidate_result_status.email_status == "failed" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Misslyckades{% else %}Failed{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte skickad{% else %}Not sent{% endif %}</span>
+                        </div>
+                        {% if not candidate_result_status.snapshot_ready %}
+                          <div class="candidate-result-status__notice">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                              Rapporten är inte tillgänglig ännu. Den skapas från godkända statiska tolkningstexter när du skickar resultatet.
+                            {% else %}
+                              The report is not available yet. It will be built from approved static interpretation text when you send it.
+                            {% endif %}
+                          </div>
                         {% endif %}
                       </div>
+
+                      {% if can_manage_candidate_results and invitation.status == "completed" %}
+                        <div class="candidate-result-status__actions">
+                          <form method="post" action="{% url 'candidate_results:manage' invitation_id=invitation.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="send">
+                            <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}">
+                            <button class="btn btn-primary btn-sm" type="submit">
+                              {% if candidate_result_status.email_status == "not_sent" %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skicka resultat{% else %}Send result{% endif %}
+                              {% else %}
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Skicka igen med ny kod{% else %}Resend with new code{% endif %}
+                              {% endif %}
+                            </button>
+                          </form>
+
+                          {% if candidate_result_status.access_state == "active" %}
+                            <form method="post" action="{% url 'candidate_results:manage' invitation_id=invitation.id %}">
+                              {% csrf_token %}
+                              <input type="hidden" name="action" value="revoke">
+                              <input type="hidden" name="next" value="{% url 'processes:process_detail' pk=process.id %}">
+                              <button class="btn btn-outline-danger btn-sm" type="submit">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Återkalla åtkomst{% else %}Revoke access{% endif %}
+                              </button>
+                            </form>
+                          {% endif %}
+                        </div>
+                      {% endif %}
                     </div>
 
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Öppnad{% else %}Opened{% endif %}
-                      </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.opened_at %}
-                          <strong>{{ candidate_result_status.opened_at|date:"Y-m-d H:i" }}</strong>
-                        {% else %}
-                          <span class="candidate-result-status__empty">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte ännu{% else %}Not yet{% endif %}</span>
-                        {% endif %}
-                      </div>
-                    </div>
-
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Reflektioner{% else %}Reflections{% endif %}
-                      </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.feedback_status == "submitted" %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Alla besvarade{% else %}All answered{% endif %}</span>
-                        {% elif candidate_result_status.feedback_status == "in_progress" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Påbörjad{% else %}In progress{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte påbörjad{% else %}Not started{% endif %}</span>
-                        {% endif %}
-                        <strong>{{ candidate_result_status.feedback_count }} / {{ candidate_result_status.feedback_total }}</strong>
-                        <span class="candidate-result-status__meta">
-                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}områden besvarade{% else %}areas answered{% endif %}
-                        </span>
-                        {% if candidate_result_status.last_feedback_at %}
-                          <span class="candidate-result-status__meta candidate-result-status__feedback-time">
-                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Senaste svar{% else %}Latest response{% endif %}: {{ candidate_result_status.last_feedback_at|date:"Y-m-d H:i" }}
+                    <div class="candidate-result-status__steps" role="list">
+                      <div class="candidate-result-status__step" role="listitem">
+                        <div class="candidate-result-status__label">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}1 · Delning{% else %}1 · Sharing{% endif %}
+                        </div>
+                        <div class="candidate-result-status__value">
+                          <span class="candidate-status-badge is-success">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktiverad{% else %}Enabled{% endif %}
                           </span>
-                        {% endif %}
+                        </div>
                       </div>
-                    </div>
 
-                    <div class="candidate-result-status__item">
-                      <div class="candidate-result-status__label">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Åtkomst{% else %}Access{% endif %}
+                      <div class="candidate-result-status__step" role="listitem">
+                        <div class="candidate-result-status__label">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}2 · E-post{% else %}2 · Email{% endif %}
+                        </div>
+                        <div class="candidate-result-status__value">
+                          {% if candidate_result_status.email_status == "sent" %}
+                            <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Skickad{% else %}Sent{% endif %}</span>
+                            {% if candidate_result_status.email_sent_at %}
+                              <span class="candidate-result-status__meta">{{ candidate_result_status.email_sent_at|date:"Y-m-d H:i" }}</span>
+                            {% endif %}
+                          {% elif candidate_result_status.email_status == "failed" %}
+                            <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Misslyckades{% else %}Failed{% endif %}</span>
+                            {% if candidate_result_status.email_created_at %}
+                              <span class="candidate-result-status__meta">{{ candidate_result_status.email_created_at|date:"Y-m-d H:i" }}</span>
+                            {% endif %}
+                          {% elif candidate_result_status.email_status == "queued" %}
+                            <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Köad{% else %}Queued{% endif %}</span>
+                            {% if candidate_result_status.email_created_at %}
+                              <span class="candidate-result-status__meta">{{ candidate_result_status.email_created_at|date:"Y-m-d H:i" }}</span>
+                            {% endif %}
+                          {% else %}
+                            <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte skickad{% else %}Not sent{% endif %}</span>
+                          {% endif %}
+                        </div>
                       </div>
-                      <div class="candidate-result-status__value">
-                        {% if candidate_result_status.access_state == "active" %}
-                          <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktiv{% else %}Active{% endif %}</span>
-                          {% if candidate_result_status.expires_at %}
-                            <span class="candidate-result-status__meta">
-                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}till{% else %}until{% endif %} {{ candidate_result_status.expires_at|date:"Y-m-d" }}
+
+                      <div class="candidate-result-status__step" role="listitem">
+                        <div class="candidate-result-status__label">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}3 · Åtkomst{% else %}3 · Access{% endif %}
+                        </div>
+                        <div class="candidate-result-status__value">
+                          {% if candidate_result_status.access_state == "active" %}
+                            <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktiv{% else %}Active{% endif %}</span>
+                            {% if candidate_result_status.expires_at %}
+                              <span class="candidate-result-status__meta">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Giltig till{% else %}Expires{% endif %} {{ candidate_result_status.expires_at|date:"Y-m-d H:i" }}
+                              </span>
+                            {% endif %}
+                          {% elif candidate_result_status.access_state == "expired" %}
+                            <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Utgången{% else %}Expired{% endif %}</span>
+                            {% if candidate_result_status.expires_at %}
+                              <span class="candidate-result-status__meta">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Gick ut{% else %}Expired{% endif %} {{ candidate_result_status.expires_at|date:"Y-m-d H:i" }}
+                              </span>
+                            {% endif %}
+                          {% elif candidate_result_status.access_state == "revoked" %}
+                            <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Återkallad{% else %}Revoked{% endif %}</span>
+                            {% if candidate_result_status.revoked_at %}
+                              <span class="candidate-result-status__meta">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Återkallad{% else %}Revoked{% endif %} {{ candidate_result_status.revoked_at|date:"Y-m-d H:i" }}
+                              </span>
+                            {% endif %}
+                            {% if candidate_result_status.expires_at %}
+                              <span class="candidate-result-status__meta candidate-result-status__feedback-time">
+                                {% if LANGUAGE_CODE|slice:":2" == "sv" %}Giltig till{% else %}Would expire{% endif %} {{ candidate_result_status.expires_at|date:"Y-m-d H:i" }}
+                              </span>
+                            {% endif %}
+                          {% else %}
+                            <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte skapad{% else %}Not created{% endif %}</span>
+                          {% endif %}
+                          {% if candidate_result_status.opened_at %}
+                            <span class="candidate-result-status__meta candidate-result-status__feedback-time">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Öppnad{% else %}Opened{% endif %} {{ candidate_result_status.opened_at|date:"Y-m-d H:i" }}
+                            </span>
+                          {% else %}
+                            <span class="candidate-result-status__empty candidate-result-status__feedback-time">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte öppnad ännu{% else %}Not opened yet{% endif %}
                             </span>
                           {% endif %}
-                        {% elif candidate_result_status.access_state == "expired" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Utgången{% else %}Expired{% endif %}</span>
-                        {% elif candidate_result_status.access_state == "revoked" %}
-                          <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Återkallad{% else %}Revoked{% endif %}</span>
-                        {% else %}
-                          <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte skapad{% else %}Not created{% endif %}</span>
-                        {% endif %}
+                        </div>
+                      </div>
+
+                      <div class="candidate-result-status__step" role="listitem">
+                        <div class="candidate-result-status__label">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}4 · Feedback{% else %}4 · Feedback{% endif %}
+                        </div>
+                        <div class="candidate-result-status__value">
+                          {% if candidate_result_status.feedback_status == "submitted" %}
+                            <span class="candidate-status-badge is-success">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inskickad{% else %}Submitted{% endif %}</span>
+                          {% elif candidate_result_status.feedback_status == "in_progress" %}
+                            <span class="candidate-status-badge is-warning">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Påbörjad{% else %}In progress{% endif %}</span>
+                          {% else %}
+                            <span class="candidate-status-badge is-muted">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Inte påbörjad{% else %}Not started{% endif %}</span>
+                          {% endif %}
+                          {% if candidate_result_status.feedback_total %}
+                            <strong>{{ candidate_result_status.feedback_count }} / {{ candidate_result_status.feedback_total }}</strong>
+                            <span class="candidate-result-status__meta">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}områden besvarade{% else %}areas answered{% endif %}
+                            </span>
+                          {% else %}
+                            <span class="candidate-result-status__meta">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Inga feedbackområden ännu{% else %}No feedback areas yet{% endif %}
+                            </span>
+                          {% endif %}
+                          {% if candidate_result_status.last_feedback_at %}
+                            <span class="candidate-result-status__meta candidate-result-status__feedback-time">
+                              {% if LANGUAGE_CODE|slice:":2" == "sv" %}Senaste svar{% else %}Latest response{% endif %}: {{ candidate_result_status.last_feedback_at|date:"Y-m-d H:i" }}
+                            </span>
+                          {% endif %}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  {% else %}
+                    <div class="candidate-result-status__disabled" role="status">
+                      <div>
+                        <div class="candidate-inline-title">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Delning av kandidatrapport är avstängd{% else %}Candidate report sharing is disabled{% endif %}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                            Kandidaten har inte åtkomst. En intern förhandsvisning nedan ändrar inte delningsstatus.
+                          {% else %}
+                            The candidate has no access. An internal preview below does not change sharing status.
+                          {% endif %}
+                        </div>
+                      </div>
+                      {% if can_manage_candidate_results %}
+                        <a class="btn btn-outline-primary btn-sm" href="{% url 'processes:process_update' pk=process.id %}">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ändra i processinställningar{% else %}Change in process settings{% endif %}
+                        </a>
+                      {% else %}
+                        <span class="candidate-result-status__meta">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Be en processredigerare aktivera delningen.{% else %}Ask a process editor to enable sharing.{% endif %}
+                        </span>
+                      {% endif %}
+                    </div>
+                  {% endif %}
                 </div>
 
                 {% if candidate_result_status.sharing_enabled and candidate_result_snapshot %}
@@ -478,57 +551,57 @@
                   </div>
                 {% endif %}
 
+
+
                 {% if candidate_result_snapshot %}
                   {% url 'candidate_results:preview' snapshot_id=candidate_result_snapshot.id as candidate_result_preview_url %}
-                  <div class="candidate-link-panel candidate-result-preview-panel">
-                    <div class="candidate-link-panel-text">
-                      <div class="candidate-inline-title">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Länk till kandidatens resultatvy
-                        {% else %}
-                          Candidate result view link
+                  <section class="candidate-link-panel candidate-result-report-panel">
+                    <div class="candidate-result-report-panel__heading">
+                      <div>
+                        <div class="candidate-inline-title">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Kandidatrapport{% else %}Candidate Report{% endif %}
+                        </div>
+                        <div class="candidate-inline-meta">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                            Samma statiska rapportinnehåll som kandidaten ser efter verifiering.
+                          {% else %}
+                            The same static report content the candidate sees after verification.
+                          {% endif %}
+                        </div>
+                        {% if not candidate_result_status.sharing_enabled %}
+                          <div class="candidate-result-status__notice">
+                            {% if LANGUAGE_CODE|slice:":2" == "sv" %}
+                              Intern förhandsvisning. Detta aktiverar inte kandidatens åtkomst.
+                            {% else %}
+                              Internal preview. This does not enable candidate access.
+                            {% endif %}
+                          </div>
                         {% endif %}
                       </div>
-                      <div class="candidate-inline-meta">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Här hittar du länken till kandidatens resultatvy. Det här är en intern förhandsvisning och kräver att du är inloggad.
-                        {% else %}
-                          This is the link to the candidate-facing result view. This internal preview requires you to be logged in.
-                        {% endif %}
-                      </div>
-                    </div>
-
-                    <div class="candidate-link-field">
-                      <a
-                        class="form-control text-decoration-none"
-                        href="{{ candidate_result_preview_url }}"
-                        target="_blank"
-                        rel="noopener">
-                        {{ candidate_result_preview_url }}
-                      </a>
-
-                      <a
-                        class="btn btn-primary"
-                        href="{{ candidate_result_preview_url }}"
-                        target="_blank"
-                        rel="noopener">
-                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                          Öppna resultatvy
-                        {% else %}
-                          Open result view
-                        {% endif %}
+                      <a class="btn btn-outline-primary btn-sm" href="{{ candidate_result_preview_url }}" target="_blank" rel="noopener">
+                        {% if LANGUAGE_CODE|slice:":2" == "sv" %}Öppna i ny flik{% else %}Open in new tab{% endif %}
                       </a>
                     </div>
-                  </div>
-                {% else %}
-                  <div class="text-muted small">
+
+                    <iframe
+                      class="candidate-result-report-frame"
+                      src="{{ candidate_result_preview_url }}"
+                      title="{% if LANGUAGE_CODE|slice:':2' == 'sv' %}Förhandsvisning av kandidatrapport{% else %}Candidate Report preview{% endif %}"
+                      loading="lazy"
+                      referrerpolicy="same-origin"
+                      onload="this.style.height=Math.max(760,this.contentWindow.document.documentElement.scrollHeight)+'px'">
+                    </iframe>
+                  </section>
+                {% elif candidate_result_status.sharing_enabled %}
+                  <div class="candidate-result-report-empty">
                     {% if LANGUAGE_CODE|slice:":2" == "sv" %}
-                      Resultatvyn är inte tillgänglig ännu.
+                      Kandidatrapporten visas här när det finns ett färdigt resultat.
                     {% else %}
-                      The result view is not available yet.
+                      The Candidate Report will appear here when a result is ready.
                     {% endif %}
                   </div>
                 {% endif %}
+
               </div>
 
               <div

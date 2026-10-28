@@ -1,10 +1,22 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponseBadRequest
+from django.http import (
+    Http404,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+)
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.accounts.utils.org_access import user_can_edit_process
 from apps.core.utils.auth import is_admin
+from apps.processes.models import TestInvitation
+from .email import send_candidate_result_email
 from apps.processes.services.access import get_accessible_processes_for_user
 
 from .interpretation import ensure_candidate_result_snapshot_current
@@ -334,6 +346,7 @@ def candidate_result(request, token: str):
 
 
 @login_required
+@xframe_options_sameorigin
 def candidate_result_preview(request, snapshot_id: int):
     snapshot = get_object_or_404(
         CandidateResultSnapshot.objects.select_related(
@@ -358,3 +371,121 @@ def candidate_result_preview(request, snapshot_id: int):
         "candidate_results/result.html",
         _result_context(snapshot, preview=True),
     )
+
+
+def _candidate_result_action_message(request, *, sv: str, en: str) -> str:
+    language = str(getattr(request, "LANGUAGE_CODE", "sv") or "sv").lower()
+    return sv if language.startswith("sv") else en
+
+
+@login_required
+@require_POST
+def manage_candidate_result(request, invitation_id: int):
+    invitation = get_object_or_404(
+        TestInvitation.objects.select_related(
+            "candidate",
+            "process__company",
+            "process__org_unit",
+        ),
+        pk=invitation_id,
+    )
+    process = invitation.process
+
+    if not user_can_edit_process(request.user, process.company, process):
+        return HttpResponseForbidden("You do not have permission to manage this result.")
+
+    action = (request.POST.get("action") or "").strip()
+
+    if action == "send":
+        if not process.candidate_results_enabled:
+            messages.error(
+                request,
+                _candidate_result_action_message(
+                    request,
+                    sv="Aktivera delning i processinställningarna innan resultatet skickas.",
+                    en="Enable sharing in the process settings before sending the result.",
+                ),
+            )
+        elif invitation.status != "completed":
+            messages.error(
+                request,
+                _candidate_result_action_message(
+                    request,
+                    sv="Resultatet kan skickas när kandidatens tester är slutförda.",
+                    en="The result can be sent once the candidate's assessments are complete.",
+                ),
+            )
+        else:
+            try:
+                send_candidate_result_email(
+                    invitation,
+                    actor=request.user,
+                    base_url=request.build_absolute_uri("/").rstrip("/"),
+                    replace_code=True,
+                )
+                messages.success(
+                    request,
+                    _candidate_result_action_message(
+                        request,
+                        sv="Kandidatrapporten skickades med en ny verifieringskod.",
+                        en="The Candidate Report was sent with a new verification code.",
+                    ),
+                )
+            except Exception:
+                messages.error(
+                    request,
+                    _candidate_result_action_message(
+                        request,
+                        sv="E-postmeddelandet kunde inte skickas. Kontrollera e-poststatusen och försök igen.",
+                        en="The email could not be sent. Check the email status and try again.",
+                    ),
+                )
+    elif action == "revoke":
+        access = (
+            CandidateResultAccess.objects
+            .filter(snapshot__invitation=invitation)
+            .first()
+        )
+        if access is None:
+            messages.info(
+                request,
+                _candidate_result_action_message(
+                    request,
+                    sv="Det finns ingen kandidatåtkomst att återkalla.",
+                    en="There is no candidate access to revoke.",
+                ),
+            )
+        elif access.revoked_at:
+            messages.info(
+                request,
+                _candidate_result_action_message(
+                    request,
+                    sv="Kandidatens åtkomst är redan återkallad.",
+                    en="Candidate access has already been revoked.",
+                ),
+            )
+        else:
+            access.revoked_at = timezone.now()
+            access.save(update_fields=["revoked_at"])
+            messages.success(
+                request,
+                _candidate_result_action_message(
+                    request,
+                    sv="Kandidatens åtkomst har återkallats.",
+                    en="Candidate access has been revoked.",
+                ),
+            )
+    else:
+        return HttpResponseBadRequest("Unknown candidate result action.")
+
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse(
+            "processes:process_detail",
+            kwargs={"pk": process.pk},
+        )
+    return HttpResponseRedirect(next_url)
