@@ -1,0 +1,177 @@
+"""Synthetic regression tests for Sova Integrity Guard score-push ingestion.
+
+These fixtures describe supported possible payload shapes; they are NOT
+claimed to be captured from the real Sova sandbox.
+"""
+import json
+
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase, override_settings
+
+from apps.accounts.models import Company
+from apps.processes.models import Candidate, TestInvitation, TestProcess
+from apps.core.integrations.integrity_guard import extract_integrity_guard
+
+
+class IntegrityGuardParserTests(SimpleTestCase):
+    def test_nested_project_score_and_camel_case_fields(self):
+        payload = {
+            "projectResults": {
+                "projectScores": [{
+                    "integrityGuard": {
+                        "overallStatus": "2",
+                        "statusDescription": "Some checks require review",
+                        "diagnostics": [
+                            {"name": "IP Address", "status": 1},
+                            {"name": "Browser Patrolling", "status": "2"},
+                            {"name": "Not monitored", "status": 0},
+                            {"name": "No status"},
+                        ],
+                    }
+                }]
+            }
+        }
+        parsed = extract_integrity_guard(payload)
+        self.assertEqual(parsed["overall_status"], 2)
+        self.assertEqual(parsed["overall_description"], "Some checks require review")
+        self.assertEqual(parsed["diagnostics"], {
+            "ip_address": 1,
+            "browser_patrolling": 2,
+        })
+        self.assertEqual(len(parsed["sources"]), 1)
+
+    def test_not_monitored_zero_is_valid(self):
+        self.assertEqual(
+            extract_integrity_guard({"integrity_guard_status": 0})["overall_status"], 0
+        )
+
+    def test_flattened_diagnostic_object(self):
+        result = extract_integrity_guard({
+            "project_results": {
+                "integrityGuardStatus": "3",
+                "integrityGuardDescription": "Monitoring failed",
+                "integrityGuardDiagnostics": {"device_switching": {"status": 3}},
+            }
+        })
+        self.assertEqual(result["overall_status"], 3)
+        self.assertEqual(result["overall_description"], "Monitoring failed")
+        self.assertEqual(result["diagnostics"], {"device_switching": 3})
+
+    def test_guard_object_with_direct_diagnostic_statuses(self):
+        result = extract_integrity_guard({"integrity_guard": {
+            "status": 1, "ip_address_status": 1, "device_status": 2,
+        }})
+        self.assertEqual(result["diagnostics"], {"ip_address": 1, "device": 2})
+
+    def test_retains_separate_sources_for_multiple_assessments(self):
+        result = extract_integrity_guard({"activities": [
+            {"integrity_guard": {"status": 1, "diagnostics": {"ip": 1}}},
+            {"integrity_guard": {"status": 2, "diagnostics": {"browser": 2}}},
+        ]})
+        self.assertEqual(len(result["sources"]), 2)
+        self.assertEqual(result["sources"][1]["overall_status"], 2)
+
+    def test_missing_or_unrelated_integrity_competency_does_not_match(self):
+        self.assertIsNone(extract_integrity_guard({
+            "activities": [{"competencies": [{"competency": "Integrity", "score": 2}]}],
+            "project_results": {"overall_score": 87},
+        }))
+        self.assertIsNone(extract_integrity_guard({"activities": []}))
+        self.assertIsNone(extract_integrity_guard({"integrity_guard_status": 7}))
+        self.assertIsNone(extract_integrity_guard({"integrity_guard_status": True}))
+        self.assertIsNone(extract_integrity_guard(None))
+
+    def test_only_explicitly_monitored_diagnostics_are_included(self):
+        result = extract_integrity_guard({"integrity_guard": {
+            "overall_status": 0,
+            "diagnostics": {
+                "ip": 0,
+                "device": None,
+                "browser": 1,
+                "response_pattern": "3",
+            },
+        }})
+        self.assertEqual(result["overall_status"], 0)
+        self.assertEqual(result["diagnostics"], {"browser": 1, "response_pattern": 3})
+
+
+@override_settings(SOVA_WEBHOOK_TEST_SECRET="synthetic-test-secret")
+class IntegrityGuardIngestTests(TestCase):
+    def setUp(self):
+        user = get_user_model().objects.create_user(
+            username="integrity-test@example.com",
+            email="integrity-test@example.com",
+            password="synthetic-test-password",
+        )
+        company = Company.objects.create(name="Synthetic Sova Company")
+        process = TestProcess.objects.create(
+            name="Synthetic Sova Project",
+            company=company,
+            project_code="synthetic-project",
+            account_code="synthetic-account",
+            created_by=user,
+        )
+        candidate = Candidate.objects.create(
+            first_name="Synthetic",
+            last_name="Candidate",
+            email="integrity-synthetic-candidate@example.com",
+        )
+        self.invitation = TestInvitation.objects.create(
+            process=process, candidate=candidate,
+            request_id="synthetic-integrity-request", status="sent",
+        )
+
+    def _post(self, extra=None, secret="synthetic-test-secret"):
+        payload = {
+            "request_id": "synthetic-integrity-request",
+            "overall_status": "in progress",
+            "activities": [],
+        }
+        payload.update(extra or {})
+        return self.client.post(
+            "/integrations/sova/ingest/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_X_TALENA_WEBHOOK_SECRET=secret,
+        )
+
+    def test_saves_guard_scores_and_description_from_webhook(self):
+        response = self._post({"project_results": {
+            "project_scores": [{
+                "integrity_guard": {
+                    "overall_status": 2,
+                    "description": "Please review",
+                    "diagnostics": {"ip_address": 1, "browser_patrolling": 2},
+                }
+            }]
+        }})
+        self.assertEqual(response.status_code, 200)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard["overall_status"], 2)
+        self.assertEqual(self.invitation.integrity_guard["overall_description"], "Please review")
+        self.assertEqual(self.invitation.integrity_guard["diagnostics"], {
+            "ip_address": 1, "browser_patrolling": 2,
+        })
+        self.assertIn("project_scores", self.invitation.project_results)
+
+    def test_follow_up_without_guard_does_not_erase_prior_result(self):
+        self._post({"integrity_guard": {"status": 1, "diagnostics": {"ip": 1}}})
+        self.assertEqual(self._post().status_code, 200)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard["overall_status"], 1)
+
+    def test_absent_guard_leaves_unmonitored_assessments_untouched(self):
+        self.assertEqual(self._post({"project_results": {"overall_score": 12}}).status_code, 200)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard, {})
+        self.assertEqual(self.invitation.project_results, {"overall_score": 12})
+
+    def test_zero_status_persists(self):
+        self.assertEqual(self._post({"integrity_guard_status": 0}).status_code, 200)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard["overall_status"], 0)
+
+    def test_wrong_webhook_secret_rejected_without_updating_guard(self):
+        self.assertEqual(self._post({"integrity_guard_status": 2}, secret="wrong").status_code, 401)
+        self.invitation.refresh_from_db()
+        self.assertEqual(self.invitation.integrity_guard, {})
