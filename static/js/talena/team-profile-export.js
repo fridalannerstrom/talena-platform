@@ -33,12 +33,14 @@
 
     let librariesPromise = null;
     let busy = false;
+    let activeItemStatus = null;
 
     function updateStatus(text, error) {
-      if (!status) return;
-      status.textContent = text;
-      status.classList.toggle("text-danger", Boolean(error));
-      status.classList.toggle("text-muted", !error);
+      [status, activeItemStatus].filter(Boolean).forEach(function (target) {
+        target.textContent = text;
+        target.classList.toggle("text-danger", Boolean(error));
+        target.classList.toggle("text-muted", !error);
+      });
     }
 
     function isAnonymous() {
@@ -241,8 +243,14 @@
 
     async function runExport(button, action) {
       if (busy) return;
+      section.querySelectorAll("[data-team-export-item-status]").forEach(node => {
+        node.textContent = "";
+      });
+      activeItemStatus = button.closest("[data-team-member-profile]")
+        ?.querySelector("[data-team-export-item-status]") || null;
       if (isAnonymous()) {
         updateStatus(copy.anonymous, true);
+        activeItemStatus = null;
         return;
       }
       busy = true;
@@ -259,6 +267,7 @@
       } finally {
         buttons.forEach(b => { b.disabled = false; });
         button.removeAttribute("aria-busy");
+        activeItemStatus = null;
         busy = false;
       }
     }
