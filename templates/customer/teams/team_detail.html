@@ -7,6 +7,8 @@
 {% block extra_css %}
   <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-insights.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-profile-export.css' %}" rel="stylesheet" />
   <style>
@@ -535,7 +537,7 @@
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamprofil{% else %}Download team profile{% endif %}
                     </button>
                   </div>
-                  <div class="team-member-report-content" data-team-report>
+                  <div class="team-member-report-content process-page" data-team-report>
                     {% include "customer/processes/partials/_team_styles.html" with team_style_profile=member.profile team_style_embedded=True team_style_member_id=member.candidate.pk %}
                   </div>
                 {% else %}
