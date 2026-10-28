@@ -515,7 +515,7 @@
                      data-team-member-profile
                      data-member-id="{{ member.candidate.pk }}"
                      data-report-name="{{ member.candidate.first_name }} {{ member.candidate.last_name }}"
-                     data-has-report="{{ member.profile.available|yesno:'true,false' }}">
+                     data-has-report="{{ member.profile.complete|yesno:'true,false' }}">
               <summary>
                 <div class="team-member-profile-person">
                   <div class="team-member-initials">{{ member.initials }}</div>
@@ -532,10 +532,17 @@
               <div class="team-member-profile-body">
                 {% if member.profile.available %}
                   <div class="team-member-profile-toolbar">
+                    {% if member.profile.complete %}
                     <button type="button" class="btn btn-outline-primary btn-sm" data-team-export-single>
                       <i data-feather="download" class="icon-14"></i>
                       {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamprofil{% else %}Download team profile{% endif %}
                     </button>
+                    {% else %}
+                    <span class="small text-muted">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilen är ännu inte komplett och kan inte exporteras.{% else %}This profile is not yet complete and cannot be exported.{% endif %}
+                    </span>
+                    {% endif %}
+                    <span class="small" role="status" aria-live="polite" data-team-export-item-status></span>
                   </div>
                   <div class="team-member-report-content process-page" data-team-report>
                     {% include "customer/processes/partials/_team_styles.html" with team_style_profile=member.profile team_style_embedded=True team_style_member_id=member.candidate.pk %}
