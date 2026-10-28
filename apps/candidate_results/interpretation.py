@@ -26,10 +26,71 @@ from apps.reports.libraries.personality.builder import get_score_band, normalize
 from .models import CandidateResultSnapshot
 
 
-CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v3"
-_PERSONALITY_LIBRARY_PATH = Path(__file__).parents[1] / "reports" / "libraries" / "personality" / "candidate_content_sv.json"
-with _PERSONALITY_LIBRARY_PATH.open(encoding="utf-8") as _personality_library_file:
-    CANDIDATE_PERSONALITY_CONTENT_SV = json.load(_personality_library_file)
+CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v4"
+_PERSONALITY_LIBRARY_DIR = (
+    Path(__file__).parents[1]
+    / "reports"
+    / "libraries"
+    / "personality"
+)
+with (_PERSONALITY_LIBRARY_DIR / "candidate_content_sv.json").open(
+    encoding="utf-8"
+) as _personality_library_file:
+    CANDIDATE_PERSONALITY_CONTENT_SV = json.load(
+        _personality_library_file
+    )
+with (_PERSONALITY_LIBRARY_DIR / "candidate_content_en.json").open(
+    encoding="utf-8"
+) as _personality_translation_file:
+    CANDIDATE_PERSONALITY_CONTENT_EN = json.load(
+        _personality_translation_file
+    )
+
+_CANDIDATE_PERSONALITY_TEXTS_EN = {
+    indicator_key: dict(zip(
+        CANDIDATE_PERSONALITY_CONTENT_EN["score_bands"],
+        sentences,
+    ))
+    for indicator_key, sentences in (
+        CANDIDATE_PERSONALITY_CONTENT_EN["indicators"].items()
+    )
+}
+_EXPECTED_PERSONALITY_INDICATORS = {
+    indicator["key"]
+    for trait in CANDIDATE_PERSONALITY_CONTENT_SV.get("traits", [])
+    for indicator in trait.get("indicators", [])
+}
+_TRANSLATED_PERSONALITY_INDICATORS = set(
+    CANDIDATE_PERSONALITY_CONTENT_EN.get("indicators", {})
+)
+_MISSING_PERSONALITY_TRANSLATIONS = (
+    _EXPECTED_PERSONALITY_INDICATORS - _TRANSLATED_PERSONALITY_INDICATORS
+)
+_EXTRA_PERSONALITY_TRANSLATIONS = (
+    _TRANSLATED_PERSONALITY_INDICATORS - _EXPECTED_PERSONALITY_INDICATORS
+)
+_INVALID_PERSONALITY_TRANSLATION_LENGTHS = {
+    indicator_key: len(sentences)
+    for indicator_key, sentences in (
+        CANDIDATE_PERSONALITY_CONTENT_EN.get("indicators", {}).items()
+    )
+    if (
+        len(sentences)
+        != len(CANDIDATE_PERSONALITY_CONTENT_EN["score_bands"])
+        or any(not str(sentence).strip() for sentence in sentences)
+    )
+}
+if (
+    _MISSING_PERSONALITY_TRANSLATIONS
+    or _EXTRA_PERSONALITY_TRANSLATIONS
+    or _INVALID_PERSONALITY_TRANSLATION_LENGTHS
+    or CANDIDATE_PERSONALITY_CONTENT_EN.get("score_bands")
+    != CANDIDATE_PERSONALITY_CONTENT_SV.get("score_bands")
+):
+    raise ValueError(
+        "English candidate personality copy must provide exactly one "
+        "translation for every source indicator and score band."
+    )
 
 
 _FIXED_COPY = {
@@ -199,10 +260,17 @@ def _candidate_personality_groups(
         trait["key"]: trait
         for trait in CANDIDATE_PERSONALITY_CONTENT_SV.get("traits", [])
     }
-    section_titles_sv = {
-        "leading_and_working_with_others": "Leda och arbeta med andra",
-        "organisation_and_thinking_style": "Organisering och tankemönster",
-        "interacting_and_managing_emotions": "Interaktion och känslohantering",
+    section_titles = {
+        "sv": {
+            "leading_and_working_with_others": "Leda och arbeta med andra",
+            "organisation_and_thinking_style": "Organisering och tankemönster",
+            "interacting_and_managing_emotions": "Interaktion och känslohantering",
+        },
+        "en": {
+            "leading_and_working_with_others": "Leading and Working with Others",
+            "organisation_and_thinking_style": "Organising and Thought Patterns",
+            "interacting_and_managing_emotions": "Interaction and Emotional Regulation",
+        },
     }
     groups = []
     for section in TRAIT_AND_INDICATOR_PROFILE["sections"]:
@@ -222,15 +290,19 @@ def _candidate_personality_groups(
                     continue
 
                 if language_code == "sv":
-                    candidate_text = indicator_definitions.get(indicator_key, {})
-                    text = candidate_text.get("score_texts", {}).get(score_band, "")
-                else:
-                    indicator_content = INDICATOR_PROFILE_CONTENT.get(indicator_key, {})
-                    text = (
-                        indicator_content.get("score_texts", {})
-                        .get(score_band, {})
-                        .get("en", "")
+                    candidate_text = indicator_definitions.get(
+                        indicator_key,
+                        {},
                     )
+                    text = candidate_text.get(
+                        "score_texts",
+                        {},
+                    ).get(score_band, "")
+                else:
+                    text = _CANDIDATE_PERSONALITY_TEXTS_EN.get(
+                        indicator_key,
+                        {},
+                    ).get(score_band, "")
 
                 if text and text.strip():
                     sentences.append(text.strip())
@@ -239,9 +311,8 @@ def _candidate_personality_groups(
             continue
 
         title = (
-            section_titles_sv.get(section["section_key"], section["section_name"])
-            if language_code == "sv"
-            else section["section_name"]
+            section_titles[language_code].get(section["section_key"])
+            or section["section_name"]
         )
         groups.append({
             "title": title,
@@ -368,8 +439,9 @@ def build_static_candidate_result_content(
 
     content: dict[str, Any] = {
     "library_version": CANDIDATE_RESULT_CONTENT_VERSION,
-        "personality_library_version": CANDIDATE_PERSONALITY_CONTENT_SV.get(
-            "library_version", ""
+        "personality_library_version": (
+            f'{CANDIDATE_PERSONALITY_CONTENT_SV.get("library_version", "")}/'
+            f'{CANDIDATE_PERSONALITY_CONTENT_EN.get("library_version", "")}'
         ),
         "introduction": {
             "title": copy["introduction_title"],

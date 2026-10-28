@@ -28,7 +28,7 @@ def _copy(locale: str) -> dict[str, str]:
                 "Om det är något du inte känner igen dig i, vill förtydliga "
                 "eller berätta mer om, har du möjlighet att dela med dig av "
                 "dina tankar genom att lämna kommentarer direkt i rapporten.\n\n"
-                "Ta del av dina resultat här:\n"
+                "Ta del av ditt resultat här:\n"
                 "{result_url}\n\n"
                 "Din personliga verifieringskod:\n"
                 "{verification_code}\n\n"
@@ -39,14 +39,17 @@ def _copy(locale: str) -> dict[str, str]:
     return {
         "subject": "Your Talena assessment result",
         "body": (
-            "Hi {first_name}!\n\n"
-            "Thank you for completing the assessment.\n\n"
-            "Your result is a basis for reflection and further "
-            "conversation. It describes possible preferences and "
-            "tendencies, not a grade or an absolute truth.\n\n"
+            "Hello,\n\n"
+            "Thank you for completing TQ's assessment!\n\n"
+            "We want to emphasise that your result is part of the bigger "
+            "picture, not a definitive answer.\n\n"
+            "If there is anything you do not recognise, would like to "
+            "clarify or tell us more about, you can share your thoughts "
+            "by leaving comments directly in the report.\n\n"
             "View your result here:\n{result_url}\n\n"
-            "Your personal verification code is:\n{verification_code}\n\n"
-            "Best regards,\nTalena"
+            "Your personal verification code:\n{verification_code}\n\n"
+            "Kind regards,\n"
+            "The TQ Team"
         ),
     }
 
@@ -54,7 +57,6 @@ def _copy(locale: str) -> dict[str, str]:
 def _html_body(
     locale: str,
     *,
-    first_name: str,
     result_url: str,
     verification_code: str,
 ):
@@ -66,7 +68,7 @@ def _html_body(
             "<p>Om det är något du inte känner igen dig i, vill förtydliga "
             "eller berätta mer om, har du möjlighet att dela med dig av "
             "dina tankar genom att lämna kommentarer direkt i rapporten.</p>"
-            "<p><strong>Ta del av dina resultat här:</strong><br>"
+            "<p><strong>Ta del av ditt resultat här:</strong><br>"
             "<a href=\"{result_url}\">{result_url}</a></p>"
             "<p><strong>Din personliga verifieringskod:</strong><br>"
             "{verification_code}</p>"
@@ -76,17 +78,18 @@ def _html_body(
         )
 
     return format_html(
-        "<p>Hi {first_name}!</p>"
-        "<p>Thank you for completing the assessment.</p>"
-        "<p>Your result is a basis for reflection and further conversation. "
-        "It describes possible preferences and tendencies, not a grade or "
-        "an absolute truth.</p>"
+        "<p>Hello,</p>"
+        "<p>Thank you for completing TQ's assessment!</p>"
+        "<p>We want to emphasise that your result is part of the bigger "
+        "picture, not a definitive answer.</p>"
+        "<p>If there is anything you do not recognise, would like to "
+        "clarify or tell us more about, you can share your thoughts by "
+        "leaving comments directly in the report.</p>"
         "<p><strong>View your result here:</strong><br>"
         "<a href=\"{result_url}\">{result_url}</a></p>"
-        "<p><strong>Your personal verification code is:</strong><br>"
+        "<p><strong>Your personal verification code:</strong><br>"
         "{verification_code}</p>"
-        "<p>Best regards,<br>Talena</p>",
-        first_name=first_name,
+        "<p>Kind regards,<br>The TQ Team</p>",
         result_url=result_url,
         verification_code=verification_code,
     )
@@ -144,15 +147,20 @@ def send_candidate_result_email(
     if invitation.status != "completed":
         raise ValueError("Candidate result email requires a completed invitation.")
 
-    locale = (
+    requested_locale = (
         invitation.process.candidate_language or "sv"
     ).strip().lower()
-    if locale not in {"sv", "en"}:
-        locale = "sv"
+    if requested_locale not in {"sv", "en"}:
+        requested_locale = "sv"
 
     snapshot, _created = create_candidate_result_snapshot(
         invitation,
-        language_code=locale,
+        language_code=requested_locale,
+    )
+    locale = (
+        snapshot.locale
+        if snapshot.locale in {"sv", "en"}
+        else requested_locale
     )
 
     access = (
@@ -184,16 +192,13 @@ def send_candidate_result_email(
 
     copy = _copy(locale)
     subject = copy["subject"]
-    first_name = invitation.candidate.first_name or ""
     result_url = _result_url(raw_token, base_url)
     body = copy["body"].format(
-        first_name=first_name,
         result_url=result_url,
         verification_code=raw_code,
     )
     html_body = _html_body(
         locale,
-        first_name=first_name,
         result_url=result_url,
         verification_code=raw_code,
     )

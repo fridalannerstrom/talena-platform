@@ -29,9 +29,35 @@ SWEDISH_DEFAULT_INVITATION_BODY = (
     "{assessment_url}"
 )
 
+ENGLISH_DEFAULT_INVITATION_BODY = (
+    "Hi {first_name},\n\n"
+    "You have been invited to complete TQ's assessments.\n\n"
+    "The assessments are a way to gain a better understanding of your "
+    "personal profile and can provide valuable insights as part of a "
+    "broader picture.\n\n"
+    "When you click the link below, you will be taken to the assessment "
+    "platform, where you can find more information about which assessments "
+    "to complete, how they work and what may be helpful to keep in mind "
+    "before you begin.\n\n"
+    "Please take your time to read the instructions carefully before you "
+    "get started.\n\n"
+    "{assessment_url}"
+)
+
 # Only automatically migrate saved templates that exactly match an earlier
 # Talena default. Never overwrite a process's customized invitation.
 LEGACY_DEFAULT_INVITATION_TEMPLATES = (
+    {
+        "subject": "Invitation to assessment process",
+        "body": (
+            "Hi {first_name},\n\n"
+            "You have been invited to complete assessments.\n\n"
+            "Click the link below to start:\n"
+            "{assessment_url}\n\n"
+            "Best regards,\n"
+            "{sender_full_name}"
+        ),
+    },
     {
         "subject": "Invitation to assessment process",
         "body": (
@@ -126,14 +152,7 @@ def get_default_invitation_template(
             # the older wording to be sent after this copy change.
             body = SWEDISH_DEFAULT_INVITATION_BODY
         else:
-            body = _(
-                "Hi {first_name},\n\n"
-                "You have been invited to complete assessments.\n\n"
-                "Click the link below to start:\n"
-                "{assessment_url}\n\n"
-                "Best regards,\n"
-                "{sender_full_name}"
-            )
+            body = ENGLISH_DEFAULT_INVITATION_BODY
 
     return {
         "subject": subject,
