@@ -435,153 +435,90 @@
   }
 
   function initTeamMemberProfiles() {
-    const memberHeader = document.querySelector(
-      ".talena-team-page .team-table .team-member-column"
-    );
-    const table = memberHeader && memberHeader.closest("table");
-    const card = table && table.closest(".card");
-    const body = card && card.querySelector(".card-body");
+    const profiles = Array.from(document.querySelectorAll("[data-team-member-profile]"));
+    if (!profiles.length) return;
 
-    if (!table || !card || !body || body.dataset.enhancedProfiles === "true") {
-      return;
-    }
+    const swedish = isSwedish();
+    const openLabel = swedish ? "Visa profil" : "View profile";
+    const closeLabel = swedish ? "Dölj profil" : "Hide profile";
+    const palette = {
+      explore: "rgba(239, 94, 82, 0.76)",
+      lead: "rgba(207, 137, 127, 0.76)",
+      deliver: "rgba(126, 162, 143, 0.76)",
+      review: "rgba(197, 151, 79, 0.76)"
+    };
 
-    const sv = isSwedish();
-    const strings = sv
-      ? {
-          open: "Visa profil",
-          close: "Dölj profil",
-          ranked: "Rangordnade teamstilar",
-          chart: "Individuell profil",
-          noData: "Ingen teamstilsdata tillgänglig"
-        }
-      : {
-          open: "View profile",
-          close: "Hide profile",
-          ranked: "Ranked team styles",
-          chart: "Individual profile",
-          noData: "No team style data available"
-        };
-
-    const headers = Array.from(table.querySelectorAll("thead th"))
-      .slice(1)
-      .map(function (header) { return header.textContent.trim(); });
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-    if (!headers.length || !rows.length) {
-      return;
-    }
-
-    const list = document.createElement("div");
-    list.className = "team-member-profile-list";
-
-    rows.forEach(function (row, index) {
-      const cells = Array.from(row.querySelectorAll("td"));
-      if (cells.length < 2) {
-        return;
+    // Use the same server-rendered Sova team-style profile as the candidate sheet.
+    // Only the chart is initialised in JavaScript, never the descriptions or scores.
+    function renderChart(profile) {
+      const canvas = profile.querySelector("[data-team-style-chart]");
+      if (!canvas || typeof window.Chart !== "function") return null;
+      if (profile._talenaTeamChart) {
+        profile._talenaTeamChart.resize();
+        return profile._talenaTeamChart;
       }
 
-      const initials = (
-        cells[0].querySelector(".team-member-initials")?.textContent || "?"
-      ).trim();
-      const name = (
-        cells[0].querySelector(".fw-semibold")?.textContent || ""
-      ).trim();
-      const email = (
-        cells[0].querySelector(".text-muted")?.textContent || ""
-      ).trim();
-      const values = cells.slice(1).map(function (cell) {
-        return parseBareScore(cell.textContent || "");
-      });
-      const hasData = values.some(function (value) { return value !== null; });
+      const rows = Array.from(profile.querySelectorAll("[data-team-style-chart-item]"));
+      if (!rows.length) return null;
 
-      const ranked = headers.map(function (label, styleIndex) {
-        return {
-          label: label,
-          value: values[styleIndex]
-        };
-      }).filter(function (item) {
-        return item.value !== null;
-      }).sort(function (a, b) {
-        return b.value - a.value;
-      });
+      const labels = rows.map(row => row.dataset.styleName);
+      const values = rows.map(row => Number(row.dataset.styleScore) || 0);
+      const backgrounds = rows.map(row => palette[row.dataset.quadrantKey] || palette.explore);
 
-      const rankedHtml = ranked.map(function (item) {
-        const width = Math.max(0, Math.min(100, (item.value / 5) * 100));
-        return `
-          <div class="team-member-style-row">
-            <div class="team-member-style-label">${escapeHtml(item.label)}</div>
-            <div class="team-member-style-track">
-              <div class="team-member-style-fill" style="width:${width}%"></div>
-            </div>
-            <div class="team-member-style-score">${item.value} / 5</div>
-          </div>
-        `;
-      }).join("");
-
-      const details = document.createElement("details");
-      details.className = "team-member-profile-item";
-      details.innerHTML = `
-        <summary>
-          <div class="team-member-profile-person">
-            <div class="team-member-initials">${escapeHtml(initials)}</div>
-            <div>
-              <div class="team-member-profile-name">${escapeHtml(name)}</div>
-              <div class="team-member-profile-email">${escapeHtml(email)}</div>
-            </div>
-          </div>
-          <div class="team-member-profile-action">
-            <span class="team-member-profile-action-label">${escapeHtml(strings.open)}</span>
-            <span class="team-guide-chevron" aria-hidden="true">⌄</span>
-          </div>
-        </summary>
-        <div class="team-member-profile-body">
-          ${hasData ? `
-            <div class="team-member-profile-chart-panel">
-              <div class="team-member-profile-subtitle">${escapeHtml(strings.chart)}</div>
-              <div class="team-member-radar-wrap">
-                <canvas class="team-member-radar" id="team-member-radar-${index}"></canvas>
-              </div>
-            </div>
-            <div class="team-member-profile-ranking-panel">
-              <div class="team-member-profile-subtitle">${escapeHtml(strings.ranked)}</div>
-              <div class="team-member-style-ranking">${rankedHtml}</div>
-            </div>
-          ` : `
-            <div class="team-member-profile-empty">${escapeHtml(strings.noData)}</div>
-          `}
-        </div>
-      `;
-
-      details._teamStyleLabels = headers;
-      details._teamStyleValues = values.map(function (value) {
-        return value === null ? 0 : value;
-      });
-
-      details.addEventListener("toggle", function () {
-        const action = details.querySelector(".team-member-profile-action-label");
-        if (action) {
-          action.textContent = details.open ? strings.close : strings.open;
-        }
-
-        if (details.open && hasData) {
-          window.requestAnimationFrame(function () {
-            createMemberRadar(
-              details.querySelector(".team-member-radar"),
-              details._teamStyleLabels,
-              details._teamStyleValues
-            );
-          });
+      profile._talenaTeamChart = new window.Chart(canvas, {
+        type: "polarArea",
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: backgrounds,
+            borderColor: "#fff",
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          layout: { padding: 20 },
+          scales: {
+            r: {
+              min: 0, max: 5, beginAtZero: true,
+              ticks: { display: false, stepSize: 1 },
+              grid: { color: "rgba(117, 105, 99, 0.12)" },
+              angleLines: { color: "rgba(117, 105, 99, 0.12)" },
+              pointLabels: {
+                display: true,
+                centerPointLabels: true,
+                color: "#615a56",
+                font: { size: 11, weight: "600" }
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: context => context.label + ": " + context.formattedValue + " / 5"
+              }
+            }
+          }
         }
       });
+      return profile._talenaTeamChart;
+    }
 
-      list.appendChild(details);
+    window.TalenaTeamProfileCharts = { render: renderChart };
+
+    profiles.forEach(function (profile) {
+      profile.addEventListener("toggle", function () {
+        const label = profile.querySelector(".team-member-profile-action-label");
+        if (label) label.textContent = profile.open ? closeLabel : openLabel;
+        if (profile.open && profile.dataset.hasReport === "true") {
+          window.requestAnimationFrame(function () { renderChart(profile); });
+        }
+      });
     });
-
-    body.dataset.enhancedProfiles = "true";
-    body.classList.remove("p-0");
-    body.innerHTML = "";
-    body.appendChild(list);
   }
 
   function getTeamStyleGuideCopy() {

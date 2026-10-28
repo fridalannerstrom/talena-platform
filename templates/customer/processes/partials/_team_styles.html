@@ -25,7 +25,7 @@
       <div class="team-style-chart-card mb-4" data-team-style-chart-root>
         <div class="team-style-polar-wrap">
           <canvas
-            id="teamStylePolarChart"
+            id="{% if team_style_embedded %}teamStylePolarChart-{{ team_style_member_id }}{% else %}teamStylePolarChart{% endif %}"
             data-team-style-chart
             aria-label="{% trans 'Team role profile chart' %}"
           ></canvas>
@@ -46,10 +46,12 @@
         </div>
       </div>
 
+      {% if not team_style_embedded %}
       {{ team_style_profile.chart.labels|json_script:"team-style-chart-labels" }}
       {{ team_style_profile.chart.values|json_script:"team-style-chart-values" }}
       {{ team_style_profile.chart.backgrounds|json_script:"team-style-chart-backgrounds" }}
       {{ team_style_profile.chart.border_colors|json_script:"team-style-chart-borders" }}
+      {% endif %}
 
       <!-- ALL TEAM STYLES, RANKED -->
       <div class="response-style-card team-style-ranked-list">

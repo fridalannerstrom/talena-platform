@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.template.loader import render_to_string
 from django.utils import timezone
 
 from apps.accounts.models import Company, OrgUnit, User
@@ -91,6 +92,34 @@ class TeamReportTeamStyleDataTests(TestCase):
         self.assertEqual(member_scores["Connector"]["score_rounded"], 4)
         self.assertEqual(member_scores["Energiser"]["score_rounded"], 5)
 
+        # Full individual content is the same builder used by the candidate sheet.
+        member_profile = stats["member_profiles"][0]["profile"]
+        self.assertTrue(member_profile["available"])
+        self.assertEqual(len(member_profile["styles"]), 8)
+        self.assertEqual(member_profile["chart"]["values"][0], 3)
+        connector = next(
+            style for style in member_profile["styles"]
+            if style["key"] == "connector"
+        )
+        self.assertEqual(connector["raw_value"], 4.4)
+        self.assertTrue(connector["contribution"])
+        self.assertTrue(connector["build_trust"])
+        self.assertTrue(connector["possible_overuse"])
+        self.assertTrue(connector["avoid"])
+
+        html = render_to_string(
+            "customer/processes/partials/_team_styles.html",
+            {
+                "team_style_profile": member_profile,
+                "team_style_embedded": True,
+                "team_style_member_id": self.candidate.id,
+            },
+        )
+        self.assertIn(f'teamStylePolarChart-{self.candidate.id}', html)
+        self.assertIn('data-team-style-chart-item', html)
+        self.assertIn('Practical guidance', html)
+        self.assertNotIn('id="team-style-chart-labels"', html)
+
         connector_average = next(
             row
             for row in stats["average_rows"]
@@ -161,3 +190,4 @@ class TeamReportTeamStyleDataTests(TestCase):
         )
 
         self.assertEqual(stats["members_with_scores"], 0)
+        self.assertFalse(stats["member_profiles"][0]["profile"]["available"])

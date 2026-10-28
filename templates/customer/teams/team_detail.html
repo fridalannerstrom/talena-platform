@@ -7,6 +7,10 @@
 {% block extra_css %}
   <link href="{% static 'css/talena/pages/teams.css' %}" rel="stylesheet" />
   <link href="{% static 'css/talena/pages/team-polish.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-insights.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/candidate-decision-support.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-styles.css' %}" rel="stylesheet" />
+  <link href="{% static 'css/talena/pages/team-profile-export.css' %}" rel="stylesheet" />
   <style>
     .talena-team-page .team-anonymity-toggle {
       display: inline-flex;
@@ -142,6 +146,15 @@
         <span class="team-anonymity-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Anonymisera{% else %}Anonymise{% endif %}</span>
         <span class="team-anonymity-switch" aria-hidden="true"></span>
       </button>
+      {% if team_style_stats.members_with_scores %}
+        <div class="team-profile-bulk-actions">
+          <button type="button" class="btn btn-outline-primary" data-team-export-all>
+            <i data-feather="download" class="icon-14"></i>
+            {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner alla teamprofiler{% else %}Download all team profiles{% endif %}
+          </button>
+          <p class="small text-muted mb-0" role="status" aria-live="polite" data-team-export-status></p>
+        </div>
+      {% endif %}
       <a href="{% url 'teams:team_edit' team.pk %}" class="btn btn-outline-secondary team-secondary-action">
         <i data-feather="edit-3" class="icon-14"></i>
         {% trans "Edit team" %}
@@ -488,54 +501,58 @@
       </div>
     </div>
 
-    <div class="card mb-4">
-      <div class="card-header">
-        <div class="fw-semibold">{% trans "Team member profiles" %}</div>
-        <div class="text-muted small">
-          {% trans "Individual team style scores for each team member." %}
+    <div class="card mb-4" data-team-profile-section data-team-name="{{ team.name }}">
+      <div class="card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div>
+          <h2 class="team-section-title mb-1">{% trans "Team member profiles" %}</h2>
+          <p class="team-section-copy mb-0">{% trans "Individual team style scores for each team member." %}</p>
         </div>
       </div>
-
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table align-middle mb-0 team-table">
-            <thead>
-              <tr>
-                <th class="team-member-column">{% trans "Member" %}</th>
-                {% for style in team_style_stats.styles %}
-                  <th class="text-center">{% trans style %}</th>
-                {% endfor %}
-              </tr>
-            </thead>
-
-            <tbody>
-              {% for member in team_style_stats.member_profiles %}
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="team-member-initials">{{ member.initials }}</div>
-                      <div>
-                        <div class="fw-semibold">
-                          {{ member.candidate.first_name }} {{ member.candidate.last_name }}
-                        </div>
-                        <div class="text-muted small">{{ member.candidate.email }}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {% for score in member.scores %}
-                    <td class="text-center">
-                      {% if score.score is not None %}
-                        <span class="team-score-badge">{{ score.score|floatformat:0 }}</span>
-                      {% else %}
-                        <span class="text-muted small">—</span>
-                      {% endif %}
-                    </td>
-                  {% endfor %}
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+      <div class="card-body">
+        <div class="team-member-profile-list">
+          {% for member in team_style_stats.member_profiles %}
+            <details class="team-member-profile-item"
+                     data-team-member-profile
+                     data-member-id="{{ member.candidate.pk }}"
+                     data-report-name="{{ member.candidate.first_name }} {{ member.candidate.last_name }}"
+                     data-has-report="{{ member.profile.complete|yesno:'true,false' }}">
+              <summary>
+                <div class="team-member-profile-person">
+                  <div class="team-member-initials">{{ member.initials }}</div>
+                  <div>
+                    <div class="team-member-profile-name">{{ member.candidate.first_name }} {{ member.candidate.last_name }}</div>
+                    <div class="team-member-profile-email">{{ member.candidate.email }}</div>
+                  </div>
+                </div>
+                <div class="team-member-profile-action">
+                  <span class="team-member-profile-action-label">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Visa profil{% else %}View profile{% endif %}</span>
+                  <span class="team-guide-chevron" aria-hidden="true">⌄</span>
+                </div>
+              </summary>
+              <div class="team-member-profile-body">
+                {% if member.profile.available %}
+                  <div class="team-member-profile-toolbar">
+                    {% if member.profile.complete %}
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-team-export-single>
+                      <i data-feather="download" class="icon-14"></i>
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Ladda ner teamprofil{% else %}Download team profile{% endif %}
+                    </button>
+                    {% else %}
+                    <span class="small text-muted">
+                      {% if LANGUAGE_CODE|slice:":2" == "sv" %}Profilen är ännu inte komplett och kan inte exporteras.{% else %}This profile is not yet complete and cannot be exported.{% endif %}
+                    </span>
+                    {% endif %}
+                    <span class="small" role="status" aria-live="polite" data-team-export-item-status></span>
+                  </div>
+                  <div class="team-member-report-content process-page" data-team-report>
+                    {% include "customer/processes/partials/_team_styles.html" with team_style_profile=member.profile team_style_embedded=True team_style_member_id=member.candidate.pk %}
+                  </div>
+                {% else %}
+                  <p class="team-member-profile-empty mb-0">{% if LANGUAGE_CODE|slice:":2" == "sv" %}Ingen teamprofil är tillgänglig för den här personen.{% else %}No team profile is available for this member.{% endif %}</p>
+                {% endif %}
+              </div>
+            </details>
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -627,6 +644,7 @@
 {% block extra_js %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/talena/team-pages.js' %}"></script>
+  <script src="{% static 'js/talena/team-profile-export.js' %}"></script>
   <script>
     (function () {
       "use strict";
