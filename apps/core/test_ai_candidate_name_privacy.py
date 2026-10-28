@@ -171,14 +171,14 @@ class CandidateNamePrivacyTests(TestCase):
         self.assertIn("CANDIDATE_A", str(kwargs["messages"]))
 
     def test_static_candidate_result_content_omits_candidate_identifiers(self):
-        from apps.candidate_results.interpretation import generate_candidate_result_content
+        from apps.candidate_results.content import build_candidate_result_content
 
         invitation = SimpleNamespace(
             candidate=self.candidate,
             process=self.process,
             sova_activities=[],
         )
-        content, _, _ = generate_candidate_result_content(
+        content, _, _ = build_candidate_result_content(
             invitation, language_code="en"
         )
         self.assert_no_candidate_identifiers(content)
@@ -189,7 +189,7 @@ class CandidateNamePrivacyTests(TestCase):
 
         root = Path(__file__).resolve().parent / "ai"
         sources = list(root.glob("*.py"))
-        sources.append(root.parent.parent / "candidate_results" / "interpretation.py")
+        sources.append(root.parent.parent / "candidate_results" / "content.py")
         for path in sources:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):

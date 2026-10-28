@@ -993,6 +993,11 @@ def admin_usage_billing(request):
 
 def build_candidate_detail_context(process, invitation):
     candidate = invitation.candidate
+    candidate_report_language = getattr(
+        process,
+        "candidate_language",
+        "sv",
+    ) or "sv"
     activities = invitation.sova_activities or []
 
     activity_events = (
@@ -1116,6 +1121,7 @@ def build_candidate_detail_context(process, invitation):
 
     candidate_report = build_candidate_report(
         competencies=mq_competencies,
+        language_code=candidate_report_language,
     )
 
     coaching_report = build_motivation_coaching_report(
@@ -1204,16 +1210,19 @@ def build_candidate_detail_context(process, invitation):
         "verbal": build_cognitive_reports_for_test(
             test_key="verbal",
             percentile=verbal_percentile,
+            language_code=candidate_report_language,
         ) if verbal_percentile is not None else None,
 
         "logical": build_cognitive_reports_for_test(
             test_key="logical",
             percentile=logical_percentile,
+            language_code=candidate_report_language,
         ) if logical_percentile is not None else None,
 
         "numerical": build_cognitive_reports_for_test(
             test_key="numerical",
             percentile=numerical_percentile,
+            language_code=candidate_report_language,
         ) if numerical_percentile is not None else None,
     }
 

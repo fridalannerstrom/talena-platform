@@ -2806,6 +2806,11 @@ def build_candidate_detail_context(
     language="sv",
 ):
     candidate = invitation.candidate
+    candidate_report_language = getattr(
+        process,
+        "candidate_language",
+        "sv",
+    ) or "sv"
     payload = invitation.sova_payload or {}
 
     raw_sova_payload_json = json.dumps(
@@ -3174,6 +3179,7 @@ def build_candidate_detail_context(
 
     candidate_report = build_candidate_report(
         competencies=mq_competencies,
+        language_code=candidate_report_language,
     )
 
     coaching_report = build_motivation_coaching_report(
@@ -3294,16 +3300,19 @@ def build_candidate_detail_context(
         "verbal": build_cognitive_reports_for_test(
             test_key="verbal",
             percentile=verbal_percentile,
+            language_code=candidate_report_language,
         ) if verbal_percentile is not None else None,
 
         "logical": build_cognitive_reports_for_test(
             test_key="logical",
             percentile=logical_percentile,
+            language_code=candidate_report_language,
         ) if logical_percentile is not None else None,
 
         "numerical": build_cognitive_reports_for_test(
             test_key="numerical",
             percentile=numerical_percentile,
+            language_code=candidate_report_language,
         ) if numerical_percentile is not None else None,
     }
 
@@ -9033,6 +9042,11 @@ def build_historical_candidate_detail_context(
     original process purpose or context is available.
     """
     candidate = historical_candidate.candidate
+    candidate_report_language = getattr(
+        process,
+        "candidate_language",
+        "sv",
+    ) or "sv"
 
     profile = build_historical_candidate_profile(
         historical_candidate
@@ -9358,6 +9372,7 @@ def build_historical_candidate_detail_context(
             build_cognitive_reports_for_test(
                 test_key="verbal",
                 percentile=verbal_percentile,
+                language_code=candidate_report_language,
             )
             if verbal_percentile is not None
             else None
@@ -9366,6 +9381,7 @@ def build_historical_candidate_detail_context(
             build_cognitive_reports_for_test(
                 test_key="logical",
                 percentile=logical_percentile,
+                language_code=candidate_report_language,
             )
             if logical_percentile is not None
             else None
@@ -9374,6 +9390,7 @@ def build_historical_candidate_detail_context(
             build_cognitive_reports_for_test(
                 test_key="numerical",
                 percentile=numerical_percentile,
+                language_code=candidate_report_language,
             )
             if numerical_percentile is not None
             else None
@@ -9429,6 +9446,7 @@ def build_historical_candidate_detail_context(
             ),
             build_candidate_report(
                 competencies=mq_competencies,
+                language_code=candidate_report_language,
             ),
         ]
 

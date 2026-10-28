@@ -4,8 +4,17 @@ from apps.reports.libraries.motivation.content import (
     PRACTITIONER_FACTOR_CONTENT,
     MANAGER_FACTOR_CONTENT,
     MOTIVATION_COACHING_CONTENT,
-    CANDIDATE_FACTOR_CONTENT,
 )
+from apps.reports.libraries.motivation.candidate_result_content import (
+    CANDIDATE_RESULT_COPY,
+)
+
+
+_CANDIDATE_FACTOR_COPY_KEYS = {
+    "affiliation": "attachment",
+    "autonomy": "independence",
+    "commercial_value": "commercial_focus",
+}
 
 
 def resolve_motivation_report_text(
@@ -96,17 +105,19 @@ def resolve_candidate_factor_content(
     *,
     factor_key: str,
     score: int | None,
+    language_code: str = "en",
     bands=None,
 ) -> dict:
     score_band = resolve_motivation_score_band(score)
-
-    factor_content = CANDIDATE_FACTOR_CONTENT.get(factor_key, {})
-    band_content = factor_content.get("bands", {}).get(score_band, {})
+    copy_key = _CANDIDATE_FACTOR_COPY_KEYS.get(factor_key, factor_key)
+    locale = str(language_code or "en").lower()[:2]
+    if locale not in {"sv", "en"}:
+        locale = "en"
 
     return {
         "score": score,
         "score_band": score_band,
-        "label": factor_content.get("label", ""),
-        "descriptor": factor_content.get("descriptor", ""),
-        "candidate_text": band_content.get("candidate_text", ""),
+        "label": "",
+        "descriptor": "",
+        "candidate_text": CANDIDATE_RESULT_COPY.get(locale, {}).get(copy_key, ""),
     }

@@ -41,7 +41,7 @@ class CandidateResultSnapshot(models.Model):
     )
     content_version = models.CharField(
         max_length=32,
-        default="candidate-static-v4",
+        default="candidate-static-v5",
         help_text="Version of the approved candidate-facing content library.",
     )
     legacy_content = models.JSONField(
