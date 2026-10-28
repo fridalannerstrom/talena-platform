@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
@@ -21,14 +22,18 @@ def _copy(locale: str) -> dict[str, str]:
         return {
             "subject": "Ditt assessmentresultat från Talena",
             "body": (
-                "Hej {first_name}!\n\n"
-                "Tack för att du har genomfört assessmenten.\n\n"
-                "Ditt resultat är ett reflektionsunderlag inför den "
-                "fortsatta dialogen. Det beskriver möjliga preferenser "
-                "och tendenser, inte ett betyg eller en absolut sanning.\n\n"
-                "Visa ditt resultat här:\n{result_url}\n\n"
-                "Din personliga verifieringskod är:\n{verification_code}\n\n"
-                "Vänliga hälsningar,\nTalena"
+                "Hej,\n\n"
+                "Tack för att du genomfört TQ:s test!\n\n"
+                "Vi vill belysa att resultatet är del av helheten, inget facit.\n\n"
+                "Om det är något du inte känner igen dig i, vill förtydliga "
+                "eller berätta mer om, har du möjlighet att dela med dig av "
+                "dina tankar genom att lämna kommentarer direkt i rapporten.\n\n"
+                "Ta del av dina resultat här:\n"
+                "{result_url}\n\n"
+                "Din personliga verifieringskod:\n"
+                "{verification_code}\n\n"
+                "Vänliga hälsningar,\n"
+                "Teamet på TQ"
             ),
         }
     return {
@@ -44,6 +49,47 @@ def _copy(locale: str) -> dict[str, str]:
             "Best regards,\nTalena"
         ),
     }
+
+
+def _html_body(
+    locale: str,
+    *,
+    first_name: str,
+    result_url: str,
+    verification_code: str,
+):
+    if locale == "sv":
+        return format_html(
+            "<p>Hej,</p>"
+            "<p>Tack för att du genomfört TQ:s test!</p>"
+            "<p>Vi vill belysa att resultatet är del av helheten, inget facit.</p>"
+            "<p>Om det är något du inte känner igen dig i, vill förtydliga "
+            "eller berätta mer om, har du möjlighet att dela med dig av "
+            "dina tankar genom att lämna kommentarer direkt i rapporten.</p>"
+            "<p><strong>Ta del av dina resultat här:</strong><br>"
+            "<a href=\"{result_url}\">{result_url}</a></p>"
+            "<p><strong>Din personliga verifieringskod:</strong><br>"
+            "{verification_code}</p>"
+            "<p>Vänliga hälsningar,<br>Teamet på TQ</p>",
+            result_url=result_url,
+            verification_code=verification_code,
+        )
+
+    return format_html(
+        "<p>Hi {first_name}!</p>"
+        "<p>Thank you for completing the assessment.</p>"
+        "<p>Your result is a basis for reflection and further conversation. "
+        "It describes possible preferences and tendencies, not a grade or "
+        "an absolute truth.</p>"
+        "<p><strong>View your result here:</strong><br>"
+        "<a href=\"{result_url}\">{result_url}</a></p>"
+        "<p><strong>Your personal verification code is:</strong><br>"
+        "{verification_code}</p>"
+        "<p>Best regards,<br>Talena</p>",
+        first_name=first_name,
+        result_url=result_url,
+        verification_code=verification_code,
+    )
 
 
 def _result_url(raw_token: str, base_url: str | None = None) -> str:
@@ -138,9 +184,17 @@ def send_candidate_result_email(
 
     copy = _copy(locale)
     subject = copy["subject"]
+    first_name = invitation.candidate.first_name or ""
+    result_url = _result_url(raw_token, base_url)
     body = copy["body"].format(
-        first_name=invitation.candidate.first_name or "",
-        result_url=_result_url(raw_token, base_url),
+        first_name=first_name,
+        result_url=result_url,
+        verification_code=raw_code,
+    )
+    html_body = _html_body(
+        locale,
+        first_name=first_name,
+        result_url=result_url,
         verification_code=raw_code,
     )
 
@@ -159,6 +213,7 @@ def send_candidate_result_email(
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[invitation.candidate.email],
     )
+    message.attach_alternative(html_body, "text/html")
 
     try:
         message.send()
