@@ -1,0 +1,113 @@
+/* The candidate Team styles panel inside the shared team report. */
+.talena-team-page .team-member-profile-body {
+  display: block;
+  padding: 1.2rem;
+}
+
+.talena-team-page .team-profile-bulk-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.talena-team-page .team-member-profile-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.9rem;
+}
+
+.talena-team-page .team-member-report-content {
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--talena-border, #e7e1dd);
+  border-radius: 14px;
+}
+
+.talena-team-page .team-member-report-content .team-styles-section {
+  margin: 0 !important;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.talena-team-page .team-member-report-content .team-styles-header {
+  padding: 0.3rem 0;
+}
+
+.talena-team-page .team-member-report-content .team-style-polar-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 340px;
+  height: 340px;
+}
+
+.talena-team-page .team-member-report-content [data-team-style-chart] {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.talena-team-page .team-member-report-content .team-style-profile-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.talena-team-page .team-member-profile-empty {
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Off-screen rendering keeps all private report data inside the browser. */
+.talena-team-page.team-profile-pdf-stage {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  z-index: -10;
+  width: 900px;
+  min-width: 900px;
+  padding: 32px;
+  background: #fff;
+  color: #302d2b;
+  pointer-events: none;
+}
+
+.talena-team-page.team-profile-pdf-stage .team-member-report-content {
+  border: 0;
+  padding: 0;
+}
+
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-heading {
+  border-bottom: 1px solid #e6e0dd;
+  padding: 0 0 16px;
+  margin: 0 0 28px;
+}
+
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-heading h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.talena-team-page.team-profile-pdf-stage .team-profile-pdf-heading p {
+  margin: 0;
+  font-size: 15px;
+}
+
+@media (max-width: 767.98px) {
+  .talena-team-page .team-member-profile-body {
+    padding: 0.65rem;
+  }
+  .talena-team-page .team-member-report-content {
+    padding: 0.75rem;
+  }
+  .talena-team-page .team-profile-bulk-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+  .talena-team-page .team-profile-bulk-actions .btn {
+    width: 100%;
+  }
+}
