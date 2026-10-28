@@ -236,7 +236,7 @@ class CandidateResultInterpretationTests(TestCase):
             "Du är vanligtvis samarbetsvillig och bekväm med att jobba både självständigt och i team.",
             serialised_content,
         )
-        self.assertEqual(metadata["content_version"], "candidate-static-v1")
+        self.assertEqual(metadata["content_version"], "candidate-static-v2")
         self.assertTrue(fingerprint)
         self.assertNotIn("sten", serialised_content.casefold())
         self.assertNotIn("percentile", serialised_content.casefold())
@@ -293,6 +293,7 @@ class CandidateResultInterpretationTests(TestCase):
         self.assertTrue(created)
         self.assertFalse(created_again)
         self.assertEqual(first.pk, second.pk)
+        self.assertEqual(first.prompt_versions, {})
         generate.assert_called_once()
 
     def test_legacy_ai_snapshot_is_archived_when_replaced(self):
@@ -691,15 +692,15 @@ class CandidateResultAccessViewTests(TestCase):
         for language, tab, heading, description in (
             (
                 "sv",
-                "Resultatlänk",
-                "Kandidatresultat",
-                "Status för kandidatens resultatdelning och reflektioner.",
+                "Kandidatrapport",
+                "Kandidatrapport",
+                "Delning är aktiverad. Statusen nedan bygger på faktisk e-post, åtkomst och feedback.",
             ),
             (
                 "en",
-                "Result link",
-                "Candidate result",
-                "Status for the candidate result sharing and reflections.",
+                "Candidate Report",
+                "Candidate Report",
+                "Sharing is enabled. The status below reflects actual email, access and feedback.",
             ),
         ):
             with self.subTest(language=language):
@@ -740,7 +741,7 @@ class CandidateResultAccessViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "1 / 1")
-        self.assertContains(response, "All answered")
+        self.assertContains(response, "Submitted")
         self.assertContains(response, "Latest response:")
         self.assertContains(response, "Answered")
 
@@ -796,7 +797,7 @@ class CandidateResultAccessViewTests(TestCase):
         self.assertContains(response, "In progress")
         self.assertContains(response, "Latest response:")
         self.assertContains(response, "Answered")
-        self.assertNotContains(response, "All answered")
+        self.assertNotContains(response, "Submitted")
 
         CandidateResultFeedback.objects.create(
             snapshot=snapshot,
@@ -805,7 +806,7 @@ class CandidateResultAccessViewTests(TestCase):
         )
         response = self.client.get(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertContains(response, "2 / 2")
-        self.assertContains(response, "All answered")
+        self.assertContains(response, "Submitted")
 
 class CandidateResultEmailTests(TestCase):
     def setUp(self):
