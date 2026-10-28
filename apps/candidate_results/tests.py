@@ -693,14 +693,14 @@ class CandidateResultAccessViewTests(TestCase):
             (
                 "sv",
                 "Kandidatrapport",
-                "Kandidatrapport",
-                "Delning är aktiverad. Statusen nedan bygger på faktisk e-post, åtkomst och feedback.",
+                "Delning av kandidatrapport är avstängd",
+                "Kandidaten har inte åtkomst. En intern förhandsvisning nedan ändrar inte delningsstatus.",
             ),
             (
                 "en",
                 "Candidate Report",
-                "Candidate Report",
-                "Sharing is enabled. The status below reflects actual email, access and feedback.",
+                "Candidate report sharing is disabled",
+                "The candidate has no access. An internal preview below does not change sharing status.",
             ),
         ):
             with self.subTest(language=language):
