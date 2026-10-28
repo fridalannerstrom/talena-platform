@@ -4,7 +4,6 @@ from django.utils import timezone
 import json
 from apps.processes.models import TestInvitation
 from apps.core.integrations.sova import SovaClient
-from apps.core.integrations.integrity_guard import extract_integrity_guard
 import logging
 from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
@@ -137,10 +136,6 @@ def sova_webhook(request):
                 },
             )
 
-    parsed_integrity_guard = extract_integrity_guard(payload)
-    if parsed_integrity_guard is not None:
-        invitation.integrity_guard = parsed_integrity_guard
-
     invitation.sova_payload = payload
 
     if overall_raw:
@@ -159,7 +154,6 @@ def sova_webhook(request):
 
     invitation.save(update_fields=[
         "sova_payload",
-        *(["integrity_guard"] if parsed_integrity_guard is not None else []),
         "sova_overall_status",
         "sova_current_phase_code",
         "sova_current_phase_idx",
