@@ -198,6 +198,33 @@
                       {% endif %}
                     </div>
                   {% endif %}
+
+                  {% if candidate_result_activity %}
+                    <details class="candidate-result-activity">
+                      <summary class="candidate-result-activity__summary">
+                        <span class="candidate-inline-title">
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}Aktivitet{% else %}Activity{% endif %}
+                        </span>
+                        <span class="candidate-result-activity__count">
+                          {{ candidate_result_activity|length }}
+                          {% if LANGUAGE_CODE|slice:":2" == "sv" %}händelser{% else %}events{% endif %}
+                        </span>
+                      </summary>
+                      <ol class="candidate-result-activity__list">
+                        {% for event in candidate_result_activity %}
+                          <li class="candidate-result-activity__item">
+                            <span class="candidate-result-activity__dot" aria-hidden="true"></span>
+                            <div class="candidate-result-activity__body">
+                              <span class="candidate-result-activity__message">{{ event.message }}</span>
+                              <time class="candidate-result-activity__time" datetime="{{ event.created_at|date:'c' }}">
+                                {{ event.created_at|date:"Y-m-d H:i" }}
+                              </time>
+                            </div>
+                          </li>
+                        {% endfor %}
+                      </ol>
+                    </details>
+                  {% endif %}
                 </div>
 
                 {% if candidate_result_status.sharing_enabled and candidate_result_snapshot %}

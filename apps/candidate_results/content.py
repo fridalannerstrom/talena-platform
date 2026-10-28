@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from django.db import transaction
+
 from apps.core.ai.cognitive_interpretation import extract_cognitive_results
 from apps.core.ai.language import normalize_ai_language
 from apps.core.ai.motivation_interpretation import (
@@ -30,6 +32,7 @@ from apps.reports.libraries.personality.definitions import (
 )
 from apps.reports.libraries.personality.builder import get_score_band, normalize_sten
 
+from .audit import log_candidate_result_event
 from .models import CandidateResultSnapshot
 
 
@@ -480,6 +483,7 @@ def create_candidate_result_snapshot(
     invitation,
     *,
     language_code: str = "sv",
+    actor=None,
 ) -> tuple[CandidateResultSnapshot, bool]:
     """Create a static snapshot, or safely upgrade an earlier AI snapshot."""
     if not invitation.process.candidate_results_enabled:
@@ -496,14 +500,23 @@ def create_candidate_result_snapshot(
         invitation,
         language_code=language_code,
     )
-    snapshot = CandidateResultSnapshot.objects.create(
-        invitation=invitation,
-        candidate=invitation.candidate,
-        process=invitation.process,
-        locale=normalize_ai_language(language_code),
-        content=content,
-        content_version=CANDIDATE_RESULT_CONTENT_VERSION,
-        prompt_versions={},
-        source_fingerprint=source_fingerprint,
-    )
+    with transaction.atomic():
+        snapshot = CandidateResultSnapshot.objects.create(
+            invitation=invitation,
+            candidate=invitation.candidate,
+            process=invitation.process,
+            locale=normalize_ai_language(language_code),
+            content=content,
+            content_version=CANDIDATE_RESULT_CONTENT_VERSION,
+            prompt_versions={},
+            source_fingerprint=source_fingerprint,
+        )
+        from apps.activity.models import ActivityEvent
+
+        log_candidate_result_event(
+            invitation,
+            verb=ActivityEvent.Verb.CANDIDATE_RESULT_SNAPSHOT_CREATED,
+            actor=actor,
+            meta={"content_version": CANDIDATE_RESULT_CONTENT_VERSION},
+        )
     return snapshot, True

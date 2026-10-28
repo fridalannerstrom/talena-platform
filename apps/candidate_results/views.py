@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import (
     Http404,
     HttpResponseBadRequest,
@@ -19,6 +20,11 @@ from apps.processes.models import TestInvitation
 from .email import send_candidate_result_email
 from apps.processes.services.access import get_accessible_processes_for_user
 
+from .audit import (
+    log_candidate_result_access_expired,
+    log_candidate_result_event,
+    log_candidate_result_open_once,
+)
 from .content import ensure_candidate_result_snapshot_current
 from .models import (
     CandidateResultAccess,
@@ -257,15 +263,23 @@ def _save_candidate_feedback(request, snapshot: CandidateResultSnapshot):
     if len(comment) > 2000:
         return HttpResponseBadRequest(copy["feedback_comment_too_long"])
 
-    CandidateResultFeedback.objects.update_or_create(
-        snapshot=snapshot,
-        result_area=result_area,
-        defaults={
-            "response": response_value,
-            "comment": comment,
-            "locale": locale,
-        },
-    )
+    from apps.activity.models import ActivityEvent
+
+    with transaction.atomic():
+        CandidateResultFeedback.objects.update_or_create(
+            snapshot=snapshot,
+            result_area=result_area,
+            defaults={
+                "response": response_value,
+                "comment": comment,
+                "locale": locale,
+            },
+        )
+        log_candidate_result_event(
+            snapshot.invitation,
+            verb=ActivityEvent.Verb.CANDIDATE_RESULT_FEEDBACK_SUBMITTED,
+            meta={"result_area": result_area},
+        )
     return None
 
 
@@ -279,10 +293,18 @@ def _save_test_experience(request, snapshot: CandidateResultSnapshot):
     if len(comment) > 2000:
         return HttpResponseBadRequest(copy["feedback_comment_too_long"])
 
-    CandidateTestExperienceFeedback.objects.update_or_create(
-        snapshot=snapshot,
-        defaults={"rating": int(rating), "comment": comment, "locale": locale},
-    )
+    from apps.activity.models import ActivityEvent
+
+    with transaction.atomic():
+        CandidateTestExperienceFeedback.objects.update_or_create(
+            snapshot=snapshot,
+            defaults={"rating": int(rating), "comment": comment, "locale": locale},
+        )
+        log_candidate_result_event(
+            snapshot.invitation,
+            verb=ActivityEvent.Verb.CANDIDATE_RESULT_FEEDBACK_SUBMITTED,
+            meta={"result_area": "test_experience"},
+        )
     return None
 
 
@@ -312,6 +334,7 @@ def _render_unavailable(request, access: CandidateResultAccess):
 def candidate_result(request, token: str):
     access = _get_access(token)
     now = timezone.now()
+    log_candidate_result_access_expired(access, now=now)
 
     if not access.snapshot.process.candidate_results_enabled or not access.is_active(now):
         return _render_unavailable(request, access)
@@ -325,7 +348,26 @@ def candidate_result(request, token: str):
     # result link. Do not try to verify an empty code again on that POST.
     if request.method == "POST" and request.POST.get("action") not in {"save_feedback", "save_experience"}:
         code = (request.POST.get("verification_code") or "").strip()
-        verified = access.verify_code(code, now=now)
+        verification_was_allowed = (
+            access.is_active(now) and not access.is_rate_limited(now)
+        )
+        from apps.activity.models import ActivityEvent
+
+        with transaction.atomic():
+            verified = access.verify_code(code, now=now)
+            if verified:
+                log_candidate_result_event(
+                    access.snapshot.invitation,
+                    verb=ActivityEvent.Verb.CANDIDATE_RESULT_CODE_VERIFIED,
+                    meta={"access_id": access.pk},
+                )
+            elif verification_was_allowed:
+                log_candidate_result_event(
+                    access.snapshot.invitation,
+                    verb=ActivityEvent.Verb.CANDIDATE_RESULT_CODE_FAILED,
+                    meta={"access_id": access.pk},
+                )
+
         if verified:
             request.session[session_key] = True
         else:
@@ -342,6 +384,7 @@ def candidate_result(request, token: str):
             },
         )
 
+    log_candidate_result_open_once(access)
     snapshot, _upgraded = ensure_candidate_result_snapshot_current(
         access.snapshot
     )
@@ -415,7 +458,13 @@ def manage_candidate_result(request, invitation_id: int):
     process = invitation.process
 
     if not user_can_edit_process(request.user, process.company, process):
-        return HttpResponseForbidden("You do not have permission to manage this result.")
+        return HttpResponseForbidden(
+            _candidate_result_action_message(
+                request,
+                sv="Du har inte behörighet att hantera kandidatrapporten.",
+                en="You do not have permission to manage this result.",
+            )
+        )
 
     action = (request.POST.get("action") or "").strip()
 
@@ -488,8 +537,17 @@ def manage_candidate_result(request, invitation_id: int):
                 ),
             )
         else:
-            access.revoked_at = timezone.now()
-            access.save(update_fields=["revoked_at"])
+            from apps.activity.models import ActivityEvent
+
+            with transaction.atomic():
+                access.revoked_at = timezone.now()
+                access.save(update_fields=["revoked_at"])
+                log_candidate_result_event(
+                    invitation,
+                    verb=ActivityEvent.Verb.CANDIDATE_RESULT_ACCESS_REVOKED,
+                    actor=request.user,
+                    meta={"access_id": access.pk},
+                )
             messages.success(
                 request,
                 _candidate_result_action_message(
@@ -499,7 +557,13 @@ def manage_candidate_result(request, invitation_id: int):
                 ),
             )
     else:
-        return HttpResponseBadRequest("Unknown candidate result action.")
+        return HttpResponseBadRequest(
+            _candidate_result_action_message(
+                request,
+                sv="Okänd åtgärd för kandidatrapporten.",
+                en="Unknown candidate result action.",
+            )
+        )
 
     next_url = request.POST.get("next", "")
     if not url_has_allowed_host_and_scheme(

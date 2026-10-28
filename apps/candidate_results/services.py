@@ -3,6 +3,7 @@ from datetime import timedelta
 import secrets
 
 from django.contrib.auth.hashers import make_password
+from django.db import transaction
 from django.utils import timezone
 
 from .models import CandidateResultAccess, CandidateResultSnapshot
@@ -11,13 +12,35 @@ from .models import CandidateResultAccess, CandidateResultSnapshot
 DEFAULT_ACCESS_LIFETIME = timedelta(days=365)
 
 
-def revoke_candidate_result_access_for_process(process) -> int:
+def revoke_candidate_result_access_for_process(process, *, actor=None) -> int:
     """Invalidate every issued candidate result link for this process."""
-    return (
+    from apps.activity.models import ActivityEvent
+
+    from .audit import log_candidate_result_event
+
+    accesses = list(
         CandidateResultAccess.objects
         .filter(snapshot__process=process, revoked_at__isnull=True)
-        .update(revoked_at=timezone.now())
+        .select_related(
+            "snapshot__invitation__candidate",
+            "snapshot__invitation__process__company",
+        )
     )
+    now = timezone.now()
+    with transaction.atomic():
+        for access in accesses:
+            access.revoked_at = now
+            access.save(update_fields=["revoked_at"])
+            log_candidate_result_event(
+                access.snapshot.invitation,
+                verb=ActivityEvent.Verb.CANDIDATE_RESULT_ACCESS_REVOKED,
+                actor=actor,
+                meta={
+                    "access_id": access.pk,
+                    "reason": "sharing_disabled",
+                },
+            )
+    return len(accesses)
 
 
 def generate_verification_code() -> str:

@@ -22,6 +22,14 @@ class ActivityEvent(models.Model):
         ALL_TESTS_COMPLETED = "all_tests_completed", "Alla tester slutförda"
         CANDIDATE_RESULT_EMAIL_SENT = "candidate_result_email_sent", "Kandidatresultat skickat"
         CANDIDATE_RESULT_EMAIL_FAILED = "candidate_result_email_failed", "Kandidatresultat kunde inte skickas"
+        CANDIDATE_RESULT_SNAPSHOT_CREATED = "candidate_result_snapshot_created", "Kandidatrapport skapad"
+        CANDIDATE_RESULT_LINK_OPENED = "candidate_result_link_opened", "Kandidatrapport öppnad"
+        CANDIDATE_RESULT_CODE_VERIFIED = "candidate_result_code_verified", "Verifieringskod godkänd"
+        CANDIDATE_RESULT_CODE_FAILED = "candidate_result_code_failed", "Felaktig verifieringskod"
+        CANDIDATE_RESULT_FEEDBACK_SUBMITTED = "candidate_result_feedback_submitted", "Kandidatfeedback inskickad"
+        CANDIDATE_RESULT_CODE_REPLACED = "candidate_result_code_replaced", "Verifieringskod ersatt"
+        CANDIDATE_RESULT_ACCESS_REVOKED = "candidate_result_access_revoked", "Kandidatåtkomst återkallad"
+        CANDIDATE_RESULT_ACCESS_EXPIRED = "candidate_result_access_expired", "Kandidatåtkomst utgången"
 
         STATUS_CHANGED = "status_changed", "Status ändrad"
 
@@ -350,6 +358,69 @@ class ActivityEvent(models.Model):
             return _(
                 "Candidate result email failed for %(candidate)s"
             ) % {"candidate": candidate}
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_SNAPSHOT_CREATED:
+            return _(
+                "Candidate report content was created for %(candidate)s"
+            ) % {"candidate": candidate}
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_LINK_OPENED:
+            return _("%(candidate)s opened the candidate report") % {
+                "candidate": candidate,
+            }
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_CODE_VERIFIED:
+            return _(
+                "%(candidate)s successfully verified the result code"
+            ) % {"candidate": candidate}
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_CODE_FAILED:
+            return _(
+                "%(candidate)s entered an incorrect result code"
+            ) % {"candidate": candidate}
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_FEEDBACK_SUBMITTED:
+            result_areas = {
+                "personality": _("personality"),
+                "skills": _("skills"),
+                "motivation": _("motivation"),
+                "test_experience": _("the test experience"),
+            }
+            area = result_areas.get(meta.get("result_area"), _("the report"))
+            return _(
+                "%(candidate)s submitted feedback on %(area)s"
+            ) % {
+                "candidate": candidate,
+                "area": area,
+            }
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_CODE_REPLACED:
+            return _(
+                "%(actor)s replaced %(candidate)s's verification code"
+            ) % {
+                "actor": actor,
+                "candidate": candidate,
+            }
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_ACCESS_REVOKED:
+            if meta.get("reason") == "sharing_disabled":
+                return _(
+                    "%(actor)s revoked %(candidate)s's access when sharing was disabled"
+                ) % {
+                    "actor": actor,
+                    "candidate": candidate,
+                }
+            return _(
+                "%(actor)s revoked %(candidate)s's candidate report access"
+            ) % {
+                "actor": actor,
+                "candidate": candidate,
+            }
+
+        if self.verb == self.Verb.CANDIDATE_RESULT_ACCESS_EXPIRED:
+            return _("Access to %(candidate)s's candidate report expired") % {
+                "candidate": candidate,
+            }
 
         if self.verb == self.Verb.ALL_TESTS_COMPLETED:
             return _(

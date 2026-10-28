@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -10,6 +11,7 @@ from apps.activity.models import ActivityEvent
 from apps.activity.services import log_event
 
 from .content import create_candidate_result_snapshot
+from .audit import log_candidate_result_event
 from .models import CandidateResultAccess
 from .services import (
     create_candidate_result_access,
@@ -105,7 +107,49 @@ def _result_url(raw_token: str, base_url: str | None = None) -> str:
     return path
 
 
-def _log_activity(invitation, *, actor, email_log_id, status, error=""):
+def _redact_candidate_result_secrets(
+    value,
+    *,
+    result_url="",
+    raw_token="",
+    raw_code="",
+):
+    redacted = str(value or "")
+    for secret, replacement in (
+        (result_url, "[redacted candidate result link]"),
+        (raw_token, "[redacted token]"),
+        (raw_code, "[redacted verification code]"),
+    ):
+        if secret:
+            redacted = redacted.replace(secret, replacement)
+    return redacted
+
+
+def _replace_candidate_result_code(access, invitation, *, actor):
+    from apps.activity.models import ActivityEvent
+
+    with transaction.atomic():
+        raw_token, raw_code = rotate_candidate_result_access(access)
+        log_candidate_result_event(
+            invitation,
+            verb=ActivityEvent.Verb.CANDIDATE_RESULT_CODE_REPLACED,
+            actor=actor,
+            meta={"access_id": access.pk},
+        )
+    return raw_token, raw_code
+
+
+def _log_activity(
+    invitation,
+    *,
+    actor,
+    email_log_id,
+    status,
+    error="",
+    result_url="",
+    raw_token="",
+    raw_code="",
+):
     try:
         log_event(
             company=invitation.process.company,
@@ -121,7 +165,12 @@ def _log_activity(invitation, *, actor, email_log_id, status, error=""):
             invitation=invitation,
             meta={
                 "email_log_id": email_log_id,
-                "error": error,
+                "error": _redact_candidate_result_secrets(
+                    error,
+                    result_url=result_url,
+                    raw_token=raw_token,
+                    raw_code=raw_code,
+                ),
             },
         )
     except Exception:
@@ -156,6 +205,7 @@ def send_candidate_result_email(
     snapshot, _created = create_candidate_result_snapshot(
         invitation,
         language_code=requested_locale,
+        actor=actor,
     )
     locale = (
         snapshot.locale
@@ -172,7 +222,11 @@ def send_candidate_result_email(
     from apps.emails.models import EmailLog
 
     if access and replace_code:
-        raw_token, raw_code = rotate_candidate_result_access(access)
+        raw_token, raw_code = _replace_candidate_result_code(
+            access,
+            invitation,
+            actor=actor,
+        )
     elif access:
         previous_log = (
             EmailLog.objects
@@ -186,7 +240,11 @@ def send_candidate_result_email(
         )
         if previous_log:
             return previous_log, access, None
-        raw_token, raw_code = rotate_candidate_result_access(access)
+        raw_token, raw_code = _replace_candidate_result_code(
+            access,
+            invitation,
+            actor=actor,
+        )
     else:
         access, raw_token, raw_code = create_candidate_result_access(snapshot)
 
@@ -196,6 +254,12 @@ def send_candidate_result_email(
     body = copy["body"].format(
         result_url=result_url,
         verification_code=raw_code,
+    )
+    safe_body_snapshot = _redact_candidate_result_secrets(
+        body,
+        result_url=result_url,
+        raw_token=raw_token,
+        raw_code=raw_code,
     )
     html_body = _html_body(
         locale,
@@ -208,7 +272,7 @@ def send_candidate_result_email(
         template_type="candidate_result",
         to_email=invitation.candidate.email,
         subject=subject,
-        body_snapshot=body,
+        body_snapshot=safe_body_snapshot,
         status="queued",
     )
 
@@ -224,13 +288,22 @@ def send_candidate_result_email(
         message.send()
         email_log.mark_sent()
     except Exception as exc:
-        email_log.mark_failed(str(exc))
+        safe_error = _redact_candidate_result_secrets(
+            exc,
+            result_url=result_url,
+            raw_token=raw_token,
+            raw_code=raw_code,
+        )
+        email_log.mark_failed(safe_error)
         _log_activity(
             invitation,
             actor=actor,
             email_log_id=email_log.id,
             status="failed",
-            error=str(exc),
+            error=safe_error,
+            result_url=result_url,
+            raw_token=raw_token,
+            raw_code=raw_code,
         )
         raise
 
@@ -239,5 +312,8 @@ def send_candidate_result_email(
         actor=actor,
         email_log_id=email_log.id,
         status="sent",
+        result_url=result_url,
+        raw_token=raw_token,
+        raw_code=raw_code,
     )
     return email_log, access, raw_code
