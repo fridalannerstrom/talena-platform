@@ -27,7 +27,7 @@ from apps.reports.libraries.personality.builder import get_score_band, normalize
 from .models import CandidateResultSnapshot
 
 
-CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v2"
+CANDIDATE_RESULT_CONTENT_VERSION = "candidate-static-v3"
 _PERSONALITY_LIBRARY_PATH = Path(__file__).parents[1] / "reports" / "libraries" / "personality" / "candidate_content_sv.json"
 with _PERSONALITY_LIBRARY_PATH.open(encoding="utf-8") as _personality_library_file:
     CANDIDATE_PERSONALITY_CONTENT_SV = json.load(_personality_library_file)
@@ -200,8 +200,14 @@ def _candidate_personality_groups(
         trait["key"]: trait
         for trait in CANDIDATE_PERSONALITY_CONTENT_SV.get("traits", [])
     }
+    section_titles_sv = {
+        "leading_and_working_with_others": "Leda och arbeta med andra",
+        "organisation_and_thinking_style": "Organisering och tankemönster",
+        "interacting_and_managing_emotions": "Interaktion och känslohantering",
+    }
     groups = []
     for section in TRAIT_AND_INDICATOR_PROFILE["sections"]:
+        sentences = []
         for trait_definition in section["traits"]:
             trait_key = trait_definition["trait_name"]
             workbook_trait = workbook_traits.get(trait_key, {})
@@ -209,8 +215,6 @@ def _candidate_personality_groups(
                 item["key"]: item
                 for item in workbook_trait.get("indicators", [])
             }
-            trait_content = TRAIT_PROFILE_CONTENT.get(trait_key, {})
-            items = []
 
             for indicator_key in trait_definition.get("indicators", []):
                 sten = scores.get(indicator_key)
@@ -218,32 +222,33 @@ def _candidate_personality_groups(
                 if score_band is None:
                     continue
 
-                indicator_content = INDICATOR_PROFILE_CONTENT.get(indicator_key, {})
                 if language_code == "sv":
                     candidate_text = indicator_definitions.get(indicator_key, {})
-                    label = candidate_text.get("label_sv") or indicator_content.get("label_sv") or indicator_key
                     text = candidate_text.get("score_texts", {}).get(score_band, "")
                 else:
-                    label = indicator_content.get("label_en") or indicator_key
+                    indicator_content = INDICATOR_PROFILE_CONTENT.get(indicator_key, {})
                     text = (
                         indicator_content.get("score_texts", {})
                         .get(score_band, {})
                         .get("en", "")
                     )
 
-                if text:
-                    items.append({"label": label, "text": text})
+                if text and text.strip():
+                    sentences.append(text.strip())
 
-            if not items:
-                continue
+        if not sentences:
+            continue
 
-            if language_code == "sv":
-                title = workbook_trait.get("label_sv") or trait_content.get("label_sv") or trait_key
-            else:
-                title = trait_content.get("label_en") or trait_key
-            groups.append({"title": title, "items": items})
+        title = (
+            section_titles_sv.get(section["section_key"], section["section_name"])
+            if language_code == "sv"
+            else section["section_name"]
+        )
+        groups.append({
+            "title": title,
+            "body": " ".join(sentences),
+        })
     return groups
-
 
 def _candidate_skills_groups(
     invitation,
