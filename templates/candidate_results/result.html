@@ -336,6 +336,10 @@
       font-size: .94rem;
       line-height: 1.35;
     }
+    .result-group > p {
+      font-size: .98rem;
+      line-height: 1.75;
+    }
     .result-group-item + .result-group-item { margin-top: 12px; }
     .result-group-item strong {
       display: block;
@@ -725,6 +729,7 @@
           {% for group in section.groups %}
             <div class="result-group">
               {% if group.title %}<h3>{{ group.title }}</h3>{% endif %}
+              {% if group.body %}<p>{{ group.body }}</p>{% endif %}
               {% for item in group.items %}
                 <div class="result-group-item">
                   {% if item.label %}<strong>{{ item.label }}</strong>{% endif %}
