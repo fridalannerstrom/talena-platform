@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 
 from apps.emails.utils import (
     SWEDISH_DEFAULT_INVITATION_BODY,
+    ENGLISH_DEFAULT_INVITATION_BODY,
     get_default_invitation_template,
     render_placeholders,
     upgrade_legacy_default_invitation_template,
@@ -40,10 +41,11 @@ class CandidateInvitationCopyTests(SimpleTestCase):
         self.assertTrue(rendered.endswith("https://example.com/test"))
         self.assertNotIn("{sender_full_name}", rendered)
 
-    def test_english_default_is_unchanged(self):
+    def test_english_default_matches_the_full_candidate_invitation_copy(self):
         body = get_default_invitation_template("en")["body"]
-        self.assertIn("You have been invited to complete assessments.", body)
-        self.assertTrue(body.endswith("{sender_full_name}"))
+        self.assertEqual(body, ENGLISH_DEFAULT_INVITATION_BODY)
+        self.assertIn("You have been invited to complete TQ's assessments.", body)
+        self.assertTrue(body.endswith("{assessment_url}"))
 
     def test_saved_old_swedish_default_is_upgraded(self):
         old_body = (

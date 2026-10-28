@@ -1,6 +1,6 @@
 {% load i18n static %}
 <!doctype html>
-<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
+<html lang="{{ locale }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -239,16 +239,16 @@
   <main class="page-shell">
     <header class="site-header">
       <img class="brand-logo" src="{% static 'images/talena-logo.svg' %}" alt="Talena">
-      <div class="language-chip" aria-label="{% if request.LANGUAGE_CODE|slice:':2' == 'sv' %}Svenska{% else %}English{% endif %}">
+      <div class="language-chip" aria-label="{% if locale == 'sv' %}Svenska{% else %}English{% endif %}">
         <span class="language-dot" aria-hidden="true"></span>
-        {% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Svenska{% else %}English{% endif %}
+        {% if locale == "sv" %}Svenska{% else %}English{% endif %}
       </div>
     </header>
 
     <div class="content">
       <section class="auth-card">
         <div class="card-mark" aria-hidden="true">↗</div>
-        <div class="eyebrow">{% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Talena resultat{% else %}Talena results{% endif %}</div>
+        <div class="eyebrow">{% if locale == "sv" %}Talena resultat{% else %}Talena results{% endif %}</div>
         <h1>{{ copy.verify_title }}</h1>
         <p class="intro">{{ copy.verify_intro }}</p>
 
@@ -263,7 +263,7 @@
 
         <div class="card-footer">
           <span class="footer-dot" aria-hidden="true"></span>
-          {% if request.LANGUAGE_CODE|slice:":2" == "sv" %}Din kod används bara för att visa rätt resultat.{% else %}Your code is only used to show the correct result.{% endif %}
+          {% if locale == "sv" %}Din kod används bara för att visa rätt resultat.{% else %}Your code is only used to show the correct result.{% endif %}
         </div>
       </section>
     </div>

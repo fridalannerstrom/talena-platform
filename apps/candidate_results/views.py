@@ -79,6 +79,10 @@ def _copy(locale: str) -> dict[str, str]:
             "experience_save": "Skicka feedback",
             "experience_update": "Uppdatera feedback",
             "experience_saved": "Tack! Din feedback om testupplevelsen har sparats.",
+            "feedback_area_unavailable": "Den här resultatdelen är inte tillgänglig.",
+            "feedback_response_invalid": "Det här svaret är inte giltigt.",
+            "feedback_comment_too_long": "Kommentaren får innehålla högst 2 000 tecken.",
+            "experience_rating_invalid": "Välj ett giltigt betyg.",
             "discussion_body": (
                 "Resultatet beskriver möjliga preferenser och tendenser "
                 "utifrån dina svar. Det är inte en absolut sanning eller "
@@ -130,6 +134,10 @@ def _copy(locale: str) -> dict[str, str]:
         "experience_save": "Send feedback",
         "experience_update": "Update feedback",
         "experience_saved": "Thank you! Your test-experience feedback has been saved.",
+        "feedback_area_unavailable": "This result section is not available.",
+        "feedback_response_invalid": "This response is not valid.",
+        "feedback_comment_too_long": "Your comment must be 2,000 characters or fewer.",
+        "experience_rating_invalid": "Choose a valid rating.",
         "discussion_body": (
             "The result describes possible preferences and tendencies "
             "based on your responses. It is not an absolute truth or a "
@@ -239,15 +247,16 @@ def _save_candidate_feedback(request, snapshot: CandidateResultSnapshot):
         choice[0]
         for choice in CandidateResultFeedback.RESPONSE_CHOICES
     }
+    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
+    copy = _copy(locale)
 
     if result_area not in available_areas:
-        return HttpResponseBadRequest("This result area is not available.")
+        return HttpResponseBadRequest(copy["feedback_area_unavailable"])
     if response_value not in valid_responses:
-        return HttpResponseBadRequest("This feedback response is not valid.")
+        return HttpResponseBadRequest(copy["feedback_response_invalid"])
     if len(comment) > 2000:
-        return HttpResponseBadRequest("The feedback comment is too long.")
+        return HttpResponseBadRequest(copy["feedback_comment_too_long"])
 
-    locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
     CandidateResultFeedback.objects.update_or_create(
         snapshot=snapshot,
         result_area=result_area,
@@ -263,12 +272,13 @@ def _save_candidate_feedback(request, snapshot: CandidateResultSnapshot):
 def _save_test_experience(request, snapshot: CandidateResultSnapshot):
     rating = (request.POST.get("rating") or "").strip()
     comment = (request.POST.get("comment") or "").strip()
-    if rating not in {"1", "2", "3", "4", "5"}:
-        return HttpResponseBadRequest("This rating is not valid.")
-    if len(comment) > 2000:
-        return HttpResponseBadRequest("The feedback comment is too long.")
-
     locale = snapshot.locale if snapshot.locale in {"sv", "en"} else "sv"
+    copy = _copy(locale)
+    if rating not in {"1", "2", "3", "4", "5"}:
+        return HttpResponseBadRequest(copy["experience_rating_invalid"])
+    if len(comment) > 2000:
+        return HttpResponseBadRequest(copy["feedback_comment_too_long"])
+
     CandidateTestExperienceFeedback.objects.update_or_create(
         snapshot=snapshot,
         defaults={"rating": int(rating), "comment": comment, "locale": locale},
@@ -293,7 +303,7 @@ def _render_unavailable(request, access: CandidateResultAccess):
     return render(
         request,
         "candidate_results/unavailable.html",
-        {"copy": _copy(locale)},
+        {"copy": _copy(locale), "locale": locale},
         status=410,
     )
 
@@ -306,6 +316,7 @@ def candidate_result(request, token: str):
     if not access.snapshot.process.candidate_results_enabled or not access.is_active(now):
         return _render_unavailable(request, access)
 
+    locale = access.locale if access.locale in {"sv", "en"} else "sv"
     session_key = _session_key(access)
     verified = bool(request.session.get(session_key))
     error = ""
@@ -318,14 +329,15 @@ def candidate_result(request, token: str):
         if verified:
             request.session[session_key] = True
         else:
-            error = _copy(access.locale).get("invalid_code", "Invalid code.")
+            error = _copy(locale).get("invalid_code", "Invalid code.")
 
     if not verified:
         return render(
             request,
             "candidate_results/verify.html",
             {
-                "copy": _copy(access.locale),
+                "copy": _copy(locale),
+                "locale": locale,
                 "error": error,
             },
         )

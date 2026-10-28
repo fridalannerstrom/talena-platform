@@ -59,7 +59,7 @@ class CandidateResultStaticContentTests(SimpleTestCase):
                 data = json.dumps(content, ensure_ascii=False).casefold()
 
                 self.assertIn("introduction", content)
-                self.assertEqual(metadata["content_version"], "candidate-static-v3")
+                self.assertEqual(metadata["content_version"], "candidate-static-v4")
                 self.assertTrue(fingerprint)
                 for secret in (
                     "sova-raw-id-741928",

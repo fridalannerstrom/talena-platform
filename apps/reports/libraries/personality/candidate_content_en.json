@@ -1,0 +1,386 @@
+{
+  "library_version": "candidate-personality-2026-10-28-en",
+  "source_workbook": "Talena_rapporttexter_kandidatversion_du 1.xlsx",
+  "source_sheet": "Blad1",
+  "score_bands": ["1_2", "3", "4_7", "8", "9_10"],
+  "indicators": {
+    "Sensitivity": [
+      "You are probably unlikely to let other people's feelings influence your actions and decisions.",
+      "You are probably less likely to let other people's feelings influence your actions and decisions.",
+      "When you act and make decisions, you can strike a good balance between being attentive to your own and other people's feelings and needs.",
+      "You are likely to be attentive to other people's needs and feelings when making decisions and taking action.",
+      "You are highly attentive to other people's needs and feelings when making decisions and taking action."
+    ],
+    "Teamwork": [
+      "You probably prefer working on your own rather than collaborating in a group.",
+      "You probably enjoy working on your own rather than collaborating in a group.",
+      "You are generally cooperative and comfortable working both independently and as part of a team.",
+      "You enjoy collaborating with others and working as part of a team or group.",
+      "You prefer collaborating with others and working as part of a team or group."
+    ],
+    "Agreeableness": [
+      "You are likely to feel comfortable expressing your views when you disagree with those around you.",
+      "You are likely to feel comfortable expressing your views when you disagree with those around you.",
+      "You are cooperative and also comfortable expressing your views when needed.",
+      "You are friendly and accommodating, and are likely to get along easily with others.",
+      "You are friendly and accommodating, and get along with others effortlessly."
+    ],
+    "Tolerance": [
+      "You may find it challenging to be tolerant of other people's shortcomings.",
+      "You may sometimes find it challenging to be tolerant of other people's shortcomings.",
+      "You are probably fairly tolerant of other people's shortcomings.",
+      "You probably find it easy to understand other people's perspectives and are tolerant of others.",
+      "You find it easy to understand other people's perspectives and are very tolerant of others."
+    ],
+    "Listening": [
+      "You may become bored when you have to listen actively for too long as others talk about their problems.",
+      "You may get bored when you have to listen actively for too long as others talk about their problems.",
+      "You actively listen to other people's perspectives and problems when needed.",
+      "You enjoy listening to other people's perspectives and problems.",
+      "You make a point of taking time to listen to other people's perspectives and problems."
+    ],
+    "Warmth": [
+      "Empathising with others may take energy for you, which can make it take longer to open up and let people get close to you.",
+      "Empathising with others may take energy for you, which can make it take longer to open up and let people get close to you.",
+      "You find it about as easy as most people to build close relationships, and show warmth and openness when needed.",
+      "You are likely to show warmth and openness towards others, and probably find it easy to build close relationships.",
+      "Showing warmth and openness comes very naturally to you, as does building close relationships with others."
+    ],
+    "Developing Others": [
+      "Focusing on other people's development may take a lot of energy for you, so you probably let them develop independently.",
+      "You probably prefer to let others develop independently.",
+      "You may feel comfortable helping others develop when needed.",
+      "You are probably interested in supporting others and enjoy helping them develop.",
+      "You are genuinely interested in supporting others and enjoy helping them develop."
+    ],
+    "Helpfulness": [
+      "You probably expect others to manage on their own, and therefore spend your time on your own priorities rather than helping with their tasks.",
+      "You probably expect others to manage on their own, and tend to spend your time on your own priorities rather than helping with their tasks.",
+      "You are about as supportive and helpful to others as most people.",
+      "You are likely to help others and make an effort to meet everyone's needs.",
+      "You help others and make an effort to meet everyone's needs."
+    ],
+    "Considerate": [
+      "You probably focus more on your own tasks and are not easily distracted by other people's problems.",
+      "You probably focus more on your tasks and are not easily distracted by other people's problems.",
+      "You probably alternate between focusing on your own tasks and considering how others may need help and support.",
+      "You probably spend time thinking about how best to support and help others.",
+      "You spend a lot of time thinking about how best to support and help others."
+    ],
+    "Open Communication": [
+      "You are probably more comfortable communicating with people who are like-minded.",
+      "You probably prefer communicating with people who are like-minded.",
+      "How comfortable you feel networking with your trusted circle and meeting new people is likely to depend on the situation.",
+      "Communicating with different kinds of people probably comes naturally to you.",
+      "You find it easy to communicate with many different kinds of people."
+    ],
+    "Building Networks": [
+      "You probably focus mainly on maintaining relationships with a close, trusted group of people.",
+      "You probably focus on maintaining relationships with a close, trusted group of people rather than expanding your network.",
+      "You probably maintain relationships with a close, trusted group of people and can network strategically when needed.",
+      "You probably network strategically and maintain those relationships over time.",
+      "Networking strategically and maintaining existing relationships over time comes naturally to you."
+    ],
+    "Initiating Contact": [
+      "You may find it challenging to approach new people.",
+      "You may feel less comfortable approaching new people, but can probably do so when it is really needed.",
+      "How comfortable you feel approaching new people is likely to depend on the situation.",
+      "You are likely to feel comfortable approaching new people.",
+      "Approaching new people comes very naturally to you."
+    ],
+    "Energetic": [
+      "You probably prefer a steady pace and find it tiring to take on many tasks at once.",
+      "You probably prefer a slower pace that lets you focus on one thing at a time.",
+      "You probably prefer a balance between a steady pace and actively seeking new tasks and challenges.",
+      "You probably thrive in fast-paced environments and actively look for new challenges and tasks.",
+      "You thrive in fast-paced environments and actively seek new challenges and tasks."
+    ],
+    "Enthusiastic": [
+      "You are probably very thoughtful before acting and tend to take a considerate approach.",
+      "You are probably thoughtful before acting and tend to take a considerate approach.",
+      "Whether you act enthusiastically or cautiously is likely to depend on the situation.",
+      "You are probably enthusiastic and quick to act.",
+      "You are enthusiastic and quick to act."
+    ],
+    "Risk Appetite": [
+      "You probably consider different options carefully before making decisions and avoid risk unless it is absolutely necessary.",
+      "You probably prefer to consider different options before making decisions.",
+      "You balance making quick decisions with considering different options for more significant decisions.",
+      "You probably make decisions quickly without knowing the outcome and are likely to feel comfortable taking risks.",
+      "You make decisions quickly without knowing the outcome and are comfortable taking risks."
+    ],
+    "Persuading": [
+      "You may feel uncomfortable trying to persuade others to agree with your views or perspective.",
+      "You may feel uncomfortable trying to persuade others to agree with your views or perspective.",
+      "How comfortable you feel persuading others to consider your views or perspective is likely to depend on the situation.",
+      "You probably enjoy persuading others and feel comfortable influencing them.",
+      "You enjoy persuading others and feel very comfortable influencing them."
+    ],
+    "Desire to Lead": [
+      "You probably prefer following instructions rather than taking the lead in a group.",
+      "You probably prefer following instructions rather than taking the lead in a group.",
+      "You feel comfortable taking the lead in situations where you feel confident or at ease.",
+      "You probably enjoy taking charge and feel comfortable leading in most situations.",
+      "You prefer taking charge and leading others."
+    ],
+    "Assertive": [
+      "You may feel uncomfortable putting forward your views or perspective.",
+      "You are likely to feel more uncomfortable putting forward your views, especially if you have not been asked for your perspective.",
+      "You may feel comfortable expressing your views, but probably do not make an effort to put forward views that differ from others'.",
+      "You probably take a confident and assertive approach, especially when expressing your views.",
+      "You take a confident and assertive approach, especially when expressing your views."
+    ],
+    "Competitive": [
+      "You probably dislike competing with others and prefer to avoid situations involving competition.",
+      "You probably dislike competing with others and are likely to be uninterested in competitive situations.",
+      "You may feel comfortable competing with others and find some competitive situations interesting.",
+      "You probably have a desire to win and enjoy competitive situations.",
+      "You have a strong desire to win and enjoy competitive situations."
+    ],
+    "Challenge": [
+      "You probably prefer to take things as they come rather than being overly focused on achieving specific goals.",
+      "You probably prefer to take things as they come rather than being overly focused on achieving specific goals.",
+      "You can strike a good balance between wanting to achieve goals and taking things as they come.",
+      "You are probably motivated by success and tend to stay focused on your goals when setbacks arise.",
+      "You are motivated by success and stay focused on your goals when setbacks arise."
+    ],
+    "Self-Discipline": [
+      "You may become distracted from what you intend to achieve, especially when you are not interested in the goal.",
+      "You are likely to become distracted from what you intend to achieve, especially when you are not interested in the goal.",
+      "You are likely to have the discipline to achieve a limited number of priority goals.",
+      "You are probably able to stay focused on tasks and disciplined in achieving your goals.",
+      "You stay focused on tasks and are disciplined in achieving your goals."
+    ],
+    "Planning and Organising": [
+      "You probably prefer a flexible approach to planning tasks in advance.",
+      "You probably prefer a more flexible approach to planning tasks in advance.",
+      "You balance planning your tasks carefully with taking a flexible approach.",
+      "You are probably careful about planning and organising your tasks.",
+      "You plan and organise your tasks carefully."
+    ],
+    "Attention to Detail": [
+      "Focusing on details may feel tiring for you.",
+      "You may find it more tiring to focus on details.",
+      "You balance focusing carefully on details with knowing when it is not needed.",
+      "You probably have an eye for detail and prefer work to be done accurately and to a high standard.",
+      "You have an eye for detail and make sure work is done accurately and to a high standard."
+    ],
+    "Keeping Promises": [
+      "You are probably tolerant of minor mistakes or changes to schedules.",
+      "You are probably tolerant of minor mistakes or changes to schedules.",
+      "You try to keep your promises where possible and may accept minor mistakes or schedule changes depending on the task.",
+      "You probably make an effort to keep your promises and are less tolerant of mistakes and changes to schedules.",
+      "You do your utmost to keep your promises and have little tolerance for mistakes or changes to schedules."
+    ],
+    "Data Focus": [
+      "You are probably less interested in data and statistics and may find it tiring to focus heavily on them.",
+      "You are probably less interested in data and statistics and may find it tiring to focus heavily on them.",
+      "You balance intuitive and data-driven approaches to solving problems.",
+      "You probably take a data-driven approach and see statistics and data as key to solving problems.",
+      "You take a data-driven approach and see statistics and data as key to solving problems."
+    ],
+    "Evaluating": [
+      "You may be less interested in tasks that require critical evaluation and scrutiny.",
+      "You are probably less interested in tasks that require critical evaluation and scrutiny.",
+      "You are fairly interested in critically evaluating and examining situations.",
+      "You probably prefer to critically evaluate and examine situations.",
+      "You prefer to critically evaluate and examine situations."
+    ],
+    "Analysing Problems": [
+      "You probably take a more intuitive approach to solving problems rather than focusing on statistics or data.",
+      "You are likely to take a more intuitive approach to solving problems rather than focusing on statistics or data.",
+      "You balance intuitive and data-driven approaches to solving problems.",
+      "You probably use a range of information sources and an analytical approach to solve problems.",
+      "You use a range of information sources and an analytical approach to solve problems."
+    ],
+    "Strategic Thinking": [
+      "You probably prefer an operational focus rather than working on complex problems.",
+      "You probably prefer an operational focus rather than working on complex problems.",
+      "You can switch between focusing on complex problems and operational details depending on the situation.",
+      "You enjoy finding solutions to complex problems.",
+      "You really enjoy finding solutions to complex problems."
+    ],
+    "Conceptual": [
+      "You probably prefer working with practical details rather than exploring the conceptual aspects of a situation.",
+      "You probably prefer working with practical details rather than exploring the conceptual aspects of a situation.",
+      "You feel comfortable exploring both conceptual aspects and operational details, depending on the situation.",
+      "You probably enjoy taking a conceptual, big-picture approach to complex problems rather than focusing on operational details.",
+      "You prefer taking a conceptual, big-picture approach to complex problems rather than focusing on operational details."
+    ],
+    "Curiosity": [
+      "Learning new ways of working and new methods may feel tiring for you.",
+      "You may find it tiring to learn new ways of working and new methods.",
+      "You are fairly open and curious about learning new ways of working and new methods.",
+      "You are curious and probably seek out opportunities to learn new ways of working and new methods.",
+      "You are curious and actively seek opportunities to learn new ways of working and new methods."
+    ],
+    "Innovating": [
+      "You probably prefer familiar, proven methods for solving problems rather than exploring new or innovative approaches.",
+      "You probably prefer familiar, proven methods for solving problems rather than exploring new or innovative approaches.",
+      "You probably balance using proven methods with trying innovative approaches to solve problems.",
+      "You probably enjoy finding innovative solutions and feel comfortable trying new approaches to solve problems.",
+      "You prefer finding innovative solutions to using existing methods, and feel comfortable trying entirely new approaches to solve problems."
+    ],
+    "Generating Ideas": [
+      "You may find it challenging to come up with new ideas or solutions and prefer to avoid situations that require generating ideas.",
+      "You may find it challenging to come up with new ideas or solutions and are likely to avoid situations that require generating ideas.",
+      "You may feel comfortable coming up with new ideas or solutions, but do not necessarily seek out those situations.",
+      "You probably enjoy generating ideas and finding creative solutions to problems.",
+      "You enjoy generating ideas and finding creative solutions to problems."
+    ],
+    "Experimenting": [
+      "You probably prefer using proven, existing methods rather than experimenting with new ways of working.",
+      "You probably prefer using proven, existing methods rather than experimenting with new ways of working.",
+      "Depending on the situation, you are probably equally comfortable using existing methods and trying new ways of working.",
+      "You probably enjoy experimenting and trying new ways of working.",
+      "You enjoy experimenting and trying new ways of working."
+    ],
+    "Adapting to Change": [
+      "You may find change challenging, and it can take time for you to adapt to new situations.",
+      "You may find change challenging, and it may take time for you to adapt to new situations.",
+      "You adapt to new situations and changes about as well as most people.",
+      "You probably enjoy change and adapt to new situations more quickly.",
+      "You enjoy change and adapt to new situations quickly."
+    ],
+    "Flexible": [
+      "You probably have firm views in most situations and show little interest in other perspectives.",
+      "You probably hold firm views in many situations and may be uninterested in other perspectives.",
+      "Whether you take an open-minded or firm view is likely to depend on the situation.",
+      "You probably take a flexible approach to new situations and readily change your views when you encounter new information and perspectives.",
+      "You take a flexible approach to new situations and readily change your views when you encounter new information and perspectives."
+    ],
+    "Variety": [
+      "You probably prefer predictable, routine ways of working and may find unpredictability tiring.",
+      "You probably prefer more predictable, routine ways of working and may find unpredictability tiring.",
+      "You probably appreciate a balance between routine tasks and variety.",
+      "You probably prefer variety and may find routine tasks tiring.",
+      "You prefer plenty of variety and find routine tasks tiring."
+    ],
+    "Adhering to Rules": [
+      "You are probably comfortable bending or breaking rules to a reasonable extent when needed to get things done.",
+      "You are likely to feel comfortable bending or breaking rules to a reasonable extent when needed to get things done.",
+      "You probably balance following rules and guidelines with bending them to a reasonable extent.",
+      "You probably follow rules and guidelines carefully, question them very little and are unlikely to bend them.",
+      "You follow rules and guidelines very carefully without questioning them, and are unwilling to bend them regardless of the circumstances."
+    ],
+    "Candid": [
+      "You probably prefer to be indirect and less straightforward when communicating your views.",
+      "You are probably more indirect and less straightforward when communicating your views.",
+      "Whether you communicate your views directly or indirectly is likely to depend on the situation.",
+      "You are likely to communicate directly and straightforwardly, and speak openly about your views.",
+      "You communicate directly and straightforwardly, and speak openly about your views regardless of the situation."
+    ],
+    "Earnest": [
+      "You may feel comfortable giving compliments or showing appreciation even when it does not fully reflect what you think, if it helps you achieve a goal. You probably hold back your true opinion of others when that seems more useful.",
+      "You may feel comfortable giving compliments or showing appreciation even when it does not fully reflect what you think, if it helps you achieve a goal. You probably hold back your true opinion of others when that seems more useful.",
+      "You adapt how openly you share your views of others to the situation. You show appreciation when it feels justified, but may also hold back or soften your views when needed.",
+      "You probably have clear views of others and may find it difficult to show appreciation unless it feels genuine. You are likely to be more direct and have little need to hide what you really think.",
+      "You have clear views of others and may find it difficult to show appreciation unless it feels genuine. You are direct and have little need to hide what you really think."
+    ],
+    "Egalitarian": [
+      "You probably expect others to recognise your status by showing respect, and expect your role in the organisation to come with some special treatment.",
+      "You probably appreciate others recognising your status by showing respect, and expect your role in the organisation to come with some special treatment.",
+      "You probably like having your status acknowledged from time to time, but do not go out of your way to seek it.",
+      "You prefer to be treated like everyone else regardless of your role, and may avoid emphasising your status.",
+      "You want to be treated like everyone else regardless of your role, and avoid emphasising your status."
+    ],
+    "Collective": [
+      "You probably want attention and recognition for your unique qualities and skills.",
+      "You are likely to want attention and recognition for your unique qualities and skills.",
+      "You may appreciate attention for your qualities and skills, but probably do not actively seek it.",
+      "You prefer blending in with the group rather than receiving special attention, and do not want others to feel they have to show you appreciation.",
+      "You prefer blending in with the group rather than receiving special attention, and do not want others to feel they have to show you appreciation."
+    ],
+    "Avoiding Status": [
+      "You probably expect others and the organisation to recognise and acknowledge your status and role.",
+      "You are probably comfortable with others and the organisation recognising and acknowledging your status and role.",
+      "You probably like having your status acknowledged by others and the organisation, but do not go out of your way to seek it.",
+      "You have little need for your status to be noticed and probably believe respect should be earned rather than automatically come with a title.",
+      "You have no need for your status to be noticed and believe respect should be earned rather than automatically come with a title."
+    ],
+    "Humble": [
+      "You may find it frustrating when your contribution goes unnoticed and expect others to show appreciation.",
+      "You may find it frustrating when your contribution goes unnoticed and probably expect others to show appreciation.",
+      "You do not necessarily make an effort to seek appreciation, but are comfortable receiving it from others.",
+      "You probably do not see yourself as better than anyone else and do not expect appreciation or special treatment.",
+      "You do not see yourself as better than anyone else and do not expect appreciation or special treatment."
+    ],
+    "Modest": [
+      "You probably enjoy talking about your successes and feel good when your achievements receive attention.",
+      "You are probably comfortable talking about your successes and receiving attention for your achievements.",
+      "You are fairly modest about your successes and what you have achieved.",
+      "You prefer not to talk about your successes and may feel uncomfortable when your achievements receive attention.",
+      "You are modest, avoid talking about your successes and feel uncomfortable when your achievements receive attention."
+    ],
+    "Avoiding Attention": [
+      "You probably enjoy being the centre of attention and prefer to stand out in group settings rather than blend in.",
+      "You are probably comfortable being the centre of attention and receiving attention in group settings rather than blending in.",
+      "You are as comfortable being the centre of attention as being one of the group.",
+      "You prefer not to be the centre of attention and would rather keep a low profile to avoid attention.",
+      "You avoid being the centre of attention and prefer to keep a low profile."
+    ],
+    "Tough Minded": [
+      "You are probably sensitive to criticism from others, and it may take time for you to move on from it.",
+      "You are probably sensitive to criticism from others, and it may take time for you to let it go.",
+      "How long criticism affects you is likely to depend on the situation.",
+      "You are probably not easily affected by criticism and do not tend to worry about how others see you.",
+      "You are not easily affected by criticism and do not worry about how others see you."
+    ],
+    "Recovering": [
+      "It may take you time to get over mistakes, and you may find it harder to move on after a setback.",
+      "It may take you a little longer to get over mistakes, and you may find it somewhat harder to move on after a setback.",
+      "You recover from setbacks about as quickly as most people.",
+      "You probably respond well to setbacks and move on without overthinking them.",
+      "You respond well to setbacks and move on quickly without overthinking them."
+    ],
+    "Optimistic": [
+      "You may take a pessimistic view when things go wrong and worry about possible consequences.",
+      "You may take a pessimistic view when things go wrong and tend to worry about possible consequences.",
+      "You can often see the positive aspects of challenging situations while also considering possible obstacles and consequences.",
+      "You are probably optimistic and focus on the positive aspects in most situations rather than on obstacles or negatives.",
+      "You are optimistic and choose to focus on the positive aspects of challenging situations rather than on obstacles or negatives."
+    ],
+    "Controlling Stress": [
+      "You may find it easy to show your emotions in stressful or challenging situations.",
+      "You may tend to show your emotions in stressful or challenging situations.",
+      "You manage your emotions in stressful situations about as well as most people.",
+      "You probably regulate your emotions well and can hide negative feelings under pressure.",
+      "You regulate your emotions well and can hide negative feelings under pressure."
+    ],
+    "Calm": [
+      "You may worry about situations that feel challenging and often show others when you feel anxious.",
+      "You may worry about situations that feel challenging and show others when you feel anxious.",
+      "You can probably stay calm in many situations, but may also show emotion when situations feel challenging.",
+      "You probably do not worry often and tend to have a calm presence in most situations.",
+      "You rarely worry and have a very calm presence in most situations."
+    ],
+    "Composed": [
+      "In very challenging or emotionally stressful situations, you may find it harder to stay composed and keep your self-control.",
+      "In very challenging or emotionally stressful situations, you may find it harder to stay composed and keep your self-control.",
+      "You maintain your self-control in emotionally stressful and challenging situations about as well as most people.",
+      "You probably maintain self-control, stay calm and remain composed in challenging and emotionally stressful situations.",
+      "You maintain self-control, stay calm and remain composed in challenging and emotionally stressful situations."
+    ],
+    "Self-Reliant": [
+      "You probably prefer to be guided and receive a lot of support from those around you.",
+      "You probably like being guided and receiving support from those around you.",
+      "You are likely to feel comfortable working independently in some situations, while needing more guidance in others.",
+      "You feel comfortable taking on tasks on your own and probably do not need support or guidance from others.",
+      "You prefer taking on tasks on your own and do not need support or guidance from others."
+    ],
+    "Self-Contained": [
+      "You probably do your best when you receive emotional support and encouragement from others, and are likely to share your feelings openly.",
+      "You probably work better when you receive emotional support and encouragement from others, and tend to share your feelings openly.",
+      "Depending on the situation, you can work independently or seek support and encouragement from those around you.",
+      "You probably prefer working independently and have little need for emotional support and encouragement from others.",
+      "You prefer working independently and do not need emotional support and encouragement from others."
+    ],
+    "Thinking Independently": [
+      "You probably seek advice before making decisions and give a lot of weight to other people's views before acting.",
+      "You probably ask others for advice before making decisions and take their views into account when you act.",
+      "You feel fairly comfortable making decisions independently, but may seek advice before making more significant decisions.",
+      "You probably prefer making decisions independently without asking others for advice, and feel comfortable deciding without worrying about what others might think.",
+      "You prefer making decisions independently without asking others for advice, and feel comfortable deciding without worrying about what others might think."
+    ]
+  }
+}
