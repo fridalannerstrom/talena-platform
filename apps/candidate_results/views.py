@@ -159,8 +159,10 @@ def _result_context(
         if not isinstance(section, dict):
             continue
 
-        body = (section.get("body") or "").strip()
-        points = section.get("points") or []
+        # Personality copy is presented only through its three candidate-facing
+        # areas; ignore any legacy section-level summary stored in old snapshots.
+        body = "" if key == "personality" else (section.get("body") or "").strip()
+        points = [] if key == "personality" else (section.get("points") or [])
         points = [
             str(point).strip()
             for point in points
